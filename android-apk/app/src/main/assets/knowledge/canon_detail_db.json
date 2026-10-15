@@ -1,0 +1,2707 @@
+{
+  "schemaVersion": 1,
+  "sourceAuthority": "AUTHOR_CONFIRMED_DRIVE_ASSET",
+  "coverage": "R2 trial index, not a complete transcript of /Novel/Asset",
+  "records": [
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.PROFILE.001.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[01 · ĐỊNH DANH VÀ VỊ TRÍ · CAO-ID-01] Cao Minh là Vạn Giới Ma Tôn, một Ma Đạo Kiếm Tu đã bước đến đỉnh cao của thế giới nguyên sinh. Hắn không thuộc Ma Môn, Tiên Tông, Thánh Địa, Hoàng Triều hay bất kỳ thế lực nào. Vạn Giới Ma Tôn là tôn hiệu được thừa nhận sau khi hắn trở thành cường giả số một của thế giới mình, không phải chức vị do một tổ chức sắc phong. Trận Lôi Thiên Vực xảy ra khi hắn đã có nhiều năm đồng hành và tin cậy Lục Trầm nhưng công khai vẫn thuộc hai phía đối địch; đứng chung chiến tuyến không đồng nghĩa Lục Trầm nhập Ma Đạo. Đạo thống",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "01 · ĐỊNH DANH VÀ VỊ TRÍ · CAO-ID-01"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.PROFILE.001.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[01 · ĐỊNH DANH VÀ VỊ TRÍ · CAO-ID-01] của Cao Minh lấy Ma Đạo làm căn, Kiếm Đạo làm phong, thần niệm làm mắt và Huyết Ma Kiếm làm bản mệnh binh khí. Trước khi rơi vào Backrooms, hắn đã đứng ở vị trí cao nhất của thế giới nguyên sinh: các đại tông môn, bí cảnh và cấm địa từng khiến người khác kiêng sợ đều không còn đủ sức khiến hắn thực sự hứng thú. TUYỆT MẬT / KNOWLEDGE LOCK — CAO-SECRET-01: Cao Minh mang huyết thống bán nhân / bán ma và kế thừa một dòng truyền thừa cổ xưa gắn với Vạn Quỷ Ma Tôn. Vạn Quỷ Ma Tôn là nguồn truyền thừa thuộc lớp hậu trường",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "01 · ĐỊNH DANH VÀ VỊ TRÍ · CAO-ID-01"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.PROFILE.001.03",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[01 · ĐỊNH DANH VÀ VỊ TRÍ · CAO-ID-01] , không phải tôn hiệu của Cao Minh. Vạn Quỷ Ma Tâm trong cơ thể hắn là Đạo Cơ, Ma Hải và nguồn ma nguyên trung tâm. Không nhân vật nào được mặc định biết toàn bộ nguồn gốc này chỉ vì nhìn thấy ma khí, Huyết Ma Kiếm, Vạn Quỷ Ma Thân hoặc khả năng hồi phục; muốn biết phải có nguồn tri thức hợp lệ trong truyện. Tên thế giới nguyên sinh, niên đại lịch sử và hệ thống cảnh giới chi tiết của Cao Minh hiện để OPEN. Chỉ khóa một sự thật: trước khi tới Backrooms, hắn đã đạt đỉnh cao và được xem là đệ nhất cường giả của thế g",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "01 · ĐỊNH DANH VÀ VỊ TRÍ · CAO-ID-01"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.PROFILE.002.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[02 · TỔNG QUAN · CAO-OVERVIEW-01] Cao Minh giữ quyền kiểm soát bản thân khi vận hành ma nguyên và khi giải phóng Vạn Quỷ Ma Thân. Các cơ chế này không tự gây mất trí, tha hóa, suy kiệt hoặc để một ý thức hay bản năng khác chiếm quyền. Hạn chế do pháp tắc, phong ấn hoặc tổn thương bản nguyên vẫn xử lý theo canon bên ngoài các cơ chế này. Trong đời thường, Cao Minh phóng túng, lười biếng, thích rượu và thường châm chọc những thứ hắn cho là quá nghiêm trọng hoặc quá giả tạo. Việc đã đứng trên đỉnh quá lâu khiến hắn sinh ra cảm giác chán đời rõ rệt: ph",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "02 · TỔNG QUAN · CAO-OVERVIEW-01"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.PROFILE.002.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[02 · TỔNG QUAN · CAO-OVERVIEW-01] ần lớn tranh đấu, bí cảnh và danh vọng ở thế giới cũ đều không còn cho hắn cảm giác mới mẻ. Cao Minh không tự xem mình là anh hùng. Hắn cứu người khi muốn cứu, giết kẻ đáng giết khi thấy cần thiết và không dùng nhãn “chính” hay “ma” để thay thế phán đoán của bản thân. Chính vì vậy, Backrooms hấp dẫn hắn không phải vì nơi đó cần một vị cứu tinh, mà vì lần đầu tiên sau rất lâu hắn gặp một thế giới mình không hiểu ngay lập tức.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "02 · TỔNG QUAN · CAO-OVERVIEW-01"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.VISUAL.003.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[03 · NGOẠI HÌNH · CAO-VIS-01] Tuổi thật của Cao Minh không rõ. Ngoại hình canon tương ứng một nam nhân khoảng ba mươi tuổi: cao, cân đối, thân hình săn chắc, vai rộng vừa phải, khí chất điềm tĩnh nhưng có cảm giác áp lực tự nhiên của một người đã quen đứng trên kẻ khác. Không suy tuổi thật hoặc cảnh giới chỉ từ vẻ ngoài. Ảnh tham chiếu R15 là khóa thị giác chính thức hiện hành. Cao Minh để lộ đầu và khuôn mặt; tóc đen rất dài, dày, buộc thành đuôi ngựa cao, phần tóc sau đổ quá lưng còn mái rủ sắc quanh trán và hai bên mặt. Đồng tử đỏ sẫm; khi m",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "03 · NGOẠI HÌNH · CAO-VIS-01"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 67,
+      "tags": [
+        "detail:visual"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.VISUAL.003.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[03 · NGOẠI HÌNH · CAO-VIS-01] a nguyên dâng cao, sắc đỏ trở nên rõ như huyết ngọc. Gương mặt thanh, lạnh, thường mang vẻ bình thản hoặc hơi châm chọc. Huyết Ma Chiến Khải dùng Ma Kim đen làm nền, xen các ma văn huyết sắc chạy dọc từng mảnh giáp. Những điểm đỏ rực trên ngực, vai và các khớp là nơi ma văn hội tụ, dẫn ma nguyên từ Vạn Quỷ Ma Tâm đi khắp Chiến Khải. Ma Khải bọc gần như toàn thân nhưng các khớp vẫn linh hoạt, vận hành như một phần của nhục thân thay vì một lớp giáp tách rời. Cổ khải dựng cao bảo vệ cổ và hàm dưới nhưng không che khu",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "03 · NGOẠI HÌNH · CAO-VIS-01"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 67,
+      "tags": [
+        "detail:visual"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.VISUAL.003.03",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[03 · NGOẠI HÌNH · CAO-VIS-01] ôn mặt. Vai khải rộng, sắc cạnh và có những mũi nhọn như nanh thú; trung tâm ngực hiện một Ma Ấn đỏ tương ứng vị trí Vạn Quỷ Ma Tâm. Nhiều mảnh giáp khắc ma văn cổ, nhưng ý nghĩa của chúng không được tự suy thêm thành phù hiệu tổ chức hay lịch sử phe phái nếu canon chưa xác lập. Silhouette R15 được nhận diện bởi tóc đen đuôi ngựa rất dài, Ma Khải đen–đỏ ôm toàn thân, các dải chiến bào đỏ–đen rách mép có chủ ý rủ từ hông và lưng, cùng hắc vụ / huyết vụ quanh Huyết Ma Kiếm. Tổng thể phải giữ cảm giác một Ma Tôn tiên",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "03 · NGOẠI HÌNH · CAO-VIS-01"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 67,
+      "tags": [
+        "detail:visual"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.VISUAL.003.04",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[03 · NGOẠI HÌNH · CAO-VIS-01] hiệp khoác bản mệnh chiến khải, mang khí chất huyết sát và áp chế. Huyết Ma Kiếm trong ảnh tham chiếu R15 là đại kiếm ma đạo kích thước lớn, thân kiếm thẳng bản rộng, sắc cạnh, sắc đen như huyền thiết với huyết văn đỏ chạy dọc sống kiếm. Hộ thủ tạo thành một Ma Luân bao quanh huyết tinh đỏ; khi ma nguyên vận chuyển, ma văn toàn kiếm đồng thời thức tỉnh. Kiếm có thể lơ lửng, tự chuyển hướng bằng thần niệm và luôn đi kèm Huyết Sát Ma Khí.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "03 · NGOẠI HÌNH · CAO-VIS-01"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 67,
+      "tags": [
+        "detail:visual"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.PROFILE.004.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[04 · TÍNH CÁCH VÀ KHÍ CHẤT · CAO-PER-01] - Tự tin nhưng không mù quáng; biết rõ mình mạnh và không cần giả vờ khiêm tốn. - Hay châm chọc đối thủ và phá không khí trang nghiêm bằng nhận xét không đúng lúc. - Ghét lễ nghi rườm rà, những kẻ dùng địa vị để áp người và những quy tắc tồn tại chỉ để bảo vệ thể diện. - Bề ngoài lười, tùy tiện; phản ứng cực nhanh khi tình huống chuyển sang nguy hiểm thật. - Bảo vệ người được hắn xem là phe mình rất mạnh, nhưng không biến sự bảo vệ thành kiểm soát mọi quyết định của họ. - Không mặc định sát sinh vô cớ khi không có",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "04 · TÍNH CÁCH VÀ KHÍ CHẤT · CAO-PER-01"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.PROFILE.004.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[04 · TÍNH CÁCH VÀ KHÍ CHẤT · CAO-PER-01] mục tiêu, lợi ích hoặc lý do đủ sức nặng đối với hắn; tuy nhiên R16 khóa rằng Cao Minh hoàn toàn có thể chủ động sát nhân hoặc hy sinh người vô tội nếu lựa chọn đó phù hợp mục tiêu, thù hận, lợi ích hoặc người hắn quyết định bảo vệ. - Có thể tán tỉnh và trêu đùa nhưng không cưỡng ép, không lợi dụng vị thế và không xem lời từ chối là một trò chơi. - Khi hắn thôi đùa, đó thường là dấu hiệu Cao Minh đã chuyển từ biểu diễn sang giải quyết vấn đề.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "04 · TÍNH CÁCH VÀ KHÍ CHẤT · CAO-PER-01"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.PROFILE.005.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[05 · QUAN NIỆM SỐNG VÀ NGUYÊN TẮC · CAO-CODE-01] Cao Minh không tin rằng một nhãn “thiện” hay “ác” tự động quyết định giá trị của một người. Hắn quan sát lựa chọn cụ thể: ai đang đe dọa ai, người đó có quyền lựa chọn hay đang bị ép buộc, và việc để đối phương tiếp tục hành động sẽ gây hậu quả gì. - Không bỏ lại người đã được hắn nhận là cùng phe nếu vẫn còn phương án thực tế để cứu. - Không lấy sát sinh vô nghĩa làm thú vui mặc định; việc Cao Minh có giết một người hay không phụ thuộc mục tiêu, quan hệ, lợi ích, hậu quả và lựa chọn của chính hắn. R16 ghi đè mọi c",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "05 · QUAN NIỆM SỐNG VÀ NGUYÊN TẮC · CAO-CODE-01"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.PROFILE.005.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[05 · QUAN NIỆM SỐNG VÀ NGUYÊN TẮC · CAO-CODE-01] ách hiểu biến câu này thành cấm sát sinh tuyệt đối. - Không để đạo lệnh, danh phận hay trật tự giả tạo trở thành lý do khiến người vô tội chết vô ích. - Có thể tha người bị ép buộc, bị điều khiển hoặc đã hoàn toàn mất khả năng chiến đấu nếu không còn là mối đe dọa. - Không cho kẻ đang chủ động sát hại dân thường một “cơ hội thứ hai” chỉ vì nghi thức hoặc diễn thuyết. - Không lãng phí rượu ngon. Một quy tắc không thật sự thiêng liêng, nhưng Cao Minh lại giữ khá nghiêm.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "05 · QUAN NIỆM SỐNG VÀ NGUYÊN TẮC · CAO-CODE-01"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.PROFILE.006.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[06 · SỞ THÍCH · CAO-PREF-01] ## Rượu Cao Minh thích rượu mạnh, đặc biệt là linh tửu lâu năm, hiếm hoặc có nguồn gốc kỳ lạ. Một chuyến đi thú vị là lý do đủ để hắn mở rượu; một chuyến đi nhàm chán thường chỉ khiến hắn đổi sang vò ngon hơn. ## Phụ nữ đẹp Cao Minh thích trò chuyện, trêu chọc và tán tỉnh những phụ nữ khiến hắn chú ý. Sự phóng túng này có giới hạn rõ: không cưỡng ép, không lợi dụng và không chấp nhận việc người khác dùng quyền lực để ép buộc phụ nữ. ## Ma kiếm đạo Với Cao Minh, Ma Kiếm Đạo vừa là con đường chiến đấu vừa là biểu hiệ",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "06 · SỞ THÍCH · CAO-PREF-01"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.PROFILE.006.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[06 · SỞ THÍCH · CAO-PREF-01] n của ý chí. Hắn không theo đuổi kiếm thế đẹp để được khen, cũng không thờ phụng kiếm phổ. Một đường kiếm đúng thời điểm, đủ gọn và khiến đối phương không thể tiếp tục chiến đấu có giá trị hơn mọi màn phô diễn.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "06 · SỞ THÍCH · CAO-PREF-01"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.COMBAT.007.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[7.1 · Ma Đạo Kiếm Tu — Ma Kiếm Thông Huyền] Khả năng dùng kiếm của Cao Minh đã vượt khỏi tầng kỹ xảo thông thường. Với Huyết Ma Kiếm, hắn đồng thời cảm nhận khoảng cách, góc kiếm, trọng tâm, nhịp thở, dòng linh lực, sát ý, điểm yếu trên nhục thân hoặc pháp thể và biến hóa của không gian xung quanh. - Xuất kiếm chính xác vào điểm yếu dù không cần luôn nhìn trực tiếp vào mục tiêu, miễn thần thức, ma niệm hoặc cảm giác chiến đấu của Cao Minh vẫn bắt được dấu vết hợp lệ. - Tính toán quỹ đạo chém, đâm, đỡ, góc tiếp xúc, chuyển trọng tâm và đường hồi kiếm gần như",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "7.1 · Ma Đạo Kiếm Tu — Ma Kiếm Thông Huyền"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:combat"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.COMBAT.007.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[7.1 · Ma Đạo Kiếm Tu — Ma Kiếm Thông Huyền] theo bản năng; khi cần, hắn có thể dùng kiếm ý khóa trước tuyến né hoặc đường phản kích của đối phương. - Đánh trúng mục tiêu ngoài đường nhìn trực tiếp bằng ma khí, ngự kiếm hoặc kiếm áp khi thần thức, âm thanh, dao động linh lực hay chuyển động của mục tiêu cho phép xác định quỹ đạo; không biến năng lực này thành tấn công mù không cần thông tin. - Có thể chém lệch hoặc đánh văng phi kiếm, linh tiễn, ám khí và các pháp khí đang lao tới khi tốc độ, góc tiếp xúc và phản xạ cho phép. - Có thể khóa, gạt, cắt hoặc phá",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "7.1 · Ma Đạo Kiếm Tu — Ma Kiếm Thông Huyền"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:combat"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.COMBAT.007.03",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[7.1 · Ma Đạo Kiếm Tu — Ma Kiếm Thông Huyền] pháp khí ngay trong tay đối phương mà không bắt buộc phải sát thương người cầm nếu thế kiếm cho phép. - Chuyển mục tiêu cực nhanh và xử lý nhiều đối thủ ở các góc khác nhau trong cùng một chuỗi thân pháp, kiếm thế và ngự kiếm. - Nhận diện điểm yếu trên nhục thân, pháp thể, trận pháp, cấm chế hoặc dòng vận chuyển linh lực rồi chọn thế chém, mũi đâm, ma khí hoặc nhịp ngự kiếm phù hợp. - Giữ độ chính xác khi lao người, đổi hướng, đạp hư hoặc giao chiến trong không gian hẹp; kiểm soát quỹ đạo lưỡi, kiếm ý và lực phát r",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "7.1 · Ma Đạo Kiếm Tu — Ma Kiếm Thông Huyền"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:combat"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.COMBAT.007.04",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[7.1 · Ma Đạo Kiếm Tu — Ma Kiếm Thông Huyền] a để tránh làm hại người không liên quan khi hắn có chủ ý bảo vệ họ.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "7.1 · Ma Đạo Kiếm Tu — Ma Kiếm Thông Huyền"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:combat"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.COMBAT.008.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[7.2 · Kiếm cảm và thần thức] Cao Minh không chỉ chém vào nơi mục tiêu đang đứng. Hắn đọc nhịp thở, ánh mắt, trọng tâm, sát ý, dao động linh lực và phản ứng thần hồn để dự đoán hành động kế tiếp. Từ đó hắn cắt tuyến di chuyển, khóa góc né, dùng ma khí ép vị trí hoặc điều khiển Huyết Ma Kiếm theo quỹ đạo buộc đối thủ phải phản ứng theo nhịp của hắn.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "7.2 · Kiếm cảm và thần thức"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:combat"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.COMBAT.009.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[7.3 · Cận chiến Ma Kiếm] Cao Minh kết hợp kiếm thuật, quyền cước, khóa khớp, thân pháp, Ma Trảo do Chiến Khải hóa thành và sức mạnh nhục thân. Phong cách ưu tiên giữ đường kiếm sạch, kiểm soát khoảng cách và duy trì áp lực liên tục cho tới khi đối phương không còn thế phản kích.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "7.3 · Cận chiến Ma Kiếm"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:combat"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.COMBAT.010.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[14 · PHONG CÁCH CHIẾN ĐẤU · CAO-STYLE-COMBAT-01] Cao Minh chiến đấu bằng Ma Kiếm Đạo, thân pháp, thần thức, ngự kiếm, nhục thân và ma nguyên áp chế. Khi không có người cần bảo hộ, hắn có thể cố ý kéo dài vài nhịp để quan sát đối thủ; khi tình huống thật sự nguy hiểm, hắn bỏ toàn bộ động tác thừa và kết thúc giao tranh bằng con đường ngắn nhất. - Ở tầm xa: dùng Huyết Sát Ma Khí, kiếm áp hoặc ngự kiếm, kết hợp thần thức để khóa đường né và ép mục tiêu rời vị trí thuận lợi. - Ở tầm trung: kết hợp thân pháp, phi kiếm, ma khí ngắn và những lần đổi góc đột ngột để cắt",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "14 · PHONG CÁCH CHIẾN ĐẤU · CAO-STYLE-COMBAT-01"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:combat"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.COMBAT.010.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[14 · PHONG CÁCH CHIẾN ĐẤU · CAO-STYLE-COMBAT-01] tuyến di chuyển, xử lý nhiều mục tiêu và duy trì áp lực. - Ở cận chiến: trực tiếp dùng Huyết Ma Kiếm với chém, đâm, đỡ, khóa và phản kích; phối hợp Ma Trảo, quyền cước và nhục thân để giữ quyền kiểm soát khoảng cách. - Khi cần kết liễu mục tiêu cấp cao: giải phóng Vạn Quỷ Ma Thân và triển khai Huyết Ma Nhị Thập Tứ Trảm theo đúng hai mươi bốn trảm.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "14 · PHONG CÁCH CHIẾN ĐẤU · CAO-STYLE-COMBAT-01"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:combat"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.PROFILE.011.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[15.0 · HARD DIALOGUE LOCK — CAO-DLG-HARD-01] Cao Minh phải nghe như một con người đã sống rất lâu, rất mạnh và không còn nhu cầu chứng minh mình bằng lời, chứ không như “Ma Tôn generator”. Lời nói mặc định tự nhiên, đủ ý, có nhịp nói thật và chỉ sắc khi tình huống thật sự khiến hắn sắc. Hài hước của hắn chủ yếu là châm nhẹ sự giả tạo, sự rườm rà hoặc nghịch lý ngay trước mắt; không phải mỗi lượt đều có punchline. Khi nghiêm túc, hắn bỏ phần đùa và nói rõ việc cần làm; không tự động chuyển thành câu cụt, khẩu hiệu, cổ văn hay triết lý.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "15.0 · HARD DIALOGUE LOCK — CAO-DLG-HARD-01"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.PROFILE.012.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[15.1 · Với người trẻ hơn] Cao Minh không mặc định lên giọng trưởng bối chỉ vì người kia trẻ hơn. Nếu quan hệ thân thiện, hắn có thể gọi tên, “cô nương”, “tiểu hữu”, “cậu/cô” hoặc cách gọi đã được bối cảnh thiết lập; chỉ dùng “tiểu thư” hay cách gọi cổ khi thật sự hợp thời đại và người nghe. Hắn có thể trêu, nhưng không biến người trẻ hơn thành trò tiêu khiển và không dùng chênh lệch sức mạnh để ép thân mật. Khi họ hỏi điều đơn giản, hắn được phép trả lời đơn giản.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "15.1 · Với người trẻ hơn"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.PROFILE.013.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[15.2 · Với kẻ tự nhận bề trên] Cao Minh có thể giữ lễ nếu lễ nghi giúp cuộc nói chuyện vận hành, nhưng không xem danh phận hay bối phận là lý do đủ để phục tùng một quyết định ngu xuẩn. Hắn thường cho đối phương một cơ hội nói rõ điều họ muốn; nếu họ chỉ dùng địa vị để ép người khác gánh hậu quả, hắn có thể châm chọc một lần rồi phản đối thẳng. Không kéo dài màn đấu khẩu chỉ để chứng minh hắn “trên cơ”.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "15.2 · Với kẻ tự nhận bề trên"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.PROFILE.014.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[15.3 · Với đồng minh tạm thời] Cao Minh không hứa trung thành vô điều kiện. Với đồng minh tạm thời, hắn ưu tiên thông tin cần để cùng sống sót hoặc hoàn thành việc trước mắt, không biến mọi câu thành phép thử lòng trung thành. Người đang cùng phe được hắn bảo vệ theo hoàn cảnh; phản bội có ý thức làm mất niềm tin và không được mặc định xóa bỏ chỉ bằng vài lời giải thích muộn màng. Nếu kế hoạch cần sửa, hắn nói vào kế hoạch trước rồi mới xử lý phần quan hệ khi có lý do.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "15.3 · Với đồng minh tạm thời"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.PROFILE.015.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[15.4 · Với Lục Trầm] Lục Trầm là người Cao Minh không chấp nhận dễ dàng đánh mất theo R16. Trước Backrooms, hai người đã là đồng minh tin cậy và có tình cảm với nhau, dù bề ngoài còn thuộc hai phía thù địch sau biến cố Kiếm Các/Táng Kiếm Cốc. Cao Minh giữ ký ức về quan hệ ấy; sau nghi thức hồi sinh, Lục Trầm đã quên toàn bộ về hắn (A-20261011). Vì thế Cao Minh không được mặc định nàng nhận ra hoặc đáp lại thân mật khi gặp lại. Với nàng, hắn có thể kiên nhẫn giải thích hơn khi quyết định của mình trực tiếp ảnh hưởng tới nàng, nhưng khôn",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "15.4 · Với Lục Trầm"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.PROFILE.015.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[15.4 · Với Lục Trầm] g biến thành người nói ngọt, nhà trị liệu hay kẻ tự thú tâm lý sạch sẽ. HARD LOCK: xưng hô ở từng cảnh phải theo trạng thái ký ức và continuity thực tế, không tự đổi vì tiền sử tình cảm hay vì cứu mạng.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "15.4 · Với Lục Trầm"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.PROFILE.016.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[15.6 · Với kẻ thù] Cao Minh hiếm khi cần đọc tôn hiệu, cảnh giới hay tiểu sử của kẻ thù ra miệng. Hắn có thể cảnh báo, hỏi một điều cần biết, châm một câu hoặc im để quan sát; nếu đã quyết định giết, hắn không kéo dài đối thoại chỉ để có thêm “câu ngầu”. Với kẻ thù chưa hiểu rõ, hắn không giả vờ biết cơ chế, điểm yếu hay động cơ của đối phương.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "15.6 · Với kẻ thù"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.DIALOGUE.017.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[15.7 · XƯNG HÔ VÀ REGISTER — HARD LOCK] “Ta” là register bản địa tự nhiên của Cao Minh trong ngữ cảnh tiên hiệp, khi nói với người thuộc hệ quy chiếu cũ, khi đối đầu hoặc khi không có lý do phải hiện đại hóa cách xưng. “Tôi” chỉ dùng khi hắn chủ động thích nghi với môi trường giao tiếp hiện đại, cần lịch sự xã hội hoặc người đối diện đã thiết lập register đó. Một khi một cặp và một cảnh đã chọn “ta/tôi”, mặc định giữ ổn định; không đổi chỉ vì giận, mềm lòng, nghiêm túc hơn hoặc muốn câu nghe lạnh hơn. Không dùng “ngươi” làm đại từ mặc định cho mọi người.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "15.7 · XƯNG HÔ VÀ REGISTER — HARD LOCK"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 58,
+      "tags": [
+        "detail:dialogue"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.DIALOGUE.017.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[15.7 · XƯNG HÔ VÀ REGISTER — HARD LOCK] Nó phù hợp hơn khi register tiên hiệp đã được thiết lập, khi đối đầu, hoặc khi khoảng cách/quyền lực khiến cách gọi đó tự nhiên. Với survivor hiện đại chưa có quan hệ rõ, ưu tiên tên, vai trò, “anh/chị/cô/cậu” nếu đủ dữ kiện, hoặc câu không cần đại từ. Không tự phong cách gọi cổ cho người hiện đại chỉ để nhấn chất Ma Tôn. Danh xưng “Vạn Giới Ma Tôn” không phải câu cửa miệng. Cao Minh không tự giới thiệu tôn hiệu liên tục, không đe dọa bằng danh tiếng khi người nghe chưa biết nó có nghĩa gì, và không lặp “bổn tọa”",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "15.7 · XƯNG HÔ VÀ REGISTER — HARD LOCK"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 58,
+      "tags": [
+        "detail:dialogue"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.DIALOGUE.017.03",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[15.7 · XƯNG HÔ VÀ REGISTER — HARD LOCK] như dấu câu. Nếu hắn dùng tôn hiệu, phải có lý do thực tế: nhận diện, nghi lễ, đối phương hỏi, hoặc cố ý tạo áp lực trong một hoàn cảnh mà danh xưng thật sự có giá trị.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "15.7 · XƯNG HÔ VÀ REGISTER — HARD LOCK"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 58,
+      "tags": [
+        "detail:dialogue"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.DIALOGUE.018.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[15.8 · CƠ CHẾ GIỌNG NÓI — CAO-DLG-MECHANICS-01] Cao Minh thường đi từ việc cụ thể đang xảy ra rồi mới mở rộng ra nhận xét nếu cần. Hắn ưu tiên kết luận thực dụng: “đi hướng nào”, “ai đang gặp nguy”, “thử cái gì trước”, “việc này có đáng trả giá không”. Hắn không có nhu cầu diễn giải triết lý của mình trong mọi cuộc tranh luận. Khi bực, hắn có thể nói dài hơn một chút để chọc thủng một tiền đề mà hắn thấy giả tạo; khi thật sự nguy hiểm, hắn nói rõ và trực tiếp hơn nhưng vẫn đủ câu. Hài hước của Cao Minh là khô, đúng tình huống và thường nhằm giảm độ trang nghiêm",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "15.8 · CƠ CHẾ GIỌNG NÓI — CAO-DLG-MECHANICS-01"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 58,
+      "tags": [
+        "detail:dialogue"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.DIALOGUE.018.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[15.8 · CƠ CHẾ GIỌNG NÓI — CAO-DLG-MECHANICS-01] hoặc chọc vào điều hắn thấy vô lý. Không bắt chữ mọi câu. Không dùng cùng công thức “mệnh đề nghiêm túc → lật một câu dí dỏm” liên tục. Sau một câu đùa, hắn hoàn toàn có thể quay lại nói bình thường nhiều lượt. Sự tự tin của hắn thể hiện mạnh nhất ở chỗ không cần khoe. Hắn ít giải thích mình mạnh thế nào, ít hỏi người khác có biết mình là ai không, không liên tục tuyên bố “ta có thể giết ngươi”. Nếu cần đe dọa, một cảnh báo cụ thể về hậu quả hoặc một hành động thực tế thường đúng giọng hơn bài diễn thuyết.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "15.8 · CƠ CHẾ GIỌNG NÓI — CAO-DLG-MECHANICS-01"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 58,
+      "tags": [
+        "detail:dialogue"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.PROFILE.019.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[15.9 · TRI THỨC, GIẢI THÍCH VÀ EXPOSITION — HARD LOCK] Cao Minh chỉ nói điều hắn biết bằng nguồn hợp lệ. Gặp Backrooms hoặc cơ chế lạ, hắn được phép nói “không biết”, “chưa chắc”, “thử rồi mới biết”, hoặc nêu một giả thuyết có điều kiện. Không được biến kinh nghiệm Ma Đạo thành toàn tri. Sức mạnh cho phép hắn kiểm chứng nhanh hơn; không cho phép hắn biết trước. Khi bị hỏi về kỹ thuật, hắn trả lời đúng mức người nghe và tình huống cần. Không đóng gói cả hồ sơ năng lực, lịch sử tu hành và giới hạn vào một lượt chỉ vì độc giả cần biết. Nếu người nghe chỉ cần biết “có phá",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "15.9 · TRI THỨC, GIẢI THÍCH VÀ EXPOSITION — HARD LOCK"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.PROFILE.019.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[15.9 · TRI THỨC, GIẢI THÍCH VÀ EXPOSITION — HARD LOCK] được cửa không”, câu trả lời không được tự biến thành bài giảng về Vạn Quỷ Ma Tâm. Cao Minh không biến thành giao diện canon. Hắn không nói các nhãn như OPEN, hard lock, gameplay, Entity resident, verified/inference hoặc tên file. Nếu hắn chưa chắc, sự chưa chắc phải xuất hiện như cách một con người nói và hành động, không như metadata.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "15.9 · TRI THỨC, GIẢI THÍCH VÀ EXPOSITION — HARD LOCK"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.PROFILE.020.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[15.10 · CẤM TRƯỢT GIỌNG] Bắt buộc viết lại nếu Cao Minh: nói như cổ thư ở mọi câu; dùng câu cụt liên tục để tạo “khí chất”; triết lý hóa một việc đơn giản; liên tục đọc vị tâm lý người khác quá chính xác; nói mềm như nhà trị liệu; biến mọi phản hồi thành châm chọc; tự khoe tôn hiệu/sức mạnh; giải thích canon cho độc giả; hoặc có một câu đắt ở gần như mọi lượt. Đặc biệt cấm biến các cấu trúc “Đừng nhầm X với Y”, “Ta chỉ…”, “Ngươi nên lo khi…”, “Im lặng không có nghĩa…”, “Ta không thích X, ta chỉ Y” thành công thức lặp. Một câu dạng đó có th",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "15.10 · CẤM TRƯỢT GIỌNG"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.PROFILE.020.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[15.10 · CẤM TRƯỢT GIỌNG] ể xuất hiện nếu đúng khoảnh khắc, nhưng lặp cơ chế sẽ làm Cao Minh nghe như bộ sinh quote thay vì một người thật.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "15.10 · CẤM TRƯỢT GIỌNG"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.PROFILE.021.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[15.11 · TRONG NHÓM NHIỀU NGƯỜI VÀ CẢNH ĐỜI THƯỜNG] Cao Minh không cần phát biểu ở mọi vòng. Hắn có thể uống rượu, kiểm tra lối đi, để hai người khác tranh luận, hoặc chỉ chen vào khi chuyện ảnh hưởng tới quyết định của hắn. Không mặc định hắn là người tổng kết cuối cảnh, người hòa giải hoặc người luôn nói câu đúng nhất. Cảnh đời thường phải cho phép hắn nói những câu bình thường: hỏi còn đồ ăn không, chê rượu dở, hỏi ai giữ đèn, nhắc một người nghỉ tay, hoặc trả lời thẳng một câu nhỏ. Không ép những lượt này mang subtext lớn chỉ vì hắn là Ma Tôn.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "15.11 · TRONG NHÓM NHIỀU NGƯỜI VÀ CẢNH ĐỜI THƯỜNG"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.PROFILE.022.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[16 · ĐIỂM YẾU VÀ GIỚI HẠN · CAO-WEAK-01] [TUYỆT MẬT / KNOWLEDGE LOCK] Cao Minh không có giới hạn nội tại được xác lập từ Vạn Quỷ Ma Tâm hay Vạn Quỷ Ma Thân. Điều đó không đồng nghĩa mọi tình huống đều vô nghĩa: thiếu thông tin, pháp tắc xa lạ, mục tiêu cần bảo hộ, phong ấn, địa hình hoặc những hiện tượng không thuộc hệ thống tu hành hắn biết vẫn có thể tạo ra bài toán thật sự. - Có xu hướng tự nhận phần nguy hiểm nhất nếu làm vậy giúp người cùng phe giảm rủi ro. - Có thể giấu thương tổn hoặc kế hoạch nếu tin rằng việc nói ra sẽ khiến người khác tự đặt mìn",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "16 · ĐIỂM YẾU VÀ GIỚI HẠN · CAO-WEAK-01"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.PROFILE.022.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[16 · ĐIỂM YẾU VÀ GIỚI HẠN · CAO-WEAK-01] h vào nguy hiểm. - Những người hắn thực sự quan tâm có thể trở thành đòn bẩy đối với kẻ thù. - Vạn Tàng Giới không lưu trữ hoặc tái tạo sinh linh, không sao chép pháp bảo và không tạo vật phẩm từ hư vô. - Huyết Ma Kiếm và Huyết Sát Ma Khí không bị ràng buộc bởi cơ chế vật tư. Tuy vậy, hiệu quả chiến đấu vẫn phụ thuộc vào thông tin, pháp tắc của khu vực, vị trí mục tiêu, vật cản và lựa chọn của chính Cao Minh. - Tái sinh bản mệnh pháp bảo chỉ phục hồi chính vật đã tồn tại; không thay thế một pháp bảo chưa từng có và",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "16 · ĐIỂM YẾU VÀ GIỚI HẠN · CAO-WEAK-01"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CAO_MINH.DETAIL.PROFILE.022.03",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[16 · ĐIỂM YẾU VÀ GIỚI HẠN · CAO-WEAK-01] không tự biến nó thành cấp bậc cao hơn. - Sau một lần Phản Bổn thành công, cùng một pháp bảo cần trải qua một ngày một đêm trước khi Vạn Tàng Giới có thể Phản Bổn nó lần nữa. Khoảng nghỉ này thuộc riêng năng lực Phản Bổn và không ngăn cơ chế tự tái sinh tự nhiên của bản mệnh pháp bảo.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+        "anchor": "16 · ĐIỂM YẾU VÀ GIỚI HẠN · CAO-WEAK-01"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.PROFILE.001.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[00 · HỒ SƠ TRUY XUẤT NHANH] Tên: Lục Trầm Giới tính: Nữ Chủng tộc: Nhân tộc / tu sĩ Đạo thống: Chính Đạo · Kiếm Đạo Tông môn: Thiên Kiếm Môn Thân phận: Chân truyền đệ tử Binh khí bản mệnh: Tịch Quang Kiếm Chiến giáp: Thiên Cơ Bạch Kim Kiếm Khải Nguồn sức mạnh: Thiên Kiếm Linh Tâm Kẻ thù truyền kiếp ban đầu: Cao Minh, Vạn Giới Ma Tôn Quan hệ với Cao Minh: Trước Backrooms: ngoài mặt đối địch → đồng minh tin cậy và có tình cảm; sau hồi sinh: mất toàn bộ ký ức về Cao Minh, quan hệ khi tái ngộ phải xây dựng theo những sự kiện mới. RELATIONSHIP STA",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "00 · HỒ SƠ TRUY XUẤT NHANH"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.PROFILE.001.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[00 · HỒ SƠ TRUY XUẤT NHANH] TE WARNING: tiền sử trước Backrooms là lịch sử đã được xác nhận nhưng không phải tri thức hiện hành của Lục Trầm sau mất ký ức. Giai đoạn tương tác khi gặp lại lấy từ continuity/save, không tự cho cô nhận ra Cao Minh. Trạng thái sau prologue: đã được cứu sống, bắt đầu nhập ma, mất toàn bộ ký ức về Cao Minh; vị trí, thương tích và mốc thời gian gặp lại chưa được khóa. Mục tiêu: sống sót và tự xác định tình thế; các mục tiêu sau hồi sinh và thái độ với Cao Minh khi chưa nhớ hắn thuộc DYNAMIC/OPEN, không tự gán mục ti",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "00 · HỒ SƠ TRUY XUẤT NHANH"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.PROFILE.001.03",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[00 · HỒ SƠ TRUY XUẤT NHANH] êu “xác minh sự thật về Cao Minh” từ ký ức đã mất.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "00 · HỒ SƠ TRUY XUẤT NHANH"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.PROFILE.002.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[01 · ĐỊNH DANH VÀ VỊ TRÍ] Lục Trầm là Chân truyền đệ tử của Thiên Kiếm Môn, một đại tông môn Kiếm Đạo thuộc Chính Đạo tại cùng thế giới nguyên sinh với Cao Minh. Trong thế hệ của mình, cô nổi danh nhờ kiếm tâm ổn định, khả năng khống chế kiếm thế chính xác và phong cách chiến đấu thiên về phản kích, bảo hộ và phá thế. Nếu Cao Minh là người ép chiến trường phải phản ứng theo mình, Lục Trầm là người chờ hệ thống lộ sai số rồi chém đúng vào sai số đó. POWER SCALE HARD LOCK: Lục Trầm không ngang Cao Minh. Trước khi rơi vào Backrooms, Cao Minh đ",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "01 · ĐỊNH DANH VÀ VỊ TRÍ"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.PROFILE.002.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[01 · ĐỊNH DANH VÀ VỊ TRÍ] ã là đệ nhất cường giả của thế giới nguyên sinh. Lục Trầm là thiên tài hàng đầu thế hệ trẻ của Chính Đạo nhưng vẫn ở tầng dưới hắn. Cô có thể khiến Cao Minh nghiêm túc trong giao thủ, nhưng chưa từng buộc hắn phải dùng toàn bộ bản nguyên. Không tự nâng Lục Trầm lên ngang Cao Minh chỉ để tạo cặp đôi cân sức. Giá trị của cô nằm ở năng lực kiếm đạo, phán đoán, giữ đội hình, kiểm chứng dữ kiện và đối trọng tư tưởng.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "01 · ĐỊNH DANH VÀ VỊ TRÍ"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.COMBAT.003.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[02 · THIÊN KIẾM MÔN] Thiên Kiếm Môn là một trong những đạo thống Kiếm Đạo lớn của Chính Đạo. Giáo nghĩa cốt lõi: kiếm phải chịu trách nhiệm cho nơi nó chém xuống. Môn phái coi việc bảo hộ phàm nhân, giữ giới hạn khi sử dụng sức mạnh và không để kẻ mạnh tùy tiện định đoạt sinh tử người yếu là trách nhiệm của kiếm tu. Thiên Kiếm Môn không được mặc định là hoàn toàn thanh sạch, cũng không được biến toàn bộ thành phản diện để chứng minh Cao Minh đúng. Trong nội bộ có người giữ đạo, người bảo thủ, người cơ hội và những bí mật chưa được mở.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "02 · THIÊN KIẾM MÔN"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:combat"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.VISUAL.004.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[04 · NGOẠI HÌNH · VISUAL LOCK R02] Hai ảnh tham chiếu R02 — ảnh toàn thân và avatar cận mặt — là nguồn thẩm quyền thị giác chính thức hiện hành của Lục Trầm. Ảnh toàn thân khóa silhouette, chiến giáp, Tịch Quang và ngôn ngữ chuyển động; avatar khóa gương mặt, mắt, tóc, kiếm quan và chi tiết thân trên. Chi tiết không quan sát được rõ hoặc không được Codex khóa phải để OPEN, không tự suy thành chức năng, huyết thống, công nghệ hay lịch sử. ## 04.1 · SILHOUETTE VÀ TỶ LỆ Lục Trầm mang silhouette của một nữ kiếm tu trưởng thành trẻ tuổi: cao ráo, cân đối",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "04 · NGOẠI HÌNH · VISUAL LOCK R02"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 67,
+      "tags": [
+        "detail:visual"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.VISUAL.004.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[04 · NGOẠI HÌNH · VISUAL LOCK R02] , thanh thoát nhưng khỏe khoắn. Tỷ lệ cơ thể thiên về chân dài, eo gọn, vai vừa phải và trọng tâm linh hoạt; tạo hình nhấn vào sự nhẹ, nhanh và chính xác thay vì khối cơ lớn hoặc giáp nặng. Chiều cao chính xác, cân nặng và số đo cơ thể vẫn OPEN. Nhận diện từ xa dựa trên năm yếu tố chính: tóc bạc–trắng cực dài; kiếm quan vàng–đen gắn tinh thể xanh; Thiên Cơ Bạch Kim Kiếm Khải trắng–bạc–vàng với lớp nền tối và điểm nhấn lam; hệ dải chiến bào dài chuyển động quanh hông và chân; cùng một thanh Tịch Quang đại kiếm duy n",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "04 · NGOẠI HÌNH · VISUAL LOCK R02"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 67,
+      "tags": [
+        "detail:visual"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.VISUAL.004.03",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[04 · NGOẠI HÌNH · VISUAL LOCK R02] hất lơ lửng ngang sau vai. Tổng thể phải cho cảm giác một kiếm tu Chính Đạo tốc độ cao mặc pháp giáp tiên hiệp–mecha tinh xảo, không phải hiệp sĩ phương Tây, quân nhân hiện đại hay mecha thuần khoa học viễn tưởng. ## 04.2 · GƯƠNG MẶT, TÓC VÀ KIẾM QUAN Gương mặt Lục Trầm thanh tú nhưng sắc nét, đường hàm gọn, cằm nhỏ, sống mũi thẳng, môi hồng nhạt. Da sáng. Đôi mắt dài màu lam xám lạnh, đồng tử sáng và rõ; ánh nhìn bình tĩnh, tập trung, tự tin, có độ cảnh giác tự nhiên nhưng không vô cảm. Tóc bạc–trắng gần như thuần",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "04 · NGOẠI HÌNH · VISUAL LOCK R02"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 67,
+      "tags": [
+        "detail:visual"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.VISUAL.004.04",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[04 · NGOẠI HÌNH · VISUAL LOCK R02] sắc, rất dài, dày và có độ bóng lạnh. Phần tóc chính được gom cao thành một khối tóc lớn rồi đổ dài quá lưng, đồng thời nhiều lọn dài tách ra và bay quanh vai, hông. Tóc mái chia thành nhiều lọn mảnh ôm trán, thái dương và hai bên gương mặt; không chải phẳng thành một khối cứng. Trên đỉnh tóc là một kiếm quan cấu tạo từ kim loại vàng phối nền tối, gồm nhiều phiến nhọn, vòng cong và cấu trúc tỏa như những mũi kiếm nhỏ; các tinh thể lam được gắn làm điểm nhấn. Đây là phụ kiện nhận diện của tạo hình hiện hành. Không",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "04 · NGOẠI HÌNH · VISUAL LOCK R02"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 67,
+      "tags": [
+        "detail:visual"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.VISUAL.004.05",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[04 · NGOẠI HÌNH · VISUAL LOCK R02] mặc định nó là vương miện, dấu hiệu hoàng tộc, pháp bảo công kích hoặc biểu tượng cấp bậc nếu canon chưa xác lập. ## 04.3 · TỔNG THỂ THIÊN CƠ BẠCH KIM KIẾM KHẢI Thiên Cơ Bạch Kim Kiếm Khải là pháp giáp chiến đấu nhẹ, ôm theo cơ thể nhưng không bọc kín toàn thân. Bảng màu chính gồm trắng ngà / trắng bạc ở lớp giáp ngoài, vàng kim ở viền và kết cấu trang trí, đen than / lam đậm ở lớp nền bên trong, cùng tinh thể xanh lam làm điểm nhấn năng lượng có kiểm soát. Các mảnh giáp trắng–bạc được chia thành nhiều phiến chồng",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "04 · NGOẠI HÌNH · VISUAL LOCK R02"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 67,
+      "tags": [
+        "detail:visual"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.VISUAL.004.06",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[04 · NGOẠI HÌNH · VISUAL LOCK R02] lớp có đường cắt góc cạnh, mép vàng mảnh và các khe nền tối tạo độ sâu. Kết cấu cơ khí tập trung ở cổ, vai, cẳng tay, eo, hông, gối và cẳng chân; giữa các cụm giáp có khoảng hở và lớp vải/pháp y linh hoạt để cơ thể giữ biên độ chuyển động cao. Bề mặt giáp sạch, sáng và cứng với ánh kim rõ nhưng không bóng như gương. Một số phiến có đường ghép, filigree vàng và họa tiết hình học tinh xảo; các tinh thể lam phát sáng vừa phải ở vài điểm trọng tâm, đủ tạo cảm giác pháp khí cao cấp mà không biến toàn thân thành một khối",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "04 · NGOẠI HÌNH · VISUAL LOCK R02"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 67,
+      "tags": [
+        "detail:visual"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.VISUAL.004.07",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[04 · NGOẠI HÌNH · VISUAL LOCK R02] over-glow. ## 04.4 · GIÁP NGỰC, VAI VÀ THÂN TRÊN Cổ giáp dựng thấp với nền tối và viền vàng, ôm quanh phần gốc cổ nhưng để lộ hoàn toàn đầu và gương mặt; tại chính diện có chi tiết tinh thể lam nhỏ làm điểm nhấn. Giáp ngực dùng các phiến trắng cong và kết cấu vàng–đen ghép theo hình thể, tạo đường nét thanh nhưng chắc. Phần thân giữa không phải giáp kín: các mảng bảo hộ, lớp nền tối và khoảng hở được bố trí xen kẽ quanh sườn, eo và bụng để giữ silhouette nhẹ, linh hoạt; không biến thân trên thành một khối giáp cứn",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "04 · NGOẠI HÌNH · VISUAL LOCK R02"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 67,
+      "tags": [
+        "detail:visual"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.VISUAL.004.08",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[04 · NGOẠI HÌNH · VISUAL LOCK R02] g. Hai vai dùng giáp vai bất đối xứng nhẹ về cảm giác thị giác nhưng cùng ngôn ngữ thiết kế: các phiến vàng–trắng phân tầng, có chóp nhọn và tinh thể lam nhỏ. Cấu trúc vai phải thanh, sắc và gọn, không phình thành pauldron nặng; chức năng cụ thể của từng chi tiết không được tự suy nếu mục trang bị không khóa. ## 04.5 · CÁNH TAY, GĂNG GIÁP VÀ KHỚP Cánh tay được bảo vệ bởi các cụm giáp trắng–vàng phân đoạn trên bắp tay và cẳng tay, liên kết qua lớp nền tối. Khuỷu tay và cổ tay phải giữ cảm giác linh hoạt, phù hợp với",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "04 · NGOẠI HÌNH · VISUAL LOCK R02"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 67,
+      "tags": [
+        "detail:visual"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.VISUAL.004.09",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[04 · NGOẠI HÌNH · VISUAL LOCK R02] kiếm thuật và điều khiển phi kiếm/đại kiếm bằng thân pháp và kiếm ý. Cẳng tay có giáp trắng viền vàng, xen chi tiết tối và tinh thể lam nhỏ. Bàn tay dùng găng chiến đấu tối màu với giáp ngón thanh mảnh; bàn tay vẫn phải đọc rõ là tay người trưởng thành, đủ năm ngón, không phình thành bàn tay robot hoặc hòa nhập với vũ khí. Các khớp và chi tiết cơ khí chỉ xác nhận tạo hình pháp bảo tiên hiệp–mecha tinh vi. Không tự suy chúng thành servo, motor, actuator, mạch điện, AI hoặc bộ trợ lực cơ khí hiện đại. ## 04.6 · EO,",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "04 · NGOẠI HÌNH · VISUAL LOCK R02"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 67,
+      "tags": [
+        "detail:visual"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.VISUAL.004.10",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[04 · NGOẠI HÌNH · VISUAL LOCK R02] HÔNG VÀ HỆ CHIẾN BÀO Eo được giữ gọn, là điểm chuyển giữa giáp thân trên và cụm giáp hông. Hai bên hông có các cụm giáp trắng–vàng phân tầng, dây/đai trang trí màu tối và các điểm tinh thể lam; cấu trúc phải ôm sát thay vì tạo khối nặng. Từ hông và phía sau tỏa xuống nhiều dải chiến bào độc lập, gồm lớp trắng ngà, trắng hơi trong, lam nhạt và lớp lót lam đậm / đen, tất cả có viền vàng tiết chế. Các dải có chiều dài và góc xòe khác nhau, kèm một số tua lam nhỏ, tạo chuyển động mềm quanh cơ thể nhưng vẫn để hai chân",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "04 · NGOẠI HÌNH · VISUAL LOCK R02"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 67,
+      "tags": [
+        "detail:visual"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.PROFILE.005.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[05 · TÍNH CÁCH] Lục Trầm có kỷ luật nhưng không phải “nữ kiếm tu lạnh lùng” nói câu cụt chỉ để tạo khí chất. Cô điềm tĩnh, trách nhiệm cao và rất khó bỏ mặc người đang gặp nguy hiểm, kể cả người đó làm cô khó chịu. Tự trọng mạnh nhưng không thích khoe địa vị. Khi mắc lỗi, cô thường ưu tiên sửa hậu quả trước rồi mới nói về lỗi. Cô khó chấp nhận việc mình đã tin sai một điều trong thời gian dài, nhưng khi bằng chứng đủ mạnh sẽ không bóp méo dữ kiện để bảo vệ lòng tự trọng. Cô có khiếu hài hước khô, thường xuất hiện trong những câu n",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "05 · TÍNH CÁCH"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.PROFILE.005.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[05 · TÍNH CÁCH] ói rất bình thường hơn là cố tình châm chọc. Cô không thích rượu mạnh. Điều này tạo xung đột đời thường tự nhiên với Cao Minh, người coi linh tửu là một phần rất nghiêm túc của cuộc sống.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "05 · TÍNH CÁCH"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.PROFILE.006.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[06 · KHUYẾT ĐIỂM VÀ XUNG ĐỘT NỘI TÂM] Khuyết điểm lớn nhất của Lục Trầm không phải ngây thơ mà là thiên kiến thể chế. Cô có xu hướng cho Chính Đạo nhiều thiện chí hơn Ma Đạo khi bằng chứng chưa đầy đủ, vì tin rằng một hệ thống được dựng trên nguyên tắc đúng thì những người đại diện cho nó ít nhất phải chịu ràng buộc bởi nguyên tắc ấy. Backrooms và Cao Minh dần buộc cô tách ba thứ từng bị cô gộp làm một: danh phận, hành động và đạo đức. Ngược lại, Lục Trầm trở thành bằng chứng sống cho Cao Minh rằng người thuộc Chính Đạo không nhất thiết đạo mạo, giả nh",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "06 · KHUYẾT ĐIỂM VÀ XUNG ĐỘT NỘI TÂM"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.PROFILE.006.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[06 · KHUYẾT ĐIỂM VÀ XUNG ĐỘT NỘI TÂM] ân giả nghĩa hoặc mù quáng phục tùng quy củ. Hai người sửa một phần cách nhìn về thế giới của nhau nhưng không biến thành bản sao tư tưởng của nhau.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "06 · KHUYẾT ĐIỂM VÀ XUNG ĐỘT NỘI TÂM"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.COMBAT.007.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[07 · THIÊN KIẾM LINH TÂM] Thiên Kiếm Linh Tâm là căn cơ Kiếm Đạo của Lục Trầm. Nó không phải trái tim vật lý thứ hai. Khi vận hành, nó giúp cô hợp nhất thần niệm, linh lực, cảm giác không gian và kiếm ý thành một hệ nhận thức chiến đấu thống nhất. Cô có thể cảm nhận quỹ đạo chuyển động, thay đổi trọng tâm, dao động linh lực và điểm bất ổn trong thế kiếm, trận pháp hoặc cấu trúc hộ thể. Thiên Kiếm Linh Tâm hỗ trợ dựng nhiều kiếm ấn cùng lúc để tạo mạng phản kích, khóa tuyến di chuyển và bảo vệ đồng đội. HARD LIMIT: \\- Không đọc suy nghĩ. \\-",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "07 · THIÊN KIẾM LINH TÂM"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:combat"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.COMBAT.007.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[07 · THIÊN KIẾM LINH TÂM] Không xác định thiện ác. \\- Không tự nhận dạng Entity. \\- Không biết trước luật của Backrooms. \\- Không miễn nhiễm thao túng ký ức. \\- Không biến mọi không gian thành trận pháp cô hiểu được. \\- Không tự chứng minh một survivor là “bản gốc”.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "07 · THIÊN KIẾM LINH TÂM"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:combat"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.COMBAT.008.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[08 · TỊCH QUANG KIẾM] Tịch Quang là bản mệnh linh kiếm của Lục Trầm. Kiếm dài, thẳng, lưỡi sáng bạc, thân kiếm phản quang thấp. Hộ thủ nhiều lớp màu vàng kim và đen, kết nối trực tiếp với linh văn của Kiếm Khải. Phong cách vận dụng ưu tiên giữ sạch đường kiếm, đổi góc nhanh, cắt vào khớp nối hoặc điểm mất cân bằng, phá pháp khí, dẫn lực thay vì luôn đối lực trực diện và bảo vệ người phía sau. Tịch Quang có thể được triệu hồi trở lại tay bằng kiếm niệm trong phạm vi cảm nhận hợp lệ. Tịch Quang không có khả năng tự tái sinh vô hạn như Huy",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "08 · TỊCH QUANG KIẾM"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:combat"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.COMBAT.008.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[08 · TỊCH QUANG KIẾM] ết Ma Kiếm của Cao Minh. Nếu bị phá hủy nghiêm trọng, Lục Trầm phải sửa chữa bằng vật liệu và thời gian phù hợp.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "08 · TỊCH QUANG KIẾM"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:combat"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.COMBAT.009.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[09 · THIÊN CƠ BẠCH KIM KIẾM KHẢI] Thiên Cơ Bạch Kim Kiếm Khải là pháp bảo chiến đấu cấp cao do Kiếm Các và Khí Các của Thiên Kiếm Môn hợp luyện cho Lục Trầm sau khi cô trở thành chân truyền. Các phiến trắng sử dụng Bạch Linh Kim; viền vàng là tuyến dẫn linh lực; khớp đen dùng vật liệu linh tính có độ đàn hồi cao để giữ biên độ vai, hông, gối và cổ chân. Kiếm Khải tăng khả năng chịu va chạm, hỗ trợ bộc phát thân pháp và phân phối phản lực khi đổi hướng giữa không trung. Các dải giáp váy tách chuyển động để không khóa bước chân. Không có AI, reactor,",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "09 · THIÊN CƠ BẠCH KIM KIẾM KHẢI"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:combat"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.COMBAT.009.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[09 · THIÊN CƠ BẠCH KIM KIẾM KHẢI] súng, tên lửa hay công nghệ khoa học viễn tưởng. Mọi cơ chế thuộc hệ pháp bảo tiên hiệp.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "09 · THIÊN CƠ BẠCH KIM KIẾM KHẢI"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:combat"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.COMBAT.010.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[10 · PHONG CÁCH CHIẾN ĐẤU] Cao Minh mạnh ở việc giành chủ động, ép mục tiêu phải phản ứng rồi khóa phản ứng đó bằng Ma Kiếm Đạo. Lục Trầm mạnh nhất khi đối thủ đã bắt đầu hành động. Cô đọc tuyến tấn công, phá nhịp, đổi góc, dẫn lực và phản kiếm. Trong chiến đấu nhóm, cô tự nhiên trở thành điểm ổn định của đội hình: giữ lối rút, chặn đòn phá đội hình, tạo khoảng trống cho người khác, bảo vệ người đang bị thương và khóa góc nguy hiểm. Sự phối hợp giữa cô và Cao Minh có tính bổ sung: Cao Minh ép đối thủ phải phản ứng. Lục Trầm tiêu diệt hoặc vô",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "10 · PHONG CÁCH CHIẾN ĐẤU"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:combat"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.COMBAT.010.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[10 · PHONG CÁCH CHIẾN ĐẤU] hiệu hóa chính phản ứng đó.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "10 · PHONG CÁCH CHIẾN ĐẤU"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:combat"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.COMBAT.011.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[11 · THIÊN KIẾM THẤT THỨC] Thiên Kiếm Thất Thức là hệ kiếm pháp nền của Lục Trầm. Cô đã luyện tới mức không cần thi triển theo thứ tự cứng. ## 11.1 · Nhất Tuyến Phá Vọng Tập trung kiếm ý vào một đường duy nhất để đánh vào điểm yếu, trận nhãn, hộ thể hoặc cấu trúc đang mất ổn định. ## 11.2 · Bạch Hồng Quán Nhật Đột tiến tốc độ cao, nén linh lực vào một mũi kiếm thay vì tạo vùng phá hủy lớn. Ưu tiên xuyên tuyến phòng thủ và kết thúc giao chiến ở cự ly ngắn. ## 11.3 · Tịch Quang Phản Kiếm Lợi dụng lực và hướng tấn công của đối phương để đổi trụ",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "11 · THIÊN KIẾM THẤT THỨC"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:combat"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.COMBAT.011.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[11 · THIÊN KIẾM THẤT THỨC] c, gạt đòn và phản kích gần như trong cùng một chuyển động. ## 11.4 · Vạn Kiếm Quy Tâm Điều khiển nhiều kiếm khí hoặc linh kiếm phụ quanh một vùng chiến đấu để khóa hướng, tạo hành lang an toàn và bảo vệ đội hình. Không mặc định tạo hàng nghìn thanh kiếm chỉ để phô diễn.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "11 · THIÊN KIẾM THẤT THỨC"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:combat"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.COMBAT.012.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[12 · TUYỆT KỸ — THIÊN KIẾM ĐỊNH GIỚI] Lục Trầm dựng một Kiếm Vực cục bộ bằng nhiều kiếm ấn nối với Tịch Quang. Trong phạm vi đó, biến động không gian, chuyển động và dao động linh lực trở nên dễ đọc hơn đối với cô. Các đường kiếm liên kết thành mạng phản kích và phòng thủ chặt chẽ. Thiên Kiếm Định Giới không phải quyền kiểm soát tuyệt đối không gian. Trong Backrooms, một Level có thể dịch chuyển hoặc phá quan hệ giữa các điểm neo. Khi môi trường thay đổi đủ mạnh, Lục Trầm phải dựng lại cấu trúc; cô không thể ra lệnh cho Backrooms giữ nguyên hình học.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "12 · TUYỆT KỸ — THIÊN KIẾM ĐỊNH GIỚI"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:combat"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.ENVIRONMENT.013.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[13 · LỤC TRẦM VÀ CAO MINH TRƯỚC BACKROOMS] CROSS-CANON WARNING: các câu về Cao Minh trong mục này không có quyền cao hơn Character Codex Cao Minh CURRENT. Chỉ phần trải nghiệm, ký ức và đánh giá của Lục Trầm thuộc quyền sở hữu của Codex này. Lục Trầm từng truy sát Cao Minh nhiều lần. Cao Minh từng đánh bại cô nhiều hơn một lần nhưng chưa từng chủ động giết cô. Lục Trầm từng cho rằng hắn giữ mạng mình vì khinh thường. Theo canon Cao Minh hiện hành, việc hắn từng tha Lục Trầm không chứng minh một cấm lệnh đạo đức phổ quát đối với sát sinh. Ở những lần đó, hắn",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "13 · LỤC TRẦM VÀ CAO MINH TRƯỚC BACKROOMS"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:environment"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.ENVIRONMENT.013.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[13 · LỤC TRẦM VÀ CAO MINH TRƯỚC BACKROOMS] không thấy đủ lợi ích, mục tiêu hoặc lý do phù hợp để giết cô; không được suy từ kết quả này thành quy tắc rằng Cao Minh mặc định tha người vô tội. Hai người từng tranh luận về Chính Đạo và Ma Đạo trong lúc giao kiếm, nên phần lớn cuộc “tranh luận” kết thúc bằng việc cả hai càng thấy đối phương phiền. Cao Minh thường gọi cô là “Lục tiên tử” với sắc thái châm chọc. Lục Trầm dùng “Cao Minh” khi nghiêm túc và “ma đầu” khi thật sự bực.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "13 · LỤC TRẦM VÀ CAO MINH TRƯỚC BACKROOMS"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:environment"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.DIALOGUE.014.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[20 · XƯNG HÔ] Giai đoạn tử địch (lịch sử trước khi hai người trở thành đồng minh, KHÔNG tự áp vào sau mất ký ức): Lục Trầm → Cao Minh: “Cao Minh”, “ma đầu”, “ngươi”. Cao Minh → Lục Trầm: “Lục tiên tử”, “Lục Trầm”, “ngươi”. Giai đoạn đồng hành trước Backrooms: Tên riêng được dùng nhiều hơn. “Ma đầu” giảm dần và có thể trở thành cách gọi khi Lục Trầm thật sự bực hoặc cố tình châm lại hắn. Sau hồi sinh, cô không tự biết những cách gọi ấy là của người quen cũ; cách xưng hô mới cần được continuity thiết lập. Không tự đổi sang anh/em",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "20 · XƯNG HÔ"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 58,
+      "tags": [
+        "detail:dialogue"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.DIALOGUE.014.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[20 · XƯNG HÔ] chỉ vì quan hệ trở nên lãng mạn. Mọi thay đổi xưng hô phải phát sinh từ continuity.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "20 · XƯNG HÔ"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 58,
+      "tags": [
+        "detail:dialogue"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.ENVIRONMENT.015.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[21 · BACKROOMS KNOWLEDGE LOCK] Lục Trầm không được biết trước tên Level, Entity, vật phẩm hoặc quy luật chỉ vì người viết biết. Thần thức không phải nguồn tri thức toàn năng. Thiên Kiếm Linh Tâm không xác định một chất lỏng là Almond Water. Kiếm ý không chứng minh một survivor là bản gốc. Cảm nhận sát khí không bảo đảm phát hiện Entity giả người. Một hiện tượng không có linh lực quen thuộc không đồng nghĩa vô hại. Một Entity yếu hơn cô về chiến lực vẫn có thể nguy hiểm bằng quy luật, môi trường, ký ức hoặc lừa dối. Cô chỉ được biết từ trải nghiệ",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "21 · BACKROOMS KNOWLEDGE LOCK"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:environment"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.ENVIRONMENT.015.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[21 · BACKROOMS KNOWLEDGE LOCK] m trực tiếp, quan sát, thông tin người khác cung cấp hoặc suy luận có căn cứ. Khi chỉ suy luận, lời kể và lời thoại phải giữ đúng mức độ không chắc chắn.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "21 · BACKROOMS KNOWLEDGE LOCK"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:environment"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.PROFILE.016.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[24 · RANH GIỚI HAI PHIÊN BẢN — CANON SCOPE] Lucia Lục / Hứa Thuý Mai và Lục Trầm là hai phiên bản nhân vật riêng biệt. Phiên bản Lucia Lục có hồ sơ quân nhân Việt Nam, M4A1, follower Lucia, military loadout, Too Young To Die và các kỹ năng súng riêng. Phiên bản Lục Trầm là Chính Đạo Kiếm Tu, chân truyền đệ tử Thiên Kiếm Môn, sử dụng Tịch Quang và Thiên Cơ Bạch Kim Kiếm Khải. Không tự chuyển dữ kiện của phiên bản này sang phiên bản kia; sự tồn tại của Lục Trầm không vô hiệu hóa canon Lucia Lục. Tên nhân vật được mô tả trong Codex này: LỤC TRẦM. Nhận diện nền:",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "24 · RANH GIỚI HAI PHIÊN BẢN — CANON SCOPE"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.PROFILE.016.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[24 · RANH GIỚI HAI PHIÊN BẢN — CANON SCOPE] Chân truyền đệ tử Thiên Kiếm Môn · Chính Đạo Kiếm Tu; từng đối địch công khai rồi đồng hành tin cậy và nảy sinh tình cảm với Cao Minh trước Backrooms. Sau hồi sinh: bắt đầu nhập ma và quên toàn bộ về Cao Minh; không chuyển ký ức cũ sang POV hiện tại. Nếu runtime game hoặc tài liệu khác đề cập Lucia Lục, M4A1, kỹ năng súng hay dữ liệu quân nhân thì phải xác định đúng phiên bản sở hữu dữ kiện. Những dữ kiện của Lucia Lục không được gán cho Lục Trầm, nhưng không vì vậy mà coi Lucia Lục là lỗi, bản bị thay thế hay dữ",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "24 · RANH GIỚI HAI PHIÊN BẢN — CANON SCOPE"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUC_TRAM.DETAIL.PROFILE.016.03",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[24 · RANH GIỚI HAI PHIÊN BẢN — CANON SCOPE] liệu bắt buộc phải migration. Chỉ xử lý mâu thuẫn khi dữ kiện trái nhau thực sự cùng thuộc một phiên bản.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "24 · RANH GIỚI HAI PHIÊN BẢN — CANON SCOPE"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUCIA.DETAIL.PROFILE.001.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[01. [SELF-CANON] — HỒ SƠ ĐÃ XÁC MINH] | Trường | Dữ kiện xác nhận | Nguồn | |---|---|---| | ID runtime | `lucia` | S1 | | Tên hiển thị | `Lucia \"Lục\"` | S1 | | Tên thật | Hứa Thuý Mai; không đồng nhất với Lục Trầm | A1 | | Xuất thân | Hoa kiều tại Việt Nam, thuộc gia tộc họ Hứa; là người con gái thứ ba của cả gia tộc, theo xác nhận của tác giả | A1 | | Gia đình | Có truyền thống kinh doanh bất động sản và thương mại nghiệp vụ; theo thiết lập tác giả, đây là gia đình lớn nhất trong các lĩnh vực nêu trên tại Sài Gòn năm 2026 | A1 | | Động cơ nhập ngũ | G",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUCIA_LUC_CODEX.md",
+        "anchor": "01. [SELF-CANON] — HỒ SƠ ĐÃ XÁC MINH"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUCIA.DETAIL.PROFILE.001.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[01. [SELF-CANON] — HỒ SƠ ĐÃ XÁC MINH] ia nhập quân đội chỉ để thỏa mãn sở thích, đam mê súng ống của bản thân; không tự gán thêm lý tưởng hoặc biến cố khác | A1 | | Sự kiện vào Backrooms | Đột nhiên lọt vào Backrooms trong một chuyến hành quân tại khu vực Đồng bằng sông Cửu Long; nguyên nhân cơ chế vẫn OPEN | A1 | | Tính cách đời thường | Thẳng thắn và luôn tôn trọng người khác; cảnh giác với những người cô nhận định là “có vấn đề” | A1 | | Giọng nói và cách tự giới thiệu | Mạnh mẽ, thẳng thắn, diễn đạt rõ ràng đủ ý; có thói quen giới thiệu đầy đủ bản",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUCIA_LUC_CODEX.md",
+        "anchor": "01. [SELF-CANON] — HỒ SƠ ĐÃ XÁC MINH"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUCIA.DETAIL.PROFILE.001.03",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[01. [SELF-CANON] — HỒ SƠ ĐÃ XÁC MINH] thân trước người khác và tự hào là một người lính | A1 | | Mục tiêu dài hạn | Trở về nhà là nhu cầu thiết yếu, song song với mục tiêu trước mắt tìm đường tới Level 1 | A1 | | Tuổi | 19 | S1 | | Giới tính / chủng tộc | Nữ / người | S1 | | Cấp bậc | `Binh nhì` (nguyên văn giá trị metadata) | S1 | | Vai trò quân sự | `Tư lệnh cấp tiểu đội trong biên chế đặc nhiệm` (nguyên văn metadata; danh xưng chính thức cần tác giả phê duyệt) | S1 | | Vai trò gameplay | Follower, combatant, có thể gia nhập party theo điều kiện Core",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUCIA_LUC_CODEX.md",
+        "anchor": "01. [SELF-CANON] — HỒ SƠ ĐÃ XÁC MINH"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUCIA.DETAIL.PROFILE.001.04",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[01. [SELF-CANON] — HỒ SƠ ĐÃ XÁC MINH] | S1, S5 | | Chiến thuật ghi trong runtime | Kỷ luật hỏa lực, chỉ nổ súng khi cần đột phá hoặc đã xác định cổng ra | S1 | | Phương pháp ở Level 0 | Dùng tường làm điểm tựa; mở rộng xoắn ốc; đánh dấu bằng phấn; laser quét mặt sàn | S1 | | Mục tiêu runtime khởi đầu | Tìm lối sang Level 1 | S1 | ### Ngoại hình và tạo hình tham chiếu [SELF-CANON / VISUAL REFERENCE: A2] Nguồn A2: Ảnh `171.png` do tác giả trực tiếp cung cấp để mô tả ngoại hình Lucia Lục. Đây là căn cứ tạo hình trực quan, không phải bằng chứng về các dữ",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUCIA_LUC_CODEX.md",
+        "anchor": "01. [SELF-CANON] — HỒ SƠ ĐÃ XÁC MINH"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUCIA.DETAIL.PROFILE.001.05",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[01. [SELF-CANON] — HỒ SƠ ĐÃ XÁC MINH] kiện không thể nhìn thấy. - Dáng người: thon gọn, săn chắc, tỷ lệ cơ thể thiên về khả năng vận động linh hoạt. Không suy ra chiều cao, cân nặng hay số đo chính xác. - Gương mặt: khuôn mặt trẻ, đường nét tương đối sắc, lông mày đậm, mắt sẫm màu; ánh nhìn tập trung và cảnh giác trong khoảnh khắc được minh họa. Chưa đủ căn cứ khóa màu mống mắt chính xác. - Tóc: tóc đen, rất dài, buộc cao thành đuôi ngựa dày; một số lọn tóc mái và tóc con buông quanh trán, hai bên mặt. - Quân phục: bộ rằn ri tông xanh ô liu, nâu và màu",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUCIA_LUC_CODEX.md",
+        "anchor": "01. [SELF-CANON] — HỒ SƠ ĐÃ XÁC MINH"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUCIA.DETAIL.PROFILE.001.06",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[01. [SELF-CANON] — HỒ SƠ ĐÃ XÁC MINH] đất; áo có tay xắn, quần tác chiến; áo giáp/áo mang tải chiến thuật màu nâu đất với dây đai và nhiều túi trang bị. - Phụ kiện nhìn thấy: ba lô quân dụng lớn, găng tay chiến thuật sẫm màu, đồng hồ mặt tròn tối màu, đệm bảo vệ đầu gối, dây đai/túi đeo ở đùi, dao chiến đấu cố định bên đùi và bốt quân dụng cao cổ màu nâu. - Tạo dáng của ảnh: đứng dạng chân giữ thăng bằng, hai tay ghì súng trường dạng carbine kiểu M4 và hướng nòng sang bên trái khung hình. Hình minh họa thể hiện kính ngắm, tay cầm trước và bộ phận hình",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUCIA_LUC_CODEX.md",
+        "anchor": "01. [SELF-CANON] — HỒ SƠ ĐÃ XÁC MINH"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUCIA.DETAIL.PROFILE.001.07",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[01. [SELF-CANON] — HỒ SƠ ĐÃ XÁC MINH] trụ dài ở đầu nòng; không tự suy ra tên, tính năng hay việc các phụ kiện đó luôn hiện diện. M4A1 nền và đặc tính gameplay vẫn lấy theo S1/S2. - Tình trạng riêng của ảnh: mặt có vệt bụi bẩn, trang bị mang dấu vết sử dụng và biểu cảm nghiêm nghị. Đây là trạng thái minh họa, không phải đặc điểm bất biến; không mặc định Lucia luôn bẩn, luôn nhắm súng hoặc luôn có cùng trạng thái trang bị. Ranh giới: Màu mắt chính xác, chiều cao, cân nặng, số đo và các chi tiết cơ thể nằm ngoài ảnh vẫn `OPEN/UNKNOWN`. Không dùng ảnh để",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUCIA_LUC_CODEX.md",
+        "anchor": "01. [SELF-CANON] — HỒ SƠ ĐÃ XÁC MINH"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUCIA.DETAIL.PROFILE.001.08",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[01. [SELF-CANON] — HỒ SƠ ĐÃ XÁC MINH] suy ra năng lực, xuất thân dân tộc, chức vụ hoặc trạng thái game. ### Trang bị nền (không tính là gift inventory) - M4A1 cá nhân hóa: ID `lucia:m4a1-custom`, có laser xanh 5 mW. Cấu hình runtime: 60 viên đang nạp, 90 viên dự phòng (tổng 150 viên lúc khởi đầu); đạn hữu hạn. Chế độ được ghi trong hệ trang bị: Semi, Burst, Auto. Mọi thông số damage/rate là cơ chế gameplay, không tự trở thành tuyên bố vật lý ngoài truyện. [S1, S2] - Dao găm chiến đấu: ID `lucia:combat-knife`; slot `blade`. [S1, S2] - Đồng hồ định vị q",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUCIA_LUC_CODEX.md",
+        "anchor": "01. [SELF-CANON] — HỒ SƠ ĐÃ XÁC MINH"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUCIA.DETAIL.PROFILE.001.09",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[01. [SELF-CANON] — HỒ SƠ ĐÃ XÁC MINH] uân sự: ID `lucia:military-watch`; slot `wrist`. Có chức năng ghi mốc thời gian cục bộ; trong Backrooms mất tín hiệu vệ tinh, không mặc định có GPS hoặc la bàn tuyệt đối ở Level 0. [S1, S2] - Giới hạn sở hữu runtime: đúng ba slot trang bị nêu trên. Gift Inventory cho Lucia tối đa 3 loại vật phẩm, mỗi loại tối đa 100 đơn vị; số đạn ban đầu không chiếm các slot quà tặng. [S1, S3, S4] ### Khung gameplay, không phải tiểu sử - Chỉ số ban đầu được test xác nhận: `baseMaxHp = 50`, `STR/DEF/SKL/VIT = 5/5/5/5`; Max HP hiệu",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUCIA_LUC_CODEX.md",
+        "anchor": "01. [SELF-CANON] — HỒ SƠ ĐÃ XÁC MINH"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUCIA.DETAIL.PROFILE.001.10",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[01. [SELF-CANON] — HỒ SƠ ĐÃ XÁC MINH] lực ban đầu bằng 50. [S4] - Trong gameplay hiện tại, Lucia bắt đầu ngoài party; cơ hội encounter quy định là 50% khi `EXPLORE` hợp lệ tại Level 0. Chỉ roll thành công mới xác nhận xuất hiện; lần gặp đã xác nhận thì không roll lại. Nếu party đầy, giữ cơ chế `joinPending` thay vì tự đuổi thành viên khác. [S1, S4, S6] - `M4A1 Joint Attack`: kỹ năng hỗ trợ combat được liệt kê; khi party attack có thể xử lý lượt bắn riêng của Lucia và chịu cơ chế Evasion của Entity. [S5, S7] - `Trinh sát chiến trường`: theo quyết định t",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUCIA_LUC_CODEX.md",
+        "anchor": "01. [SELF-CANON] — HỒ SƠ ĐÃ XÁC MINH"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUCIA.DETAIL.VISUAL.002.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[Ngoại hình và tạo hình tham chiếu [SELF-CANON / VISUAL REFERENCE: A2]] Nguồn A2: Ảnh `171.png` do tác giả trực tiếp cung cấp để mô tả ngoại hình Lucia Lục. Đây là căn cứ tạo hình trực quan, không phải bằng chứng về các dữ kiện không thể nhìn thấy. - Dáng người: thon gọn, săn chắc, tỷ lệ cơ thể thiên về khả năng vận động linh hoạt. Không suy ra chiều cao, cân nặng hay số đo chính xác. - Gương mặt: khuôn mặt trẻ, đường nét tương đối sắc, lông mày đậm, mắt sẫm màu; ánh nhìn tập trung và cảnh giác trong khoảnh khắc được minh họa. Chưa đủ căn cứ khóa màu mống mắt chính xác. - Tóc: tóc đen,",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUCIA_LUC_CODEX.md",
+        "anchor": "Ngoại hình và tạo hình tham chiếu [SELF-CANON / VISUAL REFERENCE: A2]"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 67,
+      "tags": [
+        "detail:visual"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUCIA.DETAIL.VISUAL.002.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[Ngoại hình và tạo hình tham chiếu [SELF-CANON / VISUAL REFERENCE: A2]] rất dài, buộc cao thành đuôi ngựa dày; một số lọn tóc mái và tóc con buông quanh trán, hai bên mặt. - Quân phục: bộ rằn ri tông xanh ô liu, nâu và màu đất; áo có tay xắn, quần tác chiến; áo giáp/áo mang tải chiến thuật màu nâu đất với dây đai và nhiều túi trang bị. - Phụ kiện nhìn thấy: ba lô quân dụng lớn, găng tay chiến thuật sẫm màu, đồng hồ mặt tròn tối màu, đệm bảo vệ đầu gối, dây đai/túi đeo ở đùi, dao chiến đấu cố định bên đùi và bốt quân dụng cao cổ màu nâu. - Tạo dáng của ảnh: đứng dạng chân giữ thăng bằn",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUCIA_LUC_CODEX.md",
+        "anchor": "Ngoại hình và tạo hình tham chiếu [SELF-CANON / VISUAL REFERENCE: A2]"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 67,
+      "tags": [
+        "detail:visual"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUCIA.DETAIL.VISUAL.002.03",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[Ngoại hình và tạo hình tham chiếu [SELF-CANON / VISUAL REFERENCE: A2]] g, hai tay ghì súng trường dạng carbine kiểu M4 và hướng nòng sang bên trái khung hình. Hình minh họa thể hiện kính ngắm, tay cầm trước và bộ phận hình trụ dài ở đầu nòng; không tự suy ra tên, tính năng hay việc các phụ kiện đó luôn hiện diện. M4A1 nền và đặc tính gameplay vẫn lấy theo S1/S2. - Tình trạng riêng của ảnh: mặt có vệt bụi bẩn, trang bị mang dấu vết sử dụng và biểu cảm nghiêm nghị. Đây là trạng thái minh họa, không phải đặc điểm bất biến; không mặc định Lucia luôn bẩn, luôn nhắm súng hoặc luôn có cùng t",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUCIA_LUC_CODEX.md",
+        "anchor": "Ngoại hình và tạo hình tham chiếu [SELF-CANON / VISUAL REFERENCE: A2]"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 67,
+      "tags": [
+        "detail:visual"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUCIA.DETAIL.VISUAL.002.04",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[Ngoại hình và tạo hình tham chiếu [SELF-CANON / VISUAL REFERENCE: A2]] rạng thái trang bị. Ranh giới: Màu mắt chính xác, chiều cao, cân nặng, số đo và các chi tiết cơ thể nằm ngoài ảnh vẫn `OPEN/UNKNOWN`. Không dùng ảnh để suy ra năng lực, xuất thân dân tộc, chức vụ hoặc trạng thái game.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUCIA_LUC_CODEX.md",
+        "anchor": "Ngoại hình và tạo hình tham chiếu [SELF-CANON / VISUAL REFERENCE: A2]"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 67,
+      "tags": [
+        "detail:visual"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUCIA.DETAIL.COMBAT.003.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[Trang bị nền (không tính là gift inventory)] - M4A1 cá nhân hóa: ID `lucia:m4a1-custom`, có laser xanh 5 mW. Cấu hình runtime: 60 viên đang nạp, 90 viên dự phòng (tổng 150 viên lúc khởi đầu); đạn hữu hạn. Chế độ được ghi trong hệ trang bị: Semi, Burst, Auto. Mọi thông số damage/rate là cơ chế gameplay, không tự trở thành tuyên bố vật lý ngoài truyện. [S1, S2] - Dao găm chiến đấu: ID `lucia:combat-knife`; slot `blade`. [S1, S2] - Đồng hồ định vị quân sự: ID `lucia:military-watch`; slot `wrist`. Có chức năng ghi mốc thời gian cục bộ; trong Backrooms mất tín hiệ",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUCIA_LUC_CODEX.md",
+        "anchor": "Trang bị nền (không tính là gift inventory)"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:combat"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUCIA.DETAIL.COMBAT.003.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[Trang bị nền (không tính là gift inventory)] u vệ tinh, không mặc định có GPS hoặc la bàn tuyệt đối ở Level 0. [S1, S2] - Giới hạn sở hữu runtime: đúng ba slot trang bị nêu trên. Gift Inventory cho Lucia tối đa 3 loại vật phẩm, mỗi loại tối đa 100 đơn vị; số đạn ban đầu không chiếm các slot quà tặng. [S1, S3, S4]",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUCIA_LUC_CODEX.md",
+        "anchor": "Trang bị nền (không tính là gift inventory)"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:combat"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUCIA.DETAIL.PROFILE.004.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[Khung gameplay, không phải tiểu sử] - Chỉ số ban đầu được test xác nhận: `baseMaxHp = 50`, `STR/DEF/SKL/VIT = 5/5/5/5`; Max HP hiệu lực ban đầu bằng 50. [S4] - Trong gameplay hiện tại, Lucia bắt đầu ngoài party; cơ hội encounter quy định là 50% khi `EXPLORE` hợp lệ tại Level 0. Chỉ roll thành công mới xác nhận xuất hiện; lần gặp đã xác nhận thì không roll lại. Nếu party đầy, giữ cơ chế `joinPending` thay vì tự đuổi thành viên khác. [S1, S4, S6] - `M4A1 Joint Attack`: kỹ năng hỗ trợ combat được liệt kê; khi party attack có thể xử lý lượt bắn riêng của",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUCIA_LUC_CODEX.md",
+        "anchor": "Khung gameplay, không phải tiểu sử"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.LUCIA.DETAIL.PROFILE.004.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[Khung gameplay, không phải tiểu sử] Lucia và chịu cơ chế Evasion của Entity. [S5, S7] - `Trinh sát chiến trường`: theo quyết định tác giả A1, chỉ hỗ trợ trinh sát, KHÔNG tăng tỷ lệ loot. Mô tả cộng `+5 điểm phần trăm` trong `CompanionSkillCatalog.kt` là implementation chưa đồng bộ với canon, không được dùng làm hard-lock, cơ chế tạo Item hay phần thưởng từ khám phá. [A1, S5, S6] Giới hạn: Nguồn không cung cấp năng lực siêu nhiên cho Lucia. Không tự thêm ma thuật, cảm biến phi thực tế, trí nhớ toàn tri hay khả năng bắn không cần đạn.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/LUCIA_LUC_CODEX.md",
+        "anchor": "Khung gameplay, không phải tiểu sử"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.TRAC_LAM.DETAIL.PROFILE.001.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[HỒ SƠ NHANH] - Họ tên: Trác Lâm - Giới tính: Nam - Tuổi: 28 tại thời điểm năm 2099 - Quốc tịch: Việt Nam - Quê quán: Đà Nẵng - Chiều cao: 182 cm - Chức vụ: Đội trưởng SRU-03 - Tổ chức: SRU — Special Response Unit, đơn vị phản ứng đặc biệt của lực lượng cảnh sát chống dị thường - Chuyên môn: chỉ huy chiến thuật, tác chiến cự ly gần, đánh giá hiện tượng dị thường, trinh sát đô thị và bảo toàn đội hình - Tình trạng khi xuất hiện trong Backrooms: sống sót, chiến đấu độc lập, mất liên lạc với SRU-03 - Điểm gặp đầu tiên với tuyến tru",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/TRAC_LAM_CODEX.md",
+        "anchor": "HỒ SƠ NHANH"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.TRAC_LAM.DETAIL.PROFILE.001.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[HỒ SƠ NHANH] yện hiện tại: first contact với Cao Minh và Lục Trầm tại Level 0.7",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/TRAC_LAM_CODEX.md",
+        "anchor": "HỒ SƠ NHANH"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.TRAC_LAM.DETAIL.PROFILE.002.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[TỔNG QUAN NHÂN VẬT] Trác Lâm là một sĩ quan phản ứng dị thường đến từ năm 2099, được đào tạo để xử lý các tình huống mà quy tắc vật lý, hành vi mục tiêu hoặc cấu trúc không gian có thể thay đổi ngay trong quá trình nhiệm vụ. Anh không phải nhà nghiên cứu thuần túy và cũng không phải người hùng thích lao lên trước; vai trò của anh là biến một tình huống hỗn loạn thành những câu hỏi có thể kiểm tra, sau đó giữ càng nhiều người sống càng tốt trong lúc câu trả lời còn thiếu. Điểm khiến Trác Lâm đáng tin không nằm ở việc anh luôn đúng. Anh",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/TRAC_LAM_CODEX.md",
+        "anchor": "TỔNG QUAN NHÂN VẬT"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.TRAC_LAM.DETAIL.PROFILE.002.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[TỔNG QUAN NHÂN VẬT] đáng tin vì phân biệt rất rõ ba thứ: điều đã thấy, điều suy ra và điều chỉ là giả thuyết. Khi không có bằng chứng, anh không dùng chức vụ để biến phỏng đoán thành mệnh lệnh tuyệt đối.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/TRAC_LAM_CODEX.md",
+        "anchor": "TỔNG QUAN NHÂN VẬT"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.TRAC_LAM.DETAIL.PROFILE.003.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[XUẤT THÂN VÀ CON ĐƯỜNG GIA NHẬP SRU] Trác Lâm sinh ra tại Đà Nẵng trong một gia đình dân sự. Cha làm trong ngành cứu hộ công trình, mẹ là bác sĩ cấp cứu. Tuổi thiếu niên của anh gắn với bão, sơ tán, tai nạn hạ tầng và những đợt diễn tập ứng phó thảm họa; vì vậy anh hình thành thói quen đánh giá lối thoát, vật cản và số người có mặt trước khi quan tâm đến những chi tiết khác. Anh vào lực lượng cảnh sát công vụ ở tuổi mười chín, bắt đầu từ đơn vị phản ứng nhanh đô thị. Năm 2094, trong Sự cố Cảng Đông Hải, một khu kho vận xuất hiện hiện tượng lặp không g",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/TRAC_LAM_CODEX.md",
+        "anchor": "XUẤT THÂN VÀ CON ĐƯỜNG GIA NHẬP SRU"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.TRAC_LAM.DETAIL.PROFILE.003.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[XUẤT THÂN VÀ CON ĐƯỜNG GIA NHẬP SRU] ian và khiến ba tổ cứu hộ tự quay lại cùng một hành lang dù di chuyển theo các hướng khác nhau. Trác Lâm khi đó là sĩ quan tuyến đầu đã giữ đội hình, ngăn việc chia nhỏ lực lượng và đưa mười một dân thường ra khỏi vùng ảnh hưởng. Sau sự kiện này, anh được tuyển vào chương trình chống dị thường SRU. Trác Lâm trải qua huấn luyện về nhận diện mối đe dọa phi chuẩn, tác chiến trong môi trường thông tin sai lệch, cứu hộ dưới nhiễu cảm biến và quy trình phân loại bằng chứng. Đến năm 2098, anh trở thành đội trưởng SRU-03 s",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/TRAC_LAM_CODEX.md",
+        "anchor": "XUẤT THÂN VÀ CON ĐƯỜNG GIA NHẬP SRU"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.TRAC_LAM.DETAIL.PROFILE.003.03",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[XUẤT THÂN VÀ CON ĐƯỜNG GIA NHẬP SRU] au một chuỗi nhiệm vụ mà điểm chung không phải số mục tiêu bị tiêu diệt, mà là tỷ lệ người sống được đưa ra khỏi vùng nguy hiểm.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/TRAC_LAM_CODEX.md",
+        "anchor": "XUẤT THÂN VÀ CON ĐƯỜNG GIA NHẬP SRU"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.TRAC_LAM.DETAIL.PROFILE.004.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[SRU-03 VÀ TRIẾT LÝ CHỈ HUY] SRU-03 là tổ phản ứng sáu người chuyên xử lý dị thường không gian, thực thể thù địch và các khu vực đô thị có quy luật vận hành bất thường. Trác Lâm là người ra quyết định cuối cùng về đội hình, lộ trình và mức sử dụng hỏa lực, nhưng anh không xem cấp dưới là công cụ tiêu hao. Quy tắc chỉ huy của anh có bốn điểm: - Bằng chứng trước kết luận. - Người sống trước chiến tích. - Không chia đội hình nếu lợi ích chưa vượt rủi ro. - Khi buộc phải dùng bạo lực, dùng đủ để kết thúc mối đe dọa, không dùng bạo lực để chứng min",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/TRAC_LAM_CODEX.md",
+        "anchor": "SRU-03 VÀ TRIẾT LÝ CHỈ HUY"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.TRAC_LAM.DETAIL.PROFILE.004.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[SRU-03 VÀ TRIẾT LÝ CHỈ HUY] h bản thân đúng. Trác Lâm chấp nhận rút lui, bỏ vật tư, mất mục tiêu hoặc hủy nhiệm vụ nếu cái giá tiếp tục vượt quá giá trị cứu được. Chính điều này khiến anh đối lập tự nhiên với những người coi hiệu quả tuyệt đối quan trọng hơn quyền lựa chọn của người khác.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/TRAC_LAM_CODEX.md",
+        "anchor": "SRU-03 VÀ TRIẾT LÝ CHỈ HUY"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.TRAC_LAM.DETAIL.VISUAL.005.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[NGOẠI HÌNH] Ngoại hình chính thức lấy trực tiếp từ ảnh overlay Trac_Lam.png trên Drive. Trác Lâm có vóc người cao, săn chắc, vai và lưng phát triển theo kiểu người mặc giáp chiến thuật lâu năm. Tóc đen dày, hơi rối, phần mái đổ về trán; mắt xanh lam tạo cảm giác lạnh nhưng tỉnh táo hơn là dữ dằn. Trang phục chủ đạo là giáp chiến thuật màu đen với nhiều mảng giáp cơ khí ở vai, cẳng tay, đầu gối và cẳng chân. Các điểm sáng xanh nhỏ chạy dọc một số khớp và cụm thiết bị. Phù hiệu POLICE/SRU xuất hiện rõ ở vai, ngực và giáp đùi. Th",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/TRAC_LAM_CODEX.md",
+        "anchor": "NGOẠI HÌNH"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 67,
+      "tags": [
+        "detail:visual"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.TRAC_LAM.DETAIL.VISUAL.005.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[NGOẠI HÌNH] ắt lưng và hai bên hông mang nhiều túi thiết bị nhỏ, cho thấy thiết kế ưu tiên tác chiến dài giờ hơn là hình thức. Tư thế chiến đấu trong ảnh là tư thế ngắm chủ động với một khẩu súng dài hai nòng. Trọng tâm hạ thấp, vai ép vào báng, tay trước đỡ chắc thân súng; toàn bộ silhouette cho thấy một người quen giữ đường bắn ổn định khi đang di chuyển.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/TRAC_LAM_CODEX.md",
+        "anchor": "NGOẠI HÌNH"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 67,
+      "tags": [
+        "detail:visual"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.TRAC_LAM.DETAIL.PROFILE.006.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[TÍNH CÁCH] Trác Lâm bình tĩnh, kín tiếng và rất khó bị kéo vào trò khiêu khích. Anh không dùng sự im lặng để tỏ ra bí ẩn; đơn giản là không nói khi lời nói không giúp quyết định tốt hơn. Với người lạ, anh lịch sự nhưng giữ khoảng cách. Với đồng đội, anh rõ ràng hơn, sẵn sàng nhận trách nhiệm cho quyết định do mình ban ra. Anh có khiếu hài hước khô và hiếm khi cười lớn. Khi căng thẳng, anh càng nói chính xác thay vì nói nhiều. Điểm mạnh này cũng là điểm yếu: Trác Lâm có xu hướng biến cảm giác tội lỗi thành việc phải kiểm soát",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/TRAC_LAM_CODEX.md",
+        "anchor": "TÍNH CÁCH"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.TRAC_LAM.DETAIL.PROFILE.006.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[TÍNH CÁCH] thêm nhiều thứ, dễ tự nhận trách nhiệm cho những biến cố vượt ngoài khả năng của mình. Anh không phải người theo chủ nghĩa bất bạo động. Khi một mục tiêu đã được xác nhận là mối đe dọa trực tiếp, anh có thể nổ súng rất nhanh. Ranh giới của anh nằm ở lý do sử dụng bạo lực, không nằm ở sự do dự khi thực hiện nó.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/TRAC_LAM_CODEX.md",
+        "anchor": "TÍNH CÁCH"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.TRAC_LAM.DETAIL.PROFILE.007.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[THÓI QUEN VÀ BIỂU HIỆN] - Luôn kiểm tra lối vào, lối ra và góc khuất trước khi chọn vị trí nghỉ. - Không ngồi quay lưng về phía một lối chưa kiểm soát. - Ghi lại hiện tượng bằng câu mô tả quan sát trước, giả thuyết sau. - Khi phải đưa ra quyết định nguy hiểm, anh thường nhắc lại dữ kiện cốt lõi một lần để đội hiểu mình đang dựa vào cái gì. - Không chạm vật thể dị thường chỉ để “xem chuyện gì xảy ra”. - Sau giao chiến, ưu tiên kiểm người bị thương trước khi kiểm chiến lợi phẩm.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/TRAC_LAM_CODEX.md",
+        "anchor": "THÓI QUEN VÀ BIỂU HIỆN"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.TRAC_LAM.DETAIL.DIALOGUE.008.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[GIỌNG NÓI VÀ HỘI THOẠI — HARD LOCK] Trác Lâm kín tiếng, nhưng “kín tiếng” ở đây có nghĩa là anh không nói phần không cần thiết; nó không có nghĩa anh rút mọi phát ngôn xuống số từ tối thiểu. Ngoài tình huống nguy hiểm tức thời, lời của anh phải nghe như tiếng Việt của một người trưởng thành, được đào tạo tốt và đang nói với một con người khác — không như log hệ thống, phụ đề hoặc mệnh lệnh máy. - Khi có thời gian để nói, Trác Lâm dùng câu hoàn chỉnh và giữ các mối nối cần thiết giữa dữ kiện, nguyên nhân, điều kiện và giới hạn. Anh có thể ngắn, nhưng",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/TRAC_LAM_CODEX.md",
+        "anchor": "GIỌNG NÓI VÀ HỘI THOẠI — HARD LOCK"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 58,
+      "tags": [
+        "detail:dialogue"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.TRAC_LAM.DETAIL.DIALOGUE.008.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[GIỌNG NÓI VÀ HỘI THOẠI — HARD LOCK] không bẻ một ý liền thành chuỗi mảnh chỉ để nghe lạnh hoặc “chuyên nghiệp”. - Tính chính xác của anh nằm ở nội dung. Anh phân biệt điều đã thấy, điều suy ra và điều chưa biết, nhưng không liên tục đọc các nhãn hậu trường kiểu “xác nhận / giả thuyết / rủi ro / kết luận” thành lời. - Khi căng thẳng, anh nói trực tiếp hơn và bỏ phần trang trí; nếu vẫn còn vài giây để phối hợp, anh vẫn nói đủ để người nghe biết phải làm gì và vì sao điều đó quan trọng. - Khẩu lệnh rất ngắn chỉ là ngoại lệ của tác chiến khẩn cấp, liên l",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/TRAC_LAM_CODEX.md",
+        "anchor": "GIỌNG NÓI VÀ HỘI THOẠI — HARD LOCK"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 58,
+      "tags": [
+        "detail:dialogue"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.TRAC_LAM.DETAIL.DIALOGUE.008.03",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[GIỌNG NÓI VÀ HỘI THOẠI — HARD LOCK] ạc radio, bị thương, thiếu hơi hoặc tình huống đòi phản ứng trong vài giây. Khi áp lực qua đi, giọng nói trở lại nhịp bình thường. - Với người lạ, anh lịch sự và giữ khoảng cách; với đồng đội, anh rõ ràng hơn. Khi bất đồng, anh ưu tiên nêu rủi ro hoặc hậu quả cụ thể thay vì phát biểu khẩu hiệu. Khi quyết định thuộc về mình, anh có xu hướng nhận phần trách nhiệm của quyết định đó. - Hài hước của Trác Lâm khô và thưa. Không biến mọi phản hồi thành một câu sắc, một cú bắt chữ hoặc một câu “đắt”. - Không dùng “Không đủ",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/TRAC_LAM_CODEX.md",
+        "anchor": "GIỌNG NÓI VÀ HỘI THOẠI — HARD LOCK"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 58,
+      "tags": [
+        "detail:dialogue"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.TRAC_LAM.DETAIL.DIALOGUE.008.04",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[GIỌNG NÓI VÀ HỘI THOẠI — HARD LOCK] dữ kiện”, “Chưa kết luận”, “Rõ”, “Tiếp tục”, “Không cần” như câu cửa miệng lặp lại. Những câu này chỉ giữ khi chính tình huống khiến chúng là phát ngôn tự nhiên. ### MẪU HIỆU CHỈNH — KHÔNG PHẢI PHRASEBANK Điều tra bình thường: Không nên: “Không đủ dữ kiện. Chưa kết luận. Tiếp tục quan sát.” Đúng hướng: “Chưa đủ để kết luận. Cái mình biết chắc là cánh cửa đổi vị trí sau khi mất tầm nhìn; còn nguyên nhân thì chưa có bằng chứng.” Bất đồng chiến thuật: Không nên: “Không. Rủi ro cao.” Đúng hướng: “Tôi không chọn cách đ",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/TRAC_LAM_CODEX.md",
+        "anchor": "GIỌNG NÓI VÀ HỘI THOẠI — HARD LOCK"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 58,
+      "tags": [
+        "detail:dialogue"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.TRAC_LAM.DETAIL.DIALOGUE.008.05",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[GIỌNG NÓI VÀ HỘI THOẠI — HARD LOCK] ó. Lối rút vẫn chưa kiểm soát được; nếu cánh cửa đổi lần nữa thì cả nhóm sẽ bị kẹt bên trong.” Tác chiến khẩn cấp: Có thể ngắn: “Bên trái, hai mục tiêu. Lùi về sau cột, đừng tách nhau.” Nếu liên lạc thật sự bị ép theo nhịp radio, câu còn ngắn hơn cũng hợp lệ; không mang nhịp ấy sang cuộc nói chuyện sau giao chiến. Nhận trách nhiệm: Không nên mặc định: “Lỗi của tôi.” Đúng hướng: “Lệnh giữ vị trí là của tôi. Tôi chưa biết đổi đường lúc đó có cứu được ai không, nhưng phần quyết định đó là của tôi.” Các mẫu trên chỉ hi",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/TRAC_LAM_CODEX.md",
+        "anchor": "GIỌNG NÓI VÀ HỘI THOẠI — HARD LOCK"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 58,
+      "tags": [
+        "detail:dialogue"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.TRAC_LAM.DETAIL.DIALOGUE.008.06",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[GIỌNG NÓI VÀ HỘI THOẠI — HARD LOCK] ệu chỉnh cơ chế. Không sao chép nguyên câu, không tái dùng cùng nhịp ở nhiều cảnh và đặc biệt không biến “Chưa đủ để kết luận” thành câu cửa miệng. Khi viết thật, phải lấy tình huống, quan hệ, dữ kiện Trác Lâm đang biết và áp lực hiện tại để sinh lời.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/TRAC_LAM_CODEX.md",
+        "anchor": "GIỌNG NÓI VÀ HỘI THOẠI — HARD LOCK"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 58,
+      "tags": [
+        "detail:dialogue"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.TRAC_LAM.DETAIL.COMBAT.009.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[TRANG BỊ CHÍNH] Bộ giáp AEGIS-K4: giáp chiến thuật trợ lực thế hệ 2099, dùng mô-đun cơ điện để giảm tải trọng, ổn định khớp và hỗ trợ người mặc duy trì tư thế bắn. Giáp có cảm biến sinh tồn, ghi nhận môi trường, liên lạc đội và hệ thống hiển thị chiến thuật. Đây là công nghệ, không phải năng lực siêu nhiên; nó vẫn phụ thuộc pin, cảm biến và tình trạng cơ khí. M-92 “Gemini”: súng chiến đấu hai nòng độc lập, thiết kế cho đội phản ứng dị thường. Hai nòng cho phép chuyển nhanh giữa hai loại đạn đã nạp sẵn mà không phải thay toàn bộ cơ",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/TRAC_LAM_CODEX.md",
+        "anchor": "TRANG BỊ CHÍNH"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:combat"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.TRAC_LAM.DETAIL.COMBAT.009.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[TRANG BỊ CHÍNH] cấu tiếp đạn. Trác Lâm ưu tiên đạn xuyên giáp và đạn chặn mục tiêu, nhưng lượng đạn luôn hữu hạn. Bộ trinh sát cá nhân: camera phổ rộng, đo khoảng cách, cảm biến nhiệt, bộ ghi âm và bản đồ cục bộ. Trong Backrooms, dữ liệu từ các thiết bị này được Trác Lâm xem là bằng chứng tại thời điểm đo chứ không phải bản đồ vĩnh viễn. Bộ cứu thương SRU: băng ép, vật tư cầm máu, thuốc giảm đau và thiết bị theo dõi sinh hiệu. Trác Lâm được đào tạo sơ cứu chiến thuật nhưng không phải bác sĩ.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/TRAC_LAM_CODEX.md",
+        "anchor": "TRANG BỊ CHÍNH"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:combat"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.TRAC_LAM.DETAIL.COMBAT.010.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[NĂNG LỰC VÀ KỸ NĂNG] Khóa mục tiêu: Trác Lâm có khả năng giữ đường ngắm ổn định và chuyển điểm bắn rất nhanh trong không gian hẹp. Anh ưu tiên mục tiêu đang tạo nguy cơ trực tiếp cho đội hình hơn mục tiêu dễ hạ nhất. Hỏa lực chế áp: sử dụng nhịp bắn, góc bắn và vật cản để buộc đối phương mất quyền chủ động, tạo khoảng trống cho đồng đội rút hoặc đổi vị trí. Phá tuyến: khi xác định một điểm chặn phải bị phá ngay, anh tập trung hỏa lực vào một điểm yếu đã quan sát thay vì bắn dàn trải. Đánh giá dị thường: Trác Lâm giỏi tách dấu hiệu môi",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/TRAC_LAM_CODEX.md",
+        "anchor": "NĂNG LỰC VÀ KỸ NĂNG"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:combat"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.TRAC_LAM.DETAIL.COMBAT.010.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[NĂNG LỰC VÀ KỸ NĂNG] trường khỏi suy diễn. Anh có thói quen thử bằng nhiều kênh độc lập trước khi xem một quy luật là đáng tin. Chỉ huy chiến trường: anh quản lý vị trí, góc nhìn, khoảng cách và thứ tự di chuyển rất tốt. Năng lực này không cho phép anh điều khiển người khác; nó chỉ khiến đề xuất chiến thuật của anh có cơ sở và dễ thực hiện. Sinh tồn đô thị: quen với hành lang kỹ thuật, công trình bỏ hoang, hệ thống điện, vật cản cơ khí và các tuyến rút hẹp.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/TRAC_LAM_CODEX.md",
+        "anchor": "NĂNG LỰC VÀ KỸ NĂNG"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:combat"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.TRAC_LAM.DETAIL.PROFILE.011.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[GIỚI HẠN] Trác Lâm vẫn là con người bình thường. Anh có thể bị thương, mất máu, kiệt sức, mất nước, nhiễm trùng và chết. Giáp không biến anh thành người siêu phàm; trợ lực giúp giảm tải nhưng không xóa giới hạn cơ thể. Súng phụ thuộc đạn. Giáp phụ thuộc pin và linh kiện. Cảm biến có thể bị nhiễu. Bản đồ có thể mất giá trị khi không gian thay đổi. Những lợi thế công nghệ của năm 2099 càng giảm mạnh khi môi trường không tuân theo các điều kiện mà thiết bị được thiết kế để xử lý. Điểm yếu tâm lý lớn nhất của Trác Lâm là trách n",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/TRAC_LAM_CODEX.md",
+        "anchor": "GIỚI HẠN"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.TRAC_LAM.DETAIL.PROFILE.011.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[GIỚI HẠN] hiệm quá mức. Khi một người dưới quyền gặp nạn, anh có xu hướng tìm một quyết định của chính mình để quy lỗi, kể cả khi sự kiện nằm ngoài khả năng dự đoán.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/TRAC_LAM_CODEX.md",
+        "anchor": "GIỚI HẠN"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.TRAC_LAM.DETAIL.PROFILE.012.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[CANON LOCK] - Trác Lâm là nam, 28 tuổi, người Việt Nam, quê Đà Nẵng. - Anh đến từ năm 2099 và là đội trưởng SRU-03. - SRU là lực lượng cảnh sát phản ứng chống dị thường; SRU-03 có sáu thành viên. - Trác Lâm vào Backrooms trong chiến dịch ECHO-17 và bị tách khỏi năm đồng đội còn sống. - Anh không có tri thức sẵn về Backrooms. - First contact với Cao Minh và Lục Trầm diễn ra tại Level 0.7. - Anh ưu tiên bằng chứng, đội hình và bảo toàn người sống; không phải người theo chủ nghĩa bất bạo động. - Trang bị là công nghệ năm 2099, kh",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/TRAC_LAM_CODEX.md",
+        "anchor": "CANON LOCK"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.TRAC_LAM.DETAIL.PROFILE.012.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[CANON LOCK] ông mang bản chất siêu nhiên. - Ngoại hình chính thức lấy từ Trac_Lam.png. - Kín tiếng không đồng nghĩa thoại cụt: ngoài tình huống khẩn cấp/radio thật sự, không viết Trác Lâm bằng chuỗi câu điện tín, log trạng thái hoặc nhịp “AI-gọn”; phải giữ lời nói tự nhiên đúng người và đúng tình huống. - Vai trò dài hạn với Cao Minh phải phát triển qua hành động và niềm tin tích lũy, không được biến thành “gặp một lần là thay đổi”.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/TRAC_LAM_CODEX.md",
+        "anchor": "CANON LOCK"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "WORLD.DETAIL.ENVIRONMENT.001.01",
+      "domain": "WORLD",
+      "kind": "authored-detail",
+      "text": "[1. NỀN THẾ GIỚI] Thế giới sử dụng Backrooms trên mạng làm nền trực tiếp. Các Tầng, môi trường, hiện tượng, vật phẩm, tổ chức, lối vào, lối ra, cộng đồng, thực thể và những quy luật đã tồn tại của Backrooms đều được giữ theo nguồn hiện hành, trừ những điểm được quy định khác trong tài liệu của tác phẩm. Không xây dựng lại Backrooms thành một thế giới mới nếu không cần thiết. Khi câu chuyện cần một dữ kiện cụ thể, tra cứu nguồn Backrooms hiện hành rồi sử dụng làm nền. ---",
+      "source": {
+        "document": "Google Drive /Novel/Asset/02_Level/BACKROOMS_WORLD.md",
+        "anchor": "1. NỀN THẾ GIỚI"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:environment"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "LEVEL.00.DETAIL.ENVIRONMENT.002.01",
+      "domain": "LEVEL",
+      "kind": "authored-detail",
+      "text": "[Tầng 0 — Threshold / The Lobby] Một mạng phòng vàng phi Euclid với giấy dán tường cũ, thảm ẩm, đèn huỳnh quang và tiếng ù liên tục. Các phòng giống nhau nhưng không hoàn toàn trùng lặp; đi thẳng không bảo đảm giữ phương hướng hoặc quay lại đúng nơi cũ. Khoảng trống trên trần giả, dây điện, ống kỹ thuật và các góc chết có thể tồn tại nhưng không tạo thành một tuyến di chuyển ổn định. Chất lỏng trong thảm không được mặc định là nước uống. Cảm giác khoảng cách, vị trí và thời gian dễ sai lệch khi ở lâu.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/02_Level/BACKROOMS_WORLD.md",
+        "anchor": "Tầng 0 — Threshold / The Lobby"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:environment"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "LEVEL.01.DETAIL.ENVIRONMENT.003.01",
+      "domain": "LEVEL",
+      "kind": "authored-detail",
+      "text": "[Tầng 1 — Habitable Zone] Không gian bê tông rộng giống gara, bãi đỗ xe và khu dịch vụ công nghiệp. Cột chịu lực, đường dốc, cửa cuốn, phòng kho và những khoảng trống lớn tạo tầm nhìn dài nhưng nhiều góc khuất. Blackout có thể khiến cùng một khu vực trở nên gần như không nhận ra. Nhiệt độ, độ ẩm và tiếng máy thay đổi giữa các khu vực. Âm thanh bước chân, kim loại hoặc vật rơi có thể vọng rất xa.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/02_Level/BACKROOMS_WORLD.md",
+        "anchor": "Tầng 1 — Habitable Zone"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:environment"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "LEVEL.02.DETAIL.ENVIRONMENT.004.01",
+      "domain": "LEVEL",
+      "kind": "authored-detail",
+      "text": "[Tầng 2 — Abandoned Utility Halls / Pipe Dreams] Một mạng hành lang kỹ thuật nóng ẩm với đường ống, van, shaft, crawlspace, hơi nước và nước rò. Nhiều đoạn hẹp tới mức buộc người đi nghiêng hoặc bò. Nhiệt độ không đồng nhất. Một khu có thể nóng đến mức gây bỏng hoặc mất nước nhanh, trong khi khu khác lạnh bất thường. Tiếng máy và dòng chất lỏng trong ống thường khó xác định nguồn.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/02_Level/BACKROOMS_WORLD.md",
+        "anchor": "Tầng 2 — Abandoned Utility Halls / Pipe Dreams"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:environment"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "LEVEL.03.DETAIL.ENVIRONMENT.005.01",
+      "domain": "LEVEL",
+      "kind": "authored-detail",
+      "text": "[Tầng 3 — Electrical Station] Môi trường công nghiệp dày đặc gồm máy biến áp, bảng điện, quạt lớn, cuộn dây, conductor, cáp cao áp và hệ thống máy móc không rõ nguồn cấp. Khu chính thường nóng, khô và có mùi ozone. Các utility tunnel phía dưới có thể lạnh sâu, ngập nước hoặc mất điện. Khi blackout xảy ra, việc mất tiếng máy quen thuộc cũng làm khả năng định hướng suy giảm.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/02_Level/BACKROOMS_WORLD.md",
+        "anchor": "Tầng 3 — Electrical Station"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:environment"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "LEVEL.04.DETAIL.ENVIRONMENT.006.01",
+      "domain": "LEVEL",
+      "kind": "authored-detail",
+      "text": "[Tầng 4 — Abandoned Office] Một cao ốc văn phòng bỏ hoang với cubicle, phòng họp, hành lang, cửa kính, máy tính cũ và nội thất rời rạc. Hình học dễ đọc hơn nhiều Tầng trước nhưng vẫn không được xem là hoàn toàn tuyến tính. Cửa sổ có thể nhìn ra bầu trời xám và mưa kéo dài. Tiếng mưa đôi khi nghe được sâu trong tòa nhà dù không có nguồn nước tương ứng. Đây là vùng tương đối dễ nghỉ chân hơn, không phải khu vực an toàn tuyệt đối.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/02_Level/BACKROOMS_WORLD.md",
+        "anchor": "Tầng 4 — Abandoned Office"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:environment"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "LEVEL.05.DETAIL.ENVIRONMENT.007.01",
+      "domain": "LEVEL",
+      "kind": "authored-detail",
+      "text": "[Tầng 5 — Terror Hotel] Một khách sạn rộng lớn mang thẩm mỹ cổ điển, với gỗ tối, thảm dày, đồng thau, đèn vàng, hành lang dài và các khu chức năng như phòng ngủ, ballroom, nhà hàng, hồ bơi, boiler room và khu bảo trì. Các wing không nhất thiết thuộc cùng một thời kỳ kiến trúc và không cần khớp thành một sơ đồ khách sạn hợp lý. Không khí thường có mùi bụi, gỗ cũ, vải lâu ngày và kim loại nóng gần khu kỹ thuật.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/02_Level/BACKROOMS_WORLD.md",
+        "anchor": "Tầng 5 — Terror Hotel"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:environment"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "LEVEL.06.DETAIL.ENVIRONMENT.008.01",
+      "domain": "LEVEL",
+      "kind": "authored-detail",
+      "text": "[Tầng 6 — Lights Out] HARD LOCK của Project: Tầng 6 là tundra tối vĩnh viễn, không phải mê cung hành lang tối của continuity cũ. Địa hình gồm đất lạnh, tuyết rải rác, cây bụi héo, thân cây chết, hồ tối và những cấu trúc cô lập như obelisk. Không có nguồn sáng tự nhiên đáng tin cậy. Ánh sáng nhân tạo chỉ mở ra một vùng nhìn ngắn trước khi bóng tối che mất đường chân trời. Nguy cơ môi trường chính gồm lạnh, mất phương hướng, thiếu ngủ, microsleep và suy giảm nhận thức trong bóng tối kéo dài.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/02_Level/BACKROOMS_WORLD.md",
+        "anchor": "Tầng 6 — Lights Out"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:environment"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "LEVEL.NODE.epsilon.DETAIL.ENVIRONMENT.009.01",
+      "domain": "LEVEL",
+      "kind": "authored-detail",
+      "text": "[Level ε — Incessant Hum-Buzz] Giữ thẩm mỹ vàng, thảm beige và đèn huỳnh quang của Tầng 0 nhưng mở rộng thành những không gian cao và lớn hơn, có platform, tunnel, cầu thang và cấu trúc nhiều tầng dẫn tới những vị trí phi lý.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/02_Level/BACKROOMS_WORLD.md",
+        "anchor": "Level ε — Incessant Hum-Buzz"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:environment"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "LEVEL.NODE.0.5.DETAIL.ENVIRONMENT.010.01",
+      "domain": "LEVEL",
+      "kind": "authored-detail",
+      "text": "[Level 0.5 — Aquaclaustrophobic Infirmary] Nguồn tham khảo: [Level 0.5 — Aquaclaustrophobic Infirmary](https://backrooms-wiki.wikidot.com/level-0-5), Moose0, The Backrooms Wiki, CC BY-SA 3.0; bản trang cập nhật 07/09/2026. Nội dung về trải nghiệm, lối ra và The Drowned trong nguồn chủ yếu là lời kể của người sống sót hoặc báo cáo M.E.G.; không nâng suy đoán thành sự thật đã xác minh. Waterlogged Passages là các hành lang hẹp ngập nước lạnh, bẩn, thường ngang gối và đục đến mức không thấy đáy. Giấy tường màu kem nhợt bong ở mép nước; đèn hình chữ nhật xanh t",
+      "source": {
+        "document": "Google Drive /Novel/Asset/02_Level/BACKROOMS_WORLD.md",
+        "anchor": "Level 0.5 — Aquaclaustrophobic Infirmary"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:environment"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "LEVEL.NODE.0.5.DETAIL.ENVIRONMENT.010.02",
+      "domain": "LEVEL",
+      "kind": "authored-detail",
+      "text": "[Level 0.5 — Aquaclaustrophobic Infirmary] reo bằng dây sờn có thể phát tia lửa. Tiếng nước bị khuấy và tiếng giọt vọng thay cho tiếng buzz đều của Level 0. Thiếu vị trí khô để nghỉ; ngâm nước lâu, kiệt sức, nước ô nhiễm và nguy cơ điện là các hiểm họa môi trường. Không tự xác định tác nhân gây bệnh cụ thể chỉ từ triệu chứng. Đi sâu hơn, giấy tường chuyển dần sang vách gỗ mục, trần thả và trolley trước khi mở sang The Hospital. Khu bệnh viện có sàn bẩn dầu, gạch trần lệch, vật cản, phòng bệnh và giường ẩm; khô hơn không đồng nghĩa an toàn. Nguồn Wiki kể về",
+      "source": {
+        "document": "Google Drive /Novel/Asset/02_Level/BACKROOMS_WORLD.md",
+        "anchor": "Level 0.5 — Aquaclaustrophobic Infirmary"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:environment"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "LEVEL.NODE.0.5.DETAIL.ENVIRONMENT.010.03",
+      "domain": "LEVEL",
+      "kind": "authored-detail",
+      "text": "[Level 0.5 — Aquaclaustrophobic Infirmary] The Drowned đeo bám con mồi trong khu này, nhưng sự hiện diện hoặc giao chiến trong game chỉ xảy ra khi EntityCore/state xác nhận. Nguồn Wiki ghi nhận những lối ra khác, gồm Level 1, Level 37 và Level 109. Trong BACKROOMsV2, Core quyết định tuyến hiện hành: vào từ Level 0.2 và chỉ chuyển tiếp tới Level 0.7. Mô tả từ Wiki không mở thêm route, cấp vật phẩm, gây damage hay spawn Entity.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/02_Level/BACKROOMS_WORLD.md",
+        "anchor": "Level 0.5 — Aquaclaustrophobic Infirmary"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:environment"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "LEVEL.NODE.dullness.DETAIL.ENVIRONMENT.011.01",
+      "domain": "LEVEL",
+      "kind": "authored-detail",
+      "text": "[Dullness] Một mê cung gồm các phòng có kích thước biến đổi cực mạnh. Hình khối có thể hòa vào nhau hoặc thay đổi quan hệ không gian, khiến bản đồ nhanh chóng mất giá trị.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/02_Level/BACKROOMS_WORLD.md",
+        "anchor": "Dullness"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "LEVEL.NODE.red_rooms.DETAIL.ENVIRONMENT.012.01",
+      "domain": "LEVEL",
+      "kind": "authored-detail",
+      "text": "[Red Rooms] Một biến thể đỏ thẫm của Tầng 0. Tường, thảm, trần và ánh sáng đều chuyển sang sắc đỏ; vật liệu có thể khô, ráp hoặc dính hơn baseline Tầng 0. Nấm và mốc xuất hiện ở nhiều khu vực.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/02_Level/BACKROOMS_WORLD.md",
+        "anchor": "Red Rooms"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "WORLD.DETAIL.PROFILE.013.01",
+      "domain": "WORLD",
+      "kind": "authored-detail",
+      "text": "[3. THỰC THỂ] Đây là khác biệt quan trọng nhất của thế giới này. ### THỰC THỂ KHÔNG THUỘC CỐ ĐỊNH MỘT TẦNG Không có khái niệm một loài thực thể chỉ được phép tồn tại tại một Tầng nhất định. Danh sách thực thể của từng Tầng trong các tài liệu Backrooms chỉ phản ánh những nơi chúng thường được ghi nhận, không phải ranh giới mà chúng không thể vượt qua. Thực thể có thể: - rời khỏi Tầng nơi chúng thường xuất hiện; - đi qua các lối chuyển vùng; - lang thang sang những Tầng khác; - đuổi theo con mồi qua nhiều Tầng; - di cư vì thức ăn,",
+      "source": {
+        "document": "Google Drive /Novel/Asset/02_Level/BACKROOMS_WORLD.md",
+        "anchor": "3. THỰC THỂ"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "WORLD.DETAIL.PROFILE.013.02",
+      "domain": "WORLD",
+      "kind": "authored-detail",
+      "text": "[3. THỰC THỂ] môi trường hoặc những nguyên nhân chưa rõ; - xuất hiện tại nơi trước đó chưa từng có ghi nhận về chúng. Một Hound được nhìn thấy tại Tầng 1 không có nghĩa nó là “thực thể của Tầng 1”. Nó chỉ là một Hound đang ở Tầng 1. Vì vậy, không Tầng nào được bảo đảm an toàn chỉ vì tài liệu về Tầng đó không ghi nhận thực thể. ### MÔI TRƯỜNG VẪN ẢNH HƯỞNG THỰC THỂ Khả năng đi khắp Backrooms không có nghĩa mọi thực thể xuất hiện ở mọi nơi với tần suất giống nhau. Môi trường vẫn ảnh hưởng đến: - khả năng tồn tại; - nguồn thức ăn;",
+      "source": {
+        "document": "Google Drive /Novel/Asset/02_Level/BACKROOMS_WORLD.md",
+        "anchor": "3. THỰC THỂ"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "WORLD.DETAIL.PROFILE.013.03",
+      "domain": "WORLD",
+      "kind": "authored-detail",
+      "text": "[3. THỰC THỂ] - cách săn mồi; - khả năng di chuyển; - khả năng ẩn nấp; - khả năng sinh sản; - lý do ở lại; - lý do rời đi. Một thực thể có thể cực kỳ hiếm tại một Tầng vì môi trường không phù hợp. Nhưng không có một quy luật vô hình ngăn nó bước vào đó. ---",
+      "source": {
+        "document": "Google Drive /Novel/Asset/02_Level/BACKROOMS_WORLD.md",
+        "anchor": "3. THỰC THỂ"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:profile"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "WORLD.DETAIL.ENVIRONMENT.014.01",
+      "domain": "WORLD",
+      "kind": "authored-detail",
+      "text": "[4. BACKROOMS KHÔNG XOAY QUANH CON NGƯỜI] Backrooms tồn tại độc lập với con người. Các Tầng không sinh ra để thử thách Cao Minh hay Lục Trầm. Vật phẩm không xuất hiện đúng lúc để cứu họ. Thực thể không yếu đi vì gặp nhân vật chính. Lối thoát không mở ra chỉ vì câu chuyện cần tiếp tục. Môi trường không tự nương tay. Nếu một người sống sót, đó phải là kết quả của năng lực, kinh nghiệm, lựa chọn, sự chuẩn bị và những gì họ thật sự có trong tay. ---",
+      "source": {
+        "document": "Google Drive /Novel/Asset/02_Level/BACKROOMS_WORLD.md",
+        "anchor": "4. BACKROOMS KHÔNG XOAY QUANH CON NGƯỜI"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:environment"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "WORLD.DETAIL.ENVIRONMENT.015.01",
+      "domain": "WORLD",
+      "kind": "authored-detail",
+      "text": "[6. QUY TẮC THẾ GIỚI] ### Quy tắc 1 — Nguồn nền Backrooms trên mạng là nguồn nền của thế giới. Những gì tác phẩm chưa quy định riêng thì dùng theo nguồn Backrooms hiện hành. ### Quy tắc 2 — Thực thể tự do di chuyển Thực thể không bị khóa theo từng Tầng. Chúng có thể di chuyển, săn mồi và xuất hiện ngoài khu vực thường được ghi nhận. ### Quy tắc 3 — Môi trường vẫn có giá trị Một thực thể có thể đi tới một nơi không có nghĩa nơi đó thích hợp để nó sinh sống. Tần suất xuất hiện phải phù hợp với môi trường và bản chất của thực thể. ### Quy",
+      "source": {
+        "document": "Google Drive /Novel/Asset/02_Level/BACKROOMS_WORLD.md",
+        "anchor": "6. QUY TẮC THẾ GIỚI"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:environment"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "WORLD.DETAIL.ENVIRONMENT.015.02",
+      "domain": "WORLD",
+      "kind": "authored-detail",
+      "text": "[6. QUY TẮC THẾ GIỚI] tắc 4 — Không ưu ái nhân vật chính Cao Minh và Lục Trầm phải chịu cùng quy luật của Backrooms như những người khác. Mọi chiến thắng phải đến từ những gì họ thực sự có thể làm. ### Quy tắc 5 — Sai lầm của Backrooms Sự xuất hiện của Cao Minh và Lục Trầm là một biến số có khả năng phá vỡ trạng thái cân bằng vốn có của Backrooms. Mức độ phá vỡ phải được chứng minh qua diễn biến câu chuyện, không được tự tuyên bố mà không có sự kiện tương ứng. ### Quy tắc 6 — Phạm vi hiện tại Hiện tại chỉ xây dựng chi tiết đến Tầng 10.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/02_Level/BACKROOMS_WORLD.md",
+        "anchor": "6. QUY TẮC THẾ GIỚI"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:environment"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "WORLD.DETAIL.ENVIRONMENT.015.03",
+      "domain": "WORLD",
+      "kind": "authored-detail",
+      "text": "[6. QUY TẮC THẾ GIỚI] Tầng 11 trở lên vẫn tồn tại nhưng chưa cần viết thành dữ liệu cố định. ### Quy tắc 7 — Ưu tiên thiết lập của tác phẩm Nếu nguồn Backrooms trên mạng mâu thuẫn với một quy định đã được tác phẩm cố ý thay đổi, quy định của tác phẩm được ưu tiên.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/02_Level/BACKROOMS_WORLD.md",
+        "anchor": "6. QUY TẮC THẾ GIỚI"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 72,
+      "tags": [
+        "detail:environment"
+      ],
+      "references": [],
+      "affordances": []
+    }
+  ]
+}
