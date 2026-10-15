@@ -1565,6 +1565,7 @@ public class MainActivity extends Activity {
       continuityNotesSection(stateForKnowledge.toString(), rolls.toString()) +
       exitDirectiveSection(before, rolls) +
       eventSemanticsAndAgency() +
+      corePersonalMemorySection() +
       "\nACTION_TYPE: " + actionKindNormalized +
       "\nPLAYER_ACTION: " + action +
       "\nCORE_ROLLS_READ_ONLY: " + visibleRolls.toString() +
@@ -1615,6 +1616,12 @@ public class MainActivity extends Activity {
       if (guidance == null || guidance.trim().isEmpty()) return "";
       return "\nHƯỚNG DẪN VĂN PHONG LƯỢT NÀY:\n" + guidance.trim();
     } catch (Throwable ignored) { return ""; }
+  }
+
+  /** The Core activates only factual bags of encountered, scene-present NPCs. */
+  private String corePersonalMemorySection() {
+    String memory = requireGameCore().sceneMemoryContext();
+    return memory.isEmpty() ? "" : "\\nPERSONAL_MEMORY_CORE_READ_ONLY:\\n" + memory;
   }
 
   private String continuityNotesSection(String stateJson, String rollsJson) {
