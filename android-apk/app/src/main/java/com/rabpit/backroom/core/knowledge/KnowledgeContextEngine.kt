@@ -233,7 +233,9 @@ object KnowledgeContextEngine {
         "CHAR.CAO_MINH.RUNTIME_CORE"
       ).forEach { add(it, "mandatory hard context") }
       add("CHAR.CAO_MINH.AUTHORED", "Drive-authored identity boundary")
-
+      // Stable, author-confirmed world fact: Backrooms has abundant ambient
+      // linh khi. This must not depend on the player saying "linh khi".
+      add("SUPPORT.LINH_KHI.DETAIL.ENVIRONMENT.0002.01", "ambient world canon")
     }
 
     private fun addCurrentLevel() {
@@ -539,6 +541,7 @@ object KnowledgeContextEngine {
 
     /** The current encounter's identity/visual card cannot be dropped as optional context. */
     private fun mandatory(record: Record): Boolean = record.priority <= 30 ||
+      record.id == "SUPPORT.LINH_KHI.DETAIL.ENVIRONMENT.0002.01" ||
       record.id == confirmedEntityVisualId() ||
       (record.id == "CHAR.LUCIA.AUTHORED" && "lucia" in presentActors) ||
       (record.id == "CHAR.LUC_TRAM.AUTHORED" && "luc_tram" in presentActors) ||
