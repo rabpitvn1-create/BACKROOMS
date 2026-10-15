@@ -45,7 +45,7 @@ test('Battle Start follows all narrative paragraphs and uses the Core registry d
     assert.equal(r.bridgeCalls.length, 0, 'render must never start Combat');
     assert.equal(r.ctx.state.combat.active, false);
   }
-  assert.match(html, /id="exploreActionButton"/);
+  assert.doesNotMatch(html, /id="exploreActionButton"/);
   assert.match(html, /id="submit"/);
 });
 

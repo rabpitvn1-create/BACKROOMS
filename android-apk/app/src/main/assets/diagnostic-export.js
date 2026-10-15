@@ -26,7 +26,6 @@
         directCombatPreparing:!!global.__directCombatPreparing,directCombatResolving:!!global.__directCombatResolving,
         pokerDiceHidden:el("pokerDiceModal")?!!el("pokerDiceModal").hidden:null,
         playerActionHidden:el("playerActionModal")?!!el("playerActionModal").hidden:null,
-        exploreDisabled:el("exploreActionButton")?!!el("exploreActionButton").disabled:null,
         executeDisabled:el("submit")?!!el("submit").disabled:null,
         confirmDisabled:el("playerActionConfirm")?!!el("playerActionConfirm").disabled:null,
         uiStatus:el("status")&&el("status").textContent},
