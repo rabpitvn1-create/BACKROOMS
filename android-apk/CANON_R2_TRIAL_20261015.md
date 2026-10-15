@@ -9,7 +9,7 @@
 
 ## Phạm vi thử nghiệm đầu tiên
 
-`knowledge_db.json` (89 quick cards và Core hard locks) tiếp tục hoạt động độc lập. `canon_detail_db.json` bổ sung 150 đoạn chi tiết có định danh, đề mục nguồn và quyền sở hữu dữ kiện từ:
+`knowledge_db.json` (89 quick cards và Core hard locks) tiếp tục hoạt động độc lập. `canon_detail_db.json` bổ sung 145 đoạn chi tiết có định danh, đề mục nguồn và quyền sở hữu dữ kiện từ:
 
 - `01_Character/CAO_MINH_CODEX.md`
 - `01_Character/LUC_TRAM_CODEX.md`
