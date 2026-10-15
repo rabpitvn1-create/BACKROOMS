@@ -25,9 +25,8 @@
         combatFeedbackBusy:!!global.__combatFeedbackBusy,combatDiceBusy:!!global.__combatDiceBusy,
         directCombatPreparing:!!global.__directCombatPreparing,directCombatResolving:!!global.__directCombatResolving,
         pokerDiceHidden:el("pokerDiceModal")?!!el("pokerDiceModal").hidden:null,
-        playerActionHidden:el("playerActionModal")?!!el("playerActionModal").hidden:null,
+        actionReadOnly:el("action")?!!el("action").readOnly:null,
         executeDisabled:el("submit")?!!el("submit").disabled:null,
-        confirmDisabled:el("playerActionConfirm")?!!el("playerActionConfirm").disabled:null,
         uiStatus:el("status")&&el("status").textContent},
       uiLogText:el("log")&&el("log").innerText||""};
     try{result.presentation=typeof state==="undefined"?null:state;}catch(error){result.presentationError=String(error);}

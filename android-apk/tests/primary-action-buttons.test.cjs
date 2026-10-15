@@ -5,21 +5,21 @@ const path=require('node:path');
 const vm=require('node:vm');
 const html=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/index.html'),'utf8');
 
-test('primary action bar contains only Execute',()=>{
-  const row=html.match(/<div class="primary-action-row" id="primaryActionRow">([\s\S]*?)<\/div>/);
+test('inline composer contains one send button and Cao Minh avatar',()=>{
+  const row=html.match(/<div class="primary-action-row chat-glass" id="primaryActionRow">([\s\S]*?)<\/div>/);
   assert.ok(row);
   assert.deepEqual([...row[1].matchAll(/<button\b[^>]*\bid="([^"]+)"/g)].map(m=>m[1]),['submit']);
   assert.doesNotMatch(html,/searchActionButton/);
   assert.doesNotMatch(html,/exploreActionButton|submitMacroAction|footprint-icon/);
-  assert.match(row[1],/id="submit" aria-label="Thực Hiện"/);
+  assert.match(html,/class="chat-avatar" src="avatars\/CAO_MINH_AVATAR.jpg"/);
+  assert.doesNotMatch(html,/playerActionModal|playerActionConfirm|PLAYER ACTION/);
+  assert.match(row[1],/id="submit" aria-label="Gửi hành động"/);
 });
 
-test('Execute preserves action submission, modal access and combat gating',()=>{
+test('composer submits EXECUTE directly and combat blocks form submissions',()=>{
   assert.match(html,/window\.Android\.submitAction\(JSON\.stringify\(state\),"EXECUTE",a\)/);
-  assert.match(html,/if\(execute\)execute\.addEventListener\("click"/);
   assert.match(html,/if\(combatActive\(\)\)\{ev\.preventDefault\(\);ev\.stopImmediatePropagation\(\);\}/);
-  assert.match(html,/\.primary-action-row\{display:grid;grid-template-columns:minmax\(0,1fr\)/);
-  assert.match(html,/\.player-action-bar \.primary-action-row\{grid-template-columns:minmax\(0,1fr\)/);
+  assert.match(html,/window\.__combatBusy\|\|window\.__combatDiceBusy\|\|window\.__combatFeedbackBusy/);
 });
 
 test('combat action bar renders with Execute as its only button',()=>{
@@ -35,7 +35,7 @@ test('combat action bar renders with Execute as its only button',()=>{
   vm.runInNewContext(script,ctx);
   assert.equal(row.hidden,false);
   assert.equal(classes.has('combat-direct'),true);
-  assert.equal(execute.type,'button');
+  assert.equal(execute.disabled,true);
   let blocked=0;
   guard({preventDefault(){blocked++;},stopImmediatePropagation(){blocked++;}});
   assert.equal(blocked,2);

@@ -111,13 +111,7 @@ test('the native bridge passes narration before committing and confirmation neve
   assert.doesNotMatch(java, /forceEntityEncounterFlag|requireGameCore\(\)\.startCombatState/);
 });
 
-test('the final action-button override blocks exploration while Core awaits confirmation', () => {
-  const processing = html.match(/function processing\(\)\{[^}]+\}/)[0];
-  const ctx = {state: {pendingEncounter: {encounterId: 'CORE-ID'}}, busy: false};
-  ctx.window = ctx;
-  vm.createContext(ctx);
-  vm.runInContext(processing, ctx);
-  assert.equal(ctx.processing(), true);
-  delete ctx.state.pendingEncounter;
-  assert.equal(ctx.processing(), false);
+test('pending encounters are included in the inline composer lock', () => {
+  const composer = fs.readFileSync(path.join(assets, 'player-composer.js'), 'utf8');
+  assert.match(composer, /state.pendingEncounter/);
 });

@@ -7,17 +7,6 @@
 <style>
 *{box-sizing:border-box}body{margin:0;background:#080a0c;color:#eef1f3;font:15px system-ui,sans-serif}.shell{min-height:100vh;padding:10px;background:radial-gradient(circle at top,#161b20,#07090b 75%)}.game,.card{border:1px solid #2b3137;background:#0e1114;box-shadow:0 20px 60px #0007}.topbar{display:flex;justify-content:space-between;gap:12px;padding:16px;border-bottom:1px solid #2b3137}.eyebrow,.role{color:#8f9aa4;font-size:10px;font-weight:800;letter-spacing:.16em}h1{margin:4px 0 0;font-size:23px}.turn{color:#9aa4ad;font-size:12px;letter-spacing:.1em}.turn strong{font-size:21px;color:white}.snapshot{height:300px;margin:8px 10px 10px;border:1px solid #252b31;display:grid;place-items:center;background:#0b0d0f;color:#69737c;border-radius:10px;overflow:hidden}.snapshot img{width:100%;height:100%;object-fit:cover}.log{height:42vh;overflow:auto;padding:10px;display:grid;gap:10px}.message{border-left:3px solid #454e56;padding:11px;background:#111519}.message.player{border-left-color:#8b949e;background:#15191d}.role{margin-bottom:6px}.text{white-space:pre-wrap;line-height:1.55}.composer{display:grid;gap:8px;padding:10px}textarea,button{font:inherit}textarea{min-height:80px;background:#090c0f;color:white;border:1px solid #30373e;padding:10px}button{border:1px solid #3a4249;background:#1a2025;color:#eff2f4;padding:12px;font-weight:700}.status{border-top:1px solid #252b31;padding:10px;color:#9aa4ad;font-size:12px}.side{display:grid;gap:10px;margin-top:10px}.card{padding:14px}.card h2{font-size:13px;letter-spacing:.1em;margin:0 0 10px}.row{display:grid;grid-template-columns:90px 1fr;padding:6px 0;border-bottom:1px solid #22282d;color:#dce2e5}.row b{color:#78838c;font-weight:400}.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.actions .wide{grid-column:1/-1}.danger{background:#241616;color:#e6b1b1;border-color:#663b3b}.chips{display:flex;flex-wrap:wrap;gap:6px}.chips span{border:1px solid #313940;padding:5px 7px;font-size:12px}.party-time{min-height:16px;margin:-2px 0 9px;color:#78838c;font-size:11px}.party-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.party-member{border:1px solid #313940;background:#111519;padding:7px;display:grid;gap:6px;text-align:center;cursor:pointer;min-width:0}.party-member img,.party-avatar-placeholder{width:100%;aspect-ratio:1/1;object-fit:cover;border:1px solid #333b42;background:#0b0e11}.party-avatar-placeholder{display:grid;place-items:center;color:#78838c;font-size:18px;font-weight:800}.party-member strong{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.party-member .party-state{color:#84909a;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.party-member.empty{cursor:default;opacity:.45}.party-member.empty .party-avatar-placeholder{font-size:11px}.character-inventory-view{position:fixed;inset:0;z-index:50;background:#080a0c;padding:14px;overflow:auto}.character-inventory-head{display:flex;align-items:center;gap:12px;border-bottom:1px solid #2b3137;padding-bottom:12px}.character-inventory-head button{width:auto}.character-inventory-head h2{margin:3px 0 0}.character-profile{display:grid;grid-template-columns:110px 1fr;gap:14px;align-items:center;padding:16px 0}.character-profile img{width:110px;height:110px;object-fit:cover;border:1px solid #3b444c}.character-hp{margin:0 0 14px;max-width:520px}.character-hp-track{position:relative;height:22px;border:2px solid #30383d;background:#090c0d;box-shadow:0 0 0 2px rgba(0,0,0,.45),0 0 8px rgba(80,210,145,.16);overflow:hidden}.character-hp-fill{position:absolute;inset:0 auto 0 0;width:100%;background:linear-gradient(90deg,#a8e4c7 0%,#68c997 35%,#20b978 68%,#008f58 100%);transition:width .2s ease}.character-hp-segments{position:absolute;inset:0;display:grid;grid-template-columns:repeat(5,1fr);pointer-events:none}.character-hp-segments i{border-right:2px solid rgba(8,22,16,.23)}.character-hp-segments i:last-child{border-right:0}.character-hp-value{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:18px;line-height:1}.character-hp-heart{color:#e6394f;font-size:28px;text-shadow:0 1px 2px #000}.character-hp-value strong{font-weight:900;letter-spacing:.02em;color:#dce4e7}.inventory-capacity{font-size:18px;font-weight:800}.inventory-limit{margin-top:5px;color:#8f9aa4;font-size:12px}.character-section{border:1px solid #2b3137;background:#0e1114;padding:14px;margin-top:10px}.character-section h3{margin:0 0 10px;font-size:12px;letter-spacing:.12em;text-transform:uppercase}.equipment-list,.character-status-list{display:grid;gap:7px}.equipment-list > span,.character-status-row{border:1px solid #313940;padding:9px;color:#dce2e5}.character-status-row{display:grid;grid-template-columns:minmax(90px,35%) 1fr;gap:8px}.character-status-row b{color:#78838c;font-weight:400}.status-normal{color:#9aa4ad}.status-warning{color:#d6c28a}.status-danger{color:#df9a9a}.message.gm{border-left-color:#71808a;background:#1a2025}.survival-hud{display:grid;gap:10px;margin:0 0 13px}.survival-meter{border:1px solid #34444d;background:#0b1014;padding:8px 10px;clip-path:polygon(0 12%,4% 0,92% 0,100% 28%,100% 72%,96% 100%,4% 100%,0 88%)}.survival-meter-head{display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:9px;align-items:center;margin-bottom:6px}.survival-icon{display:grid;place-items:center;min-width:36px;height:30px;border:1px solid #4a626d;background:#111a1f;font-weight:900}.survival-label{font-size:11px;font-weight:800;letter-spacing:.08em}.survival-value{font-size:13px;font-weight:900}.survival-track{height:14px;border:1px solid #4b6570;background:#070a0c;padding:2px}.survival-fill{display:block;height:100%;background:linear-gradient(90deg,#5f8290,#b9e8f0);box-shadow:0 0 8px #8ddbe855;transition:width .2s ease}.survival-state{margin-top:5px;color:#87939b;font-size:10px;text-align:right}.survival-meter.unknown .survival-value,.survival-meter.unknown .survival-state{color:#78838c}.survival-meter.unknown .survival-fill{width:0!important}#characterEquipmentList .equipment-badge,#characterInventoryItems .equipment-badge{text-transform:uppercase;letter-spacing:.035em}@media(max-width:520px){.party-grid{grid-template-columns:repeat(4,1fr)}.party-member{padding:4px}.party-member strong{font-size:9px}.party-member .party-state{font-size:8px}}.message.warning{border-left-color:#d99a2b;background:#231a0b}.message.warning .role{color:#e3a83a}.message.warning .text{color:#ffd27a;font-weight:650}
 
-/* TWO_PRIMARY_ACTIONS */
-.primary-action-row{display:grid;grid-template-columns:minmax(0,1fr);gap:7px;width:100%}
-.primary-action{min-width:0;min-height:46px;border-radius:9px;display:flex;align-items:center;justify-content:center;gap:7px;padding:10px 8px;white-space:nowrap}
-.primary-action.execute-action{font-weight:800;border-color:#56616a;background:#20272d}
-.primary-action .action-icon{width:19px;height:19px;flex:0 0 19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.primary-action .ai-action-icon{width:22px;flex-basis:22px}
-.primary-action .ai-action-icon text{font:700 6.5px system-ui,sans-serif;fill:currentColor;stroke:none;letter-spacing:.2px}
-.primary-action .ai-action-icon .spark{stroke-width:1.4}
-@media(max-width:390px){.primary-action-row{gap:5px}.primary-action{font-size:12px;padding:9px 5px;gap:5px}.primary-action .action-icon{width:17px;height:17px;flex-basis:17px}.primary-action .ai-action-icon{width:20px;flex-basis:20px}}
-
-
 .character-role{margin-top:4px;color:#93a0a8;font-size:11px;letter-spacing:.04em}.character-core-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:10px 0}.character-core-stat{border:1px solid #30383d;background:#0a0d0f;padding:9px}.character-core-stat b{display:block;color:#7e8992;font-size:10px;letter-spacing:.12em}.character-core-stat strong{display:block;margin-top:4px;font-size:17px}.equipment-card,.inventory-item-card{display:grid;grid-template-columns:38px 1fr auto;gap:9px;align-items:center;border:1px solid #313940;background:#0b0f12;padding:8px;cursor:pointer}.equipment-card:hover,.inventory-item-card:hover{border-color:#52606a}.equipment-card-icon{width:38px;height:38px;display:grid;place-items:center;border:1px solid #39434a;background:#11171b;font-weight:900;font-size:11px}.equipment-card-main{min-width:0}.equipment-card-main strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.equipment-card-main small{display:block;color:#7f8b93;margin-top:3px}.equipment-badges{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}.equipment-badge{border:1px solid #45515a;padding:3px 5px;font-size:8px;letter-spacing:.08em}.equipment-badge.equipped{border-color:#3c8466;color:#8ed3b1}.equipment-badge.cheat{border-color:#8c7042;color:#e4c07e}.equipment-detail-modal{position:fixed;inset:0;z-index:120;background:rgba(0,0,0,.72);display:flex;align-items:flex-end;justify-content:center}.equipment-detail-modal[hidden]{display:none}.equipment-detail-sheet{position:relative;width:min(720px,100%);max-height:88vh;overflow:auto;background:#0b0e11;border:1px solid #3a444b;border-bottom:0;padding:18px}.equipment-detail-close{position:absolute;right:10px;top:10px;width:38px;height:38px}.equipment-detail-header{display:grid;grid-template-columns:58px 1fr;gap:12px;align-items:center;padding-right:42px}.equipment-detail-icon{width:58px;height:58px;border:1px solid #46525a;display:grid;place-items:center;font-weight:900}.equipment-detail-header h2{margin:3px 0}.equipment-detail-meta{color:#89949c;font-size:11px}.equipment-detail-sheet section{border-top:1px solid #2c3338;margin-top:15px;padding-top:13px}.equipment-detail-sheet section h3{font-size:11px;letter-spacing:.14em;margin:0 0 9px}.equipment-detail-row,.ability-row,.restriction-row{border:1px solid #2e373d;padding:8px;margin-top:6px}.equipment-detail-row{display:flex;justify-content:space-between;gap:12px}.ability-row strong{display:block}.ability-row p{margin:5px 0 0;color:#c0c8cd;font-size:12px}.ability-row em{display:block;margin-top:5px;color:#d0af77;font-style:normal;font-size:11px}.restriction-row{color:#c7b38b;font-size:12px}.stat-delta-positive{color:#8fd2ad}.stat-delta-negative{color:#dc9b9b}@media(max-width:520px){.character-core-stats{grid-template-columns:1fr 1fr}.equipment-detail-sheet{padding:14px}.equipment-card,.inventory-item-card{grid-template-columns:34px 1fr}.equipment-badges{grid-column:2;justify-content:flex-start}}
 
 /* UI_119_BACKPORT_R01 */
@@ -37,31 +26,21 @@ body{margin:0;background:#080a0c;color:#eef1f3}
 .snapshot{border-radius:7px!important}
 .log{height:auto!important;min-height:0;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:10px;display:grid;gap:10px;align-content:start}
 .message,.message.player,.message.gm{border-radius:0!important}
-.player-action-bar{padding:8px calc(10px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left));border-top:1px solid #252b31;background-color:#171812;background-image:linear-gradient(90deg,rgba(8,9,7,.90) 0%,rgba(12,12,8,.62) 50%,rgba(8,9,7,.88) 100%),url('hud/player_action_backrooms.png');background-size:cover;background-position:center 52%;background-repeat:no-repeat;box-shadow:inset 0 0 22px rgba(162,145,62,.08)}
-.player-action-bar .primary-action-row{grid-template-columns:minmax(0,1fr);gap:7px}
-.player-action-bar .primary-action{min-height:52px;background:rgba(20,23,20,.88);border-color:#5d593f;color:#f2efd8;text-shadow:0 1px 2px #000}
-.player-action-bar .primary-action.execute-action{background:rgba(32,39,45,.9);border-color:#766e49;color:#fff7cf}
-.player-action-modal[hidden],.game-menu-modal[hidden]{display:none}
-.player-action-modal,.game-menu-modal{position:fixed;inset:0;display:flex;align-items:flex-end;justify-content:center}
-.game-menu-modal{z-index:110}.player-action-modal{z-index:120}
-.player-action-backdrop,.game-menu-backdrop{position:absolute;inset:0;background:#000b}
-.player-action-sheet,.game-menu-sheet{position:relative;width:min(100%,680px);max-height:min(calc(var(--app-height,100dvh) - 12px),760px);overflow:auto;overscroll-behavior:contain;background:#0e1114;border:1px solid #3a4249;border-bottom:0;padding:14px 14px calc(14px + env(safe-area-inset-bottom));box-shadow:0 -24px 60px #000b}
-.player-action-sheet,.game-menu-sheet{border-radius:7px 7px 0 0!important}
-.player-action-head,.game-menu-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.player-action-head{margin-bottom:12px}
-.player-action-head h2,.game-menu-head h2{margin:0;font-size:13px;font-weight:800;letter-spacing:.1em}
+.game-menu-modal[hidden]{display:none}
+.game-menu-modal{position:fixed;inset:0;display:flex;align-items:flex-end;justify-content:center}
+.game-menu-modal{z-index:110}
+.game-menu-backdrop{position:absolute;inset:0;background:#000b}
+.game-menu-sheet{position:relative;width:min(100%,680px);max-height:min(calc(var(--app-height,100dvh) - 12px),760px);overflow:auto;overscroll-behavior:contain;background:#0e1114;border:1px solid #3a4249;border-bottom:0;padding:14px 14px calc(14px + env(safe-area-inset-bottom));box-shadow:0 -24px 60px #000b}
+.game-menu-sheet{border-radius:7px 7px 0 0!important}
+.game-menu-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.game-menu-head h2{margin:0;font-size:13px;font-weight:800;letter-spacing:.1em}
 .game-menu-head{position:sticky;top:-14px;z-index:2;margin:-14px -14px 10px;padding:14px;background:#0e1114;border-bottom:1px solid #252b31}
-.player-action-close{width:auto;min-width:42px;padding:8px 10px}
 .game-menu-close{width:44px;height:44px;min-width:44px;padding:0;font-size:22px;line-height:1}
-.player-action-sheet .composer{display:grid;gap:10px;padding:0}
-.player-action-sheet .composer label{font-weight:700;font-size:13px}
-.player-action-sheet textarea{min-height:150px;max-height:calc(var(--app-height,100dvh) - 180px);resize:vertical;background:#090c0f;color:#fff;border:1px solid #30373e;padding:12px;line-height:1.45}
-.composer-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .status{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 .game-menu-sheet .side{display:grid;gap:10px;margin-top:0}
 .game-menu-sheet .card{box-shadow:none}
-body.player-action-open,body.game-menu-open{overflow:hidden}
-.card,.game-menu-trigger,.player-action-close,.game-menu-close,.primary-action,textarea,button,.chips span,.gm-choice,.combat-dice-panel,.combat-target,.combat-die,.combat-die-unknown{border-radius:7px!important}
+body.game-menu-open{overflow:hidden}
+.card,.game-menu-trigger,.game-menu-close,.primary-action,textarea,button,.chips span,.gm-choice,.combat-dice-panel,.combat-target,.combat-die,.combat-die-unknown{border-radius:7px!important}
 
 
 /* GM_THINKING_LOGO: transient reply placeholder, removed with the pending row. */
@@ -193,6 +172,7 @@ body.player-action-open,body.game-menu-open{overflow:hidden}
 .equipment-card-icon,.equipment-detail-icon{background:transparent;border:0;overflow:hidden}.equipment-card-icon{width:100%;height:auto;aspect-ratio:1}.item-liquid-icon{display:block;width:100%;height:100%;object-fit:contain;}
 </style>
 <link rel="stylesheet" href="item-presentation.css">
+<link rel="stylesheet" href="player-composer.css">
 </head>
 <body>
 <main class="shell">
@@ -200,23 +180,16 @@ body.player-action-open,body.game-menu-open{overflow:hidden}
 <header class="topbar"><div><div class="eyebrow">BACKROOM TEXT GAME</div><h1 id="title"></h1><span class="turn-runtime">TURN <strong id="turn"></strong></span></div><button class="game-menu-trigger" id="gameMenuOpen" type="button" aria-label="Mở menu game" aria-haspopup="dialog" aria-controls="gameMenuModal" aria-expanded="false">☰</button></header>
 <div class="snapshot" id="snapshot">SNAPSHOT — Android bản đầu chưa tạo ảnh tự động</div>
 <div class="log" id="log"></div>
-<div class="player-action-bar" id="playerActionBar" aria-label="Action">
-<div class="primary-action-row" id="primaryActionRow">
-<button type="button" class="primary-action execute-action" id="submit" aria-label="Thực Hiện">
-<svg class="action-icon ai-action-icon" viewBox="0 0 28 24" aria-hidden="true"><path d="M3.5 5.5A2.5 2.5 0 0 1 6 3h11a2.5 2.5 0 0 1 2.5 2.5v7A2.5 2.5 0 0 1 17 15H6a2.5 2.5 0 0 1-2.5-2.5z"></path><text x="7" y="11.8">AI</text><path class="spark" d="M22 2v5m-2.5-2.5h5M23.5 9v3m-1.5-1.5h3"></path></svg><span>Thực Hiện</span>
-</button>
-</div>
-</div>
-<div class="player-action-modal" id="playerActionModal" hidden aria-hidden="true">
-  <div class="player-action-backdrop" id="playerActionBackdrop"></div>
-  <section class="player-action-sheet" role="dialog" aria-modal="true" aria-labelledby="playerActionTitle">
-    <div class="player-action-head"><h2 id="playerActionTitle">PLAYER ACTION</h2><button class="player-action-close" id="playerActionClose" type="button" aria-label="Đóng">×</button></div>
-    <form class="composer" id="form">
-      <label for="action">Cao Minh sẽ làm gì?</label>
-      <textarea id="action" placeholder="Cao Minh sẽ làm gì tiếp theo?" rows="3"></textarea>
-      <div class="composer-actions"><button id="playerActionCancel" type="button">HỦY</button><button id="playerActionConfirm" type="submit">THỰC HIỆN</button></div>
-    </form>
-  </section>
+<div class="player-action-bar" id="playerActionBar" aria-label="Hành động của Cao Minh">
+<form class="composer chat-composer" id="form">
+  <img class="chat-avatar" src="avatars/CAO_MINH_AVATAR.jpg" alt="Cao Minh" width="44" height="44">
+  <div class="primary-action-row chat-glass" id="primaryActionRow">
+    <textarea id="action" aria-label="Hành động của Cao Minh" placeholder="Cao Minh sẽ làm gì?" rows="1"></textarea>
+    <button type="submit" class="primary-action chat-send" id="submit" aria-label="Gửi hành động" disabled>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 7-7 7 7M12 5v14"></path></svg>
+    </button>
+  </div>
+</form>
 </div>
 <div class="status" id="status"></div>
 </section>
@@ -1725,12 +1698,22 @@ function clearSave(){
     statusEl.textContent="Đã xóa điểm lưu thủ công, Game Core và bộ đệm giao diện.";
   });
 }
-formEl.addEventListener("submit",e=>{e.preventDefault();const a=actionEl.value.trim();if(!a||busy||state.pendingEncounter)return;if(!window.Android){statusEl.textContent="Không tìm thấy Android bridge.";return}busy=true;syncPrimaryActions();statusEl.textContent="Gehihi đang xử lý lượt…";appendActionPending(a);window.Android.submitAction(JSON.stringify(state),"EXECUTE",a)});
+formEl.addEventListener("submit",e=>{
+  e.preventDefault();
+  const a=actionEl.value.trim();
+  if(!a||busy||coreUnavailable||state.pendingEncounter||(state.combat&&state.combat.active)||window.__combatBusy||window.__combatDiceBusy||window.__combatFeedbackBusy)return;
+  if(!window.Android||typeof window.Android.submitAction!=="function"){statusEl.textContent="Không tìm thấy Android action bridge.";return;}
+  busy=true;syncPrimaryActions();
+  statusEl.textContent="Gehihi đang xử lý lượt…";appendActionPending(a);
+  try{window.Android.submitAction(JSON.stringify(state),"EXECUTE",a);}
+  catch(error){window.backroomError(error&&error.message||"Không gửi được hành động.");}
+});
 
 // PRIMARY_EXECUTE_ACTION
 function syncPrimaryActions(){
   const hasText=!!(actionEl&&actionEl.value.trim());
-  if(submitEl)submitEl.disabled=busy||!!state.pendingEncounter||!hasText;
+  if(submitEl)submitEl.disabled=busy||coreUnavailable||!!state.pendingEncounter||!hasText;
+  if(typeof window.backroomSyncComposer==="function")window.backroomSyncComposer();
 }
 function appendActionPending(label){
   if(!logEl)return;
@@ -2133,7 +2116,7 @@ function selected(){const id=view&&view.dataset.characterId||'cao_minh';return m
 
 <style id="combatActionBarStyle">
 /* DIRECT_COMBAT_GATE_V1 */
-.primary-action-row.combat-direct{display:grid!important}
+.primary-action-row.combat-direct{display:flex!important}
 </style>
 <script>
 (function(){
@@ -2146,10 +2129,10 @@ function selected(){const id=view&&view.dataset.characterId||'cao_minh';return m
     row.classList.toggle('combat-direct',active);
     row.hidden=false;
     if(active){
-      execute.disabled=false;
-      execute.type='button';return;
+      execute.disabled=true;
+      var input=byCombatId('action');if(input){input.readOnly=true;input.blur();}
+      return;
     }
-    execute.type='submit';
     if(typeof syncPrimaryActions==='function')syncPrimaryActions();
   }
 
@@ -2174,113 +2157,21 @@ function selected(){const id=view&&view.dataset.characterId||'cao_minh';return m
 </script>
 
 
+<script src="player-composer.js"></script>
 <script>
 (function(){
   "use strict";
-  if(window.__ui119BackportInstalled)return;
-  window.__ui119BackportInstalled=true;
-
-  var actionModal=document.getElementById("playerActionModal");
-  var actionBackdrop=document.getElementById("playerActionBackdrop");
-  var actionClose=document.getElementById("playerActionClose");
-  var actionCancel=document.getElementById("playerActionCancel");
-  var actionConfirm=document.getElementById("playerActionConfirm");
-  var execute=document.getElementById("submit");
-  var form=document.getElementById("form");
-  var action=document.getElementById("action");
-  var menu=document.getElementById("gameMenuModal");
-  var menuOpen=document.getElementById("gameMenuOpen");
-  var menuClose=document.getElementById("gameMenuClose");
-  var menuBackdrop=document.getElementById("gameMenuBackdrop");
-  var imeInsetCss=0,modalBaselineHeight=0;
-
-  function combatActive(){try{return !!(state&&state.combat&&state.combat.active===true)}catch(_){return false}}
-  function processing(){return !!(state&&state.pendingEncounter)||!!window.__combatBusy||(typeof busy!=="undefined"&&!!busy)}
-  function layoutHeight(){return Math.max(1,window.innerHeight||document.documentElement.clientHeight||1)}
-  function fitActionModal(){
-    if(!actionModal||actionModal.hidden)return;
-    var vv=window.visualViewport,layout=layoutHeight(),visual=Math.max(1,vv&&vv.height?vv.height:layout),top=Math.max(0,vv&&vv.offsetTop?vv.offsetTop:0);
-    if(imeInsetCss<=0)modalBaselineHeight=Math.max(modalBaselineHeight,layout,visual);
-    var baseline=Math.max(modalBaselineHeight,layout,visual),usable=imeInsetCss>0?Math.min(visual,Math.max(1,baseline-imeInsetCss)):visual;
-    actionModal.style.top=top+"px";actionModal.style.height=Math.max(1,usable)+"px";
-  }
-  function syncActionConfirm(){
-    if(actionConfirm)actionConfirm.disabled=processing()||!String(action&&action.value||"").trim();
-  }
-  function closeAction(keepDraft){
-    if(!actionModal||actionModal.hidden)return;
-    actionModal.hidden=true;actionModal.setAttribute("aria-hidden","true");document.body.classList.remove("player-action-open");
-    actionModal.style.removeProperty("top");actionModal.style.removeProperty("height");
-    try{action&&action.blur()}catch(_){}
-    if(!keepDraft&&action)action.value="";
-    syncActionConfirm();
-  }
-  function openAction(){
-    if(!actionModal||processing()||combatActive())return;
-    actionModal.hidden=false;actionModal.setAttribute("aria-hidden","false");document.body.classList.add("player-action-open");
-    fitActionModal();syncActionConfirm();
-    setTimeout(function(){try{action.focus({preventScroll:true});var n=action.value.length;action.setSelectionRange(n,n)}catch(_){try{action.focus()}catch(__){}}},40);
-  }
-  function openMenu(){
-    if(!menu||!menu.hidden)return;
-    menu.hidden=false;menu.setAttribute("aria-hidden","false");if(menuOpen)menuOpen.setAttribute("aria-expanded","true");document.body.classList.add("game-menu-open");
-  }
+  var menu=document.getElementById("gameMenuModal"),open=document.getElementById("gameMenuOpen");
   function closeMenu(){
-    if(!menu||menu.hidden)return;
-    menu.hidden=true;menu.setAttribute("aria-hidden","true");if(menuOpen)menuOpen.setAttribute("aria-expanded","false");document.body.classList.remove("game-menu-open");
+    menu.hidden=true;menu.setAttribute("aria-hidden","true");open.setAttribute("aria-expanded","false");document.body.classList.remove("game-menu-open");
   }
-
-  if(typeof syncPrimaryActions==="function"){
-    syncPrimaryActions=function(){
-      if(execute)execute.disabled=processing();
-      syncActionConfirm();
-    };
-  }
-
-  if(execute)execute.addEventListener("click",function(event){
-    if(combatActive())return;
-    event.preventDefault();event.stopPropagation();openAction();
+  open.addEventListener("click",function(){
+    document.getElementById("action").blur();
+    menu.hidden=false;menu.setAttribute("aria-hidden","false");open.setAttribute("aria-expanded","true");document.body.classList.add("game-menu-open");
   });
-  if(action)action.addEventListener("input",syncActionConfirm);
-  if(form)form.addEventListener("submit",function(){
-    if(combatActive())return;
-    if(String(action&&action.value||"").trim())closeAction(true);
-  });
-  if(actionClose)actionClose.addEventListener("click",function(){if(!processing())closeAction(true)});
-  if(actionCancel)actionCancel.addEventListener("click",function(){if(!processing())closeAction(true)});
-  if(actionBackdrop)actionBackdrop.addEventListener("click",function(){if(!processing())closeAction(true)});
-  if(menuOpen)menuOpen.addEventListener("click",openMenu);
-  if(menuClose)menuClose.addEventListener("click",closeMenu);
-  if(menuBackdrop)menuBackdrop.addEventListener("click",closeMenu);
-  document.addEventListener("keydown",function(event){
-    if(event.key!=="Escape")return;
-    if(actionModal&&!actionModal.hidden&&!processing()){event.preventDefault();closeAction(true);return}
-    if(menu&&!menu.hidden){event.preventDefault();closeMenu()}
-  });
-  if(window.visualViewport){
-    window.visualViewport.addEventListener("resize",fitActionModal);
-    window.visualViewport.addEventListener("scroll",fitActionModal);
-  }
-  window.addEventListener("resize",fitActionModal);
-  window.backroomSetImeInset=function(physicalPixels){
-    var pixels=Math.max(0,Number(physicalPixels)||0),ratio=Math.max(1,Number(window.devicePixelRatio)||1);
-    imeInsetCss=pixels/ratio;if(imeInsetCss<=0)modalBaselineHeight=0;fitActionModal();
-  };
-
-  var previousTurn=window.backroomTurn;
-  window.backroomTurn=function(json){
-    var result=typeof previousTurn==="function"?previousTurn(json):undefined;
-    closeAction(false);syncActionConfirm();return result;
-  };
-  var previousError=window.backroomError;
-  window.backroomError=function(message){
-    var result=typeof previousError==="function"?previousError(message):undefined;
-    syncActionConfirm();return result;
-  };
-
-  if(execute)execute.type="button";
-  syncActionConfirm();
-  if(typeof syncPrimaryActions==="function")syncPrimaryActions();
+  document.getElementById("gameMenuClose").addEventListener("click",closeMenu);
+  document.getElementById("gameMenuBackdrop").addEventListener("click",closeMenu);
+  document.addEventListener("keydown",function(event){if(event.key==="Escape"&&!menu.hidden){event.preventDefault();closeMenu();}});
 })();
 </script>
 

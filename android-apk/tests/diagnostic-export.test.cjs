@@ -85,7 +85,7 @@ test('post-combat diagnostics expose stale UI locks without changing state',()=>
   x.env.__combatFeedbackBusy=true;
   x.env.__combatDiceBusy=true;
   x.elements.submit={disabled:true};
-  x.elements.playerActionConfirm={disabled:true};
+  x.elements.action={readOnly:true};
   x.elements.pokerDiceModal={hidden:false};
   const before=JSON.stringify(x.env.state);
   const snapshot=x.env.BackroomDiagnostics.snapshot();
@@ -93,7 +93,7 @@ test('post-combat diagnostics expose stale UI locks without changing state',()=>
   assert.equal(snapshot.runtime.combatFeedbackBusy,true);
   assert.equal(snapshot.runtime.combatDiceBusy,true);
   assert.equal(snapshot.runtime.executeDisabled,true);
-  assert.equal(snapshot.runtime.confirmDisabled,true);
+  assert.equal(snapshot.runtime.actionReadOnly,true);
   assert.equal(snapshot.runtime.pokerDiceHidden,false);
   assert.equal(JSON.stringify(x.env.state),before);
 });

@@ -101,7 +101,7 @@ body.poker-dice-open .game>.log{display:none!important}
 body.poker-dice-open .game>#combatFeedbackPanel{display:flex;flex:1 1 0;min-height:0;overflow:hidden;
  width:calc(100% - 20px);max-width:680px;margin:5px auto 0!important;box-sizing:border-box}
 body.poker-dice-open .game>.player-action-bar{margin-top:0}
-body.poker-dice-open .player-action-bar .primary-action-row.combat-direct{display:grid!important}
+body.poker-dice-open .player-action-bar .primary-action-row.combat-direct{display:flex!important}
 body.poker-dice-open .player-action-bar .primary-action{pointer-events:none;opacity:1!important}
 .combat-feedback-panel{background-color:#1b1b14!important;background-image:linear-gradient(145deg,rgba(9,11,9,.84),rgba(13,15,11,.92)),url('dice/level0-wallpaper.svg')!important;
  background-size:auto,64px 96px!important;flex-direction:column;padding:12px 18px!important;font-family:system-ui,sans-serif!important}
