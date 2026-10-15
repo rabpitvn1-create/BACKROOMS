@@ -47,7 +47,14 @@ object KnowledgeContextEngine {
     val records: Map<String, Record>,
     val tagIndex: Map<String, Set<String>>,
     val affordanceIndex: Map<String, Set<String>>
-  )
+  ) {
+    // IDs come from the author-approved Canon index, never from a mentioned name.
+    val characterIds: Set<String> = records.keys.asSequence()
+      .filter { it.startsWith("CHAR.") }
+      .map { it.removePrefix("CHAR.").substringBefore('.').lowercase(Locale.ROOT) }
+      .filter { it.isNotBlank() }
+      .toSet()
+  }
 
   @Volatile private var cached: Database? = null
 
@@ -246,13 +253,14 @@ object KnowledgeContextEngine {
     }
 
     private fun addPresentRuntimeCards() {
-      if ("iris" in presentActors) add("CHAR.IRIS.RUNTIME_CORE", "present actor runtime core")
-      if ("syvial" in presentActors) add("CHAR.SYVIAL.RUNTIME_CORE", "present actor runtime core")
-      if ("lucia" in presentActors) add("CHAR.LUCIA.AUTHORED", "present Lucia authored card")
-      if ("trac_lam" in presentActors) add("CHAR.TRAC_LAM.AUTHORED", "present Trác Lâm authored card")
+      // Core-confirmed stable actor IDs select their own cards, without adding
+      // one new code branch for each future character in the Canon registry.
+      presentActors.filter { it != "cao_minh" }.forEach { actor ->
+        val prefix = "CHAR.${actor.uppercase(Locale.ROOT)}"
+        add("$prefix.RUNTIME_CORE", "present actor runtime core")
+        add("$prefix.AUTHORED", "present actor authored card")
+      }
       if ("luc_tram" in presentActors) {
-        add("CHAR.LUC_TRAM.AUTHORED", "present Lục Trầm authored card")
-        add("CHAR.LUC_TRAM.RUNTIME_CORE", "present actor runtime core")
         add("CHAR.LUC_TRAM.REVIVAL_R06", "post-revival knowledge boundary")
         add("CHAR.LUC_TRAM.OPEN_R06", "unresolved encounter history")
       }
@@ -315,12 +323,10 @@ object KnowledgeContextEngine {
         }
         .filter { record ->
           when {
-            record.id.startsWith("CHAR.CAO_MINH.DETAIL.") -> true
-            record.id.startsWith("CHAR.LUCIA.DETAIL.") -> "lucia" in presentActors
-            record.id.startsWith("CHAR.LUC_TRAM.DETAIL.") -> "luc_tram" in presentActors
-            record.id.startsWith("CHAR.TRAC_LAM.DETAIL.") -> "trac_lam" in presentActors
-            record.id.startsWith("CHAR.IRIS.DETAIL.") -> "iris" in presentActors
-            record.id.startsWith("CHAR.SYVIAL.DETAIL.") -> "syvial" in presentActors
+            record.id.startsWith("CHAR.") -> {
+              val actorId = record.id.removePrefix("CHAR.").substringBefore('.').lowercase(Locale.ROOT)
+              actorId in presentActors
+            }
             record.id.startsWith("SUPPORT.ASYNC.DETAIL.") -> "ASYNC" in activeSupport
             record.id.startsWith("SUPPORT.LINH_KHI.DETAIL.") -> "LINH_KHI" in activeSupport
             record.id.startsWith("SUPPORT.TU_SI.DETAIL.") -> "TU_SI" in activeSupport
@@ -544,11 +550,9 @@ object KnowledgeContextEngine {
     private fun eligible(record: Record): Boolean {
       if (record.authority == "WRITER-SECRET" || record.kind == "reference-only-level") return false
       val actor = when {
-        record.id.startsWith("CHAR.IRIS.") -> "iris"
-        record.id.startsWith("CHAR.SYVIAL.") -> "syvial"
-        record.id.startsWith("CHAR.LUCIA.") -> "lucia"
-        record.id.startsWith("CHAR.TRAC_LAM.") -> "trac_lam"
-        record.id.startsWith("CHAR.LUC_TRAM.") || record.id == "REL.CAO_MINH.LUC_TRAM.HISTORY_R06" -> "luc_tram"
+        record.id.startsWith("CHAR.") ->
+          record.id.removePrefix("CHAR.").substringBefore('.').lowercase(Locale.ROOT)
+        record.id == "REL.CAO_MINH.LUC_TRAM.HISTORY_R06" -> "luc_tram"
         else -> null
       }
       if (actor != null && actor !in presentActors) return false
@@ -570,14 +574,14 @@ object KnowledgeContextEngine {
       // A present-but-not-recruited NPC (e.g. Lucia on first meeting) MUST stay
       // PRESENT_NOT_IN_PARTY — never promote to Party membership in narration.
       fun addConfirmed(idOrName: String, status: String) {
-        val canonical = when (normalize(idOrName)) {
-          "iris" -> "iris"
-          "syvial" -> "syvial"
-          "lucia", "lucia lục" -> "lucia"
-          "trac_lam", "trác lâm", "trac lam" -> "trac_lam"
-          "luc_tram", "lục trầm", "luc tram" -> "luc_tram"
-          else -> null
-        } ?: return
+        val canonical = when (val id = normalize(idOrName)) {
+          // Existing display-name aliases remain useful; canonical Core IDs
+          // are otherwise resolved directly from registered Canon records.
+          "lucia lục" -> "lucia"
+          "trác lâm", "trac lam" -> "trac_lam"
+          "lục trầm", "luc tram" -> "luc_tram"
+          else -> id
+        }.takeIf { it in db.characterIds } ?: return
         presentActors += canonical
         // IN_PARTY wins over PRESENT_NOT_IN_PARTY; never downgrade a Party member.
         val existing = npcStatus[canonical]
