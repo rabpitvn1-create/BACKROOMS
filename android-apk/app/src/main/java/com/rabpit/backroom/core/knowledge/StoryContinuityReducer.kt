@@ -29,7 +29,9 @@ object StoryContinuityReducer {
     val continuity = flags.optJSONObject("storyContinuity") ?: JSONObject().also { flags.put("storyContinuity", it) }
 
     val turn = after.optInt("turn", before.optInt("turn", 1)).coerceAtLeast(1)
-    val witnesses = currentWitnesses(before, after)
+    // Level/registry/communication state changes do not carry per-NPC witness
+    // evidence yet. They prove a Core fact, not that every Party member saw it.
+    val witnesses = JSONArray().put("cao_minh")
 
     syncMainObjectives(after, continuity)
     recordLevelChange(before, after, continuity, turn, witnesses)
@@ -182,34 +184,6 @@ object StoryContinuityReducer {
     appendUnique(continuity, "knowledge", JSONObject()
       .put("id", "KNOW.$factId").put("factId", factId).put("turn", turn)
       .put("knownBy", witnesses))
-  }
-
-  /**
-   * Being a Party member is not enough to establish knowledge of a new event.
-   * Only Core-projected actors that were ACTIVE both before and after this
-   * event qualify for shared knowledge. New joiners and absent companions
-   * must not learn earlier events retroactively.
-   *
-   * A future Core-owned per-scene witness list can further narrow this set;
-   * until then, do not infer a witness from an absent or unverified actor.
-   */
-  private fun currentWitnesses(before: JSONObject, after: JSONObject): JSONArray {
-    val out = JSONArray().put("cao_minh")
-    val stable = activePartyIds(before) intersect activePartyIds(after)
-    stable.sorted().filter { it != "cao_minh" }.forEach { out.put(it) }
-    return out
-  }
-
-  private fun activePartyIds(state: JSONObject): Set<String> {
-    val party = state.optJSONArray("party") ?: return emptySet()
-    val active = linkedSetOf<String>()
-    for (i in 0 until party.length()) {
-      val member = party.optJSONObject(i) ?: continue
-      if (member.optString("presence") != "ACTIVE") continue
-      val id = lower(member.optString("id").trim())
-      if (id.isNotEmpty()) active += id
-    }
-    return active
   }
 
   private fun partyIds(state: JSONObject): Set<String> {
