@@ -442,7 +442,17 @@ object KnowledgeContextEngine {
 
     private fun budgetedRecords(header: String): List<Record> {
       val mandatory = selected.values.filter(::mandatory).sortedWith(compareBy<Record> { it.priority }.thenBy { it.id })
-      val optional = selected.values.filterNot(::mandatory).sortedWith(compareBy<Record> { it.priority }.thenBy { it.id })
+      // Preserve R1 authored quick cards, then reserve budget for the scene's
+      // selected R2 details before general low-priority optional material.
+      // Never override the mandatory hard locks above or increase packet ceilings.
+      val optional = selected.values.filterNot(::mandatory).sortedWith(compareBy<Record> {
+        when {
+          it.id == "CHAR.CAO_MINH.AUTHORED" -> 31
+          it.id.endsWith(".AUTHORED") -> 32
+          it.kind == "authored-detail" -> 33
+          else -> it.priority
+        }
+      }.thenBy { it.id })
       val kept = mutableListOf<Record>()
       var tokens = estimateTokens(header + "[END_KNOWLEDGE_PACKET]")
       mandatory.forEach { r -> kept += r; tokens += estimateTokens(renderRecord(r)) }
