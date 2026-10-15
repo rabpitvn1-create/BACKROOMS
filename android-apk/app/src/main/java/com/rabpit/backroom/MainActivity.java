@@ -1201,12 +1201,16 @@ public class MainActivity extends Activity {
   }
 
   private void cacheAmbientEncounter() {
-    String snapshot = ambientMgr.snapshot();
-    if (snapshot == null) return;
-    JSONObject record = new JSONObject().put("turn", ambientTurn)
-      .put("level", ambientLevel).put("npc", new JSONObject(snapshot));
-    getSharedPreferences(AMBIENT_CACHE_PREFS, MODE_PRIVATE).edit()
-      .putString("active", record.toString()).apply();
+    try {
+      String snapshot = ambientMgr.snapshot();
+      if (snapshot == null) return;
+      JSONObject record = new JSONObject().put("turn", ambientTurn)
+        .put("level", ambientLevel).put("npc", new JSONObject(snapshot));
+      getSharedPreferences(AMBIENT_CACHE_PREFS, MODE_PRIVATE).edit()
+        .putString("active", record.toString()).apply();
+    } catch (Exception error) {
+      DiagnosticLog.record("ambient.cache_failed", error.getClass().getSimpleName());
+    }
   }
 
   private void restoreAmbientEncounter(JSONObject currentView) {
