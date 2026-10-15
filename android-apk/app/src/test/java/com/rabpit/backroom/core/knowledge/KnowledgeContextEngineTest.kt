@@ -107,6 +107,45 @@ class KnowledgeContextEngineTest {
     assertFalse(packet("""{"level":{"number":7,"id":"7"}}""").contains("<LEVEL.07.AUTHORED>"))
   }
 
+  @Test fun largeCanonRegistrySelectsOnlyPresentActorDetailsWithoutGrowingPromptWithLibrary() {
+    val records = org.json.JSONArray()
+    fun record(id: String, domain: String, kind: String, tags: List<String>, priority: Int = 80) =
+      JSONObject().put("id", id).put("domain", domain).put("kind", kind)
+        .put("text", "Verified details for $id")
+        .put("authority", "AUTHOR").put("mutability", "IMMUTABLE")
+        .put("priority", priority).put("tags", org.json.JSONArray(tags))
+        .put("source", JSONObject().put("document", "TEST_ONLY").put("anchor", "fixture"))
+    for (i in 1..20) {
+      records.put(record("CHAR.NPC_$i.DETAIL.PROFILE.001", "CHARACTER",
+        "authored-detail", listOf("detail:profile")))
+    }
+    for (i in 1..100) {
+      records.put(record("LEVEL.$i.DETAIL.ENVIRONMENT.001", "LEVEL",
+        "authored-detail", listOf("detail:environment")))
+    }
+    for (i in 1..50) {
+      records.put(record("ENTITY.SYNTH_$i.VISUAL", "ENTITY",
+        "visual-card", listOf("synthetic_$i")))
+    }
+    // Author-only record must never reach the writer even when its actor appears.
+    records.put(record("CHAR.NPC_1.DETAIL.VISUAL.SECRET", "CHARACTER",
+      "authored-detail", listOf("detail:profile"))
+      .put("authority", "WRITER-SECRET"))
+    val database = KnowledgeContextEngine.parseDatabase(JSONObject().put("records", records).toString())
+    fun selected(state: JSONObject): String =
+      KnowledgeContextEngine.Builder(database, state, "đi tiếp", JSONObject()).build()
+    val absent = selected(JSONObject())
+    val present = selected(JSONObject().put("pendingNpcEncounters",
+      org.json.JSONArray().put(JSONObject().put("characterId", "npc_1"))))
+    assertFalse(absent.contains("<CHAR.NPC_1.DETAIL.PROFILE.001>"))
+    assertTrue(present.contains("<CHAR.NPC_1.DETAIL.PROFILE.001>"))
+    assertFalse(present.contains("<CHAR.NPC_2.DETAIL.PROFILE.001>"))
+    assertFalse(present.contains("CHAR.NPC_1.DETAIL.VISUAL.SECRET"))
+    assertTrue(present.length <= KnowledgeContextEngine.HARD_CONTEXT_CEILING * 4)
+    // Corpus size is unrelated to the per-turn payload without Core presence.
+    assertTrue(absent.length < 1200)
+  }
+
   @Test fun writerSecretCannotEnterThroughReferenceExpansion() {
     val db = KnowledgeContextEngine.parseDatabase("""{"records":[
       {"id":"GAME.TEXT.CORE","domain":"GAME_RULE","kind":"rule","text":"TEST_ONLY boundary","authority":"CORE","mutability":"IMMUTABLE","priority":1,"references":["TEST.SECRET"],"source":{"document":"TEST_ONLY","anchor":"fixture"}},
