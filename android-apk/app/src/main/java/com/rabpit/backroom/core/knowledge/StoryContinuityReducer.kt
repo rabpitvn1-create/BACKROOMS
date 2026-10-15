@@ -29,7 +29,9 @@ object StoryContinuityReducer {
     val continuity = flags.optJSONObject("storyContinuity") ?: JSONObject().also { flags.put("storyContinuity", it) }
 
     val turn = after.optInt("turn", before.optInt("turn", 1)).coerceAtLeast(1)
-    val witnesses = currentWitnesses(after)
+    // Level/registry/communication state changes do not carry per-NPC witness
+    // evidence yet. They prove a Core fact, not that every Party member saw it.
+    val witnesses = JSONArray().put("cao_minh")
 
     syncMainObjectives(after, continuity)
     recordLevelChange(before, after, continuity, turn, witnesses)
@@ -182,12 +184,6 @@ object StoryContinuityReducer {
     appendUnique(continuity, "knowledge", JSONObject()
       .put("id", "KNOW.$factId").put("factId", factId).put("turn", turn)
       .put("knownBy", witnesses))
-  }
-
-  private fun currentWitnesses(state: JSONObject): JSONArray {
-    val out = JSONArray().put("cao_minh")
-    partyIds(state).sorted().filter { it != "cao_minh" }.forEach { out.put(it) }
-    return out
   }
 
   private fun partyIds(state: JSONObject): Set<String> {

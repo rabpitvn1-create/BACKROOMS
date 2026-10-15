@@ -19,7 +19,8 @@ class StoryContinuityReducerTest {
     val after = JSONObject(before.toString())
       .put("turn", 8)
       .put("level", JSONObject().put("number", 1))
-      .put("party", JSONArray().put(JSONObject().put("id", "iris").put("name", "Iris")))
+      .put("party", JSONArray().put(JSONObject()
+        .put("id", "iris").put("name", "Iris").put("presence", "ACTIVE")))
     after.getJSONObject("flags")
       .put("iris", JSONObject().put("continuity", "reunited"))
       .put("communication", JSONObject().put("blackBlood", "partial"))
@@ -43,7 +44,72 @@ class StoryContinuityReducerTest {
       .first { it.optString("factId") == "DISC.ENTITY.HOUND" }
     val knownBy = houndKnowledge.getJSONArray("knownBy").toString()
     assertTrue(knownBy.contains("cao_minh"))
-    assertTrue(knownBy.contains("iris"))
+    // Joining in the same turn does not prove Iris witnessed the discovery.
+    assertFalse(knownBy.contains("iris"))
+  }
+
+  @Test fun activePartyCompanionDoesNotAutomaticallyWitnessDiscovery() {
+    val party = JSONArray().put(JSONObject()
+      .put("id", "iris").put("name", "Iris").put("presence", "ACTIVE"))
+    val before = JSONObject().put("turn", 4)
+      .put("party", JSONArray(party.toString()))
+      .put("flags", JSONObject().put("entityRegistry", JSONObject()))
+    val after = JSONObject(before.toString())
+      .put("turn", 5)
+    after.getJSONObject("flags").put("entityRegistry",
+      JSONObject().put("Hound", JSONObject().put("confirmed", true)))
+
+    val continuity = JSONObject(StoryContinuityReducer.apply(
+      before.toString(), after.toString(), "khám phá"))
+      .getJSONObject("flags").getJSONObject("storyContinuity")
+    val known = continuity.getJSONArray("knowledge").getJSONObject(0)
+      .getJSONArray("knownBy").toString()
+    assertTrue(known.contains("cao_minh"))
+    // Core has not supplied an explicit witness for this discovery.
+    assertFalse(known.contains("iris"))
+  }
+
+  @Test fun absentOrUnverifiedPartyMembersNeverGainKnowledgeAutomatically() {
+    val cases = listOf("SEPARATED", "MISSING", "DEAD", "")
+    for (presence in cases) {
+      val member = JSONObject().put("id", "iris").put("name", "Iris")
+      if (presence.isNotBlank()) member.put("presence", presence)
+      val before = JSONObject().put("turn", 4)
+        .put("party", JSONArray().put(JSONObject(member.toString())))
+        .put("flags", JSONObject().put("entityRegistry", JSONObject()))
+      val after = JSONObject(before.toString()).put("turn", 5)
+      after.getJSONObject("flags").put("entityRegistry",
+        JSONObject().put("Hound", JSONObject().put("confirmed", true)))
+      val result = JSONObject(StoryContinuityReducer.apply(
+        before.toString(), after.toString(), "khám phá"))
+      val knowledge = result.getJSONObject("flags")
+        .getJSONObject("storyContinuity").getJSONArray("knowledge")
+        .getJSONObject(0).getJSONArray("knownBy").toString()
+      assertTrue(knowledge, knowledge.contains("cao_minh"))
+      assertFalse("Unconfirmed companion presence=$presence must not know",
+        knowledge.contains("iris"))
+    }
+  }
+
+  @Test fun newlyArrivedOrDepartedPartyMemberDoesNotLearnPastEvent() {
+    fun reduce(partyBefore: JSONArray, partyAfter: JSONArray): String {
+      val before = JSONObject().put("turn", 2).put("party", partyBefore)
+        .put("flags", JSONObject().put("entityRegistry", JSONObject()))
+      val after = JSONObject(before.toString()).put("turn", 3)
+        .put("party", partyAfter)
+      after.getJSONObject("flags").put("entityRegistry",
+        JSONObject().put("Hound", JSONObject().put("confirmed", true)))
+      val result = JSONObject(StoryContinuityReducer.apply(before.toString(),
+        after.toString(), "khám phá"))
+      return result.getJSONObject("flags").getJSONObject("storyContinuity")
+        .getJSONArray("knowledge").getJSONObject(0).getJSONArray("knownBy").toString()
+    }
+    val iris = JSONObject().put("id", "iris").put("presence", "ACTIVE")
+    val party = JSONArray().put(iris)
+    assertFalse(reduce(JSONArray(), party).contains("iris"))
+    assertFalse(reduce(party, JSONArray()).contains("iris"))
+    // Bare string Party entries provide no Core presence evidence.
+    assertFalse(reduce(JSONArray().put("iris"), JSONArray().put("iris")).contains("iris"))
   }
 
   @Test fun boundedContinuityDoesNotGrowWithWholeCampaignLog() {

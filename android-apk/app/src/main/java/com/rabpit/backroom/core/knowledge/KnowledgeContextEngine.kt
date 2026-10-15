@@ -19,6 +19,9 @@ object KnowledgeContextEngine {
   const val HARD_CONTEXT_CEILING = 3400
 
   private const val ASSET = "knowledge/knowledge_db.json"
+  // Offline author-confirmed cards; a detail card never changes Game Core state.
+  private const val DETAIL_ASSET = "knowledge/canon_detail_db.json"
+  private const val SUPPORT_ASSET = "knowledge/canon_support_db.json"
   private const val RECENT_DIALOGUE_ENTRIES = 4
   private const val RECENT_DIALOGUE_CHARS = 700
 
@@ -44,7 +47,14 @@ object KnowledgeContextEngine {
     val records: Map<String, Record>,
     val tagIndex: Map<String, Set<String>>,
     val affordanceIndex: Map<String, Set<String>>
-  )
+  ) {
+    // IDs come from the author-approved Canon index, never from a mentioned name.
+    val characterIds: Set<String> = records.keys.asSequence()
+      .filter { it.startsWith("CHAR.") }
+      .map { it.removePrefix("CHAR.").substringBefore('.').lowercase(Locale.ROOT) }
+      .filter { it.isNotBlank() }
+      .toSet()
+  }
 
   @Volatile private var cached: Database? = null
 
@@ -79,14 +89,25 @@ object KnowledgeContextEngine {
 
   private fun load(context: Context): Database {
     val raw = context.assets.open(ASSET).bufferedReader(Charsets.UTF_8).use { it.readText() }
-    return parseDatabase(raw)
+    val detailRaw = context.assets.open(DETAIL_ASSET)
+      .bufferedReader(Charsets.UTF_8).use { it.readText() }
+    val supportRaw = context.assets.open(SUPPORT_ASSET)
+      .bufferedReader(Charsets.UTF_8).use { it.readText() }
+    return parseDatabase(raw, detailRaw, supportRaw)
   }
 
-  internal fun parseDatabase(raw: String): Database {
-    val root = JSONObject(raw)
-    val array = root.getJSONArray("records")
+  internal fun parseDatabase(
+    raw: String,
+    detailRaw: String? = null,
+    supportRaw: String? = null
+  ): Database {
+    val arrays = listOf(JSONObject(raw).getJSONArray("records")) +
+      listOfNotNull(
+        detailRaw?.let { JSONObject(it).getJSONArray("records") },
+        supportRaw?.let { JSONObject(it).getJSONArray("records") }
+      )
     val records = linkedMapOf<String, Record>()
-    for (i in 0 until array.length()) {
+    for (array in arrays) for (i in 0 until array.length()) {
       val json = array.getJSONObject(i)
       val source = json.getJSONObject("source")
       val record = Record(
@@ -125,7 +146,7 @@ object KnowledgeContextEngine {
     private val reasons = linkedMapOf<String, String>()
     private val presentActors = linkedSetOf("cao_minh")
     // Precise per-actor relationship status for the GM packet.
-    // Values: "IN_PARTY" | "PRESENT_NOT_IN_PARTY" | "ENCOUNTERED_ABSENT".
+    // Values: "IN_PARTY" | "PRESENT_NOT_IN_PARTY".
     // "PRESENT_NOT_IN_PARTY" is the critical case: Core confirmed the NPC is in
     // the scene (first meeting / temporary companion), but the player has NOT
     // recruited them. The GM must never narrate such an NPC as a Party member.
@@ -145,6 +166,7 @@ object KnowledgeContextEngine {
       addMandatory()
       addCurrentLevel()
       addPresentRuntimeCards()
+      addAuthoredDetails()
       addRelationships()
       addDirectStructuredLookups()
       addSceneAffordances()
@@ -188,17 +210,16 @@ object KnowledgeContextEngine {
     }
 
     private fun renderRecord(record: Record): String = buildString {
+      // Full path and selection reason stay in the local registry/traceRecord.
+      // Keep the compact provenance classification for the GM's Canon boundary.
       append("<").append(record.id).append("> ")
         .append(record.text.replace('\n', ' ')).append('\n')
-      append("  source=").append(record.source.document)
-        .append("#").append(record.source.anchor)
-        .append("; provenance=").append(
-          if (record.source.document.startsWith("Google Drive /Novel/Asset/") ||
-            record.source.document.startsWith("https://")) "TRACEABLE"
-          else "LEGACY_UNVERIFIED")
+      append("  provenance=").append(
+        if (record.source.document.startsWith("Google Drive /Novel/Asset/") ||
+          record.source.document.startsWith("https://")) "TRACEABLE"
+        else "LEGACY_UNVERIFIED")
         .append("; authority=").append(record.authority)
-        .append("; mutability=").append(record.mutability)
-        .append("; why=").append(reasons[record.id].orEmpty()).append('\n')
+        .append("; mutability=").append(record.mutability).append('\n')
     }
 
     private fun addMandatory() {
@@ -212,7 +233,9 @@ object KnowledgeContextEngine {
         "CHAR.CAO_MINH.RUNTIME_CORE"
       ).forEach { add(it, "mandatory hard context") }
       add("CHAR.CAO_MINH.AUTHORED", "Drive-authored identity boundary")
-
+      // Stable, author-confirmed world fact: Backrooms has abundant ambient
+      // linh khi. This must not depend on the player saying "linh khi".
+      add("SUPPORT.LINH_KHI.DETAIL.ENVIRONMENT.0002.01", "ambient world canon")
     }
 
     private fun addCurrentLevel() {
@@ -231,15 +254,116 @@ object KnowledgeContextEngine {
     }
 
     private fun addPresentRuntimeCards() {
-      if ("iris" in presentActors) add("CHAR.IRIS.RUNTIME_CORE", "present actor runtime core")
-      if ("syvial" in presentActors) add("CHAR.SYVIAL.RUNTIME_CORE", "present actor runtime core")
-      if ("lucia" in presentActors) add("CHAR.LUCIA.AUTHORED", "present Lucia authored card")
-      if ("trac_lam" in presentActors) add("CHAR.TRAC_LAM.AUTHORED", "present Trác Lâm authored card")
+      // Core-confirmed stable actor IDs select their own cards, without adding
+      // one new code branch for each future character in the Canon registry.
+      presentActors.filter { it != "cao_minh" }.forEach { actor ->
+        val prefix = "CHAR.${actor.uppercase(Locale.ROOT)}"
+        add("$prefix.RUNTIME_CORE", "present actor runtime core")
+        add("$prefix.AUTHORED", "present actor authored card")
+      }
       if ("luc_tram" in presentActors) {
-        add("CHAR.LUC_TRAM.AUTHORED", "present Lục Trầm authored card")
-        add("CHAR.LUC_TRAM.RUNTIME_CORE", "present actor runtime core")
         add("CHAR.LUC_TRAM.REVIVAL_R06", "post-revival knowledge boundary")
         add("CHAR.LUC_TRAM.OPEN_R06", "unresolved encounter history")
+      }
+    }
+
+
+    /**
+     * Contextual R2 Canon. Actor presence comes from Core, never name matching.
+     * Only one authored passage per subject/topic is selected within the existing
+     * knowledge packet budget. Writer secrets are excluded during index assembly.
+     */
+    private fun addAuthoredDetails() {
+      val topics = linkedSetOf("profile")
+      // Supporting authored documents are indexed offline, but resolved only on
+      // grounded scene topics. Historical narrative archives remain invisible.
+      val supportText = normalize(listOf(
+        action, state.optString("location", ""), state.optString("title", "")
+      ).joinToString(" "))
+      val activeSupport = linkedSetOf<String>()
+      if (hasAny(supportText, "linh khí", "linh lực", "linh mạch", "tu luyện", "kinh mạch")) {
+        activeSupport += "LINH_KHI"
+        topics += "environment"
+        if (hasAny(supportText, "hồi phục", "tu luyện", "chiến đấu", "vận công", "kinh mạch")) {
+          activeSupport += "TU_SI"
+          topics += "combat"
+        }
+      }
+      if (hasAny(supportText, "async", "kv31", "viện nghiên cứu", "project kv31")) {
+        activeSupport += "ASYNC"
+        topics += "environment"
+      }
+      if (hasAny(supportText, "nói", "hỏi", "trò chuyện", "giao tiếp", "đối thoại")) {
+        activeSupport += "WRITING"
+        topics += "dialogue"
+      }
+      if (hasAny(actionText, "nói", "hỏi", "trò chuyện", "giao tiếp", "đối thoại", "tâm sự", "talk"))
+        topics += "dialogue"
+      if (hasAny(actionText, "đánh", "chiến đấu", "tấn công", "kiếm", "súng", "kỹ năng", "năng lực", "combat"))
+        topics += "combat"
+      if (hasAny(actionText, "khám phá", "tìm kiếm", "đi ", "quan sát", "nhìn", "môi trường", "search", "explore"))
+        topics += "environment"
+      if (hasAny(actionText, "nhìn", "ngoại hình", "quan sát", "trông như"))
+        topics += "visual"
+      if ((state.optJSONArray("pendingNpcEncounters")?.length() ?: 0) > 0) {
+        topics += "dialogue"
+        topics += "visual"
+      }
+      val node = state.optJSONObject("level")?.optString("id", "").orEmpty()
+      val levelPrefix = "LEVEL.%02d.DETAIL.".format(Locale.ROOT, currentLevel())
+      // Lightweight lexical ranking ensures a skill/realm question reaches the
+      // relevant paragraph rather than always selecting paragraph number one.
+      val terms = actionText.split(Regex("[^\\p{L}\\p{N}]+"))
+        .filter { it.length >= 4 && it !in setOf("trong", "đang", "những", "người", "chuyện") }
+        .distinct()
+      val picked = linkedSetOf<String>()
+      // Reuse the existing tag index instead of scanning every detail card on
+      // every API turn. The ranking, per-subject quota and budget stay unchanged.
+      val candidates = topics.asSequence()
+        .flatMap { topic -> db.tagIndex["detail:$topic"].orEmpty().asSequence() }
+        .distinct()
+        .mapNotNull(db.records::get)
+        .filter { it.kind == "authored-detail" }
+        .filter { record ->
+          when {
+            record.id.startsWith("CHAR.") -> {
+              val actorId = record.id.removePrefix("CHAR.").substringBefore('.').lowercase(Locale.ROOT)
+              actorId in presentActors
+            }
+            record.id.startsWith("SUPPORT.ASYNC.DETAIL.") -> "ASYNC" in activeSupport
+            record.id.startsWith("SUPPORT.LINH_KHI.DETAIL.") -> "LINH_KHI" in activeSupport
+            record.id.startsWith("SUPPORT.TU_SI.DETAIL.") -> "TU_SI" in activeSupport
+            record.id.startsWith("SUPPORT.WRITING.DETAIL.") -> "WRITING" in activeSupport
+            record.id.startsWith("WORLD.DETAIL.") -> "environment" in topics
+            record.id.startsWith(levelPrefix) -> "environment" in topics
+            record.id.startsWith("LEVEL.NODE.") ->
+              "environment" in topics && node.isNotBlank() &&
+                record.id.startsWith("LEVEL.NODE.${node}.DETAIL.")
+            else -> false
+          }
+        }
+        .sortedWith(compareBy<Record> {
+          if ("detail:dialogue" in it.tags && "dialogue" in topics) 0
+          else if ("detail:combat" in it.tags && "combat" in topics) 1
+          else if ("detail:environment" in it.tags && "environment" in topics) 2
+          else if ("detail:visual" in it.tags && "visual" in topics) 3
+          else 4
+        }.thenByDescending { record ->
+          val text = normalize(record.text)
+          terms.count { term -> text.contains(term) }
+        }.thenBy { it.priority }.thenBy { it.id })
+      for (record in candidates) {
+        val owner = when {
+          record.id.startsWith("CHAR.") -> record.id.substringBefore(".DETAIL.")
+          record.id.startsWith("SUPPORT.") -> record.id.substringBefore(".DETAIL.")
+          record.id.startsWith("LEVEL.NODE.") -> "LEVEL.NODE"
+          record.id.startsWith("LEVEL.") -> "LEVEL"
+          else -> "WORLD"
+        }
+        val topic = record.tags.firstOrNull { it.startsWith("detail:") } ?: continue
+        val quotaKey = "${owner}:${topic}"
+        if (!picked.add(quotaKey)) continue
+        add(record.id, "author-confirmed contextual R2 detail")
       }
     }
 
@@ -372,7 +496,18 @@ object KnowledgeContextEngine {
 
     private fun budgetedRecords(header: String): List<Record> {
       val mandatory = selected.values.filter(::mandatory).sortedWith(compareBy<Record> { it.priority }.thenBy { it.id })
-      val optional = selected.values.filterNot(::mandatory).sortedWith(compareBy<Record> { it.priority }.thenBy { it.id })
+      // Preserve R1 authored quick cards, then reserve budget for the scene's
+      // selected R2 details before general low-priority optional material.
+      // Never override the mandatory hard locks above or increase packet ceilings.
+      val optional = selected.values.filterNot(::mandatory).sortedWith(compareBy<Record> {
+        when {
+          it.id == "CHAR.CAO_MINH.AUTHORED" -> 31
+          it.id.endsWith(".AUTHORED") -> 32
+          it.kind == "authored-detail" && it.id.startsWith("SUPPORT.") -> 33
+          it.kind == "authored-detail" -> 34
+          else -> it.priority
+        }
+      }.thenBy { it.id })
       val kept = mutableListOf<Record>()
       var tokens = estimateTokens(header + "[END_KNOWLEDGE_PACKET]")
       mandatory.forEach { r -> kept += r; tokens += estimateTokens(renderRecord(r)) }
@@ -380,7 +515,14 @@ object KnowledgeContextEngine {
       // half hard-lock or silently omit mandatory Canon to satisfy a budget.
       require(tokens <= HARD_CONTEXT_CEILING) { "knowledge_mandatory_context_over_budget" }
       optional.forEach { r ->
-        val ceiling = if (tokens < TARGET_CONTEXT_BUDGET) TARGET_CONTEXT_BUDGET else SOFT_CONTEXT_CEILING
+        // A Core-confirmed scene may need a short R2 voice/detail card even after
+        // compulsory locks and R1 cards occupy the soft budget. R2 may use the
+        // existing hard ceiling, but can never displace compulsory hard locks.
+        val ceiling = when {
+          r.kind == "authored-detail" -> HARD_CONTEXT_CEILING
+          tokens < TARGET_CONTEXT_BUDGET -> TARGET_CONTEXT_BUDGET
+          else -> SOFT_CONTEXT_CEILING
+        }
         val cost = estimateTokens(renderRecord(r))
         if (tokens + cost <= ceiling) {
           kept += r
@@ -399,6 +541,7 @@ object KnowledgeContextEngine {
 
     /** The current encounter's identity/visual card cannot be dropped as optional context. */
     private fun mandatory(record: Record): Boolean = record.priority <= 30 ||
+      record.id == "SUPPORT.LINH_KHI.DETAIL.ENVIRONMENT.0002.01" ||
       record.id == confirmedEntityVisualId() ||
       (record.id == "CHAR.LUCIA.AUTHORED" && "lucia" in presentActors) ||
       (record.id == "CHAR.LUC_TRAM.AUTHORED" && "luc_tram" in presentActors) ||
@@ -411,11 +554,9 @@ object KnowledgeContextEngine {
     private fun eligible(record: Record): Boolean {
       if (record.authority == "WRITER-SECRET" || record.kind == "reference-only-level") return false
       val actor = when {
-        record.id.startsWith("CHAR.IRIS.") -> "iris"
-        record.id.startsWith("CHAR.SYVIAL.") -> "syvial"
-        record.id.startsWith("CHAR.LUCIA.") -> "lucia"
-        record.id.startsWith("CHAR.TRAC_LAM.") -> "trac_lam"
-        record.id.startsWith("CHAR.LUC_TRAM.") || record.id == "REL.CAO_MINH.LUC_TRAM.HISTORY_R06" -> "luc_tram"
+        record.id.startsWith("CHAR.") ->
+          record.id.removePrefix("CHAR.").substringBefore('.').lowercase(Locale.ROOT)
+        record.id == "REL.CAO_MINH.LUC_TRAM.HISTORY_R06" -> "luc_tram"
         else -> null
       }
       if (actor != null && actor !in presentActors) return false
@@ -433,18 +574,18 @@ object KnowledgeContextEngine {
     private fun resolvePresence() {
       // State is the only evidence of who is actually in the scene.
       // Substring matching lets names like "iris_unknown" impersonate a Party member.
-      // Status tracking: IN_PARTY vs PRESENT_NOT_IN_PARTY vs ENCOUNTERED_ABSENT.
+      // Status tracking: IN_PARTY vs PRESENT_NOT_IN_PARTY for scene-present actors only.
       // A present-but-not-recruited NPC (e.g. Lucia on first meeting) MUST stay
       // PRESENT_NOT_IN_PARTY — never promote to Party membership in narration.
       fun addConfirmed(idOrName: String, status: String) {
-        val canonical = when (normalize(idOrName)) {
-          "iris" -> "iris"
-          "syvial" -> "syvial"
-          "lucia", "lucia lục" -> "lucia"
-          "trac_lam", "trác lâm", "trac lam" -> "trac_lam"
-          "luc_tram", "lục trầm", "luc tram" -> "luc_tram"
-          else -> null
-        } ?: return
+        val canonical = when (val id = normalize(idOrName)) {
+          // Existing display-name aliases remain useful; canonical Core IDs
+          // are otherwise resolved directly from registered Canon records.
+          "lucia lục" -> "lucia"
+          "trác lâm", "trac lam" -> "trac_lam"
+          "lục trầm", "luc tram" -> "luc_tram"
+          else -> id
+        }.takeIf { it in db.characterIds } ?: return
         presentActors += canonical
         // IN_PARTY wins over PRESENT_NOT_IN_PARTY; never downgrade a Party member.
         val existing = npcStatus[canonical]
@@ -503,21 +644,8 @@ object KnowledgeContextEngine {
               addConfirmed(id, "IN_PARTY")
             entry.optBoolean("present", false) ->
               addConfirmed(id, "PRESENT_NOT_IN_PARTY")
-            else -> {
-              // Met before but not in scene: record for epistemic continuity,
-              // but do NOT add to presentActors.
-              val canonical = when (normalize(id)) {
-                "iris" -> "iris"
-                "syvial" -> "syvial"
-                "lucia", "lucia lục" -> "lucia"
-                "trac_lam", "trác lâm", "trac lam" -> "trac_lam"
-                "luc_tram", "lục trầm", "luc tram" -> "luc_tram"
-                else -> null
-              }
-              if (canonical != null && canonical !in npcStatus) {
-                npcStatus[canonical] = "ENCOUNTERED_ABSENT"
-              }
-            }
+            // An absent actor never enters either presence or per-turn status.
+            else -> Unit
           }
         }
       }
@@ -540,10 +668,6 @@ object KnowledgeContextEngine {
             "PRESENT_NOT_IN_PARTY" -> append(
               "PRESENT, inParty=false — Core-confirmed in scene, NOT recruited. " +
                 "Narrate as present person, NEVER as Party member"
-            )
-            "ENCOUNTERED_ABSENT" -> append(
-              "encountered before, NOT present now — may be referenced from memory, " +
-                "cannot act or speak in this scene"
             )
             else -> append(status)
           }

@@ -35,6 +35,33 @@ class SpecialFollowerShortcutTest {
     assertEquals(withBoth.party.memberIds, again.party.memberIds)
   }
 
+  @Test fun cheatPartyCommitWritesTheSameCoreOwnedMemoryAsNormalRecruitment() {
+    class MemorySave(var state: GameState) : SaveRepository {
+      override fun save(state: GameState) { this.state = state }
+      override fun load(): GameState = state
+      override fun exists(): Boolean = true
+      override fun clear() { state = GameState.initial() }
+      override fun saveCheckpoint(state: GameState, presentation: org.json.JSONObject) = Unit
+      override fun loadCheckpoint(): GameCheckpoint? = null
+    }
+    val save = MemorySave(CoreClientProjection.initialize(GameState.initial()))
+    val ctor = GameCoreFacade::class.java.getDeclaredConstructor(
+      SaveRepository::class.java, GamePipelineLogger::class.java)
+    ctor.isAccessible = true
+    val core = ctor.newInstance(save, NoOpGamePipelineLogger)
+    val result = org.json.JSONObject(core.processRule("{}", "/iris123"))
+    assertTrue(result.toString(), result.getBoolean("handled"))
+    val root = org.json.JSONObject(save.state.metadata.getValue("core.characterMemoryBags.v1"))
+    val iris = root.getJSONObject("bags").getJSONArray(IRIS_ID)
+    assertEquals(1, iris.length())
+    assertEquals("party_join", iris.getJSONObject(0).getString("kind"))
+    assertTrue(CharacterMemoryBags.sceneContext(save.state).contains("Actor iris"))
+    assertTrue(CharacterMemoryBags.sceneContext(save.state).contains("Joined Cao Minh's Party."))
+    val repeated = org.json.JSONObject(core.processRule("{}", "/iris123"))
+    assertTrue(repeated.toString(), repeated.getBoolean("handled"))
+    assertEquals(root.toString(), save.state.metadata["core.characterMemoryBags.v1"])
+  }
+
   @Test fun shortcutsNeverEvictAnExistingMemberWhenPartyIsFull() {
     val base = GameState.initial()
     val full = base.copy(

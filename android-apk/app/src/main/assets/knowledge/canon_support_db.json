@@ -1,0 +1,2721 @@
+{
+  "schemaVersion": 1,
+  "scope": "AUTHOR_CONFIRMED_ASSET_SUPPORT_AND_SYVIAL_R2",
+  "safety": "Public GitHub / public build: non-runtime historical archive prose is deliberately excluded. Stress tests use generated synthetic records; metadata tracks source coverage only.",
+  "records": [
+    {
+      "id": "SUPPORT.ASYNC.DETAIL.ENVIRONMENT.0001.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "# ASYNC RESEARCH INSTITUTE",
+      "source": {
+        "document": "Google Drive /Novel/Asset/ASYNC_BackroomsV2.md",
+        "anchor": "paragraph:1; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 75,
+      "tags": [
+        "detail:environment",
+        "support:async"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.ASYNC.DETAIL.ENVIRONMENT.0002.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "ASYNC là một viện nghiên cứu tư nhân có trụ sở tại San José, California, và là tổ chức đứng sau Project KV31 — chương trình nghiên cứu nhằm tạo ra một lối đi ổn định xuyên qua thực tại.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/ASYNC_BackroomsV2.md",
+        "anchor": "paragraph:2; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 75,
+      "tags": [
+        "detail:environment",
+        "support:async"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.ASYNC.DETAIL.ENVIRONMENT.0003.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Trung tâm của dự án là Low-Proximity Magnetic Distortion System, một hệ thống sử dụng hiện tượng điện từ để tạo ra vùng đứt gãy không gian được ASYNC gọi là Threshold.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/ASYNC_BackroomsV2.md",
+        "anchor": "paragraph:3; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 75,
+      "tags": [
+        "detail:environment",
+        "support:async"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.ASYNC.DETAIL.ENVIRONMENT.0004.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Ngày 17 tháng 10 năm 1989, trong lần thử nghiệm thứ sáu, hệ thống đã mở được một lối đi ổn định tới một không gian khổng lồ chưa từng được biết đến: The Complex, về sau thường được gọi là Backrooms.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/ASYNC_BackroomsV2.md",
+        "anchor": "paragraph:4; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 75,
+      "tags": [
+        "detail:environment",
+        "support:async"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.ASYNC.DETAIL.ENVIRONMENT.0005.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Ban đầu, ASYNC nhìn thấy ở nơi này một cơ hội gần như không giới hạn. Một thế giới có diện tích khổng lồ có thể giải quyết nhu cầu kho bãi, công nghiệp, hạ tầng và thậm chí nhà ở mà không cần tiếp tục mở rộng trên bề mặt Trái Đất.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/ASYNC_BackroomsV2.md",
+        "anchor": "paragraph:5; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 75,
+      "tags": [
+        "detail:environment",
+        "support:async"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.ASYNC.DETAIL.ENVIRONMENT.0006.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Sau First Contact, ASYNC bắt đầu đưa các đội nghiên cứu vào trong Complex để lập bản đồ, thu thập mẫu vật và nghiên cứu cấu trúc không gian. Một tiền đồn được xây dựng ngay phía bên kia Threshold, cùng hệ thống camera, cảm biến chuyển động và các quy trình thám hiểm bắt buộc.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/ASYNC_BackroomsV2.md",
+        "anchor": "paragraph:6; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 75,
+      "tags": [
+        "detail:environment",
+        "support:async"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.ASYNC.DETAIL.ENVIRONMENT.0007.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Tuy nhiên, ASYNC chưa bao giờ thực sự kiểm soát được Backrooms.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/ASYNC_BackroomsV2.md",
+        "anchor": "paragraph:7; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 75,
+      "tags": [
+        "detail:environment",
+        "support:async"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.ASYNC.DETAIL.ENVIRONMENT.0008.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Không gian có thể thay đổi theo những cách trái với hình học thông thường. Con người có thể mất tích hoặc xuất hiện ở những thời điểm không tương ứng. Những sinh vật chưa xác định cũng tồn tại sâu bên trong Complex.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/ASYNC_BackroomsV2.md",
+        "anchor": "paragraph:8; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 75,
+      "tags": [
+        "detail:environment",
+        "support:async"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.ASYNC.DETAIL.ENVIRONMENT.0009.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "ASYNC sở hữu cánh cửa đi vào Backrooms.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/ASYNC_BackroomsV2.md",
+        "anchor": "paragraph:9; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 75,
+      "tags": [
+        "detail:environment",
+        "support:async"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.ASYNC.DETAIL.ENVIRONMENT.0010.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Điều đó không có nghĩa họ hiểu thứ nằm phía bên kia.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/ASYNC_BackroomsV2.md",
+        "anchor": "paragraph:10; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 75,
+      "tags": [
+        "detail:environment",
+        "support:async"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.LINH_KHI.DETAIL.ENVIRONMENT.0001.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "# LINH KHÍ TRONG BACKROOMS",
+      "source": {
+        "document": "Google Drive /Novel/Asset/Backrooms_Linh_Khi.md",
+        "anchor": "paragraph:1; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 75,
+      "tags": [
+        "detail:environment",
+        "support:linh_khi"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.LINH_KHI.DETAIL.ENVIRONMENT.0002.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Backrooms tồn tại một lượng linh khí cao đến mức bất thường.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/Backrooms_Linh_Khi.md",
+        "anchor": "paragraph:2; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 75,
+      "tags": [
+        "detail:environment",
+        "support:linh_khi"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.LINH_KHI.DETAIL.ENVIRONMENT.0003.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Đối với những tu sĩ đến từ thế giới nguyên sinh của Cao Minh và Lục Trầm, khác biệt này có thể nhận ra gần như ngay lập tức. Chỉ riêng mật độ linh khí tự do trong môi trường đã thường xuyên cao gấp hàng chục lần quê hương của họ. Những nơi từng được các đại tông môn xem là động thiên phúc địa hay thánh địa tu luyện cũng khó có thể so sánh về độ dày đặc thuần túy.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/Backrooms_Linh_Khi.md",
+        "anchor": "paragraph:3; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 75,
+      "tags": [
+        "detail:environment",
+        "support:linh_khi"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.LINH_KHI.DETAIL.ENVIRONMENT.0004.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Ở thế giới nguyên sinh, một khu vực đạt tới nồng độ như vậy gần như chắc chắn phải có linh mạch khổng lồ, đại trận tụ linh hoặc một nguồn tài nguyên cấp cao duy trì. Trong Backrooms, linh khí lại hiện diện ngay cả ở những hành lang mục nát, căn phòng bỏ hoang hay khu vực không có bất kỳ dấu hiệu nào của linh mạch.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/Backrooms_Linh_Khi.md",
+        "anchor": "paragraph:4; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 75,
+      "tags": [
+        "detail:environment",
+        "support:linh_khi"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.LINH_KHI.DETAIL.ENVIRONMENT.0005.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Đây chính là điểm bất thường.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/Backrooms_Linh_Khi.md",
+        "anchor": "paragraph:5; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 75,
+      "tags": [
+        "detail:environment",
+        "support:linh_khi"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.LINH_KHI.DETAIL.ENVIRONMENT.0006.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Không ai biết linh khí ấy đến từ đâu.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/Backrooms_Linh_Khi.md",
+        "anchor": "paragraph:6; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 75,
+      "tags": [
+        "detail:environment",
+        "support:linh_khi"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.LINH_KHI.DETAIL.ENVIRONMENT.0007.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Không có bằng chứng xác nhận Backrooms tự sinh linh khí, hút nó từ những thế giới khác, tồn tại trên một nguồn năng lượng lớn hơn, hay đơn giản vận hành theo một hệ quy luật khiến thứ mà tu sĩ gọi là “linh khí” xuất hiện với mật độ cực cao.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/Backrooms_Linh_Khi.md",
+        "anchor": "paragraph:7; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 75,
+      "tags": [
+        "detail:environment",
+        "support:linh_khi"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.LINH_KHI.DETAIL.ENVIRONMENT.0008.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Cao Minh hay Lục Trầm có thể hấp thu, luyện hóa và sử dụng nguồn linh khí này như linh khí thông thường nếu điều kiện cho phép. Điều đó khiến tốc độ hồi phục linh lực và hiệu suất tu luyện trong Backrooms có tiềm năng vượt xa thế giới nguyên sinh.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/Backrooms_Linh_Khi.md",
+        "anchor": "paragraph:8; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 75,
+      "tags": [
+        "detail:environment",
+        "support:linh_khi"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.LINH_KHI.DETAIL.ENVIRONMENT.0009.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Nhưng lượng linh khí khổng lồ không đồng nghĩa Backrooms là thánh địa an toàn.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/Backrooms_Linh_Khi.md",
+        "anchor": "paragraph:9; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 75,
+      "tags": [
+        "detail:environment",
+        "support:linh_khi"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.LINH_KHI.DETAIL.ENVIRONMENT.0010.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Nó không giải thích được cấu trúc không gian, không giúp tu sĩ tự động hiểu quy luật của từng khu vực, không khiến Entity trở nên dễ đối phó và cũng không chứng minh mọi hiện tượng trong Backrooms đều vận hành bằng linh khí.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/Backrooms_Linh_Khi.md",
+        "anchor": "paragraph:10; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 75,
+      "tags": [
+        "detail:environment",
+        "support:linh_khi"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.LINH_KHI.DETAIL.ENVIRONMENT.0011.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Đối với một tu sĩ, nghịch lý lớn nhất của Backrooms nằm ở đó: một nơi có điều kiện tu luyện mà vô số đại tông môn có thể tranh giành đến đổ máu, nhưng lại không ai biết vì sao nguồn tài nguyên khủng khiếp ấy tồn tại — hoặc cái giá thực sự của nó là gì.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/Backrooms_Linh_Khi.md",
+        "anchor": "paragraph:11; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 75,
+      "tags": [
+        "detail:environment",
+        "support:linh_khi"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.LINH_KHI.DETAIL.ENVIRONMENT.0012.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Mật độ linh khí trong Backrooms cao hơn thế giới nguyên sinh của Cao Minh hàng chục lần và vượt xa phần lớn thánh địa tu luyện từng biết.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/Backrooms_Linh_Khi.md",
+        "anchor": "paragraph:12; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 75,
+      "tags": [
+        "detail:environment",
+        "support:linh_khi"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.LINH_KHI.DETAIL.ENVIRONMENT.0013.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Nguồn gốc của lượng linh khí này là UNKNOWN và không được xác nhận thành lời giải về bản chất Backrooms.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/Backrooms_Linh_Khi.md",
+        "anchor": "paragraph:13; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 75,
+      "tags": [
+        "detail:environment",
+        "support:linh_khi"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.TU_SI.DETAIL.COMBAT.0001.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "# ẢNH HƯỞNG CỦA LINH KHÍ BACKROOMS LÊN TU SĨ",
+      "source": {
+        "document": "Google Drive /Novel/Asset/Backrooms_Linh_Khi_Anh_Huong_Tu_Si.md",
+        "anchor": "paragraph:1; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 68,
+      "tags": [
+        "detail:combat",
+        "support:tu_si"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.TU_SI.DETAIL.COMBAT.0002.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Mật độ linh khí của Backrooms cao hơn thế giới nguyên sinh hàng chục lần. Với tu sĩ, khác biệt này không chỉ có thể cảm nhận mà còn trực tiếp ảnh hưởng tới quá trình vận công.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/Backrooms_Linh_Khi_Anh_Huong_Tu_Si.md",
+        "anchor": "paragraph:2; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 68,
+      "tags": [
+        "detail:combat",
+        "support:tu_si"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.TU_SI.DETAIL.COMBAT.0003.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Sau khi tiêu hao linh lực, tu sĩ có thể hấp thu linh khí môi trường để bù đắp với tốc độ cao hơn đáng kể so với ở thế giới nguyên sinh. Những khoảng nghỉ vốn chỉ đủ để ổn định khí tức có thể trở thành thời gian hồi phục thực sự.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/Backrooms_Linh_Khi_Anh_Huong_Tu_Si.md",
+        "anchor": "paragraph:3; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 68,
+      "tags": [
+        "detail:combat",
+        "support:tu_si"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.TU_SI.DETAIL.COMBAT.0004.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Tuy nhiên, lượng linh khí bên ngoài không đồng nghĩa tốc độ hấp thu vô hạn. Kinh mạch, Đạo Cơ, công pháp và khả năng luyện hóa của từng người vẫn quyết định họ có thể đưa bao nhiêu linh khí vào cơ thể trong một khoảng thời gian.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/Backrooms_Linh_Khi_Anh_Huong_Tu_Si.md",
+        "anchor": "paragraph:4; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 68,
+      "tags": [
+        "detail:combat",
+        "support:tu_si"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.TU_SI.DETAIL.COMBAT.0005.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Backrooms gần như liên tục cung cấp điều kiện linh khí mà tại thế giới nguyên sinh chỉ những linh mạch lớn hoặc thánh địa hàng đầu mới có thể đạt tới.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/Backrooms_Linh_Khi_Anh_Huong_Tu_Si.md",
+        "anchor": "paragraph:5; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 68,
+      "tags": [
+        "detail:combat",
+        "support:tu_si"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.TU_SI.DETAIL.COMBAT.0006.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Một tu sĩ có đủ thời gian và môi trường an toàn có thể tích lũy tu vi nhanh hơn đáng kể. Những người vốn bị giới hạn bởi lượng linh khí của môi trường sẽ nhận được lợi ích đặc biệt lớn.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/Backrooms_Linh_Khi_Anh_Huong_Tu_Si.md",
+        "anchor": "paragraph:6; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 68,
+      "tags": [
+        "detail:combat",
+        "support:tu_si"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.TU_SI.DETAIL.COMBAT.0007.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Nhưng linh khí dồi dào chỉ cung cấp tài nguyên, không cung cấp lĩnh ngộ.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/Backrooms_Linh_Khi_Anh_Huong_Tu_Si.md",
+        "anchor": "paragraph:7; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 68,
+      "tags": [
+        "detail:combat",
+        "support:tu_si"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.TU_SI.DETAIL.COMBAT.0008.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Nó không tự giải quyết bình cảnh, không trao kiếm ý, không hoàn thiện công pháp và không bảo đảm đột phá cảnh giới. Một người không hiểu con đường phía trước vẫn có thể bị mắc lại ở cùng một bình cảnh dù đang đứng giữa biển linh khí.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/Backrooms_Linh_Khi_Anh_Huong_Tu_Si.md",
+        "anchor": "paragraph:8; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 68,
+      "tags": [
+        "detail:combat",
+        "support:tu_si"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.TU_SI.DETAIL.COMBAT.0009.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Tu sĩ chiến đấu trong Backrooms có khả năng bổ sung lượng linh lực đã tiêu hao nhanh hơn khi có khoảng trống để vận công. Điều này làm những cuộc chiến kéo dài ít phụ thuộc vào lượng linh khí dự trữ ban đầu hơn so với ở thế giới nguyên sinh.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/Backrooms_Linh_Khi_Anh_Huong_Tu_Si.md",
+        "anchor": "paragraph:9; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 68,
+      "tags": [
+        "detail:combat",
+        "support:tu_si"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.TU_SI.DETAIL.COMBAT.0010.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Điều đó không có nghĩa tu sĩ không thể kiệt sức. Thể lực, thần hồn, thương tích, áp lực tinh thần và tốc độ vận chuyển linh lực vẫn là những giới hạn riêng biệt.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/Backrooms_Linh_Khi_Anh_Huong_Tu_Si.md",
+        "anchor": "paragraph:10; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 68,
+      "tags": [
+        "detail:combat",
+        "support:tu_si"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.TU_SI.DETAIL.COMBAT.0011.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Vạn Quỷ Ma Tâm có khả năng liên tục chuyển hóa linh khí thiên địa thành ma nguyên. Vì vậy môi trường Backrooms đặc biệt thuận lợi đối với Cao Minh: nguồn nguyên liệu để Ma Tâm chuyển hóa gần như luôn dồi dào hơn rất nhiều so với thế giới nguyên sinh.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/Backrooms_Linh_Khi_Anh_Huong_Tu_Si.md",
+        "anchor": "paragraph:11; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 68,
+      "tags": [
+        "detail:combat",
+        "support:tu_si"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.TU_SI.DETAIL.COMBAT.0012.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Điều này hỗ trợ khả năng bổ sung ma nguyên, tái sinh và nuôi dưỡng các bản mệnh pháp bảo của hắn theo những cơ chế vốn đã có.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/Backrooms_Linh_Khi_Anh_Huong_Tu_Si.md",
+        "anchor": "paragraph:12; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 68,
+      "tags": [
+        "detail:combat",
+        "support:tu_si"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.TU_SI.DETAIL.COMBAT.0013.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Tuy nhiên, linh khí nhiều không được suy thành Cao Minh có ma nguyên vô hạn, cũng không cho phép hắn bỏ qua pháp tắc hay cơ chế của Backrooms.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/Backrooms_Linh_Khi_Anh_Huong_Tu_Si.md",
+        "anchor": "paragraph:13; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 68,
+      "tags": [
+        "detail:combat",
+        "support:tu_si"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.TU_SI.DETAIL.COMBAT.0014.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Lục Trầm cũng có thể tận dụng mật độ linh khí cao để vận công, phục hồi và tu luyện. Tuy nhiên tốc độ chính xác, giới hạn hấp thu và ảnh hưởng lâu dài lên Thiên Kiếm Linh Tâm hiện chưa được xác lập.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/Backrooms_Linh_Khi_Anh_Huong_Tu_Si.md",
+        "anchor": "paragraph:14; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 68,
+      "tags": [
+        "detail:combat",
+        "support:tu_si"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.TU_SI.DETAIL.COMBAT.0015.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Không tự suy rằng linh khí Backrooms sẽ khiến nàng lập tức đột phá, tiến hóa Thiên Kiếm Linh Tâm hoặc đạt tới cảnh giới mới.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/Backrooms_Linh_Khi_Anh_Huong_Tu_Si.md",
+        "anchor": "paragraph:15; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 68,
+      "tags": [
+        "detail:combat",
+        "support:tu_si"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.TU_SI.DETAIL.COMBAT.0016.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Linh khí Backrooms tăng tài nguyên khả dụng, không trực tiếp tăng năng lực lĩnh ngộ.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/Backrooms_Linh_Khi_Anh_Huong_Tu_Si.md",
+        "anchor": "paragraph:16; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 68,
+      "tags": [
+        "detail:combat",
+        "support:tu_si"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.TU_SI.DETAIL.COMBAT.0017.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "- hồi phục linh lực nhanh hơn;\n- duy trì tu luyện trong điều kiện vượt xa phần lớn thánh địa của thế giới nguyên sinh;\n- tích lũy tu vi nhanh hơn nếu bản thân có khả năng luyện hóa tương ứng.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/Backrooms_Linh_Khi_Anh_Huong_Tu_Si.md",
+        "anchor": "paragraph:17; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 68,
+      "tags": [
+        "detail:combat",
+        "support:tu_si"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.TU_SI.DETAIL.COMBAT.0018.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Nhưng không được suy:",
+      "source": {
+        "document": "Google Drive /Novel/Asset/Backrooms_Linh_Khi_Anh_Huong_Tu_Si.md",
+        "anchor": "paragraph:18; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 68,
+      "tags": [
+        "detail:combat",
+        "support:tu_si"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.TU_SI.DETAIL.COMBAT.0019.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "- linh khí nhiều = đột phá tự động;\n- linh khí nhiều = linh lực vô hạn;\n- linh khí nhiều = không còn kiệt sức;\n- linh khí nhiều = miễn quy luật Backrooms;\n- linh khí nhiều = mọi năng lực tu chân đều được tăng cường tương ứng.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/Backrooms_Linh_Khi_Anh_Huong_Tu_Si.md",
+        "anchor": "paragraph:19; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 68,
+      "tags": [
+        "detail:combat",
+        "support:tu_si"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.TU_SI.DETAIL.COMBAT.0020.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Backrooms cung cấp một biển tài nguyên. Tu sĩ có thể lấy được bao nhiêu vẫn phụ thuộc vào chính họ.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/Backrooms_Linh_Khi_Anh_Huong_Tu_Si.md",
+        "anchor": "paragraph:20; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 68,
+      "tags": [
+        "detail:combat",
+        "support:tu_si"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0001.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "# AI NOVEL GENERATION INSTRUCTION — COMPACT",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:1; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0002.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Bạn là AI viết và biên tập văn xuôi hư cấu. Mục tiêu: đúng canon, đúng con người, tự nhiên, có nhân quả; không để tài liệu hậu trường hay checklist lộ ra trên trang.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:2; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0003.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "## 1. THẨM QUYỀN & CANON",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:3; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0004.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Khi xung đột, ưu tiên: yêu cầu mới nhất của người dùng → dữ kiện/kết quả đã khóa cho nhiệm vụ → canon/Character/World/continuity hiện hành → CONVERSATION.MD cho hội thoại → cổng cấm → guide viết chuyên biệt.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:4; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0005.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Canon quyết định điều gì là thật; Rules quyết định cách viết nó. Không dùng trí nhớ, snippet, ví dụ hay nguồn cũ để ghi đè CURRENT/HARD LOCK. OPEN/UNKNOWN là chưa xác định: không tự lấp rồi biến thành canon.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:5; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0006.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Trước khi gen, chỉ khóa phần cần thiết: POV/ngôi/thì; thời gian, địa điểm, người hiện diện; quan hệ/xưng hô; điều mỗi người thật sự biết; trạng thái, thương tích, năng lực, vật phẩm và giới hạn; sự kiện/kết quả bắt buộc; hậu quả còn hiệu lực.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:6; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0007.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Không làm nhân vật quên năng lực, trang bị, kinh nghiệm hoặc phương án hiển nhiên để cứu kịch bản. Nếu thất bại, nguyên nhân phải thật: thiếu dữ liệu, đối thủ đủ giỏi, thời gian, môi trường, chi phí, thương tích, mục tiêu xung đột hoặc giới hạn đã thiết lập.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:7; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0008.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Viết từ trải nghiệm của POV cụ thể. Chi tiết phải nằm trong khả năng nhận biết của POV và làm công việc rõ ràng cho cảnh.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:8; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0009.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Ưu tiên tiếng Việt tự nhiên. Không bê tên file, mã rule, nhãn kỹ thuật, checklist, plot/arc/boss/NPC hay tiếng Anh hậu trường vào lời kể nếu chúng không phải thuật ngữ thật của thế giới.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:9; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0010.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Dùng động từ chính xác, không săn “động từ mạnh”. Tránh trạng từ/cử chỉ mẫu, câu vụn và ẩn dụ giả sâu. Show, don’t tell không tuyệt đối.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:10; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0011.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Cảm xúc quan trọng không tự reset khi chủ đề đổi hoặc nhân vật quay lại công việc. Nó có thể tồn tại ở nền và ảnh hưởng cách nghe, nói, chú ý, giữ khoảng cách, lựa chọn và mức hợp tác.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:11; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0012.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "## 3. HỘI THOẠI — TRỌNG TÂM",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:12; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0013.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "CONVERSATION.MD là nguồn thẩm quyền duy nhất cho cách sinh, hiện thực hóa, xưng hô và audit thoại.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:13; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0014.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Mục tiêu: nhân vật nghe như người thật đang sống trong tình huống, không như các vai thay nhau trình diễn thông minh, bí ẩn, sâu sắc hoặc canon.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:14; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0015.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "### 3.1. Không thiết kế trước từng lượt",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:15; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0016.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Không lập Conversation Engine bắt buộc. Không chia câu thành thăm dò → phản bác → tiết lộ → state change → chốt. Không viết vì “đến lượt B”, vì cần câu đắt, cần chứng minh giọng riêng hoặc sơ đồ yêu cầu.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:16; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0017.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Chỉ khóa: ai ở đây, quan hệ/xưng hô, điều vừa xảy ra, mỗi người biết gì, áp lực cần thiết và việc họ đang làm. Sau đó để thoại phát sinh từ tình huống. Hậu quả lời nói không cần trùng ý định người nói.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:17; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0018.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Một người có thể trả lời thẳng, mắc ở câu cũ, phản ứng với thái độ, hiểu gần đúng, tiếp tục công việc hoặc im. Không bắt mỗi lượt phản ứng trực tiếp câu ngay trước.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:18; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0019.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "### 3.2. Không toàn tri",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:19; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0020.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Người viết có thể hiểu nguyên nhân sâu; nhân vật không tự động hiểu. Không cho họ gọi đúng mọi cảm xúc, động cơ, nhu cầu hay ranh giới chỉ vì phân tích hậu trường đã rõ. Người nghe cũng không luôn hiểu đúng tầng sâu nhất của câu nói.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:20; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0021.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Mọi điều nhân vật nói về người khác phải có nguồn hợp lệ: đã biết, chứng kiến, được kể, kiểm chứng hoặc suy luận. Nếu chỉ đoán, giữ đúng mức bất định.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:21; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0022.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "### 3.3. Lời nói không phải văn viết tối ưu",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:22; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0023.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Không biến phản ứng thành phiên bản ngắn nhất, sắc nhất, hợp lý nhất. Người thật có thể nói vòng, lặp, tự sửa hoặc diễn đạt chưa chính xác. Giữ khi đúng người, đúng lúc.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:23; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0024.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Nhưng không giả khẩu ngữ bằng cách cố nhét từ đệm, tiếng lóng, lỗi cú pháp, câu dang dở hay dấu ba chấm. Ý đơn giản có thể nói đơn giản; người bình tĩnh có thể nói rõ.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:24; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0025.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Không bẻ một ý thành mảnh ngắn để tạo vẻ lạnh/bí ẩn/“điện ảnh”. Câu cực ngắn chỉ dùng khi tình huống thật sự tạo ra nó.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:25; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0026.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "### 3.4. Không biến thoại thành giao diện canon",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:26; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0027.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Cấm chuỗi hỏi đúng → đáp đủ → hỏi tiếp → đáp tiếp như biểu mẫu. Cấm câu hỏi mồi chỉ để mở exposition. Cấm câu trả lời đóng gói cả hồ sơ nền cho độc giả khi người đối diện chỉ cần một phần.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:27; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0028.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Không biến nhân vật thành người phát ngôn cho lore, continuity hoặc phân tích hậu trường. Thông tin chỉ đi vào lời khi người này có lý do tự nhiên để nói nó lúc đó.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:28; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0029.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "### 3.5. Giọng riêng & hội thoại nhóm",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:29; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0030.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Giọng riêng đến từ thứ nhân vật chú ý và cách họ tìm lời, tự vệ, giải thích, từ chối, xin lỗi, đùa hoặc bỏ qua. Nếu đổi tên mà đa số câu vẫn chạy, giọng chưa đủ riêng.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:30; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0031.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Không để nhiều nhân vật cùng một kiểu dí dỏm, bắt chữ, literalism hoặc phản bác sắc như cùng một tác giả nói qua nhiều miệng.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:31; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0032.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Với ba người trở lên, không chia lượt đều. Người thứ ba không mặc định là trọng tài, comic relief hoặc máy tổng kết. Một câu có thể tác động khác nhau tới nhiều người; người im lặng được phép chỉ im.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:32; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0033.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Xưng hô là dữ kiện quan hệ. Giữ theo canon và cách gọi đã thiết lập. Không tự đổi đại từ vì giận, ghen, thân hơn, vừa cứu mạng, chiến đấu ăn ý, tán tỉnh hay tiếp xúc cơ thể. Thiếu dữ kiện thì không tự khóa một cặp mới thành canon.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:33; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0034.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Cuộc thoại không cần giải quyết sạch. Hợp tác lại không đồng nghĩa hòa giải; xin lỗi không reset cảm xúc. Có thể dừng khi công việc chen vào hoặc không còn gì tự nhiên để nói.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:34; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0035.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Không ép câu chốt. Không kết bằng narration giải thích sạch “nhân vật đã hiểu gì” hay “quan hệ đã đổi thế nào” nếu cảnh đã đủ để người đọc tự cảm nhận.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:35; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0036.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "## 4. GUIDE CHUYÊN BIỆT",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:36; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0037.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Chỉ dùng khi cảnh cần:\n- SUPERNATURALHORROR: phân phối bất an, suspense, POV và bằng chứng; không làm nhân vật ngu đi để giữ bí ẩn.\n- INTIMACY: quan hệ, ranh giới, dễ tổn thương và đồng thuận; không biến mọi tương tác thành romance.\n- VIVIDVERBS: độ chính xác hành động; không cắt lời chỉ vì bản ngắn hơn nghe “mạnh”.\n- DialogueBenchmarks: chỉ dùng sau khi đã có bản thoại; không sao chép số lượt, cấu trúc hay đường hòa giải.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:37; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0038.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "## 5. AUDIT SAU BẢN NHÁP",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:38; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0039.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Chỉ audit sau khi cảnh/đoạn thoại đã tồn tại. Không dùng audit như công thức sinh ngược.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:39; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0040.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Kiểm: canon/continuity/POV/tri thức/xưng hô; knowledge leak; nhân vật “ngu đột xuất”; thoại thành báo cáo/exposition/canon mouthpiece; nói vì đến lượt; lời quá sạch/quá cụt/giả khẩu ngữ; nhiều người cùng giọng; cảm xúc reset; kết cảnh ép state change.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:40; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0041.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Nếu lỗi là cấu trúc, không vá bằng thêm từ đệm, kéo dài câu, chèn cử chỉ hay đổi vài từ. Quay lại con người + kiến thức thật + tình huống hiện tại rồi viết lại phần hỏng.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:41; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.WRITING.DETAIL.DIALOGUE.0042.01",
+      "domain": "SUPPORT",
+      "kind": "authored-detail",
+      "text": "Ưu tiên theo thứ tự: đúng canon → đúng nhân quả và giới hạn → đúng kiến thức/quan hệ/xưng hô → đúng POV → hiệu quả cảnh → câu chữ. Không tự thêm canon. Không giải thích hộ người đọc những gì cảnh đã thể hiện đủ. Giữ phần chưa giải quyết nếu con người trong cảnh chưa thật sự giải quyết được.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+        "anchor": "paragraph:42; segment:1"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 64,
+      "tags": [
+        "detail:dialogue",
+        "support:writing"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.COMBAT.0001.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "SYVIAL TRỰC HỆ LUCIFER: HUYẾT TỘC PHẢN NGHỊCH BÁN QUỶ • GODKILLER • LUCIFER ARMOR • UR+ Dữ liệu quang học chính thức: Syvial trong cấu hình tác chiến Lucifer Armor và GodKiller. Bản chất sinh học là sự giao thoa giữa Lucifer và nhân chủng chưa xác định. Trạng thái Bán Quỷ là thuộc tính tự nhiên bền vững, không phải hiệu ứng ký sinh, lời nguyền hay rối loạn nhân cách.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:1"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 66,
+      "tags": [
+        "detail:combat",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.COMBAT.0002.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Điểm neo thời gian: 2299. Đây là niên đại thâm nhập thực tại, không đồng nhất với năm sinh vật lý. Devil Trigger là sự đồng bộ hóa, không phải sự chiếm hữu. Đối tượng không mất quyền kiểm soát ý thức; quỷ tính không tách rời thành thực thể độc lập.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:2"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 66,
+      "tags": [
+        "detail:combat",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.PROFILE.0003.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Xếp hạng UR+: Tương đương tầng công suất với Kai Akechi về nguồn năng lượng vô hạn và khả năng can thiệp thời gian tĩnh. Syvial vận hành dưới danh nghĩa Đội phó SRU, trực thuộc phân đội của Twilight.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:3"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 74,
+      "tags": [
+        "detail:profile",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.DIALOGUE.0004.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Ngoài vùng tác chiến, đối tượng thể hiện nhịp sống tự nhiên: ngôn ngữ đời thường, sở thích ẩm thực và khả năng tương tác xã hội linh hoạt. Sức mạnh không được sử dụng như một công cụ áp chế giao tiếp thông thường. Sự tự tin dựa trên năng lực thực tế. Syvial có xu hướng phản ứng sống động khi bị tác động tâm lý: bắt bẻ, trêu đùa hoặc tạo áp lực nhẹ lên Kai Akechi để duy trì sự cân bằng trong quan hệ.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:4"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 62,
+      "tags": [
+        "detail:dialogue",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.DIALOGUE.0005.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Chuyển trạng thái chiến đấu: Mọi yếu tố thừa bị triệt tiêu. Đối tượng tối ưu hóa việc phân tích khoảng cách, trọng tâm và ưu tiên tiêu diệt. Sự thay đổi nằm ở độ chính xác tuyệt đối của hành vi, không phải sự biến đổi nhân cách lạnh lẽo. Tính cách cốt lõi Tự tin nhưng không có nhu cầu chứng minh mình đáng sợ. Tinh quái, thích trêu người thân và đặc biệt dễ bắt nhịp với kiểu châm chọc của Kai.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:5"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 62,
+      "tags": [
+        "detail:dialogue",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.COMBAT.0006.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Ghét người giả vờ không hiểu một lời từ chối rõ ràng. Không thích nghi thức, chức quyền hoặc lời đe dọa rỗng được dùng thay cho lý do thực tế. Không chủ động làm hại người vô tội. Không kéo dài việc hành hạ đối thủ chỉ để tận hưởng quyền lực; khi đã quyết định phải kết thúc, cô ưu tiên kết thúc. Có năng lực xã hội tốt; biết lịch sự, biết giữ thể diện cho người khác và biết khi nào cần nói thẳng.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:6"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 66,
+      "tags": [
+        "detail:combat",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.COMBAT.0007.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Khi lo thật, cô trở nên trực tiếp hơn chứ không biến thành một người khác. Hình thể và khuôn mặt Hình thể: Nữ trẻ trưởng thành, cấu trúc thanh thoát, tối ưu cho phản xạ tốc độ cao. Silhouette giữ trọng tâm của một kiếm sĩ cơ động mặc dù trang bị giáp nặng toàn phần.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:7"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 66,
+      "tags": [
+        "detail:combat",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.COMBAT.0008.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Diện mạo: Sắc sảo, da trắng lạnh. Biểu cảm tham chiếu mang tính linh hoạt, không khóa ở trạng thái vô cảm. Các đường nét gương mặt duy trì sự cân bằng giữa tính nữ và sự đe dọa vũ lực. Quang học: Mắt màu Magenta, cường độ sáng tỉ lệ thuận với công suất Lucifer Core. Không thay đổi cấu trúc giải phẫu nhãn cầu khi kích hoạt Devil Trigger. Tóc và headgear",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:8"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 66,
+      "tags": [
+        "detail:combat",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.PROFILE.0009.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Phân lớp tóc: Màu bạc ánh tím (Ultra-long/High ponytail). Các lọn tóc được tính toán để tạo cảm giác chuyển động khí động học. Mái cắt lớp ôm sát, khung gương mặt sắc nét. Module Headgear: Cấu trúc cơ khí Gunmetal bảo vệ vùng thái dương. Hai antenna nhọn là cảm biến tích hợp của Lucifer Armor, không phải cấu trúc sinh học.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:9"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 74,
+      "tags": [
+        "detail:profile",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.COMBAT.0010.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Gương mặt để lộ hoàn toàn trong cấu hình tham chiếu. Không có helmet kín đầu hoặc mặt nạ che miệng ở trạng thái này. Năm khóa nhận diện thị giác bắt buộc Yandere cực hạn (Extreme-level): Một thiên lệch tình cảm chi phối hệ thống ưu tiên và mức độ cảnh giác. Yếu tố này không làm suy giảm trí tuệ chiến thuật hay năng lực phân tích xã hội.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:10"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 66,
+      "tags": [
+        "detail:combat",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.PROFILE.0011.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Lõi giá trị: Sự tự nguyện của Kai Akechi. Các hành vi cưỡng chế, xóa ký ức hay thao túng ý chí không được xem là mục tiêu. Tính chiếm hữu mạnh mẽ đi kèm với sự tôn trọng quyền lựa chọn của mục tiêu quan tâm. Cơ chế bảo vệ: Sự ghen tuông làm tăng mức độ kiểm tra động cơ đối thủ, không tự động chuyển thành hành vi tiêu diệt vô căn cứ đối với những người tiếp cận Kai. Cách Syvial quan tâm",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:11"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 74,
+      "tags": [
+        "detail:profile",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.DIALOGUE.0012.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Nhớ món Kai thích, món anh không thích nhưng vẫn ăn vì tiện, và những thứ anh hay bỏ quên. Nhận ra nhanh khi Kai mệt, đau, bị thương hoặc đang cố lảng sang chuyện khác bằng một câu đùa. Nhớ các điều Kai từng cam kết, lịch trình và những chi tiết mà chính Kai có thể xem là vụn vặt. Phân biệt được giao tiếp bình thường, tán tỉnh vô hại, việc cố tình vượt ranh giới và hành vi thật sự nhằm phá quan hệ.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:12"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 62,
+      "tags": [
+        "detail:dialogue",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.PROFILE.0013.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Muốn Kai chủ động báo khi đi xa hoặc gặp nguy hiểm, thay vì mặc định nhốt hay theo dõi anh từng giây. Thang phản ứng khi ghen Tình cảm hằng số: Dữ liệu bất biến trong hồ sơ. Mức độ tương tác phản hồi từ phía Kai phải tuân thủ nghiêm ngặt continuity của cốt truyện hiện hành.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:13"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 74,
+      "tags": [
+        "detail:profile",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.DIALOGUE.0014.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Cân bằng sức mạnh: Hai thực thể hoạt động trên cùng một tầng công suất. Quan hệ dựa trên sự hỗ trợ ngang hàng, không phải mô hình bảo vệ đơn chiều. Đòn bẩy cảm xúc: Kai Akechi là yếu tố duy nhất có thể khiến Syvial vi phạm quy trình hoặc bỏ qua mục tiêu phụ. Tuy nhiên, tính chuyên nghiệp chiến thuật không sụp đổ ngay khi mất liên lạc tạm thời. Xưng hô và trạng thái gọi tên",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:14"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 62,
+      "tags": [
+        "detail:dialogue",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.COMBAT.0015.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Kiếm thuật tốc độ cao: GodKiller được vận hành với sự linh hoạt phi logic so với khối lượng vật lý. Hệ thống Lucifer Core và trợ lực giáp cho phép thay đổi quỹ đạo tức thời, phá vỡ dự đoán của đối phương. Nhận diện tiền vận động: Syvial phân tích cơ thể đối thủ (trọng tâm, góc hông, nhịp thở) để phản ứng trước khi đòn đánh được hình thành hoàn chỉnh. Đại kiếm tốc độ cao Đổi tay giữa chuỗi tấn công khi cần.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:15"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 66,
+      "tags": [
+        "detail:combat",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.COMBAT.0016.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Đảo hướng GodKiller trong lúc kiếm đang chuyển động. Rút ngắn biên độ chém ở cự ly gần thay vì cố vung toàn lực. Dùng sống kiếm, cạnh, chuôi, khuỷu tay, đầu gối và Gauntlets như một chuỗi cận chiến thống nhất. Thay đổi quỹ đạo sau khi mục tiêu bắt đầu né. Dùng Spatial Shift để sửa vị trí thay vì chỉ dựa vào tốc độ chạy thẳng. Cận chiến khi không có GodKiller Quyền cước và vật ngã.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:16"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 66,
+      "tags": [
+        "detail:combat",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.COMBAT.0017.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Khóa khớp và phá thế cầm vũ khí. Lucifer Gauntlets. Sức mạnh bán quỷ. Short-Range Spatial Shift. Sức mạnh vượt xa giới hạn con người. Tốc độ và gia tốc siêu nhiên. Phản xạ ở cấp cực cao và tiếp tục được tăng trong Devil Trigger. Sức bền, khả năng chịu tổn thương và khả năng hoạt động kéo dài rất lớn. Tốc độ hồi phục cao. Kháng tốt với độc tố, bệnh lý thông thường và nhiều môi trường khắc nghiệt.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:17"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 66,
+      "tags": [
+        "detail:combat",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.COMBAT.0018.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Cảm nhận quỷ lực và thực thể siêu nhiên. Thị giác tốt trong điều kiện ánh sáng thấp. Các hằng số vật lý này là thuộc tính sinh học gốc của Syvial. Lucifer Armor và Devil Trigger chỉ đóng vai trò bộ khuếch đại và bảo vệ, không phải nguồn cung cấp duy nhất.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:18"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 66,
+      "tags": [
+        "detail:combat",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.PROFILE.0019.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Nguồn phát năng lượng trung tâm kết nối với hệ thần kinh, sinh mạch và trang bị. Đóng vai trò hạt nhân đồng bộ hóa toàn bộ hệ thống kỹ năng và vũ khí của đối tượng. Chức năng Cung cấp Lucifer Demonic Energy vô hạn. Tăng cường sức mạnh, tốc độ, phản xạ và giác quan. Gia tốc nhận thức và xử lý thông tin chiến trường. Hỗ trợ tái tạo cơ thể. Cấp năng lượng cho Lucifer Armor và các module liên kết.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:19"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 74,
+      "tags": [
+        "detail:profile",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.COMBAT.0020.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Đồng bộ GodKiller. Phân tích biến thiên năng lượng và cấu trúc mục tiêu. Duy trì Devil Trigger mà không làm Syvial mất kiểm soát. Lucifer Core không sở hữu ý chí độc lập. Syvial là thực thể duy nhất nắm quyền điều hành dòng năng lượng. Trạng thái cực đỉnh quỷ tính. Không phải chế độ Berserk tự sát hay đánh đổi tuổi thọ. Đây là sự tối ưu hóa hiệu suất sinh học và quỷ lực ở cấp độ cao nhất. Hiệu ứng",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:20"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 66,
+      "tags": [
+        "detail:combat",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.DIALOGUE.0021.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Tăng mạnh sức mạnh, tốc độ và gia tốc cơ thể. Tăng phản xạ và tốc độ nhận thức. Tăng hiệu suất xử lý chiến trường và khả năng duy trì tập trung dưới áp lực. Tăng tốc hồi phục và khả năng chịu tổn thương. Tăng hiệu suất của Lucifer Armor và mức đồng bộ với GodKiller. Giữ nguyên ý thức, ký ức, tính cách và khả năng phân biệt đồng minh - đối thủ. GodKiller Override - Twenty-Four Severance",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:21"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 62,
+      "tags": [
+        "detail:dialogue",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.COMBAT.0022.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Giao thức Twenty-Four Severance: Ngừng đọng thời gian thực tế trong khu vực thực thi. Syvial can thiệp trực tiếp vào dòng thời gian để thực hiện chuỗi công kích tuyệt đối. Syvial kích hoạt Devil Trigger và đưa hệ chiến đấu vào trạng thái giải phóng tối đa. Thời gian ngoại giới dừng hoàn toàn. Lucifer Core tăng tốc nhận thức và xử lý để Syvial phân tích tư thế, cấu trúc, phòng thủ và thứ tự điểm cần phá.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:22"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 66,
+      "tags": [
+        "detail:combat",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.COMBAT.0023.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Syvial thực hiện đúng 24 nhát chém bằng GodKiller. Mỗi nhát có vị trí và mục đích riêng; không phải chém loạn vào cùng một điểm. Sau nhát thứ 24, Override kết thúc và dòng thời gian ngoại giới tiếp tục. Dù có sức phá hoại cực đại, tuyệt kỹ vẫn tuân thủ các quy luật về phân cấp sức mạnh đối với các thực thể cấp cao hoặc cơ chế phòng thủ đặc thù.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:23"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 66,
+      "tags": [
+        "detail:combat",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.VISUAL.0024.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Trọng tâm thị giác: Đại kiếm cơ khí công nghiệp. Kích thước tương đương chiều cao người sử dụng, thiết kế dựa trên các panel phân lớp và module truyền động phức tạp. Mô tả thị giác chính xác Thân chính màu đen - gunmetal, xen các phiến xám kim loại sáng hơn. Cấu trúc nhiều lớp, nhiều panel, điểm ghép, vít và chi tiết máy; không phải một lưỡi thép nguyên khối.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:24"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 74,
+      "tags": [
+        "detail:visual",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.PROFILE.0025.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Một cạnh lớn có dải năng lượng magenta chạy gần như dọc toàn chiều dài và phát sáng rất rõ. Gần phần nối giữa cán và thân có một cụm cơ khí tròn lớn giống trục/module truyền động, bao quanh bởi nhiều khối máy nhỏ. Cán dài, dạng thanh cơ khí, có khe magenta phát sáng và được thiết kế để nắm bằng Lucifer Gauntlets.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:25"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 74,
+      "tags": [
+        "detail:profile",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.COMBAT.0026.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Trên bề mặt có các marking kỹ thuật nhỏ màu sáng; không khóa các ký tự rời trong ảnh thành tên hệ thống nếu chưa có dữ kiện riêng. Bản chất vũ khí Liên kết hằng số: GodKiller đồng bộ vĩnh viễn với Lucifer Core. Nguồn quỷ lực không cạn đảm bảo dải năng lượng Magenta luôn ở trạng thái kích hoạt.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:26"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 66,
+      "tags": [
+        "detail:combat",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.DIALOGUE.0027.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "GodKiller liên kết với Syvial và có thể được gọi trở lại nếu bị đánh văng hoặc tách khỏi cô, trừ khi một cơ chế đủ mạnh đang trực tiếp phong tỏa liên kết này. Ngôn ngữ thiết kế: High-tech/Mecha. Bảng màu tối giản (Gunmetal/Black/Silver) với các khe thoát năng lượng Magenta. Giáp bám sát sinh trắc học để đảm bảo sự cơ động tối đa của một kiếm sĩ. Silhouette và kết cấu",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:27"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 62,
+      "tags": [
+        "detail:dialogue",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.COMBAT.0028.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Các lớp giáp cứng tập trung ở vai, cẳng tay, ngực, hông, đùi, đầu gối, cẳng chân và bàn chân. Những vùng cần chuyển động như eo, mặt trong khớp vai, khuỷu, háng và đầu gối dùng phiến nhỏ, khớp tối màu và các khoảng nối cơ khí. Toàn bộ silhouette vẫn đọc ra một nữ kiếm sĩ nhanh trước khi đọc ra một cỗ máy nặng.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:28"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 66,
+      "tags": [
+        "detail:combat",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.COMBAT.0029.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Các đường magenta xuất hiện thành khe sáng mảnh, nút sáng và đoạn dẫn năng lượng ngắn nằm giữa các lớp giáp. Ở trạng thái thường, chúng đóng vai trò điểm nhấn; khi Lucifer Core tăng công suất hoặc Devil Trigger hoạt động, độ sáng tăng nhưng không tự mọc thêm hoa văn mới. Thân, vai và cánh tay",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:29"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 66,
+      "tags": [
+        "detail:combat",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.COMBAT.0030.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Phần cổ sử dụng cổ giáp cao, ôm sát và nối liền cụm giáp thân. Ngực và bụng được bảo vệ bằng nhiều phiến cơ khí chồng lớp; bụng không để hở. Một bên vai mang pauldron nổi bật hơn với các phiến nhọn hướng ra ngoài, tạo silhouette sắc mà vẫn chừa biên độ cho GodKiller.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:30"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 66,
+      "tags": [
+        "detail:combat",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.COMBAT.0031.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Hai cánh tay được bọc gần như toàn bộ. Cẳng tay có lớp giáp dày hơn, bàn tay dùng Gauntlets nhiều đốt với từng ngón tách khớp rõ, đủ linh hoạt để nắm cán kiếm nhưng vẫn truyền được mô-men lớn khi đổi hướng vũ khí. Hông, chân và Greaves",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:31"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 66,
+      "tags": [
+        "detail:combat",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.COMBAT.0032.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Quanh hông là các phiến bảo vệ tách rời, ngắn và phân đoạn để không cản biên độ chân. Đùi có mảng giáp lớn ôm theo đường chân; đầu gối là cụm bảo vệ riêng có các khớp tròn và lớp chồng cơ khí. Cẳng chân là vùng giáp hóa mạnh, kéo dài thành các mặt góc cạnh với khe magenta nhỏ giữa lớp.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:32"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 66,
+      "tags": [
+        "detail:combat",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.COMBAT.0033.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Bàn chân được bọc hoàn toàn bằng giày giáp cơ khí. Phần gót có kết cấu nâng và góc cạnh như một bộ phận của Greaves chứ không phải giày cao gót thời trang. Tổng thể vẫn ưu tiên khả năng đứng, chạy, đổi hướng và tiếp đất. Headgear và bảo hộ đầu",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:33"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 66,
+      "tags": [
+        "detail:combat",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.COMBAT.0034.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Headgear ôm quanh thái dương và chân tóc, đồng bộ cùng hai module nhọn vươn lên hai bên. Đây là bộ phận cơ khí/cảm biến của Lucifer Armor. Cấu hình tham chiếu để lộ hoàn toàn gương mặt và tóc; khi cần bảo vệ tối đa, một chế độ helmet kín chỉ được dùng nếu canon kỹ thuật của giáp triển khai nó, không biến module nhọn thành sừng sinh học. Chức năng canon Tăng cường sức mạnh và khả năng bứt tốc.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:34"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 66,
+      "tags": [
+        "detail:combat",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.COMBAT.0035.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Hỗ trợ phản xạ vận động và ổn định quỹ đạo GodKiller. Hấp thụ và phân tán lực va chạm. Bảo vệ trước nhiệt, lạnh, độc tố và môi trường ô nhiễm ở mức cao. Theo dõi chuyển động và phân tích môi trường. Đồng bộ trực tiếp với Lucifer Core và GodKiller. Tự sửa chữa bằng Lucifer Demonic Energy. Hỗ trợ cơ thể Syvial trong quá trình tái sinh. Có lớp bảo vệ chống tác động trực tiếp lên linh hồn ở mức cao.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:35"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 66,
+      "tags": [
+        "detail:combat",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.PROFILE.0036.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Greaves hỗ trợ Short-Range Spatial Shift. Syvial không có giới hạn nội tại về quỷ lực theo canon hiện tại. Điều này không khiến cô toàn năng và không xóa những bài toán xuất phát từ thông tin, mục tiêu bảo vệ, môi trường, quan hệ hoặc đối thủ đủ mạnh. Kai là đòn bẩy cảm xúc lớn nhất",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:36"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 74,
+      "tags": [
+        "detail:profile",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.PROFILE.0037.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Thông tin giả về thương tích của Kai, một tình huống bắt anh làm con tin hoặc một nỗ lực thao túng mối quan hệ có thể ép Syvial phải dành tài nguyên nhận thức để xác minh. Cô thông minh nên các chiến thuật này không tự động thành công, nhưng chúng có khả năng làm lệch ưu tiên hoặc khiến cô chọn phương án rủi ro hơn. Thiên lệch khi ghen",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:37"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 74,
+      "tags": [
+        "detail:profile",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.PROFILE.0038.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Syvial có xu hướng đánh giá người chủ động tiếp cận Kai khắt khe hơn bình thường. Đây là thiên lệch cảm xúc, không phải mất lý trí. Cảnh phải cho thấy cô quan sát, kiểm chứng và điều chỉnh đánh giá theo bằng chứng. Không gian và mục tiêu bảo vệ",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:38"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 74,
+      "tags": [
+        "detail:profile",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.COMBAT.0039.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "GodKiller rất lớn nên một số không gian cực hẹp giới hạn quỹ đạo kiếm lớn. Dân thường, đồng đội hoặc Kai ở gần mục tiêu cũng có thể khóa bớt góc chém. Sức mạnh lớn không giải quyết được vấn đề nếu sử dụng nó đồng nghĩa làm hại chính người Syvial đang bảo vệ.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:39"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 66,
+      "tags": [
+        "detail:combat",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.DIALOGUE.0040.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Văn phong giao tiếp đời thường, trực diện và sắc sảo. Đối tượng không sử dụng các mẫu câu đe dọa khuôn mẫu để thể hiện sự nguy hiểm, thay vào đó dùng sự thật và logic hành động. Tương tác với Kai Akechi: Duy trì trạng thái thả lỏng, sẵn sàng đối đáp và bộc lộ cảm xúc trực tiếp. Khi đối mặt với tình huống khẩn cấp, ngôn ngữ được tối giản hóa thành các chỉ thị tác chiến.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:40"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 62,
+      "tags": [
+        "detail:dialogue",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.PROFILE.0041.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Tương tác ngoại vi: Lịch sự có điều kiện. Đối với kẻ thù, hội thoại chỉ nhằm mục đích thu thập thông tin hoặc trì hoãn. Kết liễu được thực thi ngay khi cuộc thoại không còn giá trị chiến lược. Nguyên tắc giọng Đời thường trước, “câu đắt” sau; không phải câu nào cũng cần thể hiện yandere. Ghen có thể được nói thẳng thay vì biến thành đe dọa.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:41"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 74,
+      "tags": [
+        "detail:profile",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.DIALOGUE.0042.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Cảm xúc phải đổi lựa chọn lời nói hoặc hành động, không chỉ thêm cau mày/siết tay. Syvial có thể trả lời trực tiếp khi không có lý do né. Banter với Kai phải sinh ra từ việc hai người đang làm hoặc chuyện họ thật sự hiểu về nhau. Khi khẩn cấp, câu ngắn được phép nếu đủ nghĩa để hành động; hết nguy hiểm thì nhịp nói trở lại bình thường. 16.1 · Kai giấu thương tích 16.2 · Ghen nhưng không biến thành đe dọa",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:42"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 62,
+      "tags": [
+        "detail:dialogue",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.COMBAT.0043.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "16.3 · Kai cố tình chọc cho cô ghen 16.4 · Trước nhiệm vụ 16.5 · Kai dùng sức quá tay 16.6 · Yandere lộ ra trong chuyện rất nhỏ Không làm Syvial mất lý trí khi Devil Trigger. Không tự thêm cooldown, thanh năng lượng hoặc giới hạn quỷ lực cho Lucifer Core. Không làm Lucifer Core cạn năng lượng chỉ để kéo dài trận đấu. Không đổi GodKiller thành súng hoặc gunblade.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:43"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 66,
+      "tags": [
+        "detail:combat",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.COMBAT.0044.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Không đổi GodKiller Override khỏi đúng 24 nhát chém nếu chưa có retcon trực tiếp. Không mô tả hai module nhọn trên headgear như sừng sinh học. Không làm Syvial quên khả năng chiến đấu khi không có GodKiller hoặc khả năng gọi kiếm trở lại. Không biến yandere thành sát nhân ngẫu nhiên. Không để cô tự động tấn công mọi phụ nữ nói chuyện với Kai.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:44"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 66,
+      "tags": [
+        "detail:combat",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.PROFILE.0045.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Không phá ý chí tự do, xóa ký ức hoặc cưỡng chế tinh thần Kai chỉ để giữ anh bên mình. Không biến Syvial thành người yếu cần Kai cứu trong mọi trận. Không biến Kai thành người yếu để Syvial có lý do bảo vệ. Không để ghen tuông xóa kỹ năng chiến thuật, khả năng quan sát hoặc trí thông minh đã khóa. Không viết thoại cụt, tối nghĩa hoặc đe dọa rập khuôn chỉ để tỏ ra nguy hiểm.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:45"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 74,
+      "tags": [
+        "detail:profile",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.PROFILE.0046.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Không tự đổi tổ chức SRU, chức vụ Đội phó, tuổi thật hoặc danh tính người mẹ khi chưa có dữ kiện mới. 19 GAMEPLAY CATALOG SYNC v1.1.64 SYVIAL-GAMEPLAY-R05-01 STATUS: CURRENT / GAMEPLAY LOCK",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:46"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 74,
+      "tags": [
+        "detail:profile",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.COMBAT.0047.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Mốc đối chiếu: BACKROOMsV2 tag v1.1.64, commit 0cee9660e81ea22150780f0c37f5685fd34bf23c. Release v1.1.64 tuyên bố giữ nguyên gameplay/canon baseline 1.1.63; release 1.1.63 ghi nhận bộ kỹ năng gameplay Syvial. Repository tại tag giữ định nghĩa chi tiết trong patch-companion-skills-ui.py. Phần này bổ sung projection gameplay còn thiếu, không retcon bản chất Lucifer Core, Devil Trigger, GodKiller, Spatial Shift hoặc GodKiller Override đã khóa ở các mục trước.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:47"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 66,
+      "tags": [
+        "detail:combat",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.COMBAT.0048.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Lucifer Core — PASSIVE Luôn hoạt động. Trong gameplay, Syvial miễn nhiễm depletion nội tại kiểu Mana/Energy/Overheat; hồi 2% Max HP mỗi turn, tăng thành 4% khi Devil Trigger hoạt động. Cơ chế này không hồi sinh Syvial từ 0 HP. Killing Intent Read — PASSIVE",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:48"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 66,
+      "tags": [
+        "detail:combat",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.COMBAT.0049.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Kích hoạt khi đối thủ bộc lộ ý định tấn công qua chuyển động hoặc chuẩn bị có thể quan sát. Syvial đọc dấu hiệu để chuẩn bị phản ứng và hỗ trợ Counterphase; không phải đọc ý nghĩ toàn tri. Rift Sever — AUTO Proc 30% mỗi turn hợp lệ. Syvial dùng Spatial Shift lệch khỏi trục phòng thủ rồi chém GodKiller, gây 175% Weapon DMG và bỏ qua 20% Armor. Crimson Guillotine — AUTO",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:49"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 66,
+      "tags": [
+        "detail:combat",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.COMBAT.0050.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Proc 20% mỗi turn hợp lệ. Gây 190% Weapon DMG và Bleeding 3 turn; mỗi turn Bleeding gây 4% Max HP. Lucifer Breaker — AUTO Proc 20% mỗi turn hợp lệ. Syvial nối cận chiến với GodKiller, gây 155% Weapon DMG và Stun phản ứng hiện tại của Entity. Counterphase — COUNTER Proc 30% sau khi Entity phản công trượt. Syvial Spatial Shift vào góc mù và phản chém, gây 125% Weapon DMG; không tiêu tốn main turn.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:50"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 66,
+      "tags": [
+        "detail:combat",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.COMBAT.0051.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "GodKiller Recall — PASSIVE Khi Disarm hợp lệ xảy ra, GodKiller trở lại vào đầu turn kế tiếp, trừ khi luật boss/cơ chế bên ngoài có căn cứ trực tiếp khóa triệu hồi. Mất kiếm tạm thời không làm Syvial mất năng lực cận chiến. Devil Trigger — STATE / GAMEPLAY PROJECTION",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:51"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 66,
+      "tags": [
+        "detail:combat",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.PROFILE.0052.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Kích hoạt khi HP ≤ 50% hoặc khi đối đầu Diệp Minh trong gameplay hiện hành. Projection: +25% outgoing damage, +20% Evasion, giảm 20% incoming damage; hồi phục Lucifer Core tăng lên 4% Max HP/turn. Đây không phải cooldown hay trần thời lượng nội tại; canon mục SYVIAL-DT-01 vẫn thắng về bản chất trạng thái. Spatial Dominion — AUTO",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:52"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 74,
+      "tags": [
+        "detail:profile",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.COMBAT.0053.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Proc 20% mỗi turn khi Devil Trigger đang hoạt động. Spatial Shift kết hợp chuỗi GodKiller gây 210% Weapon DMG; mục tiêu nhận Disoriented trong 2 turn, giảm 25% Accuracy. GodKiller Override // Twenty-Four Severance — ULTIMATE",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:53"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 66,
+      "tags": [
+        "detail:combat",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.COMBAT.0054.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Giữ nguyên canon SYVIAL-ULT-GKO-01: thời gian ngoại giới dừng hoàn toàn và Syvial thực hiện đúng 24 nhát. Projection gameplay tự động mỗi 3 combat turn khi Devil Trigger hoạt động, gây đúng 24 × 10 HP = 240 HP và bỏ qua Evasion. Không phải lệnh instant-kill tuyệt đối. GAMEPLAY BOUNDARY",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:54"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 66,
+      "tags": [
+        "detail:combat",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.SYVIAL.DETAIL.PROFILE.0055.01",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "Các phần trăm, proc chance, healing và modifier ở mục này là khóa gameplay. Không dùng chúng để tự thêm cooldown/quota quỷ lực, làm Syvial mất kiểm soát, thay đổi cấp UR+, hoặc lấp các trường tuổi thật/danh tính mẹ đang chưa khóa.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "linegroup:55"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 74,
+      "tags": [
+        "detail:profile",
+        "support:syvial"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.ARCHIVE.SOURCE.01",
+      "domain": "SUPPORT",
+      "kind": "source-metadata",
+      "text": "Lưu nguồn tác giả trong Drive; nội dung lịch sử và các phụ lục không đóng gói nguyên văn vào APK thử nghiệm public. Chỉ có thể truy xuất sau khi chọn cơ chế phân phối và kiểm soát nội dung phù hợp.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/Tang_Kiem_Coc_Huyet_Ma_Kiem_Tich_Quang.md",
+        "anchor": "Private author source; metadata only"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 99,
+      "tags": [
+        "support:archive"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.ARCHIVE.SOURCE.02",
+      "domain": "SUPPORT",
+      "kind": "source-metadata",
+      "text": "Lưu nguồn tác giả trong Drive; nội dung lịch sử và các phụ lục không đóng gói nguyên văn vào APK thử nghiệm public. Chỉ có thể truy xuất sau khi chọn cơ chế phân phối và kiểm soát nội dung phù hợp.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/Huyet_Tay_Cao_Gia.md",
+        "anchor": "Private author source; metadata only"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 99,
+      "tags": [
+        "support:archive"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "SUPPORT.ARCHIVE.SOURCE.03",
+      "domain": "SUPPORT",
+      "kind": "source-metadata",
+      "text": "Lưu nguồn tác giả trong Drive; nội dung lịch sử và các phụ lục không đóng gói nguyên văn vào APK thử nghiệm public. Chỉ có thể truy xuất sau khi chọn cơ chế phân phối và kiểm soát nội dung phù hợp.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/01_Character/Syvial_Codex.docx",
+        "anchor": "Private author source; metadata only"
+      },
+      "authority": "AUTHOR_CONFIRMED_SUPPORT",
+      "mutability": "IMMUTABLE",
+      "priority": 99,
+      "tags": [
+        "support:archive"
+      ],
+      "references": [],
+      "affordances": []
+    }
+  ]
+}

@@ -38,6 +38,49 @@ class KnowledgeContextEngineTest {
     assertFalse(packet("""{"encounteredCharacters":[{"id":"luc_tram","present":false,"inParty":false}]}""").contains("<CHAR.LUC_TRAM."))
   }
 
+  @Test fun previouslyEncounteredAbsentActorsDoNotReceiveSceneStatusOrDetailCards() {
+    val state = """{"encounteredCharacters":[
+      {"id":"lucia","present":false,"inParty":false},
+      {"id":"iris","present":false,"inParty":false},
+      {"id":"syvial","present":false,"inParty":false}
+    ]}"""
+    val result = packet(state, action = "khám phá hành lang")
+    assertFalse(result.contains("ENCOUNTERED_ABSENT"))
+    assertFalse(result.contains("NPC relationship status"))
+    for (id in listOf("LUCIA", "IRIS", "SYVIAL")) {
+      assertFalse(id, result.contains("<CHAR.$id."))
+    }
+  }
+
+  @Test fun registeredFutureActorUsesCorePresenceWithoutHardcodedName() {
+    val file = listOf(
+      File("src/main/assets/knowledge/knowledge_db.json"),
+      File("app/src/main/assets/knowledge/knowledge_db.json")
+    ).first { it.isFile }
+    val catalog = JSONObject(file.readText())
+    catalog.getJSONArray("records").put(JSONObject()
+      .put("id", "CHAR.NOVA.AUTHORED").put("domain", "CHARACTER")
+      .put("kind", "authored").put("text", "TEST_ONLY Nova has a precise, independent voice.")
+      .put("authority", "AUTHOR").put("mutability", "IMMUTABLE")
+      .put("priority", 34)
+      .put("source", JSONObject().put("document", "TEST_ONLY").put("anchor", "fixture")))
+    val db = KnowledgeContextEngine.parseDatabase(catalog.toString())
+    fun build(state: JSONObject, action: String = "khám phá"): String =
+      KnowledgeContextEngine.Builder(db, state, action, JSONObject()).build()
+
+    val absent = JSONObject().put("encounteredCharacters", org.json.JSONArray()
+      .put(JSONObject().put("id", "nova").put("present", false)))
+    assertFalse(build(absent, "Nova có ở đây không?").contains("<CHAR.NOVA.AUTHORED>"))
+    val present = JSONObject().put("pendingNpcEncounters", org.json.JSONArray()
+      .put(JSONObject().put("characterId", "nova")))
+    val packet = build(present)
+    assertTrue(packet.contains("<CHAR.NOVA.AUTHORED>"))
+    assertTrue(packet.contains("nova: PRESENT, inParty=false"))
+    val forged = JSONObject().put("party", org.json.JSONArray()
+      .put(JSONObject().put("id", "nova_unknown").put("presence", "ACTIVE")))
+    assertFalse(build(forged).contains("<CHAR.NOVA.AUTHORED>"))
+  }
+
   @Test fun entityMentionAndLevelReferencesCannotInventEncounter() {
     val result = packet("""{"level":{"number":5,"id":"5"}}""", "hound, the beast, Jeff")
     assertFalse(result.contains("<ENTITY.HOUND>"))
@@ -62,6 +105,45 @@ class KnowledgeContextEngineTest {
     assertTrue(result.contains("<LEVEL.NODE.red_rooms>"))
     assertFalse(result.contains("<LEVEL.01.AUTHORED>"))
     assertFalse(packet("""{"level":{"number":7,"id":"7"}}""").contains("<LEVEL.07.AUTHORED>"))
+  }
+
+  @Test fun largeCanonRegistrySelectsOnlyPresentActorDetailsWithoutGrowingPromptWithLibrary() {
+    val records = org.json.JSONArray()
+    fun record(id: String, domain: String, kind: String, tags: List<String>, priority: Int = 80) =
+      JSONObject().put("id", id).put("domain", domain).put("kind", kind)
+        .put("text", "Verified details for $id")
+        .put("authority", "AUTHOR").put("mutability", "IMMUTABLE")
+        .put("priority", priority).put("tags", org.json.JSONArray(tags))
+        .put("source", JSONObject().put("document", "TEST_ONLY").put("anchor", "fixture"))
+    for (i in 1..20) {
+      records.put(record("CHAR.NPC_$i.DETAIL.PROFILE.001", "CHARACTER",
+        "authored-detail", listOf("detail:profile")))
+    }
+    for (i in 1..100) {
+      records.put(record("LEVEL.$i.DETAIL.ENVIRONMENT.001", "LEVEL",
+        "authored-detail", listOf("detail:environment")))
+    }
+    for (i in 1..50) {
+      records.put(record("ENTITY.SYNTH_$i.VISUAL", "ENTITY",
+        "visual-card", listOf("synthetic_$i")))
+    }
+    // Author-only record must never reach the writer even when its actor appears.
+    records.put(record("CHAR.NPC_1.DETAIL.VISUAL.SECRET", "CHARACTER",
+      "authored-detail", listOf("detail:profile"))
+      .put("authority", "WRITER-SECRET"))
+    val database = KnowledgeContextEngine.parseDatabase(JSONObject().put("records", records).toString())
+    fun selected(state: JSONObject): String =
+      KnowledgeContextEngine.Builder(database, state, "đi tiếp", JSONObject()).build()
+    val absent = selected(JSONObject())
+    val present = selected(JSONObject().put("pendingNpcEncounters",
+      org.json.JSONArray().put(JSONObject().put("characterId", "npc_1"))))
+    assertFalse(absent.contains("<CHAR.NPC_1.DETAIL.PROFILE.001>"))
+    assertTrue(present.contains("<CHAR.NPC_1.DETAIL.PROFILE.001>"))
+    assertFalse(present.contains("<CHAR.NPC_2.DETAIL.PROFILE.001>"))
+    assertFalse(present.contains("CHAR.NPC_1.DETAIL.VISUAL.SECRET"))
+    assertTrue(present.length <= KnowledgeContextEngine.HARD_CONTEXT_CEILING * 4)
+    // Corpus size is unrelated to the per-turn payload without Core presence.
+    assertTrue(absent.length < 1200)
   }
 
   @Test fun writerSecretCannotEnterThroughReferenceExpansion() {
@@ -94,7 +176,55 @@ class KnowledgeContextEngineTest {
     assertTrue(result.endsWith("[END_KNOWLEDGE_PACKET]"))
     assertTrue(result.contains("<WRITING.KNOWLEDGE_BOUNDARY>"))
     assertTrue(result.contains("<WRITING.PLAYER_AGENCY>"))
-    assertFalse(result.contains("<CHAR.CAO_MINH.AUTHORED>"))
+    // Long provenance remains locally traceable but cannot crowd out Canon.
+    assertFalse(result.contains("TEST_ONLY".repeat(1000)))
+    assertTrue(result.contains("<CHAR.CAO_MINH.AUTHORED>"))
+  }
+
+  @Test fun canonTextAndAuthorityStayInPromptWhileSourceRemainsLocal() {
+    val sourcePath = "https://example.invalid/private/very-long-provenance-record"
+    val raw = JSONObject().put("records", org.json.JSONArray().put(JSONObject()
+      .put("id", "GAME.TEXT.CORE").put("domain", "GAME_RULE")
+      .put("kind", "hard-lock").put("text", "Verified gameplay Canon text must survive.")
+      .put("authority", "CORE").put("mutability", "IMMUTABLE").put("priority", 10)
+      .put("source", JSONObject().put("document", sourcePath).put("anchor", "test-section"))))
+    val db = KnowledgeContextEngine.parseDatabase(raw.toString())
+    assertEquals(sourcePath, db.records.getValue("GAME.TEXT.CORE").source.document)
+    val packet = KnowledgeContextEngine.Builder(db, JSONObject(), "", JSONObject()).build()
+    assertTrue(packet.contains("Verified gameplay Canon text must survive."))
+    assertTrue(packet.contains("authority=CORE; mutability=IMMUTABLE"))
+    assertFalse(packet.contains(sourcePath))
+    assertFalse(packet.contains("source="))
+    assertFalse(packet.contains("; why="))
+  }
+
+  @Test fun ambientSpiritualEnergyCanonIsAlwaysIncludedWithoutKeyword() {
+    fun asset(name: String): String = listOf(
+      File("src/main/assets/knowledge/$name"),
+      File("app/src/main/assets/knowledge/$name")
+    ).first { it.isFile }.readText()
+    val db = KnowledgeContextEngine.parseDatabase(
+      asset("knowledge_db.json"), asset("canon_detail_db.json"),
+      asset("canon_support_db.json")
+    )
+    val anchorId = "SUPPORT.LINH_KHI.DETAIL.ENVIRONMENT.0002.01"
+    val anchor = db.records.getValue(anchorId)
+    assertEquals("AUTHOR_CONFIRMED_SUPPORT", anchor.authority)
+    assertTrue(anchor.source.document.endsWith("Backrooms_Linh_Khi.md"))
+    val state = JSONObject().put("level", JSONObject().put("number", 0).put("id", "0"))
+      .put("party", org.json.JSONArray().apply {
+        for (id in listOf("iris", "syvial", "luc_tram"))
+          put(JSONObject().put("id", id).put("presence", "ACTIVE"))
+      })
+      .put("pendingEntityEncounter", JSONObject().put("entityKey", "paintings"))
+    for (action in listOf("Khám Phá", "Hãy tìm chỗ ngồi nghỉ rồi quyết định tiếp")) {
+      val packet = KnowledgeContextEngine.Builder(db, state, action, JSONObject()).build()
+      assertTrue("Missing world spiritual energy Canon for: $action",
+        packet.contains("<$anchorId> ${anchor.text}"))
+      assertTrue(packet.contains("<WORLD.CORE>"))
+      assertTrue(packet.contains("<ENTITY.PAINTINGS.VISUAL>"))
+      assertTrue(packet.length <= KnowledgeContextEngine.HARD_CONTEXT_CEILING * 4)
+    }
   }
 
   @Test fun fullPartyAndLargeContinuityPreserveKnowledgeHardLocksWithinBudget() {

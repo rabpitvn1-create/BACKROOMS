@@ -163,6 +163,7 @@ return ""
 
 private fun appendNpcContinuity(sb: StringBuilder, state: JSONObject) {
 val lines = mutableListOf<String>()
+var encounteredBefore = false
 
 // 3a. Core-confirmed first meetings for THIS turn (not yet committed to
 // encounteredCharacters): narrate the first meeting NOW, still not Party.
@@ -185,6 +186,7 @@ for (i in 0 until encountered.length()) {
 val entry = encountered.optJSONObject(i)?: continue
 val id = entry.optString("id", "").trim()
 if (id.isBlank() || id == AN_NHIEN_ID) continue
+encounteredBefore = true
 val name = entry.optString("name", id).trim().ifBlank { id}
 val turn = entry.optInt("turn", -1)
 val present = entry.optBoolean("present", false)
@@ -199,11 +201,8 @@ lines.add(
 "CHƯA gia nhập Party (inParty=false). Có thể trò chuyện, quan sát, " +
 "hành động độc lập — nhưng CẤM kể như đã là đồng đội chính thức."
 )
-else ->
-lines.add(
-"- $name: đã gặp$metWhen nhưng hiện KHÔNG có mặt trong cảnh — " +
-"CẤM cho xuất hiện đột ngột nếu không có sự kiện Core xác nhận."
-)
+// Absent NPCs stay in Core history but are not injected into every GM turn.
+else -> Unit
 }
 }
 }
@@ -223,14 +222,20 @@ val id = member.optString("id", "").trim()
 if (id.isBlank() || id == AN_NHIEN_ID || id in knownIds) continue
 val name = member.optString("name", id).trim().ifBlank { id}
 val presence = member.optString("presence", "ACTIVE").trim()
+if (presence != "ACTIVE") continue
 lines.add("- $name: trong Party (presence=$presence).")
 }
 }
 
 sb.append("\n\n")
 if (lines.isEmpty()) {
+if (encounteredBefore) {
+sb.append("- Hiện không có NPC nào được Core xác nhận hiện diện trong cảnh. ")
+sb.append("NPC từng gặp nhưng đang vắng mặt không thể hành động hoặc lên tiếng.\n")
+} else {
 sb.append("- Chưa gặp NPC nào được Core xác nhận. CẤM gọi tên NPC chưa tự giới thiệu ")
 sb.append("như thể Cao Minh đã biết danh tính.\n")
+}
 } else {
 lines.forEach { sb.append(it).append('\n')}
 }

@@ -114,7 +114,7 @@ class GameCoreFacade private constructor(
       appendLog(result, action, validationReply(committed.error))
       return response(true, result, committed.error, "validation_rejected", validationReply(committed.error))
     }
-    val next = CoreClientProjection.advance(committed.state)
+    val next = CoreClientProjection.advance(CharacterMemoryBags.recordCommitted(state, committed.state))
     repository.save(next)
     val result = clientSnapshot(client, next)
     val reply = eventReply(committed.execution?.events.orEmpty())
@@ -126,14 +126,15 @@ class GameCoreFacade private constructor(
   private fun applyAnNhienPartyCheat(client: JSONObject, state: GameState): String {
     val alreadyFollowing = AnNhienCanon.isFollowing(state)
     val (updated, error) = AnNhienCanon.forceIntoParty(state)
-    val result = clientSnapshot(client, updated)
+    val saved = if (error == null) CharacterMemoryBags.recordCommitted(state, updated) else updated
+    val result = clientSnapshot(client, saved)
     val reply = when {
       error == "party_full" -> "Party đã đủ tối đa bốn thành viên; không thể thêm An Nhiên nếu chưa có chỗ trống."
       alreadyFollowing -> "An Nhiên đã ở trong Party."
       else -> "An Nhiên đã được thêm vào Party."
     }
 
-    if (error == null) repository.save(updated)
+    if (error == null) repository.save(saved)
     val log = result.optJSONArray("log") ?: JSONArray().also { result.put("log", it) }
     log.put(JSONObject().put("role", "gm").put("text", reply))
     logger.log(PipelineLogEvent(
@@ -154,14 +155,15 @@ class GameCoreFacade private constructor(
     val displayName = ensured.characters[targetId]?.name ?: targetId
     val alreadyFollowing = targetId in ensured.party.memberIds
     val (updated, error) = SpecialFollowersCanon.forceIntoParty(ensured, targetId)
-    val result = clientSnapshot(client, updated)
+    val saved = if (error == null) CharacterMemoryBags.recordCommitted(state, updated) else updated
+    val result = clientSnapshot(client, saved)
     val reply = when {
       error == "party_full" -> "Party đã đủ tối đa bốn thành viên; không thể thêm $displayName nếu chưa có chỗ trống."
       alreadyFollowing -> "$displayName đã ở trong Party."
       else -> "$displayName đã được thêm vào Party."
     }
 
-    if (error == null) repository.save(updated)
+    if (error == null) repository.save(saved)
     val log = result.optJSONArray("log") ?: JSONArray().also { result.put("log", it) }
     log.put(JSONObject().put("role", "gm").put("text", reply))
     logger.log(PipelineLogEvent(
@@ -466,6 +468,21 @@ class GameCoreFacade private constructor(
 
   @Synchronized fun currentCoreState(): String = GameStateCodec.encode(repository.load())
 
+  /** Prompt-only memory for Core-confirmed actors in the current scene. */
+  @JvmOverloads @Synchronized fun sceneMemoryContext(action: String = ""): String {
+    val state = loadCurrentState()
+    // A staged Core encounter is present for narration, even if not committed.
+    // Never trust a caller-supplied character ID or activate an aborted event.
+    val pending = if (ActionRuntime.activeSession(state) != null)
+      SpawnMechanism.pendingNpcEncounters(state).map { it.characterId }.toSet()
+    else emptySet()
+    val present = CharacterMemoryBags.sceneContext(state, pending)
+    // An explicit recollection can reference Cao Minh's own past events without
+    // loading or activating any absent character's bag.
+    val recalled = CharacterMemoryBags.playerRecallContext(state, action)
+    return listOf(present, recalled).filter { it.isNotBlank() }.joinToString("\n")
+  }
+
   /** A manual save is distinct from turn-by-turn Core persistence. */
   @Synchronized fun saveManualCheckpoint(clientStateJson: String): String {
     val current = loadCurrentState()
@@ -684,16 +701,57 @@ class GameCoreFacade private constructor(
     val withNpcCommitted = SpawnMechanism.commitPendingNpcEncounters(committed.state)
     val protectedState = CharacterProgressionCore.protectFromCandidate(pending.state, withNpcCommitted)
     var applied = protectedState.copy(metadata = protectedState.metadata - SPAWN_ENCOUNTER_OWNER)
+    applied = separateNonPartyNpcsAfterParentTransition(core, applied)
     CombatRuntime.pending(applied)?.let { encounter ->
       applied = applied.copy(metadata = applied.metadata + ("combat.encounterNarrative" to
         JSONObject().put("role", "gm").put("text", narrative)
           .put("encounterId", encounter.encounterId).toString()))
     }
-    val accepted = CoreClientProjection.advance(applied)
+    // Persist factual memories atomically with the validated Core transition.
+    val accepted = CoreClientProjection.advance(CharacterMemoryBags.recordCommitted(core, applied))
     repository.save(accepted)
     val synchronized = clientSnapshot(candidate, accepted)
     logger.log(PipelineLogEvent("GEMINI_COMMIT", turnId = turnId, source = CommandSource.GEMINI, details = mapOf("commands" to commands.size.toString())))
     return response(true, synchronized, null, "gemini_delta_committed")
+  }
+
+  /**
+   * NPCs encountered in an earlier parent Level do not silently travel to the
+   * next parent Level. Confirmed Party members continue with Cao Minh; local
+   * AREA/SUBLEVEL detours inside the same parent do not cause separation.
+   */
+  private fun separateNonPartyNpcsAfterParentTransition(before: GameState, after: GameState): GameState {
+    val oldNode = before.world["levelJson"]?.let { LevelRouteRegistry.requested(JSONObject(it)) }
+      ?: return after
+    val newNode = after.world["levelJson"]?.let { LevelRouteRegistry.requested(JSONObject(it)) }
+      ?: return after
+    if (oldNode.parent == newNode.parent) return after
+    val away = after.characters.values.filter { character ->
+      character.id != CAO_MINH_ID &&
+        character.id !in after.party.memberIds &&
+        character.presence == CharacterPresence.ACTIVE &&
+        character.metadata["encountered"] == "true" &&
+        // Actors introduced by a pending encounter in the destination Level
+        // did not travel from the previous Level and must not be separated.
+        before.characters[character.id]?.metadata?.get("encountered") == "true"
+    }
+    if (away.isEmpty()) return after
+    val flags = JSONObject(after.world["flagsJson"] ?: "{}")
+    val characters = after.characters.toMutableMap()
+    away.forEach { character ->
+      characters[character.id] = character.copy(presence = CharacterPresence.SEPARATED)
+      (character.metadata["encounterFlagKey"] ?: characterFlagKey(character.id))?.let { key ->
+        flags.optJSONObject(key)?.let { record ->
+          record.put("present", false)
+          if (character.id == IRIS_ID || character.id == SYVIAL_ID)
+            record.put("continuity", "SEPARATED")
+        }
+      }
+    }
+    return after.copy(
+      characters = characters,
+      world = after.world + ("flagsJson" to flags.toString())
+    )
   }
 
   @Synchronized fun confirmEncounter(clientStateJson: String, encounterId: String): String {
@@ -738,6 +796,7 @@ class GameCoreFacade private constructor(
       flags.put(key, record.put("follower", true).put("joinPending", false))
       next = next.copy(world = next.world + ("flagsJson" to flags.toString()))
     }
+    next = CharacterMemoryBags.recordCommitted(current, next)
     repository.save(next)
     return response(true, clientSnapshot(client, next), null, "follower_recruited", "${character.name} đã gia nhập Party.")
   }
@@ -780,8 +839,10 @@ class GameCoreFacade private constructor(
       }
       next = next.copy(world = next.world + ("flagsJson" to flags.toString()))
     }
+    // Combat is a Core commit too. Capture any supported state deltas without
+    // guessing at NPC witness knowledge or converting combat prose into facts.
     // Combat resolves its own rounds; Explorer Turn advances only on Explorer actions.
-    repository.save(next)
+    repository.save(CharacterMemoryBags.recordCommitted(current, next))
 
     val output = clientSnapshot(client, next)
     val combatReply = resolution.reply

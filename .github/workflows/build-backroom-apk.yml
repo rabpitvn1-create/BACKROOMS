@@ -234,6 +234,33 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      # Pull-request experiment installs alongside the main app. Never require
+      # uninstalling a user's existing game (and risking current save data).
+      - name: Build isolated Canon R2 trial APK
+        if: github.event_name == 'pull_request'
+        working-directory: android-apk
+        run: gradle :app:assembleDebug -PbackroomCanonTrial=true --no-daemon
+
+      - name: Verify isolated Canon trial package
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-Canon-R2-Trial.apk
+          BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          "$BUILD_TOOLS/apksigner" verify --verbose Backroom-Canon-R2-Trial.apk
+          "$BUILD_TOOLS/aapt" dump badging Backroom-Canon-R2-Trial.apk | grep -q "package: name='com.rabpit.backroom.canontrial'"
+          "$BUILD_TOOLS/aapt" dump badging Backroom-Canon-R2-Trial.apk | grep -q "versionName='1.2.0.0.29-canon-r2-trial'"
+          "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 Backroom-Canon-R2-Trial.apk
+
+      - name: Upload isolated Canon R2 trial APK
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Backroom-Canon-R2-Trial-debug-apk
+          path: Backroom-Canon-R2-Trial.apk
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Publish GitHub Release v1.2.0.0.29
         if: github.ref == 'refs/heads/main'
         env:

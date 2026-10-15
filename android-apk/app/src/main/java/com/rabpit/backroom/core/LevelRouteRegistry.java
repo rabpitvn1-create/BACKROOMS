@@ -3,6 +3,7 @@ package com.rabpit.backroom.core;
 import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -91,13 +92,14 @@ public final class LevelRouteRegistry {
     forward("the_torment", "red_rooms");
     forward("red_rooms", "1");
 
-    // Project main-level topology (Level 7 is deliberately excluded).
-    both("1", "2");
-    both("2", "3");
-    both("3", "4");
-    both("3", "6");
-    both("4", "5");
-    both("5", "6");
+    // Parent Level progression never returns to an earlier main Level.
+    // Same-parent AREA/SUBLEVEL detours remain bidirectional below.
+    forward("1", "2");
+    forward("2", "3");
+    forward("3", "4");
+    forward("3", "6");
+    forward("4", "5");
+    forward("5", "6");
 
     // Image-referenced optional environments, attached only to their parent level.
     both("0", "dullness");
@@ -111,6 +113,8 @@ public final class LevelRouteRegistry {
     both("4", "office_market");
     both("5", "5.1");
     both("6", "6.1");
+
+    assertAcyclicParentRoutes();
   }
 
   private LevelRouteRegistry() {}
@@ -127,6 +131,36 @@ public final class LevelRouteRegistry {
   private static void both(String first, String second) {
     forward(first, second);
     forward(second, first);
+  }
+
+  /**
+   * A route graph that is acyclic across parent Levels cannot send the player back
+   * to a previously departed Level. Cycles inside one parent are valid local detours.
+   * Validate at registry construction so future routes cannot silently break this rule.
+   */
+  private static void assertAcyclicParentRoutes() {
+    Map<Integer, Set<Integer>> parents = new LinkedHashMap<>();
+    for (Map.Entry<String, Set<String>> entry : EXITS.entrySet()) {
+      int from = NODES.get(entry.getKey()).parent;
+      for (String destination : entry.getValue()) {
+        int to = NODES.get(destination).parent;
+        if (from != to) parents.computeIfAbsent(from, ignored -> new LinkedHashSet<>()).add(to);
+      }
+    }
+    Set<Integer> active = new HashSet<>();
+    Set<Integer> complete = new HashSet<>();
+    for (Integer parent : parents.keySet()) checkParentRoute(parent, parents, active, complete);
+  }
+
+  private static void checkParentRoute(int parent, Map<Integer, Set<Integer>> routes,
+      Set<Integer> active, Set<Integer> complete) {
+    if (complete.contains(parent)) return;
+    if (!active.add(parent)) throw new IllegalStateException("Parent Level route cycle: " + parent);
+    for (Integer destination : routes.getOrDefault(parent, Collections.emptySet())) {
+      checkParentRoute(destination, routes, active, complete);
+    }
+    active.remove(parent);
+    complete.add(parent);
   }
 
   public static Node node(String id) { return NODES.get(id); }

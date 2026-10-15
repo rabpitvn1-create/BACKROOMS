@@ -4,6 +4,7 @@ plugins {
 }
 
 def twoProviderGameplayTest = project.findProperty('backroomTwoProviderTest')?.toString() == 'true'
+def canonRetrievalTrial = project.findProperty('backroomCanonTrial')?.toString() == 'true'
 def secret = { name ->
   // The instrumentation APK must not even contain Gemini/Haku credentials.
   def excluded = twoProviderGameplayTest && (name.startsWith('GEMINI_API_KEY_') || name.startsWith('HAKU_'))
@@ -16,12 +17,13 @@ android {
   compileSdk 35
 
   defaultConfig {
-    applicationId 'com.rabpit.backroom'
+    applicationId canonRetrievalTrial ? 'com.rabpit.backroom.canontrial' : 'com.rabpit.backroom'
+    manifestPlaceholders = [backroomLabel: (canonRetrievalTrial ? 'Backroom Canon Trial' : 'Backroom')]
     testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     minSdk 24
     targetSdk 35
     versionCode 102
-    versionName '1.2.0.0.29'
+    versionName canonRetrievalTrial ? '1.2.0.0.29-canon-r2-trial' : '1.2.0.0.29'
     buildConfigField "String", "GEHIHI_API_KEY", "\"" + secret("GEHIHI_API_KEY") + "\""
     buildConfigField "String", "GEHIHI_BASE_URL", "\"" + secret("GEHIHI_BASE_URL") + "\""
     buildConfigField "String", "GEHIHI_MODEL", "\"" + secret("GEHIHI_MODEL") + "\""

@@ -124,6 +124,12 @@ class ItemDetailActionsTest {
     assertFalse(core.blocksTextItemAction("Kiểm tra túi đồ"))
     assertFalse(core.blocksTextItemAction("Cao Minh dùng thần thức tìm Lục Trầm"))
     assertFalse(core.blocksTextItemAction("Cao Minh sử dụng thần thức để dò xét"))
+    // Spiritual sense is an Explorer action, despite the verb "thả".
+    assertFalse(core.blocksTextItemAction("Thả thần thức tìm lối thoát"))
+    assertFalse(core.blocksTextItemAction("Cao Minh thả thần thức dò xét"))
+    // Do not relax actual Inventory restrictions, including compound input.
+    assertTrue(core.blocksTextItemAction("Thả Băng gạc"))
+    assertTrue(core.blocksTextItemAction("Thả thần thức rồi thả Băng gạc"))
     assertTrue(core.blocksTextItemAction("Cao Minh dùng thần thức rồi dùng Băng gạc"))
   }
 

@@ -74,6 +74,7 @@ public class MainActivity extends Activity {
   @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})
   @Override public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    DiagnosticLog.initialize(getApplicationContext());
     try {
       applyImmersiveFullscreen();
     } catch (Throwable error) {
@@ -863,8 +864,16 @@ public class MainActivity extends Activity {
     base = base.isEmpty() ? "https://api.vilao.ai/v1" : base;
     if (!base.toLowerCase(java.util.Locale.ROOT).startsWith("https://")) throw new Exception("GEHIHI_BASE_URL phải dùng HTTPS.");
     while (base.endsWith("/")) base = base.substring(0, base.length() - 1);
-    String providerJson = postJson(base + "/chat/completions", BuildConfig.GEHIHI_API_KEY,
-      "Authorization", openAiProviderBody(model, prompt));
+    String providerJson;
+    long apiStartNs = System.nanoTime();
+    try {
+      providerJson = postJson(base + "/chat/completions", BuildConfig.GEHIHI_API_KEY,
+        "Authorization", openAiProviderBody(model, prompt));
+    } finally {
+      DiagnosticLog.timing(MainActivity.this, "gm.http",
+        java.util.concurrent.TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - apiStartNs),
+        prompt.length());
+    }
     // Never commit a truncated response as a completed story turn.
     JSONObject envelope = new JSONObject(providerJson);
     JSONArray choices = envelope.optJSONArray("choices");
@@ -980,6 +989,7 @@ public class MainActivity extends Activity {
 
   /** Gehihi narrates the turn directly from the writer prompt. */
   private String generateText(String prompt) throws Exception {
+    DiagnosticLog.timing(MainActivity.this, "gm.prompt", 0L, prompt.length());
     emit("backroomProvider", "Gehihi");
     return verifiedWriterReply(gehihiText(prompt));
   }
@@ -1510,8 +1520,17 @@ public class MainActivity extends Activity {
         encounterEvents.append("Kể cảnh đối đầu, DỪNG ở thế giằng co; chưa kể đòn đánh/sát thương trước Battle Start.");
       }
     }
-    String canon = com.rabpit.backroom.core.knowledge.KnowledgeContextEngine.build(
-      MainActivity.this, stateForKnowledge.toString(), action, visibleRolls.toString());
+    long canonStartNs = System.nanoTime();
+    String canon;
+    try {
+      canon = com.rabpit.backroom.core.knowledge.KnowledgeContextEngine.build(
+        MainActivity.this, stateForKnowledge.toString(), action, visibleRolls.toString());
+    } finally {
+      DiagnosticLog.timing(MainActivity.this, "canon.build",
+        java.util.concurrent.TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - canonStartNs),
+        0);
+    }
+    DiagnosticLog.timing(MainActivity.this, "canon.packet", 0L, canon.length());
     // AGENT 5 — GM Integration: per-turn voice guidance (Agent 1), confirmed-state
     // continuity (Agent 2, defensive), Core exit directive, and event/agency guards.
     String actionKindNormalized;
@@ -1546,6 +1565,7 @@ public class MainActivity extends Activity {
       continuityNotesSection(stateForKnowledge.toString(), rolls.toString()) +
       exitDirectiveSection(before, rolls) +
       eventSemanticsAndAgency() +
+      corePersonalMemorySection(action) +
       "\nACTION_TYPE: " + actionKindNormalized +
       "\nPLAYER_ACTION: " + action +
       "\nCORE_ROLLS_READ_ONLY: " + visibleRolls.toString() +
@@ -1598,6 +1618,12 @@ public class MainActivity extends Activity {
     } catch (Throwable ignored) { return ""; }
   }
 
+  /** The Core activates only factual bags of encountered, scene-present NPCs. */
+  private String corePersonalMemorySection(String action) throws Exception {
+    String memory = requireGameCore().sceneMemoryContext(action);
+    return memory.isEmpty() ? "" : "\nPERSONAL_MEMORY_CORE_READ_ONLY:\n" + memory;
+  }
+
   private String continuityNotesSection(String stateJson, String rollsJson) {
     String notes = com.rabpit.backroom.core.StoryContinuityReducer
       .continuityNotes(stateJson, rollsJson);
@@ -1628,9 +1654,6 @@ public class MainActivity extends Activity {
       " nhưng TUYỆT ĐỐI KHÔNG kết luận kết quả của hành động Core chưa xử lý." +
       "\n- SUY ĐOÁN CỦA NHÂN VẬT: Cao Minh/NPC được phép phỏng đoán, nhưng phải thể hiện" +
       " rõ đó là suy đoán (\"có lẽ\", \"dường như\"), không viết như sự thật đã khóa." +
-      "\n- Một phát hiện đã kể ở lượt trước thì các lượt sau phải tiếp nối đúng trạng thái" +
-      " của nó; KHÔNG được kể lại như thể vừa xuất hiện lần đầu, KHÔNG tự tạo thêm một" +
-      " lối thoát / sự kiện mới bằng lời kể." +
       "\nQUYỀN CỦA NGƯỜI CHƠI VỚI CAO MINH (tuyệt đối): GM không tự chọn chiến thuật quan" +
       " trọng, không tự cho Cao Minh dùng vật phẩm, không tự thay đổi quan hệ với NPC," +
       " không tự cho gia nhập tổ chức, không tự bước qua lối thoát hay chuyển Level thay" +
@@ -1729,6 +1752,7 @@ public class MainActivity extends Activity {
 
     private void submitTurnInternal(String stateJson, String actionKind, String action) {
       io.execute(() -> {
+        long turnStartNs = System.nanoTime();
         try {
           // The WebView sends presentation JSON; refresh gameplay fields from Core before any rolls or validation.
           final String currentView = requireGameCore().currentClientState(stateJson);
@@ -1876,7 +1900,13 @@ public class MainActivity extends Activity {
             log.put(new JSONObject().put("role", "gm").put("text", reply));
           state.put("log", log);
           emit("backroomTurn", state.toString());
+          DiagnosticLog.timing(MainActivity.this, "turn.total",
+            java.util.concurrent.TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - turnStartNs),
+            reply.length());
         } catch (Exception e) {
+          DiagnosticLog.timing(MainActivity.this, "turn.failed",
+            java.util.concurrent.TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - turnStartNs),
+            0);
           DiagnosticLog.error("turn.pipeline_error", e);
           try { requireGameCore().abortAction("pipeline_error"); } catch (Exception ignored) {}
           emit("backroomError", e.getMessage() == null ? "Không thể xử lý lượt." : e.getMessage());
