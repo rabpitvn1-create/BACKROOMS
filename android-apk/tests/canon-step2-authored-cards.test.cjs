@@ -60,7 +60,8 @@ test('runtime uses exact level and Core-confirmed encounter identity', () => {
   assert.ok(reader.includes('add("LEVEL.NODE.$node"'));
   assert.ok(reader.includes('combat?.optBoolean("active", false) == true'));
   assert.ok(reader.includes('add(confirmedVisual, "confirmed active Entity visual canon")'));
-  assert.ok(reader.includes('if ("lucia" in presentActors)'));
+  assert.ok(reader.includes('presentActors.filter { it != "cao_minh" }'));
+  assert.ok(reader.includes('add("$prefix.AUTHORED", "present actor authored card")'));
   // Core-confirmed pending encounters use characterId (fallback to flagKey).
   assert.match(reader, /addConfirmed\(\s*event\.optString\("characterId", event\.optString\("flagKey", ""\)\),\s*"PRESENT_NOT_IN_PARTY"\s*\)/);
   assert.ok(!reader.includes('confirmedRoll("entityEncounter")'));
@@ -69,7 +70,8 @@ test('runtime uses exact level and Core-confirmed encounter identity', () => {
 });
 
 test('unknown or absent characters cannot be treated as active based on a name substring', () => {
-  assert.ok(reader.includes('when (normalize(idOrName))'));
+  assert.ok(reader.includes('when (val id = normalize(idOrName))'));
+  assert.ok(reader.includes('it in db.characterIds'));
   assert.ok(reader.includes('member.optString("presence", "ACTIVE") == "ACTIVE"'));
   assert.ok(!reader.includes('id.contains("iris")'));
   // Luc Tram confirmation comes from Core-confirmed presentActors (pendingNpcEncounters),
