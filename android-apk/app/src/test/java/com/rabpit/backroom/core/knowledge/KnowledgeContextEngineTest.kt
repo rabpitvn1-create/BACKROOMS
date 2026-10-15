@@ -38,29 +38,6 @@ class KnowledgeContextEngineTest {
     assertFalse(packet("""{"encounteredCharacters":[{"id":"luc_tram","present":false,"inParty":false}]}""").contains("<CHAR.LUC_TRAM."))
   }
 
-  @Test fun authoritativeSceneRosterOverridesLegacyPartyAndEncounterLists() {
-    val emptyRoster = """{
-      "sceneParticipants":[{"id":"cao_minh","source":"PLAYER","inParty":true}],
-      "party":[{"id":"lucia","presence":"ACTIVE"}],
-      "encounteredCharacters":[{"id":"iris","present":true,"inParty":false}]
-    }"""
-    val context = packet(emptyRoster)
-    assertFalse(context.contains("<CHAR.LUCIA.AUTHORED>"))
-    assertFalse(context.contains("<CHAR.IRIS.RUNTIME_CORE>"))
-
-    val scene = """{"sceneParticipants":[
-      {"id":"cao_minh","source":"PLAYER","inParty":true},
-      {"id":"lucia","source":"ENCOUNTER","inParty":false}
-    ]}"""
-    val confirmed = packet(scene)
-    assertTrue(confirmed.contains("<CHAR.LUCIA.AUTHORED>"))
-    assertTrue(confirmed.contains("lucia: PRESENT, inParty=false"))
-
-    val pending = packet("""{"sceneParticipants":[],
-      "pendingNpcEncounters":[{"characterId":"luc_tram"}]}""")
-    assertTrue(pending.contains("<CHAR.LUC_TRAM.AUTHORED>"))
-  }
-
   @Test fun previouslyEncounteredAbsentActorsDoNotReceiveSceneStatusOrDetailCards() {
     val state = """{"encounteredCharacters":[
       {"id":"lucia","present":false,"inParty":false},

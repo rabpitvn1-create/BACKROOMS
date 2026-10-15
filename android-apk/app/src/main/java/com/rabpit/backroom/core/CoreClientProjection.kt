@@ -43,8 +43,7 @@ object CoreClientProjection {
     val out = JSONObject(client.toString())
     for (key in arrayOf("turn", "saveVersion", "inventory", "party", "partyDetails",
       "equipment", "player", "coreSystem", "combat", "combatFeedback", "gameTime",
-      "location", "title", "level", "flags", "story", "pendingEncounter", "encounteredCharacters",
-      "sceneParticipants")) out.remove(key)
+      "location", "title", "level", "flags", "story", "pendingEncounter", "encounteredCharacters")) out.remove(key)
     out.put("turn", turnIndex(state))
     out.put("saveVersion", CURRENT_SAVE_VERSION)
     out.put("location", state.world.getValue("location"))
@@ -73,15 +72,6 @@ object CoreClientProjection {
           put(JSONObject().put("id", c.id).put("name", c.name)
             .put("presence", c.presence.name).apply { c.avatarRef?.let { put("avatar", it) } })
         }
-      }
-    })
-    // Core-only scene membership. This is participation evidence, NOT proof that
-    // an actor witnessed any particular discovery or private conversation.
-    out.put("sceneParticipants", JSONArray().apply {
-      CoreScenePresence.participants(state).forEach { evidence ->
-        put(JSONObject().put("id", evidence.characterId)
-          .put("source", evidence.source.name)
-          .put("inParty", evidence.inParty))
       }
     })
     out.put("encounteredCharacters", JSONArray().apply {
