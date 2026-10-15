@@ -74,6 +74,7 @@ public class MainActivity extends Activity {
   @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})
   @Override public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    DiagnosticLog.initialize(getApplicationContext());
     try {
       applyImmersiveFullscreen();
     } catch (Throwable error) {
@@ -107,7 +108,7 @@ public class MainActivity extends Activity {
 
   private String requestDiagnosticExport(String webJson, boolean includeSensitive) {
     try {
-      String report = DiagnosticLog.build(MainActivity.this, webJson, includeSensitive, "",
+      String report = DiagnosticLog.build(webJson, includeSensitive, "",
         0, lastGeminiWorker, lastGeminiModel);
       synchronized (diagnosticExportLock) {
         if (pendingDiagnosticExport != null) return "{\"ok\":false,\"error\":\"export_already_open\"}";
