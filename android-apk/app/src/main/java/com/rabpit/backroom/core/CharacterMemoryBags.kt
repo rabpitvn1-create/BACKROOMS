@@ -62,15 +62,9 @@ object CharacterMemoryBags {
 
   /** Return no memory text for absent NPCs, regardless of the size of the store. */
   fun sceneContext(state: GameState, pendingConfirmed: Set<String> = emptySet()): String {
-    val visible = state.characters.values
-      .filter { actor ->
-        actor.id != CAO_MINH_ID &&
-          (actor.presence == CharacterPresence.ACTIVE ||
-            (actor.id in pendingConfirmed &&
-              actor.presence in setOf(CharacterPresence.SEPARATED, CharacterPresence.MISSING))) &&
-          (actor.metadata["encountered"] == "true" || actor.id in state.party.memberIds)
-      }
-      .sortedBy { it.id }
+    val visible = CoreScenePresence.participants(state, pendingConfirmed)
+      .filter { it.characterId != CAO_MINH_ID }
+      .mapNotNull { state.characters[it.characterId] }
     if (visible.isEmpty()) return ""
     val bags = readRoot(state).getJSONObject("bags")
     val rendered = visible.mapNotNull { actor ->
