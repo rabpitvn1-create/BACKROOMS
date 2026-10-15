@@ -41,12 +41,12 @@ object CharacterMemoryBags {
       appendTo(bags, CAO_MINH_ID, event)
     }
     joined.forEach { actor ->
-      val event = event("PARTY.JOIN.$turn.$actor", "party_join", actor, turn)
+      val event = event(nextEventId(root, "PARTY.JOIN", actor), "party_join", actor, turn)
       appendTo(bags, actor, event)
       appendTo(bags, CAO_MINH_ID, event)
     }
     left.forEach { actor ->
-      val event = event("PARTY.LEAVE.$turn.$actor", "party_leave", actor, turn)
+      val event = event(nextEventId(root, "PARTY.LEAVE", actor), "party_leave", actor, turn)
       appendTo(bags, actor, event)
       appendTo(bags, CAO_MINH_ID, event)
     }
@@ -92,6 +92,47 @@ object CharacterMemoryBags {
     .put("actorId", actorId)
     .put("turn", turn)
     .put("authority", "CORE_CONFIRMED")
+
+  /** Sequence is part of the same saved Core state; multiple UI actions in one turn
+   * must not silently overwrite each other's memory events. */
+  private fun nextEventId(root: JSONObject, kind: String, actorId: String): String {
+    val next = root.optLong("nextSequence", 1L)
+    require(next in 1 until Long.MAX_VALUE) { "character_memory_sequence_invalid" }
+    root.put("nextSequence", next + 1)
+    return "$kind.$actorId.$next"
+  }
+
+  /**
+   * Validate memory together with GameStateCodec.decode, even when the NPC is absent.
+   * A corrupt bag must be detected on load, not hundreds of turns later on reunion.
+   */
+  fun validate(state: GameState) {
+    val root = readRoot(state)
+    require(root.optLong("nextSequence", 1L) >= 1L) { "character_memory_sequence_invalid" }
+    val bags = root.getJSONObject("bags")
+    val owners = bags.keys()
+    while (owners.hasNext()) {
+      val owner = owners.next()
+      require(owner.isNotBlank()) { "character_memory_owner_invalid" }
+      val items = bags.optJSONArray(owner)
+        ?: throw IllegalArgumentException("character_memory_entries_invalid")
+      val seen = mutableSetOf<String>()
+      for (i in 0 until items.length()) {
+        val entry = items.optJSONObject(i)
+          ?: throw IllegalArgumentException("character_memory_entry_invalid")
+        val id = entry.optString("id", "")
+        require(id.isNotBlank() && seen.add(id)) { "character_memory_event_id_invalid" }
+        require(entry.optString("actorId").isNotBlank()) { "character_memory_actor_invalid" }
+        require(entry.optString("kind") in setOf("first_meeting", "party_join", "party_leave")) {
+          "character_memory_kind_invalid"
+        }
+        require(entry.optInt("turn", -1) >= 1) { "character_memory_turn_invalid" }
+        require(entry.optString("authority") == "CORE_CONFIRMED") {
+          "character_memory_authority_invalid"
+        }
+      }
+    }
+  }
 
   private fun appendTo(bags: JSONObject, owner: String, item: JSONObject) {
     val items = bags.optJSONArray(owner) ?: JSONArray().also { bags.put(owner, it) }
