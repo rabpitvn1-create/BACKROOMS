@@ -95,7 +95,8 @@ test('encounter context comes from Core-confirmed pending encounters rather than
 });
 
 test('legacy provenance is labeled, not silently promoted into author Canon', () => {
-  assert.equal(db.records.length, 89);
+  assert.ok(db.records.length >= 89, "adding author-approved Canon must not shrink the registry");
+  assert.ok(db.records.some(r => r.id === "ENTITY.DIEP_MINH.CANON"));
   const legacy = db.records.filter(r => !r.source.document.startsWith('Google Drive /Novel/Asset/'));
   assert.equal(legacy.length, 42);
   assert.ok(reader.includes('LEGACY_UNVERIFIED'));
