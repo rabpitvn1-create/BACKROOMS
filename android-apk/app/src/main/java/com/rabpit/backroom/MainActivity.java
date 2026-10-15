@@ -1621,7 +1621,7 @@ public class MainActivity extends Activity {
   /** The Core activates only factual bags of encountered, scene-present NPCs. */
   private String corePersonalMemorySection() {
     String memory = requireGameCore().sceneMemoryContext();
-    return memory.isEmpty() ? "" : "\\nPERSONAL_MEMORY_CORE_READ_ONLY:\\n" + memory;
+    return memory.isEmpty() ? "" : "\nPERSONAL_MEMORY_CORE_READ_ONLY:\n" + memory;
   }
 
   private String continuityNotesSection(String stateJson, String rollsJson) {
