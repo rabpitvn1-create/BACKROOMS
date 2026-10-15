@@ -9,7 +9,7 @@
 .player-action-bar .chat-glass:focus-within{border-color:#fff0b9}
 .chat-composer #action{display:block;flex:1;min-width:0;width:100%;height:42px;min-height:42px;max-height:176px;resize:none;overflow-y:hidden;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#d9b95866 transparent;border:0;border-radius:18px!important;background:transparent;color:#fff7dc;caret-color:#ffe4a2;padding:10px 8px 10px 12px;font:400 16px/22px system-ui,sans-serif;outline:none;box-shadow:none;overflow-wrap:anywhere}
 .chat-composer #action::placeholder{color:#e1d1a7;opacity:.85}
-.player-action-bar .chat-send{display:grid;place-items:center;flex:0 0 42px;width:42px;height:42px;min-height:42px;padding:9px;align-self:flex-end;border:0;border-radius:50%!important;overflow:hidden;background:linear-gradient(145deg,#ffe5a3,#d5a63d);color:#382908;box-shadow:inset 0 0 0 1px #fff1c94d;touch-action:manipulation;transition:opacity .18s,transform .18s}
+.player-action-bar .chat-send{display:grid;place-items:center;flex:0 0 42px;width:42px;height:42px;min-height:42px;padding:9px;align-self:flex-end;border:0;border-image:none!important;border-radius:50%!important;overflow:hidden;background:linear-gradient(145deg,#ffe5a3,#d5a63d);color:#382908;box-shadow:inset 0 0 0 1px #fff1c94d;touch-action:manipulation;transition:opacity .18s,transform .18s}
 .chat-send svg{width:24px;height:24px;fill:currentColor;stroke:none}
 .chat-send:disabled{opacity:.4}
 .chat-send:enabled:active{transform:scale(.93)}
