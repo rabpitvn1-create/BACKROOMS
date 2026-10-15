@@ -31,6 +31,55 @@ class CanonDetailRetrievalTrialTest {
     assertTrue(db.records.containsKey("CHAR.CAO_MINH.AUTHORED"))
   }
 
+  @Test fun supportDocumentsAreIndexedButSpoilerArchiveIsNotRetrievable() {
+    val db = KnowledgeContextEngine.parseDatabase(
+      asset("knowledge_db.json"), asset("canon_detail_db.json"), asset("canon_support_db.json"))
+    assertTrue("must index the large support corpus", db.records.size > 1200)
+    assertTrue(db.records.values.any { it.id.startsWith("CHAR.SYVIAL.DETAIL.") &&
+      it.kind == "authored-detail" })
+    assertTrue(db.records.values.any { it.id.startsWith("SUPPORT.HUYET_TAY_CAO_GIA.DETAIL.") &&
+      it.kind == "archive-detail" })
+    for (record in db.records.values.filter {
+      it.id.startsWith("SUPPORT.") || it.id.startsWith("CHAR.SYVIAL.DETAIL.")
+    }) {
+      assertTrue(record.id, record.source.document.startsWith("Google Drive /Novel/Asset/"))
+      assertTrue(record.id, record.text.isNotBlank())
+    }
+    val state = JSONObject().put("level", JSONObject().put("number", 0).put("id", "0"))
+    val result = KnowledgeContextEngine.Builder(db, state,
+      "Kể lại Huyết Tẩy Cao Gia tại Táng Kiếm Cốc", JSONObject()).build()
+    assertFalse("no undiscovered historical narrative", result.contains("<SUPPORT.HUYET_TAY_CAO_GIA."))
+    assertFalse("no undiscovered sword narrative", result.contains("<SUPPORT.TANG_KIEM_COC."))
+  }
+
+  @Test fun supportRetrievalFromActionStaysWithinPacketHardCeiling() {
+    val db = KnowledgeContextEngine.parseDatabase(
+      asset("knowledge_db.json"), asset("canon_detail_db.json"), asset("canon_support_db.json"))
+    val state = JSONObject().put("level", JSONObject().put("number", 0).put("id", "0"))
+    val cases = listOf(
+      "Cao Minh cảm nhận linh khí trong Backrooms",
+      "Hỏi về hồi phục linh lực của tu sĩ",
+      "Quan sát viện nghiên cứu ASYNC và dự án KV31",
+      "Nói chuyện với Lucia"
+    )
+    val npcState = JSONObject(state.toString()).put("pendingNpcEncounters",
+      JSONArray().put(JSONObject().put("characterId", "lucia")))
+    val start = System.nanoTime()
+    for (attempt in 0 until 12) for (action in cases) {
+      val inputState = if (action.contains("Lucia")) npcState else state
+      val result = KnowledgeContextEngine.Builder(db, inputState, action, JSONObject()).build()
+      assertTrue(action, result.length <= KnowledgeContextEngine.HARD_CONTEXT_CEILING * 4)
+      assertTrue(action, result.endsWith("[END_KNOWLEDGE_PACKET]"))
+      assertFalse("archive hidden", result.contains("<SUPPORT.HUYET_TAY_CAO_GIA."))
+      if (action.contains("linh khí")) assertTrue("aura support", result.contains("<SUPPORT.LINH_KHI."))
+      if (action.contains("KV31")) assertTrue("ASYNC support", result.contains("<SUPPORT.ASYNC."))
+    }
+    val elapsedMs = (System.nanoTime() - start) / 1_000_000
+    println("CanonR2SupportStress: cards=" + db.records.size +
+      ", 48 offline packets, elapsedMs=" + elapsedMs +
+      ", hardCeiling=" + KnowledgeContextEngine.HARD_CONTEXT_CEILING)
+  }
+
   @Test fun firstMeetingLoadsLuciaDetailsButNeverUnconfirmedLucTram() {
     val state = JSONObject()
       .put("level", JSONObject().put("number", 0).put("id", "0"))
