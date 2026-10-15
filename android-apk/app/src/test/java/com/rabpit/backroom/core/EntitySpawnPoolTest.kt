@@ -114,10 +114,10 @@ class EntitySpawnPoolTest {
     assertEquals(25, NpcSpawnTable.SYVIAL_THRESHOLD)
     assertEquals(25, NpcSpawnTable.AN_NHIEN_THRESHOLD)
     // Ambient crowd NPC replaced the old Survivor 2% branch (2026-10-15)
-    assertEquals(1000, NpcSpawnTable.AMBIENT_THRESHOLD)
+    assertEquals(3000, NpcSpawnTable.AMBIENT_THRESHOLD)
   }
 
-  // --- Ambient NPC 10% roll (ephemeral, never a Canon encounter) ---
+  // --- Ambient NPC 30% conditional roll (ephemeral, never a Canon encounter) ---
 
   @Test fun `ambient roll fires on eligible turn with no entity or canon NPC`() {
     val state = GameState.initial()
@@ -210,7 +210,7 @@ class EntitySpawnPoolTest {
     assertEquals(cleared, SpawnMechanism.clearAmbientNpcMarker(cleared))
   }
 
-  @Test fun `ambient roll is ten percent conditional on an eligible exploration`() {
+  @Test fun `ambient roll is thirty percent conditional on an eligible exploration`() {
     // Remove higher priority events to measure the ambient roll itself.
     val state = GameState.initial().copy(world = mapOf(
       "flagsJson" to """{"entityEncountersAllowed":false,"lucia":{"spawned":true}}"""
@@ -225,8 +225,23 @@ class EntitySpawnPoolTest {
       ) { bound -> rng.nextInt(bound) }
       if (result.ambientNpcRolled) hits++
     }
-    assertTrue("Conditional ambient roll should be ~10%, got $hits/$total",
-      hits in 850..1150)
+    assertTrue("Conditional ambient roll should be ~30%, got $hits/$total",
+      hits in 2700..3300)
+  }
+
+  @Test fun `ambient conditional roll respects 30 percent exact boundary`() {
+    // Force no higher-priority encounter. nextInt returns a 0-based d10000 value.
+    val state = GameState.initial().copy(world = mapOf(
+      "flagsJson" to """{"entityEncountersAllowed":false,"lucia":{"spawned":true}}"""
+    ))
+    val lastSuccess = SpawnMechanism.rollSpawns(state, ActionKind.EXPLORE, "Khám Phá") { 2999 }
+    val firstFailure = SpawnMechanism.rollSpawns(state, ActionKind.EXPLORE, "Khám Phá") { 3000 }
+    assertTrue("Ticket 3000 is the last successful roll", lastSuccess.ambientNpcRolled)
+    assertFalse("Ticket 3001 must not roll Ambient", firstFailure.ambientNpcRolled)
+    assertNull(lastSuccess.entityKey)
+    assertNull(firstFailure.entityKey)
+    assertTrue(lastSuccess.npcEncounters.isEmpty())
+    assertTrue(firstFailure.npcEncounters.isEmpty())
   }
 
   @Test fun `ambient roll never fires on searches or dialogue execute`() {
