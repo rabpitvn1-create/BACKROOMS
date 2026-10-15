@@ -1,0 +1,13 @@
+Backroom 1.2.0.0.30 Debug
+
+- Android versionCode 103, versionName 1.2.0.0.30, applicationId com.rabpit.backroom (cập nhật bản chính, không phải gói Canon Trial).
+- Tích hợp PR #627 trên main: Canon Retrieval R2 tiếp tục dùng kho offline hiện hữu, chỉ mục tag có sẵn và giới hạn context; không khôi phục Story Milestone hoặc thêm API request.
+- Giữ đầy đủ nội dung Canon được chọn, phân loại provenance/authority/mutability; giảm metadata đường dẫn và lý do chọn không cần thiết trong prompt Gehihi.
+- Luôn đưa dữ kiện tác giả xác nhận về linh khí dồi dào trong Backrooms vào Canon bắt buộc, kể cả khi lệnh người chơi không nhắc từ khóa linh khí.
+- Sửa nhận diện nhầm “Thả thần thức ...” thành thao tác DROP_ITEM, để khám phá bằng thần thức không bị chặn bởi giao diện Inventory; các thao tác Dùng/Chuyển/Bỏ vật phẩm thật vẫn do Core xử lý.
+- Bổ sung test hồi quy Canon khi registry tăng kích thước, budget context, sự thật linh khí và phân loại thao tác thần thức; không thay đổi save schema.
+- Kế thừa bản 1.2.0.0.29: thông báo Entity bị tiêu diệt sau Combat, GM tiếp tục sau trận, Poker Dice reroll hỗ trợ hợp FSF/SSF, Gemini 4.0 Argon loading.
+- Quy trình release sẽ chạy JS/Kotlin tests, đóng gói debug APK, xác minh package/version/chữ ký/zipalign, xuất GitHub Release và tải lại APK để đối chiếu.
+- Các kết quả trên thiết bị trước đó cho thấy hai trận Combat và câu chuyện tiếp nối; riêng bản 1.2.0.0.30 chưa được xác minh live trên thiết bị hoặc bằng phép đo A/B Gehihi. CI xanh không bảo đảm AI không bao giờ kể sai Canon.
+
+Lưu ý: Đây là APK debug; không phải bản phát hành Play Store. PR tài liệu #628 đang riêng và không nằm trong build này nếu chưa được merge.
