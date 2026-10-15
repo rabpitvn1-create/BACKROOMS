@@ -1,0 +1,8 @@
+Backroom 1.2.0.0.32 Debug
+
+- Android versionCode 105; versionName 1.2.0.0.32; applicationId com.rabpit.backroom.
+- Sửa bảng chi tiết vật phẩm không hiện bonus % dù status đã cộng chỉ số trang bị.
+- Thêm mục Mô tả riêng và hiển thị công dụng hồi HP, FOOD/WATER, tiêu hao từ dữ liệu Core. Vật phẩm chưa có mô tả hoặc hiệu ứng sẽ được ghi rõ.
+- Liquid Pain hồi 15% Max HP hiện tại mỗi vật phẩm, làm tròn xuống, không vượt Max HP; tiêu hao theo số lượng và không hồi sinh nhân vật đã gục.
+- Thêm 22 icon SVG pixel riêng cho toàn bộ vật phẩm/trang bị hiện có, Ivory và Ebony riêng lẻ, cùng icon túi cho vật phẩm chưa phân loại; nền nâu vàng, hiển thị ở danh sách và bảng chi tiết.
+- Thao tác vật phẩm không tăng lượt khám phá hay thời gian game. Không bổ sung tương thích save cũ.

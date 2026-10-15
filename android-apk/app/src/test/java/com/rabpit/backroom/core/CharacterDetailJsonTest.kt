@@ -143,4 +143,35 @@ class CharacterDetailJsonTest {
     assertFalse(physiology.has("restPercent"))
     assertEquals("UNKNOWN", physiology.getString("hunger"))
   }
+  @Test fun itemDetailsExposeAuthoritativeBonusesHealingAndDescriptions() {
+    val initial = GameState.initial()
+    val food = OfflineItemRegistry.get(BANH_TET_ID)!!
+    val items = listOf(
+      ItemStack(BANDAGE_ID, "Băng gạc"),
+      ItemStack(food.id, food.name, metadata = food.metadata + ("private" to "hidden")),
+      ItemStack("liquid-pain", "Liquid Pain")
+    )
+    val state = initial.copy(inventories = initial.inventories +
+      (CAO_MINH_ID to InventoryState(CAO_MINH_ID, items.associateBy { it.itemId })))
+    val json = CharacterDetailJson.encodeCharacter(CharacterDetailProjector.projectCharacter(state, CAO_MINH_ID)!!)
+    val equipment = json.getJSONArray("equipmentItems")
+    val armor = (0 until equipment.length()).map { equipment.getJSONObject(it) }
+      .single { it.getString("id") == CAO_MINH_ARMOR_ID }
+    assertTrue(armor.getBoolean("statItem"))
+    assertEquals(100, armor.getJSONObject("bonuses").getInt("agiPct"))
+    assertEquals(20, armor.getJSONObject("bonuses").getInt("strPct"))
+    val inventory = json.getJSONArray("inventory")
+    fun item(id: String) = (0 until inventory.length()).map { inventory.getJSONObject(it) }
+      .single { it.getString("id") == id }
+    assertTrue(item(BANDAGE_ID).getJSONArray("useEffects").toString().contains("Hồi 10 HP"))
+    val foodJson = item(BANH_TET_ID)
+    assertEquals(food.metadata.getValue("description"), foodJson.getString("description"))
+    assertTrue(foodJson.getJSONArray("useEffects").toString().contains("Hồi 5 HP"))
+    assertTrue(foodJson.getJSONArray("useEffects").toString().contains("thiếu thức ăn"))
+    assertFalse(foodJson.has("metadata"))
+    assertFalse(foodJson.toString().contains("hidden"))
+    assertTrue(item(LIQUID_PAIN_ID).getJSONArray("useEffects").toString().contains("Hồi 15% Max HP"))
+    assertEquals(HealingItems.LIQUID_PAIN_DESCRIPTION, item(LIQUID_PAIN_ID).getString("description"))
+  }
 }
+
