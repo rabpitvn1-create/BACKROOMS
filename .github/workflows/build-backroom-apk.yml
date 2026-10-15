@@ -134,7 +134,8 @@ jobs:
           cmp android-apk/app/src/main/assets/item-icons.js apk-check/assets/item-icons.js
           test "$(find android-apk/app/src/main/assets/item-icons -maxdepth 1 -name '*.webp' | wc -l)" -eq 23
           cmp android-apk/app/src/main/assets/item-icons/manifest.json apk-check/assets/item-icons/manifest.json
-          ! unzip -Z1 Backroom-1.2.0.0.32.apk | grep -Eq '^assets/item-icons/[^/]+\\.svg
+          ! unzip -Z1 Backroom-1.2.0.0.32.apk | grep -Eq '^assets/item-icons/[^/]+[.]svg$'
+          for icon in android-apk/app/src/main/assets/item-icons/*.webp; do
             cmp "$icon" "apk-check/assets/item-icons/${icon##*/}"
           done
           grep -q 'backroom.diagnostics.v1' apk-check/assets/diagnostic-export.js
