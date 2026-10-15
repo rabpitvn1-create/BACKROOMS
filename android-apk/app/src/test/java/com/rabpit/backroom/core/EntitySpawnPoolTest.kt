@@ -159,6 +159,35 @@ class EntitySpawnPoolTest {
     assertEquals("true", lucia!!.metadata["encountered"])
   }
 
+  @Test fun `separated Iris and Syvial can reunite without clearing once-only spawn history`() {
+    for ((id, key) in listOf(IRIS_ID to "iris", SYVIAL_ID to "syvial")) {
+      val met = SpawnMechanism.applySpawns(GameState.initial(),
+        SpawnResult(null, listOf(NpcSpawnTable.NpcEncounter(id, key))))
+      val flags = JSONObject(met.world["flagsJson"] ?: "{}")
+      val existing = flags.getJSONObject(key)
+      assertTrue(existing.getBoolean("spawned"))
+      assertTrue(existing.getBoolean("present"))
+      val separated = met.copy(
+        characters = met.characters + (id to met.characters.getValue(id)
+          .copy(presence = CharacterPresence.SEPARATED)),
+        world = met.world + ("flagsJson" to flags.put(key,
+          existing.put("present", false).put("continuity", "SEPARATED")).toString())
+      )
+      val reunion = NpcSpawnTable.rollNpcs(separated, ActionKind.EXECUTE,
+        "đi về phía trước", 2) { 0 }
+      assertTrue("Expected $id reunion", reunion.any { it.characterId == id })
+      val returning = SpawnMechanism.applySpawns(separated,
+        SpawnResult(null, listOf(NpcSpawnTable.NpcEncounter(id, key))))
+      assertEquals(CharacterPresence.ACTIVE, returning.characters.getValue(id).presence)
+      assertTrue(JSONObject(returning.world.getValue("flagsJson"))
+        .getJSONObject(key).getBoolean("present"))
+      val blocked = NpcSpawnTable.rollNpcs(returning, ActionKind.EXECUTE,
+        "đi về phía trước", 2) { 0 }
+      assertFalse("No duplicate meeting while $id is present",
+        blocked.any { it.characterId == id })
+    }
+  }
+
   @Test fun `rollSpawns with fixed seed is deterministic`() {
     val state = GameState.initial()
     val rng1 = Random(12345)
