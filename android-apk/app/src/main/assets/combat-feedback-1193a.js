@@ -5,6 +5,7 @@
   var seen=[],animationToken=0;
   var motionEffects=[],overlayMotions=new WeakMap();
   var HIT_STEP_MS=630,FLOAT_MS=1200,CONTACT_MS=180;
+  var ENTITY_SHATTER_MS=1320,entityShatters=[],shatteredEntities=new WeakSet();
   var combatLogEncounter='',combatPanel=null,combatPanelMeta=null,combatPanelList=null;
   var turnIndicator=null,turnName=null,turnDetail=null,lastPartyActor='Cao Minh';
 
@@ -209,6 +210,7 @@
     return typeof window.matchMedia==='function'&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   }
   function stopCombatMotion(){
+    entityShatters.slice().forEach(function(effect){effect.finish(true);});
     motionEffects.splice(0).forEach(function(animation){animation.cancel();});
     var box=document.getElementById('snapshot');
     if(box)Array.prototype.forEach.call(box.querySelectorAll('.combat-impact,.combat-player-hit-edge,.combat-float'),function(n){n.remove();});
@@ -278,6 +280,63 @@
     node.addEventListener('animationend',function(){node.remove();},{once:true});
     setTimeout(function(){node.remove();},duration+50);
   }
+  function lethalEntityHit(e){
+    return !!e&&e.target==='entity'&&e.outcome!=='miss'&&
+      typeof e.remainingHp==='number'&&e.remainingHp===0;
+  }
+  function afterEntityShatter(token,callback){
+    if(token!==animationToken)return;
+    var effect=entityShatters.find(function(item){return item.token===token&&item.active;});
+    if(effect)effect.waiters.push(callback);else callback();
+  }
+  function shatterEntity(e){
+    if(!lethalEntityHit(e))return;
+    var box=document.getElementById('snapshot'),source=box&&box.querySelector('.snapshot-entity');
+    if(!source||source.isConnected===false||shatteredEntities.has(source))return;
+    var url=source.currentSrc||source.src;if(!url)return;
+    // Freeze only this defeated overlay; Party motion and the background remain intact.
+    if(typeof source.getAnimations==='function')source.getAnimations().forEach(function(a){a.cancel();});
+    var rect=source.getBoundingClientRect(),base=box.getBoundingClientRect();
+    if(rect.width<=0||rect.height<=0)return;
+    var reduced=reducedMotion(),duration=reduced?180:ENTITY_SHATTER_MS;
+    var layer=document.createElement('div');layer.className='entity-shatter'+(reduced?' entity-shatter--reduced':'');
+    layer.setAttribute('aria-hidden','true');
+    layer.style.cssText='left:'+(rect.left-base.left)+'px;top:'+(rect.top-base.top)+'px;width:'+rect.width+'px;height:'+rect.height+'px';
+    function image(parent){
+      var img=document.createElement('img');img.src=url;img.alt='';img.draggable=false;parent.appendChild(img);
+    }
+    if(reduced){
+      var ghost=document.createElement('div');ghost.className='entity-shatter-ghost';image(ghost);layer.appendChild(ghost);
+    }else{
+      var cracks=document.createElement('div');cracks.className='entity-shatter-cracks';
+      cracks.style.maskImage=cracks.style.webkitMaskImage='url('+JSON.stringify(url)+')';
+      layer.appendChild(cracks);
+      var core=document.createElement('div');core.className='entity-shatter-core';layer.appendChild(core);
+      var rim=[[0,0],[32,0],[66,0],[100,0],[100,32],[100,66],[100,100],[66,100],[32,100],[0,100],[0,66],[0,32]];
+      var spread=Math.min(120,Math.min(rect.width,rect.height)*.45);
+      rim.forEach(function(a,i){
+        var b=rim[(i+1)%rim.length],dx=((a[0]+b[0])/2-50)/50,dy=((a[1]+b[1])/2-50)/50;
+        var shard=document.createElement('div');shard.className='entity-shatter-shard';
+        shard.style.cssText='clip-path:polygon(50% 50%,'+a[0]+'% '+a[1]+'%,'+b[0]+'% '+b[1]+'%);--shard-x:'+(dx*spread).toFixed(1)+'px;--shard-y:'+(dy*spread).toFixed(1)+'px;--shard-rotate:'+((i%2?1:-1)*(18+i*3))+'deg;animation-delay:'+(480+(i%3)*18)+'ms';
+        image(shard);layer.appendChild(shard);
+      });
+    }
+    var priorOpacity=source.style.opacity;
+    var effect={source:source,token:animationToken,active:true,waiters:[],finish:function(cancelled){
+      if(!effect.active)return;effect.active=false;layer.remove();
+      source.classList.remove('entity-shatter-source');
+      var index=entityShatters.indexOf(effect);if(index!==-1)entityShatters.splice(index,1);
+      if(cancelled){source.style.opacity=priorOpacity;shatteredEntities.delete(source);return;}
+      source.style.opacity='0';
+      effect.waiters.splice(0).forEach(function(callback){afterEntityShatter(effect.token,callback);});
+    }};
+    shatteredEntities.add(source);entityShatters.push(effect);box.appendChild(layer);
+    if(reduced)source.style.opacity='0';else{
+      source.classList.add('entity-shatter-source');
+      setTimeout(function(){if(effect.active&&effect.token===animationToken)source.style.opacity='0';},480);
+    }
+    setTimeout(function(){effect.finish(false);},duration);
+  }
   window.backroomPlayCombatFeedback=function(event,fallback){
     var e=event||{},text=String(e.text||'').trim(),miss=e.outcome==='miss';
     if(miss?text!=='MISS':(!/^-\d+ HP$/i.test(text)||Number(text.slice(1,-3))<=0))return;
@@ -320,6 +379,7 @@
     floater.style.left=anchor.x+'px';floater.style.top=(anchor.y-18-lane*38)+'px';anchor.box.appendChild(floater);
     floater.addEventListener('animationend',function(){floater.remove()},{once:true});
     setTimeout(function(){floater.remove()},FLOAT_MS+50);
+    shatterEntity(e);
   };
 
 
@@ -370,6 +430,7 @@
   }
 
   function playTypedTurnTimeline(packet,token,anchors,slots){
+    if(!Array.isArray(packet.turns))return null;
     var events=packet.events;
     var cues=packet.turns.filter(function(c){
       return c&&(c.kind==='actor'||c.kind==='entity'||c.kind==='wave'||c.kind==='party')&&
@@ -384,15 +445,18 @@
       for(var i=1;i<available.length;i++)if(available[i]<available[lane])lane=i;
       var delay=Math.max(when,available[lane]);
       var contact=e.outcome==='tick'||reduced?0:CONTACT_MS;
-      available[lane]=delay+contact+FLOAT_MS;
+      var death=lethalEntityHit(e)?(reduced?180:ENTITY_SHATTER_MS):0;
+      available[lane]=delay+contact+Math.max(FLOAT_MS,death);
       endTime=Math.max(endTime,available[lane]);
       var attackMotion;
       setTimeout(function(){
-        if(token!==animationToken)return;
-        attackMotion=playAttackMotion(e);
+        afterEntityShatter(token,function(){attackMotion=playAttackMotion(e);});
       },delay);
       function revealContact(){
         if(token!==animationToken)return;
+        if(entityShatters.some(function(item){return item.active&&item.token===token;})){
+          afterEntityShatter(token,revealContact);return;
+        }
         // WebView may start the animation after its wall-clock timer. Reveal
         // impact and damage only when that animation reaches actual contact.
         if(attackMotion){
@@ -406,7 +470,7 @@
         window.backroomPlayCombatFeedback(e,anchors[e.target]);
       }
       setTimeout(revealContact,delay+contact);
-      return delay+(e.outcome==='tick'?250:reduced?90:HIT_STEP_MS);
+      return delay+(death?contact+death+90:e.outcome==='tick'?250:reduced?90:HIT_STEP_MS);
     }
     cues.forEach(function(cue,index){
       var entityResultShown=false;
@@ -423,9 +487,7 @@
       if(index+1<cues.length)end=Math.max(start,Math.min(events.length,cues[index+1].eventIndex));
       (function(c,at){
         setTimeout(function(){
-          if(token!==animationToken)return;
-          var snapshot=document.getElementById('snapshot');
-          showTurnCue(c);
+          afterEntityShatter(token,function(){showTurnCue(c);});
         },at);
       })(cue,clock);
       var actionStart=clock+spinTime,nextAction=actionStart;
@@ -483,9 +545,13 @@
     }
     var completing=before&&before.active===true&&
       (!incomingCombat||incomingCombat.active!==true)&&
-      rawPacket&&Array.isArray(rawPacket.events)&&Array.isArray(rawPacket.turns)&&
-      rawPacket.turns.some(function(c){return c&&c.kind==='actor';});
+      rawPacket&&String(rawPacket.encounterId||'')===String(before.encounterId||'')&&
+      Array.isArray(rawPacket.events)&&
+      (rawPacket.events.some(lethalEntityHit)||(Array.isArray(rawPacket.turns)&&
+       rawPacket.turns.some(function(c){return c&&c.kind==='actor';})));
     if(completing){
+      if(typeof rawPacket.id==='string'&&seen.indexOf(rawPacket.id)!==-1)return;
+      if(typeof rawPacket.id==='string'){seen.push(rawPacket.id);if(seen.length>64)seen.shift();}
       var completionToken=++animationToken,context=this;
       stopCombatMotion();
       beginCombatLog(before);
@@ -495,11 +561,20 @@
         var slots={entity:[0],actor:[0]};
         var anchors={entity:targetAnchor('entity'),actor:targetAnchor('actor')};
         var elapsed=playTypedTurnTimeline(rawPacket,completionToken,anchors,slots);
+        if(elapsed===null){
+          rawPacket.events.forEach(function(e,index){
+            setTimeout(function(){afterEntityShatter(completionToken,function(){
+              appendDamageLine(e);window.backroomPlayCombatFeedback(e);
+            });},index*150);
+          });
+          elapsed=rawPacket.events.length*150+Math.max(FLOAT_MS,reducedMotion()?180:ENTITY_SHATTER_MS)+50;
+        }
         setTimeout(function(){
-          if(completionToken!==animationToken)return;
-          previousTurn.call(context,json);
-          resetCombatPanel();
-          setFeedbackBusy(false);
+          afterEntityShatter(completionToken,function(){
+            previousTurn.call(context,json);
+            resetCombatPanel();
+            setFeedbackBusy(false);
+          });
         },elapsed===null?0:elapsed);
       });
       return;
@@ -543,11 +618,12 @@
         playTypedTurnTimeline(packet,token,anchors,slots):null;
       if(typedMs!==null){
         setTimeout(function(){
-          if(token!==animationToken)return;
-          focusCombatActor('cao_minh');
-          showNow('Cao Minh');
-          window.backroomCombatEntityVisualKey='';
-          setFeedbackBusy(false);
+          afterEntityShatter(token,function(){
+            focusCombatActor('cao_minh');
+            showNow('Cao Minh');
+            window.backroomCombatEntityVisualKey='';
+            setFeedbackBusy(false);
+          });
         },typedMs);
         return;
       }
@@ -570,10 +646,11 @@
         });
       });
       setTimeout(function(){
-        if(token!==animationToken)return;
-        focusCombatActor('cao_minh');
-        showNow('Cao Minh');
-        setFeedbackBusy(false);
+        afterEntityShatter(token,function(){
+          focusCombatActor('cao_minh');
+          showNow('Cao Minh');
+          setFeedbackBusy(false);
+        });
       },lastDelay+1800);
     });
     return result;

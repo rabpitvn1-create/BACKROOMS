@@ -690,3 +690,66 @@ test('normal and critical damage start fully visible at the impact frame',()=>{
  assert.match(css,/@keyframes combat-float-up\{0%\{opacity:1;/);
  assert.match(css,/@keyframes combat-float-crit\{0%\{opacity:1;/);
 });
+
+function readyShatter(r){r.entity.src='file:///android_asset/entity/hound.webp';r.entity.style.opacity='1';return r;}
+const lethal={target:'entity',text:'-24 HP',remainingHp:0,outcome:'hit'};
+test('Core-confirmed lethal Entity damage grows one crack/core layer and twelve bounded shards',()=>{
+ const r=readyShatter(boot());
+ r.event({...lethal,remainingHp:1});assert.equal(r.box.children.some(n=>n.className==='entity-shatter'),false);
+ r.event(lethal);
+ const layer=r.box.children.find(n=>n.className==='entity-shatter');assert.ok(layer);
+ assert.equal(layer.children.filter(n=>n.className==='entity-shatter-shard').length,12);
+ assert.ok(layer.children.some(n=>n.className==='entity-shatter-cracks'));
+ assert.ok(layer.children.some(n=>n.className==='entity-shatter-core'));
+ assert.equal(r.entity.style.opacity,'1');
+ r.event(lethal);assert.equal(r.box.children.filter(n=>n.className==='entity-shatter').length,1);
+ r.timers.find(t=>t.ms===480).fn();assert.equal(r.entity.style.opacity,'0');
+ r.timers.find(t=>t.ms===1320).fn();assert.equal(layer.isConnected,false);
+});
+test('actor defeat, MISS and unknown remaining HP never explode an Entity',()=>{
+ const r=readyShatter(boot());
+ for(const event of [{...lethal,target:'actor'},{...lethal,outcome:'miss',text:'MISS'},
+  {...lethal,remainingHp:null},{...lethal,remainingHp:'0'},{...lethal,remainingHp:undefined}])r.event(event);
+ assert.equal(r.box.children.some(n=>n.className==='entity-shatter'),false);
+});
+test('combat completion waits for the actual shatter before removing overlays and unlocking',()=>{
+ const r=readyShatter(boot());
+ r.turn([lethal],'enc:death','enc',null,{},{turns:[{kind:'actor',actorId:'cao_minh',eventIndex:0}]});
+ r.timers.find(t=>t.ms===980).fn();
+ const completion=r.timers.find(t=>t.ms===Math.max(...r.timers.map(t=>t.ms)));
+ completion.fn();assert.equal(r.scope.state.combat.active,true);assert.equal(r.scope.__combatFeedbackBusy,true);
+ r.timers.find(t=>t.ms===1320).fn();
+ assert.equal(r.scope.state.combat,null);assert.equal(r.scope.__combatFeedbackBusy,false);
+});
+test('a wave switch waits for the old Entity shatter, including consecutive same-species waves',()=>{
+ const r=readyShatter(boot());let switches=[];
+ r.scope.backroomSwitchCombatEntityWave=(key,wave)=>switches.push(key+':'+wave);
+ r.turn([lethal],'enc:death-wave','enc',{active:true,encounterId:'enc',entityKey:'hound',round:2},
+  {},{turns:[{kind:'actor',actorId:'cao_minh',eventIndex:0},
+   {kind:'wave',entityKey:'hound',waveNumber:2,eventIndex:1}]});
+ r.timers.find(t=>t.ms===980).fn();
+ r.timers.find(t=>t.ms===2390).fn();assert.deepEqual(switches,[]);
+ r.timers.find(t=>t.ms===1320).fn();assert.deepEqual(switches,['hound:2']);
+});
+test('a new encounter cancels debris and stale callbacks without hiding its Entity',()=>{
+ const r=readyShatter(boot());r.event(lethal);
+ const layer=r.box.children.find(n=>n.className==='entity-shatter');
+ r.turn([],'next:1','next',{active:true,encounterId:'next',entityKey:'hound',round:1});
+ assert.equal(layer.isConnected,false);assert.equal(r.entity.style.opacity,'1');
+ r.timers.filter(t=>t.ms===480||t.ms===1320).forEach(t=>t.fn());
+ assert.equal(r.entity.style.opacity,'1');
+});
+test('reduced motion uses one short fade without cracks, core flash or flying fragments',()=>{
+ const r=readyShatter(boot());r.scope.matchMedia=()=>({matches:true});r.event(lethal);
+ const layer=r.box.children.find(n=>n.className==='entity-shatter entity-shatter--reduced');
+ assert.ok(layer);assert.equal(layer.children.length,1);assert.equal(layer.children[0].className,'entity-shatter-ghost');
+ r.timers.find(t=>t.ms===180).fn();assert.equal(layer.isConnected,false);
+});
+test('lethal status ticks without actor cues still finish their death effect before Core projection',()=>{
+ const r=readyShatter(boot());
+ r.turn([{...lethal,outcome:'tick',status:'Trúng độc'}],'enc:tick-death','enc',null);
+ assert.equal(r.scope.state.combat.active,true);
+ assert.ok(r.box.children.some(n=>n.className==='entity-shatter'));
+ r.timers.find(t=>t.ms===1520).fn();assert.equal(r.scope.state.combat.active,true);
+ r.timers.find(t=>t.ms===1320).fn();assert.equal(r.scope.state.combat,null);
+});
