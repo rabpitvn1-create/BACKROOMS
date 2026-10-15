@@ -316,11 +316,13 @@ object KnowledgeContextEngine {
         .filter { it.length >= 4 && it !in setOf("trong", "đang", "những", "người", "chuyện") }
         .distinct()
       val picked = linkedSetOf<String>()
-      val candidates = db.records.values.asSequence()
+      // Reuse the existing tag index instead of scanning every detail card on
+      // every API turn. The ranking, per-subject quota and budget stay unchanged.
+      val candidates = topics.asSequence()
+        .flatMap { topic -> db.tagIndex["detail:$topic"].orEmpty().asSequence() }
+        .distinct()
+        .mapNotNull(db.records::get)
         .filter { it.kind == "authored-detail" }
-        .filter { record ->
-          record.tags.any { it.startsWith("detail:") && it.removePrefix("detail:") in topics }
-        }
         .filter { record ->
           when {
             record.id.startsWith("CHAR.") -> {
