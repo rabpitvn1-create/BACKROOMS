@@ -593,6 +593,31 @@ object KnowledgeContextEngine {
       fun activeMember(member: JSONObject): Boolean =
         member.optString("presence", "ACTIVE") == "ACTIVE"
 
+      // The Core projection now supplies a single confirmed scene roster.
+      // Never reintroduce an excluded NPC from Party/history when it exists.
+      // Pending encounters remain a separate Core-owned source for this turn.
+      state.optJSONArray("sceneParticipants")?.let { roster ->
+        for (i in 0 until roster.length()) {
+          val actor = roster.optJSONObject(i) ?: continue
+          val id = actor.optString("id")
+          if (id.isBlank() || id == "cao_minh") continue
+          addConfirmed(id, if (actor.optBoolean("inParty")) "IN_PARTY"
+            else "PRESENT_NOT_IN_PARTY")
+        }
+        for (source in listOf(state.optJSONArray("pendingNpcEncounters"),
+          rolls.optJSONArray("pendingNpcEncounters"))) {
+          if (source == null) continue
+          for (i in 0 until source.length()) {
+            val event = source.optJSONObject(i) ?: continue
+            addConfirmed(event.optString("characterId", event.optString("flagKey", "")),
+              "PRESENT_NOT_IN_PARTY")
+          }
+        }
+        return
+      }
+
+      // Pure retrieval tests without a Core projection still accept the older
+      // explicit encounter/Party facts. Production projections use the roster.
       state.optJSONArray("party")?.let { party ->
         for (i in 0 until party.length()) {
           when (val value = party.opt(i)) {
