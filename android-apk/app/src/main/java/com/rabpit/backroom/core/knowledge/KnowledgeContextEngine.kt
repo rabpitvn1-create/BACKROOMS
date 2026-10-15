@@ -139,7 +139,7 @@ object KnowledgeContextEngine {
     private val reasons = linkedMapOf<String, String>()
     private val presentActors = linkedSetOf("cao_minh")
     // Precise per-actor relationship status for the GM packet.
-    // Values: "IN_PARTY" | "PRESENT_NOT_IN_PARTY" | "ENCOUNTERED_ABSENT".
+    // Values: "IN_PARTY" | "PRESENT_NOT_IN_PARTY".
     // "PRESENT_NOT_IN_PARTY" is the critical case: Core confirmed the NPC is in
     // the scene (first meeting / temporary companion), but the player has NOT
     // recruited them. The GM must never narrate such an NPC as a Party member.
@@ -566,7 +566,7 @@ object KnowledgeContextEngine {
     private fun resolvePresence() {
       // State is the only evidence of who is actually in the scene.
       // Substring matching lets names like "iris_unknown" impersonate a Party member.
-      // Status tracking: IN_PARTY vs PRESENT_NOT_IN_PARTY vs ENCOUNTERED_ABSENT.
+      // Status tracking: IN_PARTY vs PRESENT_NOT_IN_PARTY for scene-present actors only.
       // A present-but-not-recruited NPC (e.g. Lucia on first meeting) MUST stay
       // PRESENT_NOT_IN_PARTY — never promote to Party membership in narration.
       fun addConfirmed(idOrName: String, status: String) {
@@ -636,21 +636,8 @@ object KnowledgeContextEngine {
               addConfirmed(id, "IN_PARTY")
             entry.optBoolean("present", false) ->
               addConfirmed(id, "PRESENT_NOT_IN_PARTY")
-            else -> {
-              // Met before but not in scene: record for epistemic continuity,
-              // but do NOT add to presentActors.
-              val canonical = when (normalize(id)) {
-                "iris" -> "iris"
-                "syvial" -> "syvial"
-                "lucia", "lucia lục" -> "lucia"
-                "trac_lam", "trác lâm", "trac lam" -> "trac_lam"
-                "luc_tram", "lục trầm", "luc tram" -> "luc_tram"
-                else -> null
-              }
-              if (canonical != null && canonical !in npcStatus) {
-                npcStatus[canonical] = "ENCOUNTERED_ABSENT"
-              }
-            }
+            // An absent actor never enters either presence or per-turn status.
+            else -> Unit
           }
         }
       }
@@ -673,10 +660,6 @@ object KnowledgeContextEngine {
             "PRESENT_NOT_IN_PARTY" -> append(
               "PRESENT, inParty=false — Core-confirmed in scene, NOT recruited. " +
                 "Narrate as present person, NEVER as Party member"
-            )
-            "ENCOUNTERED_ABSENT" -> append(
-              "encountered before, NOT present now — may be referenced from memory, " +
-                "cannot act or speak in this scene"
             )
             else -> append(status)
           }
