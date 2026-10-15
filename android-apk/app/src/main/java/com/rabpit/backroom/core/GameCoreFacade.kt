@@ -469,14 +469,18 @@ class GameCoreFacade private constructor(
   @Synchronized fun currentCoreState(): String = GameStateCodec.encode(repository.load())
 
   /** Prompt-only memory for Core-confirmed actors in the current scene. */
-  @Synchronized fun sceneMemoryContext(): String {
+  @JvmOverloads @Synchronized fun sceneMemoryContext(action: String = ""): String {
     val state = loadCurrentState()
     // A staged Core encounter is present for narration, even if not committed.
     // Never trust a caller-supplied character ID or activate an aborted event.
     val pending = if (ActionRuntime.activeSession(state) != null)
       SpawnMechanism.pendingNpcEncounters(state).map { it.characterId }.toSet()
     else emptySet()
-    return CharacterMemoryBags.sceneContext(state, pending)
+    val present = CharacterMemoryBags.sceneContext(state, pending)
+    // An explicit recollection can reference Cao Minh's own past events without
+    // loading or activating any absent character's bag.
+    val recalled = CharacterMemoryBags.playerRecallContext(state, action)
+    return listOf(present, recalled).filter { it.isNotBlank() }.joinToString("\n")
   }
 
   /** A manual save is distinct from turn-by-turn Core persistence. */
