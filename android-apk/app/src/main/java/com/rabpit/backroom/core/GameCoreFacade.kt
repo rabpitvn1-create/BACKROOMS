@@ -467,7 +467,15 @@ class GameCoreFacade private constructor(
   @Synchronized fun currentCoreState(): String = GameStateCodec.encode(repository.load())
 
   /** Prompt-only memory for Core-confirmed actors in the current scene. */
-  @Synchronized fun sceneMemoryContext(): String = CharacterMemoryBags.sceneContext(loadCurrentState())
+  @Synchronized fun sceneMemoryContext(): String {
+    val state = loadCurrentState()
+    // A staged Core encounter is present for narration, even if not committed.
+    // Never trust a caller-supplied character ID or activate an aborted event.
+    val pending = if (ActionRuntime.activeSession(state) != null)
+      SpawnMechanism.pendingNpcEncounters(state).map { it.characterId }.toSet()
+    else emptySet()
+    return CharacterMemoryBags.sceneContext(state, pending)
+  }
 
   /** A manual save is distinct from turn-by-turn Core persistence. */
   @Synchronized fun saveManualCheckpoint(clientStateJson: String): String {
@@ -716,7 +724,10 @@ class GameCoreFacade private constructor(
       character.id != CAO_MINH_ID &&
         character.id !in after.party.memberIds &&
         character.presence == CharacterPresence.ACTIVE &&
-        character.metadata["encountered"] == "true"
+        character.metadata["encountered"] == "true" &&
+        // Actors introduced by a pending encounter in the destination Level
+        // did not travel from the previous Level and must not be separated.
+        before.characters[character.id]?.metadata?.get("encountered") == "true"
     }
     if (away.isEmpty()) return after
     val flags = JSONObject(after.world["flagsJson"] ?: "{}")
@@ -724,7 +735,11 @@ class GameCoreFacade private constructor(
     away.forEach { character ->
       characters[character.id] = character.copy(presence = CharacterPresence.SEPARATED)
       character.metadata["encounterFlagKey"]?.let { key ->
-        flags.optJSONObject(key)?.put("present", false)
+        flags.optJSONObject(key)?.let { record ->
+          record.put("present", false)
+          if (character.id == IRIS_ID || character.id == SYVIAL_ID)
+            record.put("continuity", "SEPARATED")
+        }
       }
     }
     return after.copy(
