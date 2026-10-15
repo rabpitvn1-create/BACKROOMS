@@ -176,7 +176,26 @@ class KnowledgeContextEngineTest {
     assertTrue(result.endsWith("[END_KNOWLEDGE_PACKET]"))
     assertTrue(result.contains("<WRITING.KNOWLEDGE_BOUNDARY>"))
     assertTrue(result.contains("<WRITING.PLAYER_AGENCY>"))
-    assertFalse(result.contains("<CHAR.CAO_MINH.AUTHORED>"))
+    // Long provenance remains locally traceable but cannot crowd out Canon.
+    assertFalse(result.contains("TEST_ONLY".repeat(1000)))
+    assertTrue(result.contains("<CHAR.CAO_MINH.AUTHORED>"))
+  }
+
+  @Test fun canonTextAndAuthorityStayInPromptWhileSourceRemainsLocal() {
+    val sourcePath = "https://example.invalid/private/very-long-provenance-record"
+    val raw = JSONObject().put("records", org.json.JSONArray().put(JSONObject()
+      .put("id", "GAME.TEXT.CORE").put("domain", "GAME_RULE")
+      .put("kind", "hard-lock").put("text", "Verified gameplay Canon text must survive.")
+      .put("authority", "CORE").put("mutability", "IMMUTABLE").put("priority", 10)
+      .put("source", JSONObject().put("document", sourcePath).put("anchor", "test-section"))))
+    val db = KnowledgeContextEngine.parseDatabase(raw.toString())
+    assertEquals(sourcePath, db.records.getValue("GAME.TEXT.CORE").source.document)
+    val packet = KnowledgeContextEngine.Builder(db, JSONObject(), "", JSONObject()).build()
+    assertTrue(packet.contains("Verified gameplay Canon text must survive."))
+    assertTrue(packet.contains("authority=CORE; mutability=IMMUTABLE"))
+    assertFalse(packet.contains(sourcePath))
+    assertFalse(packet.contains("source="))
+    assertFalse(packet.contains("; why="))
   }
 
   @Test fun fullPartyAndLargeContinuityPreserveKnowledgeHardLocksWithinBudget() {
