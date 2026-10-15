@@ -310,7 +310,8 @@ class GameCoreFacade private constructor(
         metadata = cleared.metadata - SPAWN_ENCOUNTER_OWNER,
         world = cleared.world + ("flagsJson" to flags.toString()))
     } else withoutPending
-    val interrupted = ActionRuntime.interrupt(cleaned, active.sessionId, reason.ifBlank { "pipeline_error" })
+    val interrupted = ActionRuntime.interrupt(SpawnMechanism.clearAmbientNpcMarker(cleaned),
+      active.sessionId, reason.ifBlank { "pipeline_error" })
     if (!interrupted.applied) return false
     repository.save(interrupted.state)
     return true
@@ -709,10 +710,15 @@ class GameCoreFacade private constructor(
     }
     // Persist factual memories atomically with the validated Core transition.
     val accepted = CoreClientProjection.advance(CharacterMemoryBags.recordCommitted(core, applied))
-    repository.save(accepted)
-    val synchronized = clientSnapshot(candidate, accepted)
+    // The ambient roll is a one-shot presentation event, not persistent game state.
+    // Return it only for a successfully committed turn; never replay a stale marker.
+    val ambientRolled = SpawnMechanism.ambientNpcRolled(accepted)
+    val stored = SpawnMechanism.clearAmbientNpcMarker(accepted)
+    repository.save(stored)
+    val synchronized = clientSnapshot(candidate, stored)
     logger.log(PipelineLogEvent("GEMINI_COMMIT", turnId = turnId, source = CommandSource.GEMINI, details = mapOf("commands" to commands.size.toString())))
-    return response(true, synchronized, null, "gemini_delta_committed")
+    return JSONObject(response(true, synchronized, null, "gemini_delta_committed"))
+      .put("ambientNpcRolled", ambientRolled).toString()
   }
 
   /**
