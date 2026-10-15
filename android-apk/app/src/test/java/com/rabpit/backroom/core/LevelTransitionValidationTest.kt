@@ -103,6 +103,49 @@ class LevelTransitionValidationTest {
     assertEquals("1", decision.optString("destinationId"))
   }
 
+  @Test fun parentLevelExitSeparatesEncounteredNpcButKeepsHerMemory() {
+    val initial = freshAt("red_rooms", streak = 5)
+    val lucia = CharacterState(id = "lucia", name = "Lucia",
+      presence = CharacterPresence.ACTIVE,
+      metadata = mapOf("encountered" to "true", "encounterFlagKey" to "lucia"))
+    val encountered = initial.copy(characters = initial.characters + ("lucia" to lucia))
+    val flagged = JSONObject(encountered.world.getValue("flagsJson"))
+      .put("lucia", JSONObject().put("present", true).put("spawned", true))
+    val withBag = CharacterMemoryBags.recordCommitted(initial, encountered).copy(
+      world = encountered.world + ("flagsJson" to flagged.toString()))
+    assertTrue(CharacterMemoryBags.sceneContext(withBag).contains("Actor lucia"))
+
+    val save = MemorySave(withBag)
+    val core = facade(save)
+    val action = "bước qua cửa đỏ"
+    assertEquals("1", authorize(core, 1, "EXPLORE", action).optString("destinationId"))
+    val result = JSONObject(core.processValidatedCandidate(beforeJson(1), candidateJson("1"), action))
+    assertTrue(result.toString(), result.getBoolean("handled"))
+    assertEquals(CharacterPresence.SEPARATED, save.state.characters.getValue("lucia").presence)
+    assertFalse(JSONObject(save.state.world.getValue("flagsJson"))
+      .getJSONObject("lucia").getBoolean("present"))
+    assertEquals("", CharacterMemoryBags.sceneContext(save.state))
+    assertEquals(withBag.metadata["core.characterMemoryBags.v1"],
+      save.state.metadata["core.characterMemoryBags.v1"])
+  }
+
+  @Test fun confirmedPartyMemberStaysActiveAcrossParentLevelExit() {
+    val initial = freshAt("red_rooms", streak = 5)
+    val lucia = CharacterState(id = "lucia", name = "Lucia",
+      presence = CharacterPresence.ACTIVE,
+      metadata = mapOf("encountered" to "true", "encounterFlagKey" to "lucia"))
+    val current = initial.copy(
+      characters = initial.characters + ("lucia" to lucia),
+      party = initial.party.copy(memberIds = initial.party.memberIds + "lucia"))
+    val save = MemorySave(current)
+    val core = facade(save)
+    val action = "bước qua cửa đỏ"
+    assertEquals("1", authorize(core, 1, "EXPLORE", action).optString("destinationId"))
+    val result = JSONObject(core.processValidatedCandidate(beforeJson(1), candidateJson("1"), action))
+    assertTrue(result.toString(), result.getBoolean("handled"))
+    assertEquals(CharacterPresence.ACTIVE, save.state.characters.getValue("lucia").presence)
+  }
+
   @Test fun coreRejectsWhenExitNotReady() {
     // P0-3 required: insufficient-condition case. Streak=0, non-EXPLORE kind
     // -> Core's roll ineligible -> deterministic "exit_not_ready".
