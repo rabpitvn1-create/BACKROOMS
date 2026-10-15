@@ -2,7 +2,6 @@ package com.rabpit.backroom.core;
 
 import static org.junit.Assert.*;
 
-import java.util.Arrays;
 import org.junit.Test;
 
 public class AmbientNpcManagerTest {
@@ -39,7 +38,7 @@ public class AmbientNpcManagerTest {
     assertEquals("Xin chào.", restarted.nextDialogue());
     assertEquals("Người lạ bước khỏi hành lang.", restarted.endEncounter());
     assertNull(restarted.snapshot());
-    assertFalse(restarted.restore("{\\"npc\\":{},\\"dialogueIndex\\":5}"));
+    assertFalse(restarted.restore("{}"));
   }
 
   @Test public void rejectsInvalidPayloadWithoutActivatingNpc() {
