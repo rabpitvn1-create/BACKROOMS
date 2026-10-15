@@ -460,7 +460,14 @@ object KnowledgeContextEngine {
       // half hard-lock or silently omit mandatory Canon to satisfy a budget.
       require(tokens <= HARD_CONTEXT_CEILING) { "knowledge_mandatory_context_over_budget" }
       optional.forEach { r ->
-        val ceiling = if (tokens < TARGET_CONTEXT_BUDGET) TARGET_CONTEXT_BUDGET else SOFT_CONTEXT_CEILING
+        // A Core-confirmed scene may need a short R2 voice/detail card even after
+        // compulsory locks and R1 cards occupy the soft budget. R2 may use the
+        // existing hard ceiling, but can never displace compulsory hard locks.
+        val ceiling = when {
+          r.kind == "authored-detail" -> HARD_CONTEXT_CEILING
+          tokens < TARGET_CONTEXT_BUDGET -> TARGET_CONTEXT_BUDGET
+          else -> SOFT_CONTEXT_CEILING
+        }
         val cost = estimateTokens(renderRecord(r))
         if (tokens + cost <= ceiling) {
           kept += r
