@@ -1,0 +1,10 @@
+Backroom 1.2.0.0.29 Debug
+
+- Android versionCode 102, versionName 1.2.0.0.29, applicationId com.rabpit.backroom.
+- Bao gồm PR #626: GM kể tiếp theo sự kiện và trạng thái lượt đã được Core xác nhận; phân biệt encounter mới, Exit vừa mở và các phát hiện đã biết.
+- Giữ thông báo Entity ngã xuống và Backrooms nuốt tử thi trong lịch sử sau combat. Bổ sung phản hồi khi Core từ chối hành động và trạng thái khóa UI trong diagnostic.
+- Tăng xác suất reroll hoàn thiện FSF/SSF khi HOLD cặp/bộ hoặc chuỗi đúng vị trí; giữ luật hand, dice HOLD và giới hạn reroll.
+- Hiển thị logo Gemini chuyển động cùng tên Gemini 4.0 Argon trong ô GM khi chờ trả lời cho cả nhập hành động và Khám Phá. Xóa loader khi có câu trả lời hoặc lỗi; hỗ trợ reduced motion.
+- Rút gọn context NPC, giữ ranh giới kiến thức và Canon hiện hành; Exit dùng streak đã commit.
+- Quy trình phát hành chạy JavaScript/Kotlin unit tests, kiểm tra gói APK, chữ ký, zip alignment và đối chiếu APK tải lại từ GitHub Release.
+- Lỗi GM đứng sau combat trên thiết bị chưa được tái hiện; diagnostic đã bổ sung dữ liệu để kiểm chứng tiếp. Chưa xác nhận gameplay trực tiếp trên thiết bị, emulator hoặc Live AI provider cho bản này.
