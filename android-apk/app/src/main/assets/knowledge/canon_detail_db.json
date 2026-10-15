@@ -22,24 +22,6 @@
       "affordances": []
     },
     {
-      "id": "CHAR.CAO_MINH.DETAIL.PROFILE.001.02",
-      "domain": "CHARACTER",
-      "kind": "authored-detail",
-      "text": "[01 · ĐỊNH DANH VÀ VỊ TRÍ · CAO-ID-01] của Cao Minh lấy Ma Đạo làm căn, Kiếm Đạo làm phong, thần niệm làm mắt và Huyết Ma Kiếm làm bản mệnh binh khí. Trước khi rơi vào Backrooms, hắn đã đứng ở vị trí cao nhất của thế giới nguyên sinh: các đại tông môn, bí cảnh và cấm địa từng khiến người khác kiêng sợ đều không còn đủ sức khiến hắn thực sự hứng thú. TUYỆT MẬT / KNOWLEDGE LOCK — CAO-SECRET-01: Cao Minh mang huyết thống bán nhân / bán ma và kế thừa một dòng truyền thừa cổ xưa gắn với Vạn Quỷ Ma Tôn. Vạn Quỷ Ma Tôn là nguồn truyền thừa thuộc lớp hậu trường",
-      "source": {
-        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
-        "anchor": "01 · ĐỊNH DANH VÀ VỊ TRÍ · CAO-ID-01"
-      },
-      "authority": "CHARACTER_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 72,
-      "tags": [
-        "detail:profile"
-      ],
-      "references": [],
-      "affordances": []
-    },
-    {
       "id": "CHAR.CAO_MINH.DETAIL.PROFILE.001.03",
       "domain": "CHARACTER",
       "kind": "authored-detail",
@@ -713,60 +695,6 @@
       "source": {
         "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
         "anchor": "15.11 · TRONG NHÓM NHIỀU NGƯỜI VÀ CẢNH ĐỜI THƯỜNG"
-      },
-      "authority": "CHARACTER_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 72,
-      "tags": [
-        "detail:profile"
-      ],
-      "references": [],
-      "affordances": []
-    },
-    {
-      "id": "CHAR.CAO_MINH.DETAIL.PROFILE.022.01",
-      "domain": "CHARACTER",
-      "kind": "authored-detail",
-      "text": "[16 · ĐIỂM YẾU VÀ GIỚI HẠN · CAO-WEAK-01] [TUYỆT MẬT / KNOWLEDGE LOCK] Cao Minh không có giới hạn nội tại được xác lập từ Vạn Quỷ Ma Tâm hay Vạn Quỷ Ma Thân. Điều đó không đồng nghĩa mọi tình huống đều vô nghĩa: thiếu thông tin, pháp tắc xa lạ, mục tiêu cần bảo hộ, phong ấn, địa hình hoặc những hiện tượng không thuộc hệ thống tu hành hắn biết vẫn có thể tạo ra bài toán thật sự. - Có xu hướng tự nhận phần nguy hiểm nhất nếu làm vậy giúp người cùng phe giảm rủi ro. - Có thể giấu thương tổn hoặc kế hoạch nếu tin rằng việc nói ra sẽ khiến người khác tự đặt mìn",
-      "source": {
-        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
-        "anchor": "16 · ĐIỂM YẾU VÀ GIỚI HẠN · CAO-WEAK-01"
-      },
-      "authority": "CHARACTER_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 72,
-      "tags": [
-        "detail:profile"
-      ],
-      "references": [],
-      "affordances": []
-    },
-    {
-      "id": "CHAR.CAO_MINH.DETAIL.PROFILE.022.02",
-      "domain": "CHARACTER",
-      "kind": "authored-detail",
-      "text": "[16 · ĐIỂM YẾU VÀ GIỚI HẠN · CAO-WEAK-01] h vào nguy hiểm. - Những người hắn thực sự quan tâm có thể trở thành đòn bẩy đối với kẻ thù. - Vạn Tàng Giới không lưu trữ hoặc tái tạo sinh linh, không sao chép pháp bảo và không tạo vật phẩm từ hư vô. - Huyết Ma Kiếm và Huyết Sát Ma Khí không bị ràng buộc bởi cơ chế vật tư. Tuy vậy, hiệu quả chiến đấu vẫn phụ thuộc vào thông tin, pháp tắc của khu vực, vị trí mục tiêu, vật cản và lựa chọn của chính Cao Minh. - Tái sinh bản mệnh pháp bảo chỉ phục hồi chính vật đã tồn tại; không thay thế một pháp bảo chưa từng có và",
-      "source": {
-        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
-        "anchor": "16 · ĐIỂM YẾU VÀ GIỚI HẠN · CAO-WEAK-01"
-      },
-      "authority": "CHARACTER_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 72,
-      "tags": [
-        "detail:profile"
-      ],
-      "references": [],
-      "affordances": []
-    },
-    {
-      "id": "CHAR.CAO_MINH.DETAIL.PROFILE.022.03",
-      "domain": "CHARACTER",
-      "kind": "authored-detail",
-      "text": "[16 · ĐIỂM YẾU VÀ GIỚI HẠN · CAO-WEAK-01] không tự biến nó thành cấp bậc cao hơn. - Sau một lần Phản Bổn thành công, cùng một pháp bảo cần trải qua một ngày một đêm trước khi Vạn Tàng Giới có thể Phản Bổn nó lần nữa. Khoảng nghỉ này thuộc riêng năng lực Phản Bổn và không ngăn cơ chế tự tái sinh tự nhiên của bản mệnh pháp bảo.",
-      "source": {
-        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
-        "anchor": "16 · ĐIỂM YẾU VÀ GIỚI HẠN · CAO-WEAK-01"
       },
       "authority": "CHARACTER_CANON",
       "mutability": "IMMUTABLE",
@@ -2078,24 +2006,6 @@
       "domain": "CHARACTER",
       "kind": "authored-detail",
       "text": "[GIỌNG NÓI VÀ HỘI THOẠI — HARD LOCK] Trác Lâm kín tiếng, nhưng “kín tiếng” ở đây có nghĩa là anh không nói phần không cần thiết; nó không có nghĩa anh rút mọi phát ngôn xuống số từ tối thiểu. Ngoài tình huống nguy hiểm tức thời, lời của anh phải nghe như tiếng Việt của một người trưởng thành, được đào tạo tốt và đang nói với một con người khác — không như log hệ thống, phụ đề hoặc mệnh lệnh máy. - Khi có thời gian để nói, Trác Lâm dùng câu hoàn chỉnh và giữ các mối nối cần thiết giữa dữ kiện, nguyên nhân, điều kiện và giới hạn. Anh có thể ngắn, nhưng",
-      "source": {
-        "document": "Google Drive /Novel/Asset/01_Character/TRAC_LAM_CODEX.md",
-        "anchor": "GIỌNG NÓI VÀ HỘI THOẠI — HARD LOCK"
-      },
-      "authority": "CHARACTER_CANON",
-      "mutability": "IMMUTABLE",
-      "priority": 58,
-      "tags": [
-        "detail:dialogue"
-      ],
-      "references": [],
-      "affordances": []
-    },
-    {
-      "id": "CHAR.TRAC_LAM.DETAIL.DIALOGUE.008.02",
-      "domain": "CHARACTER",
-      "kind": "authored-detail",
-      "text": "[GIỌNG NÓI VÀ HỘI THOẠI — HARD LOCK] không bẻ một ý liền thành chuỗi mảnh chỉ để nghe lạnh hoặc “chuyên nghiệp”. - Tính chính xác của anh nằm ở nội dung. Anh phân biệt điều đã thấy, điều suy ra và điều chưa biết, nhưng không liên tục đọc các nhãn hậu trường kiểu “xác nhận / giả thuyết / rủi ro / kết luận” thành lời. - Khi căng thẳng, anh nói trực tiếp hơn và bỏ phần trang trí; nếu vẫn còn vài giây để phối hợp, anh vẫn nói đủ để người nghe biết phải làm gì và vì sao điều đó quan trọng. - Khẩu lệnh rất ngắn chỉ là ngoại lệ của tác chiến khẩn cấp, liên l",
       "source": {
         "document": "Google Drive /Novel/Asset/01_Character/TRAC_LAM_CODEX.md",
         "anchor": "GIỌNG NÓI VÀ HỘI THOẠI — HARD LOCK"
