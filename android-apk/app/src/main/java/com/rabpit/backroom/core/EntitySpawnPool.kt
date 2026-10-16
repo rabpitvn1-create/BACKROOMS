@@ -123,7 +123,14 @@ object PhysicalActionDetector {
     "(?iu)^\\s*(?:cao\\s+minh\\s+)?(?:nói(?:\\s+chuyện)?|hỏi|trả\\s+lời|đáp|chào|gọi|trò\\s+chuyện|thì\\s+thầm)(?![\\p{L}\\p{N}])"
   )
 
-  @JvmStatic fun isPhysical(actionText: String): Boolean = PHYSICAL_PATTERN.containsMatchIn(actionText)
+  // "Thả thần thức đi điều tra" sends perception outward; Cao Minh does not walk.
+  // Remove that remote-sensing clause before checking tangible movement. Remaining
+  // verbs still count, e.g. "... rồi bước tới" is genuinely physical.
+  private val REMOTE_RECON = Regex(
+    "(?iu)(?<![\\p{L}\\p{N}])(?:thả|phóng|triển\\s+khai|dùng|mở\\s+rộng)\\s+thần\\s+thức\\s+đi\\s+(?:điều\\s+tra|thăm\\s+dò|khảo\\s+sát|dò\\s+xét|quét)(?![\\p{L}\\p{N}])"
+  )
+  @JvmStatic fun isPhysical(actionText: String): Boolean =
+    PHYSICAL_PATTERN.containsMatchIn(REMOTE_RECON.replace(actionText, " "))
 
   /** Visual intent within EXECUTE, never a new action kind or spawn pipeline. */
   @JvmStatic fun isSceneFacing(actionText: String): Boolean =
