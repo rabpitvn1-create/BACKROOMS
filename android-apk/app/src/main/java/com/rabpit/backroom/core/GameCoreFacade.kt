@@ -531,8 +531,8 @@ class GameCoreFacade private constructor(
    *   the GM never chooses secret paths.
    *
    * Three distinct states are enforced:
-   *   1. Exit not found (committed streak < 5) -> "exit_not_ready".
-   *   2. Exit discovered but not traversed (streak = 5, no traversal intent) ->
+   *   1. Exit not found (committed streak < 3) -> "exit_not_ready".
+   *   2. Exit discovered but not traversed (streak = 3, no traversal intent) ->
    *      "no_traversal_intent"; the discovered exit stays available in later turns
    *      until the player deliberately traverses or the node changes.
    *   3. Transition committed: only when the one-shot exitAuthorization created here
