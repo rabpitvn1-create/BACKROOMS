@@ -1,0 +1,10 @@
+Backroom 1.2.0.0.33 Debug
+
+- Android versionCode 106; versionName 1.2.0.0.33; applicationId com.rabpit.backroom.
+- Thay nút Khám Phá và hộp nhập bật lên bằng khung chat kính vàng mở rộng lên trên, avatar Cao Minh vuông bo góc và nút gửi máy bay giấy.
+- Làm sắc nét viền khung chat, bỏ viền vuông đè nút gửi; ẩn thanh cuộn nhật ký GM nhưng giữ khả năng cuộn.
+- Chỉnh kích thước overlay Hound theo vùng ảnh thực tế; đồng bộ số DMG và tag thường/status 9px, critical 10px.
+- Nhãn đòn kỹ năng hiển thị đúng tên skill từ Core thay vì Đánh thường; giữ ưu tiên nhãn trạng thái.
+- Khi Entity bị tiêu diệt, vết nứt năng lượng phân nhánh lan từ lõi trắng rồi bung thành vụ nổ nhỏ với mảnh vỡ bất quy tắc và tia vụn ngẫu nhiên.
+- Hiệu ứng hoàn tất trước khi chuyển wave/kết trận, hủy an toàn khi đổi encounter và có chế độ giảm chuyển động.
+- Cập nhật kiểm tra nội dung APK cho khung chat mới. Không thay Core/schema save và không bổ sung tương thích save cũ.
