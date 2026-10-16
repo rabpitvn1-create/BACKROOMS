@@ -279,10 +279,10 @@ class EntitySpawnPoolTest {
     assertFalse(result.ambientNpcRolled)
   }
 
-  @Test fun `ordinary execute may roll ambient when higher priority encounters miss`() {
+  @Test fun `scene facing execute may roll ambient when higher priority encounters miss`() {
     var calls = 0
     val result = SpawnMechanism.rollSpawns(
-      GameState.initial(), ActionKind.EXECUTE, "hỏi tiếp",
+      GameState.initial(), ActionKind.EXECUTE, "quan sát xung quanh",
       isMeta = false, inCombatOrPending = false
     ) { _ ->
       calls++
@@ -291,6 +291,18 @@ class EntitySpawnPoolTest {
     assertNull(result.entityKey)
     assertTrue(result.npcEncounters.isEmpty())
     assertTrue(result.ambientNpcRolled)
+  }
+
+  @Test fun `dialogue execute does not create ambient npc api request`() {
+    var calls = 0
+    val result = SpawnMechanism.rollSpawns(
+      GameState.initial(), ActionKind.EXECUTE, "hỏi tiếp",
+      isMeta = false, inCombatOrPending = false
+    ) { _ -> calls++; 9999 }
+    assertNull(result.entityKey)
+    assertTrue(result.npcEncounters.isEmpty())
+    assertFalse(result.ambientNpcRolled)
+    assertEquals(2, calls) // Entity and once-only Lucia; no ambient call.
   }
 
   @Test fun `stale ambient marker cleared on next missing roll`() {
