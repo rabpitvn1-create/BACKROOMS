@@ -4,13 +4,12 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * Core-authoritative spawn mechanism restored from pre-Milestone baseline (b7929e00~1).
+ * Core-authoritative, level-scoped Entity encounters; NPC eligibility follows the baseline.
  *
- * Entity pool: 45% total on d10000 per eligible turn.
- * - 14 common @ 2.5% each (250bp) = 35%
- * - 3 lifeforms @ 2% each (200bp) = 6%
- * - 3 rare @ 1% each (100bp) = 3%
- * - 2 killers @ 0.5% each (50bp) = 1%
+ * Entity encounter: 35% total on d10000 per eligible turn, independent of pool size.
+ * Resident pools use exact level IDs from the project Entity Codex (ENT-1/2/3/5).
+ * Nodes without a resident roster use the owner-approved roaming pool.
+ * Existing rarity weights only choose the species AFTER the encounter succeeds.
  *
  * NPC first-meeting rates (d10000, success if roll <= threshold):
  * - Lucia: 5000 (50%) — Level 0 EXECUTE, once-only
@@ -31,56 +30,82 @@ import org.json.JSONObject
  * Core rolls (not AI). GM only narrates. See spawn-baseline.md for full reference.
  */
 object EntitySpawnPool {
-  // 14 common entities @ 2.5% each
+  // Relative species weights; encounter probability is a separate 35% gate.
   val COMMON = listOf(
     "hound", "clump", "duller", "deathmoth", "hostile_faceling",
     "false_puddle", "paintings", "smiler", "skin-stealer", "predatory_window",
     "biological_pipeline", "wretch", "cable_mimic", "hotel_corpse_lure"
   )
-  // 3 lifeforms @ 2% each
+  // Lifeform rarity group.
   val LIFEFORM = listOf("blackroot_sentinel", "sinew_strider", "hollow_grasper")
-  // 3 rare @ 1% each
+  // Rare group.
   val RARE = listOf("the_beast_of_level_5", "slenderman", "diep_minh")
-  // 2 killers @ 0.5% each
+  // Killer group.
   val KILLERS = listOf("jeff_the_killer", "jane_the_killer")
 
   const val COMMON_BP = 250
   const val LIFEFORM_BP = 200
   const val RARE_BP = 100
   const val KILLER_BP = 50
-  const val TOTAL_BP = 4500
+  const val TOTAL_BP = 3500
+
+  // Project Entity Codex R4: ENT-1A..G, ENT-2A..F, ENT-3A..D, ENT-5A..E.
+  // Exact IDs: sublevels/areas do not silently inherit their parent's residents.
+  val RESIDENTS_BY_LEVEL: Map<String, List<String>> = mapOf(
+    "1" to listOf("hound", "clump", "duller", "deathmoth", "hostile_faceling", "false_puddle", "paintings"),
+    "2" to listOf("clump", "hound", "smiler", "skin-stealer", "predatory_window", "biological_pipeline"),
+    "3" to listOf("deathmoth", "wretch", "skin-stealer", "cable_mimic"),
+    "5" to listOf("the_beast_of_level_5", "predatory_window", "skin-stealer", "hound", "hotel_corpse_lure")
+  )
+
+  // Jeff/Jane are roaming. Owner also assigned entities without a confirmed
+  // current habitat to this gameplay pool on 2026-10-16; not a new lore claim.
+  val ROAMING = listOf("jeff_the_killer", "jane_the_killer", "slenderman", "diep_minh",
+    "blackroot_sentinel", "sinew_strider", "hollow_grasper")
+
+  fun residentsForLevel(levelId: String): List<String> = RESIDENTS_BY_LEVEL[levelId].orEmpty()
+
+  fun poolForLevel(levelId: String): List<String> =
+    residentsForLevel(levelId).ifEmpty { ROAMING }
+
+  private fun weight(entity: String): Int = when (entity) {
+    in COMMON -> COMMON_BP
+    in LIFEFORM -> LIFEFORM_BP
+    in RARE -> RARE_BP
+    in KILLERS -> KILLER_BP
+    else -> error("Unknown spawn Entity: $entity")
+  }
 
   init {
-    val total = COMMON.size * COMMON_BP + LIFEFORM.size * LIFEFORM_BP +
-      RARE.size * RARE_BP + KILLERS.size * KILLER_BP
-    check(total == TOTAL_BP) {
-      "EntitySpawnPool weights must total $TOTAL_BP bp (45%), got $total"
-    }
+    val roster = COMMON + LIFEFORM + RARE + KILLERS
+    val residents = RESIDENTS_BY_LEVEL.values.flatten().toSet()
+    check(roster.size == roster.toSet().size)
+    check(residents.intersect(ROAMING.toSet()).isEmpty())
+    check(residents + ROAMING.toSet() == roster.toSet())
+    check(RESIDENTS_BY_LEVEL.values.all { it.isNotEmpty() && it.size == it.toSet().size })
+    check(ROAMING.isNotEmpty() && ROAMING.size == ROAMING.toSet().size)
   }
 
-  /**
-   * Selects an entity for a successful roll (1..4500).
-   * Maps ticket = roll - 1 through weighted groups.
+  /** Map the successful part of d10000 into the local weighted species pool.
+   * Reusing this ticket preserves the single encounter roll and NPC RNG order.
+   * Pool size and rarity cannot increase/decrease the 3,500 successful tickets.
    */
-  fun pickForSuccessfulRoll(roll: Int): String {
+  fun pickForSuccessfulRoll(levelId: String, roll: Int): String {
     require(roll in 1..TOTAL_BP) { "roll must be 1..$TOTAL_BP, got $roll" }
-    var ticket = roll - 1
-    if (ticket < 3500) return COMMON[ticket / 250]
-    ticket -= 3500
-    if (ticket < 600) return LIFEFORM[ticket / 200]
-    ticket -= 600
-    if (ticket < 300) return RARE[ticket / 100]
-    ticket -= 300
-    return KILLERS[ticket / 50]
+    val pool = poolForLevel(levelId)
+    val totalWeight = pool.sumOf { weight(it) }
+    var ticket = (roll - 1) * totalWeight / TOTAL_BP
+    for (entity in pool) {
+      ticket -= weight(entity)
+      if (ticket < 0) return entity
+    }
+    error("Unreachable Entity selection")
   }
 
-  /**
-   * Rolls d10000 for entity encounter. Returns entity key on success (45%), null otherwise.
-   * @param nextInt function returning 0..9999 (injectable for tests)
-   */
-  fun rollEntity(nextInt: (Int) -> Int): String? {
-    val roll = nextInt(10000) + 1  // 1..10000
-    return if (roll <= TOTAL_BP) pickForSuccessfulRoll(roll) else null
+  /** One d10000 roll per eligible turn: exactly 35%, including roaming fallback. */
+  fun rollEntity(levelId: String, nextInt: (Int) -> Int): String? {
+    val roll = nextInt(10000) + 1
+    return if (roll <= TOTAL_BP) pickForSuccessfulRoll(levelId, roll) else null
   }
 }
 
@@ -325,7 +350,7 @@ object SpawnMechanism {
     val entityEncounterAction = kind == ActionKind.EXECUTE
     val entityAllowed = flags.optBoolean("entityEncountersAllowed", true)
     val entityKey = if (entityEncounterAction && entityAllowed) {
-      EntitySpawnPool.rollEntity(nextInt)
+      EntitySpawnPool.rollEntity(currentLevelId(state), nextInt)
     } else {
       null
     }
@@ -523,14 +548,12 @@ object SpawnMechanism {
     return next
   }
 
-  private fun currentLevelNumber(state: GameState): Int {
-    val levelJson = state.world["levelJson"] ?: return 0
-    return try {
-      LevelRouteRegistry.requested(JSONObject(levelJson)).parent
-    } catch (e: Exception) {
-      0
-    }
-  }
+  private fun currentLevelId(state: GameState): String = runCatching {
+    LevelRouteRegistry.requested(JSONObject(state.world["levelJson"] ?: "{}"))?.id ?: "0"
+  }.getOrDefault("0")
+
+  private fun currentLevelNumber(state: GameState): Int =
+    LevelRouteRegistry.node(currentLevelId(state))?.parent ?: 0
 
   /**
    * Creates an NPC character from Canon if not yet in game state.

@@ -1,0 +1,9 @@
+Backroom 1.2.0.0.38 Debug
+
+- Android versionCode 111; versionName 1.2.0.0.38; applicationId com.rabpit.backroom.
+- Entity cư trú được chọn đúng level theo canon: Level 1, 2, 3 và 5 có danh sách riêng; không dùng pool chung cho mọi level.
+- Level/node chưa có danh sách cư trú dùng nhóm roaming: Jeff, Jane, Slenderman, Diệp Minh, Blackroot Sentinel, Sinew Strider và Hollow Grasper.
+- Mỗi lượt EXECUTE hợp lệ có tổng xác suất gặp Entity 35%, bất kể số loài trong pool. Độ hiếm chỉ dùng để chọn loài khi lượt tung đã trúng.
+- Nhận diện đúng ID sublevel/khu vực, không tự lấy Entity cư trú của level cha. Giữ đủ cả 22 Entity trong game.
+- Giữ chặn spawn cho lượt meta, combat/pending và cờ tắt encounter; không đổi thứ tự tung NPC hoặc schema save.
+- Kiểm tra toàn bộ 10000 kết quả tung trên cả 25 route node, xác nhận chính xác 3500 kết quả encounter ở mỗi node.

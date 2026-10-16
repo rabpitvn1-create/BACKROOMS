@@ -7,102 +7,81 @@ import kotlin.random.Random
 
 /**
  * Tests for Core-authoritative spawn mechanism.
- * Verifies exact rates from pre-Milestone baseline (b7929e00~1).
+ * Verifies per-level 35% Entity encounters and the existing NPC eligibility rules.
  */
 class EntitySpawnPoolTest {
 
-  // --- Entity pool weights ---
+  private fun stateAt(id: String): GameState = GameState.initial().copy(world = mapOf(
+    "levelJson" to JSONObject().put("id", id).toString()))
 
-  @Test fun `pool weights total 4500bp (45 percent)`() {
-    val total = EntitySpawnPool.COMMON.size * EntitySpawnPool.COMMON_BP +
-      EntitySpawnPool.LIFEFORM.size * EntitySpawnPool.LIFEFORM_BP +
-      EntitySpawnPool.RARE.size * EntitySpawnPool.RARE_BP +
-      EntitySpawnPool.KILLERS.size * EntitySpawnPool.KILLER_BP
-    assertEquals(4500, total)
+  @Test fun `all twenty two entities have a resident or approved roaming pool`() {
+    val all = EntitySpawnPool.COMMON + EntitySpawnPool.LIFEFORM + EntitySpawnPool.RARE + EntitySpawnPool.KILLERS
+    val residents = EntitySpawnPool.RESIDENTS_BY_LEVEL.values.flatten().toSet()
+    assertEquals(22, all.size)
+    assertEquals(all.toSet(), residents + EntitySpawnPool.ROAMING.toSet())
+    assertTrue(residents.intersect(EntitySpawnPool.ROAMING.toSet()).isEmpty())
   }
 
-  @Test fun `pool has 22 entities`() {
-    assertEquals(14, EntitySpawnPool.COMMON.size)
-    assertEquals(3, EntitySpawnPool.LIFEFORM.size)
-    assertEquals(3, EntitySpawnPool.RARE.size)
-    assertEquals(2, EntitySpawnPool.KILLERS.size)
+  @Test fun `resident pools follow project canon instead of a global roster`() {
+    assertEquals(setOf("hound", "clump", "duller", "deathmoth", "hostile_faceling", "false_puddle", "paintings"), EntitySpawnPool.poolForLevel("1").toSet())
+    assertEquals(setOf("clump", "hound", "smiler", "skin-stealer", "predatory_window", "biological_pipeline"), EntitySpawnPool.poolForLevel("2").toSet())
+    assertEquals(setOf("deathmoth", "wretch", "skin-stealer", "cable_mimic"), EntitySpawnPool.poolForLevel("3").toSet())
+    assertEquals(setOf("the_beast_of_level_5", "predatory_window", "skin-stealer", "hound", "hotel_corpse_lure"), EntitySpawnPool.poolForLevel("5").toSet())
+    assertFalse(EntitySpawnPool.poolForLevel("1").contains("the_beast_of_level_5"))
   }
 
-  // --- pickForSuccessfulRoll boundary tests ---
-
-  @Test fun `roll 1 selects first common`() {
-    assertEquals("hound", EntitySpawnPool.pickForSuccessfulRoll(1))
-  }
-
-  @Test fun `roll 250 selects first common (boundary)`() {
-    // ticket = 249, 249/250 = 0 -> COMMON[0]
-    assertEquals("hound", EntitySpawnPool.pickForSuccessfulRoll(250))
-  }
-
-  @Test fun `roll 251 selects second common`() {
-    // ticket = 250, 250/250 = 1 -> COMMON[1]
-    assertEquals("clump", EntitySpawnPool.pickForSuccessfulRoll(251))
-  }
-
-  @Test fun `roll 3500 selects last common`() {
-    // ticket = 3499, 3499/250 = 13 -> COMMON[13]
-    assertEquals("hotel_corpse_lure", EntitySpawnPool.pickForSuccessfulRoll(3500))
-  }
-
-  @Test fun `roll 3501 selects first lifeform`() {
-    // ticket = 3500 -> -=3500 = 0, 0/200 = 0 -> LIFEFORM[0]
-    assertEquals("blackroot_sentinel", EntitySpawnPool.pickForSuccessfulRoll(3501))
-  }
-
-  @Test fun `roll 4100 selects last lifeform`() {
-    // ticket = 4099 -> -=3500 = 599, 599/200 = 2 -> LIFEFORM[2]
-    assertEquals("hollow_grasper", EntitySpawnPool.pickForSuccessfulRoll(4100))
-  }
-
-  @Test fun `roll 4101 selects first rare`() {
-    // ticket = 4100 -> -=3500 = 600 -> -=600 = 0, 0/100 = 0 -> RARE[0]
-    assertEquals("the_beast_of_level_5", EntitySpawnPool.pickForSuccessfulRoll(4101))
-  }
-
-  @Test fun `roll 4400 selects last rare`() {
-    // ticket = 4399 -> -=3500 = 899 -> -=600 = 299, 299/100 = 2 -> RARE[2]
-    assertEquals("diep_minh", EntitySpawnPool.pickForSuccessfulRoll(4400))
-  }
-
-  @Test fun `roll 4401 selects first killer`() {
-    // ticket = 4400 -> -=3500 = 900 -> -=600 = 300 -> -=300 = 0, 0/50 = 0 -> KILLERS[0]
-    assertEquals("jeff_the_killer", EntitySpawnPool.pickForSuccessfulRoll(4401))
-  }
-
-  @Test fun `roll 4500 selects last killer`() {
-    // ticket = 4499 -> -=3500 = 999 -> -=600 = 399 -> -=300 = 99, 99/50 = 1 -> KILLERS[1]
-    assertEquals("jane_the_killer", EntitySpawnPool.pickForSuccessfulRoll(4500))
-  }
-
-  // --- rollEntity with fixed seed ---
-
-  @Test fun `rollEntity returns null for rolls above 4500`() {
-    // nextInt returns 9999 -> roll = 10000 > 4500 -> null
-    val result = EntitySpawnPool.rollEntity { 9999 }
-    assertNull(result)
-  }
-
-  @Test fun `rollEntity returns entity for rolls 1 to 4500`() {
-    // nextInt returns 0 -> roll = 1 <= 4500 -> entity
-    val result = EntitySpawnPool.rollEntity { 0 }
-    assertNotNull(result)
-    assertEquals("hound", result)
-  }
-
-  @Test fun `rollEntity distribution matches 45 percent over fixed seed`() {
-    val rng = Random(42)
-    var hits = 0
-    val total = 10000
-    repeat(total) {
-      if (EntitySpawnPool.rollEntity { bound -> rng.nextInt(bound) } != null) hits++
+  @Test fun `empty levels and exact sublevels use only the approved roaming pool`() {
+    for (id in listOf("0", "4", "6", "0.1", "0.2", "0.5", "0.7", "1.2", "1.5", "5.1", "6.1", "manila_room", "office_market", "unknown")) {
+      assertTrue(EntitySpawnPool.residentsForLevel(id).isEmpty())
+      assertEquals(EntitySpawnPool.ROAMING, EntitySpawnPool.poolForLevel(id))
     }
-    // 45% of 10000 = 4500, allow ±3% tolerance for random variance
-    assertTrue("Expected ~4500 hits, got $hits", hits in 4200..4800)
+  }
+
+  @Test fun `every registered node has exactly 3500 successful tickets and only local species`() {
+    val ids = listOf("0", "0.1", "0.2", "0.5", "0.7", "manila_room", "the_torment", "red_rooms", "dullness", "epsilon", "ls_2",
+      "1", "1.2", "1.5", "traders_vault", "base_alpha", "2", "office_space_el3a", "3", "4", "office_market", "5", "5.1", "6", "6.1")
+    assertEquals(LevelRouteRegistry.size(), ids.size)
+    for (id in ids) {
+      var hits = 0
+      val observed = mutableSetOf<String>()
+      for (ticket in 0 until 10000) {
+        var calls = 0
+        val entity = EntitySpawnPool.rollEntity(id) { bound -> calls++; assertEquals(10000, bound); ticket }
+        assertEquals("Only one encounter roll at $id", 1, calls)
+        if (entity != null) { hits++; observed += entity }
+      }
+      assertEquals("Total chance at $id must not depend on roster size", 3500, hits)
+      assertEquals(EntitySpawnPool.poolForLevel(id).toSet(), observed)
+    }
+  }
+
+  @Test fun `35 percent boundary is exact for resident and roaming levels`() {
+    for (id in listOf("1", "2", "3", "5", "0", "4", "6", "1.2")) {
+      assertNotNull(EntitySpawnPool.rollEntity(id) { 3499 })
+      assertNull(EntitySpawnPool.rollEntity(id) { 3500 })
+      assertNull(EntitySpawnPool.rollEntity(id) { 9999 })
+    }
+  }
+
+  @Test fun `successful species selection retains rarity weights within the level`() {
+    val counts = (1..3500).map { EntitySpawnPool.pickForSuccessfulRoll("5", it) }.groupingBy { it }.eachCount()
+    assertEquals(319, counts["the_beast_of_level_5"])
+    assertTrue(counts.getValue("hound") in 795..796)
+    assertEquals(3500, counts.values.sum())
+  }
+
+  @Test fun `runtime uses exact level id and falls back safely when location is missing`() {
+    for (id in listOf("1", "2", "3", "5", "1.2", "5.1", "0", "4", "6")) {
+      val state = stateAt(id)
+      for (ticket in listOf(0, 3499, 3500, 9999)) {
+        val result = SpawnMechanism.rollSpawns(state, ActionKind.EXECUTE, "đi về phía trước") { ticket }
+        assertEquals(EntitySpawnPool.rollEntity(id) { ticket }, result.entityKey)
+      }
+    }
+    for (raw in listOf("{}", "broken json", "{\"id\":\"missing\"}")) {
+      val state = GameState.initial().copy(world = mapOf("levelJson" to raw))
+      assertTrue(SpawnMechanism.rollSpawns(state, ActionKind.EXECUTE, "đi") { 0 }.entityKey in EntitySpawnPool.ROAMING)
+    }
   }
 
   // --- NPC thresholds ---
@@ -165,7 +144,7 @@ class EntitySpawnPoolTest {
     val result = SpawnMechanism.rollSpawns(
       state, ActionKind.EXECUTE, "đi khám phá",
       isMeta = false, inCombatOrPending = false
-    ) { _ -> 0 }  // roll=1 → entity spawns (hound)
+    ) { _ -> 0 }  // roll=1 → entity spawns (roaming pool)
     assertNotNull("Entity should spawn", result.entityKey)
     assertFalse("Ambient must yield to entity", result.ambientNpcRolled)
   }
@@ -426,7 +405,7 @@ class EntitySpawnPoolTest {
     val result = SpawnMechanism.rollSpawns(
       state, ActionKind.EXECUTE, "đi khám phá",
       isMeta = true, inCombatOrPending = false
-    ) { _ -> 0 }  // roll=1 → would spawn hound
+    ) { _ -> 0 }  // roll=1 → would spawn a roaming Entity
     assertNull("Meta turn must not spawn entity", result.entityKey)
     assertTrue("Meta turn must not spawn NPCs", result.npcEncounters.isEmpty())
   }
@@ -450,7 +429,7 @@ class EntitySpawnPoolTest {
     val result = SpawnMechanism.rollSpawns(
       state, ActionKind.EXECUTE, "đi khám phá",
       isMeta = false, inCombatOrPending = false
-    ) { _ -> 0 }  // roll=1 → would spawn hound
+    ) { _ -> 0 }  // roll=1 → would spawn a roaming Entity
     assertNull("entityEncountersAllowed=false must block entity", result.entityKey)
   }
 
