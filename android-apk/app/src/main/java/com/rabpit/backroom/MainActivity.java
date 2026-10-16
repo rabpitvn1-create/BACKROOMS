@@ -1960,7 +1960,10 @@ public class MainActivity extends Activity {
             emit("backroomTurn", special.getJSONObject("state").toString());
             return;
           }
-          JSONObject actionStart = new JSONObject(requireGameCore().beginAction(currentView, actionKind, action));
+          // Free-form chat always submits EXECUTE; recover exploration intent before
+          // Core NPC spawns, Exit streak rolls and Snapshot scene progression.
+          String gameplayKind = com.rabpit.backroom.core.ExplorerActionKind.resolve(actionKind, action);
+          JSONObject actionStart = new JSONObject(requireGameCore().beginAction(currentView, gameplayKind, action));
           if (!actionStart.optBoolean("handled", false)) {
             throw new Exception("Action Runtime từ chối hành động: " + actionStart.optString("error", "action_start_failed"));
           }
@@ -1975,7 +1978,7 @@ public class MainActivity extends Activity {
           JSONObject pendingEntityEncounter = actionStart.optJSONObject("pendingEntityEncounter");
           JSONObject before = new JSONObject(currentView);
           boolean meta = isMetaAction(action);
-          JSONObject rolls = makeGameplayRolls(before, actionKind, action, meta);
+          JSONObject rolls = makeGameplayRolls(before, gameplayKind, action, meta);
 
           JSONObject generated = parseModelJson(generateText(writerPrompt(before, action, rolls, pendingNpcEncounters, pendingEntityEncounter)));
           String reply = generated.optString("reply", "").trim();
@@ -1996,7 +1999,7 @@ public class MainActivity extends Activity {
           // node (HiddenExitStreak + LevelRouteRegistry + Core-parsed intent). The GM/AI
           // never chooses the destination; its words cannot move the player.
           JSONObject destResult = new JSONObject(requireGameCore().determineExitDestination(
-            currentView, actionKind, action));
+            currentView, gameplayKind, action));
           String destinationId = destResult.isNull("destinationId") ? null
             : destResult.optString("destinationId", null);
           if (destinationId != null && destinationId.isEmpty()) destinationId = null;
@@ -2053,7 +2056,7 @@ public class MainActivity extends Activity {
             state = new JSONObject(com.rabpit.backroom.core.knowledge.StoryContinuityReducer.apply(
               before.toString(), state.toString(), action));
             // Persist scene progression with the validated Core delta, never as WebView-only state.
-            com.rabpit.backroom.core.SnapshotSceneProgress.apply(before, state, rolls, actionKind);
+            com.rabpit.backroom.core.SnapshotSceneProgress.apply(before, state, rolls, gameplayKind);
           }
 
           JSONArray log = state.optJSONArray("log");
