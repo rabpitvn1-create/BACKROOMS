@@ -1,0 +1,10 @@
+Backroom 1.2.0.0.36 Debug
+
+- Android versionCode 109; versionName 1.2.0.0.36; applicationId com.rabpit.backroom.
+- PR #645: Thống nhất gameplay qua EXECUTE; xóa ActionKind.EXPLORE và bộ phân loại ExplorerActionKind. SEARCH còn dành cho action-session nội bộ, không tham gia spawn.
+- Entity, NPC Canon và Lucia tại Level 0 được Core quyết định theo điều kiện hiện hành; meta/combat/pending không được spawn. Tránh nhầm lẫn dò xét bằng thần thức thành di chuyển vật lý; tránh quay NPC nền khi hội thoại.
+- Hidden Exit cần 3 lần thành công liên tiếp; chỉ những lệnh EXECUTE có ý định khảo sát/di chuyển mới quay streak. Lượt Entity đã được Core đặt pending không đồng thời thay đổi streak.
+- Scene chỉ thay đổi khi có hành động ảnh hưởng góc nhìn/không gian hoặc Core xác nhận vị trí mới; gặp Entity không tự xoay scene.
+- Prompt GM được chỉnh để kể tiếng Việt tự nhiên, mạch lạc và không kết thúc cụt; giữ nguyên model chain, maxOutputTokens và số lượt gọi GM, không thêm vòng sửa văn.
+- Không thay đổi schema save. Test tự động không thay thế kiểm chứng văn phong Gemini và hiệu năng trên Android thực tế.
+- GitHub Actions xây dựng APK Debug, kiểm tra chữ ký/gói và checksum trước khi đánh dấu GREEN.
