@@ -198,12 +198,13 @@ object NpcSpawnTable {
     val encounters = mutableListOf<NpcEncounter>()
     val flags = runCatching { JSONObject(state.world["flagsJson"] ?: "{}") }.getOrNull() ?: JSONObject()
     val partyMemberIds = state.party.memberIds
-    val isExecute = kind == ActionKind.EXECUTE
+    // Guard the NPC table itself, not just its usual SpawnMechanism caller.
+    if (kind != ActionKind.EXECUTE) return emptyList()
     // Baseline: physical from action TEXT verbs, not action kind (MainActivity:1359 @ 202737c2)
     val isPhysical = PhysicalActionDetector.isPhysical(actionText)
 
     // Lucia: 50% on Level 0 EXECUTE, once-only
-    if (isExecute && level == 0 && LUCIA_ID !in partyMemberIds && !flagSpawned(flags, "lucia")) {
+    if (level == 0 && LUCIA_ID !in partyMemberIds && !flagSpawned(flags, "lucia")) {
       if (nextInt(10000) + 1 <= LUCIA_THRESHOLD) {
         encounters += NpcEncounter(LUCIA_ID, "lucia")
       }
