@@ -41,3 +41,12 @@ test('GM prompt has no milestone due events and recruitment uses a separate nati
  assert.match(java,/Bạn là Game Master kể chuyện Backrooms bằng tiếng Việt/);
  assert.match(java,/@JavascriptInterface public void recruitFollower\(String stateJson, String characterId\)/);
 });
+
+test('free-form chat exploration reaches NPC spawn, hidden exit and snapshot in one Core action kind',()=>{
+ assert.match(html,/window\.Android\.submitAction\(JSON\.stringify\(state\),"EXECUTE",a\)/);
+ assert.match(java,/ExplorerActionKind\.resolve\(actionKind, action\)/);
+ assert.match(java,/beginAction\(currentView, gameplayKind, action\)/);
+ assert.match(java,/makeGameplayRolls\(before, gameplayKind, action, meta\)/);
+ assert.match(java,/determineExitDestination\(\s*currentView, gameplayKind, action\)/);
+ assert.match(java,/SnapshotSceneProgress\.apply\(before, state, rolls, gameplayKind\)/);
+});
