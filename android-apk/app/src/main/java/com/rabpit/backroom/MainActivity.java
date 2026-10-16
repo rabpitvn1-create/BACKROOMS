@@ -1678,7 +1678,7 @@ public class MainActivity extends Activity {
       "Được tự do sáng tác chi tiết, lời thoại, không khí, tương tác phụ và phản ứng khác nhau " +
       "giữa các lượt, đặc biệt ở cảnh gặp Entity/NPC/Follower; tránh lặp câu chữ, mô-típ " +
       "và diễn biến của các lần gặp trước. " +
-      "Mọi lệnh từ khung chat đều là một lượt EXECUTE; mô tả diễn biến theo nội dung hành động, " +
+      "Mọi lệnh từ khung chat đều là một lượt EXECUTE; phải kết hợp hành động người chơi " +
       "với diễn biến trong CHÍNH Turn này, không dời, hủy hay cho nhân vật tự chọn thay người chơi. " +
       "Không tự quyết định Combat, HP, EXP, Item, tạo Entity hay chuyển Level; gameplay Core xử lý. " +
       "Gặp FOLLOWER/NPC phải mô tả cuộc gặp thực tế; nhân vật thể hiện theo đúng hồ sơ Canon trong KNOWLEDGE PACKET (tính cách, cách nói, xưng hô, quan hệ với Cao Minh), không ép một khuôn thoại cố định. " +
