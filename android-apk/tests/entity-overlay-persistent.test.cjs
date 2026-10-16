@@ -99,3 +99,24 @@ test('stale Entity image completion cannot modify new wave visual state',()=>{
  r.imgs()[0].onload();
  assert.equal(r.syncCalls(),1);
 });
+
+test('Hound alpha normalization fits its current artwork and keeps its feet on the ground',()=>{
+ const parts=java.split('\n').filter(row=>row.includes('__entityVisualBounds=')||row.includes('function normalizeEntityVisual('))
+  .map(row=>JSON.parse(row.match(/^\s*("(?:[^"\\]|\\.)*")\s*\+/)[1]));
+ const ctx={__entityOverlay:{key:'hound'}};
+ vm.createContext(ctx);vm.runInContext(parts.join('\n'),ctx);
+ // Current hound.webp: 941x1672, alpha > 16 bbox (12,199)-(941,1556).
+ // Use the decoded artwork dimensions, not the normalizer's own metadata.
+ const alpha={left:12/941,bottom:1556/1672,height:(1556-199)/1672};
+ for(const snapshotHeight of [200,300,450]){
+  const h=snapshotHeight*.97,w=h*941/1672;
+  const img={alt:'hound',style:{},getBoundingClientRect:()=>({width:w,height:h})};
+  ctx.normalizeEntityVisual(img);
+  const match=img.style.transform.match(/translate\(([-\d.]+)px,([-\d.]+)px\) scale\(([-\d.]+)\)/);
+  assert.ok(match);
+  const [,x,y,scale]=match.map(Number);
+  assert.ok(Math.abs(alpha.height*h*scale-snapshotHeight*.94)<.5,'visible Hound must fit inside Snapshot');
+  assert.ok(Math.abs(y-(1-alpha.bottom)*h*scale)<.5,'feet must meet the ground');
+  assert.ok(Math.abs(x+alpha.left*w*scale)<.5,'visible left edge must stay anchored');
+ }
+});

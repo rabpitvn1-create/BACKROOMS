@@ -3,7 +3,7 @@
 @font-face{font-family:"Pretendard Std";src:url('fonts/PretendardStd-Regular.woff2');font-weight:400;font-display:swap}
 @font-face{font-family:"Pretendard Std";src:url('fonts/PretendardStd-Bold.woff2');font-weight:700;font-display:swap}
 @font-face{font-family:"Pretendard Std";src:url('fonts/PretendardStd-ExtraBold.woff2');font-weight:800 900;font-display:swap}
-.combat-float{position:absolute;z-index:8;pointer-events:none;transform:translate(-50%,0);display:flex;flex-direction:column;align-items:center;gap:2px;font-family:Play,"Pretendard Std",system-ui,sans-serif;font-weight:700;font-size:19px;color:#f4f7fa;white-space:nowrap;text-shadow:0 2px 3px #000,0 0 6px #000;animation:combat-float-up 1.6s ease-out forwards}.combat-float-value{display:inline-flex;align-items:center;gap:5px;padding:1px 4px;border-radius:5px}.combat-float--critical{font-size:24px;font-weight:800;color:#ffd166;text-shadow:0 2px 3px #000,0 0 9px rgba(255,176,48,.72);animation:combat-float-crit 1.6s cubic-bezier(.16,.82,.24,1) forwards}.combat-float--critical .combat-float-value:before{content:"CRIT";font-size:9px;line-height:1;letter-spacing:.12em;color:#ffe7a3;background:#7b2d18;border:1px solid #ff9f43;padding:3px 4px;border-radius:4px;text-shadow:none}.combat-float-status{font:800 9px/1 Play,"Pretendard Std",system-ui,sans-serif;letter-spacing:.08em;padding:3px 6px;border-radius:999px;border:1px solid currentColor;background:rgba(8,10,12,.88);box-shadow:0 2px 7px rgba(0,0,0,.55);text-shadow:none}.combat-float--normal:not(.combat-float--critical) .combat-float-value{font-size:9px;line-height:1;font-weight:800}.combat-float-status--normal{color:#f4f7fa}.combat-float--status:not(.combat-float--critical) .combat-float-value{font-size:9px;line-height:1;font-weight:800}.combat-float--status-bleed:not(.combat-float--critical) .combat-float-value{color:#ff7777}.combat-float--status-poison:not(.combat-float--critical) .combat-float-value{color:#c38cff}.combat-float--status-stun:not(.combat-float--critical) .combat-float-value{color:#ffe066}.combat-float--status-armor:not(.combat-float--critical) .combat-float-value{color:#72c7ff}.combat-float--status-disorient:not(.combat-float--critical) .combat-float-value{color:#8fe3d1}.combat-float-status--bleed{color:#ff7777}.combat-float-status--poison{color:#c38cff}.combat-float-status--stun{color:#ffe066}.combat-float-status--armor{color:#72c7ff}.combat-float-status--disorient{color:#8fe3d1}@keyframes combat-float-up{0%{opacity:1;transform:translate(-50%,8px) scale(.96)}12%{opacity:1}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-34px) scale(1.04)}}@keyframes combat-float-crit{0%{opacity:1;transform:translate(-50%,10px) scale(.72)}9%{opacity:1;transform:translate(-50%,1px) scale(1.18)}20%{transform:translate(-50%,-3px) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-42px) scale(1.05)}}
+.combat-float{position:absolute;z-index:8;pointer-events:none;transform:translate(-50%,0);display:flex;flex-direction:column;align-items:center;gap:2px;font-family:Play,"Pretendard Std",system-ui,sans-serif;font-weight:700;font-size:9px;color:#f4f7fa;white-space:nowrap;text-shadow:0 2px 3px #000,0 0 6px #000;animation:combat-float-up 1.6s ease-out forwards}.combat-float-value{display:inline-flex;align-items:center;gap:5px;padding:1px 4px;border-radius:5px}.combat-float--critical{font-size:10px;font-weight:800;color:#ffd166;text-shadow:0 2px 3px #000,0 0 9px rgba(255,176,48,.72);animation:combat-float-crit 1.6s cubic-bezier(.16,.82,.24,1) forwards}.combat-float--critical .combat-float-value:before{content:"CRIT";font-size:10px;line-height:1;letter-spacing:.12em;color:#ffe7a3;background:#7b2d18;border:1px solid #ff9f43;padding:3px 4px;border-radius:4px;text-shadow:none}.combat-float-status{font:800 9px/1 Play,"Pretendard Std",system-ui,sans-serif;letter-spacing:.08em;padding:3px 6px;border-radius:999px;border:1px solid currentColor;background:rgba(8,10,12,.88);box-shadow:0 2px 7px rgba(0,0,0,.55);text-shadow:none}.combat-float--normal:not(.combat-float--critical) .combat-float-value{font-size:9px;line-height:1;font-weight:800}.combat-float-status--normal{color:#f4f7fa}.combat-float-status--skill{color:#cfe5ff}.combat-float--status:not(.combat-float--critical) .combat-float-value{font-size:9px;line-height:1;font-weight:800}.combat-float--status-bleed:not(.combat-float--critical) .combat-float-value{color:#ff7777}.combat-float--status-poison:not(.combat-float--critical) .combat-float-value{color:#c38cff}.combat-float--status-stun:not(.combat-float--critical) .combat-float-value{color:#ffe066}.combat-float--status-armor:not(.combat-float--critical) .combat-float-value{color:#72c7ff}.combat-float--status-disorient:not(.combat-float--critical) .combat-float-value{color:#8fe3d1}.combat-float-status--bleed{color:#ff7777}.combat-float-status--poison{color:#c38cff}.combat-float-status--stun{color:#ffe066}.combat-float-status--armor{color:#72c7ff}.combat-float-status--disorient{color:#8fe3d1}@keyframes combat-float-up{0%{opacity:1;transform:translate(-50%,8px) scale(.96)}12%{opacity:1}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-34px) scale(1.04)}}@keyframes combat-float-crit{0%{opacity:1;transform:translate(-50%,10px) scale(.72)}9%{opacity:1;transform:translate(-50%,1px) scale(1.18)}20%{transform:translate(-50%,-3px) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-42px) scale(1.05)}}
 /* Damage presentation ported from BR-1.1.93a. */
 
 /* COMBAT_TRANSIENT_LOG_R01: presentation-only combat history, cleared when the encounter ends. */
@@ -101,7 +101,7 @@ body.poker-dice-open .game>.log{display:none!important}
 body.poker-dice-open .game>#combatFeedbackPanel{display:flex;flex:1 1 0;min-height:0;overflow:hidden;
  width:calc(100% - 20px);max-width:680px;margin:5px auto 0!important;box-sizing:border-box}
 body.poker-dice-open .game>.player-action-bar{margin-top:0}
-body.poker-dice-open .player-action-bar .primary-action-row.combat-direct{display:grid!important}
+body.poker-dice-open .player-action-bar .primary-action-row.combat-direct{display:flex!important}
 body.poker-dice-open .player-action-bar .primary-action{pointer-events:none;opacity:1!important}
 .combat-feedback-panel{background-color:#1b1b14!important;background-image:linear-gradient(145deg,rgba(9,11,9,.84),rgba(13,15,11,.92)),url('dice/level0-wallpaper.svg')!important;
  background-size:auto,64px 96px!important;flex-direction:column;padding:12px 18px!important;font-family:system-ui,sans-serif!important}
@@ -129,10 +129,10 @@ body.poker-dice-open .player-action-bar .primary-action{pointer-events:none;opac
 
 /* COMBAT_CONTACT_R01: 180ms lunge, 70ms contact hold, 230ms recovery.
    Overlay transforms are animated separately from turn coverflow. */
-.combat-float{font-size:20px;animation-duration:1.2s}
-.combat-float--critical{font-size:26px}
+.combat-float{font-size:9px;animation-duration:1.2s}
+.combat-float--critical{font-size:10px}
 .combat-float--normal:not(.combat-float--critical) .combat-float-value,
-.combat-float--status:not(.combat-float--critical) .combat-float-value{font-size:20px;line-height:1.1}
+.combat-float--status:not(.combat-float--critical) .combat-float-value{font-size:9px;line-height:1.1}
 .combat-float--miss .combat-float-value{font-size:21px;color:#e1e6eb;letter-spacing:.1em}
 .combat-impact{position:absolute;z-index:7;width:144px;height:144px;pointer-events:none;
  transform:translate(-50%,-50%);mix-blend-mode:screen;
@@ -148,8 +148,10 @@ body.poker-dice-open .player-action-bar .primary-action{pointer-events:none;opac
  box-shadow:inset 0 0 24px 3px #dc39495e;animation:combat-hit-edge 200ms ease-out both}
 .party-member[data-character]{position:relative}
 .party-member .combat-float{z-index:9}
-.party-member .combat-float-value{font-size:13px!important}
-.party-member .combat-float-status{font-size:7px}
+.party-member .combat-float:not(.combat-float--miss):not(.combat-float--critical) .combat-float-value{font-size:9px!important}
+.party-member .combat-float--critical .combat-float-value{font-size:10px!important}
+.party-member .combat-float--miss .combat-float-value{font-size:13px!important}
+.combat-float--critical .combat-float-status{font-size:10px}
 @keyframes combat-impact-burst{0%{opacity:0}10%,64%{opacity:1}100%{opacity:0}}
 @keyframes combat-impact-sparks{0%{transform:scale(.32) rotate(-7deg);opacity:0}14%{transform:scale(.75) rotate(-3deg);opacity:1}43%{transform:scale(1) rotate(0);opacity:1}100%{transform:scale(1.28) rotate(4deg);opacity:0}}
 @keyframes combat-impact-afterglow{0%{transform:scale(.25) rotate(17deg);opacity:0}20%{opacity:.5}65%{opacity:.28}100%{transform:scale(1.4) rotate(21deg);opacity:0}}
@@ -161,3 +163,26 @@ body.poker-dice-open .player-action-bar .primary-action{pointer-events:none;opac
 }
 @keyframes combat-contact-label-fade{0%,80%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,0)}}
 @keyframes combat-contact-impact-fade{0%,50%{opacity:.65}100%{opacity:0}}
+
+/* ENTITY_CORE_SHATTER: branching energy fractures, compact detonation and irregular debris. */
+.entity-shatter{position:absolute;z-index:5;pointer-events:none;isolation:isolate;perspective:700px}
+.entity-shatter-shard,.entity-shatter-ghost,.entity-shatter-cracks{position:absolute;inset:0}
+.entity-shatter img{display:block;width:100%;height:100%;max-width:none;object-fit:fill;pointer-events:none}
+.snapshot .snapshot-entity.entity-shatter-source{animation:entity-shatter-prime 480ms ease-in forwards}
+.entity-shatter-cracks{mask-size:100% 100%;-webkit-mask-size:100% 100%;mask-repeat:no-repeat;-webkit-mask-repeat:no-repeat;background-position:center;background-size:100% 100%;background-repeat:no-repeat;filter:drop-shadow(0 0 1px #c5efff) drop-shadow(0 0 3px #8cddff80);animation:entity-shatter-crack 680ms linear both}
+.entity-shatter-core,.entity-shatter-flare,.entity-shatter-shockwave{position:absolute;translate:-50% -50%;border-radius:50%;mix-blend-mode:screen}
+.entity-shatter-core{width:22%;max-width:54px;aspect-ratio:1;background:radial-gradient(circle,#fff 0 10%,#edfbffed 18%,#b4e7ff80 35%,#bdeaff18 55%,transparent 72%);animation:entity-shatter-core 950ms linear both}
+.entity-shatter-flare{width:43%;max-width:100px;aspect-ratio:1;background:radial-gradient(ellipse,#fff 0%,#e6faff88 12%,#a4dfff30 30%,transparent 68%);animation:entity-shatter-flare 750ms ease-out both}
+.entity-shatter-shockwave{width:22%;max-width:54px;aspect-ratio:1;border:1px solid #e9faff;box-shadow:0 0 4px #c1edff88,inset 0 0 3px #c1edff55;animation:entity-shatter-wave 470ms cubic-bezier(.1,.6,.2,1) 470ms both}
+.entity-shatter-shard{opacity:0;animation:entity-shatter-fragment 760ms cubic-bezier(.14,.58,.3,1) forwards;will-change:transform,opacity;backface-visibility:hidden}
+.entity-shatter-spark{position:absolute;display:block;width:var(--spark-length);height:1px;background:#fff;box-shadow:0 0 3px #b8e8ff;opacity:0;animation:entity-shatter-spark 600ms ease-out forwards}
+.entity-shatter-ghost{animation:entity-shatter-soft 180ms ease-out forwards}
+@keyframes entity-shatter-prime{0%,65%{filter:brightness(1)}88%{filter:brightness(1.15)}100%{filter:brightness(1.65) saturate(.55)}}
+@keyframes entity-shatter-crack{0%{clip-path:circle(0% at var(--core-x) var(--core-y));opacity:0}18%{opacity:.4}44%{clip-path:circle(27% at var(--core-x) var(--core-y));opacity:.8}64%{clip-path:circle(65% at var(--core-x) var(--core-y));opacity:1}70%{opacity:1}100%{clip-path:circle(90% at var(--core-x) var(--core-y));opacity:0}}
+@keyframes entity-shatter-core{0%{opacity:0;transform:scale(.08)}32%{opacity:.5;transform:scale(.3)}45%{opacity:.9;transform:scale(.5)}51%{opacity:1;transform:scale(1.5)}64%{opacity:.4;transform:scale(.9)}100%{opacity:0;transform:scale(.25)}}
+@keyframes entity-shatter-flare{0%,58%{opacity:0;transform:scale(.2)}64%{opacity:1;transform:scale(1)}78%{opacity:.25;transform:scale(1.35)}100%{opacity:0;transform:scale(1.5)}}
+@keyframes entity-shatter-wave{0%{opacity:.7;transform:scale(.3)}35%{opacity:.35}100%{opacity:0;transform:scale(3)}}
+@keyframes entity-shatter-fragment{0%{opacity:1;transform:translate3d(0,0,0) rotate(0);filter:brightness(1.9)}30%{opacity:1;filter:brightness(1.1)}65%{opacity:.7;transform:translate3d(var(--shard-x),var(--shard-y),0) rotate(var(--shard-rotate)) rotateY(var(--shard-tilt)) scale(.8)}100%{opacity:0;transform:translate3d(var(--shard-x),var(--shard-drop),0) rotate(var(--shard-rotate)) rotateY(var(--shard-tilt)) scale(var(--shard-scale));filter:brightness(.6)}}
+@keyframes entity-shatter-spark{0%{opacity:0;transform:translate(0,0) rotate(var(--spark-angle)) scaleX(.3)}8%{opacity:1}55%{opacity:.8}100%{opacity:0;transform:translate(var(--spark-x),var(--spark-y)) rotate(var(--spark-angle)) scaleX(.15)}}
+@keyframes entity-shatter-soft{from{opacity:.8;filter:brightness(1.2)}to{opacity:0;filter:brightness(1.4)}}
+@media(prefers-reduced-motion:reduce){.entity-shatter-cracks,.entity-shatter-core,.entity-shatter-flare,.entity-shatter-shockwave,.entity-shatter-spark,.entity-shatter-shard{display:none}.entity-shatter-ghost{animation:entity-shatter-soft 180ms ease-out forwards}}
