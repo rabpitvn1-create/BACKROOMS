@@ -1466,7 +1466,7 @@ public class MainActivity extends Activity {
     int[] hazardThresholds = {400, 700, 1000, 1200, 300, 1000, 1200};
 
     String a = lower(action);
-    boolean physical = containsAny(a, "đi", "bước", "chạy", "leo", "mở", "đóng", "chạm", "lục", "tìm", "kiểm tra", "khảo sát", "quét", "scan", "bắn", "phá", "đẩy", "kéo", "tiến", "lùi", "cúi", "nhìn vào", "bò", "nhảy", "đào", "tháo", "đập", "vượt", "đi qua");
+    boolean physical = com.rabpit.backroom.core.PhysicalActionDetector.isPhysical(action);
     boolean search = containsAny(a, "tìm", "lục", "khám phá", "khảo sát", "kiểm tra", "quét", "scan", "mở", "tháo", "quan sát kỹ", "rà");
     boolean water = containsAny(a, "nước", "water", "almond", "uống", "khát", "chai", "vòi", "hồ", "fountain");
     boolean exitIntent = containsAny(a, "exit", "lối thoát", "thoát", "cửa trắng", "cánh cửa", "ngưỡng", "chuyển level", "sang level", "hành lang phía sau", "đường ra");
@@ -2054,7 +2054,7 @@ public class MainActivity extends Activity {
             state = new JSONObject(com.rabpit.backroom.core.knowledge.StoryContinuityReducer.apply(
               before.toString(), state.toString(), action));
             // Persist scene progression with the validated Core delta, never as WebView-only state.
-            com.rabpit.backroom.core.SnapshotSceneProgress.apply(before, state, rolls, actionKind);
+            com.rabpit.backroom.core.SnapshotSceneProgress.apply(before, state, rolls, actionKind, action);
           }
 
           JSONArray log = state.optJSONArray("log");
