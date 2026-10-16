@@ -126,6 +126,17 @@ class EntitySpawnPoolTest {
     assertEquals(0, rngCalls)
   }
 
+
+  @Test fun `unicode action boundaries distinguish psychic reconnaissance from movement`() {
+    assertFalse(PhysicalActionDetector.isPhysical("Thả thần thức đi điều tra"))
+    assertFalse(PhysicalActionDetector.isPhysical("Xem điểm kinh nghiệm"))
+    assertTrue(PhysicalActionDetector.isPhysical("Cao Minh đi qua hành lang"))
+    assertTrue(PhysicalActionDetector.isPhysical("Mở cửa"))
+    assertTrue(PhysicalActionDetector.isSceneFacing("Thả thần thức đi điều tra"))
+    assertFalse(PhysicalActionDetector.isSceneFacing("Nói chuyện với Lucia"))
+    assertFalse(PhysicalActionDetector.isSceneFacing("Điểm kinh nghiệm"))
+  }
+
   // --- Ambient NPC 30% conditional roll (ephemeral, never a Canon encounter) ---
 
   @Test fun `ambient roll fires on eligible turn with no entity or canon NPC`() {
