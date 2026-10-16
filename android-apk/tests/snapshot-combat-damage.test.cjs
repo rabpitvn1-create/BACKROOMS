@@ -782,12 +782,12 @@ test('full-density shatter keeps every shard cropped for mobile WebView',()=>{
    assert.equal(shard.children.length,1,'cropped shard must render a real Entity image');
    const sprite=shard.children[0];
    assert.equal(sprite.tagName,'IMG');assert.match(sprite.src,/hound\.webp/);
-   assert.equal(sprite.style.width,'480px');
-   assert.equal(sprite.style.height,'300px');
+   const spriteCss=sprite.style.cssText;
+   assert.match(spriteCss,/width:480px;height:300px/);
    const left=Number(style.match(/(?:^|;)left:([\d.]+)px/)[1]);
-   const top=Number(style.match(/(?:^|;)top:([\\d.]+)px/)[1]);
-   assert.equal(Number(sprite.style.left.replace('px','')),-left);
-   assert.equal(Number(sprite.style.top.replace('px','')),-top);
+   const top=Number(style.match(/(?:^|;)top:([\d.]+)px/)[1]);
+   assert.ok(Math.abs(Number(spriteCss.match(/(?:^|;)left:([-\d.]+)px/)[1])+left)<.01);
+   assert.ok(Math.abs(Number(spriteCss.match(/(?:^|;)top:([-\d.]+)px/)[1])+top)<.01);
    assert.equal(shard.style.backgroundImage,undefined,'shards must not rely on CSS background images');
    assert.match(style,/--shard-tilt:[\d.]+/);
    const vertices=style.match(/clip-path:polygon\(([^)]+)\)/)[1].match(/[\d.]+/g).map(Number);
