@@ -92,7 +92,7 @@ public class LevelRouteRegistryTest {
   @Test public void nodeTransitionsResetExitStreakEvenInsideSameParentLevel() throws Exception {
     JSONObject before = new JSONObject().put("location", "Level 0 / Hall")
         .put("flags", new JSONObject().put("exploration", new JSONObject()
-          .put(HiddenExitStreak.STREAK_KEY, 5).put("exitReady", true)));
+          .put(HiddenExitStreak.STREAK_KEY, HiddenExitStreak.REQUIRED_STREAK).put("exitReady", true)));
     JSONObject after = new JSONObject(before.toString()).put("location", "Level 0.1 / Zenith Station");
     HiddenExitStreak.apply(before, after, new JSONObject(), "0", "0.1");
     assertEquals(0, HiddenExitStreak.current(after));
