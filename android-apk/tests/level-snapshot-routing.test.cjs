@@ -78,7 +78,7 @@ test("WebView actually loads the manifest and renders images behind unchanged ov
   assert.ok(native.includes("box.appendChild(caoMinh)"));
   assert.ok(native.includes("appendEntityOverlay()"));
   assert.ok(native.includes("appendLuciaCombatOverlay()"));
-  assert.ok(native.includes("SnapshotSceneProgress.apply(before, state, rolls, gameplayKind)"));
+  assert.ok(native.includes("SnapshotSceneProgress.apply(before, state, rolls, actionKind)"));
 });
 
 // Exercise the same router used by renderSnapshot, rather than checking prompt text.
