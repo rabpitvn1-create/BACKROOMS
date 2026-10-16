@@ -184,6 +184,7 @@ object CharacterStatCore {
     val vit = value(p.vit, equip.vitPct)
     val eva = value(p.eva, 0)
     val def = ((defense(vit).toLong() * (100 + equip.defPct)) / 100).coerceAtMost(CharacterProgressionCore.MAX_STAT.toLong()).toInt()
+    val accuracyBp = accuracyBasisPoints(dex, agi)
     val critBp = criticalChanceBasisPoints(agi)
     val dodgeBp = evasionBasisPoints(eva)
     val critResBp = criticalResistanceBasisPoints(dex)
@@ -196,6 +197,7 @@ object CharacterStatCore {
       evasionPercent = roundPercent(dodgeBp),
       resCriticalPercent = roundPercent(critResBp),
       resEvasionPercent = roundPercent(dodgeResBp),
+      accuracyBasisPoints = accuracyBp,
       criticalChanceBasisPoints = critBp,
       evasionBasisPoints = dodgeBp,
       resCriticalBasisPoints = critResBp,
@@ -210,6 +212,24 @@ object CharacterStatCore {
   fun maxHp(vit: Int): Int = CharacterProgressionCore.BASE_MAX_HP +
     5 * (vit.coerceIn(5, 999) - 5)
   fun defense(vit: Int): Int = (vit.coerceIn(5, 999) - 5)
+
+  // Accuracy is a derived combat stat, never persisted as a sixth primary stat.
+  // Base 58.00%, +0.50 percentage points per effective DEX or AGI above 5.
+  // Capped at 95% before encounter tactics; the final attack roll can reach 99%.
+  fun accuracyBasisPoints(dex: Int, agi: Int): Int {
+    val bonusPoints = (dex.coerceIn(5, 999) - 5) + (agi.coerceIn(5, 999) - 5)
+    return (5800 + bonusPoints * 50).coerceAtMost(9500)
+  }
+
+  fun combatAccuracyBasisPoints(
+    dex: Int, agi: Int, rangeBonus: Int,
+    opening: Int, momentum: Int, pokerBonus: Int
+  ): Int {
+    val tactical = rangeBonus.toLong() + opening.toLong() * 11L +
+      momentum.toLong() * 6L + pokerBonus.toLong()
+    return (accuracyBasisPoints(dex, agi).toLong() + tactical * 100L)
+      .coerceIn(2000L, 9900L).toInt()
+  }
 
   fun criticalChanceBasisPoints(agi: Int): Int =
     (500 + (agi.coerceIn(5, 999) - 5) * 45).coerceAtMost(3000)
