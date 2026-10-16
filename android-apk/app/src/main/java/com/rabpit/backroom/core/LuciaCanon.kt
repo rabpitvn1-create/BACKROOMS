@@ -48,7 +48,7 @@ object LuciaCanon {
         "homeLevel" to HOME_LEVEL.toString(),
         "encounterLevels" to "0",
         "encounterPolicy" to "CORE_SPAWN",
-        "encounterAction" to "EXPLORE",
+        "encounterAction" to "EXECUTE",
         "inventoryProfile" to "lucia_gift_inventory",
         "startingLoadedAmmo" to "60",
         "startingReserveAmmo" to "90",
