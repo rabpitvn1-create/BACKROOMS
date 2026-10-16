@@ -46,7 +46,7 @@ test('chat sends only EXECUTE through Core NPC, exit and snapshot paths',()=>{
  assert.match(html,/window\.Android\.submitAction\(JSON\.stringify\(state\),"EXECUTE",a\)/);
  assert.doesNotMatch(java,/ExplorerActionKind\.resolve/);
  assert.match(java,/beginAction\(currentView, actionKind, action\)/);
- assert.match(java,/makeGameplayRolls\(before, actionKind, action, meta\)/);
+ assert.match(java,/makeGameplayRolls\(before, actionKind, action, meta, pendingEntityEncounter != null\)/);
  assert.match(java,/determineExitDestination\(\s*currentView, actionKind, action\)/);
  assert.match(java,/SnapshotSceneProgress\.apply\(before, state, rolls, actionKind, action\)/);
  const spawner=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/core/EntitySpawnPool.kt'),'utf8');
@@ -54,7 +54,7 @@ test('chat sends only EXECUTE through Core NPC, exit and snapshot paths',()=>{
  assert.doesNotMatch(spawner,/ActionKind\.EXPLORE/);
  assert.match(java,/boolean exitDiscoveryAction = executeAction &&/);
  assert.match(java,/PhysicalActionDetector\.isSceneFacing\(action\)/);
- assert.match(java,/exitDiscoveryAction && !com\.rabpit\.backroom\.core\.HiddenExitStreak\.ready\(state\)/);
+ assert.match(java,/exitDiscoveryAction && !entityReserved && !com\.rabpit\.backroom\.core\.HiddenExitStreak\.ready\(state\)/);
  assert.match(java,/pendingEntityEncounter != null &&/);
  assert.match(java,/rolls\.put\("entityEncounter", new JSONObject\(\)/);
 });
