@@ -4,7 +4,7 @@ import org.json.JSONObject;
 
 /** Authoritative hidden route progression for Level exits. */
 public final class HiddenExitStreak {
-  public static final int REQUIRED_STREAK = 5;
+  public static final int REQUIRED_STREAK = 3;
   public static final int SUCCESS_PERCENT = 50;
   public static final String ROLL_KEY = "_hiddenExitStreak";
   public static final String STREAK_KEY = "hiddenExitStreak";

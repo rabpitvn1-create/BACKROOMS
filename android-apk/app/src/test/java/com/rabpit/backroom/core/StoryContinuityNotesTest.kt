@@ -8,7 +8,7 @@ class StoryContinuityNotesTest {
   private fun state(streak: Int): JSONObject = JSONObject()
     .put("level", JSONObject().put("id", "0").put("number", 0))
     .put("flags", JSONObject().put("exploration", JSONObject()
-      .put(HiddenExitStreak.STREAK_KEY, streak).put("exitReady", streak >= 5)))
+      .put(HiddenExitStreak.STREAK_KEY, streak).put("exitReady", streak >= HiddenExitStreak.REQUIRED_STREAK)))
 
   private fun rolls(): String = JSONObject().put(HiddenExitStreak.ROLL_KEY,
     JSONObject().put("eligible", true).put("success", true)).toString()
@@ -57,18 +57,18 @@ class StoryContinuityNotesTest {
     assertFalse(notes.contains("đã xảy ra và đã được kể"))
   }
 
-  @Test fun fifthSuccessIsANewExitWhileAnExistingExitStaysKnown() {
-    val discovery = StoryContinuityReducer.continuityNotes(state(4).toString(), rolls())
+  @Test fun thirdSuccessIsANewExitWhileAnExistingExitStaysKnown() {
+    val discovery = StoryContinuityReducer.continuityNotes(state(2).toString(), rolls())
     assertTrue(discovery.contains("EXIT VỪA ĐỦ ĐIỀU KIỆN"))
     assertFalse(discovery.contains("Chưa phát hiện Exit"))
     assertFalse(discovery.contains("PHÁT HIỆN TỪ TRƯỚC"))
-    val known = StoryContinuityReducer.continuityNotes(state(5).toString(), "{}")
+    val known = StoryContinuityReducer.continuityNotes(state(3).toString(), "{}")
     assertTrue(known.contains("PHÁT HIỆN TỪ TRƯỚC"))
     assertFalse(known.contains("EXIT VỪA"))
   }
 
   @Test fun unconfirmedExitRemainsLocked() {
-    val notes = StoryContinuityReducer.continuityNotes(state(3).toString(), rolls())
+    val notes = StoryContinuityReducer.continuityNotes(state(1).toString(), rolls())
     assertTrue(notes.contains("Chưa phát hiện Exit"))
     assertFalse(notes.contains("EXIT VỪA"))
   }
