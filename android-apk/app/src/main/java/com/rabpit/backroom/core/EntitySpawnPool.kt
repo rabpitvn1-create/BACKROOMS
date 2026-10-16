@@ -13,7 +13,7 @@ import org.json.JSONObject
  * - 2 killers @ 0.5% each (50bp) = 1%
  *
  * NPC first-meeting rates (d10000, success if roll <= threshold):
- * - Lucia: 5000 (50%) — Level 0 EXPLORE, once-only
+ * - Lucia: 5000 (50%) — Level 0 EXECUTE, once-only
  * - Luc Tram: 25 (0.25%) — Level 4+ physical, once-only
  * - Iris/Syvial reunion: 25 (0.25%) each — physical, continuity SEPARATED/LOST/UNKNOWN
  * - An Nhien: 25 (0.25%) — physical, once-only
@@ -23,7 +23,7 @@ import org.json.JSONObject
  *
  * Eligibility (from baseline MainActivity.makeGameplayRolls @ 202737c2):
  * - Meta turns (status/inventory/help): NO rolls at all
- * - Entity roll: action kind in (EXPLORE, SEARCH, EXECUTE) AND flags.entityEncountersAllowed (default true)
+ * - Entity roll: action kind EXECUTE AND flags.entityEncountersAllowed (default true)
  * - NPC rolls: `physical` inferred from ACTION TEXT verbs (not action kind).
  *   Dialogue-only EXECUTE (e.g. "nói chuyện", "hỏi") is NOT physical → no NPC spawns.
  * - Combat/pending encounters: NO rolls
@@ -178,12 +178,12 @@ object NpcSpawnTable {
    * Baseline eligibility (@ 202737c2 MainActivity.makeGameplayRolls):
    * - `physical` is inferred from ACTION TEXT verbs, NOT action kind.
    *   A dialogue-only EXECUTE ("nói chuyện", "hỏi") is NOT physical → no NPC rolls.
-   * - Lucia: EXPLORE kind only (not text-based)
+   * - Lucia: EXECUTE kind only at Level 0 (not text-based)
    * - Ambient NPC: rolled in SpawnMechanism.rollSpawns (not here) — 30%,
    *   entity and Canon NPCs take priority, never a Canon encounter.
    *
    * @param state current game state
-   * @param kind action kind (EXPLORE/EXECUTE/SEARCH) — used for Lucia EXPLORE check only
+   * @param kind action kind — only EXECUTE is eligible for Core spawns
    * @param actionText raw action text for physical verb detection
    * @param level current level number
    * @param nextInt function returning 0..9999 (injectable for tests)
@@ -198,12 +198,12 @@ object NpcSpawnTable {
     val encounters = mutableListOf<NpcEncounter>()
     val flags = runCatching { JSONObject(state.world["flagsJson"] ?: "{}") }.getOrNull() ?: JSONObject()
     val partyMemberIds = state.party.memberIds
-    val isExplore = kind == ActionKind.EXPLORE
+    val isExecute = kind == ActionKind.EXECUTE
     // Baseline: physical from action TEXT verbs, not action kind (MainActivity:1359 @ 202737c2)
     val isPhysical = PhysicalActionDetector.isPhysical(actionText)
 
-    // Lucia: 50% on Level 0 EXPLORE, once-only
-    if (isExplore && level == 0 && LUCIA_ID !in partyMemberIds && !flagSpawned(flags, "lucia")) {
+    // Lucia: 50% on Level 0 EXECUTE, once-only
+    if (isExecute && level == 0 && LUCIA_ID !in partyMemberIds && !flagSpawned(flags, "lucia")) {
       if (nextInt(10000) + 1 <= LUCIA_THRESHOLD) {
         encounters += NpcEncounter(LUCIA_ID, "lucia")
       }
@@ -268,10 +268,10 @@ object SpawnMechanism {
    * Eligibility gates (from baseline @ 202737c2):
    * 1. Meta turns: NO rolls (status/inventory/help don't spawn)
    * 2. Combat/pending: NO rolls (caller must check CombatRuntime.pending)
-   * 3. Entity: action kind in (EXPLORE, SEARCH, EXECUTE) AND
+   * 3. Entity: action kind EXECUTE AND
    *    flags.entityEncountersAllowed (default true)
    * 4. NPCs: physical from action TEXT (see PhysicalActionDetector)
-   * 5. Ambient NPC: 30% on eligible EXPLORE turns — only if NO entity rolled AND no
+   * 5. Ambient NPC: 30% on eligible EXECUTE turns — only if NO entity rolled AND no
    *    Canon NPC encounters. Meta/combat already returned above. The "currently
    *    in ambient dialogue" check is RAM-side (MainActivity), not Core state.
    *
@@ -291,7 +291,7 @@ object SpawnMechanism {
     nextInt: (Int) -> Int
   ): SpawnResult {
     // Gate 1+2: meta turns and combat/pending → no spawns at all (baseline: `if (meta) return rolls`)
-    if (isMeta || inCombatOrPending) {
+    if (isMeta || inCombatOrPending || kind != ActionKind.EXECUTE) {
       return SpawnResult(null, emptyList())
     }
 
@@ -300,9 +300,7 @@ object SpawnMechanism {
     // Gate 3: entity roll requires eligible action kind AND entityEncountersAllowed flag.
     // Baseline: `entityEncounterAction && entityAllowed` (MainActivity:1391 @ 202737c2).
     // Note: the `!milestoneHasPlan()` gate is obsolete — Milestone is gone.
-    val entityEncounterAction = kind == ActionKind.EXPLORE ||
-      kind == ActionKind.SEARCH ||
-      kind == ActionKind.EXECUTE
+    val entityEncounterAction = kind == ActionKind.EXECUTE
     val entityAllowed = flags.optBoolean("entityEncountersAllowed", true)
     val entityKey = if (entityEncounterAction && entityAllowed) {
       EntitySpawnPool.rollEntity(nextInt)
@@ -316,7 +314,7 @@ object SpawnMechanism {
 
     // Gate 5: Ambient crowd NPC — 30% on d10000, ephemeral only.
     // Priority: entity and Canon NPCs take precedence over ambient.
-    val ambientNpcRolled = kind == ActionKind.EXPLORE &&
+    val ambientNpcRolled = kind == ActionKind.EXECUTE &&
       entityKey == null && npcEncounters.isEmpty() &&
       nextInt(10000) + 1 <= NpcSpawnTable.AMBIENT_THRESHOLD
 
@@ -324,9 +322,8 @@ object SpawnMechanism {
   }
 
   /**
-   * Backward-compatible overload for callers that don't yet pass action text.
-   * Defaults to empty action text (not physical) — prefer the full overload.
-   * TODO(Agents 1/2): Update GameCoreFacade.beginAction to pass the action text.
+   * Convenience overload for programmatic callers with no action text.
+   * Game turns use the full overload; empty text is not physical.
    */
   fun rollSpawns(state: GameState, kind: ActionKind, nextInt: (Int) -> Int): SpawnResult {
     return rollSpawns(state, kind, "", isMeta = false, inCombatOrPending = false, nextInt)
