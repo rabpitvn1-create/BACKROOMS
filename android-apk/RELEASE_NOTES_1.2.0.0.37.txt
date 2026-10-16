@@ -1,0 +1,10 @@
+Backroom 1.2.0.0.37 Debug
+
+- Android versionCode 110; versionName 1.2.0.0.37; applicationId com.rabpit.backroom.
+- PR #647: Bổ sung chỉ số chiến đấu Tỷ lệ chính xác (Accuracy), tăng theo DEX và AGI hiệu dụng từng nhân vật (gồm trang bị và nội tại).
+- Công thức Accuracy nền: min(95%, 58% + 0.5 điểm phần trăm × [(DEX - 5) + (AGI - 5)]). Mức accuracy kiểm tra trúng đòn sau modifiers range/opening/momentum/Poker Dice giới hạn 20%–99%; Entity Evasion vẫn được kiểm tra độc lập.
+- Kiểm tra hit bằng cơ số 10000 cho xác suất 0.01%; áp dụng cho từng thành viên Party và các đòn phản kiếm của Lục Trầm. Các Ultimate không yêu cầu roll Accuracy giữ nguyên hợp đồng Canon.
+- Giao diện Character Info hiển thị Tỷ lệ chính xác ở Combat Status, gồm 9 chỉ số chiến đấu; bổ sung chú thích DEX/AGI.
+- Thêm regression test công thức, giao diện, JSON projection, bonus trang bị/nội tại và xác minh hành vi đánh trúng thực tế trong Combat Runtime với seed cố định.
+- Không thay đổi schema save và không thêm request GM. Hiệu quả cân bằng chiến đấu trên Android thật chưa được đánh giá qua phiên chơi dài.
+- Android APK Debug được build, xác minh package/signature/checksum và tải lại đối chiếu trong GitHub Actions trước trạng thái GREEN.
