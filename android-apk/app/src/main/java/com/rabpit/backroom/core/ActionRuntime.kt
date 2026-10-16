@@ -1,6 +1,6 @@
 package com.rabpit.backroom.core
 
-enum class ActionKind { SEARCH, EXECUTE, EXPLORE }
+enum class ActionKind { SEARCH, EXECUTE }
 enum class SearchDepth { QUICK, NORMAL, THOROUGH }
 enum class ActionPhase { ACTIVE, INTERRUPTED, COMPLETED }
 
@@ -28,10 +28,10 @@ data class ActionRuntimeResult(
 )
 
 /**
- * Persistent action-session layer shared by Search, Execute and Explore.
+ * Persistent action-session layer for Execute gameplay and internal Search sessions.
  *
  * The runtime intentionally stores its small control state inside GameState metadata/world maps so
- * the existing save codec remains backward compatible. Time is advanced only through TimeEngine,
+ * action time and checkpoint progress survive serialization. Time is advanced only through TimeEngine,
  * which keeps hunger/thirst/awake counters synchronized with partial action progress.
  *
  * A UI button must never mutate world state directly. It starts an Action Session, then checkpoints
