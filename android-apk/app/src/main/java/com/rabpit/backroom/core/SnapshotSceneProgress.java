@@ -24,7 +24,7 @@ public final class SnapshotSceneProgress {
     boolean locationChanged = !before.optString("location", "").equals(next.optString("location", ""));
     String oldArea = oldFlags == null ? "" : oldFlags.optString("visualAreaKey", "");
     boolean areaChanged = !oldArea.equals(flags.optString("visualAreaKey", ""));
-    boolean explore = "EXPLORE".equalsIgnoreCase(actionKind == null ? "" : actionKind.trim());
+    boolean execute = "EXECUTE".equalsIgnoreCase(actionKind == null ? "" : actionKind.trim());
     boolean failed = HiddenExitStreak.failedThisTurn(rolls);
 
     // Discovering an Exit is independent from exploring the surroundings.
@@ -33,7 +33,7 @@ public final class SnapshotSceneProgress {
     boolean encounter = entityRoll != null && entityRoll.optBoolean("eligible", false) &&
         entityRoll.optBoolean("success", false);
     boolean advance = !encounter &&
-        (nodeChanged || explore || (!failed && (locationChanged || areaChanged)));
+        (nodeChanged || execute || (!failed && (locationChanged || areaChanged)));
     int step = advance ? (previous == Integer.MAX_VALUE ? 0 : previous + 1) : previous;
     // Ignore any snapshotStep supplied by the narrative model; Core alone advances it.
     exploration.put(STEP_KEY, step);
