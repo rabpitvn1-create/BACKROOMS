@@ -83,9 +83,19 @@ jobs:
         if: github.event_name != 'pull_request'
         run: |
           set -euo pipefail
-          for name in GEHIHI_API_KEY GEHIHI_MODEL GEMINI_API_KEY_1 GEMINI_API_KEY_2 GEMINI_API_KEY_3 GEMINI_API_KEY_4 GEMINI_API_KEY_5 HAKU_API_KEY SOL_API_KEY; do
+          for name in GEHIHI_API_KEY GEHIHI_MODEL HAKU_API_KEY SOL_API_KEY; do
             test -n "${!name:-}" || (echo "Missing GitHub Secret: $name" && exit 1)
           done
+          # The client skips empty Gemini lanes; require a configured pool,
+          # not all five slots (the unnumbered legacy secret may be retired).
+          gemini_key_count=0
+          for name in GEMINI_API_KEY_1 GEMINI_API_KEY_2 GEMINI_API_KEY_3 GEMINI_API_KEY_4 GEMINI_API_KEY_5; do
+            if [ -n "${!name:-}" ]; then
+              gemini_key_count=$((gemini_key_count + 1))
+            fi
+          done
+          test "$gemini_key_count" -gt 0 || (echo "No Gemini API key configured" && exit 1)
+          echo "Configured Gemini lanes: $gemini_key_count"
           echo "Optional Haku base/model overrides: ${HAKU_BASE_URL:+configured} ${HAKU_MODEL:+configured}"
 
       - uses: actions/setup-java@v5
