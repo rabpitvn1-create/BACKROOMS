@@ -1,0 +1,57 @@
+name: Delete failed and cancelled workflow runs
+
+on:
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+concurrency:
+  group: delete-failed-cancelled-workflow-runs
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Delete completed failed and cancelled runs
+        uses: actions/github-script@v8
+        with:
+          retries: 3
+          script: |
+            const eligible = run => run.status === 'completed' &&
+              ['failure', 'cancelled'].includes(run.conclusion);
+            // Collect every page before deleting so pagination cannot shift.
+            // No API status filter: filtered searches are capped at 1,000 runs.
+            const runs = await github.paginate(
+              github.rest.actions.listWorkflowRunsForRepo,
+              { ...context.repo, per_page: 100 }
+            );
+            const candidates = new Map(runs.filter(eligible).map(run => [run.id, run]));
+            let deleted = 0;
+            let skipped = 0;
+            for (const id of candidates.keys()) {
+              try {
+                // A failed run may have been restarted since the initial scan.
+                const { data: current } = await github.rest.actions.getWorkflowRun({
+                  ...context.repo, run_id: id
+                });
+                if (!eligible(current) || id === context.runId) {
+                  skipped++;
+                  continue;
+                }
+                await github.rest.actions.deleteWorkflowRun({ ...context.repo, run_id: id });
+                deleted++;
+                core.info(`Deleted ${current.conclusion} run ${id}: ${current.name}`);
+              } catch (error) {
+                if (error.status !== 404) throw error;
+                skipped++;
+              }
+            }
+            await core.summary.addHeading('Workflow run cleanup')
+              .addTable([
+                [{ data: 'Result', header: true }, { data: 'Count', header: true }],
+                ['Deleted failed/cancelled runs', String(deleted)],
+                ['Skipped changed or missing runs', String(skipped)]
+              ]).write();
