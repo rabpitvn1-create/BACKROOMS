@@ -22,8 +22,8 @@ android {
     testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     minSdk 24
     targetSdk 35
-    versionCode 107
-    versionName canonRetrievalTrial ? '1.2.0.0.34-canon-r2-trial' : '1.2.0.0.34'
+    versionCode 108
+    versionName canonRetrievalTrial ? '1.2.0.0.35-canon-r2-trial' : '1.2.0.0.35'
     buildConfigField "String", "GEHIHI_API_KEY", "\"" + secret("GEHIHI_API_KEY") + "\""
     buildConfigField "String", "GEHIHI_BASE_URL", "\"" + secret("GEHIHI_BASE_URL") + "\""
     buildConfigField "String", "GEHIHI_MODEL", "\"" + secret("GEHIHI_MODEL") + "\""
