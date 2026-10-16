@@ -53,6 +53,11 @@ class GmNarrativeVoicePolicyTest {
     }
     assertTrue(policy.contains("UNKNOWN"))
     assertTrue(policy.contains("người chơi"))
+    val gameplayGuidance = com.rabpit.backroom.core.GmNarrativeVoicePolicy.voiceGuidance(
+      com.rabpit.backroom.core.GmNarrativeVoicePolicy.QUIET_DISCOVERY,
+      com.rabpit.backroom.core.GmNarrativeVoicePolicy.NONE
+    )
+    assertTrue(gameplayGuidance.contains("tiếng Việt tự nhiên"))
     assertFalse(GmNarrativeVoicePolicy.hasSecondPersonNarration(
       "Cao Minh nghe tiếng đèn huỳnh quang. Hắn bước đến, rồi dừng lại."))
   }

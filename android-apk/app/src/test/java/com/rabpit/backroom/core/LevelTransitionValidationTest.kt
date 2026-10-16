@@ -70,7 +70,7 @@ class LevelTransitionValidationTest {
     // Action names the destination ("Zenith Station" = node "0.1").
     val save = MemorySave(freshAt("0", streak = HiddenExitStreak.REQUIRED_STREAK))
     val core = facade(save)
-    val dest = authorize(core, turn = 1, kind = "EXPLORE", action = "bước qua cửa đến Zenith Station")
+    val dest = authorize(core, turn = 1, kind = "EXECUTE", action = "bước qua cửa đến Zenith Station")
     assertEquals("0.1", dest.optString("destinationId"))
   }
 
@@ -79,7 +79,7 @@ class LevelTransitionValidationTest {
     // single forward edge to "1" (parent 1). Generic traverse suffices.
     val save = MemorySave(freshAt("red_rooms", streak = HiddenExitStreak.REQUIRED_STREAK))
     val core = facade(save)
-    val dest = authorize(core, turn = 1, kind = "EXPLORE", action = "bước qua cửa đỏ")
+    val dest = authorize(core, turn = 1, kind = "EXECUTE", action = "bước qua cửa đỏ")
     assertEquals("1", dest.optString("destinationId"))
   }
 
@@ -87,7 +87,7 @@ class LevelTransitionValidationTest {
     val saved = MemorySave(freshAt("2", streak = HiddenExitStreak.REQUIRED_STREAK))
     val core = facade(saved)
     val action = "đi qua cửa trở lại Level 1"
-    val decision = authorize(core, turn = 1, kind = "EXPLORE", action = action)
+    val decision = authorize(core, turn = 1, kind = "EXECUTE", action = action)
     assertTrue(decision.toString(), decision.isNull("destinationId"))
     val rejected = JSONObject(core.processValidatedCandidate(
       beforeJson(turn = 1), candidateJson("1"), action))
@@ -98,7 +98,7 @@ class LevelTransitionValidationTest {
   @Test fun coreCanReturnFromSublevelToAreaWithinSameParentLevel() {
     val saved = MemorySave(freshAt("1.2", streak = HiddenExitStreak.REQUIRED_STREAK))
     val core = facade(saved)
-    val decision = authorize(core, turn = 1, kind = "EXPLORE",
+    val decision = authorize(core, turn = 1, kind = "EXECUTE",
       action = "đi qua cửa về Level 1")
     assertEquals("1", decision.optString("destinationId"))
   }
@@ -118,7 +118,7 @@ class LevelTransitionValidationTest {
     val save = MemorySave(withBag)
     val core = facade(save)
     val action = "bước qua cửa đỏ"
-    assertEquals("1", authorize(core, 1, "EXPLORE", action).optString("destinationId"))
+    assertEquals("1", authorize(core, 1, "EXECUTE", action).optString("destinationId"))
     val result = JSONObject(core.processValidatedCandidate(beforeJson(1), candidateJson("1"), action))
     assertTrue(result.toString(), result.getBoolean("handled"))
     assertEquals(CharacterPresence.SEPARATED, save.state.characters.getValue("lucia").presence)
@@ -136,7 +136,7 @@ class LevelTransitionValidationTest {
     val save = MemorySave(staged)
     val core = facade(save)
     val action = "bước qua cửa đỏ"
-    assertEquals("1", authorize(core, 1, "EXPLORE", action).optString("destinationId"))
+    assertEquals("1", authorize(core, 1, "EXECUTE", action).optString("destinationId"))
     val result = JSONObject(core.processValidatedCandidate(beforeJson(1), candidateJson("1"), action))
     assertTrue(result.toString(), result.getBoolean("handled"))
     assertEquals(CharacterPresence.ACTIVE, save.state.characters.getValue(LUCIA_ID).presence)
@@ -156,14 +156,14 @@ class LevelTransitionValidationTest {
     val save = MemorySave(current)
     val core = facade(save)
     val action = "bước qua cửa đỏ"
-    assertEquals("1", authorize(core, 1, "EXPLORE", action).optString("destinationId"))
+    assertEquals("1", authorize(core, 1, "EXECUTE", action).optString("destinationId"))
     val result = JSONObject(core.processValidatedCandidate(beforeJson(1), candidateJson("1"), action))
     assertTrue(result.toString(), result.getBoolean("handled"))
     assertEquals(CharacterPresence.ACTIVE, save.state.characters.getValue("lucia").presence)
   }
 
   @Test fun coreRejectsWhenExitNotReady() {
-    // P0-3 required: insufficient-condition case. Streak=0, non-EXPLORE kind
+    // P0-3 required: insufficient-condition case. Streak=0, without a ready Exit
     // -> Core's roll ineligible -> deterministic "exit_not_ready".
     val save = MemorySave(freshAt("0", streak = 0))
     val core = facade(save)
@@ -177,7 +177,7 @@ class LevelTransitionValidationTest {
     // GM must not move the player on a non-traversal action.
     val save = MemorySave(freshAt("0", streak = HiddenExitStreak.REQUIRED_STREAK))
     val core = facade(save)
-    val dest = authorize(core, turn = 1, kind = "EXPLORE", action = "quan sát xung quanh căn phòng")
+    val dest = authorize(core, turn = 1, kind = "EXECUTE", action = "quan sát xung quanh căn phòng")
     assertTrue(dest.isNull("destinationId"))
     assertEquals("no_traversal_intent", dest.optString("reason"))
   }
@@ -187,7 +187,7 @@ class LevelTransitionValidationTest {
     // Player names "Trader's Vault" -> Core picks it (not GM's choice).
     val save = MemorySave(freshAt("1", streak = HiddenExitStreak.REQUIRED_STREAK))
     val core = facade(save)
-    val dest = authorize(core, turn = 1, kind = "EXPLORE", action = "đi vào Trader's Vault")
+    val dest = authorize(core, turn = 1, kind = "EXECUTE", action = "đi vào Trader's Vault")
     assertEquals("traders_vault", dest.optString("destinationId"))
   }
 
@@ -196,7 +196,7 @@ class LevelTransitionValidationTest {
     // Core never guesses -> null; GM prompts via gmRoutingContext.
     val save = MemorySave(freshAt("1", streak = HiddenExitStreak.REQUIRED_STREAK))
     val core = facade(save)
-    val dest = authorize(core, turn = 1, kind = "EXPLORE", action = "bước qua cửa")
+    val dest = authorize(core, turn = 1, kind = "EXECUTE", action = "bước qua cửa")
     assertTrue(dest.isNull("destinationId"))
     assertEquals("destination_ambiguous", dest.optString("reason"))
   }
@@ -207,7 +207,7 @@ class LevelTransitionValidationTest {
     // Full flow: Core authorizes 0 -> 0.1, candidate carries it, Core commits.
     val save = MemorySave(freshAt("0", streak = HiddenExitStreak.REQUIRED_STREAK))
     val core = facade(save)
-    val dest = authorize(core, turn = 1, kind = "EXPLORE", action = "bước qua cửa đến Zenith Station")
+    val dest = authorize(core, turn = 1, kind = "EXECUTE", action = "bước qua cửa đến Zenith Station")
     assertEquals("0.1", dest.optString("destinationId"))
     val result = JSONObject(core.processValidatedCandidate(
       beforeJson(turn = 1),
@@ -220,7 +220,7 @@ class LevelTransitionValidationTest {
     // Full flow: Core authorizes red_rooms -> 1 (parent 0 -> parent 1).
     val save = MemorySave(freshAt("red_rooms", streak = HiddenExitStreak.REQUIRED_STREAK))
     val core = facade(save)
-    val dest = authorize(core, turn = 1, kind = "EXPLORE", action = "bước qua cửa đỏ")
+    val dest = authorize(core, turn = 1, kind = "EXECUTE", action = "bước qua cửa đỏ")
     assertEquals("1", dest.optString("destinationId"))
     val result = JSONObject(core.processValidatedCandidate(
       beforeJson(turn = 1),
@@ -244,7 +244,7 @@ class LevelTransitionValidationTest {
   }
 
   @Test fun transitionWithoutExitReadyIsRejected() {
-    // Streak=0 in Core, non-EXPLORE kind -> determineExitDestination refuses.
+    // Streak=0 in Core, without a ready Exit -> determineExitDestination refuses.
     // A candidate that changes level anyway must be rejected.
     val save = MemorySave(freshAt("0", streak = 0))
     val core = facade(save)
@@ -294,7 +294,7 @@ class LevelTransitionValidationTest {
     val save = MemorySave(freshAt("red_rooms", streak = HiddenExitStreak.REQUIRED_STREAK))
     val core = facade(save)
     val action = "bước qua cửa đỏ"
-    val dest = authorize(core, turn = 1, kind = "EXPLORE", action = action)
+    val dest = authorize(core, turn = 1, kind = "EXECUTE", action = action)
     assertEquals("1", dest.optString("destinationId"))
     val first = JSONObject(core.processValidatedCandidate(
       beforeJson(turn = 1), candidateJson("1"), action))

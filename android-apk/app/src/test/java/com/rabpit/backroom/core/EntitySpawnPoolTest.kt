@@ -117,16 +117,39 @@ class EntitySpawnPoolTest {
     assertEquals(3000, NpcSpawnTable.AMBIENT_THRESHOLD)
   }
 
+  @Test fun `direct npc table rejects non execute kinds without rng`() {
+    var rngCalls = 0
+    val encounters = NpcSpawnTable.rollNpcs(
+      GameState.initial(), ActionKind.SEARCH, "đi tìm người sống sót", 4
+    ) { _ -> rngCalls++; 0 }
+    assertTrue(encounters.isEmpty())
+    assertEquals(0, rngCalls)
+  }
+
+
+  @Test fun `unicode action boundaries distinguish psychic reconnaissance from movement`() {
+    assertFalse(PhysicalActionDetector.isPhysical("Thả thần thức đi điều tra"))
+    assertFalse(PhysicalActionDetector.isPhysical("Dùng thần thức đi quét hành lang"))
+    assertTrue(PhysicalActionDetector.isPhysical("Thả thần thức đi điều tra rồi bước tới"))
+    assertFalse(PhysicalActionDetector.isPhysical("Xem điểm kinh nghiệm"))
+    assertTrue(PhysicalActionDetector.isPhysical("Cao Minh đi qua hành lang"))
+    assertTrue(PhysicalActionDetector.isPhysical("Mở cửa"))
+    assertTrue(PhysicalActionDetector.isSceneFacing("Thả thần thức đi điều tra"))
+    assertFalse(PhysicalActionDetector.isSceneFacing("Nói chuyện với Lucia"))
+    assertFalse(PhysicalActionDetector.isSceneFacing("Hỏi Lucia về việc khảo sát hành lang"))
+    assertFalse(PhysicalActionDetector.isSceneFacing("Điểm kinh nghiệm"))
+  }
+
   // --- Ambient NPC 30% conditional roll (ephemeral, never a Canon encounter) ---
 
   @Test fun `ambient roll fires on eligible turn with no entity or canon NPC`() {
     val state = GameState.initial()
     // Force: entity roll fails (roll=10000), Lucia roll fails, ambient succeeds (roll=1)
-    // Call order on Level 0 EXPLORE: entity(1), Lucia(2), ambient(3).
+    // Call order on Level 0 EXECUTE: entity(1), Lucia(2), ambient(3).
     // LucTram/Iris/Syvial/AnNhien rolls are skipped (level/eligibility/legacy).
     var calls = 0
     val result = SpawnMechanism.rollSpawns(
-      state, ActionKind.EXPLORE, "đi khám phá",
+      state, ActionKind.EXECUTE, "đi khám phá",
       isMeta = false, inCombatOrPending = false
     ) { _ ->
       calls++
@@ -140,7 +163,7 @@ class EntitySpawnPoolTest {
   @Test fun `ambient roll skipped when entity spawns this turn (entity priority)`() {
     val state = GameState.initial()
     val result = SpawnMechanism.rollSpawns(
-      state, ActionKind.EXPLORE, "đi khám phá",
+      state, ActionKind.EXECUTE, "đi khám phá",
       isMeta = false, inCombatOrPending = false
     ) { _ -> 0 }  // roll=1 → entity spawns (hound)
     assertNotNull("Entity should spawn", result.entityKey)
@@ -149,10 +172,10 @@ class EntitySpawnPoolTest {
 
   @Test fun `ambient roll skipped when canon NPC spawns (canon priority)`() {
     val state = GameState.initial()
-    // Force Lucia success (roll=1) on Level 0 EXPLORE; entity fails
+    // Force Lucia success (roll=1) on Level 0 EXECUTE; entity fails
     var calls = 0
     val result = SpawnMechanism.rollSpawns(
-      state, ActionKind.EXPLORE, "đi khám phá",
+      state, ActionKind.EXECUTE, "đi khám phá",
       isMeta = false, inCombatOrPending = false
     ) { _ ->
       calls++
@@ -170,13 +193,13 @@ class EntitySpawnPoolTest {
   @Test fun `ambient roll skipped on meta and combat turns`() {
     val state = GameState.initial()
     val meta = SpawnMechanism.rollSpawns(
-      state, ActionKind.EXPLORE, "đi khám phá",
+      state, ActionKind.EXECUTE, "đi khám phá",
       isMeta = true, inCombatOrPending = false
     ) { _ -> 0 }
     assertFalse("Meta turn must not roll ambient", meta.ambientNpcRolled)
 
     val combat = SpawnMechanism.rollSpawns(
-      state, ActionKind.EXPLORE, "đi khám phá",
+      state, ActionKind.EXECUTE, "đi khám phá",
       isMeta = false, inCombatOrPending = true
     ) { _ -> 0 }
     assertFalse("Combat turn must not roll ambient", combat.ambientNpcRolled)
@@ -220,7 +243,7 @@ class EntitySpawnPoolTest {
     val total = 10000
     repeat(total) {
       val result = SpawnMechanism.rollSpawns(
-        state, ActionKind.EXPLORE, "Khám Phá",
+        state, ActionKind.EXECUTE, "Khám Phá",
         isMeta = false, inCombatOrPending = false
       ) { bound -> rng.nextInt(bound) }
       if (result.ambientNpcRolled) hits++
@@ -234,8 +257,8 @@ class EntitySpawnPoolTest {
     val state = GameState.initial().copy(world = mapOf(
       "flagsJson" to """{"entityEncountersAllowed":false,"lucia":{"spawned":true}}"""
     ))
-    val lastSuccess = SpawnMechanism.rollSpawns(state, ActionKind.EXPLORE, "Khám Phá") { 2999 }
-    val firstFailure = SpawnMechanism.rollSpawns(state, ActionKind.EXPLORE, "Khám Phá") { 3000 }
+    val lastSuccess = SpawnMechanism.rollSpawns(state, ActionKind.EXECUTE, "Khám Phá") { 2999 }
+    val firstFailure = SpawnMechanism.rollSpawns(state, ActionKind.EXECUTE, "Khám Phá") { 3000 }
     assertTrue("Ticket 3000 is the last successful roll", lastSuccess.ambientNpcRolled)
     assertFalse("Ticket 3001 must not roll Ambient", firstFailure.ambientNpcRolled)
     assertNull(lastSuccess.entityKey)
@@ -244,12 +267,56 @@ class EntitySpawnPoolTest {
     assertTrue(firstFailure.npcEncounters.isEmpty())
   }
 
-  @Test fun `ambient roll never fires on searches or dialogue execute`() {
+  @Test fun `search never spawns or consumes rng`() {
     val state = GameState.initial()
-    for (kind in listOf(ActionKind.SEARCH, ActionKind.EXECUTE)) {
-      val result = SpawnMechanism.rollSpawns(state, kind, "hỏi tiếp") { 9999 }
-      assertFalse("Only exploration may create ambient NPCs", result.ambientNpcRolled)
+    var calls = 0
+    val result = SpawnMechanism.rollSpawns(state, ActionKind.SEARCH, "khám phá") {
+      calls++; 0
     }
+    assertNull(result.entityKey)
+    assertTrue(result.npcEncounters.isEmpty())
+    assertFalse(result.ambientNpcRolled)
+    assertEquals(0, calls)
+  }
+
+  @Test fun `lucia can spawn from execute without an explore keyword`() {
+    var calls = 0
+    val result = SpawnMechanism.rollSpawns(
+      GameState.initial(), ActionKind.EXECUTE, "Thả thần thức đi điều tra",
+      isMeta = false, inCombatOrPending = false
+    ) { _ ->
+      calls++
+      if (calls == 1) 9999 else 0
+    }
+    assertNull(result.entityKey)
+    assertTrue(result.npcEncounters.any { it.characterId == LUCIA_ID })
+    assertFalse(result.ambientNpcRolled)
+  }
+
+  @Test fun `scene facing execute may roll ambient when higher priority encounters miss`() {
+    var calls = 0
+    val result = SpawnMechanism.rollSpawns(
+      GameState.initial(), ActionKind.EXECUTE, "quan sát xung quanh",
+      isMeta = false, inCombatOrPending = false
+    ) { _ ->
+      calls++
+      if (calls <= 2) 9999 else 0
+    }
+    assertNull(result.entityKey)
+    assertTrue(result.npcEncounters.isEmpty())
+    assertTrue(result.ambientNpcRolled)
+  }
+
+  @Test fun `dialogue execute does not create ambient npc api request`() {
+    var calls = 0
+    val result = SpawnMechanism.rollSpawns(
+      GameState.initial(), ActionKind.EXECUTE, "hỏi tiếp",
+      isMeta = false, inCombatOrPending = false
+    ) { _ -> calls++; 9999 }
+    assertNull(result.entityKey)
+    assertTrue(result.npcEncounters.isEmpty())
+    assertFalse(result.ambientNpcRolled)
+    assertEquals(2, calls) // Entity and once-only Lucia; no ambient call.
   }
 
   @Test fun `stale ambient marker cleared on next missing roll`() {
@@ -345,8 +412,8 @@ class EntitySpawnPoolTest {
     val state = GameState.initial()
     val rng1 = Random(12345)
     val rng2 = Random(12345)
-    val result1 = SpawnMechanism.rollSpawns(state, ActionKind.EXPLORE) { bound -> rng1.nextInt(bound) }
-    val result2 = SpawnMechanism.rollSpawns(state, ActionKind.EXPLORE) { bound -> rng2.nextInt(bound) }
+    val result1 = SpawnMechanism.rollSpawns(state, ActionKind.EXECUTE) { bound -> rng1.nextInt(bound) }
+    val result2 = SpawnMechanism.rollSpawns(state, ActionKind.EXECUTE) { bound -> rng2.nextInt(bound) }
     assertEquals(result1.entityKey, result2.entityKey)
     assertEquals(result1.npcEncounters.size, result2.npcEncounters.size)
   }
@@ -357,7 +424,7 @@ class EntitySpawnPoolTest {
     val state = GameState.initial()
     // Even with a seed that would normally spawn, meta=true → nothing
     val result = SpawnMechanism.rollSpawns(
-      state, ActionKind.EXPLORE, "đi khám phá",
+      state, ActionKind.EXECUTE, "đi khám phá",
       isMeta = true, inCombatOrPending = false
     ) { _ -> 0 }  // roll=1 → would spawn hound
     assertNull("Meta turn must not spawn entity", result.entityKey)
@@ -367,7 +434,7 @@ class EntitySpawnPoolTest {
   @Test fun `combat pending skips all spawns`() {
     val state = GameState.initial()
     val result = SpawnMechanism.rollSpawns(
-      state, ActionKind.EXPLORE, "đi khám phá",
+      state, ActionKind.EXECUTE, "đi khám phá",
       isMeta = false, inCombatOrPending = true
     ) { _ -> 0 }
     assertNull("Combat/pending must not spawn entity", result.entityKey)
@@ -381,7 +448,7 @@ class EntitySpawnPoolTest {
     flags.put("entityEncountersAllowed", false)
     state = state.copy(world = state.world + ("flagsJson" to flags.toString()))
     val result = SpawnMechanism.rollSpawns(
-      state, ActionKind.EXPLORE, "đi khám phá",
+      state, ActionKind.EXECUTE, "đi khám phá",
       isMeta = false, inCombatOrPending = false
     ) { _ -> 0 }  // roll=1 → would spawn hound
     assertNull("entityEncountersAllowed=false must block entity", result.entityKey)

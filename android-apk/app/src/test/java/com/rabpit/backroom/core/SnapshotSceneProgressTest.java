@@ -24,10 +24,10 @@ public class SnapshotSceneProgressTest {
         .optInt(SnapshotSceneProgress.STEP_KEY, -1);
   }
 
-  @Test public void successfulExploreAdvancesWithinSameLocationAndPersists() throws Exception {
+  @Test public void successfulExecuteAdvancesWithinSameLocationAndPersists() throws Exception {
     JSONObject before = state("0", "Level 0 / Hall", "", 2);
     JSONObject next = new JSONObject(before.toString());
-    SnapshotSceneProgress.apply(before, next, roll(true), "EXPLORE");
+    SnapshotSceneProgress.apply(before, next, roll(true), "EXECUTE", "khảo sát hành lang");
     assertEquals(3, step(next));
     assertEquals(2, step(before));
     assertEquals(3, step(new JSONObject(next.toString())));
@@ -36,7 +36,7 @@ public class SnapshotSceneProgressTest {
   @Test public void failedExitProbeDoesNotPreventVisualExploration() throws Exception {
     JSONObject before = state("0", "Level 0 / Hall", "A", 3);
     JSONObject next = state("0", "Level 0 / Hall", "A", 400);
-    SnapshotSceneProgress.apply(before, next, roll(false), "EXPLORE");
+    SnapshotSceneProgress.apply(before, next, roll(false), "EXECUTE", "quan sát xung quanh");
     assertEquals(4, step(next));
     assertEquals(3, step(before));
   }
@@ -46,46 +46,65 @@ public class SnapshotSceneProgressTest {
     JSONObject next = state("0", "Level 0 / Hall", "", 100);
     JSONObject rolls = roll(true).put("entityEncounter", new JSONObject()
         .put("eligible", true).put("success", true));
-    SnapshotSceneProgress.apply(before, next, rolls, "EXPLORE");
+    SnapshotSceneProgress.apply(before, next, rolls, "EXECUTE", "thăm dò hành lang");
     assertEquals(7, step(next));
     JSONObject ineligible = roll(false).put("entityEncounter", new JSONObject()
         .put("eligible", false).put("success", true));
     JSONObject safe = new JSONObject(before.toString());
-    SnapshotSceneProgress.apply(before, safe, ineligible, "EXPLORE");
+    SnapshotSceneProgress.apply(before, safe, ineligible, "EXECUTE", "thăm dò hành lang");
     assertEquals(8, step(safe));
   }
 
-  @Test public void searchAndRenderStyleUpdatesDoNotAdvanceScene() throws Exception {
+  @Test public void searchDoesNotAdvanceButGameplayExecuteDoes() throws Exception {
     JSONObject before = state("1", "Level 1 / Parking", "", 4);
     JSONObject next = state("1", "Level 1 / Parking", "", 999);
-    SnapshotSceneProgress.apply(before, next, new JSONObject(), "SEARCH");
+    SnapshotSceneProgress.apply(before, next, new JSONObject(), "SEARCH", "khám phá");
     assertEquals(4, step(next));
-    SnapshotSceneProgress.apply(before, next, new JSONObject(), "EXECUTE");
-    assertEquals(4, step(next));
+    SnapshotSceneProgress.apply(before, next, new JSONObject(), "EXECUTE", "quan sát");
+    assertEquals(5, step(next));
   }
 
   @Test public void confirmedLocationAndNodeChangesAdvanceRegardlessOfActionType() throws Exception {
     JSONObject before = state("1", "Level 1 / Parking", "", 4);
     JSONObject moved = state("1", "Level 1 / Stairwell", "", 0);
-    SnapshotSceneProgress.apply(before, moved, new JSONObject(), "EXECUTE");
+    SnapshotSceneProgress.apply(before, moved, new JSONObject(), "EXECUTE", "nói chuyện");
     assertEquals(5, step(moved));
     JSONObject changedNode = state("2", "Level 2 / Pipe Dreams", "", 0);
-    SnapshotSceneProgress.apply(before, changedNode, new JSONObject(), "EXECUTE");
+    SnapshotSceneProgress.apply(before, changedNode, new JSONObject(), "EXECUTE", "nói chuyện");
     assertEquals(5, step(changedNode));
     JSONObject area = state("1", "Level 1 / Parking", "north", 0);
-    SnapshotSceneProgress.apply(before, area, new JSONObject(), "EXECUTE");
+    SnapshotSceneProgress.apply(before, area, new JSONObject(), "EXECUTE", "nói chuyện");
     assertEquals(5, step(area));
   }
 
-  @Test public void readyExitExploreAndStepOverflowRemainDeterministic() throws Exception {
+  @Test public void readyExitExecuteAndStepOverflowRemainDeterministic() throws Exception {
     JSONObject before = state("0", "Level 0 / Hall", "", Integer.MAX_VALUE);
     JSONObject next = new JSONObject(before.toString());
     // Once exit is already ready no further probe is necessary; the explorer still moves.
-    SnapshotSceneProgress.apply(before, next, new JSONObject(), "EXPLORE");
+    SnapshotSceneProgress.apply(before, next, new JSONObject(), "EXECUTE", "quan sát");
     assertEquals(0, step(next));
     JSONObject forged = state("0", "Level 0 / Hall", "", -50);
     JSONObject search = new JSONObject(forged.toString());
-    SnapshotSceneProgress.apply(forged, search, new JSONObject(), "SEARCH");
+    SnapshotSceneProgress.apply(forged, search, new JSONObject(), "SEARCH", "khám phá");
     assertEquals(0, step(search));
   }
+  @Test public void dialogueAndMetaDoNotRotateButMentalReconDoes() throws Exception {
+    JSONObject before = state("0", "Level 0 / Hall", "", 3);
+    JSONObject conversation = new JSONObject(before.toString());
+    SnapshotSceneProgress.apply(before, conversation, new JSONObject(), "EXECUTE", "Nói chuyện với Lucia");
+    assertEquals(3, step(conversation));
+    JSONObject meta = new JSONObject(before.toString());
+    SnapshotSceneProgress.apply(before, meta, new JSONObject(), "EXECUTE", "Xem trạng thái");
+    assertEquals(3, step(meta));
+    JSONObject spoken = new JSONObject(before.toString());
+    SnapshotSceneProgress.apply(before, spoken, new JSONObject(), "EXECUTE", "Hỏi Lucia về thần thức");
+    assertEquals(3, step(spoken));
+    JSONObject mental = new JSONObject(before.toString());
+    SnapshotSceneProgress.apply(before, mental, new JSONObject(), "EXECUTE", "Thả thần thức đi điều tra");
+    assertEquals(4, step(mental));
+    JSONObject nonExecute = new JSONObject(before.toString());
+    SnapshotSceneProgress.apply(before, nonExecute, new JSONObject(), "SEARCH", "khảo sát hành lang");
+    assertEquals(3, step(nonExecute));
+  }
+
 }

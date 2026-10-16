@@ -18,7 +18,7 @@ package com.rabpit.backroom.core
 object GmNarrativeVoicePolicy {
 
     // ---- Action kinds: bản chất hành động của lượt hiện tại ----
-    const val EXPLORE_QUIET = "EXPLORE_QUIET" // Khám phá yên tĩnh, không phát hiện lớn
+    const val QUIET_DISCOVERY = "QUIET_DISCOVERY" // Khám phá yên tĩnh, không phát hiện lớn
     const val TRACE_FOUND = "TRACE_FOUND"     // Phát hiện dấu vết / manh mối
     const val NPC_MEETING = "NPC_MEETING"      // Gặp NPC (Core đã xác nhận encounter)
     const val ENTITY_SPAWN = "ENTITY_SPAWN"    // Entity xuất hiện (Core đã xác nhận)
@@ -42,7 +42,7 @@ object GmNarrativeVoicePolicy {
         val ak = actionKind.trim().uppercase()
         val ek = eventKind.trim().uppercase()
         val resolvedAction = when (ak) {
-            EXPLORE_QUIET, TRACE_FOUND, NPC_MEETING, ENTITY_SPAWN,
+            QUIET_DISCOVERY, TRACE_FOUND, NPC_MEETING, ENTITY_SPAWN,
             DIALOGUE, REST, COMBAT -> ak
             else -> OTHER
         }
@@ -76,8 +76,9 @@ object GmNarrativeVoicePolicy {
         |bước ngoặt. Lượt yên tĩnh được phép yên tĩnh — một khoảng lặng được kể tốt
         |cũng có giá trị như một cuộc chạm trán.
         |
-        |3. KHÔNG DIỄN THUYẾT, KHÔNG SÁO NGỮ. Tránh giọng giảng đạo, triết lý gượng ép,
-        |câu kết "bài học" ở cuối mỗi lượt. Không giải thích cảm xúc thay nhân vật
+        |3. KHÔNG DIỄN THUYẾT, KHÔNG SÁO NGỮ. Viết câu tiếng Việt tự nhiên, mạch lạc;
+        |không pha tiếng Anh trừ tên riêng, mã định danh hoặc thuật ngữ Canon. Tránh lặp
+        |từ, ý và câu kết "bài học". Không giải thích cảm xúc thay nhân vật
         |(ví dụ: "Cao Minh cảm thấy sợ hãi tột độ") — hãy để cảm xúc lộ ra qua giác quan,
         |hành động và chi tiết cụ thể, người đọc tự cảm nhận.
         |
@@ -103,7 +104,7 @@ object GmNarrativeVoicePolicy {
     // Hướng dẫn theo bản chất hành động của lượt.
     // ------------------------------------------------------------------
     private fun turnGuidance(actionKind: String): String = when (actionKind) {
-        EXPLORE_QUIET -> """
+        QUIET_DISCOVERY -> """
             |LƯỢT KHÁM PHÁ YÊN TĨNH:
             |Nhịp chậm, quan sát. Thay đổi cấu trúc kể chuyện giữa các lượt: có lượt tập
             |trung vào âm thanh, lượt vào ánh sáng và bóng tối, lượt vào dấu vết cũ, lượt
@@ -157,9 +158,9 @@ object GmNarrativeVoicePolicy {
         """.trimMargin()
         else -> """
             |LƯỢT HÀNH ĐỘNG KHÁC:
-            |Kể linh hoạt theo đúng bản chất hành động người chơi đã yêu cầu và kết quả
-            |Core đã xác nhận. Giữ nhịp phù hợp: việc nhỏ thì kể gọn, việc hệ trọng thì
-            |kể kỹ. Không suy diễn thêm hậu quả chưa được Core khóa.
+            |Kể đủ diễn biến và kết quả quan sát theo hành động người chơi; không rút
+            |thành câu cụt hoặc liệt kê ý rời. Việc nhỏ kể gọn nhưng trọn ý,
+            |việc hệ trọng kể kỹ. Không suy diễn hậu quả chưa được Core khóa.
         """.trimMargin()
     }
 

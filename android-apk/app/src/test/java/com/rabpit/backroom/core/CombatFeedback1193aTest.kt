@@ -106,7 +106,7 @@ class CombatFeedback1193aTest {
     val refreshed = JSONObject(facade.currentClientState(output.toString()))
     assertFalse(refreshed.has("combatFeedback"))
   }
-  @Test fun directCombatKeepsTheClosingNarrativeAndAllowsTheNextExplorerTurn() {
+  @Test fun directCombatKeepsTheClosingNarrativeAndAllowsTheNextExecuteTurn() {
     val combat = started().let { it.copy(metadata = it.metadata + ("combat.entityHp" to "0")) }
     val active = CombatRuntime.active(combat)!!
     val action = PokerDiceCore.DIRECT_COMBAT_ACTION
@@ -126,8 +126,8 @@ class CombatFeedback1193aTest {
     assertEquals("gm", log.getJSONObject(1).getString("role"))
     val refreshed = JSONObject(facade.currentClientState(output.toString()))
     assertEquals(2, refreshed.getJSONArray("log").length())
-    assertFalse(JSONObject(facade.processCombat(refreshed.toString(), "EXPLORE", "Khám Phá")).getBoolean("handled"))
-    assertTrue(JSONObject(facade.beginAction(refreshed.toString(), "EXPLORE", "Khám Phá")).getBoolean("handled"))
+    assertFalse(JSONObject(facade.processCombat(refreshed.toString(), "EXECUTE", "Khám Phá")).getBoolean("handled"))
+    assertTrue(JSONObject(facade.beginAction(refreshed.toString(), "EXECUTE", "Khám Phá")).getBoolean("handled"))
   }
 
   @Test fun onlyTheFinalWavePublishesItsOwnClosingNarrative() {

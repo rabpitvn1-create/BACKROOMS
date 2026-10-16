@@ -1456,18 +1456,20 @@ public class MainActivity extends Activity {
     return partyHas(state, "An Nhiên") || partyHas(state, "an-nhien");
   }
 
-  private JSONObject makeGameplayRolls(JSONObject state, String actionKind, String action, boolean meta) throws Exception {
+  private JSONObject makeGameplayRolls(JSONObject state, String actionKind, String action, boolean meta, boolean entityReserved) throws Exception {
     JSONObject rolls = new JSONObject().put("turn", state.optInt("turn", 1)).put("meta", meta);
     if (meta) return rolls;
 
-    String actionKindNormalized = actionKind == null ? "" : actionKind.trim().toUpperCase(java.util.Locale.ROOT);
-    boolean exploreAction = "EXPLORE".equals(actionKindNormalized);
+    boolean executeAction = "EXECUTE".equalsIgnoreCase(actionKind);
+    // A dialogue or inventory action is EXECUTE gameplay, but is not Exit discovery.
+    boolean exitDiscoveryAction = executeAction &&
+      com.rabpit.backroom.core.PhysicalActionDetector.isSceneFacing(action);
 
     int level = Math.max(0, Math.min(6, currentLevel(state)));
     int[] hazardThresholds = {400, 700, 1000, 1200, 300, 1000, 1200};
 
     String a = lower(action);
-    boolean physical = containsAny(a, "đi", "bước", "chạy", "leo", "mở", "đóng", "chạm", "lục", "tìm", "kiểm tra", "khảo sát", "quét", "scan", "bắn", "phá", "đẩy", "kéo", "tiến", "lùi", "cúi", "nhìn vào", "bò", "nhảy", "đào", "tháo", "đập", "vượt", "đi qua");
+    boolean physical = com.rabpit.backroom.core.PhysicalActionDetector.isPhysical(action);
     boolean search = containsAny(a, "tìm", "lục", "khám phá", "khảo sát", "kiểm tra", "quét", "scan", "mở", "tháo", "quan sát kỹ", "rà");
     boolean water = containsAny(a, "nước", "water", "almond", "uống", "khát", "chai", "vòi", "hồ", "fountain");
     boolean exitIntent = containsAny(a, "exit", "lối thoát", "thoát", "cửa trắng", "cánh cửa", "ngưỡng", "chuyển level", "sang level", "hành lang phía sau", "đường ra");
@@ -1489,7 +1491,7 @@ public class MainActivity extends Activity {
     rolls.put("exitProbe", exitProbe);
     JSONObject hiddenExitRoll = thresholdRoll("_hiddenExitStreak", 100,
       com.rabpit.backroom.core.HiddenExitStreak.SUCCESS_PERCENT,
-      exploreAction && !com.rabpit.backroom.core.HiddenExitStreak.ready(state), "");
+      exitDiscoveryAction && !entityReserved && !com.rabpit.backroom.core.HiddenExitStreak.ready(state), "");
     rolls.put(com.rabpit.backroom.core.HiddenExitStreak.ROLL_KEY, hiddenExitRoll);
     boolean hiddenExitReady = com.rabpit.backroom.core.HiddenExitStreak.projectedReady(state, rolls);
     JSONObject authoritativeExit = new JSONObject()
@@ -1679,7 +1681,7 @@ public class MainActivity extends Activity {
       "Được tự do sáng tác chi tiết, lời thoại, không khí, tương tác phụ và phản ứng khác nhau " +
       "giữa các lượt, đặc biệt ở cảnh gặp Entity/NPC/Follower; tránh lặp câu chữ, mô-típ " +
       "và diễn biến của các lần gặp trước. " +
-      "Khám Phá và Thực Hiện đều là một Explorer Turn; phải kết hợp hành động người chơi " +
+      "Mọi lệnh từ khung chat đều là một lượt EXECUTE; phải kết hợp hành động người chơi " +
       "với diễn biến trong CHÍNH Turn này, không dời, hủy hay cho nhân vật tự chọn thay người chơi. " +
       "Không tự quyết định Combat, HP, EXP, Item, tạo Entity hay chuyển Level; gameplay Core xử lý. " +
       "Gặp FOLLOWER/NPC phải mô tả cuộc gặp thực tế; nhân vật thể hiện theo đúng hồ sơ Canon trong KNOWLEDGE PACKET (tính cách, cách nói, xưng hô, quan hệ với Cao Minh), không ép một khuôn thoại cố định. " +
@@ -1720,8 +1722,9 @@ public class MainActivity extends Activity {
       return com.rabpit.backroom.core.GmNarrativeVoicePolicy.DIALOGUE;
     if (containsAny(a, "nghỉ ngơi", "ngồi nghỉ", "nằm nghỉ", "ngủ", "hồi sức"))
       return com.rabpit.backroom.core.GmNarrativeVoicePolicy.REST;
-    if ("EXPLORE".equals(actionKindNormalized))
-      return com.rabpit.backroom.core.GmNarrativeVoicePolicy.EXPLORE_QUIET;
+    if (containsAny(a, "khám phá", "khảo sát", "thăm dò", "dò xét", "điều tra",
+        "quan sát", "thần thức", "tìm đường", "đi tiếp", "bước tới", "nhìn quanh"))
+      return com.rabpit.backroom.core.GmNarrativeVoicePolicy.QUIET_DISCOVERY;
     return com.rabpit.backroom.core.GmNarrativeVoicePolicy.OTHER;
   }
 
@@ -1960,10 +1963,8 @@ public class MainActivity extends Activity {
             emit("backroomTurn", special.getJSONObject("state").toString());
             return;
           }
-          // Free-form chat always submits EXECUTE; recover exploration intent before
-          // Core NPC spawns, Exit streak rolls and Snapshot scene progression.
-          String gameplayKind = com.rabpit.backroom.core.ExplorerActionKind.resolve(actionKind, action);
-          JSONObject actionStart = new JSONObject(requireGameCore().beginAction(currentView, gameplayKind, action));
+          // All chat turns enter one EXECUTE lane; Core owns encounter/exit gates.
+          JSONObject actionStart = new JSONObject(requireGameCore().beginAction(currentView, actionKind, action));
           if (!actionStart.optBoolean("handled", false)) {
             throw new Exception("Action Runtime từ chối hành động: " + actionStart.optString("error", "action_start_failed"));
           }
@@ -1978,11 +1979,19 @@ public class MainActivity extends Activity {
           JSONObject pendingEntityEncounter = actionStart.optJSONObject("pendingEntityEncounter");
           JSONObject before = new JSONObject(currentView);
           boolean meta = isMetaAction(action);
-          JSONObject rolls = makeGameplayRolls(before, gameplayKind, action, meta);
+          JSONObject rolls = makeGameplayRolls(before, actionKind, action, meta, pendingEntityEncounter != null);
 
           JSONObject generated = parseModelJson(generateText(writerPrompt(before, action, rolls, pendingNpcEncounters, pendingEntityEncounter)));
           String reply = generated.optString("reply", "").trim();
           if (reply.isEmpty()) throw new Exception("GM không trả lời kể chuyện; lượt này không được ghi.");
+          // SnapshotSceneProgress consumes this roll flag. Populate it from the
+          // Core-confirmed encounter, not from GM narration or an extra RNG roll.
+          // Added after the writer call: no extra GM tokens or API requests.
+          if (pendingEntityEncounter != null &&
+              !pendingEntityEncounter.optString("entityKey", "").isEmpty()) {
+            rolls.put("entityEncounter", new JSONObject()
+              .put("eligible", true).put("success", true));
+          }
           if (meta) {
             requireGameCore().abortAction("meta_action");
             JSONObject view = new JSONObject(requireGameCore().currentClientState(currentView));
@@ -1999,7 +2008,7 @@ public class MainActivity extends Activity {
           // node (HiddenExitStreak + LevelRouteRegistry + Core-parsed intent). The GM/AI
           // never chooses the destination; its words cannot move the player.
           JSONObject destResult = new JSONObject(requireGameCore().determineExitDestination(
-            currentView, gameplayKind, action));
+            currentView, actionKind, action));
           String destinationId = destResult.isNull("destinationId") ? null
             : destResult.optString("destinationId", null);
           if (destinationId != null && destinationId.isEmpty()) destinationId = null;
@@ -2056,7 +2065,7 @@ public class MainActivity extends Activity {
             state = new JSONObject(com.rabpit.backroom.core.knowledge.StoryContinuityReducer.apply(
               before.toString(), state.toString(), action));
             // Persist scene progression with the validated Core delta, never as WebView-only state.
-            com.rabpit.backroom.core.SnapshotSceneProgress.apply(before, state, rolls, gameplayKind);
+            com.rabpit.backroom.core.SnapshotSceneProgress.apply(before, state, rolls, actionKind, action);
           }
 
           JSONArray log = state.optJSONArray("log");
