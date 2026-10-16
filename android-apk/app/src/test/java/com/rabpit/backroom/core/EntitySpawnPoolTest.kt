@@ -117,6 +117,15 @@ class EntitySpawnPoolTest {
     assertEquals(3000, NpcSpawnTable.AMBIENT_THRESHOLD)
   }
 
+  @Test fun `direct npc table rejects non execute kinds without rng`() {
+    var rngCalls = 0
+    val encounters = NpcSpawnTable.rollNpcs(
+      GameState.initial(), ActionKind.SEARCH, "đi tìm người sống sót", 4
+    ) { _ -> rngCalls++; 0 }
+    assertTrue(encounters.isEmpty())
+    assertEquals(0, rngCalls)
+  }
+
   // --- Ambient NPC 30% conditional roll (ephemeral, never a Canon encounter) ---
 
   @Test fun `ambient roll fires on eligible turn with no entity or canon NPC`() {
