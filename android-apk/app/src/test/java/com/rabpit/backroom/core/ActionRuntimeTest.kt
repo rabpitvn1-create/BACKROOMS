@@ -46,7 +46,7 @@ class ActionRuntimeTest {
   }
 
   @Test fun duplicateCheckpointNeverAdvancesTimeTwice() {
-    val started = ActionRuntime.start(stateAt(), "S1", "TURN_1", CAO_MINH_ID, ActionKind.EXPLORE, "explore").state
+    val started = ActionRuntime.start(stateAt(), "S1", "TURN_1", CAO_MINH_ID, ActionKind.EXECUTE, "explore").state
     val first = ActionRuntime.advance(started, "S1", "cp-1", 5)
     val second = ActionRuntime.advance(first.state, "S1", "cp-1", 5)
 
@@ -101,13 +101,13 @@ class ActionRuntimeTest {
     assertEquals("entity_contact", interrupted.state.metadata["lastAction.reason"])
   }
 
-  @Test fun exploreRejectsSearchDepthAndDoesNotClaimSearchSemantics() {
+  @Test fun executeRejectsSearchDepthAndDoesNotClaimSearchSemantics() {
     val rejected = ActionRuntime.start(
       stateAt(),
       sessionId = "S1",
       turnId = "TURN_1",
       actorId = CAO_MINH_ID,
-      kind = ActionKind.EXPLORE,
+      kind = ActionKind.EXECUTE,
       input = "Khám phá phía trước",
       searchDepth = SearchDepth.THOROUGH
     )
@@ -115,7 +115,7 @@ class ActionRuntimeTest {
     assertEquals("search_depth_non_search_action", rejected.error)
 
     val accepted = ActionRuntime.start(
-      stateAt(), "S2", "TURN_1", CAO_MINH_ID, ActionKind.EXPLORE, "Khám phá phía trước"
+      stateAt(), "S2", "TURN_1", CAO_MINH_ID, ActionKind.EXECUTE, "Khám phá phía trước"
     )
     assertTrue(accepted.applied)
     assertNull(requireNotNull(accepted.session).searchDepth)
@@ -123,7 +123,7 @@ class ActionRuntimeTest {
 
   @Test fun secondActionSessionCannotStartWhileOneIsActive() {
     val first = ActionRuntime.start(stateAt(), "S1", "TURN_1", CAO_MINH_ID, ActionKind.SEARCH, "search")
-    val second = ActionRuntime.start(first.state, "S2", "TURN_1", CAO_MINH_ID, ActionKind.EXPLORE, "explore")
+    val second = ActionRuntime.start(first.state, "S2", "TURN_1", CAO_MINH_ID, ActionKind.EXECUTE, "explore")
 
     assertTrue(first.applied)
     assertFalse(second.applied)
@@ -146,7 +146,7 @@ class ActionRuntimeTest {
       characters = stateAt().characters + (follower.id to follower) + (dead.id to dead),
       party = PartyState(memberIds = listOf(CAO_MINH_ID, follower.id))
     )
-    val started = ActionRuntime.start(state, "S1", "TURN_1", CAO_MINH_ID, ActionKind.EXPLORE, "explore").state
+    val started = ActionRuntime.start(state, "S1", "TURN_1", CAO_MINH_ID, ActionKind.EXECUTE, "explore").state
     val result = ActionRuntime.advance(started, "S1", "cp-1", 12)
 
     assertTrue(result.applied)
