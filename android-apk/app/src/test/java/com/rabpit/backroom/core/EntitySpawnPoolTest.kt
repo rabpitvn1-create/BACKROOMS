@@ -129,6 +129,8 @@ class EntitySpawnPoolTest {
 
   @Test fun `unicode action boundaries distinguish psychic reconnaissance from movement`() {
     assertFalse(PhysicalActionDetector.isPhysical("Thả thần thức đi điều tra"))
+    assertFalse(PhysicalActionDetector.isPhysical("Dùng thần thức đi quét hành lang"))
+    assertTrue(PhysicalActionDetector.isPhysical("Thả thần thức đi điều tra rồi bước tới"))
     assertFalse(PhysicalActionDetector.isPhysical("Xem điểm kinh nghiệm"))
     assertTrue(PhysicalActionDetector.isPhysical("Cao Minh đi qua hành lang"))
     assertTrue(PhysicalActionDetector.isPhysical("Mở cửa"))
