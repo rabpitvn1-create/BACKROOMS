@@ -323,17 +323,22 @@
         paths.push(d);
       }
       var pathMarkup=paths.map(function(d){return '<path d="'+d+'"/>';}).join('');
-      var crackSvg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><g stroke="#a6e6ff" stroke-width="1.5" opacity=".24">'+pathMarkup+'</g><g stroke="#e0f7ff" stroke-width=".55" opacity=".7">'+pathMarkup+'</g><g stroke="white" stroke-width=".18">'+pathMarkup+'</g></g></svg>';
+      var crackSvg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><g stroke="#8cddff" stroke-width="3.4" opacity=".16">'+pathMarkup+'</g><g stroke="#a6e6ff" stroke-width="1.5" opacity=".24">'+pathMarkup+'</g><g stroke="#e0f7ff" stroke-width=".55" opacity=".7">'+pathMarkup+'</g><g stroke="white" stroke-width=".18">'+pathMarkup+'</g></g></svg>';
       var cracks=document.createElement('div');cracks.className='entity-shatter-cracks';
       cracks.style.maskImage=cracks.style.webkitMaskImage='url('+JSON.stringify(url)+')';
       cracks.style.backgroundImage='url("data:image/svg+xml,'+encodeURIComponent(crackSvg)+'")';
       cracks.style.cssText+=';--core-x:'+cx+'%;--core-y:'+cy+'%';
+      // One masked charge restores the core flash without per-shard brightness filters.
+      var charge=document.createElement('div');charge.className='entity-shatter-charge';
+      charge.style.maskImage=charge.style.webkitMaskImage='url('+JSON.stringify(url)+')';
+      charge.style.cssText+=';--core-x:'+cx+'%;--core-y:'+cy+'%';
+      layer.appendChild(charge);
       layer.appendChild(cracks);
       ['core','shockwave','flare'].forEach(function(name){
         var node=document.createElement('div');node.className='entity-shatter-'+name;
         node.style.left=cx+'%';node.style.top=cy+'%';layer.appendChild(node);
       });
-      var grid=[],cols=4,rows=6,splitsLeft=8,spread=Math.min(100,Math.min(rect.width,rect.height)*.4);
+      var grid=[],cols=5,rows=7,spread=Math.min(100,Math.min(rect.width,rect.height)*.4);
       for(var gy=0;gy<=rows;gy++){
         grid[gy]=[];
         for(var gx=0;gx<=cols;gx++)grid[gy][gx]=[
@@ -351,18 +356,17 @@
         var width=(Math.max.apply(Math,xs)-Math.min.apply(Math,xs))*rect.width/100;
         var height=(Math.max.apply(Math,ys)-Math.min.apply(Math,ys))*rect.height/100;
         var shard=document.createElement('div');shard.className='entity-shatter-shard';
-        shard.style.cssText='left:'+left.toFixed(2)+'px;top:'+top.toFixed(2)+'px;width:'+width.toFixed(2)+'px;height:'+height.toFixed(2)+'px;clip-path:polygon('+points.map(function(p){return ((p[0]*rect.width/100-left)/width*100).toFixed(2)+'% '+((p[1]*rect.height/100-top)/height*100).toFixed(2)+'%';}).join(',')+');transform-origin:'+((mx*rect.width/100-left)/width*100).toFixed(2)+'% '+((my*rect.height/100-top)/height*100).toFixed(2)+'%;background-size:'+rect.width+'px '+rect.height+'px;background-position:'+(-left).toFixed(2)+'px '+(-top).toFixed(2)+'px;--shard-x:'+dx.toFixed(1)+'px;--shard-y:'+dy.toFixed(1)+'px;--shard-drop:'+(dy+15+Math.random()*35).toFixed(1)+'px;--shard-rotate:'+((Math.random()-.5)*240).toFixed(1)+'deg;--shard-scale:'+(.25+Math.random()*.45).toFixed(2)+';animation-delay:480ms;animation-duration:'+(520+Math.random()*270).toFixed(0)+'ms';
+        shard.style.cssText='left:'+left.toFixed(2)+'px;top:'+top.toFixed(2)+'px;width:'+width.toFixed(2)+'px;height:'+height.toFixed(2)+'px;clip-path:polygon('+points.map(function(p){return ((p[0]*rect.width/100-left)/width*100).toFixed(2)+'% '+((p[1]*rect.height/100-top)/height*100).toFixed(2)+'%';}).join(',')+');transform-origin:'+((mx*rect.width/100-left)/width*100).toFixed(2)+'% '+((my*rect.height/100-top)/height*100).toFixed(2)+'%;background-size:'+rect.width+'px '+rect.height+'px;background-position:'+(-left).toFixed(2)+'px '+(-top).toFixed(2)+'px;--shard-x:'+dx.toFixed(1)+'px;--shard-y:'+dy.toFixed(1)+'px;--shard-drop:'+(dy+15+Math.random()*35).toFixed(1)+'px;--shard-rotate:'+((Math.random()-.5)*240).toFixed(1)+'deg;--shard-tilt:'+Math.cos((Math.random()-.5)*130*Math.PI/180).toFixed(2)+';--shard-scale:'+(.25+Math.random()*.45).toFixed(2)+';animation-delay:480ms;animation-duration:'+(520+Math.random()*270).toFixed(0)+'ms';
         shard.style.backgroundImage='url('+JSON.stringify(url)+')';layer.appendChild(shard);
       }
       for(var row=0;row<rows;row++)for(var col=0;col<cols;col++){
         var a=grid[row][col],b=grid[row][col+1],c=grid[row+1][col+1],d=grid[row+1][col];
-        if(splitsLeft>0&&Math.random()<.35){
-          splitsLeft--;
+        if(Math.random()<.45){
           if(Math.random()<.5){fragment([a,b,c]);fragment([a,c,d]);}
           else{fragment([a,b,d]);fragment([b,c,d]);}
         }else fragment([a,b,c,d]);
       }
-      for(var spark=0;spark<18;spark++){
+      for(var spark=0;spark<26;spark++){
         var theta=Math.random()*Math.PI*2,distance=spread*(.25+Math.random()*.85);
         var mote=document.createElement('i');mote.className='entity-shatter-spark';
         mote.style.cssText='left:'+cx+'%;top:'+cy+'%;--spark-x:'+(Math.cos(theta)*distance).toFixed(1)+'px;--spark-y:'+(Math.sin(theta)*distance).toFixed(1)+'px;--spark-angle:'+theta+'rad;--spark-length:'+(2+Math.random()*7).toFixed(1)+'px;animation-delay:'+(450+Math.random()*60).toFixed(0)+'ms;animation-duration:'+(300+Math.random()*450).toFixed(0)+'ms';
