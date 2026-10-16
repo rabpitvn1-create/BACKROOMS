@@ -1,0 +1,8 @@
+Backroom 1.2.0.0.35 Debug
+
+- Android versionCode 108; versionName 1.2.0.0.35; applicationId com.rabpit.backroom.
+- PR #643: Chat phân loại lại hành động khám phá và di chuyển rõ ràng thành EXPLORE trước khi Game Core xử lý, khôi phục lượt quay gặp Lucia tại Level 0 và tiến trình Hidden Exit/scene.
+- PR #642: Hidden Exit chỉ cần 3 lần khám phá thành công liên tiếp (50% mỗi lượt hợp lệ); thất bại trước khi mở sẽ reset về 0. Người chơi vẫn phải chủ động đi qua Exit.
+- PR #641: Khôi phục mảnh vỡ Entity dưới dạng ảnh được cắt trong vùng paint nhỏ, giữ vết nứt sáng, sóng nổ và các mảnh/tia; thay cách dựng CSS background-image từng mảnh có thể không hiển thị trên WebView.
+- Bản sửa #641 đã vượt CI và kiểm tra mô phỏng trình duyệt nhưng chưa có kết quả kiểm chứng độ mượt trên thiết bị Android thực tế.
+- Không thay đổi định dạng save. APK Debug được xác minh chữ ký, cấu trúc, checksum bởi GitHub Actions trước khi đánh dấu GREEN.
