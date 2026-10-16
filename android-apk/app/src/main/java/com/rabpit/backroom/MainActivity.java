@@ -20,6 +20,7 @@ import com.rabpit.backroom.core.AmbientNpcManager;
 import com.rabpit.backroom.core.GameCoreFacade;
 import com.rabpit.backroom.core.LevelRouteRegistry;
 import com.rabpit.backroom.core.ProviderResponseContract;
+import com.rabpit.backroom.core.GmProviderRouter;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.io.BufferedReader;
@@ -280,7 +281,7 @@ public class MainActivity extends Activity {
       "renderSnapshot=function(){if(typeof window!=='undefined'&&window.backroomExplorationTransition)window.backroomExplorationTransition.cancel();__luciaBaseRenderSnapshot();appendLuciaCombatOverlay();if(typeof window!=='undefined'&&typeof window.backroomSyncCombatPortrait==='function')window.backroomSyncCombatPortrait();};" +
       "var snapshotBusy=false;function requestSnapshot(){var s=document.getElementById('status');if(s)s.textContent='Snapshot chưa được cấu hình.';}" +
       "window.requestSnapshot=requestSnapshot;" +
-      "window.__backroomProvider='Gehihi';window.backroomProvider=function(provider){window.__backroomProvider=provider||'AI';var s=document.getElementById('status');if(s)s.textContent=window.__backroomProvider+' đang xử lý lượt…';};" +
+      "window.__backroomProvider='Gemini Free Tier';window.backroomProvider=function(provider){window.__backroomProvider=provider||'AI';var s=document.getElementById('status');if(s)s.textContent=window.__backroomProvider+' đang xử lý lượt…';document.querySelectorAll('.gm-thinking').forEach(function(n){var name=n.querySelector('.gm-thinking-name');if(name)name.textContent=window.__backroomProvider;n.setAttribute('aria-label',window.__backroomProvider+' đang chuẩn bị câu trả lời');});};" +
       "window.backroomAmbientEvent=function(payload){try{var e=JSON.parse(payload);if(!state||Number(e.turn)!==Number(state.turn))return;var lev=state.level||{};if(String(e.level)!==String(lev.id==null?lev.number:lev.id))return;if(!Array.isArray(state.log))state.log=[];if(e.action)state.log.push({role:'player',text:e.action});state.log.push({role:'gm',text:e.text});document.querySelectorAll('[data-pending=\\\"1\\\"]').forEach(function(n){n.remove();});busy=false;actionEl.value='';syncPrimaryActions();persistPresentation();render();focusLatestGmStart();}catch(err){console.warn('Ambient NPC event rejected');}};" +
       "var oldRender=window.render;if(typeof oldRender==='function'){window.render=function(){oldRender();renderSnapshot();scrollBottom();};}" +
       "var actions=document.querySelector('.actions');if(actions&&!document.getElementById('snapshotButton')){var b=document.createElement('button');b.id='snapshotButton';b.type='button';b.textContent='Snapshot chưa cấu hình';b.disabled=true;var wide=actions.querySelector('.wide');if(wide)actions.insertBefore(b,wide);else actions.appendChild(b);}" +
@@ -763,7 +764,7 @@ public class MainActivity extends Activity {
     if (ambientPacket) {
       if (AmbientNpcManager.parse(response) == null) throw new Exception("Ambient NPC JSON không hợp lệ.");
     } else if (auditPacket) ProviderResponseContract.requireAudit(packet);
-    else ProviderResponseContract.requireWriter(packet);
+    else ProviderResponseContract.normalizeDirectWriter(response);
     return response;
   }
 
@@ -824,7 +825,7 @@ public class MainActivity extends Activity {
   }
 
   private String geminiText(String prompt) throws Exception {
-    return geminiModelMatrixPolicy(prompt, new int[] {0, 1, 2}, -1, 1800, true, 120_000L, false, false);
+    return geminiModelMatrixPolicy(prompt, new int[] {0, 2}, -1, 2048, true, 75_000L, false, false);
   }
 
   private String geminiAmbientText(String prompt) throws Exception {
@@ -1002,11 +1003,25 @@ public class MainActivity extends Activity {
     return ProviderResponseContract.normalizeDirectWriter(response).toString();
   }
 
-  /** Gehihi narrates the turn directly from the writer prompt. */
+  /** Prefer five Gemini Free Tier keys for GM narration; use Gehihi only if Gemini fails. */
   private String generateText(String prompt) throws Exception {
     DiagnosticLog.timing(MainActivity.this, "gm.prompt", 0L, prompt.length());
-    emit("backroomProvider", "Gehihi");
-    return verifiedWriterReply(gehihiText(prompt));
+    emit("backroomProvider", "Gemini Free Tier");
+    return GmProviderRouter.execute(
+      () -> {
+        String reply = verifiedWriterReply(geminiText(prompt));
+        emit("backroomProvider", lastGeminiModel >= 0
+          ? geminiModelLabel(lastGeminiModel) : "Gemini Free Tier");
+        return reply;
+      },
+      () -> verifiedWriterReply(gehihiText(prompt)),
+      geminiError -> {
+        int status = geminiError instanceof HttpError ? ((HttpError)geminiError).status : 0;
+        // Only record the status, never the credential or provider error body.
+        DiagnosticLog.record("gm.provider_fallback", "gemini_to_gehihi;http_status=" + status);
+        emit("backroomProvider", "Gehihi");
+      }
+    );
   }
 
   private JSONObject parseModelJson(String raw) throws Exception {
@@ -1659,7 +1674,7 @@ public class MainActivity extends Activity {
       pendingNpcEncounters, pendingEntityEncounter, rolls);
     String voiceEventKind = mapVoiceEventKind(before,
       pendingNpcEncounters, pendingEntityEncounter, rolls);
-    return "Bạn là Gehihi, Game Master kể chuyện Backrooms bằng tiếng Việt. " +
+    return "Bạn là Game Master kể chuyện Backrooms bằng tiếng Việt. " +
       "Kể diễn biến tự nhiên theo hành động người chơi, giữ đúng Entity, nhân vật và kết quả đã khóa. " +
       "Được tự do sáng tác chi tiết, lời thoại, không khí, tương tác phụ và phản ứng khác nhau " +
       "giữa các lượt, đặc biệt ở cảnh gặp Entity/NPC/Follower; tránh lặp câu chữ, mô-típ " +
@@ -1964,7 +1979,7 @@ public class MainActivity extends Activity {
 
           JSONObject generated = parseModelJson(generateText(writerPrompt(before, action, rolls, pendingNpcEncounters, pendingEntityEncounter)));
           String reply = generated.optString("reply", "").trim();
-          if (reply.isEmpty()) throw new Exception("Gehihi không trả lời kể chuyện; lượt này không được ghi.");
+          if (reply.isEmpty()) throw new Exception("GM không trả lời kể chuyện; lượt này không được ghi.");
           if (meta) {
             requireGameCore().abortAction("meta_action");
             JSONObject view = new JSONObject(requireGameCore().currentClientState(currentView));
