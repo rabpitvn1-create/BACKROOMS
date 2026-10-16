@@ -53,6 +53,7 @@ class GmNarrativeVoicePolicyTest {
     }
     assertTrue(policy.contains("UNKNOWN"))
     assertTrue(policy.contains("người chơi"))
+    assertTrue(policy.contains("tiếng Việt tự nhiên"))
     assertFalse(GmNarrativeVoicePolicy.hasSecondPersonNarration(
       "Cao Minh nghe tiếng đèn huỳnh quang. Hắn bước đến, rồi dừng lại."))
   }
