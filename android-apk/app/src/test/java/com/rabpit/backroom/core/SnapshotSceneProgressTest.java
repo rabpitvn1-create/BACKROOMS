@@ -96,6 +96,9 @@ public class SnapshotSceneProgressTest {
     JSONObject meta = new JSONObject(before.toString());
     SnapshotSceneProgress.apply(before, meta, new JSONObject(), "EXECUTE", "Xem trạng thái");
     assertEquals(3, step(meta));
+    JSONObject spoken = new JSONObject(before.toString());
+    SnapshotSceneProgress.apply(before, spoken, new JSONObject(), "EXECUTE", "Hỏi Lucia về thần thức");
+    assertEquals(3, step(spoken));
     JSONObject mental = new JSONObject(before.toString());
     SnapshotSceneProgress.apply(before, mental, new JSONObject(), "EXECUTE", "Thả thần thức đi điều tra");
     assertEquals(4, step(mental));
