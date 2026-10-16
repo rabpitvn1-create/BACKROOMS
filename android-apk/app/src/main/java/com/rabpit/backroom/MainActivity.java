@@ -1984,6 +1984,14 @@ public class MainActivity extends Activity {
           JSONObject generated = parseModelJson(generateText(writerPrompt(before, action, rolls, pendingNpcEncounters, pendingEntityEncounter)));
           String reply = generated.optString("reply", "").trim();
           if (reply.isEmpty()) throw new Exception("GM không trả lời kể chuyện; lượt này không được ghi.");
+          // SnapshotSceneProgress consumes this roll flag. Populate it from the
+          // Core-confirmed encounter, not from GM narration or an extra RNG roll.
+          // Added after the writer call: no extra GM tokens or API requests.
+          if (pendingEntityEncounter != null &&
+              !pendingEntityEncounter.optString("entityKey", "").isEmpty()) {
+            rolls.put("entityEncounter", new JSONObject()
+              .put("eligible", true).put("success", true));
+          }
           if (meta) {
             requireGameCore().abortAction("meta_action");
             JSONObject view = new JSONObject(requireGameCore().currentClientState(currentView));
