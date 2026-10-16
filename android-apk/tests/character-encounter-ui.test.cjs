@@ -48,7 +48,7 @@ test('chat sends only EXECUTE through Core NPC, exit and snapshot paths',()=>{
  assert.match(java,/beginAction\(currentView, actionKind, action\)/);
  assert.match(java,/makeGameplayRolls\(before, actionKind, action, meta\)/);
  assert.match(java,/determineExitDestination\(\s*currentView, actionKind, action\)/);
- assert.match(java,/SnapshotSceneProgress\.apply\(before, state, rolls, actionKind\)/);
+ assert.match(java,/SnapshotSceneProgress\.apply\(before, state, rolls, actionKind, action\)/);
  const spawner=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/core/EntitySpawnPool.kt'),'utf8');
  assert.match(spawner,/val ambientNpcRolled = kind == ActionKind\.EXECUTE/);
  assert.doesNotMatch(spawner,/ActionKind\.EXPLORE/);
