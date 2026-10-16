@@ -20,7 +20,7 @@ public class HiddenExitStreakTest {
         .put("eligible", true).put("success", success));
   }
 
-  @Test public void fiveConsecutiveSuccessesUnlockExit() throws Exception {
+  @Test public void threeConsecutiveSuccessesUnlockExit() throws Exception {
     JSONObject current = state("Level 0 / Hall A", 0);
     for (int i = 1; i <= HiddenExitStreak.REQUIRED_STREAK; i++) {
       JSONObject before = new JSONObject(current.toString());
@@ -39,18 +39,18 @@ public class HiddenExitStreakTest {
   }
 
   @Test public void onlyTheUnlockingTurnIsANewDiscovery() throws Exception {
-    assertTrue(HiddenExitStreak.newlyReady(state("hall", 4), roll(true)));
-    assertFalse(HiddenExitStreak.newlyReady(state("hall", 4), roll(false)));
+    assertTrue(HiddenExitStreak.newlyReady(state("hall", 2), roll(true)));
+    assertFalse(HiddenExitStreak.newlyReady(state("hall", 2), roll(false)));
+    assertFalse(HiddenExitStreak.newlyReady(state("hall", 1), roll(true)));
     assertFalse(HiddenExitStreak.newlyReady(state("hall", 3), roll(true)));
-    assertFalse(HiddenExitStreak.newlyReady(state("hall", 5), roll(true)));
     // Rest/dialogue after discovery must keep the exit available without a new event.
-    JSONObject ready = state("hall", 5);
+    JSONObject ready = state("hall", 3);
     assertTrue(HiddenExitStreak.projectedReady(ready, new JSONObject()));
     assertFalse(HiddenExitStreak.newlyReady(ready, new JSONObject()));
   }
 
   @Test public void failureResetsStreakAndKeepsPreviousLocation() throws Exception {
-    JSONObject before = state("Level 2 / Pipe Junction", 4);
+    JSONObject before = state("Level 2 / Pipe Junction", 2);
     JSONObject candidate = new JSONObject(before.toString()).put("location", "Level 2 / New Corridor");
     JSONObject exploration = candidate.getJSONObject("flags").getJSONObject("exploration");
     exploration.put("confirmedExit", "door").put("exitCandidate", "door").put("exitProgress", "READY");
@@ -70,21 +70,21 @@ public class HiddenExitStreakTest {
   }
 
   @Test public void ineligibleActionPreservesPartialStreak() throws Exception {
-    JSONObject before = state("Level 3 / Transformer Row", 3);
+    JSONObject before = state("Level 3 / Transformer Row", 2);
     JSONObject candidate = new JSONObject(before.toString());
     JSONObject rolls = new JSONObject().put(HiddenExitStreak.ROLL_KEY, new JSONObject()
         .put("eligible", false).put("success", false));
 
     HiddenExitStreak.apply(before, candidate, rolls, 3, 3);
 
-    assertEquals(3, HiddenExitStreak.current(candidate));
+    assertEquals(2, HiddenExitStreak.current(candidate));
     assertEquals("Level 3 / Transformer Row", candidate.getString("location"));
     assertFalse(HiddenExitStreak.ready(candidate));
   }
 
   @Test public void realLevelTransitionResetsStreakForNextLevel() throws Exception {
-    JSONObject before = state("Level 4 / Office", 5);
-    JSONObject candidate = state("Level 5 / Hotel", 5);
+    JSONObject before = state("Level 4 / Office", 3);
+    JSONObject candidate = state("Level 5 / Hotel", 3);
     HiddenExitStreak.apply(before, candidate, new JSONObject(), 4, 5);
     assertEquals(0, HiddenExitStreak.current(candidate));
     assertFalse(HiddenExitStreak.ready(candidate));
