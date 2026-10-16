@@ -134,6 +134,7 @@ class EntitySpawnPoolTest {
     assertTrue(PhysicalActionDetector.isPhysical("Mở cửa"))
     assertTrue(PhysicalActionDetector.isSceneFacing("Thả thần thức đi điều tra"))
     assertFalse(PhysicalActionDetector.isSceneFacing("Nói chuyện với Lucia"))
+    assertFalse(PhysicalActionDetector.isSceneFacing("Hỏi Lucia về việc khảo sát hành lang"))
     assertFalse(PhysicalActionDetector.isSceneFacing("Điểm kinh nghiệm"))
   }
 
