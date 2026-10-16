@@ -303,7 +303,7 @@
     layer.setAttribute('aria-hidden','true');
     layer.style.cssText='left:'+(rect.left-base.left)+'px;top:'+(rect.top-base.top)+'px;width:'+rect.width+'px;height:'+rect.height+'px';
     function image(parent){
-      var img=document.createElement('img');img.src=url;img.alt='';img.draggable=false;parent.appendChild(img);
+      var img=document.createElement('img');img.src=url;img.alt='';img.draggable=false;parent.appendChild(img);return img;
     }
     if(reduced){
       var ghost=document.createElement('div');ghost.className='entity-shatter-ghost';image(ghost);layer.appendChild(ghost);
@@ -349,15 +349,19 @@
         var mx=0,my=0;points.forEach(function(p){mx+=p[0]/points.length;my+=p[1]/points.length;});
         var angle=Math.atan2((my-cy)*rect.height,(mx-cx)*rect.width)+(Math.random()-.5)*.7;
         var travel=spread*(.35+Math.random()*.8),dx=Math.cos(angle)*travel,dy=Math.sin(angle)*travel;
-        // Rasterize only this fragment's bounding box. Full-overlay layers per piece
-        // multiply texture memory on high-DPI WebViews, especially with CSS filters.
+        // Limit paint to the shard's bounds while rendering an actual Entity image.
+        // WebView can silently skip a clipped CSS background with strict containment.
         var xs=points.map(function(p){return p[0];}),ys=points.map(function(p){return p[1];});
         var left=Math.min.apply(Math,xs)*rect.width/100,top=Math.min.apply(Math,ys)*rect.height/100;
         var width=(Math.max.apply(Math,xs)-Math.min.apply(Math,xs))*rect.width/100;
         var height=(Math.max.apply(Math,ys)-Math.min.apply(Math,ys))*rect.height/100;
         var shard=document.createElement('div');shard.className='entity-shatter-shard';
-        shard.style.cssText='left:'+left.toFixed(2)+'px;top:'+top.toFixed(2)+'px;width:'+width.toFixed(2)+'px;height:'+height.toFixed(2)+'px;clip-path:polygon('+points.map(function(p){return ((p[0]*rect.width/100-left)/width*100).toFixed(2)+'% '+((p[1]*rect.height/100-top)/height*100).toFixed(2)+'%';}).join(',')+');transform-origin:'+((mx*rect.width/100-left)/width*100).toFixed(2)+'% '+((my*rect.height/100-top)/height*100).toFixed(2)+'%;background-size:'+rect.width+'px '+rect.height+'px;background-position:'+(-left).toFixed(2)+'px '+(-top).toFixed(2)+'px;--shard-x:'+dx.toFixed(1)+'px;--shard-y:'+dy.toFixed(1)+'px;--shard-drop:'+(dy+15+Math.random()*35).toFixed(1)+'px;--shard-rotate:'+((Math.random()-.5)*240).toFixed(1)+'deg;--shard-tilt:'+Math.cos((Math.random()-.5)*130*Math.PI/180).toFixed(2)+';--shard-scale:'+(.25+Math.random()*.45).toFixed(2)+';animation-delay:480ms;animation-duration:'+(520+Math.random()*270).toFixed(0)+'ms';
-        shard.style.backgroundImage='url('+JSON.stringify(url)+')';layer.appendChild(shard);
+        shard.style.cssText='left:'+left.toFixed(2)+'px;top:'+top.toFixed(2)+'px;width:'+width.toFixed(2)+'px;height:'+height.toFixed(2)+'px;clip-path:polygon('+points.map(function(p){return ((p[0]*rect.width/100-left)/width*100).toFixed(2)+'% '+((p[1]*rect.height/100-top)/height*100).toFixed(2)+'%';}).join(',')+');transform-origin:'+((mx*rect.width/100-left)/width*100).toFixed(2)+'% '+((my*rect.height/100-top)/height*100).toFixed(2)+'%;--shard-x:'+dx.toFixed(1)+'px;--shard-y:'+dy.toFixed(1)+'px;--shard-drop:'+(dy+15+Math.random()*35).toFixed(1)+'px;--shard-rotate:'+((Math.random()-.5)*240).toFixed(1)+'deg;--shard-tilt:'+Math.cos((Math.random()-.5)*130*Math.PI/180).toFixed(2)+';--shard-scale:'+(.25+Math.random()*.45).toFixed(2)+';animation-delay:460ms;animation-duration:'+(680+Math.random()*160).toFixed(0)+'ms';
+        // Use the image element pipeline that already displays the Entity correctly.
+        // All shards share a decoded source, but each wrapper clips to its small bounds.
+        var pieceImage=image(shard);
+        pieceImage.style.cssText='position:absolute;left:'+(-left).toFixed(2)+'px;top:'+(-top).toFixed(2)+'px;width:'+rect.width+'px;height:'+rect.height+'px';
+        layer.appendChild(shard);
       }
       for(var row=0;row<rows;row++)for(var col=0;col<cols;col++){
         var a=grid[row][col],b=grid[row][col+1],c=grid[row+1][col+1],d=grid[row+1][col];
