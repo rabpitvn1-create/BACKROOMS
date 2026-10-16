@@ -118,10 +118,16 @@ object PhysicalActionDetector {
     "bước", "chạy", "leo", "tiến", "lùi", "bò", "vượt", "tìm", "lục", "quét", "scan"
   ))
 
+  // Asking or talking *about* exploration is not the same as investigating.
+  private val DIALOGUE_OPENING = Regex(
+    "(?iu)^\\s*(?:cao\\s+minh\\s+)?(?:nói(?:\\s+chuyện)?|hỏi|trả\\s+lời|đáp|chào|gọi|trò\\s+chuyện|thì\\s+thầm)(?![\\p{L}\\p{N}])"
+  )
+
   @JvmStatic fun isPhysical(actionText: String): Boolean = PHYSICAL_PATTERN.containsMatchIn(actionText)
 
   /** Visual intent within EXECUTE, never a new action kind or spawn pipeline. */
-  @JvmStatic fun isSceneFacing(actionText: String): Boolean = SCENE_PATTERN.containsMatchIn(actionText)
+  @JvmStatic fun isSceneFacing(actionText: String): Boolean =
+    !DIALOGUE_OPENING.containsMatchIn(actionText) && SCENE_PATTERN.containsMatchIn(actionText)
 }
 
 /**
