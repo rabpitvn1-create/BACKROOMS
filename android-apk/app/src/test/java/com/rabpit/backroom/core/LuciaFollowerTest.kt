@@ -102,7 +102,7 @@ class LuciaFollowerTest {
     assertFalse(LUCIA_ID in state.party.memberIds)
     assertEquals("CORE_SPAWN", lucia.metadata["encounterPolicy"])
     assertEquals("0", lucia.metadata["encounterLevels"])
-    assertEquals("EXPLORE", lucia.metadata["encounterAction"])
+    assertEquals("EXECUTE", lucia.metadata["encounterAction"])
     assertEquals("60", lucia.metadata["startingLoadedAmmo"])
     assertEquals("90", lucia.metadata["startingReserveAmmo"])
     assertEquals("150", lucia.metadata["startingTotalAmmo"])
