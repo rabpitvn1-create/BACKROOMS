@@ -8,7 +8,7 @@ public final class SnapshotSceneProgress {
 
   private SnapshotSceneProgress() {}
 
-  public static void apply(JSONObject before, JSONObject next, JSONObject rolls, String actionKind)
+  public static void apply(JSONObject before, JSONObject next, JSONObject rolls, String actionKind, String actionText)
       throws Exception {
     if (before == null || next == null) return;
     JSONObject oldFlags = before.optJSONObject("flags");
@@ -24,7 +24,8 @@ public final class SnapshotSceneProgress {
     boolean locationChanged = !before.optString("location", "").equals(next.optString("location", ""));
     String oldArea = oldFlags == null ? "" : oldFlags.optString("visualAreaKey", "");
     boolean areaChanged = !oldArea.equals(flags.optString("visualAreaKey", ""));
-    boolean execute = "EXECUTE".equalsIgnoreCase(actionKind == null ? "" : actionKind.trim());
+    boolean sceneFacing = "EXECUTE".equalsIgnoreCase(actionKind == null ? "" : actionKind.trim())
+        && PhysicalActionDetector.isSceneFacing(actionText == null ? "" : actionText);
     boolean failed = HiddenExitStreak.failedThisTurn(rolls);
 
     // Discovering an Exit is independent from exploring the surroundings.
@@ -33,7 +34,7 @@ public final class SnapshotSceneProgress {
     boolean encounter = entityRoll != null && entityRoll.optBoolean("eligible", false) &&
         entityRoll.optBoolean("success", false);
     boolean advance = !encounter &&
-        (nodeChanged || execute || (!failed && (locationChanged || areaChanged)));
+        (nodeChanged || sceneFacing || (!failed && (locationChanged || areaChanged)));
     int step = advance ? (previous == Integer.MAX_VALUE ? 0 : previous + 1) : previous;
     // Ignore any snapshotStep supplied by the narrative model; Core alone advances it.
     exploration.put(STEP_KEY, step);
