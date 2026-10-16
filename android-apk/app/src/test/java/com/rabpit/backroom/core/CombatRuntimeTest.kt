@@ -72,10 +72,10 @@ class CombatRuntimeTest {
     assertNull(CombatRuntime.active(state))
   }
 
-  @Test fun combatExploreIsMovementNotAnotherEncounter() {
+  @Test fun combatMovementIsNotAnotherEncounter() {
     val started = CombatRuntime.start(GameState.initial(), "skin-stealer")
     val before = CombatRuntime.active(started)!!
-    val result = CombatRuntime.resolve(started, "EXPLORE", "lùi lại tìm vật che chắn")
+    val result = CombatRuntime.resolve(started, "EXECUTE", "lùi lại tìm vật che chắn")
     assertTrue(result.handled)
     val after = CombatRuntime.active(result.state)
     if (after != null) {
