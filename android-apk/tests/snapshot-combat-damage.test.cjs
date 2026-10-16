@@ -693,12 +693,21 @@ test('normal and critical damage start fully visible at the impact frame',()=>{
 
 function readyShatter(r){r.entity.src='file:///android_asset/entity/hound.webp';r.entity.style.opacity='1';return r;}
 const lethal={target:'entity',text:'-24 HP',remainingHp:0,outcome:'hit'};
-test('Core-confirmed lethal Entity damage grows one crack/core layer and twelve bounded shards',()=>{
+test('Core-confirmed lethal Entity damage grows branching energy cracks and varied bounded debris',()=>{
  const r=readyShatter(boot());
  r.event({...lethal,remainingHp:1});assert.equal(r.box.children.some(n=>n.className==='entity-shatter'),false);
  r.event(lethal);
  const layer=r.box.children.find(n=>n.className==='entity-shatter');assert.ok(layer);
- assert.equal(layer.children.filter(n=>n.className==='entity-shatter-shard').length,12);
+ const shards=layer.children.filter(n=>n.className==='entity-shatter-shard');
+ assert.ok(shards.length>=35&&shards.length<=70);
+ assert.ok(new Set(shards.map(n=>n.style.cssText)).size===shards.length);
+ assert.equal(layer.children.filter(n=>n.className==='entity-shatter-spark').length,26);
+ const crack=layer.children.find(n=>n.className==='entity-shatter-cracks');
+ assert.ok(decodeURIComponent(crack.style.backgroundImage).includes('stroke-width=".18"'));
+ assert.ok((decodeURIComponent(crack.style.backgroundImage).match(/<path/g)||[]).length>=100);
+ const second=readyShatter(boot());second.event(lethal);
+ const secondCrack=second.box.children.find(n=>n.className==='entity-shatter').children.find(n=>n.className==='entity-shatter-cracks');
+ assert.notEqual(crack.style.backgroundImage,secondCrack.style.backgroundImage);
  assert.ok(layer.children.some(n=>n.className==='entity-shatter-cracks'));
  assert.ok(layer.children.some(n=>n.className==='entity-shatter-core'));
  assert.equal(r.entity.style.opacity,'1');
