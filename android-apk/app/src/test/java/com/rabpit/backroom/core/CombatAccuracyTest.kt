@@ -21,6 +21,33 @@ class CombatAccuracyTest {
     assertEquals(9900, CharacterStatCore.combatAccuracyBasisPoints(999, 999, 18, 3, 3, 7))
   }
 
+  @Test fun higherDexActuallyTurnsCombatMissesIntoHitsWithTheSameSeeds() {
+    var improvedHits = 0
+    repeat(64) { sample ->
+      val baseline = GameState.initial().let { state ->
+        state.copy(time = state.time.copy(elapsedSubjectiveMinutes = sample.toLong()))
+      }
+      val leader = baseline.characters.getValue(CAO_MINH_ID)
+      val higherDex = baseline.copy(characters = baseline.characters +
+        (CAO_MINH_ID to leader.copy(statProfile = leader.statProfile.copy(dex = 250))))
+      fun firstBasicHit(state: GameState): Boolean {
+        val started = CombatRuntime.start(state, "hound")
+        val result = CombatRuntime.resolve(started, "EXECUTE", "Đánh Hound bằng Magnum")
+        val first = result.feedback.firstOrNull {
+          it.actorId == CAO_MINH_ID && it.phase == "actor" &&
+            (it.outcome == "hit" || it.outcome == "miss")
+        }
+        assertNotNull("Cao Minh's basic attack must produce hit/miss feedback", first)
+        return first!!.outcome == "hit"
+      }
+      val oldHit = firstBasicHit(baseline)
+      val boostedHit = firstBasicHit(higherDex)
+      assertFalse("DEX must never reduce hit probability for the same seed", oldHit && !boostedHit)
+      if (!oldHit && boostedHit) improvedHits++
+    }
+    assertTrue("DEX must change actual CombatRuntime hit outcomes", improvedHits > 0)
+  }
+
   @Test fun effectiveEquipmentAndPassiveAffectAccuracyWithoutChangingPrimarySchema() {
     val state = GameState.initial()
     val actor = state.characters.getValue(CAO_MINH_ID)
