@@ -699,15 +699,18 @@ test('Core-confirmed lethal Entity damage grows branching energy cracks and vari
  r.event(lethal);
  const layer=r.box.children.find(n=>n.className==='entity-shatter');assert.ok(layer);
  const shards=layer.children.filter(n=>n.className==='entity-shatter-shard');
- assert.ok(shards.length>=24&&shards.length<=32);
+ assert.ok(shards.length>=35&&shards.length<=70);
  assert.ok(new Set(shards.map(n=>n.style.cssText)).size===shards.length);
- assert.equal(layer.children.filter(n=>n.className==='entity-shatter-spark').length,18);
+ assert.equal(layer.children.filter(n=>n.className==='entity-shatter-spark').length,26);
  const crack=layer.children.find(n=>n.className==='entity-shatter-cracks');
  assert.ok(decodeURIComponent(crack.style.backgroundImage).includes('stroke-width=".18"'));
  assert.ok((decodeURIComponent(crack.style.backgroundImage).match(/<path/g)||[]).length>=100);
  const second=readyShatter(boot());second.event(lethal);
  const secondCrack=second.box.children.find(n=>n.className==='entity-shatter').children.find(n=>n.className==='entity-shatter-cracks');
  assert.notEqual(crack.style.backgroundImage,secondCrack.style.backgroundImage);
+ const charge=layer.children.find(n=>n.className==='entity-shatter-charge');
+ assert.ok(charge);assert.match(charge.style.maskImage,/hound\.webp/);
+ assert.ok(decodeURIComponent(crack.style.backgroundImage).includes('stroke-width="3.4"'));
  assert.ok(layer.children.some(n=>n.className==='entity-shatter-cracks'));
  assert.ok(layer.children.some(n=>n.className==='entity-shatter-core'));
  assert.equal(r.entity.style.opacity,'1');
@@ -763,12 +766,12 @@ test('lethal status ticks without actor cues still finish their death effect bef
  r.timers.find(t=>t.ms===1320).fn();assert.equal(r.scope.state.combat,null);
 });
 
-test('shatter crops every debris surface and caps layer count for mobile WebView',()=>{
+test('full-density shatter keeps every shard cropped for mobile WebView',()=>{
  for(let run=0;run<12;run++){
   const r=readyShatter(boot());r.event(lethal);
   const layer=r.box.children.find(n=>n.className==='entity-shatter');
   const shards=layer.children.filter(n=>n.className==='entity-shatter-shard');
-  assert.ok(shards.length>=24&&shards.length<=32);
+  assert.ok(shards.length>=35&&shards.length<=70);
   let totalArea=0;
   for(const shard of shards){
    const style=shard.style.cssText;
@@ -779,6 +782,7 @@ test('shatter crops every debris surface and caps layer count for mobile WebView
    assert.equal(shard.children.length,0,'no full-sized Entity image per fragment');
    assert.match(shard.style.backgroundImage,/hound\.webp/);
    assert.match(style,/background-size:480px 300px/);
+   assert.match(style,/--shard-tilt:[\d.]+/);
    const vertices=style.match(/clip-path:polygon\(([^)]+)\)/)[1].match(/[\d.]+/g).map(Number);
    assert.ok(vertices.every(value=>value>=0&&value<=100),'crop uses local polygon coordinates');
   }
@@ -786,6 +790,7 @@ test('shatter crops every debris surface and caps layer count for mobile WebView
  }
  const css=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/combat-feedback-1193a.css'),'utf8');
  assert.match(css,/\.entity-shatter-shard\{[^}]*contain:strict/);
+ assert.match(css,/\.entity-shatter-charge\{[^}]*radial-gradient/);
  const debrisAnimation=css.slice(css.indexOf('@keyframes entity-shatter-fragment'),css.indexOf('@keyframes entity-shatter-spark'));
  assert.doesNotMatch(debrisAnimation,/filter:|rotateY|translate3d/);
  assert.doesNotMatch(css,/entity-shatter-source|@keyframes entity-shatter-prime/);
