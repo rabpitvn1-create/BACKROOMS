@@ -1995,8 +1995,8 @@ function selected(){const id=view&&view.dataset.characterId||'cao_minh';return m
     if(nameEl){let role=document.getElementById('characterRole');if(!role){role=document.createElement('div');role.id='characterRole';role.className='character-role';nameEl.insertAdjacentElement('afterend',role)}role.textContent=member.role&&member.role!=='UNSPECIFIED'?member.role:''}
     const baseStats=[
       ['STR','ATK + sát thương kỹ năng'],
-      ['DEX','Kháng CRIT'],
-      ['AGI','Tỷ lệ CRIT'],
+      ['DEX','Kháng CRIT + chính xác'],
+      ['AGI','Tỷ lệ CRIT + chính xác'],
       ['VIT','HP + DEF'],
       ['EVA','Né tránh + kháng né']
     ];
@@ -2004,6 +2004,7 @@ function selected(){const id=view&&view.dataset.characterId||'cao_minh';return m
     const combatRows=[
       ['Sát thương đòn đánh',multiplierText(combat.attackPercent)],
       ['Sát thương kỹ năng',multiplierText(combat.skillDamagePercent)],
+      ['Tỷ lệ chính xác',percentText(combat.accuracyPercent)],
       ['DEF',numberText(combat.defense)],
       ['Tỷ lệ chí mạng',percentText(combat.criticalChancePercent)],
       ['Sát thương chí mạng',percentText(combat.criticalDamagePercent)],

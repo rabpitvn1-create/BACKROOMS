@@ -36,13 +36,13 @@ const base = {
   EVA: {base: 5, effective: 6, passive: 1}
 };
 const combat = {
-  defense: 1, attackPercent: 104, skillDamagePercent: 104,
+  defense: 1, attackPercent: 104, skillDamagePercent: 104, accuracyPercent: 65.5,
   criticalChancePercent: 5.45, criticalDamagePercent: 400,
   evasionPercent: 5.5, criticalResistancePercent: 0.25,
   evasionResistancePercent: 0.25
 };
 
-test('Character Info shows exactly five Base Stats and eight calculated Combat Stats', () => {
+test('Character Info shows exactly five Base Stats and nine calculated Combat Stats', () => {
   const { scope, status } = screen();
   scope.render({
     id: 'cao_minh', stats: base, combatStatus: combat, presence: 'ACTIVE',
@@ -52,11 +52,13 @@ test('Character Info shows exactly five Base Stats and eight calculated Combat S
     assert.match(status.innerHTML, new RegExp('character-info-stat-name">' + name + '<'));
   }
   assert.equal((status.innerHTML.match(/class="character-info-stat-name"/g) || []).length, 5);
-  assert.equal((status.innerHTML.match(/class="character-info-combat-item"/g) || []).length, 8);
+  assert.equal((status.innerHTML.match(/class="character-info-combat-item"/g) || []).length, 9);
   assert.match(status.innerHTML, /CHỈ SỐ CƠ BẢN/);
   assert.match(status.innerHTML, /CHỈ SỐ CHIẾN ĐẤU/);
   assert.match(status.innerHTML, /Sát thương đòn đánh/);
   assert.match(status.innerHTML, /×1\.04/);
+  assert.match(status.innerHTML, /Tỷ lệ chính xác/);
+  assert.match(status.innerHTML, /65\.5%/);
   assert.match(status.innerHTML, /5\.45%/);
   assert.match(status.innerHTML, /5\.5%/);
   assert.match(status.innerHTML, /0\.25%/);
@@ -71,11 +73,12 @@ test('Switching Characters refreshes values without keeping previous stat cards'
   scope.render({
     id:'iris',
     stats:Object.fromEntries(Object.keys(base).map(k=>[k,{base:5,effective:5,passive:0}])),
-    combatStatus:{...combat, criticalChancePercent:5, defense:0},
+    combatStatus:{...combat, accuracyPercent:58, criticalChancePercent:5, defense:0},
     statuses:[{type:'<script>alert(1)</script>'}]
   });
-  assert.equal((status.innerHTML.match(/character-info-combat-item/g) || []).length, 8);
-  assert.doesNotMatch(status.innerHTML, /5\.45%|Base 5 · \+1 bonus/);
+  assert.equal((status.innerHTML.match(/character-info-combat-item/g) || []).length, 9);
+  assert.doesNotMatch(status.innerHTML, /65\.5%|5\.45%|Base 5 · \+1 bonus/);
+  assert.match(status.innerHTML, /58%/);
   assert.match(status.innerHTML, /Base 5/);
   assert.match(status.innerHTML, /&lt;script&gt;alert\(1\)&lt;\/script&gt;/);
 });

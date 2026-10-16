@@ -25,6 +25,7 @@ object CharacterDetailJson {
       .put("defense", c.defense)
       .put("attackPercent", c.attackPercent)
       .put("skillDamagePercent", c.skillDamagePercent)
+      .put("accuracyPercent", c.accuracyBasisPoints / 100.0)
       .put("criticalChancePercent", c.criticalChanceBasisPoints / 100.0)
       .put("criticalDamagePercent", c.criticalDamagePercent)
       .put("evasionPercent", c.evasionBasisPoints / 100.0)
