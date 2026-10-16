@@ -1461,6 +1461,9 @@ public class MainActivity extends Activity {
     if (meta) return rolls;
 
     boolean executeAction = "EXECUTE".equalsIgnoreCase(actionKind);
+    // A dialogue or inventory action is EXECUTE gameplay, but is not Exit discovery.
+    boolean exitDiscoveryAction = executeAction &&
+      com.rabpit.backroom.core.PhysicalActionDetector.isSceneFacing(action);
 
     int level = Math.max(0, Math.min(6, currentLevel(state)));
     int[] hazardThresholds = {400, 700, 1000, 1200, 300, 1000, 1200};
@@ -1488,7 +1491,7 @@ public class MainActivity extends Activity {
     rolls.put("exitProbe", exitProbe);
     JSONObject hiddenExitRoll = thresholdRoll("_hiddenExitStreak", 100,
       com.rabpit.backroom.core.HiddenExitStreak.SUCCESS_PERCENT,
-      executeAction && !com.rabpit.backroom.core.HiddenExitStreak.ready(state), "");
+      exitDiscoveryAction && !com.rabpit.backroom.core.HiddenExitStreak.ready(state), "");
     rolls.put(com.rabpit.backroom.core.HiddenExitStreak.ROLL_KEY, hiddenExitRoll);
     boolean hiddenExitReady = com.rabpit.backroom.core.HiddenExitStreak.projectedReady(state, rolls);
     JSONObject authoritativeExit = new JSONObject()
