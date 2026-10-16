@@ -33,11 +33,13 @@ class CharacterInfoProjectionTest {
       assertEquals(stat.getInt("effective") - stat.getInt("base"), stat.getInt("passive"))
     }
     val combat = iris.getJSONObject("combatStatus")
-    assertEquals(setOf("defense", "attackPercent", "skillDamagePercent",
+    assertEquals(setOf("defense", "attackPercent", "skillDamagePercent", "accuracyPercent",
       "criticalChancePercent", "criticalDamagePercent", "evasionPercent",
       "criticalResistancePercent", "evasionResistancePercent"),
       combat.keys().asSequence().toSet())
     val effective = CharacterStatCore.effective(advanced, IRIS_ID)
+    assertEquals(effective.accuracyBasisPoints / 100.0,
+      combat.getDouble("accuracyPercent"), 0.001)
     assertEquals(effective.criticalChanceBasisPoints / 100.0,
       combat.getDouble("criticalChancePercent"), 0.001)
     assertEquals(effective.evasionBasisPoints / 100.0,
