@@ -1456,7 +1456,7 @@ public class MainActivity extends Activity {
     return partyHas(state, "An Nhiên") || partyHas(state, "an-nhien");
   }
 
-  private JSONObject makeGameplayRolls(JSONObject state, String actionKind, String action, boolean meta) throws Exception {
+  private JSONObject makeGameplayRolls(JSONObject state, String actionKind, String action, boolean meta, boolean entityReserved) throws Exception {
     JSONObject rolls = new JSONObject().put("turn", state.optInt("turn", 1)).put("meta", meta);
     if (meta) return rolls;
 
@@ -1491,7 +1491,7 @@ public class MainActivity extends Activity {
     rolls.put("exitProbe", exitProbe);
     JSONObject hiddenExitRoll = thresholdRoll("_hiddenExitStreak", 100,
       com.rabpit.backroom.core.HiddenExitStreak.SUCCESS_PERCENT,
-      exitDiscoveryAction && !com.rabpit.backroom.core.HiddenExitStreak.ready(state), "");
+      exitDiscoveryAction && !entityReserved && !com.rabpit.backroom.core.HiddenExitStreak.ready(state), "");
     rolls.put(com.rabpit.backroom.core.HiddenExitStreak.ROLL_KEY, hiddenExitRoll);
     boolean hiddenExitReady = com.rabpit.backroom.core.HiddenExitStreak.projectedReady(state, rolls);
     JSONObject authoritativeExit = new JSONObject()
@@ -1979,7 +1979,7 @@ public class MainActivity extends Activity {
           JSONObject pendingEntityEncounter = actionStart.optJSONObject("pendingEntityEncounter");
           JSONObject before = new JSONObject(currentView);
           boolean meta = isMetaAction(action);
-          JSONObject rolls = makeGameplayRolls(before, actionKind, action, meta);
+          JSONObject rolls = makeGameplayRolls(before, actionKind, action, meta, pendingEntityEncounter != null);
 
           JSONObject generated = parseModelJson(generateText(writerPrompt(before, action, rolls, pendingNpcEncounters, pendingEntityEncounter)));
           String reply = generated.optString("reply", "").trim();
