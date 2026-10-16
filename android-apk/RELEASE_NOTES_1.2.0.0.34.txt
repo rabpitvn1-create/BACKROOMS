@@ -1,0 +1,7 @@
+Backroom 1.2.0.0.34 Debug
+
+- Android versionCode 107; versionName 1.2.0.0.34; applicationId com.rabpit.backroom.
+- Kế thừa các thay đổi đã hợp nhất từ PR #639: hiệu ứng Entity vỡ lõi trở lại 35–70 mảnh bất quy tắc và 26 tia vụn, vết nứt sáng, sóng xung kích; giữ crop từng mảnh, contain:strict và biến đổi 2D để giảm chi phí render.
+- Kế thừa PR #638: Game Master ưu tiên Gemini qua pool 5 API key, dự phòng Gehihi khi Gemini không phản hồi hợp lệ; kiểm tra JSON trước khi ghi lượt và hiển thị đúng provider.
+- Không thay đổi cơ chế lưu/tải của phiên bản hiện tại. Chưa có số đo frame time thực tế trên Android WebView đối với hiệu ứng Entity.
+- Bản debug được xây dựng, kiểm thử và xác thực checksum bởi GitHub Actions trước khi ghi trạng thái GREEN.
