@@ -55,6 +55,7 @@ data class EffectiveCharacterStats(
   val resEvasionPercent: Int,
   val criticalDamagePercent: Int = CharacterStatCore.CRITICAL_DAMAGE_PERCENT,
   // Basis points retain 0.01% precision for fractional per-stat bonuses.
+  val accuracyBasisPoints: Int = 5800,
   val criticalChanceBasisPoints: Int = 0,
   val evasionBasisPoints: Int = 0,
   val resCriticalBasisPoints: Int = 0,
