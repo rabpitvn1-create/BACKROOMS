@@ -699,9 +699,9 @@ test('Core-confirmed lethal Entity damage grows branching energy cracks and vari
  r.event(lethal);
  const layer=r.box.children.find(n=>n.className==='entity-shatter');assert.ok(layer);
  const shards=layer.children.filter(n=>n.className==='entity-shatter-shard');
- assert.ok(shards.length>=35&&shards.length<=70);
+ assert.ok(shards.length>=24&&shards.length<=32);
  assert.ok(new Set(shards.map(n=>n.style.cssText)).size===shards.length);
- assert.equal(layer.children.filter(n=>n.className==='entity-shatter-spark').length,26);
+ assert.equal(layer.children.filter(n=>n.className==='entity-shatter-spark').length,18);
  const crack=layer.children.find(n=>n.className==='entity-shatter-cracks');
  assert.ok(decodeURIComponent(crack.style.backgroundImage).includes('stroke-width=".18"'));
  assert.ok((decodeURIComponent(crack.style.backgroundImage).match(/<path/g)||[]).length>=100);
@@ -761,4 +761,32 @@ test('lethal status ticks without actor cues still finish their death effect bef
  assert.ok(r.box.children.some(n=>n.className==='entity-shatter'));
  r.timers.find(t=>t.ms===1520).fn();assert.equal(r.scope.state.combat.active,true);
  r.timers.find(t=>t.ms===1320).fn();assert.equal(r.scope.state.combat,null);
+});
+
+test('shatter crops every debris surface and caps layer count for mobile WebView',()=>{
+ for(let run=0;run<12;run++){
+  const r=readyShatter(boot());r.event(lethal);
+  const layer=r.box.children.find(n=>n.className==='entity-shatter');
+  const shards=layer.children.filter(n=>n.className==='entity-shatter-shard');
+  assert.ok(shards.length>=24&&shards.length<=32);
+  let totalArea=0;
+  for(const shard of shards){
+   const style=shard.style.cssText;
+   const width=Number(style.match(/(?:^|;)width:([\d.]+)px/)[1]);
+   const height=Number(style.match(/(?:^|;)height:([\d.]+)px/)[1]);
+   assert.ok(width>0&&width<480*.43);assert.ok(height>0&&height<300*.29);
+   totalArea+=width*height;
+   assert.equal(shard.children.length,0,'no full-sized Entity image per fragment');
+   assert.match(shard.style.backgroundImage,/hound\.webp/);
+   assert.match(style,/background-size:480px 300px/);
+   const vertices=style.match(/clip-path:polygon\(([^)]+)\)/)[1].match(/[\d.]+/g).map(Number);
+   assert.ok(vertices.every(value=>value>=0&&value<=100),'crop uses local polygon coordinates');
+  }
+  assert.ok(totalArea<480*300*3,'total raster area stays bounded, rather than one entire Entity per fragment');
+ }
+ const css=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/combat-feedback-1193a.css'),'utf8');
+ assert.match(css,/\.entity-shatter-shard\{[^}]*contain:strict/);
+ const debrisAnimation=css.slice(css.indexOf('@keyframes entity-shatter-fragment'),css.indexOf('@keyframes entity-shatter-spark'));
+ assert.doesNotMatch(debrisAnimation,/filter:|rotateY|translate3d/);
+ assert.doesNotMatch(css,/entity-shatter-source|@keyframes entity-shatter-prime/);
 });

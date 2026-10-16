@@ -333,7 +333,7 @@
         var node=document.createElement('div');node.className='entity-shatter-'+name;
         node.style.left=cx+'%';node.style.top=cy+'%';layer.appendChild(node);
       });
-      var grid=[],cols=5,rows=7,spread=Math.min(100,Math.min(rect.width,rect.height)*.4);
+      var grid=[],cols=4,rows=6,splitsLeft=8,spread=Math.min(100,Math.min(rect.width,rect.height)*.4);
       for(var gy=0;gy<=rows;gy++){
         grid[gy]=[];
         for(var gx=0;gx<=cols;gx++)grid[gy][gx]=[
@@ -344,18 +344,25 @@
         var mx=0,my=0;points.forEach(function(p){mx+=p[0]/points.length;my+=p[1]/points.length;});
         var angle=Math.atan2((my-cy)*rect.height,(mx-cx)*rect.width)+(Math.random()-.5)*.7;
         var travel=spread*(.35+Math.random()*.8),dx=Math.cos(angle)*travel,dy=Math.sin(angle)*travel;
+        // Rasterize only this fragment's bounding box. Full-overlay layers per piece
+        // multiply texture memory on high-DPI WebViews, especially with CSS filters.
+        var xs=points.map(function(p){return p[0];}),ys=points.map(function(p){return p[1];});
+        var left=Math.min.apply(Math,xs)*rect.width/100,top=Math.min.apply(Math,ys)*rect.height/100;
+        var width=(Math.max.apply(Math,xs)-Math.min.apply(Math,xs))*rect.width/100;
+        var height=(Math.max.apply(Math,ys)-Math.min.apply(Math,ys))*rect.height/100;
         var shard=document.createElement('div');shard.className='entity-shatter-shard';
-        shard.style.cssText='clip-path:polygon('+points.map(function(p){return p[0].toFixed(2)+'% '+p[1].toFixed(2)+'%';}).join(',')+');transform-origin:'+mx+'% '+my+'%;--shard-x:'+dx.toFixed(1)+'px;--shard-y:'+dy.toFixed(1)+'px;--shard-drop:'+(dy+15+Math.random()*35).toFixed(1)+'px;--shard-rotate:'+((Math.random()-.5)*240).toFixed(1)+'deg;--shard-tilt:'+((Math.random()-.5)*130).toFixed(1)+'deg;--shard-scale:'+(.25+Math.random()*.45).toFixed(2)+';animation-delay:480ms;animation-duration:'+(520+Math.random()*270).toFixed(0)+'ms';
-        image(shard);layer.appendChild(shard);
+        shard.style.cssText='left:'+left.toFixed(2)+'px;top:'+top.toFixed(2)+'px;width:'+width.toFixed(2)+'px;height:'+height.toFixed(2)+'px;clip-path:polygon('+points.map(function(p){return ((p[0]*rect.width/100-left)/width*100).toFixed(2)+'% '+((p[1]*rect.height/100-top)/height*100).toFixed(2)+'%';}).join(',')+');transform-origin:'+((mx*rect.width/100-left)/width*100).toFixed(2)+'% '+((my*rect.height/100-top)/height*100).toFixed(2)+'%;background-size:'+rect.width+'px '+rect.height+'px;background-position:'+(-left).toFixed(2)+'px '+(-top).toFixed(2)+'px;--shard-x:'+dx.toFixed(1)+'px;--shard-y:'+dy.toFixed(1)+'px;--shard-drop:'+(dy+15+Math.random()*35).toFixed(1)+'px;--shard-rotate:'+((Math.random()-.5)*240).toFixed(1)+'deg;--shard-scale:'+(.25+Math.random()*.45).toFixed(2)+';animation-delay:480ms;animation-duration:'+(520+Math.random()*270).toFixed(0)+'ms';
+        shard.style.backgroundImage='url('+JSON.stringify(url)+')';layer.appendChild(shard);
       }
       for(var row=0;row<rows;row++)for(var col=0;col<cols;col++){
         var a=grid[row][col],b=grid[row][col+1],c=grid[row+1][col+1],d=grid[row+1][col];
-        if(Math.random()<.45){
+        if(splitsLeft>0&&Math.random()<.35){
+          splitsLeft--;
           if(Math.random()<.5){fragment([a,b,c]);fragment([a,c,d]);}
           else{fragment([a,b,d]);fragment([b,c,d]);}
         }else fragment([a,b,c,d]);
       }
-      for(var spark=0;spark<26;spark++){
+      for(var spark=0;spark<18;spark++){
         var theta=Math.random()*Math.PI*2,distance=spread*(.25+Math.random()*.85);
         var mote=document.createElement('i');mote.className='entity-shatter-spark';
         mote.style.cssText='left:'+cx+'%;top:'+cy+'%;--spark-x:'+(Math.cos(theta)*distance).toFixed(1)+'px;--spark-y:'+(Math.sin(theta)*distance).toFixed(1)+'px;--spark-angle:'+theta+'rad;--spark-length:'+(2+Math.random()*7).toFixed(1)+'px;animation-delay:'+(450+Math.random()*60).toFixed(0)+'ms;animation-duration:'+(300+Math.random()*450).toFixed(0)+'ms';
@@ -365,7 +372,6 @@
     var priorOpacity=source.style.opacity;
     var effect={source:source,token:animationToken,active:true,waiters:[],finish:function(cancelled){
       if(!effect.active)return;effect.active=false;layer.remove();
-      source.classList.remove('entity-shatter-source');
       var index=entityShatters.indexOf(effect);if(index!==-1)entityShatters.splice(index,1);
       if(cancelled){source.style.opacity=priorOpacity;shatteredEntities.delete(source);return;}
       source.style.opacity='0';
@@ -373,7 +379,6 @@
     }};
     shatteredEntities.add(source);entityShatters.push(effect);box.appendChild(layer);
     if(reduced)source.style.opacity='0';else{
-      source.classList.add('entity-shatter-source');
       setTimeout(function(){if(effect.active&&effect.token===animationToken)source.style.opacity='0';},480);
     }
     setTimeout(function(){effect.finish(false);},duration);
