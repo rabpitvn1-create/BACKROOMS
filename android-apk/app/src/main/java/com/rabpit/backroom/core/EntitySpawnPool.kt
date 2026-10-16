@@ -315,7 +315,12 @@ object SpawnMechanism {
 
     // Gate 5: Ambient crowd NPC — 30% on d10000, ephemeral only.
     // Priority: entity and Canon NPCs take precedence over ambient.
-    val ambientNpcRolled = kind == ActionKind.EXECUTE &&
+    // Ambient characters need a scene-facing action. This preserves the single
+    // EXECUTE lane without triggering an extra ambient Gemini request on dialogue.
+    val ambientActivity = PhysicalActionDetector.isPhysical(actionText) ||
+      listOf("quan sát", "khám phá", "thăm dò", "dò xét", "điều tra", "thần thức")
+        .any { actionText.contains(it, ignoreCase = true) }
+    val ambientNpcRolled = kind == ActionKind.EXECUTE && ambientActivity &&
       entityKey == null && npcEncounters.isEmpty() &&
       nextInt(10000) + 1 <= NpcSpawnTable.AMBIENT_THRESHOLD
 
