@@ -52,4 +52,7 @@ test('chat sends only EXECUTE through Core NPC, exit and snapshot paths',()=>{
  const spawner=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/core/EntitySpawnPool.kt'),'utf8');
  assert.match(spawner,/val ambientNpcRolled = kind == ActionKind\.EXECUTE/);
  assert.doesNotMatch(spawner,/ActionKind\.EXPLORE/);
+ assert.match(java,/boolean exitDiscoveryAction = executeAction &&/);
+ assert.match(java,/PhysicalActionDetector\.isSceneFacing\(action\)/);
+ assert.match(java,/exitDiscoveryAction && !com\.rabpit\.backroom\.core\.HiddenExitStreak\.ready\(state\)/);
 });
