@@ -55,4 +55,6 @@ test('chat sends only EXECUTE through Core NPC, exit and snapshot paths',()=>{
  assert.match(java,/boolean exitDiscoveryAction = executeAction &&/);
  assert.match(java,/PhysicalActionDetector\.isSceneFacing\(action\)/);
  assert.match(java,/exitDiscoveryAction && !com\.rabpit\.backroom\.core\.HiddenExitStreak\.ready\(state\)/);
+ assert.match(java,/pendingEntityEncounter != null &&/);
+ assert.match(java,/rolls\.put\("entityEncounter", new JSONObject\(\)/);
 });
