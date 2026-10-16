@@ -53,7 +53,7 @@ class EntityGmMetaGatingTest {
     var rngCalls = 0
     // Use a seed that guarantees entity spawn (roll 1).
     val result = SpawnMechanism.rollSpawns(
-      state, ActionKind.EXPLORE, "đi khám phá",
+      state, ActionKind.EXECUTE, "đi khám phá",
       isMeta = false, inCombatOrPending = false
     ) { bound -> rngCalls++; 0 } // nextInt always returns 0 → roll = 1 → entity spawns
     // RNG was consumed (rolls happened).
