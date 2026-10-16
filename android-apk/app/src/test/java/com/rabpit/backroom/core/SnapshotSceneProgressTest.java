@@ -24,10 +24,10 @@ public class SnapshotSceneProgressTest {
         .optInt(SnapshotSceneProgress.STEP_KEY, -1);
   }
 
-  @Test public void successfulExploreAdvancesWithinSameLocationAndPersists() throws Exception {
+  @Test public void successfulExecuteAdvancesWithinSameLocationAndPersists() throws Exception {
     JSONObject before = state("0", "Level 0 / Hall", "", 2);
     JSONObject next = new JSONObject(before.toString());
-    SnapshotSceneProgress.apply(before, next, roll(true), "EXPLORE");
+    SnapshotSceneProgress.apply(before, next, roll(true), "EXECUTE");
     assertEquals(3, step(next));
     assertEquals(2, step(before));
     assertEquals(3, step(new JSONObject(next.toString())));
@@ -36,7 +36,7 @@ public class SnapshotSceneProgressTest {
   @Test public void failedExitProbeDoesNotPreventVisualExploration() throws Exception {
     JSONObject before = state("0", "Level 0 / Hall", "A", 3);
     JSONObject next = state("0", "Level 0 / Hall", "A", 400);
-    SnapshotSceneProgress.apply(before, next, roll(false), "EXPLORE");
+    SnapshotSceneProgress.apply(before, next, roll(false), "EXECUTE");
     assertEquals(4, step(next));
     assertEquals(3, step(before));
   }
@@ -46,22 +46,22 @@ public class SnapshotSceneProgressTest {
     JSONObject next = state("0", "Level 0 / Hall", "", 100);
     JSONObject rolls = roll(true).put("entityEncounter", new JSONObject()
         .put("eligible", true).put("success", true));
-    SnapshotSceneProgress.apply(before, next, rolls, "EXPLORE");
+    SnapshotSceneProgress.apply(before, next, rolls, "EXECUTE");
     assertEquals(7, step(next));
     JSONObject ineligible = roll(false).put("entityEncounter", new JSONObject()
         .put("eligible", false).put("success", true));
     JSONObject safe = new JSONObject(before.toString());
-    SnapshotSceneProgress.apply(before, safe, ineligible, "EXPLORE");
+    SnapshotSceneProgress.apply(before, safe, ineligible, "EXECUTE");
     assertEquals(8, step(safe));
   }
 
-  @Test public void searchAndRenderStyleUpdatesDoNotAdvanceScene() throws Exception {
+  @Test public void searchDoesNotAdvanceButGameplayExecuteDoes() throws Exception {
     JSONObject before = state("1", "Level 1 / Parking", "", 4);
     JSONObject next = state("1", "Level 1 / Parking", "", 999);
     SnapshotSceneProgress.apply(before, next, new JSONObject(), "SEARCH");
     assertEquals(4, step(next));
     SnapshotSceneProgress.apply(before, next, new JSONObject(), "EXECUTE");
-    assertEquals(4, step(next));
+    assertEquals(5, step(next));
   }
 
   @Test public void confirmedLocationAndNodeChangesAdvanceRegardlessOfActionType() throws Exception {
@@ -77,11 +77,11 @@ public class SnapshotSceneProgressTest {
     assertEquals(5, step(area));
   }
 
-  @Test public void readyExitExploreAndStepOverflowRemainDeterministic() throws Exception {
+  @Test public void readyExitExecuteAndStepOverflowRemainDeterministic() throws Exception {
     JSONObject before = state("0", "Level 0 / Hall", "", Integer.MAX_VALUE);
     JSONObject next = new JSONObject(before.toString());
     // Once exit is already ready no further probe is necessary; the explorer still moves.
-    SnapshotSceneProgress.apply(before, next, new JSONObject(), "EXPLORE");
+    SnapshotSceneProgress.apply(before, next, new JSONObject(), "EXECUTE");
     assertEquals(0, step(next));
     JSONObject forged = state("0", "Level 0 / Hall", "", -50);
     JSONObject search = new JSONObject(forged.toString());
