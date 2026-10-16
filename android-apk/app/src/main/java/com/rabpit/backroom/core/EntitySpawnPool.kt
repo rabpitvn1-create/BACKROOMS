@@ -106,14 +106,22 @@ object PhysicalActionDetector {
     "đập", "vượt", "đi qua"
   )
 
-  /**
-   * Returns true if the action text contains any physical verb (case-insensitive).
-   * Matches baseline `containsAny(a, ...)` where `a = lower(action)`.
-   */
-  fun isPhysical(actionText: String): Boolean {
-    val lower = actionText.lowercase()
-    return PHYSICAL_VERBS.any { verb -> lower.contains(verb.lowercase()) }
+  // Whole Vietnamese words only: "điều tra" and "điểm" must not match "đi".
+  private fun wordPattern(terms: List<String>): Regex {
+    val alternatives = terms.joinToString("|") { Regex.escape(it) }
+    return Regex("(?iu)(?<![\\p{L}\\p{N}])(?:$alternatives)(?![\\p{L}\\p{N}])")
   }
+  private val PHYSICAL_PATTERN = wordPattern(PHYSICAL_VERBS)
+  private val SCENE_PATTERN = wordPattern(listOf(
+    "khám phá", "khảo sát", "thăm dò", "dò xét", "điều tra", "thần thức",
+    "quan sát", "nhìn quanh", "nhìn vào", "tìm đường", "đi", "đi qua",
+    "bước", "chạy", "leo", "tiến", "lùi", "bò", "vượt", "tìm", "lục", "quét", "scan"
+  ))
+
+  @JvmStatic fun isPhysical(actionText: String): Boolean = PHYSICAL_PATTERN.containsMatchIn(actionText)
+
+  /** Visual intent within EXECUTE, never a new action kind or spawn pipeline. */
+  @JvmStatic fun isSceneFacing(actionText: String): Boolean = SCENE_PATTERN.containsMatchIn(actionText)
 }
 
 /**
@@ -317,9 +325,7 @@ object SpawnMechanism {
     // Priority: entity and Canon NPCs take precedence over ambient.
     // Ambient characters need a scene-facing action. This preserves the single
     // EXECUTE lane without triggering an extra ambient Gemini request on dialogue.
-    val ambientActivity = PhysicalActionDetector.isPhysical(actionText) ||
-      listOf("quan sát", "khám phá", "thăm dò", "dò xét", "điều tra", "thần thức")
-        .any { actionText.contains(it, ignoreCase = true) }
+    val ambientActivity = PhysicalActionDetector.isSceneFacing(actionText)
     val ambientNpcRolled = kind == ActionKind.EXECUTE && ambientActivity &&
       entityKey == null && npcEncounters.isEmpty() &&
       nextInt(10000) + 1 <= NpcSpawnTable.AMBIENT_THRESHOLD
