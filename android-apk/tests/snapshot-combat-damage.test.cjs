@@ -779,9 +779,16 @@ test('full-density shatter keeps every shard cropped for mobile WebView',()=>{
    const height=Number(style.match(/(?:^|;)height:([\d.]+)px/)[1]);
    assert.ok(width>0&&width<480*.43);assert.ok(height>0&&height<300*.29);
    totalArea+=width*height;
-   assert.equal(shard.children.length,0,'no full-sized Entity image per fragment');
-   assert.match(shard.style.backgroundImage,/hound\.webp/);
-   assert.match(style,/background-size:480px 300px/);
+   assert.equal(shard.children.length,1,'cropped shard must render a real Entity image');
+   const sprite=shard.children[0];
+   assert.equal(sprite.tagName,'IMG');assert.match(sprite.src,/hound\.webp/);
+   assert.equal(sprite.style.width,'480px');
+   assert.equal(sprite.style.height,'300px');
+   const left=Number(style.match(/(?:^|;)left:([\d.]+)px/)[1]);
+   const top=Number(style.match(/(?:^|;)top:([\\d.]+)px/)[1]);
+   assert.equal(Number(sprite.style.left.replace('px','')),-left);
+   assert.equal(Number(sprite.style.top.replace('px','')),-top);
+   assert.equal(shard.style.backgroundImage,undefined,'shards must not rely on CSS background images');
    assert.match(style,/--shard-tilt:[\d.]+/);
    const vertices=style.match(/clip-path:polygon\(([^)]+)\)/)[1].match(/[\d.]+/g).map(Number);
    assert.ok(vertices.every(value=>value>=0&&value<=100),'crop uses local polygon coordinates');
@@ -789,7 +796,8 @@ test('full-density shatter keeps every shard cropped for mobile WebView',()=>{
   assert.ok(totalArea<480*300*3,'total raster area stays bounded, rather than one entire Entity per fragment');
  }
  const css=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/combat-feedback-1193a.css'),'utf8');
- assert.match(css,/\.entity-shatter-shard\{[^}]*contain:strict/);
+ assert.match(css,/\.entity-shatter-shard\{[^}]*contain:paint;overflow:hidden/);
+ assert.match(css,/\.entity-shatter-shard img\{[^}]*object-fit:fill/);
  assert.match(css,/\.entity-shatter-charge\{[^}]*radial-gradient/);
  const debrisAnimation=css.slice(css.indexOf('@keyframes entity-shatter-fragment'),css.indexOf('@keyframes entity-shatter-spark'));
  assert.doesNotMatch(debrisAnimation,/filter:|rotateY|translate3d/);
