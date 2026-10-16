@@ -38,6 +38,6 @@ test('a Party capacity rejection keeps the saved contact and restores its invita
 test('GM prompt has no milestone due events and recruitment uses a separate native endpoint',()=>{
  // Milestone system removed: writerPrompt must not reference due events or milestone.
  assert.doesNotMatch(java,/milestoneDueEvents|MilestoneNarrationValidator|milestoneWaiting/);
- assert.match(java,/Bạn là Gehihi, Game Master kể chuyện Backrooms bằng tiếng Việt/);
+ assert.match(java,/Bạn là Game Master kể chuyện Backrooms bằng tiếng Việt/);
  assert.match(java,/@JavascriptInterface public void recruitFollower\(String stateJson, String characterId\)/);
 });
