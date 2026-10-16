@@ -329,6 +329,15 @@ object CombatRuntime {
       return roll(c.copy(eventCounter = c.eventCounter + salt), 10000) < chance
     }
 
+    // Always use the current actor's equipped/passive-adjusted DEX and AGI.
+    // Tactical modifiers remain encounter-local, and Entity evasion is independent.
+    fun actorHitChance(actorId: String, rangeBonus: Int): Int {
+      val stats = CharacterStatEngine.effective(resolvedState, actorId)
+      return CharacterStatCore.combatAccuracyBasisPoints(
+        stats.dex, stats.agi, rangeBonus, c.opening, c.momentum,
+        PokerDiceCore.accuracyBonus(state))
+    }
+
     fun actorCritical(actorId: String, salt: Int): Boolean {
       val attacker = CharacterStatEngine.effective(resolvedState, actorId)
       val passive = when {
@@ -593,14 +602,14 @@ object CombatRuntime {
             newWaveAwaitingAction = false
           }
           val rangeBonus = when (c.range) { RangeBand.CLOSE -> 18; RangeBand.NEAR -> 10; RangeBand.FAR -> -5 }
-          val hitChance = (58 + rangeBonus + c.opening * 11 + c.momentum * 6 + PokerDiceCore.accuracyBonus(state)).coerceIn(20, 99)
+          val hitChance = actorHitChance(actorId, rangeBonus)
           val actor = resolvedState.characters.getValue(actorId)
           currentActingId = actorId
           cue("actor", actorId, actor.name)
           log += "PARTY TURN ${turnIndex + 1}/${partyOrder.size}: ${actor.name}."
           when (actorId) {
             CAO_MINH_ID -> {
-        val roll = roll(c, 100)
+        val roll = roll(c, 10000)
         val entityEvaded = entityDodges(CAO_MINH_ID, 13)
         if (roll < hitChance && !entityEvaded) {
           val variance = 2 + roll(c.copy(eventCounter = c.eventCounter + 17), 7)
@@ -716,7 +725,7 @@ object CombatRuntime {
                   log += "Too Young To Die [$hand]: Lucia bắn đúng 60 phát M4A1, mỗi phát 100% current DMG + 15% bonus, " +
                     (if (hand == "FSF") "FSF x200%, " else "") + "-$damage HP; không roll Evasion/Critical lần nữa."
                 } else {
-                  val luciaRoll = roll(c.copy(eventCounter = c.eventCounter + 83), 100)
+                  val luciaRoll = roll(c.copy(eventCounter = c.eventCounter + 83), 10000)
                   if (luciaRoll < hitChance && !entityDodges(LUCIA_ID, 97)) {
                     val critical = actorCritical(LUCIA_ID, 101)
                     val jointDamage = CharacterStatCore.scaleByPercent(baseDamage, 150)
@@ -772,7 +781,7 @@ object CombatRuntime {
         // PARTY_FOLLOWER_BASE_ATTACKS_V1: all actors resolve inside this one ATTACK event.
         val irisPartyAttack = activePartyCharacter(resolvedState, IRIS_ID)
         if (irisPartyAttack != null) {
-          val irisHitRoll = roll(c.copy(eventCounter = c.eventCounter + 307), 100)
+          val irisHitRoll = roll(c.copy(eventCounter = c.eventCounter + 307), 10000)
           val irisEntityEvaded = entityDodges(IRIS_ID, 311)
           if (irisHitRoll < hitChance && !irisEntityEvaded) {
             val critical = actorCritical(IRIS_ID, 349)
@@ -850,7 +859,7 @@ object CombatRuntime {
             SYVIAL_ID -> {
         val syvialPartyAttack = activePartyCharacter(resolvedState, SYVIAL_ID)
         if (syvialPartyAttack != null) {
-          val syvialHitRoll = roll(c.copy(eventCounter = c.eventCounter + 317), 100)
+          val syvialHitRoll = roll(c.copy(eventCounter = c.eventCounter + 317), 10000)
           val syvialEntityEvaded = entityDodges(SYVIAL_ID, 331)
           if (syvialHitRoll < hitChance && !syvialEntityEvaded) {
             val critical = actorCritical(SYVIAL_ID, 353)
@@ -939,9 +948,8 @@ object CombatRuntime {
                   val rangeBonus = when (c.range) {
                     RangeBand.CLOSE -> 18; RangeBand.NEAR -> 10; RangeBand.FAR -> -5
                   }
-                  val chance = (58 + rangeBonus + c.opening * 11 + c.momentum * 6 +
-                    PokerDiceCore.accuracyBonus(state)).coerceIn(20, 99)
-                  val hits = roll(c.copy(eventCounter = c.eventCounter + 373), 100) < chance &&
+                  val chance = actorHitChance(LUC_TRAM_ID, rangeBonus)
+                  val hits = roll(c.copy(eventCounter = c.eventCounter + 373), 10000) < chance &&
                     !entityDodges(LUC_TRAM_ID, 379)
                   if (hits) {
                     val critical = actorCritical(LUC_TRAM_ID, 383)
@@ -975,7 +983,7 @@ object CombatRuntime {
               if (actor.metadata["nonCombat"] == "true" || actor.metadata["canUseWeapons"] == "false") {
                 log += "${actor.name} hỗ trợ, không dùng vũ khí."
               } else {
-                val hitRoll = roll(c.copy(eventCounter = c.eventCounter + 409 + turnIndex * 19), 100)
+                val hitRoll = roll(c.copy(eventCounter = c.eventCounter + 409 + turnIndex * 19), 10000)
                 if (hitRoll < hitChance && !entityDodges(actorId, 467 + turnIndex * 19)) {
                   val critical = actorCritical(actorId, 491 + turnIndex * 19)
                   val basic = CharacterStatEngine.skillBaseDamage(resolvedState, actorId)
@@ -1149,9 +1157,8 @@ object CombatRuntime {
         if (lucTramActive && c.entityHp > 0 && LucTramCanon.hasConfirmedSword(resolvedState)) {
           // Entity missed its standard response, so counter without spending
           // a new turn. Reuses standard combat accuracy and Evasion gates.
-          val chance = (58 + c.opening * 11 + c.momentum * 6 +
-            PokerDiceCore.accuracyBonus(state)).coerceIn(20, 99)
-          val hits = roll(c.copy(eventCounter = c.eventCounter + 397), 100) < chance &&
+          val chance = actorHitChance(LUC_TRAM_ID, 0)
+          val hits = roll(c.copy(eventCounter = c.eventCounter + 397), 10000) < chance &&
             !entityDodges(LUC_TRAM_ID, 401)
           if (hits) {
             val basic = CharacterStatEngine.skillBaseDamage(resolvedState, LUC_TRAM_ID)
