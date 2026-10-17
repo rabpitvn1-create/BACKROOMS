@@ -27,7 +27,11 @@ object MiniMapRuntime {
   fun blocked(state: GameState) = CombatRuntime.active(state) != null || CombatRuntime.pending(state) != null || PENDING in state.world || ActionRuntime.activeSession(state) != null || state.turn.pending != null
   private fun accepted(p: JSONObject) = MiniMapScenario.strings(p.getJSONArray("accepted")).toSet()
   private fun attempted(p: JSONObject) = MiniMapScenario.strings(p.getJSONArray("attempted")).toSet()
-  fun complete(state: GameState): Boolean = script(state)?.let { MiniMapScenario.holds(it.getJSONObject("goal"), accepted(progress(state))) } ?: false
+  fun complete(state: GameState): Boolean {
+    val p = progress(state)
+    if (p.optBoolean("endingComplete", false)) return true
+    return script(state)?.let { MiniMapScenario.holds(it.getJSONObject("goal"), accepted(p)) } ?: false
+  }
   private fun room(s: JSONObject, p: JSONObject) = MiniMapScenario.objects(s.getJSONArray("rooms")).first { it.getString("id") == p.getString("roomId") }
   private fun authoredNpcs(s: JSONObject, roomId: String): JSONArray = JSONArray().apply {
     MiniMapScenario.objects(s.getJSONArray("npcs")).filter { it.getString("roomId") == roomId }.forEach { npc ->
@@ -87,7 +91,7 @@ object MiniMapRuntime {
     val out = JSONObject().put("miniIndex", p.getInt("index")).put("parentLevel", p.getInt("parent"))
       .put("nodeId", p.getString("nodeId")).put("nodeTitle", node(state).title())
       .put("sceneVersion", p.getInt("version")).put("availableActions", actions(state))
-      .put("records", p.getJSONArray("records")).put("generationNeeded", s == null)
+      .put("records", p.getJSONArray("records")).put("generationNeeded", s == null && !p.optBoolean("endingComplete", false))
       .put("awaitingEnding", p.getString("nodeId") == "6.1" && p.getInt("index") == 10 && complete(state))
       .put("nodeExitUnlocked", p.getInt("index") == 10 && complete(state) &&
         LevelRouteRegistry.exits(p.getString("nodeId")).isNotEmpty())
@@ -105,7 +109,8 @@ object MiniMapRuntime {
   fun generationRequest(state: GameState): JSONObject {
     check(!blocked(state)) { "scene_busy" }
     val p = progress(state); val outline = state.world[outlineKey(p)]
-    val kind = if (outline == null) "outline" else if (script(state) == null) "script" else "ready"
+    val kind = if (p.optBoolean("endingComplete", false)) "ready"
+      else if (outline == null) "outline" else if (script(state) == null) "script" else "ready"
     return JSONObject().put("kind", kind).put("token", token(state)).put("levelNumber", p.getInt("parent"))
       .put("index", p.getInt("index")).put("nodeAnchor", p.getString("nodeId"))
       .apply {
@@ -119,7 +124,9 @@ object MiniMapRuntime {
   }
   fun acceptGeneration(state: GameState, expected: String, raw: String): GameState {
     check(expected == token(state) && !blocked(state)) { "generation_stale" }
-    val p = progress(state); val data = MiniMapScenario.parse(raw)
+    val p = progress(state)
+    check(!p.optBoolean("endingComplete", false)) { "scene_ending_finalized" }
+    val data = MiniMapScenario.parse(raw)
     if (state.world[outlineKey(p)] == null) {
       val outline = MiniMapScenario.validateOutline(data, p.getString("nodeId"))
       return state.copy(world = state.world + (outlineKey(p) to outline.toString()))
@@ -183,6 +190,14 @@ object MiniMapRuntime {
       p.getJSONArray("attempted").put(target)
       if (correct) p.getJSONArray("accepted").put(target)
       p.getJSONArray("records").put(JSONObject().put("id", target).put("kind", a.getJSONObject("effect").getString("type")).put("text", fact))
+      if (p.getString("nodeId") == "6.1" && p.getInt("index") == 10 &&
+          MiniMapScenario.holds(s.getJSONObject("goal"), accepted(p))) {
+        // Final chapter has no later transition. Drop its puzzle on commit.
+        discardKeys += scriptKey(p)
+        discardKeys += outlineKey(p)
+        p.put("endingComplete", true).put("accepted", JSONArray())
+          .put("attempted", JSONArray()).put("records", JSONArray())
+      }
     }
     p.put("version", p.getInt("version") + 1)
     // A transition carries no solved puzzle records; only the fresh scene may produce new evidence.
