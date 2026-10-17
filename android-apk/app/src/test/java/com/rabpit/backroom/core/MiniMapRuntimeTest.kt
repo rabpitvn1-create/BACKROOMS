@@ -198,9 +198,15 @@ class MiniMapRuntimeTest {
     apply(core, repo, "answer_red"); apply(core, repo, "answer_left")
     assertTrue(MiniMapRuntime.complete(repo.state))
     assertEquals(0, MiniMapRuntime.publicView(repo.state).getJSONArray("npcs").length())
-    assertTrue(MiniMapScenario.objects(MiniMapRuntime.actions(repo.state)).any {
-      it.getString("targetId") == "next"
-    })
+    val next = MiniMapScenario.objects(MiniMapRuntime.actions(repo.state))
+      .first { it.getString("targetId") == "next" }
+    assertEquals("MOVE", next.getString("kind"))
+    assertEquals("Tiến vào khu vực kế tiếp.", next.getString("label"))
+    // The transition is still gated by the real exit room, not by client styling.
+    val outside = MiniMapRuntime.progress(repo.state).put("roomId", "lab")
+    val outsideState = repo.state.copy(world = repo.state.world + (MiniMapRuntime.STATE to outside.toString()))
+    assertFalse(MiniMapScenario.objects(MiniMapRuntime.actions(outsideState))
+      .any { it.getString("targetId") == "next" })
   }
 
   @Test fun multipleNpcHaveStableIdentityRoomAndActualTalkActions() {
