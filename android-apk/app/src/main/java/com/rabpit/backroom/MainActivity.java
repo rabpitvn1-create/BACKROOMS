@@ -859,15 +859,28 @@ public class MainActivity extends Activity {
   }
 
   private JSONObject openAiProviderBody(String model, String prompt) throws Exception {
+    return openAiProviderBody(model, prompt, 2048);
+  }
+
+  private JSONObject openAiProviderBody(String model, String prompt, int maxTokens) throws Exception {
     return new JSONObject()
       .put("model", model)
       .put("messages", new JSONArray().put(new JSONObject().put("role", "user").put("content", prompt)))
       .put("temperature", 0.6)
-      .put("max_tokens", 2048)
+      .put("max_tokens", maxTokens)
       .put("stream", false);
   }
 
   private String gehihiText(String prompt) throws Exception {
+    return gehihiText(prompt, 2048, "gm.http");
+  }
+
+  private String gehihiScenarioText(String prompt) throws Exception {
+    // Scenario JSON can be much larger than GM prose. Do not reuse the 2048-token cap.
+    return gehihiText(prompt, 10000, "scenario.fallback.http");
+  }
+
+  private String gehihiText(String prompt, int maxTokens, String timingCategory) throws Exception {
     if (BuildConfig.GEHIHI_API_KEY == null || BuildConfig.GEHIHI_API_KEY.trim().isEmpty()) {
       throw new Exception("GEHIHI_API_KEY chưa được cấu hình.");
     }
@@ -881,9 +894,9 @@ public class MainActivity extends Activity {
     long apiStartNs = System.nanoTime();
     try {
       providerJson = postJson(base + "/chat/completions", BuildConfig.GEHIHI_API_KEY,
-        "Authorization", openAiProviderBody(model, prompt));
+        "Authorization", openAiProviderBody(model, prompt, maxTokens));
     } finally {
-      DiagnosticLog.timing(MainActivity.this, "gm.http",
+      DiagnosticLog.timing(MainActivity.this, timingCategory,
         java.util.concurrent.TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - apiStartNs),
         prompt.length());
     }
@@ -1420,13 +1433,18 @@ public class MainActivity extends Activity {
             JSONObject canonView = new JSONObject(requireGameCore().currentClientState("{}"));
             request.put("canonEnvironment", com.rabpit.backroom.core.knowledge.KnowledgeContextEngine.build(
               MainActivity.this, canonView.toString(), "Quan sát môi trường", "{}"));
-            String raw = scenarioGenerator.generate(geminiKeys(), request, (key, prompt) -> scenarioTransport(key, prompt));
+            String raw = scenarioGenerator.generate(geminiKeys(), request,
+              (key, prompt) -> scenarioTransport(key, prompt),
+              prompt -> {
+                DiagnosticLog.record("scenario.fallback", "gehihi");
+                return gehihiScenarioText(prompt);
+              });
             requireGameCore().acceptSceneGeneration(request.getString("token"), raw);
           }
           emit("backroomTurn", requireGameCore().currentClientState(stateJson));
         } catch (Exception error) {
           DiagnosticLog.record("scenario.failed", error.getClass().getSimpleName());
-          emit("backroomError", "Chưa tạo được mini-map (mạng/quota/schema). Tiến trình giữ nguyên. Nhấn Thử lại.");
+          emit("backroomError", "Gemini và Gehihi chưa tạo được mini-map hợp lệ (mạng/quota/schema). Tiến trình giữ nguyên. Nhấn Thử lại.");
         }
       });
     }
