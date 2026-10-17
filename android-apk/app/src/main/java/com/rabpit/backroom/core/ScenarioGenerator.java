@@ -49,7 +49,7 @@ public final class ScenarioGenerator {
       + "rooms:[{id,name:string<=90,description:string<=600,adjacentRoomIds:[id]}],"
       + "facts:[{id,label:string<=90,value:string,values:[2..5 giá trị chuỗi khác nhau gồm value]}],"
       + "interactions:[{id,kind:SEARCH hoặc TALK,roomId:id,label:string<=120,requires:predicate,effect:effect}],goal:predicate}. "
-      + "Có 3..12 phòng, graph liên thông, cạnh hai chiều, tối đa 6 cạnh/phòng. 2..12 facts bí mật có answer value cố định. "
+      + "Có 4..12 phòng, graph liên thông, cạnh hai chiều, tối đa 6 cạnh/phòng. 2..12 facts bí mật có answer value cố định. "
       + "4..36 interactions, mọi id duy nhất trong nhóm, snake_case [a-z][a-z0-9_]{0,39}. "
       + "Predicate chỉ {op:TRUE}, {op:HAS,id:interactionId}, hoặc {op:AND/OR,args:[predicate]}, độ sâu<=4, <=8 args. "
       + "Effect chỉ {type:CLUE/EVIDENCE,factId:id} (SEARCH; Core hiển thị label=value thật); "
