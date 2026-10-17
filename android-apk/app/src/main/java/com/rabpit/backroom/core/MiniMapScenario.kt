@@ -6,10 +6,14 @@ import org.json.JSONTokener
 
 /** Bounded, monotone puzzle language. Generated strings are never executable predicates. */
 object MiniMapScenario {
-  const val SCHEMA = 3
+  const val SCHEMA = 4
   const val MAX_CHARS = 48000
   private val idPattern = Regex("[a-z][a-z0-9_]{0,39}")
   private val reservedNames = Regex("lucia|lục trầm|luc tram|iris|syvial|an nhiên|an nhien|diệp minh|cao minh", RegexOption.IGNORE_CASE)
+  private val genericNpcNames = Regex(
+    "^(?:npc(?:[ _-]*[0-9]+)?|người (?:gác|lạ|sống sót|kỹ thuật)(?: [0-9]+)?|nhân chứng(?: [0-9]+)?|guard(?: [0-9]+)?|witness(?: [0-9]+)?|survivor(?: [0-9]+)?)$",
+    RegexOption.IGNORE_CASE
+  )
   fun objects(a: JSONArray): List<JSONObject> = (0 until a.length()).map { a.getJSONObject(it) }
   fun strings(a: JSONArray): List<String> = (0 until a.length()).map { a.get(it) as String }
   fun copy(o: JSONObject) = JSONObject(o.toString())
@@ -82,11 +86,18 @@ object MiniMapScenario {
     val npcs = list(raw, "npcs", 0, 12)
     val npcIds = npcs.map { it.getString("id") }.toSet()
     npcs.forEach { npc ->
-      fields(npc, setOf("id", "name", "role", "purpose", "description", "roomId"))
-      text(npc, "name", 90); text(npc, "role", 120); text(npc, "purpose", 220); text(npc, "description", 350)
+      fields(npc, setOf("id", "name", "originPeriod", "role", "purpose", "description", "roomId"))
+      val name = text(npc, "name", 90).trim()
+      text(npc, "originPeriod", 100)
+      text(npc, "role", 120); text(npc, "purpose", 220); text(npc, "description", 350)
       require(id(npc, "roomId") in roomIds) { "npc_room" }
-      require(!reservedNames.containsMatchIn(npc.getString("name"))) { "scenario_canon_identity" }
+      require(!reservedNames.containsMatchIn(name)) { "scenario_canon_identity" }
+      require(name.any(Char::isLetter) && !genericNpcNames.matches(name)) { "npc_name_required" }
     }
+    require(npcs.map { it.getString("name").trim().lowercase() }.distinct().size == npcs.size) { "npc_duplicate_name" }
+    // With multiple scripted characters, at least two origins must be distinct.
+    // This compares era labels, not historical truth or a time-travel mechanic.
+    require(npcs.size < 2 || npcs.map { it.getString("originPeriod").trim().lowercase() }.distinct().size >= 2) { "npc_period_diversity" }
     val facts = list(raw, "facts", 2, 12); val factIds = facts.map { it.getString("id") }.toSet()
     facts.forEach { f ->
       fields(f, setOf("id", "label", "value", "values")); text(f, "label", 90); text(f, "value", 90)
