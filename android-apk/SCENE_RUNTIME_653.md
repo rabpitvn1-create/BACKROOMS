@@ -4,10 +4,10 @@
 
 - Quyết định cập nhật sau nghiệm thu APK: **mỗi exact Canon node có 10 mini-map riêng**, thay mapping gộp 10 mini/parent trước đó.
 - Level 0 mini 1..10 đều ở node `0`; hoàn tất mini 10 và đến đúng exit room mới mở **duy nhất `0.1`**. Không thể nhảy thẳng sang Dullness/Epsilon/LS-2.
-- **Tất cả** Canon node đều có đúng 10 mini-map độc lập: Level chính, mọi sublevel, mọi khu phụ (AREA) và khu đặc biệt (SPECIAL), bao gồm Dullness/Epsilon/LS-2, Manila Room, The Torment và Red Rooms. Mỗi mini-map là một phân đoạn cần giải khóa, bên trong có 4–12 khu vực/phòng phục vụ giải đố hoặc nhiệm vụ. Mọi cạnh chuyển node đều phải hoàn thành mini 10; Level 0 và các khu liên quan đi một chiều, không có cạnh quay lại. Các parent Level khác cần xác nhận thứ tự khu phụ trước khi bỏ hết cạnh hai chiều.
+- **Tất cả** Canon node đều có đúng 10 mini-map độc lập: Level chính, mọi sublevel, mọi khu phụ (AREA) và khu đặc biệt (SPECIAL), bao gồm Dullness/Epsilon/LS-2, Manila Room, The Torment và Red Rooms. Mỗi mini-map là một phân đoạn cần giải khóa, bên trong có 4–12 khu vực/phòng phục vụ giải đố hoặc nhiệm vụ. Mọi cạnh chuyển node đều phải hoàn thành mini 10. Cả 25 Canon node tạo thành **một tuyến duy nhất một chiều**, không quay lại được Mini-map hay node đã hoàn thành.
 - Chuỗi bắt buộc đã chốt: `0 → 0.1 → 0.2 → 0.5 → 0.7 → Dullness → Epsilon → LS-2 → Manila Room → The Torment → Red Rooms → 1`; không có nhánh tắt, không đường về.
-- Level 3: cả 10 mini neo node `3`; người chơi chọn Exit sang `4` hoặc `6` sau hoàn thành.
-- Level 6 mini 10 hoàn thành: chờ ending, không thêm Level 7 hoặc tuyên bố thoát Backrooms.
+- Level 1–6 có tuyến bắt buộc: `1 → 1.2 → 1.5 → Trader’s Vault → Base Alpha → 2 → Office Space EL3A → 3 → 4 → Office Market → 5 → 5.1 → 6 → 6.1`; không có nhánh tắt `3 → 6` và không có bất kỳ cạnh ngược nào.
+- Level `6` mini 10 chỉ dẫn tới `6.1`; chỉ khi hoàn thành mini 10 của `6.1` mới `awaitingEnding`. Không có Level 7.
 - Cơ chế **NPC tạm thời ngẫu nhiên (ambient NPC)** đã lưu trữ/ngừng chạy ở cả lượt chữ cũ và Explorer: không roll, không gọi Gemini ambient, không khôi phục NPC vãng lai từ cache. Các cuộc gặp nhân vật Canon do Core kiểm soát vẫn độc lập.
 
 ## Đường chạy
@@ -18,7 +18,7 @@
 `submitSceneAction` → kiểm tra actionId/version/room/availableActions
 → stage movement/search/claim → roll tại exact node đích → reserve encounter
 → lưu pending → Gehihi nhận public event + Canon đã lọc → strict `{reply}`
-→ commit time, turn, quest facts, room/node, deferred NPC và receipt bằng một Core save.
+→ commit time, turn, puzzle tiến trình hiện tại, room/node, deferred NPC và receipt bằng một Core save; xóa script/bằng chứng của nhiệm vụ vừa rời trong cùng commit.
 
 Retry dùng nguyên command/encounter/public event đã lưu. Không gọi lại Gemini trên lượt chơi thường.
 Provider lỗi giữ pending; process death đọc lại pending; không tự fallback sang provider GM khác.
@@ -47,9 +47,9 @@ Schema thực nằm ở `MiniMapScenario.kt`; prompt tương ứng ở `Scenario
 ## Save, continuity và projection
 
 Save schema **7**, checkpoint riêng phiên bản hiện hành. Không migration/adapter/fallback đọc save cũ.
-Script/outline immutable theo run + exact node/index, lưu trong Core `world`; room/progress, observations, completed maps, history, pending và receipt cùng codec/checkpoint với gameplay.
-History giữ observations đã commit qua các mini; generator chỉ nhận outcome của dependency được chọn (tối đa 6 observation/dependency) và mini trước, không full save.
-UI/Gehihi không nhận fact table, truth policy, answer key, graph đầy đủ hoặc mini tương lai.
+Chỉ script Mini-map đang chơi và outline của node hiện tại nằm tạm trong `world` để lưu/tải nhiệm vụ dở. Bằng chứng (`records`), hành động đã thử và lời khai chỉ có hiệu lực trong Mini-map hiện tại. Trên bước chuyển Mini-map, Core xóa script cũ cùng `accepted/attempted/records`; khi rời node xóa cả outline. Chỉ giữ index các Mini-map đã hoàn thành trong node hiện tại để mở khóa một chiều; không có `history`, `arrival`, `scene.node.*` hay cache tiến trình node đã rời.
+Generator chỉ nhận outline và index hoàn thành; không truyền `previousOutcome`, `dependencyOutcomes` hoặc vật chứng từ nhiệm vụ cũ. Chưa thay thế tầng xác minh puzzle hữu hạn bằng AI tự quyết định đáp án; Core hiện vẫn là nơi kiểm tra goal/ANSWER. Dữ liệu tạm được duy trì khi nhiệm vụ chưa kết thúc để lưu/tải và retry.
+UI/Gehihi không nhận fact table, truth policy, answer key, graph đầy đủ hoặc mini tương lai. Các đoạn log câu đố gắn `sceneMap` và bị lọc khỏi presentation khi sang Mini-map mới; không xóa phần kể Canon/global.
 NPC claim luôn có nhãn chưa xác minh; quan sát/vật chứng mới là evidence. Receipt append log chống lặp action.
 Nhật ký khám phá (mô tả phòng, mục tiêu và manh mối/lời khai) nằm riêng trong Game Menu. Thanh hành động bên ngoài chỉ giữ MOVE/SEARCH/TALK và retry khi cần.
 Snapshot chỉ thay ảnh, không điều khiển unlock. Hidden Exit Streak không còn trong luồng Explorer production.
@@ -57,7 +57,7 @@ Các API Core cũ còn test độc lập không được UI mới sử dụng; `
 
 ## Xác minh và giới hạn
 
-- Test JVM mục tiêu: schema/graph/claim/proof; privacy; typed spawn gate; pending/retry/replay; đồng hồ một lần; restart; Entity/Battle Start; backtrack/sai/quest evidence; immutable script; checkpoint; nhánh Level 3, Level 6 và detour.
+- Test JVM mục tiêu: schema/graph/claim/proof; privacy; typed spawn gate; pending/retry/replay; đồng hồ một lần; restart; Entity/Battle Start; di chuyển nội bộ phòng; xóa script/bằng chứng/log sau khi hoàn thành; checkpoint; tuyến một chiều đủ 25 node, chỉ kết thúc sau 6.1.
 - Regression mục tiêu: spawn baseline, Combat/Party, codec/checkpoint, route registry, provider contract.
 - Test JS: popup không submit, versioned command, double tap, generation retry, pending retry, combat và textContent; verifier payload APK đổi sang Explorer controls.
 - Compile Kotlin 2.3.0 và Java với Android API 35 bằng compiler độc lập; không đồng nghĩa Gradle assemble/APK đã thành công.
