@@ -38,23 +38,15 @@ test('a Party capacity rejection keeps the saved contact and restores its invita
 test('GM prompt has no milestone due events and recruitment uses a separate native endpoint',()=>{
  // Milestone system removed: writerPrompt must not reference due events or milestone.
  assert.doesNotMatch(java,/milestoneDueEvents|MilestoneNarrationValidator|milestoneWaiting/);
- assert.match(java,/Bạn là Game Master kể chuyện Backrooms bằng tiếng Việt/);
+ assert.match(java,/Bạn là GM Gehihi, kể văn xuôi tiếng Việt/);
  assert.match(java,/@JavascriptInterface public void recruitFollower\(String stateJson, String characterId\)/);
 });
 
-test('chat sends only EXECUTE through Core NPC, exit and snapshot paths',()=>{
- assert.match(html,/window\.Android\.submitAction\(JSON\.stringify\(state\),"EXECUTE",a\)/);
- assert.doesNotMatch(java,/ExplorerActionKind\.resolve/);
- assert.match(java,/beginAction\(currentView, actionKind, action\)/);
- assert.match(java,/makeGameplayRolls\(before, actionKind, action, meta, pendingEntityEncounter != null\)/);
- assert.match(java,/determineExitDestination\(\s*currentView, actionKind, action\)/);
- assert.match(java,/SnapshotSceneProgress\.apply\(before, state, rolls, actionKind, action\)/);
+test('Explorer uses typed commands and does not execute the retired exit-streak pipeline',()=>{
+ assert.match(java,/beginSceneAction\(command\)/);
+ assert.match(java,/commitSceneAction/);
+ assert.doesNotMatch(java,/makeGameplayRolls|determineExitDestination|HiddenExitStreak|beginAction\(currentView/);
  const spawner=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/core/EntitySpawnPool.kt'),'utf8');
- assert.match(spawner,/val ambientNpcRolled = kind == ActionKind\.EXECUTE/);
- assert.doesNotMatch(spawner,/ActionKind\.EXPLORE/);
- assert.match(java,/boolean exitDiscoveryAction = executeAction &&/);
- assert.match(java,/PhysicalActionDetector\.isSceneFacing\(action\)/);
- assert.match(java,/exitDiscoveryAction && !entityReserved && !com\.rabpit\.backroom\.core\.HiddenExitStreak\.ready\(state\)/);
- assert.match(java,/pendingEntityEncounter != null &&/);
- assert.match(java,/rolls\.put\("entityEncounter", new JSONObject\(\)/);
+ assert.match(spawner,/fun rollSceneSpawns/);
+ assert.match(spawner,/kind != "MOVE" && kind != "SEARCH"/);
 });

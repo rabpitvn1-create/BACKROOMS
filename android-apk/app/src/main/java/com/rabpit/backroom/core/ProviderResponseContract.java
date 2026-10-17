@@ -7,6 +7,15 @@ import org.json.JSONObject;
 public final class ProviderResponseContract {
   private ProviderResponseContract() {}
 
+  /** Scene narration is strict JSON; no prose normalization or world-state operations. */
+  public static JSONObject parseSceneWriter(String raw) throws Exception {
+    if (raw == null || raw.length() > 12000) throw new IllegalArgumentException("scene_narration_size");
+    JSONObject packet = MiniMapScenario.INSTANCE.parse(raw);
+    requireWriter(packet);
+    if (packet.length() != 1) throw new IllegalArgumentException("scene_narration_fields");
+    return packet;
+  }
+
   public static void requireWriter(JSONObject packet) {
     Object reply = packet == null ? null : packet.opt("reply");
     if (!(reply instanceof String) || ((String) reply).trim().isEmpty()) {

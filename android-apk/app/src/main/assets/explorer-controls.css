@@ -1,0 +1,81 @@
+/* URLs in custom properties resolve at the consuming stylesheet. */
+#explorerControls,#explorerChoices{--ornate-frame:url('ui/backrooms-reference-frame-v2.png')}
+#explorerControls{padding:10px;background:#10171ce8;border:1px solid #57605c;border-radius:8px;color:#e2e7e1}
+#sceneJournal>p{margin:0 0 8px;font-size:13px;line-height:1.4}
+.explorer-buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.explorer-buttons button{min-height:48px;padding:8px 4px;font-weight:700;font-size:13px;touch-action:manipulation}
+#sceneJournal details{margin-bottom:8px;font-size:12px;max-height:28vh;overflow:auto}
+#sceneJournal summary{cursor:pointer;padding:6px}
+#explorerChoices{background:#131c23;color:#e4e9e4;border:1px solid #727b70;border-radius:12px;width:min(90vw,440px);max-height:70vh;padding:12px}
+#explorerChoices::backdrop{background:#000a}
+#explorerChoices button{display:block;width:100%;min-height:48px;margin-bottom:8px;text-align:left;white-space:normal}
+#form[hidden],#explorerControls[hidden],#sceneJournal[hidden]{display:none!important}
+#playerActionBar{position:sticky;bottom:0;z-index:20;width:100%;padding-bottom:env(safe-area-inset-bottom)}
+#form .chat-avatar{display:none}
+
+/* Share the CSS square-knot frame with narrative, menu and combat panels. */
+#explorerControls{background:linear-gradient(145deg,#182022,#0d1316);border:1px solid #b5a16a66;border-radius:8px;padding:12px}
+#explorerControls .explorer-control-slot{position:relative;isolation:isolate;min-width:0}
+#explorerControls .explorer-control-slot button{display:block;width:100%;height:100%}
+#explorerControls .explorer-buttons button,#explorerChoices .explorer-choice-list button{
+  position:relative;isolation:isolate;border:1px solid transparent;
+  background:linear-gradient(145deg,#1d2628,#11191c);color:#e6d9af;
+  padding:16px 13px;min-height:58px;font-weight:750
+}
+#explorerControls .explorer-control-slot::after,#explorerChoices .explorer-choice-list button::after,
+#explorerChoices::after{
+  content:'';position:absolute;inset:0;z-index:1;border:14px solid transparent;
+  border-image:var(--ornate-frame) var(--ornate-slice) / 14px / 3.5px 2.8px stretch;pointer-events:none
+}
+#explorerControls .explorer-control-slot::after{
+  /* Same PNG margin compensation at the compact 18px corner size. */
+  border-width:18px;border-image-width:18px;border-image-outset:4.5px 3.6px
+}
+#explorerControls .explorer-control-slot:has(>button:disabled)::after{opacity:.42}
+#explorerControls .explorer-buttons button:focus-visible,#explorerChoices button:focus-visible{
+  outline:2px solid #efdb9b;outline-offset:2px
+}
+#explorerControls .explorer-buttons button:disabled{opacity:.42}
+#explorerChoices{position:relative;isolation:isolate;padding:18px 18px 12px;
+  background:linear-gradient(145deg,#182022,#0d1316);border:1px solid #b5a16a;
+  max-height:min(78vh,640px);overflow:hidden}
+#explorerChoices::after{border-width:18px;border-image-width:18px;border-image-outset:4.5px 3.6px}
+#explorerChoices .explorer-dialog-header{position:relative;z-index:2;display:flex;
+  align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;
+  padding:2px 4px 10px;border-bottom:1px solid #b5a16a66;color:#ebd7a1}
+#explorerChoices .explorer-dialog-close{width:44px;min-width:44px;min-height:44px;
+  margin:0;padding:0;display:grid;place-items:center;text-align:center;font-size:28px;line-height:1;
+  background:#20282a;color:#f0dfb0;border:1px solid #a18d5d}
+#explorerChoices .explorer-choice-list{position:relative;z-index:2;
+  overflow:auto;max-height:calc(min(78vh,640px) - 112px);padding:4px}
+#explorerChoices .explorer-choice-list button{margin-bottom:10px}
+#explorerChoices .explorer-choice-list button:last-child{margin-bottom:4px}
+#explorerChoices .explorer-dialog-close::after{display:none}
+.scene-generation-pending .scene-provider-logo[hidden]{display:none!important}
+.scene-generation-pending .gm-thinking-name{color:#e0d1a1}
+@media(max-width:360px){
+  #explorerChoices{padding:14px 12px 10px}
+  #explorerControls{padding:8px}
+  #explorerControls .explorer-buttons button{padding:13px 4px;font-size:12px}
+}
+@media(prefers-reduced-motion:reduce){
+  #explorerControls button,#explorerChoices button{transition:none!important}
+}
+
+/* Keep the reference's square outline. A real dialog border remains visible
+   while the choice list scrolls; decorative button overlays never catch taps. */
+#explorerControls,#explorerControls .explorer-buttons button,
+#explorerChoices,#explorerChoices .explorer-choice-list button{border-radius:0!important}
+#explorerChoices{
+  border:28px solid transparent;
+  border-image:var(--ornate-frame) var(--ornate-slice) / 28px / 7px 5.6px stretch;
+  padding:8px
+}
+#explorerChoices::after{content:none}
+#explorerChoices .explorer-choice-list{max-height:calc(min(78vh,640px) - 168px)}
+
+/* Inference is derived by Core from observed evidence; keep it visually separate. */
+#sceneJournal .scene-inference{margin:12px 0 4px;padding:10px 12px;
+ border-left:3px solid #b78c4f;background:rgba(184,151,86,.07);line-height:1.5}
+#sceneJournal .scene-inference strong{display:block;color:#e4c688;margin-bottom:6px;font-size:13px}
+#sceneJournal .scene-inference p{margin:0;color:#d0d5cf;font-size:12px;white-space:pre-wrap}

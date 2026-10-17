@@ -43,7 +43,7 @@ object CoreClientProjection {
     val out = JSONObject(client.toString())
     for (key in arrayOf("turn", "saveVersion", "inventory", "party", "partyDetails",
       "equipment", "player", "coreSystem", "combat", "combatFeedback", "gameTime",
-      "location", "title", "level", "flags", "story", "pendingEncounter", "encounteredCharacters")) out.remove(key)
+      "location", "title", "level", "flags", "story", "pendingEncounter", "encounteredCharacters", "scene")) out.remove(key)
     out.put("turn", turnIndex(state))
     out.put("saveVersion", CURRENT_SAVE_VERSION)
     out.put("location", state.world.getValue("location"))
@@ -92,7 +92,35 @@ object CoreClientProjection {
       PokerDiceCore.diceJson(state)?.let { combat.put("diceState", it) }
       out.put("combat", combat)
     }
-    CombatRuntime.pendingJson(state)?.let { out.put("pendingEncounter", it) }
+    if (MiniMapRuntime.PENDING !in state.world) CombatRuntime.pendingJson(state)?.let { out.put("pendingEncounter", it) }
+    if (MiniMapRuntime.STATE in state.world) {
+      val progress = MiniMapRuntime.progress(state)
+      val currentMap = "${progress.getString("nodeId")}:${progress.getInt("index")}"
+      val endingComplete = progress.optBoolean("endingComplete", false)
+      // Presentation owns its log, but completed puzzle dialogue must not travel
+      // into another mini-map. Preserve untagged global/canonical narration.
+      out.optJSONArray("log")?.let { oldLog ->
+        val kept = JSONArray()
+        for (i in 0 until oldLog.length()) {
+          val entry = oldLog.optJSONObject(i)
+          if (entry != null && (!entry.has("sceneMap") ||
+              (!endingComplete && entry.optString("sceneMap") == currentMap)))
+            kept.put(entry)
+        }
+        out.put("log", kept)
+      }
+      out.put("scene", MiniMapRuntime.publicView(state))
+      if (!endingComplete) state.world[MiniMapRuntime.RECEIPT]?.let { receipt ->
+        val r = JSONObject(receipt)
+        val log = out.optJSONArray("log") ?: JSONArray().also { out.put("log", it) }
+        if ((0 until log.length()).none { log.optJSONObject(it)?.optString("sceneActionId") == r.getString("actionId") }) {
+          log.put(JSONObject().put("role", "player").put("text", r.getString("label"))
+            .put("sceneMap", currentMap).put("sceneActionId", r.getString("actionId")))
+          if (CombatRuntime.pending(state) == null) log.put(JSONObject().put("role", "gm")
+            .put("text", r.getString("reply")).put("sceneMap", currentMap))
+        }
+      }
+    }
     state.metadata["combat.encounterNarrative"]?.let { raw ->
       val entry = JSONObject(raw)
       val log = out.optJSONArray("log") ?: JSONArray().also { out.put("log", it) }

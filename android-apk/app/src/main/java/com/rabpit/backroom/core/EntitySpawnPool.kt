@@ -16,9 +16,7 @@ import org.json.JSONObject
  * - Luc Tram: 25 (0.25%) — Level 4+ physical, once-only
  * - Iris/Syvial reunion: 25 (0.25%) each — physical, continuity SEPARATED/LOST/UNKNOWN
  * - An Nhien: 25 (0.25%) — physical, once-only
- * - Ambient NPC: 3000 (30%) — ephemeral marker only (state.metadata),
- *   NEVER a CharacterState/Follower/Canon encounter. Entity and Canon NPCs
- *   take priority over ambient.
+ * - Temporary ambient NPC generation is archived and never triggered.
  *
  * Eligibility (from baseline MainActivity.makeGameplayRolls @ 202737c2):
  * - Meta turns (status/inventory/help): NO rolls at all
@@ -175,11 +173,8 @@ object NpcSpawnTable {
   // Canon files, data and table references are kept intact — but auto-spawn is OFF.
   // Do NOT re-enable without the owner's explicit request.
   const val AN_NHIEN_LEGACY_ENABLED = false
-  // Ambient crowd NPC: 30% on d10000. Ephemeral only — rolled in
-  // SpawnMechanism.rollSpawns (NOT via the NpcEncounter pipeline) and surfaced
-  // as state.metadata["spawn.ambientNpcRolled"]. Replaces the old Survivor 2%
-  // branch (removed 2026-10-15) to avoid two overlapping crowd-spawn types.
-  const val AMBIENT_THRESHOLD = 3000    // 30%
+  // Archived legacy crowd-NPC probability. No gameplay path rolls it anymore.
+  const val AMBIENT_THRESHOLD = 3000
 
   /** Result of NPC spawn rolls: character ID -> encounter flag key */
   data class NpcEncounter(val characterId: String, val flagKey: String)
@@ -225,8 +220,7 @@ object NpcSpawnTable {
    * - `physical` is inferred from ACTION TEXT verbs, NOT action kind.
    *   A dialogue-only EXECUTE ("nói chuyện", "hỏi") is NOT physical → no NPC rolls.
    * - Lucia: EXECUTE kind only at Level 0 (not text-based)
-   * - Ambient NPC: rolled in SpawnMechanism.rollSpawns (not here) — 30%,
-   *   entity and Canon NPCs take priority, never a Canon encounter.
+   * - Legacy random ambient NPCs are disabled; only scripted NPCs and Canon first meetings remain.
    *
    * @param state current game state
    * @param kind action kind — only EXECUTE is eligible for Core spawns
@@ -234,12 +228,16 @@ object NpcSpawnTable {
    * @param level current level number
    * @param nextInt function returning 0..9999 (injectable for tests)
    */
-  fun rollNpcs(
+  fun rollNpcs(state: GameState, kind: ActionKind, actionText: String, level: Int,
+    nextInt: (Int) -> Int): List<NpcEncounter> = rollNpcsWithPhysical(state, kind, actionText, level, nextInt, null)
+
+  internal fun rollNpcsWithPhysical(
     state: GameState,
     kind: ActionKind,
     actionText: String,
     level: Int,
-    nextInt: (Int) -> Int
+    nextInt: (Int) -> Int,
+    physicalOverride: Boolean? = null
   ): List<NpcEncounter> {
     val encounters = mutableListOf<NpcEncounter>()
     val flags = runCatching { JSONObject(state.world["flagsJson"] ?: "{}") }.getOrNull() ?: JSONObject()
@@ -247,7 +245,7 @@ object NpcSpawnTable {
     // Guard the NPC table itself, not just its usual SpawnMechanism caller.
     if (kind != ActionKind.EXECUTE) return emptyList()
     // Baseline: physical from action TEXT verbs, not action kind (MainActivity:1359 @ 202737c2)
-    val isPhysical = PhysicalActionDetector.isPhysical(actionText)
+    val isPhysical = physicalOverride ?: PhysicalActionDetector.isPhysical(actionText)
 
     // Lucia: 50% on Level 0 EXECUTE, once-only
     if (level == 0 && LUCIA_ID !in partyMemberIds && !flagSpawned(flags, "lucia")) {
@@ -318,9 +316,7 @@ object SpawnMechanism {
    * 3. Entity: action kind EXECUTE AND
    *    flags.entityEncountersAllowed (default true)
    * 4. NPCs: physical from action TEXT (see PhysicalActionDetector)
-   * 5. Ambient NPC: 30% on eligible EXECUTE turns — only if NO entity rolled AND no
-   *    Canon NPC encounters. Meta/combat already returned above. The "currently
-   *    in ambient dialogue" check is RAM-side (MainActivity), not Core state.
+   * 5. Ephemeral ambient NPC spawns are archived (no RNG calls).
    *
    * @param state current game state
    * @param kind action kind
@@ -358,16 +354,22 @@ object SpawnMechanism {
     val level = currentLevelNumber(state)
     val npcEncounters = NpcSpawnTable.rollNpcs(state, kind, actionText, level, nextInt)
 
-    // Gate 5: Ambient crowd NPC — 30% on d10000, ephemeral only.
-    // Priority: entity and Canon NPCs take precedence over ambient.
-    // Ambient characters need a scene-facing action. This preserves the single
-    // EXECUTE lane without triggering an extra ambient Gemini request on dialogue.
-    val ambientActivity = PhysicalActionDetector.isSceneFacing(actionText)
-    val ambientNpcRolled = kind == ActionKind.EXECUTE && ambientActivity &&
-      entityKey == null && npcEncounters.isEmpty() &&
-      nextInt(10000) + 1 <= NpcSpawnTable.AMBIENT_THRESHOLD
+    // Archived: free-roaming ephemeral crowd NPCs never spawn.
+    // Canon first meetings and combat encounters remain unchanged.
+    return SpawnResult(entityKey, npcEncounters)
+  }
 
-    return SpawnResult(entityKey, npcEncounters, ambientNpcRolled)
+  /** Called only AFTER Core validates a typed scene target. No text classification. */
+  fun rollSceneSpawns(state: GameState, kind: String, nextInt: (Int) -> Int): SpawnResult {
+    if (kind != "MOVE" && kind != "SEARCH") return SpawnResult(null, emptyList())
+    if (CombatRuntime.active(state) != null || CombatRuntime.pending(state) != null)
+      return SpawnResult(null, emptyList())
+    val flags = JSONObject(state.world["flagsJson"] ?: "{}")
+    val entity = if (flags.optBoolean("entityEncountersAllowed", true))
+      EntitySpawnPool.rollEntity(currentLevelId(state), nextInt) else null
+    val npcs = NpcSpawnTable.rollNpcsWithPhysical(state, ActionKind.EXECUTE, "", currentLevelNumber(state), nextInt, true)
+    // Explorer NPCs are scripted, local and interactable, never random passersby.
+    return SpawnResult(entity, npcs)
   }
 
   /**
@@ -391,7 +393,7 @@ object SpawnMechanism {
   fun applySpawns(state: GameState, result: SpawnResult): GameState {
     var next = applyEntitySpawn(state, result.entityKey)
     next = applyNpcEncounters(next, result.npcEncounters)
-    next = applyAmbientMarker(next, result.ambientNpcRolled)
+    next = clearAmbientNpcMarker(next)
     return next
   }
 
@@ -407,38 +409,20 @@ object SpawnMechanism {
   fun prepareSpawns(state: GameState, result: SpawnResult): GameState {
     var next = applyEntitySpawn(state, result.entityKey)
     next = prepareNpcEncounters(next, result.npcEncounters)
-    next = applyAmbientMarker(next, result.ambientNpcRolled)
+    next = clearAmbientNpcMarker(next)
     return next
   }
 
   /** Metadata key holding deferred NPC encounters as a JSON array string. */
   const val PENDING_NPC_METADATA_KEY = "spawn.pendingNpcEncounters"
 
-  /**
-   * Metadata key for the ephemeral ambient-NPC roll marker.
-   * Value "true" (string, per GameState.metadata: Map<String, String> convention) =
-   * an ambient NPC was rolled this turn. Consumed by MainActivity (Gemini
-   * generation + RAM cache), cleared after use. NEVER creates a CharacterState,
-   * Follower, or Canon encounter — it bypasses applyNpcEncounters entirely.
-   */
+  /** Archived marker, retained only to discard lingering legacy state safely. */
   const val AMBIENT_NPC_METADATA_KEY = "spawn.ambientNpcRolled"
 
-  /**
-   * Sets the ephemeral ambient-NPC marker. No-op when the roll did not succeed.
-   */
-  private fun applyAmbientMarker(state: GameState, rolled: Boolean): GameState {
-    val cleared = state.metadata - AMBIENT_NPC_METADATA_KEY
-    return state.copy(metadata = if (rolled) cleared + (AMBIENT_NPC_METADATA_KEY to "true") else cleared)
-  }
+  /** Archived legacy event: never treat even a stale marker as a new NPC encounter. */
+  fun ambientNpcRolled(@Suppress("UNUSED_PARAMETER") state: GameState): Boolean = false
 
-  /** Reads the ephemeral ambient-NPC marker (true if rolled this turn). */
-  fun ambientNpcRolled(state: GameState): Boolean =
-    state.metadata[AMBIENT_NPC_METADATA_KEY] == "true"
-
-  /**
-   * Clears the ephemeral ambient-NPC marker after MainActivity consumes it
-   * (Gemini success/failure, or scene end). Safe to call when absent.
-   */
+  /** Discard a stale legacy marker without activating the old encounter flow. */
   fun clearAmbientNpcMarker(state: GameState): GameState {
     if (!state.metadata.containsKey(AMBIENT_NPC_METADATA_KEY)) return state
     return state.copy(metadata = state.metadata - AMBIENT_NPC_METADATA_KEY)

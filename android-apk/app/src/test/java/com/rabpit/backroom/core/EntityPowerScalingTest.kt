@@ -34,11 +34,11 @@ class EntityPowerScalingTest {
     assertEquals(1_150, EntityPowerScaling.scale(1_000, 1_500_000L))
   }
 
-  @Test fun currentLevelZeroCombatBalanceIsUnchangedAndHigherLevelsScaleFromIt() {
+  @Test fun ordinaryEntitiesDoubleFinalScaledHpAtEveryWorldRank() {
     val hound0 = CombatRuntime.active(CombatRuntime.start(levelState(0), "hound"))!!
     val hound2 = CombatRuntime.active(CombatRuntime.start(levelState(2), "hound"))!!
-    assertEquals(110, hound0.entityMaxHp)
-    assertEquals(132, hound2.entityMaxHp)
+    assertEquals(220, hound0.entityMaxHp)
+    assertEquals(264, hound2.entityMaxHp)
     assertEquals(0L, hound0.progressionRank)
     assertEquals(2_000_000L, hound2.progressionRank)
   }

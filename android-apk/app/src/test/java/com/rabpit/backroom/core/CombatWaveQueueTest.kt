@@ -25,6 +25,8 @@ class CombatWaveQueueTest {
     assertFalse(first.entityDestroyed)
     assertTrue(first.reply.contains("Đợt 2/2"))
     assertEquals("clump", CombatRuntime.active(first.state)!!.entityKey)
+    assertEquals(270, CombatRuntime.active(first.state)!!.entityMaxHp)
+    assertEquals(4, first.state.metadata.filterKeys { it.startsWith("exp.awarded.") }.values.single().toInt())
     assertEquals(2, CombatRuntime.toJson(first.state)!!.getInt("waveNumber"))
     assertEquals("1", first.state.metadata["combat.waveIndex"])
     assertEquals(1, first.state.metadata.keys.count { it.startsWith("loot.awarded.") })
@@ -57,7 +59,25 @@ class CombatWaveQueueTest {
     assertNull(result.state.metadata["combat.caoMinhBleedTurns"])
     assertEquals("1", result.state.metadata["combat.caoMinhQuickStepTurns"])
     assertEquals("1", result.state.metadata["combat.lifeformBleedTurns"])
-    assertEquals(115, CombatRuntime.active(result.state)!!.entityMaxHp)
+    assertEquals(230, CombatRuntime.active(result.state)!!.entityMaxHp)
+  }
+
+  @Test fun mixedWavesApplyDoubleOnlyToNonBossHpAndExp() {
+    fun defeat(state: GameState): CombatRuntime.Resolution = CombatRuntime.resolve(
+      state.copy(metadata = state.metadata + ("combat.entityHp" to "0")),
+      "SEARCH", "quan sát")
+
+    val initial = CombatRuntime.startWaves(GameState.initial(), listOf("hound", "diep_minh", "smiler"))
+    assertEquals(220, CombatRuntime.active(initial)!!.entityMaxHp)
+    val first = defeat(initial)
+    assertEquals(2999, CombatRuntime.active(first.state)!!.entityMaxHp)
+    val second = defeat(first.state)
+    assertEquals(230, CombatRuntime.active(second.state)!!.entityMaxHp)
+    val third = defeat(second.state)
+    assertTrue(third.entityDestroyed)
+    assertNull(CombatRuntime.active(third.state))
+    assertEquals(listOf(4, 4, 48), third.state.metadata
+      .filterKeys { it.startsWith("exp.awarded.") }.values.map(String::toInt).sorted())
   }
 
   @Test fun clearRemovesQueue() {

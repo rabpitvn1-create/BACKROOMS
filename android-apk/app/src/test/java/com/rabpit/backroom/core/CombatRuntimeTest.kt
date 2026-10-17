@@ -34,8 +34,8 @@ class CombatRuntimeTest {
     val combat = CombatRuntime.active(started)
     assertNotNull(combat)
     assertEquals("hound", combat!!.entityKey)
-    assertEquals(110, combat.entityMaxHp)
-    assertEquals(110, combat.entityHp)
+    assertEquals(220, combat.entityMaxHp)
+    assertEquals(220, combat.entityHp)
     val initial = GameState.initial()
     val expectedMaxHp = CharacterStatEngine.effective(initial, CAO_MINH_ID).maxHp
     val expectedHp = initial.characters.getValue(CAO_MINH_ID).vitalState.currentHp
@@ -48,6 +48,19 @@ class CombatRuntimeTest {
     assertEquals("hound", CombatRuntime.active(duplicate)!!.entityKey)
   }
 
+
+  @Test fun persistedOngoingEncounterDoesNotMultiplyHpAgain() {
+    val started = CombatRuntime.start(GameState.initial(), "hound")
+    val damaged = started.copy(metadata = started.metadata + ("combat.entityHp" to "75"))
+    val reloaded = GameStateCodec.decode(GameStateCodec.encode(damaged))
+    val first = CombatRuntime.active(reloaded)!!
+    val second = CombatRuntime.active(reloaded)!!
+    assertEquals(220, first.entityMaxHp)
+    assertEquals(75, first.entityHp)
+    assertEquals(first, second)
+    val boss = CombatRuntime.active(CombatRuntime.start(GameState.initial(), "diep_minh"))!!
+    assertEquals(2999, boss.entityMaxHp)
+  }
 
   @Test fun successiveEncountersInSameTurnCannotReuseRewardIdentity() {
     val first = CombatRuntime.start(GameState.initial(), "hound")
@@ -144,17 +157,21 @@ class CombatRuntimeTest {
     assertTrue(after.entityHp <= after.entityMaxHp)
   }
 
-  @Test fun allEntityProfilesReceiveThirtyBonusHp() {
+  @Test fun everyNonDiepMinhEntityDoublesItsPreviousScaledHp() {
     val expected = mapOf(
       "hound" to 110, "clump" to 135, "duller" to 120, "deathmoth" to 95,
       "hostile_faceling" to 105, "false_puddle" to 125, "paintings" to 100,
       "smiler" to 115, "skin-stealer" to 130, "predatory_window" to 145,
       "biological_pipeline" to 150, "wretch" to 115, "cable_mimic" to 130,
       "the_beast_of_level_5" to 175, "hotel_corpse_lure" to 140,
-      "jeff_the_killer" to 150, "jane_the_killer" to 150, "slenderman" to 190
+      "jeff_the_killer" to 150, "jane_the_killer" to 150, "slenderman" to 190,
+      "blackroot_sentinel" to 134, "sinew_strider" to 134, "hollow_grasper" to 134
     )
+    assertEquals(CombatRuntime.supportedEntityKeys().toSet() - "diep_minh", expected.keys)
     expected.forEach { (key, hp) ->
-      assertEquals("+30 HP must apply to $key", hp, CombatRuntime.active(CombatRuntime.start(GameState.initial(), key))!!.entityMaxHp)
+      val entity = CombatRuntime.active(CombatRuntime.start(GameState.initial(), key))!!
+      assertEquals("Full current HP of $key must double", hp * 2, entity.entityMaxHp)
+      assertEquals(entity.entityMaxHp, entity.entityHp)
     }
   }
 
@@ -392,8 +409,8 @@ class CombatRuntimeTest {
   @Test fun lifeformTrioUsesOnePointThreeHoundBaseBeforeSharedDurability() {
     for (key in listOf("blackroot_sentinel", "sinew_strider", "hollow_grasper")) {
       val active = CombatRuntime.active(CombatRuntime.start(GameState.initial(), key))!!
-      assertEquals(134, active.entityMaxHp)
-      assertEquals(134, active.entityHp)
+      assertEquals(268, active.entityMaxHp)
+      assertEquals(268, active.entityHp)
     }
   }
 

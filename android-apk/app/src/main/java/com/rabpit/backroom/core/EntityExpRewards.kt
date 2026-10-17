@@ -43,7 +43,7 @@ object EntityExpRewards {
   }
 
   fun award(state: GameState, entityInstanceId: String, progressionRank: Long, multiplier: Int = 1): Reward {
-    require(multiplier in 1..9) { "entity_exp_multiplier_invalid" }
+    require(multiplier in 1..24) { "entity_exp_multiplier_invalid" }
     require(entityInstanceId.isNotBlank()) { "Entity instance ID required for EXP." }
     val marker = AWARDED_PREFIX + entityInstanceId
     if (marker in state.metadata) return Reward(state, 0, emptyList(), emptyMap(), false)
