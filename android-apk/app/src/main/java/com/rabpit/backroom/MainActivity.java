@@ -1488,16 +1488,22 @@ public class MainActivity extends Activity {
       io.execute(() -> {
         String[] lastFailure = {""};
         String[] phaseName = {"outline"};
+        // Outline (the level plan) and the complete script of the CURRENT mini-map
+        // run together on the Android IO worker, never prefetching mini-map index+1.
+        String currentMiniMapToken = null;
         try {
           for (int phase = 0; phase < 2; phase++) {
             JSONObject request = new JSONObject(requireGameCore().sceneGenerationRequest());
             phaseName[0] = request.getString("kind");
-            if ("ready".equals(request.getString("kind"))) break;
+            if ("ready".equals(phaseName[0])) break;
+            String token = request.getString("token");
+            if (currentMiniMapToken == null) currentMiniMapToken = token;
+            if (!currentMiniMapToken.equals(token)) throw new IllegalStateException("generation_stale");
             JSONObject canonView = new JSONObject(requireGameCore().currentClientState("{}"));
             request.put("canonEnvironment", com.rabpit.backroom.core.knowledge.KnowledgeContextEngine.build(
               MainActivity.this, canonView.toString(), "Quan sát môi trường", "{}"));
-            emit("backroomProvider", "Gemini");
-            emit("backroomSceneWriterProvider", "Gemini");
+            // Scenario generation must not overwrite the GM provider/status UI.
+            // The entire foreground loading message is owned by explorer-controls.js.
             String raw = scenarioGenerator.generate(geminiKeys(), request,
               (key, prompt) -> {
                 try {
@@ -1508,8 +1514,8 @@ public class MainActivity extends Activity {
               },
               prompt -> {
                 DiagnosticLog.record("scenario.fallback", "gehihi");
-                emit("backroomProvider", "Gehihi");
-                emit("backroomSceneWriterProvider", "Gehihi");
+                // A fallback provider switch is internal; the on-screen Gemini
+                // 4.0 Argon logo and loading copy remain unchanged.
                 try {
                   return gehihiScenarioText(prompt, "outline".equals(request.getString("kind")));
                 } catch (HttpError error) {
