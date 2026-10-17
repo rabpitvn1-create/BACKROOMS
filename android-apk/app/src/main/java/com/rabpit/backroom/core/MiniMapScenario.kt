@@ -79,7 +79,7 @@ object MiniMapScenario {
     require(reached == roomIds) { "graph_disconnected" }
     // NPCs are authored actors in the scene, never ephemeral random passersby.
     // Zero NPCs is valid; each declared NPC must have a concrete puzzle interaction.
-    val npcs = list(raw, "npcs", 0, 2)
+    val npcs = list(raw, "npcs", 0, 12)
     val npcIds = npcs.map { it.getString("id") }.toSet()
     npcs.forEach { npc ->
       fields(npc, setOf("id", "name", "role", "purpose", "description", "roomId"))
@@ -128,27 +128,14 @@ object MiniMapScenario {
     predicate(raw.getJSONObject("goal"), actionIds)
     // Forward chaining is complete for this finite monotone language: acquiring facts
     // never removes actions; wrong answers consume only that option, never the correct one.
-    fun reachable(excluded: Set<String> = emptySet()): Set<String> {
-      val solved = mutableSetOf<String>()
-      repeat(interactions.size + 1) {
-        interactions.filter { it.getString("id") !in excluded && holds(it.getJSONObject("requires"), solved) }.forEach { a ->
-          val e = a.getJSONObject("effect")
-          if (e.getString("type") != "ANSWER" || facts.first { it.getString("id") == e.getString("factId") }.getString("value") == e.getString("value")) solved.add(a.getString("id"))
-        }
+    val solved = mutableSetOf<String>()
+    repeat(interactions.size + 1) {
+      interactions.filter { holds(it.getJSONObject("requires"), solved) }.forEach { a ->
+        val e = a.getJSONObject("effect")
+        if (e.getString("type") != "ANSWER" || facts.first { it.getString("id") == e.getString("factId") }.getString("value") == e.getString("value")) solved.add(a.getString("id"))
       }
-      return solved
     }
-    val solved = reachable()
-    val goal = raw.getJSONObject("goal")
-    require(holds(goal, solved) && !holds(goal, emptySet())) { "puzzle_unsolvable_or_empty" }
-    // A named scene NPC must be mechanically necessary, not a disposable extra.
-    // Remove all of that NPC's dialogue and re-solve the puzzle. If the goal still
-    // succeeds, the NPC adds no indispensable gameplay and should not be generated.
-    npcs.forEach { npc ->
-      val dialogueIds = interactions.filter { it.getString("kind") == "TALK" &&
-        it.getString("npcId") == npc.getString("id") }.map { it.getString("id") }.toSet()
-      require(!holds(goal, reachable(dialogueIds))) { "npc_not_required_for_goal" }
-    }
+    require(holds(raw.getJSONObject("goal"), solved) && !holds(raw.getJSONObject("goal"), emptySet())) { "puzzle_unsolvable_or_empty" }
     // Each answer needs an observable, truthful clue; a lying NPC alone is not a proof.
     interactions.filter { it.getJSONObject("effect").getString("type") == "ANSWER" }.forEach { a ->
       val factId = a.getJSONObject("effect").getString("factId")
