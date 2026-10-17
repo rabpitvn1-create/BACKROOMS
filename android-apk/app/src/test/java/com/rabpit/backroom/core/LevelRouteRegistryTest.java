@@ -30,7 +30,7 @@ public class LevelRouteRegistryTest {
 
   @Test public void levelZeroMandatoryRouteCannotBeSkippedOrReversed() {
     List<String> chain = Arrays.asList("0", "0.1", "0.2", "0.5", "0.7",
-        "manila_room", "the_torment", "red_rooms", "1");
+        "dullness", "epsilon", "ls_2", "manila_room", "the_torment", "red_rooms", "1");
     for (int i = 0; i < chain.size() - 1; i++) {
       assertTrue(chain.get(i) + " -> " + chain.get(i+1),
           LevelRouteRegistry.canMove(chain.get(i), chain.get(i + 1)));
@@ -42,35 +42,36 @@ public class LevelRouteRegistryTest {
     assertFalse(LevelRouteRegistry.canMove("red_rooms", "the_torment"));
   }
 
-  @Test public void optionalAreasHaveExplicitReturnPathsWithoutShortcuts() {
-    String[][] branches = {
-        {"0", "dullness"}, {"0", "epsilon"}, {"0", "ls_2"},
-        {"1", "1.2"}, {"1", "1.5"}, {"1", "traders_vault"}, {"1", "base_alpha"},
+  @Test public void sublevelsAndAreasAreMandatoryOneWayStages() {
+    String[][] stages = {
+        {"0.7", "dullness"}, {"dullness", "epsilon"}, {"epsilon", "ls_2"},
+        {"ls_2", "manila_room"}, {"1", "1.2"}, {"1.2", "1.5"},
+        {"1.5", "traders_vault"}, {"traders_vault", "base_alpha"},
         {"2", "office_space_el3a"}, {"4", "office_market"},
         {"5", "5.1"}, {"6", "6.1"}
     };
-    for (String[] entry : branches) {
-      assertTrue(LevelRouteRegistry.canMove(entry[0], entry[1]));
-      assertTrue(LevelRouteRegistry.canMove(entry[1], entry[0]));
+    for (String[] edge : stages) {
+      assertEquals(Arrays.asList(edge[1]), LevelRouteRegistry.exits(edge[0]));
+      assertTrue(LevelRouteRegistry.canMove(edge[0], edge[1]));
+      assertFalse(LevelRouteRegistry.canMove(edge[1], edge[0]));
     }
     assertFalse(LevelRouteRegistry.canMove("1.2", "2"));
+    assertFalse(LevelRouteRegistry.canMove("3", "6"));
     assertFalse(LevelRouteRegistry.canMove("6.1", "7"));
-    assertTrue(LevelRouteRegistry.canMove("3", "6"));
-    assertFalse(LevelRouteRegistry.canMove("6", "3"));
   }
 
-  @Test public void mainLevelProgressionIsOneWayWhileLocalDetoursAreReversible() {
+  @Test public void eachMainLevelHasOnlyItsLockedForwardRoute() {
     String[][] forwardRoutes = {
-        {"1", "2"}, {"2", "3"}, {"3", "4"}, {"3", "6"}, {"4", "5"}, {"5", "6"}
+        {"red_rooms", "1"}, {"base_alpha", "2"}, {"office_space_el3a", "3"},
+        {"3", "4"}, {"office_market", "5"}, {"5.1", "6"}
     };
-    for (int i = 0; i < forwardRoutes.length; i++) {
-      String from = forwardRoutes[i][0], to = forwardRoutes[i][1];
-      assertTrue(from + " -> " + to, LevelRouteRegistry.canMove(from, to));
-      assertFalse(to + " -> " + from, LevelRouteRegistry.canMove(to, from));
+    for (String[] edge : forwardRoutes) {
+      assertEquals(Arrays.asList(edge[1]), LevelRouteRegistry.exits(edge[0]));
+      assertTrue(LevelRouteRegistry.canMove(edge[0], edge[1]));
+      assertFalse(LevelRouteRegistry.canMove(edge[1], edge[0]));
     }
-    assertTrue(LevelRouteRegistry.canMove("1", "traders_vault"));
-    assertTrue(LevelRouteRegistry.canMove("traders_vault", "1"));
-    assertFalse(LevelRouteRegistry.canMove("2", "1"));
+    assertTrue(LevelRouteRegistry.exits("6.1").isEmpty());
+    assertFalse(LevelRouteRegistry.canMove("1", "2"));
     assertFalse(LevelRouteRegistry.canMove("5", "4"));
     assertFalse(LevelRouteRegistry.canMove("6", "5"));
   }
