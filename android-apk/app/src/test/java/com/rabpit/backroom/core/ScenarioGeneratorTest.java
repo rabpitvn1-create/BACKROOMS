@@ -1,0 +1,43 @@
+package com.rabpit.backroom.core;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.junit.Test;
+import java.util.concurrent.atomic.AtomicInteger;
+import static org.junit.Assert.*;
+
+public class ScenarioGeneratorTest {
+  private JSONObject request() throws Exception {
+    return new JSONObject().put("kind","outline").put("levelNumber",0).put("index",1).put("nodeAnchor","0");
+  }
+  private String outline() throws Exception {
+    JSONArray entries = new JSONArray();
+    for (int i=1;i<=10;i++) entries.put(new JSONObject().put("index",i)
+      .put("nodeAnchor",MiniMapScenario.INSTANCE.anchor(0,i)).put("beat","Quan sát và đối chiếu")
+      .put("objective","Giải mục tiêu").put("dependencyRefs",new JSONArray()));
+    return new JSONObject().put("schemaVersion",1).put("levelNumber",0).put("entries",entries).toString();
+  }
+  @Test public void validOutlineUsesScenarioContractAndExactlyOneTransportCall() throws Exception {
+    AtomicInteger calls=new AtomicInteger();
+    String out=new ScenarioGenerator().generate(new String[]{"test-key"},request(),(key,prompt)->{
+      calls.incrementAndGet(); assertTrue(prompt.contains("10 beat"));return outline();
+    });
+    assertEquals(10,new JSONObject(out).getJSONArray("entries").length());assertEquals(1,calls.get());
+  }
+  @Test public void quotaAndMalformedResponsesHaveBoundedAttemptsAndIndependentCircuit() throws Exception {
+    AtomicInteger calls=new AtomicInteger();ScenarioGenerator generator=new ScenarioGenerator();
+    String[] keys={"secret-1","secret-2"};
+    Exception error=assertThrows(IllegalStateException.class,()->generator.generate(keys,request(),(key,prompt)->{
+      calls.incrementAndGet();throw new Exception("429 private payload "+key);
+    }));
+    assertEquals(2,calls.get());assertFalse(error.getMessage().contains("secret"));
+    assertThrows(IllegalStateException.class,()->generator.generate(keys,request(),(key,prompt)->{calls.incrementAndGet();return "bad";}));
+    assertEquals(2,calls.get());
+    assertNotNull(new ScenarioGenerator().generate(keys,request(),(key,prompt)->outline()));
+  }
+  @Test public void gmRejectsProseEmptyTruncationExtraFieldsAndNeverParsesState() throws Exception {
+    assertEquals("Cao Minh quan sát.",ProviderResponseContract.parseSceneWriter("{\"reply\":\"Cao Minh quan sát.\"}").getString("reply"));
+    for(String raw:new String[]{"Văn xuôi", "{\"reply\":\"\"}","{\"reply\":\"dang dở", "{\"reply\":\"a\",\"state\":{}}", "{\"reply\":\"a\"}{\"reply\":\"b\"}"})
+      assertThrows(Exception.class,()->ProviderResponseContract.parseSceneWriter(raw));
+  }
+}

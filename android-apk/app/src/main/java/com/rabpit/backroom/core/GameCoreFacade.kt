@@ -47,6 +47,132 @@ class GameCoreFacade private constructor(
     )
   }
 
+  @Synchronized fun sceneGenerationRequest(): String = MiniMapRuntime.generationRequest(loadCurrentState()).toString()
+
+  @Synchronized fun acceptSceneGeneration(token: String, raw: String): String {
+    val next = MiniMapRuntime.acceptGeneration(loadCurrentState(), token, raw)
+    repository.save(next)
+    return clientSnapshot(JSONObject(), next).toString()
+  }
+
+  @Synchronized fun sceneNarrationContext(): String {
+    val state = loadCurrentState()
+    return JSONObject(state.world[MiniMapRuntime.PENDING] ?: error("scene_pending_missing")).getJSONObject("public").toString()
+  }
+
+  /** Validate -> stage -> reserve once -> persist. Gehihi failure leaves this intact. */
+  @Synchronized fun beginSceneAction(raw: String): String {
+    require(raw.length <= 1200) { "scene_command_too_large" }
+    val command = JSONObject(raw)
+    var state = loadCurrentState()
+    val actionId = command.getString("actionId")
+    state.world[MiniMapRuntime.RECEIPT]?.let { receipt ->
+      if (JSONObject(receipt).getString("actionId") == actionId)
+        return JSONObject().put("committed", true).toString()
+    }
+    state.world[MiniMapRuntime.PENDING]?.let { pending ->
+      val saved = JSONObject(pending)
+      require(saved.getJSONObject("command").toString().let { savedCommand ->
+        val c = JSONObject(savedCommand)
+        c.keys().asSequence().toSet() == command.keys().asSequence().toSet() && c.keys().asSequence().all { c.get(it) == command.get(it) }
+      }) { "scene_another_action_pending" }
+      return JSONObject().put("committed", false).toString()
+    }
+    check(!MiniMapRuntime.blocked(state)) { "scene_busy" }
+    val staged = MiniMapRuntime.stage(state, command) // no RNG before this point
+    val turnId = nextTurnId(state)
+    val input = "${command.getString("kind")}:$actionId"
+    val started = ActionRuntime.start(state, actionId, turnId, CAO_MINH_ID, ActionKind.EXECUTE,
+      input, staged.nodeId, if (command.getString("kind") == "SEARCH") 5 else 1)
+    check(started.applied) { "scene_session_failed" }
+    val target = LevelRouteRegistry.node(staged.nodeId)
+    val atTarget = started.state.copy(world = started.state.world + mapOf(
+      "levelJson" to target.asJson().toString(), "location" to target.location(), "title" to target.title()))
+    val roll = SpawnMechanism.rollSceneSpawns(atTarget, command.getString("kind")) { spawnRng.nextInt(it) }
+    var reserved = SpawnMechanism.prepareSpawns(atTarget, roll)
+    if (roll.entityKey != null) {
+      reserved = CombatRuntime.prepareEncounter(reserved, roll.entityKey, "scene:$actionId:${roll.entityKey}")
+      reserved = SpawnMechanism.discardPendingNpcEncounters(reserved)
+    }
+    // Pending reserves encounters, but committed world/room stay at the previous receipt.
+    val reservedFlags = reserved.world["flagsJson"]
+    reserved = reserved.copy(world = started.state.world + ("flagsJson" to (reservedFlags ?: "{}")),
+      metadata = reserved.metadata + (SPAWN_ENCOUNTER_OWNER to actionId))
+    val public = staged.event
+    CombatRuntime.pending(reserved)?.let {
+      public.put("encounter", JSONObject().put("entityKey", it.entityKey).put("entityName", CombatRuntime.entityName(it.entityKey)).put("encounterId", it.encounterId))
+    }
+    public.put("npcEncounters", JSONArray().apply {
+      SpawnMechanism.pendingNpcEncounters(reserved).forEach { put(JSONObject().put("characterId", it.characterId).put("name", SpawnMechanism.npcDisplayName(it.characterId))) }
+    })
+    val pending = JSONObject().put("actionId", actionId).put("command", command)
+      .put("progress", staged.progress).put("nodeId", staged.nodeId).put("label", staged.label)
+      .put("public", public)
+    repository.save(reserved.copy(world = reserved.world + (MiniMapRuntime.PENDING to pending.toString())))
+    return JSONObject().put("committed", false).toString()
+  }
+
+  @Synchronized fun retrySceneAction(): String = JSONObject(loadCurrentState().world[MiniMapRuntime.PENDING]
+    ?: error("scene_pending_missing")).getJSONObject("command").toString()
+
+  /** Exactly one Core save commits scene/time/encounter/reward and narration receipt. */
+  @Synchronized fun commitSceneAction(actionId: String, reply: String, clientJson: String): String {
+    require(reply.isNotBlank() && reply.length <= 12000) { "scene_narration_invalid" }
+    val core = loadCurrentState()
+    core.world[MiniMapRuntime.RECEIPT]?.let { receipt ->
+      if (JSONObject(receipt).getString("actionId") == actionId) return clientSnapshot(JSONObject(clientJson), core).toString()
+    }
+    val pending = JSONObject(core.world[MiniMapRuntime.PENDING] ?: error("scene_pending_missing"))
+    require(pending.getString("actionId") == actionId) { "scene_action_mismatch" }
+    val session = requireNotNull(ActionRuntime.activeSession(core))
+    val turnId = nextTurnId(core)
+    val turn = TurnCoordinator.createPending(core, turnId, session.input, true)
+    check(turn.error == null) { turn.error ?: "scene_pending_failed" }
+    val progressed = ActionRuntime.advance(turn.state, session.sessionId, "scene_commit", session.plannedMinutes ?: 1)
+    check(progressed.applied || progressed.duplicate) { progressed.error ?: "scene_time_failed" }
+    // Time was already advanced by ActionRuntime: do not execute a second TimeAdvanceCommand.
+    val committed = TurnCoordinator.commit(progressed.state, emptyList())
+    check(committed.error == null) { committed.error ?: "scene_commit_failed" }
+    val finished = ActionRuntime.complete(committed.state, session.sessionId)
+    check(finished.applied) { finished.error ?: "scene_session_failed" }
+    val node = LevelRouteRegistry.node(pending.getString("nodeId"))
+    val flags = JSONObject(finished.state.world["flagsJson"] ?: "{}").apply {
+      remove("exploration"); remove("hiddenExitStreak"); remove("exitReady"); remove("lastRolls")
+      put("currentLevel", node.asJson())
+    }
+    val receipt = JSONObject().put("actionId", actionId).put("label", pending.getString("label")).put("reply", reply)
+    var next = finished.state.copy(world = (finished.state.world - MiniMapRuntime.PENDING) + mapOf(
+      MiniMapRuntime.STATE to pending.getJSONObject("progress").toString(),
+      MiniMapRuntime.RECEIPT to receipt.toString(),
+      "levelJson" to node.asJson().toString(), "title" to node.title(), "location" to node.location(), "flagsJson" to flags.toString()),
+      metadata = finished.state.metadata - SPAWN_ENCOUNTER_OWNER)
+    next = SpawnMechanism.commitPendingNpcEncounters(next)
+    next = separateNonPartyNpcsAfterParentTransition(core, next)
+    CombatRuntime.pending(next)?.let {
+      next = next.copy(metadata = next.metadata + ("combat.encounterNarrative" to JSONObject()
+        .put("role", "gm").put("text", reply).put("encounterId", it.encounterId).toString()))
+    }
+    val beforeView = clientSnapshot(JSONObject(), core)
+    val afterView = clientSnapshot(JSONObject(), next)
+    val sceneKind = pending.getJSONObject("command").getString("kind")
+    val actionText = (if (sceneKind == "MOVE") "Di chuyển: " else if (sceneKind == "SEARCH") "Tìm kiếm: " else "Giao tiếp: ") + pending.getString("label")
+    val continued = JSONObject(com.rabpit.backroom.core.knowledge.StoryContinuityReducer.apply(beforeView.toString(), afterView.toString(), actionText))
+    val visualRolls = JSONObject()
+    if (CombatRuntime.pending(next) != null) visualRolls.put("entityEncounter", JSONObject().put("eligible", true).put("success", true))
+    SnapshotSceneProgress.apply(beforeView, continued, visualRolls, "EXECUTE", actionText)
+    next = next.copy(world = next.world + ("flagsJson" to continued.getJSONObject("flags").toString()))
+    next = CoreClientProjection.advance(CharacterMemoryBags.recordCommitted(core, next))
+    repository.save(next)
+    return clientSnapshot(JSONObject(clientJson), next).toString()
+  }
+
+  @Synchronized fun takeSceneAmbientEvent(): Boolean {
+    val state = loadCurrentState()
+    val rolled = SpawnMechanism.ambientNpcRolled(state)
+    if (rolled) repository.save(SpawnMechanism.clearAmbientNpcMarker(state))
+    return rolled
+  }
+
   /** Fast deterministic pass. Gemini is never called from this method. */
   /** Handle explicit rule-only commands without bypassing Gehihi for normal Explorer turns. */
   fun isSpecialRuleAction(action: String): Boolean =
@@ -190,6 +316,7 @@ class GameCoreFacade private constructor(
   @Synchronized fun beginAction(clientStateJson: String, kindRaw: String, action: String): String {
     val client = JSONObject(clientStateJson)
     val state = loadCurrentState()
+    if (MiniMapRuntime.STATE in state.world) return actionStartResponse(false, null, "scene_ui_required")
     val reserved = CombatRuntime.pending(state)
     if (reserved != null) {
       val active = ActionRuntime.activeSession(state)
@@ -298,6 +425,7 @@ class GameCoreFacade private constructor(
     exitAuthorization = null
     if (!repository.exists()) return false
     val state = repository.load()
+    if (MiniMapRuntime.PENDING in state.world) return false
     val active = ActionRuntime.activeSession(state) ?: return false
     // P0-2: discard deferred NPC encounters. A failed/aborted turn must NOT consume
     // the once-only first meeting — the NPC may roll again on a later turn.
@@ -620,6 +748,7 @@ class GameCoreFacade private constructor(
     val before = JSONObject(beforeJson)
     val candidate = JSONObject(candidateJson)
     val core = loadCurrentState()
+    if (MiniMapRuntime.STATE in core.world) return response(false, clientSnapshot(before, core), "scene_ui_required", "scene_ui_required")
     val reserved = CombatRuntime.pending(core)
     val session = ActionRuntime.activeSession(core)
     val ownedNarration = reserved != null && session != null &&
@@ -884,7 +1013,7 @@ class GameCoreFacade private constructor(
 
   /** New-run initialization: no Milestone planning, no story checkpoint seeding. */
   private fun newStoryRun(state: GameState): GameState {
-    return CoreClientProjection.initialize(state)
+    return MiniMapRuntime.initialize(CoreClientProjection.initialize(state))
   }
 
   private fun characterFlagKey(id: String): String? = when (id) {

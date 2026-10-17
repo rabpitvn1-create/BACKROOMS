@@ -234,12 +234,16 @@ object NpcSpawnTable {
    * @param level current level number
    * @param nextInt function returning 0..9999 (injectable for tests)
    */
-  fun rollNpcs(
+  fun rollNpcs(state: GameState, kind: ActionKind, actionText: String, level: Int,
+    nextInt: (Int) -> Int): List<NpcEncounter> = rollNpcsWithPhysical(state, kind, actionText, level, nextInt, null)
+
+  internal fun rollNpcsWithPhysical(
     state: GameState,
     kind: ActionKind,
     actionText: String,
     level: Int,
-    nextInt: (Int) -> Int
+    nextInt: (Int) -> Int,
+    physicalOverride: Boolean? = null
   ): List<NpcEncounter> {
     val encounters = mutableListOf<NpcEncounter>()
     val flags = runCatching { JSONObject(state.world["flagsJson"] ?: "{}") }.getOrNull() ?: JSONObject()
@@ -247,7 +251,7 @@ object NpcSpawnTable {
     // Guard the NPC table itself, not just its usual SpawnMechanism caller.
     if (kind != ActionKind.EXECUTE) return emptyList()
     // Baseline: physical from action TEXT verbs, not action kind (MainActivity:1359 @ 202737c2)
-    val isPhysical = PhysicalActionDetector.isPhysical(actionText)
+    val isPhysical = physicalOverride ?: PhysicalActionDetector.isPhysical(actionText)
 
     // Lucia: 50% on Level 0 EXECUTE, once-only
     if (level == 0 && LUCIA_ID !in partyMemberIds && !flagSpawned(flags, "lucia")) {
@@ -368,6 +372,19 @@ object SpawnMechanism {
       nextInt(10000) + 1 <= NpcSpawnTable.AMBIENT_THRESHOLD
 
     return SpawnResult(entityKey, npcEncounters, ambientNpcRolled)
+  }
+
+  /** Called only AFTER Core validates a typed scene target. No text classification. */
+  fun rollSceneSpawns(state: GameState, kind: String, nextInt: (Int) -> Int): SpawnResult {
+    if (kind != "MOVE" && kind != "SEARCH") return SpawnResult(null, emptyList())
+    if (CombatRuntime.active(state) != null || CombatRuntime.pending(state) != null)
+      return SpawnResult(null, emptyList())
+    val flags = JSONObject(state.world["flagsJson"] ?: "{}")
+    val entity = if (flags.optBoolean("entityEncountersAllowed", true))
+      EntitySpawnPool.rollEntity(currentLevelId(state), nextInt) else null
+    val npcs = NpcSpawnTable.rollNpcsWithPhysical(state, ActionKind.EXECUTE, "", currentLevelNumber(state), nextInt, true)
+    val ambient = entity == null && npcs.isEmpty() && nextInt(10000) + 1 <= NpcSpawnTable.AMBIENT_THRESHOLD
+    return SpawnResult(entity, npcs, ambient)
   }
 
   /**

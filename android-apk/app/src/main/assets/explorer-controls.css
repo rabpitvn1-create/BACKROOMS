@@ -1,0 +1,12 @@
+#explorerControls{padding:10px;background:#10171ce8;border:1px solid #57605c;border-radius:8px;color:#e2e7e1}
+#explorerControls>p{margin:0 0 8px;font-size:13px;line-height:1.4}
+.explorer-buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.explorer-buttons button{min-height:48px;padding:8px 4px;font-weight:700;font-size:13px;touch-action:manipulation}
+#explorerControls details{margin-bottom:8px;font-size:12px;max-height:28vh;overflow:auto}
+#explorerControls summary{cursor:pointer;padding:6px}
+#explorerChoices{background:#131c23;color:#e4e9e4;border:1px solid #727b70;border-radius:12px;width:min(90vw,440px);max-height:70vh;padding:12px}
+#explorerChoices::backdrop{background:#000a}
+#explorerChoices button{display:block;width:100%;min-height:48px;margin-bottom:8px;text-align:left;white-space:normal}
+#form[hidden],#explorerControls[hidden]{display:none!important}
+#playerActionBar{position:sticky;bottom:0;z-index:20;width:100%;padding-bottom:env(safe-area-inset-bottom)}
+#form .chat-avatar{display:none}
