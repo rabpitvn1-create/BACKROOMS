@@ -212,6 +212,13 @@ object CombatRuntime {
     Profile("hollow_grasper", "Hollow Grasper", LIFEFORM_BASE_MAX_HP, LIFEFORM_BASE_ATTACK, LIFEFORM_BASE_ARMOR, LIFEFORM_BASE_AGGRESSION),
   ).associateBy { it.key }
 
+  /** Double the final, level-scaled HP of every Entity except Diệp Minh. */
+  private fun entityMaxHp(profile: Profile, progressionRank: Long): Int {
+    val base = if (profile.key == DIEP_MINH_KEY) DIEP_MINH_MAX_HP else profile.maxHp + ENTITY_HP_BONUS
+    val scaled = EntityPowerScaling.scale(base, progressionRank)
+    return if (profile.key == DIEP_MINH_KEY) scaled else Math.multiplyExact(scaled, 2)
+  }
+
   /** Single source of truth for combat-supported Entity keys. */
   fun supportsEntityKey(key: String): Boolean = key in profiles
 
@@ -271,8 +278,7 @@ object CombatRuntime {
     val serial = (state.metadata["loot.encounterSerial"]?.toLongOrNull() ?: 0L) + 1L
     val seed = stableSeed(entityKey, state.turn.currentTurnId, state.time.elapsedSubjectiveMinutes xor serial)
     val progressionRank = EntityPowerScaling.rankFor(state)
-    val unscaledEntityMaxHp = if (profile.key == DIEP_MINH_KEY) DIEP_MINH_MAX_HP else profile.maxHp + ENTITY_HP_BONUS
-    val enhancedEntityMaxHp = EntityPowerScaling.scale(unscaledEntityMaxHp, progressionRank)
+    val enhancedEntityMaxHp = entityMaxHp(profile, progressionRank)
     val snapshot = Snapshot(
       encounterId = encounterId ?: "$serial:${state.turn.currentTurnId}:$entityKey",
       entityKey = entityKey,
@@ -1290,7 +1296,7 @@ object CombatRuntime {
     val withPassive = if (leaderPassive) afterActiveLeaderTurn(persisted) else persisted
     val instanceId = if (queue.size == 1) c.encounterId else "${c.encounterId}:wave:$index"
     val exp = EntityExpRewards.award(withPassive, instanceId, c.progressionRank,
-      if (c.entityKey == DIEP_MINH_KEY) 24 else 1)
+      if (c.entityKey == DIEP_MINH_KEY) 24 else 2)
     val loot = OfflineEntityLoot.award(exp.state, instanceId, c.seed)
     val defeatNarrative = "${c.entityName} đã không còn sinh khí ngã xuống. Backrooms nuốt chửng lấy tử thi của nó vào nền."
     val resultText = "$log $defeatNarrative ${exp.text} ${loot.text}".trim()
@@ -1301,8 +1307,7 @@ object CombatRuntime {
 
     val nextIndex = index + 1
     val nextProfile = profiles.getValue(queue[nextIndex])
-    val baseMax = if (nextProfile.key == DIEP_MINH_KEY) DIEP_MINH_MAX_HP else nextProfile.maxHp + ENTITY_HP_BONUS
-    val maxHp = EntityPowerScaling.scale(baseMax, c.progressionRank)
+    val maxHp = entityMaxHp(nextProfile, c.progressionRank)
     val nextSeed = mix(c.seed, nextIndex)
     val clean = clearTargetEffects(loot.state)
     val leaderHp = clean.characters[CAO_MINH_ID]?.vitalState?.currentHp ?: c.playerHp
@@ -1456,8 +1461,7 @@ object CombatRuntime {
     val key = m["${PREFIX}entityKey"]?.takeIf { it.isNotBlank() } ?: return null
     val profile = profiles[key] ?: return null
     val progressionRank = m["${PREFIX}progressionRank"]?.toLongOrNull()?.let(EntityPowerScaling::requireRank) ?: 0L
-    val unscaledCanonicalMaxHp = if (profile.key == DIEP_MINH_KEY) DIEP_MINH_MAX_HP else profile.maxHp + ENTITY_HP_BONUS
-    val canonicalMaxHp = EntityPowerScaling.scale(unscaledCanonicalMaxHp, progressionRank)
+    val canonicalMaxHp = entityMaxHp(profile, progressionRank)
     val storedMaxHp = m["${PREFIX}entityMaxHp"]?.toIntOrNull()?.coerceAtLeast(1) ?: canonicalMaxHp
     val maxHp = max(storedMaxHp, canonicalMaxHp)
     val storedHp = m["${PREFIX}entityHp"]?.toIntOrNull()?.coerceIn(0, storedMaxHp) ?: storedMaxHp
