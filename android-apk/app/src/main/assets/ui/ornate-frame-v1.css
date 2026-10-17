@@ -1,6 +1,6 @@
 /* ImageGen extraction of the supplied frame; transparent PNG archived in Drive.
    Nine-slice retains the source PNG. Outsets compensate its transparent outer margin. */
-:root{--ornate-frame:url('backrooms-reference-frame-v2.png');--ornate-slice:210 205;--ornate-gold:#c06404}
+:root{--ornate-frame:url('backrooms-reference-frame-v2.png');--ornate-slice:210 205;--ornate-gold:#b49a54}
 
 /* Decorative overlays never intercept taps or change the panel's layout. */
 .message.gm,.message.player,.game-menu-sheet .card,.character-section{position:relative;isolation:isolate}
