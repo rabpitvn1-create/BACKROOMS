@@ -33,6 +33,8 @@ public class ScenarioGeneratorTest {
     assertTrue(prompt.contains("KHÔNG phải số NPC xuất hiện cùng lúc"));
     assertTrue(prompt.contains("không nhất thiết phải là điều kiện bắt buộc"));
     assertTrue(prompt.contains("KHÔNG bắt buộc có NPC hay lời khai sai"));
+    assertTrue(prompt.contains("{schemaVersion:4,id:"));
+    assertFalse(prompt.contains("{schemaVersion:3,id:"));
     assertTrue(prompt.contains("originPeriod"));
     assertTrue(prompt.contains("TỰ SÁNG TÁC tên riêng"));
     assertTrue(prompt.contains("hai originPeriod khác nhau"));
@@ -50,6 +52,55 @@ public class ScenarioGeneratorTest {
     assertEquals(2,calls.get());
     assertNotNull(new ScenarioGenerator().generate(keys,request(),(key,prompt)->outline()));
   }
+  @Test public void exhaustedGeminiLanesFallBackOnceToValidatedGehihi() throws Exception {
+    AtomicInteger geminiCalls = new AtomicInteger();
+    AtomicInteger gehihiCalls = new AtomicInteger();
+    ScenarioGenerator generator = new ScenarioGenerator();
+    String result = generator.generate(new String[]{"key-a", "key-b"}, request(),
+      (key, prompt) -> { geminiCalls.incrementAndGet(); throw new Exception("quota key=secret"); },
+      prompt -> { gehihiCalls.incrementAndGet(); return outline(); });
+    assertEquals(10, new JSONObject(result).getJSONArray("entries").length());
+    assertEquals(2, geminiCalls.get());
+    assertEquals(1, gehihiCalls.get());
+    // Gemini lanes in cooldown: fallback should still work without another Gemini call.
+    generator.generate(new String[]{"key-a", "key-b"}, request(),
+      (key, prompt) -> { geminiCalls.incrementAndGet(); throw new Exception("quota"); },
+      prompt -> { gehihiCalls.incrementAndGet(); return outline(); });
+    assertEquals(2, geminiCalls.get());
+    assertEquals(2, gehihiCalls.get());
+  }
+
+  @Test public void malformedGeminiScenarioUsesFallbackButValidGeminiDoesNot() throws Exception {
+    AtomicInteger fallbackCalls = new AtomicInteger();
+    ScenarioGenerator generator = new ScenarioGenerator();
+    assertEquals(10, new JSONObject(generator.generate(new String[]{"a"}, request(),
+      (key, prompt) -> "{\"schemaVersion\":3}", prompt -> {
+        fallbackCalls.incrementAndGet(); return outline();
+      })).getJSONArray("entries").length());
+    assertEquals(1, fallbackCalls.get());
+    assertEquals(10, new JSONObject(new ScenarioGenerator().generate(new String[]{"a"}, request(),
+      (key, prompt) -> outline(), prompt -> {
+        fallbackCalls.incrementAndGet(); throw new Exception("Must never fall back after success");
+      })).getJSONArray("entries").length());
+    assertEquals(1, fallbackCalls.get());
+  }
+
+  @Test public void fallbackWithoutGeminiKeysStillEnforcesCoreSchemaAndSafeFailure() throws Exception {
+    AtomicInteger gehihiCalls = new AtomicInteger();
+    assertEquals(10, new JSONObject(new ScenarioGenerator().generate(new String[0], request(),
+      (key, prompt) -> { throw new AssertionError("Gemini must not run"); },
+      prompt -> { gehihiCalls.incrementAndGet(); return outline(); })).getJSONArray("entries").length());
+    assertEquals(1, gehihiCalls.get());
+    Exception error = assertThrows(IllegalStateException.class, () -> new ScenarioGenerator().generate(
+      new String[0], request(), (key, prompt) -> outline(),
+      prompt -> "{\"schemaVersion\":3,\"private\":\"secret-token\"}"));
+    assertTrue(error.getMessage().contains("Gemini và Gehihi"));
+    assertFalse(error.getMessage().contains("secret-token"));
+    assertThrows(IllegalStateException.class, () -> new ScenarioGenerator().generate(
+      new String[0], request(), (key, prompt) -> outline(),
+      prompt -> { throw new Exception("Bearer secret credential"); }));
+  }
+
   @Test public void gmRejectsProseEmptyTruncationExtraFieldsAndNeverParsesState() throws Exception {
     assertEquals("Cao Minh quan sát.",ProviderResponseContract.parseSceneWriter("{\"reply\":\"Cao Minh quan sát.\"}").getString("reply"));
     for(String raw:new String[]{"Văn xuôi", "{\"reply\":\"\"}","{\"reply\":\"dang dở", "{\"reply\":\"a\",\"state\":{}}", "{\"reply\":\"a\"}{\"reply\":\"b\"}"})
