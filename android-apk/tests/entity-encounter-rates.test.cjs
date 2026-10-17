@@ -13,11 +13,11 @@ test('native turn pipeline has no parallel Entity/Follower/NPC random encounters
 test('Core authoritatively reserves encounters via CombatRuntime without Milestone',()=>{
  // prepareEncounter reserves a Core encounter; confirmEncounter commits it.
  // Identity never comes from narrator/client Entity keys.
- assert.match(combat,/fun prepareEncounter\(state: GameState, entityKey: String, encounterId: String/);
+ assert.match(combat,/fun prepareEncounter\(state: GameState, entityKey: String, encounterId: String\): GameState/);
  assert.match(combat,/fun confirmEncounter\(state: GameState, encounterId: String\): GameState/);
  assert.match(combat,/A repeated click is a no-op; identity never comes from narrator\/client Entity keys/);
- // The boss flag is Milestone legacy and must be ignored (standard stats for all).
- assert.match(combat,/The 'boss' flag is Milestone legacy/);
+ // The encounter reservation API no longer accepts a Milestone-specific boss flag.
+ assert.doesNotMatch(combat,/fun prepareEncounter\([^\n]*\bboss\s*:/);
  assert.doesNotMatch(combat,/StoryMilestonePlan/);
  // No Milestone system files may remain.
  assert.ok(!fs.existsSync(path.join(root,'app/src/main/java/com/rabpit/backroom/core/StoryMilestoneRuntime.kt')));

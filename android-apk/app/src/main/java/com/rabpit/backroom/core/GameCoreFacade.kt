@@ -253,7 +253,7 @@ class GameCoreFacade private constructor(
       // CoreClientProjection.pendingEncounter -> UI Battle Start -> confirmEncounter().
       if (spawnResult.entityKey != null && CombatRuntime.pending(next) == null && CombatRuntime.active(next) == null) {
         val encounterId = "spawn:${turnId}:${spawnResult.entityKey}:${System.currentTimeMillis()}"
-        next = CombatRuntime.prepareEncounter(next, spawnResult.entityKey, encounterId, boss = false)
+        next = CombatRuntime.prepareEncounter(next, spawnResult.entityKey, encounterId)
           .let { it.copy(metadata = it.metadata + (SPAWN_ENCOUNTER_OWNER to sessionId)) }
         // Entity combat takes precedence this turn: drop deferred NPC encounters.
         // Once-only is NOT consumed — the NPC may roll again on a later turn.
@@ -615,8 +615,7 @@ class GameCoreFacade private constructor(
    * from commands and then projected back onto the UI state.
    */
   @JvmOverloads @Synchronized fun processValidatedCandidate(
-    beforeJson: String, candidateJson: String, action: String, narrative: String = "",
-    narrationJson: String = ""
+    beforeJson: String, candidateJson: String, action: String, narrative: String = ""
   ): String {
     val before = JSONObject(beforeJson)
     val candidate = JSONObject(candidateJson)

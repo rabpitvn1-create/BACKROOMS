@@ -1,4 +1,6 @@
-> **Đặc tả hiện hành:** [Fake Sandbox / Milestone v3](FAKE_SANDBOX_CHECKPOINT_MILESTONE_V3.md). Phần còn lại lưu vết thiết kế/triển khai lịch sử, không dùng làm luật quota hoặc encounter hiện tại.
+> **RETIRED: TÀI LIỆU LỊCH SỬ, KHÔNG ÁP DỤNG CHO RUNTIME HIỆN HÀNH.** Story Milestone / Story Checkpoint cũ đã bị loại bỏ. Không dùng nội dung này làm hợp đồng gameplay hoặc thiết kế END-POINT mới.
+
+> **Tham chiếu lịch sử:** [Fake Sandbox / Milestone v3](FAKE_SANDBOX_CHECKPOINT_MILESTONE_V3.md). Phần còn lại lưu vết thiết kế/triển khai lịch sử, không dùng làm luật quota hoặc encounter hiện tại.
 
 > **Trạng thái tích hợp 2026-10-13:** Cấu trúc Checkpoint đã vào main qua PR #595 (`820038c8`). Phạm vi Bước 3 bên dưới là mốc lịch sử; runtime hiện hành có planner và completion v2 ở Bước 4–9. Level 0 có 20 CP; Level sau nhận tổng CP do Gemini biên kịch và Core kiểm tra. Mỗi CP yêu cầu ít nhất 50 turn, 20 encounter được xác nhận và đánh bại Boss. Xem `STORY_MILESTONE_R01.md`, `STORY_MILESTONE_RUNTIME_R01.md` và `STORY_SAVE_HISTORY_R01.md`.
 

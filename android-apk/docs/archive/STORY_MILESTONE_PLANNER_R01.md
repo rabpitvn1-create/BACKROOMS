@@ -1,4 +1,6 @@
-> **Đặc tả hiện hành:** [Fake Sandbox / Milestone v3](FAKE_SANDBOX_CHECKPOINT_MILESTONE_V3.md). Phần còn lại lưu vết thiết kế/triển khai lịch sử, không dùng làm luật quota hoặc encounter hiện tại.
+> **RETIRED: TÀI LIỆU LỊCH SỬ, KHÔNG ÁP DỤNG CHO RUNTIME HIỆN HÀNH.** Story Milestone / Story Checkpoint cũ đã bị loại bỏ. Không dùng nội dung này làm hợp đồng gameplay hoặc thiết kế END-POINT mới.
+
+> **Tham chiếu lịch sử:** [Fake Sandbox / Milestone v3](FAKE_SANDBOX_CHECKPOINT_MILESTONE_V3.md). Phần còn lại lưu vết thiết kế/triển khai lịch sử, không dùng làm luật quota hoặc encounter hiện tại.
 
 > **Trạng thái hiện hành:** Cả Milestone đầu và prefetch Milestone kế tiếp đều dùng duy nhất SOL (`vgpt/gpt-6.1-sol`) qua transport có sẵn trong `MainActivity`, `max_tokens=12288`, `temperature=0.5`, `reasoning_effort=low`. Không fallback sang Gemini hay GM writer. Core tiếp tục kiểm tra completion v2, tối thiểu 50 turn/20 encounter mỗi CP và planning lease; JSON sai bị từ chối, người chơi có thể thử lại. CI không thay thế nghiệm thu với SOL thật trên Android. Phần Bước 5 bên dưới là tài liệu lịch sử của triển khai Gemini trước khi chuyển sang SOL. Xem `STORY_MILESTONE_R01.md` và `STORY_MILESTONE_RUNTIME_R01.md`.
 

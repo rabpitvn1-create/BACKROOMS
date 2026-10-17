@@ -1,3 +1,5 @@
+> **RETIRED: TÀI LIỆU LỊCH SỬ, KHÔNG ÁP DỤNG CHO RUNTIME HIỆN HÀNH.** Story Milestone / Story Checkpoint cũ đã bị loại bỏ. Không dùng nội dung này làm hợp đồng gameplay hoặc thiết kế END-POINT mới.
+
 # SaveStats và Milestone / Level history
 
 Game Core giữ committedEvents, defeatedBosses, completedCheckpoints và completedLevels.

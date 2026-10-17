@@ -115,8 +115,8 @@ public class MainActivity extends Activity {
 
   private String requestDiagnosticExport(String webJson, boolean includeSensitive) {
     try {
-      String report = DiagnosticLog.build(webJson, includeSensitive, "",
-        0, lastGeminiWorker, lastGeminiModel);
+      String report = DiagnosticLog.build(webJson, includeSensitive,
+        lastGeminiWorker, lastGeminiModel);
       synchronized (diagnosticExportLock) {
         if (pendingDiagnosticExport != null) return "{\"ok\":false,\"error\":\"export_already_open\"}";
         pendingDiagnosticExport = report;
@@ -960,23 +960,6 @@ public class MainActivity extends Activity {
     return output;
   }
 
-  private String solText(String prompt) throws Exception {
-    return solText(prompt, 2048, 0.6);
-  }
-
-  private String solText(String prompt, int maxOutputTokens, double temperature) throws Exception {
-    if (BuildConfig.SOL_API_KEY == null || BuildConfig.SOL_API_KEY.trim().isEmpty()) throw new Exception("SOL_API_KEY chưa được cấu hình.");
-    JSONObject body = openAiProviderBody("vgpt/gpt-6.1-sol", prompt)
-      .put("reasoning_effort", "low")
-      .put("max_tokens", maxOutputTokens)
-      .put("temperature", temperature);
-    String response = postJson("https://api.vilao.ai/v1/chat/completions",
-      BuildConfig.SOL_API_KEY, "Authorization", body, 60000);
-    String output = openAiProviderText(response);
-    parseModelJson(output);
-    return output;
-  }
-
   private String providerFailureMessage(Exception error) {
     String message = error == null || error.getMessage() == null ? "không khả dụng" : error.getMessage();
     return message.length() > 180 ? message.substring(0, 180) : message;
@@ -1686,7 +1669,7 @@ public class MainActivity extends Activity {
       "Không tự quyết định Combat, HP, EXP, Item, tạo Entity hay chuyển Level; gameplay Core xử lý. " +
       "Gặp FOLLOWER/NPC phải mô tả cuộc gặp thực tế; nhân vật thể hiện theo đúng hồ sơ Canon trong KNOWLEDGE PACKET (tính cách, cách nói, xưng hô, quan hệ với Cao Minh), không ép một khuôn thoại cố định. " +
       "Nếu Canon không xác nhận họ quen biết từ trước, nhân vật mới gặp (đặc biệt Lucia) tuyệt đối không gọi tên Cao Minh, nhận ra anh hay tỏ ra thân quen trước khi có lời giới thiệu hoặc nguồn thông tin được kể rõ trong cảnh. " +
-      "ENTITY và FINAL_ENTITY: kể cảnh Entity chạm trán, dừng ở thế đối đầu; " +
+      "ENTITY: kể cảnh Entity chạm trán, dừng ở thế đối đầu; " +
       "chưa kể đòn đánh, sát thương hay kết quả Combat trước khi người chơi nhấn Battle Start. " +
       "Không đưa event ID, ops, chứng cứ, kiểm định hay state vào lời kể. " +
       "\nOUTPUT CONTRACT: Chỉ trả về MỘT JSON object hợp lệ với khóa reply (chuỗi không rỗng). " +
@@ -2073,7 +2056,7 @@ public class MainActivity extends Activity {
           log.put(new JSONObject().put("role", "player").put("text", action));
           state.put("log", log);
           JSONObject coreCommit = new JSONObject(requireGameCore().processValidatedCandidate(
-            before.toString(), state.toString(), action, reply, generated.toString()));
+            before.toString(), state.toString(), action, reply));
           if (!coreCommit.optBoolean("handled", false)) {
             throw new Exception("Game State Core từ chối lượt: " + coreCommit.optString("error", "invalid_delta"));
           }

@@ -46,7 +46,7 @@ class ItemDetailActionsTest {
   @Test fun itemActionsAreBlockedWhileEntityEncounterAwaitsBattleStart() {
     // A real Core pending encounter freezes unrelated gameplay actions until
     // Battle Start. Checking only entityEncounterKey does NOT model a reservation.
-    val reserved = CombatRuntime.prepareEncounter(fresh(), "hound", "test:item-pending", boss = false)
+    val reserved = CombatRuntime.prepareEncounter(fresh(), "hound", "test:item-pending")
     val save = MemorySave(reserved)
     val before = save.state
     for (request in listOf(request("USE"), request("TRANSFER", target = IRIS_ID))) {

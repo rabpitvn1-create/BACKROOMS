@@ -104,8 +104,9 @@ test('pending encounters show no Entity image; confirmed encounter clears a prev
   assert.ok(fs.existsSync(path.join(assets, 'entity', ctx.activeEntityKey() + '.webp')));
 });
 
-test('the native bridge passes narration before committing and confirmation never calls submitAction', () => {
-  assert.match(java, /processValidatedCandidate\([\s\S]*?action, reply, generated\.toString\(\)\)/);
+test('the native bridge commits validated GM narration and confirmation never calls submitAction', () => {
+  assert.match(java, /processValidatedCandidate\(\s*before\.toString\(\), state\.toString\(\), action, reply\)/);
+  assert.doesNotMatch(java, /processValidatedCandidate\(\s*before\.toString\(\), state\.toString\(\), action, reply, generated\.toString\(\)\)/);
   assert.match(java, /@JavascriptInterface public void battleStart\(String stateJson, String encounterId\)/);
   assert.doesNotMatch(source, /submitAction|selectedEntityKey|startCombatState/);
   assert.doesNotMatch(java, /forceEntityEncounterFlag|requireGameCore\(\)\.startCombatState/);

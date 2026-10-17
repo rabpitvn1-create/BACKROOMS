@@ -1,4 +1,6 @@
-# Fake Sandbox — Checkpoint / Milestone v3 (hợp đồng hiện hành)
+> **RETIRED: TÀI LIỆU LỊCH SỬ, KHÔNG ÁP DỤNG CHO RUNTIME HIỆN HÀNH.** Story Milestone / Story Checkpoint cũ đã bị loại bỏ. Không dùng nội dung này làm hợp đồng gameplay hoặc thiết kế END-POINT mới.
+
+# Fake Sandbox — Checkpoint / Milestone v3 (RETIRED)
 
 ## Mục tiêu và thẩm quyền
 

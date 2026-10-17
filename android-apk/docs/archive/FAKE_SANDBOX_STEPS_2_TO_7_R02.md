@@ -1,3 +1,5 @@
+> **RETIRED: TÀI LIỆU LỊCH SỬ, KHÔNG ÁP DỤNG CHO RUNTIME HIỆN HÀNH.** Story Milestone / Story Checkpoint cũ đã bị loại bỏ. Không dùng nội dung này làm hợp đồng gameplay hoặc thiết kế END-POINT mới.
+
 # Fake Sandbox · Đối chiếu tích hợp Bước 2–7 · 2026-10-13
 
 PR #595 (`820038c8`) đã tích hợp và sửa các phần Canon, Checkpoint, Milestone, planner, runtime và continuity từ những nhánh Bước 2–7. PR #598 được đối chiếu với main này; các implementation cũ được thay thế bởi bản đã kiểm thử, không đưa lại schema `levelEnd`, giới hạn 48 OPEN hoặc receipt chỉ dựa trên ID. PR #589 bổ sung đồng bộ damage/log với contact của animation.

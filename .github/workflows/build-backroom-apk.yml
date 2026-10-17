@@ -27,7 +27,6 @@ jobs:
       GEHIHI_API_KEY: ${{ secrets.GEHIHI_API_KEY }}
       GEHIHI_BASE_URL: ${{ secrets.GEHIHI_BASE_URL || vars.GEHIHI_BASE_URL }}
       GEHIHI_MODEL: ${{ secrets.GEHIHI_MODEL || vars.GEHIHI_MODEL }}
-      SOL_API_KEY: ${{ secrets.SOL_API_KEY }}
       HAKU_API_KEY: ${{ secrets.HAKU_API_KEY }}
       HAKU_BASE_URL: ${{ secrets.HAKU_BASE_URL || vars.HAKU_BASE_URL }}
       HAKU_MODEL: ${{ secrets.HAKU_MODEL || vars.HAKU_MODEL }}
@@ -83,7 +82,7 @@ jobs:
         if: github.event_name != 'pull_request'
         run: |
           set -euo pipefail
-          for name in GEHIHI_API_KEY GEHIHI_MODEL HAKU_API_KEY SOL_API_KEY; do
+          for name in GEHIHI_API_KEY GEHIHI_MODEL HAKU_API_KEY; do
             test -n "${!name:-}" || (echo "Missing GitHub Secret: $name" && exit 1)
           done
           # The client skips empty Gemini lanes; require a configured pool,

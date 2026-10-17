@@ -227,10 +227,9 @@ object CombatRuntime {
   }
 
   /** Reserve one Core encounter without entering Combat or touching character HP. */
-  fun prepareEncounter(state: GameState, entityKey: String, encounterId: String, boss: Boolean): GameState {
+  fun prepareEncounter(state: GameState, entityKey: String, encounterId: String): GameState {
     require(active(state) == null && pending(state) == null) { "encounter_already_reserved" }
     require(supportsEntityKey(entityKey) && encounterId.isNotBlank()) { "encounter_invalid" }
-    // The 'boss' flag is Milestone legacy; boss HP multipliers are removed. All encounters use standard stats.
     return createEncounter(state, listOf(entityKey), Phase.PENDING_ENCOUNTER_CONFIRMATION, encounterId)
   }
 

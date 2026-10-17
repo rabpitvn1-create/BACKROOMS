@@ -346,7 +346,6 @@ object SpawnMechanism {
 
     // Gate 3: entity roll requires eligible action kind AND entityEncountersAllowed flag.
     // Baseline: `entityEncounterAction && entityAllowed` (MainActivity:1391 @ 202737c2).
-    // Note: the `!milestoneHasPlan()` gate is obsolete — Milestone is gone.
     val entityEncounterAction = kind == ActionKind.EXECUTE
     val entityAllowed = flags.optBoolean("entityEncountersAllowed", true)
     val entityKey = if (entityEncounterAction && entityAllowed) {
