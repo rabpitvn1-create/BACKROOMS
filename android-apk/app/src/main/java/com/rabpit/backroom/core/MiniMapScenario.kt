@@ -160,18 +160,33 @@ object MiniMapScenario {
     predicate(raw.getJSONObject("goal"), actionIds)
     // Forward chaining is complete for this finite monotone language: acquiring facts
     // never removes actions; wrong answers consume only that option, never the correct one.
-    val solved = mutableSetOf<String>()
-    repeat(interactions.size + 1) {
-      interactions.filter { holds(it.getJSONObject("requires"), solved) }.forEach { a ->
-        val e = a.getJSONObject("effect")
-        if (e.getString("type") != "ANSWER" || facts.first { it.getString("id") == e.getString("factId") }.getString("value") == e.getString("value")) solved.add(a.getString("id"))
+    fun reachable(excluded: Set<String> = emptySet()): Set<String> {
+      val visited = mutableSetOf<String>()
+      repeat(interactions.size + 1) {
+        interactions.filter { it.getString("id") !in excluded && holds(it.getJSONObject("requires"), visited) }.forEach { action ->
+          val effect = action.getJSONObject("effect")
+          if (effect.getString("type") != "ANSWER" ||
+            facts.first { it.getString("id") == effect.getString("factId") }.getString("value") == effect.getString("value"))
+            visited.add(action.getString("id"))
+        }
       }
+      return visited
     }
+    val solved = reachable()
     require(holds(raw.getJSONObject("goal"), solved) && !holds(raw.getJSONObject("goal"), emptySet())) { "puzzle_unsolvable_or_empty" }
     // Each answer needs an observable, truthful clue; a lying NPC alone is not a proof.
     interactions.filter { it.getJSONObject("effect").getString("type") == "ANSWER" }.forEach { a ->
       val factId = a.getJSONObject("effect").getString("factId")
-      require(interactions.any { it.getString("id") in solved && it.getJSONObject("effect").getString("factId") == factId && it.getJSONObject("effect").getString("type") in setOf("CLUE", "EVIDENCE") }) { "answer_without_evidence" }
+      val proofIds = interactions.filter {
+        it.getString("id") in solved && it.getJSONObject("effect").getString("factId") == factId &&
+          it.getJSONObject("effect").getString("type") in setOf("CLUE", "EVIDENCE")
+      }.map { it.getString("id") }.toSet()
+      require(proofIds.isNotEmpty()) { "answer_without_evidence" }
+      // A correct answer may be offered only after observing at least one proof
+      // for its own fact. Unrelated clues don't count.
+      if (a.getJSONObject("effect").getString("value") == facts.first { it.getString("id") == factId }.getString("value")) {
+        require(a.getString("id") !in reachable(proofIds)) { "answer_without_observed_proof" }
+      }
     }
     val answerGroups = interactions.filter { it.getJSONObject("effect").getString("type") == "ANSWER" }
       .groupBy { it.getJSONObject("effect").getString("factId") }
