@@ -177,7 +177,7 @@ body.game-menu-open{overflow:hidden}
 <body>
 <main class="shell">
 <section class="game">
-<header class="topbar"><div><div class="eyebrow">BACKROOMS · TRÒ CHƠI CHỮ</div><h1 id="title"></h1><span class="turn-runtime">LƯỢT <strong id="turn"></strong></span></div><button class="game-menu-trigger" id="gameMenuOpen" type="button" aria-label="Mở menu game" aria-haspopup="dialog" aria-controls="gameMenuModal" aria-expanded="false">☰</button></header>
+<header class="topbar"><div><div class="eyebrow">BACKROOM TEXT GAME</div><h1 id="title"></h1><span class="turn-runtime">TURN <strong id="turn"></strong></span></div><button class="game-menu-trigger" id="gameMenuOpen" type="button" aria-label="Mở menu game" aria-haspopup="dialog" aria-controls="gameMenuModal" aria-expanded="false">☰</button></header>
 <div class="snapshot" id="snapshot">SNAPSHOT — Android bản đầu chưa tạo ảnh tự động</div>
 <div class="log" id="log"></div>
 <div class="player-action-bar" id="playerActionBar" aria-label="Hành động của Cao Minh">
@@ -196,7 +196,7 @@ body.game-menu-open{overflow:hidden}
 <div class="game-menu-modal" id="gameMenuModal" hidden aria-hidden="true">
   <div class="game-menu-backdrop" id="gameMenuBackdrop"></div>
   <section class="game-menu-sheet" role="dialog" aria-modal="true" aria-labelledby="gameMenuTitle">
-    <div class="game-menu-head"><h2 id="gameMenuTitle">TRÌNH ĐƠN TRÒ CHƠI</h2><button class="game-menu-close" id="gameMenuClose" type="button" aria-label="Đóng">×</button></div>
+    <div class="game-menu-head"><h2 id="gameMenuTitle">GAME MENU</h2><button class="game-menu-close" id="gameMenuClose" type="button" aria-label="Đóng">×</button></div>
     <aside class="side">
 <section class="card" id="sceneJournal" hidden aria-labelledby="sceneJournalTitle">
   <h2 id="sceneJournalTitle">Nhật ký khám phá</h2>
@@ -1618,7 +1618,7 @@ function semanticPrepareNextState(before,json){const next=JSON.parse(json),oldLe
 function normalizedSemanticSpans(entry){if(!entry||entry.role==="player")return [];if(entry.semanticVersion!==3||!Array.isArray(entry.semanticSpans)){entry.semanticSpans=semanticResolve(entry.text,state,state);entry.semanticVersion=3}const source=String(entry.text||""),spans=[];let cursor=0;entry.semanticSpans.forEach(raw=>{const start=Number(raw&&raw.start),end=Number(raw&&raw.end),kind=semanticKind(raw&&raw.kind);if(!kind||!Number.isInteger(start)||!Number.isInteger(end)||start<cursor||end<=start||end>source.length)return;spans.push({start,end,kind});cursor=end});return spans}
 function renderSemanticText(entry){const source=String(entry&&entry.text||"");if(!entry||entry.role==="player")return esc(source);const spans=normalizedSemanticSpans(entry);if(!spans.length)return esc(source);let out="",cursor=0;spans.forEach(span=>{if(span.start>cursor)out+=esc(source.slice(cursor,span.start));out+="<span class='gm-semantic gm-semantic-"+span.kind+"' data-semantic-kind='"+span.kind+"'>"+esc(source.slice(span.start,span.end))+"</span>";cursor=span.end});if(cursor<source.length)out+=esc(source.slice(cursor));return out}
 
-function levelHeader(s){if(s&&s.level&&s.level.name){const id=s.level.id!=null?s.level.id:s.level.number;if(s.level.kind==="AREA"||s.level.kind==="SPECIAL"||s.level.name==="Level "+id)return s.level.name;return "Level "+id+" – "+s.level.name;}const where=String(s&&s.location||"")+" "+String(s&&s.title||"");const m=where.match(/Level\s*([^\s\/—–-]+)\s*(?:\/|—|–|-)\s*([^—–\n]+?)(?:\s+[—–]\s+|$)/i);if(m)return "Level "+m[1]+" – "+m[2].trim();return s&&s.title||"Backrooms"}function render(){titleEl.textContent=levelHeader(state);turnEl.textContent=state.turn;locationEl.textContent=state.location;modeEl.textContent=state.mode;playerEl.textContent=state.player?.name||"Cao Minh";partyEl.innerHTML=chips(state.party);if(inventoryEl)inventoryEl.innerHTML=chips(state.inventory);logEl.innerHTML=(state.log||[]).map(x=>{const w=x.role!=="player"&&String(x.text||"").trim().startsWith("[Warning]");return "<article class='message "+(x.role==="player"?"player":"gm")+(w?" warning":"")+"'><div class='role'>"+(x.role==="player"?"BẠN":"QUẢN TRÒ")+"</div><div class='text'>"+renderSemanticText(x)+"</div></article>"}).join("");logEl.scrollTop=logEl.scrollHeight;if(window.backroomRenderBattleStart)window.backroomRenderBattleStart();if(window.backroomRenderEncounteredCharacters)window.backroomRenderEncounteredCharacters()}
+function levelHeader(s){if(s&&s.level&&s.level.name){const id=s.level.id!=null?s.level.id:s.level.number;if(s.level.kind==="AREA"||s.level.kind==="SPECIAL"||s.level.name==="Level "+id)return s.level.name;return "Level "+id+" – "+s.level.name;}const where=String(s&&s.location||"")+" "+String(s&&s.title||"");const m=where.match(/Level\s*([^\s\/—–-]+)\s*(?:\/|—|–|-)\s*([^—–\n]+?)(?:\s+[—–]\s+|$)/i);if(m)return "Level "+m[1]+" – "+m[2].trim();return s&&s.title||"Backrooms"}function render(){titleEl.textContent=levelHeader(state);turnEl.textContent=state.turn;locationEl.textContent=state.location;modeEl.textContent=state.mode;playerEl.textContent=state.player?.name||"Cao Minh";partyEl.innerHTML=chips(state.party);if(inventoryEl)inventoryEl.innerHTML=chips(state.inventory);logEl.innerHTML=(state.log||[]).map(x=>{const w=x.role!=="player"&&String(x.text||"").trim().startsWith("[Warning]");return "<article class='message "+(x.role==="player"?"player":"gm")+(w?" warning":"")+"'><div class='role'>"+(x.role==="player"?"BẠN":"GAME MASTER")+"</div><div class='text'>"+renderSemanticText(x)+"</div></article>"}).join("");logEl.scrollTop=logEl.scrollHeight;if(window.backroomRenderBattleStart)window.backroomRenderBattleStart();if(window.backroomRenderEncounteredCharacters)window.backroomRenderEncounteredCharacters()}
 const SAVE_KEY="backroom-apk-state";
 const SNAPSHOT_KEY="backroom-apk-snapshot";
 let destructiveAction="";
@@ -1729,7 +1729,7 @@ function appendActionPending(label){
   player.querySelector(".text").textContent=label;logEl.appendChild(player);
   const gm=document.createElement("article");
   gm.className="message gm pending";gm.setAttribute("data-pending","1");
-  gm.innerHTML="<div class='role'>QUẢN TRÒ</div><div class='text'><div class='gm-thinking' role='status' aria-label='Gehihi đang chuẩn bị câu trả lời'><span class='gm-thinking-name' aria-hidden='true'>Gehihi</span></div></div>";
+  gm.innerHTML="<div class='role'>GAME MASTER</div><div class='text'><div class='gm-thinking' role='status' aria-label='Gehihi đang chuẩn bị câu trả lời'><span class='gm-thinking-name' aria-hidden='true'>Gehihi</span></div></div>";
   logEl.appendChild(gm);logEl.scrollTop=logEl.scrollHeight;
 }
 if(actionEl)actionEl.addEventListener("input",syncPrimaryActions);
@@ -1747,7 +1747,7 @@ window.backroomError=message=>{
   const reason=String(message||"Không thể xử lý lượt.");
   const row=document.createElement("article");
   row.className="message gm warning";
-  const role=document.createElement("div");role.className="role";role.textContent="QUẢN TRÒ · LỖI";
+  const role=document.createElement("div");role.className="role";role.textContent="GAME MASTER · LỖI";
   const body=document.createElement("div");body.className="text";
   body.textContent=reason+"\nLượt này chưa được xác nhận. Anh có thể thử lại.";
   row.appendChild(role);row.appendChild(body);logEl.appendChild(row);
