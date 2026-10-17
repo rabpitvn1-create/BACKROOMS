@@ -49,6 +49,19 @@ class CombatRuntimeTest {
   }
 
 
+  @Test fun persistedOngoingEncounterDoesNotMultiplyHpAgain() {
+    val started = CombatRuntime.start(GameState.initial(), "hound")
+    val damaged = started.copy(metadata = started.metadata + ("combat.entityHp" to "75"))
+    val reloaded = GameStateCodec.decode(GameStateCodec.encode(damaged))
+    val first = CombatRuntime.active(reloaded)!!
+    val second = CombatRuntime.active(reloaded)!!
+    assertEquals(220, first.entityMaxHp)
+    assertEquals(75, first.entityHp)
+    assertEquals(first, second)
+    val boss = CombatRuntime.active(CombatRuntime.start(GameState.initial(), "diep_minh"))!!
+    assertEquals(2999, boss.entityMaxHp)
+  }
+
   @Test fun successiveEncountersInSameTurnCannotReuseRewardIdentity() {
     val first = CombatRuntime.start(GameState.initial(), "hound")
     val firstId = CombatRuntime.active(first)!!.encounterId
@@ -154,6 +167,7 @@ class CombatRuntimeTest {
       "jeff_the_killer" to 150, "jane_the_killer" to 150, "slenderman" to 190,
       "blackroot_sentinel" to 134, "sinew_strider" to 134, "hollow_grasper" to 134
     )
+    assertEquals(CombatRuntime.supportedEntityKeys().toSet() - "diep_minh", expected.keys)
     expected.forEach { (key, hp) ->
       val entity = CombatRuntime.active(CombatRuntime.start(GameState.initial(), key))!!
       assertEquals("Full current HP of $key must double", hp * 2, entity.entityMaxHp)
