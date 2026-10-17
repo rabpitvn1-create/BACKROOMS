@@ -1476,8 +1476,22 @@ public class MainActivity extends Activity {
             // Validate narration against the staged destination, not the old level.
             // Failed prose must never be committed to Core or consume reserved rolls.
             JSONObject stagedEvent = new JSONObject(requireGameCore().sceneNarrationContext());
-            com.rabpit.backroom.core.MiniMapScenario.INSTANCE.canonBoundary(
-              stagedEvent.getString("node"), reply.getString("reply"));
+            // Already running scene scripts can contain bad location names produced before
+            // this rule existed. Do not strand an active encounter in an endless retry loop;
+            // all newly generated scripts are checked strictly at creation time.
+            boolean stagedLocationAlreadyInvalid = false;
+            String sceneNode = stagedEvent.getString("node");
+            JSONObject sceneRoom = stagedEvent.optJSONObject("room");
+            try {
+              if (sceneRoom != null) com.rabpit.backroom.core.MiniMapScenario.INSTANCE.canonBoundary(
+                sceneNode, sceneRoom.optString("name") + " " + sceneRoom.optString("description"));
+              com.rabpit.backroom.core.MiniMapScenario.INSTANCE.canonBoundary(
+                sceneNode, stagedEvent.optString("interaction"));
+            } catch (IllegalArgumentException existingSceneError) {
+              stagedLocationAlreadyInvalid = true;
+            }
+            if (!stagedLocationAlreadyInvalid) com.rabpit.backroom.core.MiniMapScenario.INSTANCE.canonBoundary(
+              sceneNode, reply.getString("reply"));
             requireGameCore().commitSceneAction(new JSONObject(command).getString("actionId"), reply.getString("reply"), stateJson);
           }
           String committedView = requireGameCore().currentClientState(stateJson);
