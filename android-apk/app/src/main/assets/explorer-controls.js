@@ -12,6 +12,7 @@
   const retry=document.createElement('button');retry.type='button';retry.textContent='Thử lại';retry.onclick=()=>{
     const scene=state&&state.scene;if(!scene||busy)return;
     busy=true;refresh();
+    if(!scene.pendingActionId)writerPending('Gemini');
     try{if(scene.pendingActionId)Android.submitSceneAction(JSON.stringify(state),'RETRY');else Android.prepareScene(JSON.stringify(state));}
     catch(e){global.backroomError('Không gửi được yêu cầu tới Core.');}
   };
@@ -70,8 +71,13 @@
     panel.hidden=combat||!scene;form.hidden=!combat;journal.hidden=!scene;
     if(!scene)return;
     room.textContent=scene.room?`${scene.room.name} · ${scene.room.description}`:'';
-    objective.textContent=`${scene.nodeTitle||'Khu vực hiện tại'} · Phân đoạn ${scene.miniIndex}/10 · ${scene.objective||'Đang chuẩn bị kịch bản'}`+(scene.awaitingEnding?' · Đã hoàn thành khu 6.1. Chờ kết thúc.':'');
+    const found=Array.isArray(scene.records)?scene.records.length:0;
+    const searchCount=(scene.availableActions||[]).filter(a=>a.kind==='SEARCH').length;
+    const hint=scene.completed?' · Mục tiêu đã hoàn thành. Hãy tìm đúng lối ra.':
+      (' · Đã ghi '+found+' manh mối.'+(searchCount?' Phòng này còn '+searchCount+' thao tác tìm kiếm.':' Hãy kiểm tra phòng khác nếu còn thiếu manh mối.'));
+    objective.textContent=`${scene.nodeTitle||'Khu vực hiện tại'} · Phân đoạn ${scene.miniIndex}/10 · ${scene.objective||'Đang chuẩn bị kịch bản'}`+(!scene.generationNeeded?hint:'')+(scene.awaitingEnding?' · Đã hoàn thành khu 6.1. Chờ kết thúc.':'');
     records.replaceChildren();[...(scene.records||[])].forEach(r=>{const p=document.createElement('p');p.textContent=r.text;records.appendChild(p);});
+    if(!found){const p=document.createElement('p');p.textContent='Chưa có manh mối. Hãy chọn Tìm kiếm để quan sát và đối chiếu trước khi giải đố.';records.appendChild(p);}
     if(scene.generationNeeded){const p=document.createElement('p');p.textContent='Đang tạo nhiệm vụ mới; thử lại nếu nhà cung cấp tạm lỗi.';records.appendChild(p);}
     else if(scene.completed){const p=document.createElement('p');p.textContent='Đã giải xong nhiệm vụ. Đi tới lối ra để sang phân đoạn kế tiếp.';records.appendChild(p);}
     else if(!(scene.records||[]).length){const p=document.createElement('p');p.textContent='Chưa có chứng cứ: hãy tìm kiếm trong phòng, kiểm tra các phòng kề và đối chiếu manh mối trước khi chọn đáp án.';records.appendChild(p);}
