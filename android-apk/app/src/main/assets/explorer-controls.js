@@ -1,10 +1,10 @@
 (function(global){
   'use strict';
   const bar=document.getElementById('playerActionBar'),form=document.getElementById('form');
-  if(!bar||!form)return;
+  const journal=document.getElementById('sceneJournal'),room=document.getElementById('sceneJournalRoom'),objective=document.getElementById('sceneJournalObjective'),records=document.getElementById('sceneJournalRecords');
+  if(!bar||!form||!journal||!room||!objective||!records)return;
   const panel=document.createElement('section');panel.id='explorerControls';panel.setAttribute('aria-label','Khám phá');
-  const room=document.createElement('p'),objective=document.createElement('p'),observations=document.createElement('details'),summary=document.createElement('summary'),records=document.createElement('div'),row=document.createElement('div');
-  summary.textContent='Manh mối và lời khai';observations.append(summary,records);row.className='explorer-buttons';
+  const row=document.createElement('div');row.className='explorer-buttons';
   const buttons={};
   Object.entries({MOVE:'Di chuyển',SEARCH:'Tìm kiếm',TALK:'Giao tiếp'}).forEach(([kind,label])=>{
     const b=document.createElement('button');b.type='button';b.textContent=label;b.onclick=()=>open(kind);buttons[kind]=b;row.appendChild(b);
@@ -15,7 +15,7 @@
     try{if(scene.pendingActionId)Android.submitSceneAction(JSON.stringify(state),'RETRY');else Android.prepareScene(JSON.stringify(state));}
     catch(e){global.backroomError('Không gửi được yêu cầu tới Core.');}
   };
-  panel.append(room,objective,observations,row,retry);bar.appendChild(panel);
+  panel.append(row,retry);bar.appendChild(panel);
   const dialog=document.createElement('dialog');dialog.id='explorerChoices';dialog.setAttribute('aria-label','Chọn tương tác');
   const close=document.createElement('button');close.type='button';close.textContent='Đóng';close.onclick=()=>dialog.close();
   const choices=document.createElement('div');dialog.append(close,choices);document.body.appendChild(dialog);
@@ -39,10 +39,10 @@
   }
   function refresh(){
     const scene=state&&state.scene,combat=!!(state&&state.combat&&state.combat.active);
-    panel.hidden=combat||!scene;form.hidden=!combat;
+    panel.hidden=combat||!scene;form.hidden=!combat;journal.hidden=!scene;
     if(!scene)return;
     room.textContent=scene.room?`${scene.room.name} · ${scene.room.description}`:'';
-    objective.textContent=`Mini-map ${scene.miniIndex}/10 · ${scene.objective||'Đang chuẩn bị kịch bản'}`+(scene.awaitingEnding?' · Đã hoàn thành Level 6. Chờ ending.':'');
+    objective.textContent=`${scene.nodeTitle||'Khu vực hiện tại'} · Mini-map ${scene.miniIndex}/10 · ${scene.objective||'Đang chuẩn bị kịch bản'}`+(scene.awaitingEnding?' · Đã hoàn thành Level 6. Chờ ending.':'');
     records.replaceChildren();[...(scene.previousObservations||[]),...(scene.records||[])].forEach(r=>{const p=document.createElement('p');p.textContent=r.text;records.appendChild(p);});
     Object.entries(buttons).forEach(([kind,b])=>{b.disabled=locked()||!(scene.availableActions||[]).some(a=>a.kind===kind);});
     retry.hidden=!(scene.generationNeeded||scene.pendingActionId);retry.disabled=busy||coreUnavailable;

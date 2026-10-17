@@ -20,8 +20,8 @@ public final class ScenarioGenerator {
         String raw = transport.generate(keys[lane], prompt);
         JSONObject parsed = MiniMapScenario.INSTANCE.parse(raw);
         if ("outline".equals(request.getString("kind")))
-          MiniMapScenario.INSTANCE.validateOutline(parsed, request.getInt("levelNumber"));
-        else MiniMapScenario.INSTANCE.validate(parsed, request.getInt("levelNumber"), request.getInt("index"));
+          MiniMapScenario.INSTANCE.validateOutline(parsed, request.getString("nodeAnchor"));
+        else MiniMapScenario.INSTANCE.validate(parsed, request.getString("nodeAnchor"), request.getInt("index"));
         rotation = (lane + 1) % count;
         return parsed.toString();
       } catch (Exception error) {
@@ -38,14 +38,14 @@ public final class ScenarioGenerator {
       + "Không có nhân vật Canon trong NPC kịch bản. Không dùng placeholder hoặc bí mật tác giả. ";
     if ("outline".equals(request.getString("kind"))) {
       JSONArray anchors = new JSONArray();
-      for (int i = 1; i <= 10; i++) anchors.put(MiniMapScenario.INSTANCE.anchor(request.getInt("levelNumber"), i));
+      for (int i = 1; i <= 10; i++) anchors.put(request.getString("nodeAnchor"));
       return intro + "Sinh outline ngắn gồm đúng 10 beat đa dạng: điều tra, khám phá, đối chiếu lời khai, ký hiệu, tổng hợp. "
-        + "Schema {schemaVersion:1,levelNumber:int,entries:[{index:1..10,nodeAnchor:string,beat:string<=220,objective:string<=220,dependencyRefs:[index trước]}]}. "
-        + "nodeAnchor theo thứ tự bắt buộc: " + anchors + ". INPUT=" + request;
+        + "Schema {schemaVersion:2,levelNumber:int,nodeAnchor:string,entries:[{index:1..10,nodeAnchor:string,beat:string<=220,objective:string<=220,dependencyRefs:[index trước]}]}. "
+        + "Tất cả 10 mini-map thuộc CÙNG exact node INPUT.nodeAnchor, không chuyển node trong outline. levelNumber chỉ là Level cha để scaling. nodeAnchor theo thứ tự: " + anchors + ". INPUT=" + request;
     }
     return intro + "Sinh một mini-map, không sinh lại outline, không viết lời kể dài. "
-      + "Đúng schemaVersion=1; levelNumber,index,nodeAnchor lấy INPUT. Tối đa 48000 ký tự. Schema chính xác: "
-      + "{schemaVersion:1,id:snake_case,levelNumber:int,index:int,nodeAnchor:string,objective:string<=400,entryRoomId:id,exitRoomId:id,"
+      + "Đúng schemaVersion=2; levelNumber,index,nodeAnchor lấy INPUT. Tối đa 48000 ký tự. Schema chính xác: "
+      + "{schemaVersion:2,id:snake_case,levelNumber:int,index:int,nodeAnchor:string,objective:string<=400,entryRoomId:id,exitRoomId:id,"
       + "rooms:[{id,name:string<=90,description:string<=600,adjacentRoomIds:[id]}],"
       + "facts:[{id,label:string<=90,value:string,values:[2..5 giá trị chuỗi khác nhau gồm value]}],"
       + "interactions:[{id,kind:SEARCH hoặc TALK,roomId:id,label:string<=120,requires:predicate,effect:effect}],goal:predicate}. "

@@ -25,4 +25,4 @@ APK được tạo tại `android-apk/app/build/outputs/apk/debug/app-debug.apk`
 
 ## Explorer mini-map (#653)
 
-Explorer dùng Di chuyển / Tìm kiếm / Giao tiếp với lựa chọn do Core cấp. Mỗi Level có 10 mini-map; Gemini sinh outline/script, Gehihi chỉ kể sự kiện public đã stage. Save schema 6, không đọc/chuyển đổi save cũ. Xem [hợp đồng và nghiệm thu](android-apk/SCENE_RUNTIME_653.md).
+Explorer dùng Di chuyển / Tìm kiếm / Giao tiếp với lựa chọn do Core cấp. Mỗi exact node (Level/sublevel/khu phụ) có 10 mini-map riêng; Nhật ký phòng, mục tiêu và manh mối nằm trong Game Menu. Gemini sinh outline/script, Gehihi chỉ kể sự kiện public đã stage. Save schema 7, không đọc/chuyển đổi save cũ. Xem [hợp đồng và nghiệm thu](android-apk/SCENE_RUNTIME_653.md).

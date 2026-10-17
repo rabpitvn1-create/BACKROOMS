@@ -106,7 +106,8 @@ class GameCoreFacade private constructor(
       SpawnMechanism.pendingNpcEncounters(reserved).forEach { put(JSONObject().put("characterId", it.characterId).put("name", SpawnMechanism.npcDisplayName(it.characterId))) }
     })
     val pending = JSONObject().put("actionId", actionId).put("command", command)
-      .put("progress", staged.progress).put("nodeId", staged.nodeId).put("label", staged.label)
+      .put("progress", staged.progress).put("nodeProgress", JSONObject(staged.nodeProgress))
+      .put("nodeId", staged.nodeId).put("label", staged.label)
       .put("public", public)
     repository.save(reserved.copy(world = reserved.world + (MiniMapRuntime.PENDING to pending.toString())))
     return JSONObject().put("committed", false).toString()
@@ -141,7 +142,7 @@ class GameCoreFacade private constructor(
       put("currentLevel", node.asJson())
     }
     val receipt = JSONObject().put("actionId", actionId).put("label", pending.getString("label")).put("reply", reply)
-    var next = finished.state.copy(world = (finished.state.world - MiniMapRuntime.PENDING) + mapOf(
+    var next = finished.state.copy(world = (finished.state.world - MiniMapRuntime.PENDING) + jsonObjectStrings(pending.getJSONObject("nodeProgress")) + mapOf(
       MiniMapRuntime.STATE to pending.getJSONObject("progress").toString(),
       MiniMapRuntime.RECEIPT to receipt.toString(),
       "levelJson" to node.asJson().toString(), "title" to node.title(), "location" to node.location(), "flagsJson" to flags.toString()),

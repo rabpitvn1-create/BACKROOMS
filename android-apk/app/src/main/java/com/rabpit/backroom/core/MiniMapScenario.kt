@@ -6,7 +6,7 @@ import org.json.JSONTokener
 
 /** Bounded, monotone puzzle language. Generated strings are never executable predicates. */
 object MiniMapScenario {
-  const val SCHEMA = 1
+  const val SCHEMA = 2
   const val MAX_CHARS = 48000
   private val idPattern = Regex("[a-z][a-z0-9_]{0,39}")
   private val reservedNames = Regex("lucia|lục trầm|luc tram|iris|syvial|an nhiên|an nhien|diệp minh|cao minh", RegexOption.IGNORE_CASE)
@@ -29,10 +29,6 @@ object MiniMapScenario {
   private fun int(o: JSONObject, key: String): Int {
     val value = o.get(key); require(value is Int) { "scenario_integer" }; return value
   }
-  fun anchor(level: Int, index: Int): String {
-    require(level in 0..6 && index in 1..10)
-    return if (level == 0) listOf("0", "0", "0.1", "0.2", "0.5", "0.7", "manila_room", "the_torment", "red_rooms", "red_rooms")[index - 1] else level.toString()
-  }
   /** Size/depth limits apply before JSONObject parsing to avoid recursive-parser exhaustion. */
   fun parse(raw: String): JSONObject {
     require(raw.length <= MAX_CHARS) { "scenario_too_large" }
@@ -47,25 +43,27 @@ object MiniMapScenario {
     require(parsed is JSONObject && tokens.nextClean() == '\u0000') { "scenario_trailing_json" }
     return parsed
   }
-  fun validateOutline(raw: JSONObject, level: Int): JSONObject {
-    fields(raw, setOf("schemaVersion", "levelNumber", "entries"))
-    require(int(raw, "schemaVersion") == SCHEMA && int(raw, "levelNumber") == level)
+  fun validateOutline(raw: JSONObject, nodeId: String): JSONObject {
+    fields(raw, setOf("schemaVersion", "levelNumber", "nodeAnchor", "entries"))
+    val node = requireNotNull(LevelRouteRegistry.node(nodeId)) { "scenario_node" }
+    require(int(raw, "schemaVersion") == SCHEMA && int(raw, "levelNumber") == node.parent && raw.getString("nodeAnchor") == nodeId)
     val entries = objects(raw.getJSONArray("entries")); require(entries.size == 10)
     entries.forEachIndexed { i, e ->
       fields(e, setOf("index", "nodeAnchor", "beat", "objective", "dependencyRefs"))
-      require(int(e, "index") == i + 1 && e.getString("nodeAnchor") == anchor(level, i + 1)) { "outline_route" }
+      require(int(e, "index") == i + 1 && e.getString("nodeAnchor") == nodeId) { "outline_route" }
       text(e, "beat", 220); text(e, "objective", 220)
       val deps = e.getJSONArray("dependencyRefs")
       require(deps.length() <= i && (0 until deps.length()).all { d -> deps.get(d) is Int && deps.getInt(d) in 1..i }) { "outline_dependency" }
     }
     return copy(raw)
   }
-  fun validate(raw: JSONObject, level: Int, index: Int): JSONObject {
+  fun validate(raw: JSONObject, nodeId: String, index: Int): JSONObject {
     require(raw.toString().length <= MAX_CHARS)
     fields(raw, setOf("schemaVersion", "id", "levelNumber", "index", "nodeAnchor", "objective", "entryRoomId", "exitRoomId", "rooms", "facts", "interactions", "goal"))
-    require(int(raw, "schemaVersion") == SCHEMA && int(raw, "levelNumber") == level && int(raw, "index") == index)
+    val node = requireNotNull(LevelRouteRegistry.node(nodeId)) { "scenario_node" }
+    require(index in 1..10 && int(raw, "schemaVersion") == SCHEMA && int(raw, "levelNumber") == node.parent && int(raw, "index") == index)
     id(raw); text(raw, "objective", 400)
-    require(raw.getString("nodeAnchor") == anchor(level, index)) { "script_route" }
+    require(raw.getString("nodeAnchor") == nodeId) { "script_route" }
     val rooms = list(raw, "rooms", 3, 12); val roomIds = rooms.map { it.getString("id") }.toSet()
     require(id(raw, "entryRoomId") in roomIds && id(raw, "exitRoomId") in roomIds)
     rooms.forEach { r ->

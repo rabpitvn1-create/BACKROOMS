@@ -9,6 +9,7 @@ function runtime(scene={}){
     replaceChildren(...nodes){this.children=nodes;},setAttribute(){},addEventListener(k,fn){this.listeners[k]=fn;},
     showModal(){this.open=true;},close(){this.open=false;}};}
   elements.playerActionBar=element();elements.form=element();
+  for(const id of ['sceneJournal','sceneJournalRoom','sceneJournalObjective','sceneJournalRecords'])elements[id]=element();
   const calls=[];
   const document={getElementById:id=>elements[id],createElement:element,body:element()};
   const ctx={document,state:{scene:{miniIndex:1,generationNeeded:false,availableActions:[{actionId:'run:1:MOVE:room:x',sceneVersion:1,roomId:'hall',kind:'MOVE',targetId:'room:x',label:'Phòng X'}],...scene}},busy:false,coreUnavailable:false,
@@ -16,7 +17,7 @@ function runtime(scene={}){
     appendActionPending(){},backroomTurn(json){ctx.state=JSON.parse(json);ctx.busy=false;},backroomError(){ctx.busy=false;}};
   ctx.window=ctx;vm.runInNewContext(source,ctx);
   const panel=elements.playerActionBar.children[0],dialog=document.body.children[0];
-  return {ctx,calls,panel,dialog,buttons:panel.children[3].children,retry:panel.children[4]};
+  return {ctx,calls,panel,dialog,buttons:panel.children[0].children,retry:panel.children[1],journal:elements.sceneJournal,room:elements.sceneJournalRoom,objective:elements.sceneJournalObjective,records:elements.sceneJournalRecords};
 }
 test('three controls enable only Core-provided actions; popups do not submit or roll',()=>{
   const r=runtime();assert.deepEqual(r.buttons.map(b=>b.textContent),['Di chuyển','Tìm kiếm','Giao tiếp']);
@@ -39,4 +40,24 @@ test('pending narration retries the saved command and combat hides Explorer',()=
 });
 test('untrusted labels and observations use textContent and no HTML insertion',()=>{
   assert.doesNotMatch(source,/innerHTML|insertAdjacentHTML|eval\(/);
+});
+
+test('room objective and observations live only in a separate Game Menu journal',()=>{
+  const html=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/index.html'),'utf8');
+  const start=html.indexOf('id="gameMenuModal"');
+  const end=html.indexOf('<script',start);
+  const menu=html.slice(start,end);
+  for(const id of ['sceneJournal','sceneJournalRoom','sceneJournalObjective','sceneJournalRecords'])assert.ok(menu.includes(`id="${id}"`),id);
+  const r=runtime({room:{name:'Phòng X',description:'Dấu vết'},objective:'Giải khóa',records:[{text:'Vật chứng đã xác nhận'}]});
+  assert.equal(r.panel.children.length,2);
+  assert.ok(r.room.textContent.includes('Phòng X'));assert.ok(r.objective.textContent.includes('Giải khóa'));
+  assert.equal(r.records.children[0].textContent,'Vật chứng đã xác nhận');
+  assert.equal(r.journal.hidden,false);assert.equal(r.calls.length,0);
+});
+test('Core-confirmed Lucia enables communication even without a scenario NPC topic',()=>{
+  const r=runtime({availableActions:[{actionId:'r:0:8:TALK:character:lucia:introduce',sceneVersion:8,roomId:'hall',kind:'TALK',targetId:'character:lucia:introduce',label:'Lucia "Lục" · Giới thiệu và hỏi tên'}]});
+  assert.equal(r.buttons[2].disabled,false);r.buttons[2].onclick();
+  assert.ok(r.dialog.children[1].children[0].textContent.includes('Lucia'));
+  r.dialog.children[1].children[0].onclick();
+  const command=JSON.parse(r.calls[0][1]);assert.equal(command.kind,'TALK');assert.equal(command.targetId,'character:lucia:introduce');
 });

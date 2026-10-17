@@ -13,9 +13,9 @@ public class ScenarioGeneratorTest {
   private String outline() throws Exception {
     JSONArray entries = new JSONArray();
     for (int i=1;i<=10;i++) entries.put(new JSONObject().put("index",i)
-      .put("nodeAnchor",MiniMapScenario.INSTANCE.anchor(0,i)).put("beat","Quan sát và đối chiếu")
+      .put("nodeAnchor","0").put("beat","Quan sát và đối chiếu")
       .put("objective","Giải mục tiêu").put("dependencyRefs",new JSONArray()));
-    return new JSONObject().put("schemaVersion",1).put("levelNumber",0).put("entries",entries).toString();
+    return new JSONObject().put("schemaVersion",2).put("levelNumber",0).put("nodeAnchor","0").put("entries",entries).toString();
   }
   @Test public void validOutlineUsesScenarioContractAndExactlyOneTransportCall() throws Exception {
     AtomicInteger calls=new AtomicInteger();

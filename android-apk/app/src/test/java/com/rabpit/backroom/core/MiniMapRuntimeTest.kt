@@ -7,8 +7,8 @@ import org.junit.Test
 import java.security.SecureRandom
 
 class MiniMapRuntimeTest {
-  private fun script(level: Int = 0, index: Int = 1) = MiniMapScenario.parse("""
-    {"schemaVersion":1,"id":"investigation","levelNumber":$level,"index":$index,"nodeAnchor":"${MiniMapScenario.anchor(level,index)}",
+  private fun script(level: Int = 0, index: Int = 1, nodeId: String = level.toString()) = MiniMapScenario.parse("""
+    {"schemaVersion":2,"id":"investigation","levelNumber":$level,"index":$index,"nodeAnchor":"${nodeId}",
     "objective":"Đối chiếu dấu hiệu và lời khai để xác định màu khóa, hướng van.","entryRoomId":"hall","exitRoomId":"hall",
     "rooms":[{"id":"hall","name":"Hành lang","description":"Một bảng điều khiển có hai hàng lựa chọn.","adjacentRoomIds":["lab","witness"]},
     {"id":"lab","name":"Kho hồ sơ","description":"Tủ hồ sơ và một mảnh giấy.","adjacentRoomIds":["hall"]},
@@ -24,14 +24,14 @@ class MiniMapRuntimeTest {
     {"id":"answer_right","kind":"SEARCH","roomId":"hall","label":"Chọn van phải","requires":{"op":"HAS","id":"answer_red"},"effect":{"type":"ANSWER","factId":"valve","value":"phải"}}],
     "goal":{"op":"AND","args":[{"op":"HAS","id":"answer_red"},{"op":"HAS","id":"answer_left"}]}}
   """.trimIndent())
-  private fun state(level: Int = 0, index: Int = 1): GameState {
-    val node = LevelRouteRegistry.node(MiniMapScenario.anchor(level,index))
+  private fun state(level: Int = 0, index: Int = 1, nodeId: String = level.toString()): GameState {
+    val node = LevelRouteRegistry.node(nodeId)
     var state = MiniMapRuntime.initialize(CoreClientProjection.initialize(GameState.initial()).let {
       it.copy(world = it.world + ("levelJson" to node.asJson().toString()))
     })
     val p = MiniMapRuntime.progress(state).put("parent",level).put("index",index).put("roomId","hall")
     state = state.copy(world = state.world + (MiniMapRuntime.STATE to p.toString()))
-    return state.copy(world = state.world + (MiniMapRuntime.scriptKey(p) to MiniMapScenario.validate(script(level,index),level,index).toString()))
+    return state.copy(world = state.world + (MiniMapRuntime.scriptKey(p) to MiniMapScenario.validate(script(level,index,nodeId),nodeId,index).toString()))
   }
   private class MemorySave(var state: GameState): SaveRepository {
     var checkpoint: String? = null
@@ -46,7 +46,7 @@ class MiniMapRuntimeTest {
     var calls = 0
     override fun nextInt(bound: Int): Int { calls++; return value.coerceAtMost(bound - 1) }
   }
-  private fun facade(repo: MemorySave, rng: CountingRng = CountingRng()): GameCoreFacade {
+  private fun facade(repo: MemorySave, rng: SecureRandom = CountingRng()): GameCoreFacade {
     val ctor = GameCoreFacade::class.java.getDeclaredConstructor(SaveRepository::class.java,GamePipelineLogger::class.java)
     ctor.isAccessible = true
     return ctor.newInstance(repo,NoOpGamePipelineLogger).also {
@@ -62,15 +62,15 @@ class MiniMapRuntimeTest {
     core.commitSceneAction(JSONObject(command).getString("actionId"),"Cao Minh quan sát kết quả.","{}")
   }
   @Test fun graphClaimAndProofValidationRejectInvalidScripts() {
-    assertEquals("investigation",MiniMapScenario.validate(script(),0,1).getString("id"))
+    assertEquals("investigation",MiniMapScenario.validate(script(),"0",1).getString("id"))
     val disconnected=script();disconnected.getJSONArray("rooms").getJSONObject(1).put("adjacentRoomIds",JSONArray().put("witness"))
-    assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.validate(disconnected,0,1) }
+    assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.validate(disconnected,"0",1) }
     val lying=script();lying.getJSONArray("interactions").getJSONObject(2).getJSONObject("effect").put("value","đỏ")
-    assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.validate(lying,0,1) }
+    assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.validate(lying,"0",1) }
     val impossible=script();impossible.getJSONArray("interactions").getJSONObject(0).put("requires",JSONObject("{\"op\":\"HAS\",\"id\":\"answer_red\"}"))
-    assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.validate(impossible,0,1) }
+    assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.validate(impossible,"0",1) }
     val injected=script().put("eval","grantItem()")
-    assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.validate(injected,0,1) }
+    assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.validate(injected,"0",1) }
     assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.parse("[".repeat(13)+"]".repeat(13)) }
     assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.parse(" ".repeat(48001)) }
   }
@@ -129,16 +129,21 @@ class MiniMapRuntimeTest {
     calls=0
     SpawnMechanism.rollSceneSpawns(CombatRuntime.prepareEncounter(s,"hound","e1"),"MOVE",rng);assertEquals(0,calls)
   }
-  @Test fun levelZeroAnchorsKeepAllNodesAndSixHasNoFabricatedExit() {
-    val anchors=(1..10).map { MiniMapScenario.anchor(0,it) }
-    assertEquals(listOf("0","0","0.1","0.2","0.5","0.7","manila_room","the_torment","red_rooms","red_rooms"),anchors)
-    anchors.zipWithNext().forEach { (a,b)->assertTrue(a==b||LevelRouteRegistry.canMove(a,b)) }
+  @Test fun nodeOutlineNeverChangesCanonicalAnchorInsideItsTenMaps() {
+    for (id in listOf("0", "0.1", "dullness", "6", "6.1")) {
+      assertEquals(id,MiniMapScenario.validateOutline(outline(id),id).getString("nodeAnchor"))
+      assertEquals(id,MiniMapScenario.validate(script(LevelRouteRegistry.node(id).parent,3,id),id,3).getString("nodeAnchor"))
+    }
+    val swapped=outline("0").apply { getJSONArray("entries").getJSONObject(2).put("nodeAnchor","0.1") }
+    assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.validateOutline(swapped,"0") }
+    assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.validate(script(0,1,"0.1"),"0",1) }
     assertTrue(LevelRouteRegistry.exits("6").none { LevelRouteRegistry.node(it).parent==7 })
     assertEquals(setOf("4","6"),LevelRouteRegistry.exits("3").toSet())
   }
-  private fun outline(level: Int) = JSONObject().put("schemaVersion",1).put("levelNumber",level).put("entries",JSONArray().apply {
-    (1..10).forEach { put(JSONObject().put("index",it).put("nodeAnchor",MiniMapScenario.anchor(level,it)).put("beat","Điều tra").put("objective","Đối chiếu dữ kiện").put("dependencyRefs",JSONArray())) }
-  })
+  private fun outline(nodeId: String) = JSONObject().put("schemaVersion",2)
+    .put("levelNumber",LevelRouteRegistry.node(nodeId).parent).put("nodeAnchor",nodeId).put("entries",JSONArray().apply {
+      (1..10).forEach { put(JSONObject().put("index",it).put("nodeAnchor",nodeId).put("beat","Điều tra").put("objective","Đối chiếu dữ kiện").put("dependencyRefs",JSONArray())) }
+    })
   @Test fun acceptedScriptIsFrozenAndBadGenerationCannotModifySave() {
     var initial=state()
     val p=MiniMapRuntime.progress(initial)
@@ -147,7 +152,7 @@ class MiniMapRuntimeTest {
     val token=MiniMapRuntime.token(repo.state)
     assertThrows(IllegalArgumentException::class.java) { core.acceptSceneGeneration(token,script().toString()) }
     assertNull(MiniMapRuntime.script(repo.state))
-    core.acceptSceneGeneration(token,outline(0).toString())
+    core.acceptSceneGeneration(token,outline("0").toString())
     core.acceptSceneGeneration(token,script().toString())
     val frozen=repo.state.world[MiniMapRuntime.scriptKey(p)]
     core.acceptSceneGeneration(token,script().apply { getJSONArray("facts").getJSONObject(0).put("value","xanh") }.toString())
@@ -175,10 +180,10 @@ class MiniMapRuntimeTest {
     assertTrue(JSONObject(core.confirmEncounter(view.toString(),encounter.encounterId)).getBoolean("handled"))
     assertNotNull(CombatRuntime.active(repo.state));assertEquals(before,rng.calls)
   }
-  private fun solvedState(level: Int, index: Int): GameState {
-    val state=state(level,index);val p=MiniMapRuntime.progress(state);val s=MiniMapRuntime.script(state)!!
+  private fun solvedState(level: Int, index: Int, nodeId: String = level.toString()): GameState {
+    val state=state(level,index,nodeId);val p=MiniMapRuntime.progress(state);val s=MiniMapRuntime.script(state)!!
     p.put("accepted",JSONArray(MiniMapScenario.objects(s.getJSONArray("interactions")).filter { MiniMapScenario.effectText(s,it).second }.map { it.getString("id") }))
-    p.put("completed",JSONArray().apply { (1 until index).forEach { put(JSONObject().put("parent",level).put("index",it).put("objective","Đã giải")) } })
+    p.put("completed",JSONArray().apply { (1 until index).forEach { put(JSONObject().put("nodeId",nodeId).put("parent",level).put("index",it).put("objective","Đã giải")) } })
     return state.copy(world=state.world+(MiniMapRuntime.STATE to p.toString()))
   }
   @Test fun tenthMapUnlocksOnlyRegistryEdgesAndLevelSixWaitsForEnding() {
@@ -191,15 +196,115 @@ class MiniMapRuntimeTest {
     assertTrue(MiniMapRuntime.publicView(end).getBoolean("awaitingEnding"))
     assertFalse(MiniMapScenario.objects(MiniMapRuntime.actions(end)).any { it.optString("targetId")=="node:7" })
   }
-  @Test fun optionalSublevelReturnsWithoutChangingMiniProgress() {
-    val repo=MemorySave(state(6,2));val core=facade(repo)
-    apply(core,repo,"node:6.1")
-    assertEquals("6.1",MiniMapRuntime.node(repo.state).id)
-    assertEquals(2,MiniMapRuntime.progress(repo.state).getInt("index"))
-    val options=MiniMapScenario.objects(MiniMapRuntime.actions(repo.state))
-    assertEquals(listOf("node:6"),options.map { it.getString("targetId") })
-    apply(core,repo,"node:6")
-    assertEquals("hall",MiniMapRuntime.progress(repo.state).getString("roomId"))
+  @Test fun unfinishedNodeExposesOnlyRoomsAndRejectsForgedCrossNodeCommandsWithoutRng() {
+    for (index in 1..9) {
+      val repo=MemorySave(solvedState(0,index));val rng=CountingRng();val core=facade(repo,rng)
+      val actions=MiniMapScenario.objects(MiniMapRuntime.actions(repo.state))
+      assertFalse(actions.any { it.getString("targetId").startsWith("node:") })
+      val roomCommand=JSONObject(choice(repo.state,"room:lab"))
+      for (target in listOf("node:0.1","node:dullness","node:epsilon","node:ls_2")) {
+        val forged=MiniMapScenario.copy(roomCommand).put("targetId",target)
+        assertThrows(IllegalStateException::class.java) { core.beginSceneAction(forged.toString()) }
+      }
+      assertEquals(0,rng.calls)
+      if (index == 2) {
+        apply(core,repo,"next")
+        assertEquals("0",MiniMapRuntime.node(repo.state).id)
+        assertEquals("0",MiniMapRuntime.progress(repo.state).getString("nodeId"))
+        assertEquals(3,MiniMapRuntime.progress(repo.state).getInt("index"))
+      }
+    }
+  }
+  @Test fun nodeExitsRequireTenthGoalAllEarlierMapsAndTheExitRoom() {
+    val unfinished=state(0,10)
+    assertFalse(MiniMapScenario.objects(MiniMapRuntime.actions(unfinished)).any { it.getString("targetId").startsWith("node:") })
+    var finished=solvedState(0,10)
+    val targets=MiniMapScenario.objects(MiniMapRuntime.actions(finished)).map { it.getString("targetId") }
+    assertTrue(targets.containsAll(listOf("node:0.1","node:dullness","node:epsilon","node:ls_2")))
+    val p=MiniMapRuntime.progress(finished).put("roomId","lab")
+    finished=finished.copy(world=finished.world+(MiniMapRuntime.STATE to p.toString()))
+    assertFalse(MiniMapScenario.objects(MiniMapRuntime.actions(finished)).any { it.getString("targetId").startsWith("node:") })
+    p.put("roomId","hall").put("completed",JSONArray())
+    finished=finished.copy(world=finished.world+(MiniMapRuntime.STATE to p.toString()))
+    assertFalse(MiniMapScenario.objects(MiniMapRuntime.actions(finished)).any { it.getString("targetId").startsWith("node:") })
+  }
+  @Test fun optionalNodeHasItsOwnTenMapsAndRestoresFrozenSourceAfterCompletion() {
+    val repo=MemorySave(solvedState(0,10));val core=facade(repo)
+    val source=MiniMapRuntime.script(repo.state)!!.toString()
+    val oldCommand=choice(repo.state,"room:lab")
+    apply(core,repo,"node:dullness")
+    val p=MiniMapRuntime.progress(repo.state)
+    assertEquals("dullness",p.getString("nodeId"));assertEquals(1,p.getInt("index"))
+    assertNull(MiniMapRuntime.script(repo.state))
+    assertEquals(0,p.getJSONArray("accepted").length())
+    val token=MiniMapRuntime.token(repo.state)
+    core.acceptSceneGeneration(token,outline("dullness").toString())
+    core.acceptSceneGeneration(token,script(0,1,"dullness").toString())
+    assertTrue(MiniMapRuntime.scriptKey(p).contains("dullness"))
+    assertFalse(MiniMapScenario.objects(MiniMapRuntime.actions(repo.state)).any { it.getString("targetId")=="node:0" })
+    assertThrows(IllegalArgumentException::class.java) { core.beginSceneAction(oldCommand) }
+    // Complete all ten maps through the same versioned transition path. The puzzle
+    // solver supplies the accepted set; interaction behavior is exercised separately.
+    for (index in 1..10) {
+      if (MiniMapRuntime.script(repo.state)==null) core.acceptSceneGeneration(MiniMapRuntime.token(repo.state),script(0,index,"dullness").toString())
+      val current=MiniMapRuntime.progress(repo.state)
+      val scene=MiniMapRuntime.script(repo.state)!!
+      current.put("accepted",JSONArray(MiniMapScenario.objects(scene.getJSONArray("interactions")).filter { MiniMapScenario.effectText(scene,it).second }.map { it.getString("id") }))
+      repo.state=repo.state.copy(world=repo.state.world+(MiniMapRuntime.STATE to current.toString()))
+      if (index<10) apply(core,repo,"next")
+    }
+    apply(core,repo,"node:0")
+    assertEquals("0",MiniMapRuntime.node(repo.state).id)
+    assertEquals(10,MiniMapRuntime.progress(repo.state).getInt("index"))
+    assertEquals(source,MiniMapRuntime.script(repo.state)!!.toString())
+    assertTrue(MiniMapRuntime.complete(repo.state))
+    assertThrows(IllegalArgumentException::class.java) { core.beginSceneAction(oldCommand) }
+    val cached=JSONObject(repo.state.world.getValue(MiniMapRuntime.nodeProgressKey("dullness")))
+    assertEquals(10,cached.getInt("index"));assertEquals(10,cached.getJSONArray("completed").length())
+    // Save/restart/checkpoint retain both node caches and frozen content.
+    assertTrue(JSONObject(core.saveManualCheckpoint(core.currentClientState("{}"))).getBoolean("ok"))
+    apply(core,repo,"node:dullness");assertEquals(10,MiniMapRuntime.progress(repo.state).getInt("index"))
+    assertTrue(JSONObject(facade(repo).loadManualCheckpoint()).getBoolean("ok"))
+    assertEquals("0",MiniMapRuntime.node(repo.state).id)
+  }
+
+  @Test fun luciaSpawnImmediatelyEnablesTypedDialogueWithoutAnyNewRollOrPuzzleReward() {
+    val repo=MemorySave(state());var calls=0
+    val rng=object: SecureRandom() { override fun nextInt(bound: Int): Int {
+      calls++;return if(calls == 2) 0 else bound - 1
+    } }
+    val core=facade(repo,rng)
+    apply(core,repo,"room:lab")
+    assertEquals("true",repo.state.characters.getValue(LUCIA_ID).metadata["encountered"])
+    val talk="character:lucia:introduce"
+    assertTrue(MiniMapScenario.objects(MiniMapRuntime.actions(repo.state)).any { it.getString("targetId")==talk && it.getString("kind")=="TALK" })
+    val beforeCalls=calls;val accepted=MiniMapRuntime.progress(repo.state).getJSONArray("accepted").toString()
+    val inventory=repo.state.inventories;val party=repo.state.party
+    val command=choice(repo.state,talk)
+    core.beginSceneAction(command)
+    val packet=JSONObject(core.sceneNarrationContext())
+    assertEquals("lucia",packet.getJSONObject("dialogue").getString("characterId"))
+    assertEquals("introduce",packet.getJSONObject("dialogue").getString("topicId"))
+    assertEquals(beforeCalls,calls)
+    // Failed narration/restart retries the same conversation without rolling.
+    facade(repo,rng).beginSceneAction(command);assertEquals(beforeCalls,calls)
+    core.commitSceneAction(JSONObject(command).getString("actionId"),"Lucia đáp lại lời giới thiệu.","{}")
+    assertEquals(beforeCalls,calls)
+    assertEquals(accepted,MiniMapRuntime.progress(repo.state).getJSONArray("accepted").toString())
+    assertEquals(inventory,repo.state.inventories);assertEquals(party,repo.state.party)
+    assertTrue(MiniMapScenario.objects(MiniMapRuntime.actions(repo.state)).any { it.getString("targetId")==talk })
+    // Missing/dead/separated actors do not remain selectable merely because of a past encounter.
+    for (presence in listOf(CharacterPresence.SEPARATED,CharacterPresence.MISSING,CharacterPresence.DEAD)) {
+      val absent=repo.state.copy(characters=repo.state.characters+(LUCIA_ID to repo.state.characters.getValue(LUCIA_ID).copy(presence=presence)))
+      assertFalse(MiniMapScenario.objects(MiniMapRuntime.actions(absent)).any { it.getString("targetId").startsWith("character:lucia:") })
+    }
+  }
+  @Test fun partyDialogueDoesNotDependOnHavingScriptNpcTopicsOrOldEncounterFlag() {
+    val base=state()
+    val actor=base.characters.getValue(IRIS_ID).copy(presence=CharacterPresence.ACTIVE)
+    val partyState=base.copy(characters=base.characters+(IRIS_ID to actor),party=base.party.copy(memberIds=listOf(CAO_MINH_ID,IRIS_ID)))
+    assertTrue(MiniMapScenario.objects(MiniMapRuntime.actions(partyState)).any { it.getString("targetId")=="character:iris:situation" })
+    assertFalse(MiniMapScenario.objects(MiniMapRuntime.actions(base)).any { it.getString("targetId").startsWith("character:iris:") })
   }
 
 }
