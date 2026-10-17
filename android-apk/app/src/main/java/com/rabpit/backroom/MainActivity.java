@@ -911,15 +911,35 @@ public class MainActivity extends Activity {
         java.util.concurrent.TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - apiStartNs),
         prompt.length());
     }
-    // Never commit a truncated response as a completed story turn.
-    JSONObject envelope = new JSONObject(providerJson);
+    // Do not expose provider bodies, credentials or raw prompt data in diagnostics.
+    // Scenario responses have a separate contract from ordinary GM prose.
+    final boolean scenario = "scenario.fallback.http".equals(timingCategory);
+    JSONObject envelope;
+    try {
+      envelope = new JSONObject(providerJson);
+    } catch (org.json.JSONException error) {
+      if (scenario) throw new IllegalArgumentException("scenario_gehihi_envelope");
+      throw error;
+    }
     JSONArray choices = envelope.optJSONArray("choices");
     JSONObject choice = choices != null && choices.length() > 0 ? choices.optJSONObject(0) : null;
+    if (scenario && (choice == null || choice.optJSONObject("message") == null))
+      throw new IllegalArgumentException("scenario_gehihi_envelope");
     String finish = choice != null ? choice.optString("finish_reason", "") : "";
-    if ("length".equals(finish)) throw new Exception("Gehihi đã cắt ngắn phản hồi (giới hạn output tokens). Thử lại lượt.");
-    if ("content_filter".equals(finish)) throw new Exception("Gehihi đã chặn nội dung phản hồi.");
-    // Gehihi GM is a prose-only writer: normalize at the validated reply boundary.
-    return openAiProviderText(providerJson);
+    if ("length".equals(finish)) {
+      if (scenario) throw new IllegalArgumentException("scenario_gehihi_truncated");
+      throw new Exception("Gehihi đã cắt ngắn phản hồi (giới hạn output tokens). Thử lại lượt.");
+    }
+    if ("content_filter".equals(finish)) {
+      if (scenario) throw new IllegalArgumentException("scenario_gehihi_filtered");
+      throw new Exception("Gehihi đã chặn nội dung phản hồi.");
+    }
+    try {
+      return openAiProviderText(providerJson);
+    } catch (Exception error) {
+      if (scenario) throw new IllegalArgumentException("scenario_gehihi_empty");
+      throw error;
+    }
   }
 
   private String hakuPost(String endpoint, JSONObject payload, boolean anthropic) throws Exception {
