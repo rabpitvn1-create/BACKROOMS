@@ -129,14 +129,14 @@ public class ScenarioGeneratorTest {
     String result = new ScenarioGenerator().generate(new String[]{"key-a", "key-b"}, request(),
       (key, prompt) -> "{\"schemaVersion\":4,\"secret\":\"user-token\",\"invalid\":true}",
       prompt -> {
-        assertTrue(prompt.contains("invalid_output"));
+        assertTrue(prompt.contains("scenario_fields"));
         assertFalse(prompt.contains("user-token"));
         return outline();
       },
       (provider, category, code) -> issues.add(provider + ":" + category + ":" + code));
     assertEquals(10, new JSONObject(result).getJSONArray("entries").length());
     assertEquals(2, issues.size());
-    assertEquals("gemini:validation:invalid_output", issues.get(0));
+    assertEquals("gemini:validation:scenario_fields", issues.get(0));
     assertFalse(String.join("|", issues).contains("user-token"));
   }
 
