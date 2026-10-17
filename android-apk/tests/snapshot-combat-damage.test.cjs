@@ -331,15 +331,17 @@ test('after animated turns keep the last combatant visible while waiting for the
  assert.equal(r.scope.__combatFeedbackBusy,false);
 });
 
-test('Combat Log owns the GM slot and retains the inline action composer',()=>{
+test('Combat Log owns the reading area and Poker Dice keeps player control',()=>{
  const css=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/combat-feedback-1193a.css'),'utf8');
  const html=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/index.html'),'utf8');
  assert.match(css,/COMBAT_LOG_FIXED_PANEL_R02/);assert.match(css,/margin:5px auto 0!important/);
  assert.match(css,/flex:1 1 0/);assert.match(css,/max-height:none;overflow-y:auto/);
  assert.match(css,/body\.poker-dice-open \.game>\.log\{display:none!important\}/);
  assert.match(css,/pointer-events:none;opacity:1/);
- assert.ok(html.includes('.primary-action-row.combat-direct{display:flex!important}'));
- assert.ok(html.includes('row.hidden=false'));
+ assert.ok(html.includes('id="nextPage"'));
+ assert.ok(html.includes('function readerBlocked()'));
+ assert.ok(html.includes('DIRECT_COMBAT_ACTION'));
+ assert.doesNotMatch(html,/<textarea/);
 });
 test('Party NOW returns to Cao Minh as soon as Entity counterattacks and remains after round',()=>{
  const r=boot();const meta=()=>r.scope.document.getElementById('combatFeedbackMeta').textContent;

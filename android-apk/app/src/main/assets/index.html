@@ -172,7 +172,7 @@ body.game-menu-open{overflow:hidden}
 .equipment-card-icon,.equipment-detail-icon{background:transparent;border:0;overflow:hidden}.equipment-card-icon{width:100%;height:auto;aspect-ratio:1}.item-liquid-icon{display:block;width:100%;height:100%;object-fit:contain;}
 </style>
 <link rel="stylesheet" href="item-presentation.css">
-<link rel="stylesheet" href="player-composer.css">
+<link rel="stylesheet" href="reader.css">
 </head>
 <body>
 <main class="shell">
@@ -180,18 +180,20 @@ body.game-menu-open{overflow:hidden}
 <header class="topbar"><div><div class="eyebrow">BACKROOM TEXT GAME</div><h1 id="title"></h1><span class="turn-runtime">TURN <strong id="turn"></strong></span></div><button class="game-menu-trigger" id="gameMenuOpen" type="button" aria-label="Mở menu game" aria-haspopup="dialog" aria-controls="gameMenuModal" aria-expanded="false">☰</button></header>
 <div class="snapshot" id="snapshot">SNAPSHOT — Android bản đầu chưa tạo ảnh tự động</div>
 <div class="log" id="log"></div>
-<div class="player-action-bar" id="playerActionBar" aria-label="Hành động của Cao Minh">
-<form class="composer chat-composer" id="form">
-  <img class="chat-avatar" src="avatars/CAO_MINH_AVATAR.jpg" alt="Cao Minh" width="44" height="44">
-  <div class="primary-action-row chat-glass" id="primaryActionRow">
-    <textarea id="action" aria-label="Hành động của Cao Minh" placeholder="Cao Minh sẽ làm gì?" rows="1"></textarea>
-    <button type="submit" class="primary-action chat-send" id="submit" aria-label="Gửi hành động" disabled>
-      <svg class="send-plane-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.5 2.5 3 9.8c-.9.4-.9 1 .1 1.3l4.7 1.5L18.7 5.7c.5-.3.9-.1.5.3l-8.8 8-.3 4.9c.4 0 .6-.2.8-.4l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.6c.3-1.3-.5-1.9-1.3-1.9Z"></path></svg>
-    </button>
-  </div>
-</form>
-</div>
-<div class="status" id="status"></div>
+<section id="readerSettings" hidden aria-label="Thiết lập trước Level">
+  <h2>Trước khi bước tiếp</h2>
+  <label>Giọng kể <select id="readerTone">
+    <option value="HORROR">Kinh dị</option><option value="BODY_HORROR">Body Horror</option>
+    <option value="SURVIVAL">Sinh tồn</option><option value="BRIGHT">Tươi sáng</option>
+    <option value="DARK">Tăm tối</option><option value="CINEMATIC">Điện ảnh</option>
+  </select></label>
+  <label>Độ khó <select id="readerDifficulty"><option value="NORMAL">Normal</option>
+    <option value="HARD">Hard</option><option value="CAO_MINH_MUST_DIE">Cao Minh Must Die</option></select></label>
+  <p>Độ khó tăng sức chịu đựng và đòn đánh Entity. Giọng kể chỉ đổi văn phong.</p>
+  <button type="button" id="readerConfigure">Bắt đầu Level</button>
+</section>
+<div id="readerActionBar"><button type="button" id="nextPage">Trang tiếp</button></div>
+<div class="status" id="status" role="status" aria-live="polite"></div>
 </section>
 <div class="game-menu-modal" id="gameMenuModal" hidden aria-hidden="true">
   <div class="game-menu-backdrop" id="gameMenuBackdrop"></div>
@@ -1560,7 +1562,7 @@ Chừng nào hắn còn chưa tận mắt tìm thấy câu trả lời khác, h�
 Và hắn sẽ đi tìm.`;
 
 const initial={canonVersion:"KNOWLEDGE-DB-SCHEMA-1",title:"Level 0 – The Lobby",level:{number:0,name:"The Lobby"},turn:1,
-  mode:"Single Player: Hard Mode",
+  mode:"Tiểu thuyết tương tác",
   location:"Level 0 / The Lobby — khu phòng vàng ban đầu",
   player:{name:"Cao Minh",condition:"Ổn định"},
   party:[],
@@ -1568,13 +1570,13 @@ const initial={canonVersion:"KNOWLEDGE-DB-SCHEMA-1",title:"Level 0 – The Lobby
   flags:{communication:{},iris:{exists:true,continuity:"UNKNOWN",reunionEligible:true},syvial:{exists:true,continuity:"UNKNOWN",reunionEligible:true},madGod:{spawned:false,acquired:false}},
   log:[
     {role:"gm",text:"MỞ ĐẦU\n\n"+prologue},
-    {role:"gm",text:"LƯỢT 1\n\nCao Minh tỉnh lại một mình tại Level 0. Không có dấu vết của Lục Trầm. Kể từ đây, mọi quyết định chủ ý của Cao Minh thuộc về người chơi."}
+    {role:"gm",text:"LƯỢT 1\n\nCao Minh tỉnh lại một mình tại Level 0. Không có dấu vết của Lục Trầm. Câu chuyện tiếp diễn; anh sẽ quyết định những bước ngoặt lớn và trực tiếp chiến đấu khi chạm trán Entity."}
   ]
 };
 
 const byId=id=>document.getElementById(id);
-const titleEl=byId("title"),turnEl=byId("turn"),locationEl=byId("location"),modeEl=byId("mode"),playerEl=byId("player"),partyEl=byId("party"),inventoryEl=byId("inventory"),logEl=byId("log"),statusEl=byId("status"),formEl=byId("form"),actionEl=byId("action"),submitEl=byId("submit");
-let state=(()=>{try{const raw=localStorage.getItem("backroom-apk-state");if(!raw)return JSON.parse(JSON.stringify(initial));const parsed=JSON.parse(raw);return parsed&&typeof parsed==="object"&&!Array.isArray(parsed)?parsed:JSON.parse(JSON.stringify(initial));}catch(e){try{localStorage.removeItem("backroom-apk-state");}catch(ignore){}return JSON.parse(JSON.stringify(initial));}})();state.mode="Single Player: Hard Mode";state.canonVersion="KNOWLEDGE-DB-SCHEMA-1";state.flags=state.flags||{};state.flags.iris=state.flags.iris||{exists:true,continuity:"UNKNOWN",reunionEligible:true};state.flags.syvial=state.flags.syvial||{exists:true,continuity:"UNKNOWN",reunionEligible:true};state.flags.madGod=state.flags.madGod||{spawned:false,acquired:false};
+const titleEl=byId("title"),turnEl=byId("turn"),locationEl=byId("location"),modeEl=byId("mode"),playerEl=byId("player"),partyEl=byId("party"),inventoryEl=byId("inventory"),logEl=byId("log"),statusEl=byId("status"),nextPageEl=byId("nextPage");
+let state=(()=>{try{const raw=localStorage.getItem("backroom-apk-state");if(!raw)return JSON.parse(JSON.stringify(initial));const parsed=JSON.parse(raw);return parsed&&typeof parsed==="object"&&!Array.isArray(parsed)?parsed:JSON.parse(JSON.stringify(initial));}catch(e){try{localStorage.removeItem("backroom-apk-state");}catch(ignore){}return JSON.parse(JSON.stringify(initial));}})();state.canonVersion="KNOWLEDGE-DB-SCHEMA-1";state.flags=state.flags||{};state.flags.iris=state.flags.iris||{exists:true,continuity:"UNKNOWN",reunionEligible:true};state.flags.syvial=state.flags.syvial||{exists:true,continuity:"UNKNOWN",reunionEligible:true};state.flags.madGod=state.flags.madGod||{spawned:false,acquired:false};
 // Core is the only source of gameplay state; localStorage supplies only UI presentation.
 function syncClientFromCore(presentation) {
   if(!window.Android||typeof Android.currentClientState!=="function")return presentation;
@@ -1612,7 +1614,7 @@ function semanticPrepareNextState(before,json){const next=JSON.parse(json),oldLe
 function normalizedSemanticSpans(entry){if(!entry||entry.role==="player")return [];if(entry.semanticVersion!==3||!Array.isArray(entry.semanticSpans)){entry.semanticSpans=semanticResolve(entry.text,state,state);entry.semanticVersion=3}const source=String(entry.text||""),spans=[];let cursor=0;entry.semanticSpans.forEach(raw=>{const start=Number(raw&&raw.start),end=Number(raw&&raw.end),kind=semanticKind(raw&&raw.kind);if(!kind||!Number.isInteger(start)||!Number.isInteger(end)||start<cursor||end<=start||end>source.length)return;spans.push({start,end,kind});cursor=end});return spans}
 function renderSemanticText(entry){const source=String(entry&&entry.text||"");if(!entry||entry.role==="player")return esc(source);const spans=normalizedSemanticSpans(entry);if(!spans.length)return esc(source);let out="",cursor=0;spans.forEach(span=>{if(span.start>cursor)out+=esc(source.slice(cursor,span.start));out+="<span class='gm-semantic gm-semantic-"+span.kind+"' data-semantic-kind='"+span.kind+"'>"+esc(source.slice(span.start,span.end))+"</span>";cursor=span.end});if(cursor<source.length)out+=esc(source.slice(cursor));return out}
 
-function levelHeader(s){if(s&&s.level&&s.level.name){const id=s.level.id!=null?s.level.id:s.level.number;if(s.level.kind==="AREA"||s.level.kind==="SPECIAL"||s.level.name==="Level "+id)return s.level.name;return "Level "+id+" – "+s.level.name;}const where=String(s&&s.location||"")+" "+String(s&&s.title||"");const m=where.match(/Level\s*([^\s\/—–-]+)\s*(?:\/|—|–|-)\s*([^—–\n]+?)(?:\s+[—–]\s+|$)/i);if(m)return "Level "+m[1]+" – "+m[2].trim();return s&&s.title||"Backrooms"}function render(){titleEl.textContent=levelHeader(state);turnEl.textContent=state.turn;locationEl.textContent=state.location;modeEl.textContent=state.mode;playerEl.textContent=state.player?.name||"Cao Minh";partyEl.innerHTML=chips(state.party);if(inventoryEl)inventoryEl.innerHTML=chips(state.inventory);logEl.innerHTML=(state.log||[]).map(x=>{const w=x.role!=="player"&&String(x.text||"").trim().startsWith("[Warning]");return "<article class='message "+(x.role==="player"?"player":"gm")+(w?" warning":"")+"'><div class='role'>"+(x.role==="player"?"BẠN":"GAME MASTER")+"</div><div class='text'>"+renderSemanticText(x)+"</div></article>"}).join("");logEl.scrollTop=logEl.scrollHeight;if(window.backroomRenderBattleStart)window.backroomRenderBattleStart();if(window.backroomRenderEncounteredCharacters)window.backroomRenderEncounteredCharacters()}
+function levelHeader(s){if(s&&s.level&&s.level.name){const id=s.level.id!=null?s.level.id:s.level.number;if(s.level.kind==="AREA"||s.level.kind==="SPECIAL"||s.level.name==="Level "+id)return s.level.name;return "Level "+id+" – "+s.level.name;}const where=String(s&&s.location||"")+" "+String(s&&s.title||"");const m=where.match(/Level\s*([^\s\/—–-]+)\s*(?:\/|—|–|-)\s*([^—–\n]+?)(?:\s+[—–]\s+|$)/i);if(m)return "Level "+m[1]+" – "+m[2].trim();return s&&s.title||"Backrooms"}function render(){titleEl.textContent=levelHeader(state);turnEl.textContent=state.turn;locationEl.textContent=state.location;modeEl.textContent=state.mode;playerEl.textContent=state.player?.name||"Cao Minh";partyEl.innerHTML=chips(state.party);if(inventoryEl)inventoryEl.innerHTML=chips(state.inventory);logEl.innerHTML=(state.log||[]).filter(x=>x.role!=="player").map(x=>{const w=x.role!=="player"&&String(x.text||"").trim().startsWith("[Warning]");return "<article class='message "+(x.role==="player"?"player":"gm")+(w?" warning":"")+"'><div class='role'>"+(x.role==="player"?"BẠN":"GAME MASTER")+"</div><div class='text'>"+renderSemanticText(x)+"</div></article>"}).join("");logEl.scrollTop=logEl.scrollHeight;if(window.backroomRenderBattleStart)window.backroomRenderBattleStart();if(window.backroomRenderEncounteredCharacters)window.backroomRenderEncounteredCharacters();renderReaderControls()}
 const SAVE_KEY="backroom-apk-state";
 const SNAPSHOT_KEY="backroom-apk-snapshot";
 let destructiveAction="";
@@ -1684,52 +1686,62 @@ function resetGame(){
       state=fresh;
       localStorage.removeItem(SNAPSHOT_KEY);
     }catch(e){statusEl.textContent="NEW GAME Core lỗi: "+(e&&e.message?e.message:"bridge error");return}
-    render();
-    if(persistPresentation())statusEl.textContent="NEW GAME đã tạo ở Turn 1. Nhấn Lưu để tạo điểm lưu thủ công.";
+    persistPresentation();render();
+    if(!coreUnavailable)statusEl.textContent="NEW GAME đã tạo ở Turn 1. Nhấn Lưu để tạo điểm lưu thủ công.";
   });
 }
 function clearSave(){
   armDestructive("delete-save","Xóa save trên máy",()=>{
     if(!clearAuthoritativeCore())return;
-    state=freshInitial();
+    state=syncClientFromCore(freshInitial());
     try{localStorage.removeItem(SAVE_KEY);localStorage.removeItem(SNAPSHOT_KEY)}
     catch(e){statusEl.textContent="Core đã xóa; xóa bộ đệm giao diện thất bại: "+(e&&e.message?e.message:"storage error");render();return}
     render();
     statusEl.textContent="Đã xóa điểm lưu thủ công, Game Core và bộ đệm giao diện.";
   });
 }
-formEl.addEventListener("submit",e=>{
-  e.preventDefault();
-  const a=actionEl.value.trim();
-  if(!a||busy||coreUnavailable||state.pendingEncounter||(state.combat&&state.combat.active)||window.__combatBusy||window.__combatDiceBusy||window.__combatFeedbackBusy)return;
-  if(!window.Android||typeof window.Android.submitAction!=="function"){statusEl.textContent="Không tìm thấy Android action bridge.";return;}
-  busy=true;syncPrimaryActions();
-  statusEl.textContent="Gehihi đang xử lý lượt…";appendActionPending(a);
-  try{window.Android.submitAction(JSON.stringify(state),"EXECUTE",a);}
-  catch(error){window.backroomError(error&&error.message||"Không gửi được hành động.");}
-});
-
-// PRIMARY_EXECUTE_ACTION
+function readerBlocked(){return busy||coreUnavailable||!!(state.combat&&state.combat.active)||window.__combatBusy||window.__combatDiceBusy||window.__combatFeedbackBusy|| (!!state.pendingEncounter&&!state.reader?.pendingPage)}
+function requestReaderPage(option){
+  if(readerBlocked())return;
+  const reader=state.reader||{};
+  if(reader.settingsRequired||reader.gate&&!option&&!reader.pendingPage)return;
+  if(!window.Android||typeof Android.nextReaderPage!=="function"){statusEl.textContent="Không tìm thấy kết nối Trang tiếp.";return}
+  const request=reader.retryRequest||{requestId:reader.requestId};
+  if(option&&!reader.pendingPage){request.gateId=reader.gate.id;request.optionId=option.id}
+  busy=true;syncPrimaryActions();statusEl.textContent="GM đang viết trang tiếp…";appendActionPending();
+  try{Android.nextReaderPage(JSON.stringify(state),JSON.stringify(request))}
+  catch(error){window.backroomError(error&&error.message||"Không gửi được trang.")}
+}
+function renderReaderControls(){
+  const reader=state.reader||{},settings=byId("readerSettings");
+  if(settings){settings.hidden=!reader.settingsRequired;if(reader.settingsRequired){byId("readerTone").value=reader.tone;byId("readerDifficulty").value=reader.difficulty}}
+  logEl.querySelectorAll('.reader-options').forEach(node=>node.remove());
+  if(reader.gate&&!state.pendingEncounter&&!(state.combat&&state.combat.active)){
+    const rows=logEl.querySelectorAll('.message.gm'),pageId=reader.gate.id.replace(/:EXIT$/,''),index=(state.log||[]).filter(x=>x.role!=='player').findIndex(x=>x.pageId===pageId),last=rows[index>=0?index:rows.length-1];
+    if(last){const options=document.createElement('div');options.className='reader-options';options.setAttribute('role','group');options.setAttribute('aria-label','Quyết định trong truyện');
+      reader.gate.options.forEach((option,index)=>{const button=document.createElement('button');button.type='button';button.textContent=String.fromCharCode(65+index)+'. '+option.label;button.disabled=readerBlocked()||!!reader.pendingPage;button.addEventListener('click',()=>requestReaderPage(option));options.appendChild(button)});last.appendChild(options)}
+  }
+  syncPrimaryActions();
+}
 function syncPrimaryActions(){
-  const hasText=!!(actionEl&&actionEl.value.trim());
-  if(submitEl)submitEl.disabled=busy||coreUnavailable||!!state.pendingEncounter||!hasText;
-  if(typeof window.backroomSyncComposer==="function")window.backroomSyncComposer();
+  const reader=state.reader||{};
+  if(nextPageEl){nextPageEl.disabled=readerBlocked()||!!reader.settingsRequired||!!reader.gate&&!reader.pendingPage;nextPageEl.textContent=reader.pendingPage?'Thử lại trang đang chờ':'Trang tiếp'}
+  if(byId('readerConfigure'))byId('readerConfigure').disabled=busy||coreUnavailable;
+  logEl.querySelectorAll('.reader-options button').forEach(button=>{button.disabled=readerBlocked()||!!reader.pendingPage});
 }
-function appendActionPending(label){
-  if(!logEl)return;
-  const player=document.createElement("article");
-  player.className="message player pending";player.setAttribute("data-pending","1");
-  player.innerHTML="<div class='role'>BẠN</div><div class='text'></div>";
-  player.querySelector(".text").textContent=label;logEl.appendChild(player);
-  const gm=document.createElement("article");
-  gm.className="message gm pending";gm.setAttribute("data-pending","1");
-  gm.innerHTML="<div class='role'>GAME MASTER</div><div class='text'><div class='gm-thinking' role='status' aria-label='Gemini 4.0 Argon đang chuẩn bị câu trả lời'><img src='provider-logos/gemini.svg' alt='' aria-hidden='true'><span class='gm-thinking-name' aria-hidden='true'>Gemini 4.0 Argon</span></div></div>";
-  logEl.appendChild(gm);logEl.scrollTop=logEl.scrollHeight;
+function appendActionPending(){
+  const gm=document.createElement('article');gm.className='message gm pending';gm.setAttribute('data-pending','1');gm.textContent='GM đang viết…';logEl.appendChild(gm);logEl.scrollTop=logEl.scrollHeight;
 }
-if(actionEl)actionEl.addEventListener("input",syncPrimaryActions);
+nextPageEl.addEventListener('click',()=>requestReaderPage());
+byId('readerConfigure').addEventListener('click',()=>{
+  if(busy||coreUnavailable||!state.reader?.settingsRequired)return;
+  busy=true;syncPrimaryActions();
+  try{Android.configureReaderLevel(JSON.stringify(state),byId('readerTone').value,byId('readerDifficulty').value)}
+  catch(error){window.backroomError(error&&error.message||'Không lưu được thiết lập Level.')}
+});
 syncPrimaryActions();
 
-window.backroomTurn=json=>{state=semanticPrepareNextState(state,json);actionEl.value="";busy=false;syncPrimaryActions();if(persistPresentation())statusEl.textContent="Turn "+state.turn+" đã cập nhật.";render();focusLatestGmStart()};
+window.backroomTurn=json=>{state=semanticPrepareNextState(state,json);busy=false;syncPrimaryActions();if(persistPresentation())statusEl.textContent="Turn "+state.turn+" đã cập nhật.";render();focusLatestGmStart()};
 window.backroomError=message=>{
   busy=false;
   logEl.querySelectorAll('[data-pending="1"]').forEach(node=>node.remove());
@@ -2115,50 +2127,6 @@ function selected(){const id=view&&view.dataset.characterId||'cao_minh';return m
 })();
 </script>
 
-<style id="combatActionBarStyle">
-/* DIRECT_COMBAT_GATE_V1 */
-.primary-action-row.combat-direct{display:flex!important}
-</style>
-<script>
-(function(){
-  function combatActive(){return !!(typeof state!=='undefined'&&state&&state.combat&&state.combat.active===true);}
-  function byCombatId(id){return document.getElementById(id);}
-  function renderCombatActionBar(){
-    var row=byCombatId('primaryActionRow'),execute=byCombatId('submit');
-    if(!row||!execute)return;
-    var active=combatActive();
-    row.classList.toggle('combat-direct',active);
-    row.hidden=false;
-    if(active){
-      execute.disabled=true;
-      var input=byCombatId('action');if(input){input.readOnly=true;input.blur();}
-      return;
-    }
-    if(typeof syncPrimaryActions==='function')syncPrimaryActions();
-  }
-
-  // Free-form actions cannot bypass direct Poker Dice while an Entity combat is active.
-  var form=byCombatId('form');
-  if(form)form.addEventListener('submit',function(ev){if(combatActive()){ev.preventDefault();ev.stopImmediatePropagation();}},true);
-  var combatRow=byCombatId('primaryActionRow');
-  if(combatRow)combatRow.addEventListener('click',function(ev){
-    if(combatActive()){ev.preventDefault();ev.stopImmediatePropagation();}
-  },true);
-  var actionInput=byCombatId('action');
-  if(actionInput)actionInput.addEventListener('input',function(){if(combatActive())renderCombatActionBar();});
-
-  var previousRender=window.render;
-  if(typeof previousRender==='function')window.render=function(){var value=previousRender.apply(this,arguments);renderCombatActionBar();return value;};
-  var previousTurn=window.backroomTurn;
-  if(typeof previousTurn==='function')window.backroomTurn=function(json){var value=previousTurn.call(this,json);renderCombatActionBar();return value;};
-
-  window.renderCombatActionBar=renderCombatActionBar;
-  renderCombatActionBar();
-})();
-</script>
-
-
-<script src="player-composer.js"></script>
 <script>
 (function(){
   "use strict";

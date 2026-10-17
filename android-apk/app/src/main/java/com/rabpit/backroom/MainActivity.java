@@ -282,7 +282,7 @@ public class MainActivity extends Activity {
       "var snapshotBusy=false;function requestSnapshot(){var s=document.getElementById('status');if(s)s.textContent='Snapshot chưa được cấu hình.';}" +
       "window.requestSnapshot=requestSnapshot;" +
       "window.__backroomProvider='Gemini Free Tier';window.backroomProvider=function(provider){window.__backroomProvider=provider||'AI';var s=document.getElementById('status');if(s)s.textContent=window.__backroomProvider+' đang xử lý lượt…';document.querySelectorAll('.gm-thinking').forEach(function(n){var name=n.querySelector('.gm-thinking-name');if(name)name.textContent=window.__backroomProvider;n.setAttribute('aria-label',window.__backroomProvider+' đang chuẩn bị câu trả lời');});};" +
-      "window.backroomAmbientEvent=function(payload){try{var e=JSON.parse(payload);if(!state||Number(e.turn)!==Number(state.turn))return;var lev=state.level||{};if(String(e.level)!==String(lev.id==null?lev.number:lev.id))return;if(!Array.isArray(state.log))state.log=[];if(e.action)state.log.push({role:'player',text:e.action});state.log.push({role:'gm',text:e.text});document.querySelectorAll('[data-pending=\\\"1\\\"]').forEach(function(n){n.remove();});busy=false;actionEl.value='';syncPrimaryActions();persistPresentation();render();focusLatestGmStart();}catch(err){console.warn('Ambient NPC event rejected');}};" +
+      "window.backroomAmbientEvent=function(payload){try{var e=JSON.parse(payload);if(!state||busy||(state.reader&&state.reader.pendingPage)||Number(e.turn)!==Number(state.turn))return;var lev=state.level||{};if(String(e.level)!==String(lev.id==null?lev.number:lev.id))return;if(!Array.isArray(state.log))state.log=[];state.log.push({role:'gm',text:e.text});syncPrimaryActions();persistPresentation();render();focusLatestGmStart();}catch(err){console.warn('Ambient NPC event rejected');}};" +
       "var oldRender=window.render;if(typeof oldRender==='function'){window.render=function(){oldRender();renderSnapshot();scrollBottom();};}" +
       "var actions=document.querySelector('.actions');if(actions&&!document.getElementById('snapshotButton')){var b=document.createElement('button');b.id='snapshotButton';b.type='button';b.textContent='Snapshot chưa cấu hình';b.disabled=true;var wide=actions.querySelector('.wide');if(wide)actions.insertBefore(b,wide);else actions.appendChild(b);}" +
       "var oldTurn=window.backroomTurn;window.backroomTurn=function(json){var cinema=window.backroomExplorationTransition;var previousScene=cinema?cinema.capture(state):null;if(typeof oldTurn==='function')oldTurn(json);document.querySelectorAll('[data-pending=\"1\"]').forEach(function(n){n.remove();});var s=document.getElementById('status');var ev=state&&state._snapshotEvent;var allowed={LEVEL_CHANGE:1,SPECIAL_REGION:1,ENTITY_CONFIRMED:1,PERSON_ENCOUNTER:1,MAJOR_VISUAL_EVENT:1};var should=!!(ev&&ev.shouldGenerate===true&&allowed[String(ev.kind||'').toUpperCase()]);if(should){if(s)s.textContent='Turn '+state.turn+' có sự kiện hình ảnh đặc biệt. Đang tạo snapshot…';}else{if(s)s.textContent='Turn '+state.turn+' đã xử lý bằng '+(window.__backroomProvider||'AI')+'. Snapshot cũ được giữ nguyên.';}renderSnapshot();scrollBottom();if(cinema&&previousScene)cinema.play(previousScene,state);if(should)requestSnapshot();};" +
@@ -1257,6 +1257,8 @@ public class MainActivity extends Activity {
     JSONObject payload = new JSONObject().put("type", type).put("text", text)
       .put("turn", turn).put("level", level);
     if (action != null && !action.isEmpty()) payload.put("action", action);
+    if ("appearance".equals(type) || "exit".equals(type))
+      requireGameCore().recordReaderAmbient(turn, level, text);
     emit("backroomAmbientEvent", payload.toString());
   }
 
@@ -1439,61 +1441,6 @@ public class MainActivity extends Activity {
     return partyHas(state, "An Nhiên") || partyHas(state, "an-nhien");
   }
 
-  private JSONObject makeGameplayRolls(JSONObject state, String actionKind, String action, boolean meta, boolean entityReserved) throws Exception {
-    JSONObject rolls = new JSONObject().put("turn", state.optInt("turn", 1)).put("meta", meta);
-    if (meta) return rolls;
-
-    boolean executeAction = "EXECUTE".equalsIgnoreCase(actionKind);
-    // A dialogue or inventory action is EXECUTE gameplay, but is not Exit discovery.
-    boolean exitDiscoveryAction = executeAction &&
-      com.rabpit.backroom.core.PhysicalActionDetector.isSceneFacing(action);
-
-    int level = Math.max(0, Math.min(6, currentLevel(state)));
-    int[] hazardThresholds = {400, 700, 1000, 1200, 300, 1000, 1200};
-
-    String a = lower(action);
-    boolean physical = com.rabpit.backroom.core.PhysicalActionDetector.isPhysical(action);
-    boolean search = containsAny(a, "tìm", "lục", "khám phá", "khảo sát", "kiểm tra", "quét", "scan", "mở", "tháo", "quan sát kỹ", "rà");
-    boolean water = containsAny(a, "nước", "water", "almond", "uống", "khát", "chai", "vòi", "hồ", "fountain");
-    boolean exitIntent = containsAny(a, "exit", "lối thoát", "thoát", "cửa trắng", "cánh cửa", "ngưỡng", "chuyển level", "sang level", "hành lang phía sau", "đường ra");
-    boolean anNhienFollowing = anNhienFollowing(state);
-
-    int anNhienHazardThreshold = anNhienFollowing ? (hazardThresholds[level] * 75 / 100) : hazardThresholds[level];
-    JSONObject anNhienHazardCheck = thresholdRoll("anNhienHazardCheck", 10000, 3000, anNhienFollowing && search && water, " Đừng Đụng Vào, Nhìn Là Biết Độc");
-    rolls.put("anNhienHazardCheck", anNhienHazardCheck);
-    if (anNhienHazardCheck.optBoolean("success", false)) anNhienHazardThreshold = 0;
-    rolls.put("hazard", thresholdRoll("hazard", 10000, anNhienHazardThreshold, physical,
-      anNhienFollowing ? " -25% Có Gì Đó Sai Sai" : ""));
-    int exitThreshold = exitThresholdAndroid(state);
-    if (anNhienFollowing) exitThreshold = Math.min(10000, exitThreshold + 200);
-    JSONObject anNhienRead = thresholdRoll("anNhienRead", 10000, 2000, anNhienFollowing && search && exitIntent, " Khoan, Để Tôi Đọc Cái Này");
-    rolls.put("anNhienRead", anNhienRead);
-    if (anNhienRead.optBoolean("success", false)) exitThreshold = Math.min(10000, exitThreshold + 2000);
-    JSONObject exitProbe = thresholdRoll("exitProbe", 10000, exitThreshold, exitIntent && (physical || search),
-      anNhienRead.optBoolean("success", false) ? " discovery clue +2% An Nhiên +20% đọc dấu Exit" : (anNhienFollowing ? " discovery clue +2% An Nhiên" : " discovery clue"));
-    rolls.put("exitProbe", exitProbe);
-    JSONObject hiddenExitRoll = thresholdRoll("_hiddenExitStreak", 100,
-      com.rabpit.backroom.core.HiddenExitStreak.SUCCESS_PERCENT,
-      exitDiscoveryAction && !entityReserved && !com.rabpit.backroom.core.HiddenExitStreak.ready(state), "");
-    rolls.put(com.rabpit.backroom.core.HiddenExitStreak.ROLL_KEY, hiddenExitRoll);
-    boolean hiddenExitReady = com.rabpit.backroom.core.HiddenExitStreak.projectedReady(state, rolls);
-    JSONObject authoritativeExit = new JSONObject()
-      .put("label", "levelExit")
-      .put("dice", "none")
-      .put("max", 100)
-      .put("threshold", hiddenExitReady ? 100 : 0)
-      .put("eligible", hiddenExitReady)
-      .put("chancePercent", hiddenExitReady ? 100.0 : 0.0)
-      .put("chance", hiddenExitReady ? "100.0000% route ready" : "0.0000% route locked")
-      .put("roll", JSONObject.NULL)
-      .put("success", hiddenExitReady);
-    if (hiddenExitReady) authoritativeExit.put("guaranteedByState", true);
-    rolls.put("levelExit", authoritativeExit);
-    rolls.put("exitProbe", new JSONObject(authoritativeExit.toString()).put("label", "exitProbe"));
-
-    return rolls;
-  }
-
   private boolean rollSuccess(JSONObject rolls, String key) {
     JSONObject roll = rolls.optJSONObject(key);
     return roll != null && roll.optBoolean("success", false);
@@ -1660,12 +1607,11 @@ public class MainActivity extends Activity {
     String voiceEventKind = mapVoiceEventKind(before,
       pendingNpcEncounters, pendingEntityEncounter, rolls);
     return "Bạn là Game Master kể chuyện Backrooms bằng tiếng Việt. " +
-      "Kể diễn biến tự nhiên theo hành động người chơi, giữ đúng Entity, nhân vật và kết quả đã khóa. " +
+      "Tự kể diễn biến thường ngày từ kế hoạch khám phá Core, giữ đúng Entity, nhân vật và kết quả đã khóa. " +
       "Được tự do sáng tác chi tiết, lời thoại, không khí, tương tác phụ và phản ứng khác nhau " +
       "giữa các lượt, đặc biệt ở cảnh gặp Entity/NPC/Follower; tránh lặp câu chữ, mô-típ " +
       "và diễn biến của các lần gặp trước. " +
-      "Mọi lệnh từ khung chat đều là một lượt EXECUTE; phải kết hợp hành động người chơi " +
-      "với diễn biến trong CHÍNH Turn này, không dời, hủy hay cho nhân vật tự chọn thay người chơi. " +
+      "GM tự sáng tác hành động và hội thoại thường; dừng ở bước ngoặt lớn bằng decision có cấu trúc. " +
       "Không tự quyết định Combat, HP, EXP, Item, tạo Entity hay chuyển Level; gameplay Core xử lý. " +
       "Gặp FOLLOWER/NPC phải mô tả cuộc gặp thực tế; nhân vật thể hiện theo đúng hồ sơ Canon trong KNOWLEDGE PACKET (tính cách, cách nói, xưng hô, quan hệ với Cao Minh), không ép một khuôn thoại cố định. " +
       "Nếu Canon không xác nhận họ quen biết từ trước, nhân vật mới gặp (đặc biệt Lucia) tuyệt đối không gọi tên Cao Minh, nhận ra anh hay tỏ ra thân quen trước khi có lời giới thiệu hoặc nguồn thông tin được kể rõ trong cảnh. " +
@@ -1675,7 +1621,7 @@ public class MainActivity extends Activity {
       "\nOUTPUT CONTRACT: Chỉ trả về MỘT JSON object hợp lệ với khóa reply (chuỗi không rỗng). " +
       "Ví dụ: {\"reply\":\"Cao Minh bước vào hành lang tối.\"}. " +
       "Toàn bộ lời kể và lời thoại nằm trong reply; escape dấu ngoặc kép và xuống dòng theo chuẩn JSON. " +
-      "Không thêm Markdown, code fence, lời mở đầu, operations, state hoặc khóa khác. " +
+      "Không thêm Markdown, code fence, lời mở đầu, operations hay state. Chỉ thêm decision/continuity theo hợp đồng GM AUTO NARRATIVE. " +
       com.rabpit.backroom.core.knowledge.GmNarrativeVoicePolicy.prompt() +
       voiceGuidanceSection(voiceActionKind, voiceEventKind) +
       continuityNotesSection(stateForKnowledge.toString(), rolls.toString()) +
@@ -1683,7 +1629,7 @@ public class MainActivity extends Activity {
       eventSemanticsAndAgency() +
       corePersonalMemorySection(action) +
       "\nACTION_TYPE: " + actionKindNormalized +
-      "\nPLAYER_ACTION: " + action +
+      "\nCORE_EXPLORATION_PLAN: " + action +
       "\nCORE_ROLLS_READ_ONLY: " + visibleRolls.toString() +
       encounterEvents.toString() +
       "\nCANON_READ_ONLY: " + canon;
@@ -1870,221 +1816,63 @@ public class MainActivity extends Activity {
       submitTurnInternal(stateJson, actionKind, action);
     }
 
-    private void submitTurnInternal(String stateJson, String actionKind, String action) {
+    @JavascriptInterface public void configureReaderLevel(String stateJson, String tone, String difficulty) {
       io.execute(() -> {
-        long turnStartNs = System.nanoTime();
+        try { emit("backroomTurn", requireGameCore().configureReaderLevel(stateJson, tone, difficulty)); }
+        catch (Exception error) { emit("backroomError", error.getMessage()); }
+      });
+    }
+
+    @JavascriptInterface public void nextReaderPage(String stateJson, String requestJson) {
+      io.execute(() -> {
+        long started = System.nanoTime();
         try {
-          // The WebView sends presentation JSON; refresh gameplay fields from Core before any rolls or validation.
-          String currentView = requireGameCore().currentClientState(stateJson);
-          DiagnosticLog.record("turn.input", "kind=" + actionKind + "; actionChars=" + action.length());
-          JSONObject activeView = new JSONObject(currentView);
-          restoreAmbientEncounter(activeView);
-          int currentTurn = activeView.optInt("turn", -1);
-          String currentLevelId = currentNodeId(activeView);
-          if (ambientMgr.hasActive() &&
-              (currentTurn != ambientTurn || !currentLevelId.equals(ambientLevel) ||
-               activeView.has("pendingEncounter"))) clearAmbientEncounter();
-          if (ambientMgr.hasActive() && "EXECUTE".equalsIgnoreCase(actionKind) &&
-              ambientDialogueAction(action)) {
-            String line = ambientMgr.nextDialogue();
-            if (line != null) {
-              cacheAmbientEncounter();
-              emitAmbientEvent("dialogue", action, line, currentTurn, currentLevelId);
-            }
+          JSONObject start = new JSONObject(requireGameCore().beginReaderPage(stateJson, requestJson));
+          if (start.optBoolean("replayed")) {
+            emit("backroomTurn", start.getJSONObject("state").toString());
             return;
           }
-          if (ambientMgr.hasActive() && "EXECUTE".equalsIgnoreCase(actionKind) &&
-              ambientDismissAction(action)) {
-            String exit = ambientMgr.endEncounter();
-            clearAmbientEncounter();
-            if (exit != null) emitAmbientEvent("exit", action, exit, currentTurn, currentLevelId);
-            return;
-          }
-          if (ambientMgr.hasActive() && "EXECUTE".equalsIgnoreCase(actionKind) &&
-              ambientForbiddenAction(action)) {
-            emitAmbientEvent("warning", action, "⚠️ Hành động của bạn không thể thực hiện.",
-              currentTurn, currentLevelId);
-            return;
-          }
-          // A gameplay action ends the current passerby scene without additional Gemini calls.
+          JSONObject before = start.getJSONObject("state");
           String departure = ambientMgr.endEncounter();
-          clearAmbientEncounter(); // discard cache and cancel any optional in-flight generation
-          if (departure != null) {
-            JSONObject withExit = new JSONObject(currentView);
-            JSONArray conversation = withExit.optJSONArray("log");
-            if (conversation == null) conversation = new JSONArray();
-            conversation.put(new JSONObject().put("role", "gm").put("text", departure));
-            withExit.put("log", conversation);
-            currentView = withExit.toString();
-          }
-          if (new JSONObject(currentView).has("pendingEncounter")) {
-            emit("backroomError", "Hãy nhấn Battle Start ở cuối lời kể để bắt đầu chiến đấu.");
-            return;
-          }
-          if (requireGameCore().blocksTextItemAction(action)) {
-            JSONObject blocked = new JSONObject(requireGameCore().processRule(currentView, action));
-            DiagnosticLog.record("turn.core_short_circuit", "route=item; reason=" + blocked.optString("reason"));
-            if (blocked.has("error")) {
-              emit("backroomError", blocked.optString("reply", blocked.optString("error")));
-            } else {
-              emit("backroomTurn", blocked.getJSONObject("state").toString());
-            }
-            return;
-          }
-          JSONObject combatResult = new JSONObject(requireGameCore().processCombat(currentView, actionKind, action));
-          if (combatResult.optBoolean("handled", false)) {
-            DiagnosticLog.record("turn.core_short_circuit", "route=combat; reason=" + combatResult.optString("reason"));
-            if (combatResult.has("error")) {
-              emit("backroomError", combatResult.optString("reply", combatResult.optString("error")));
-            } else {
-              emit("backroomTurn", combatResult.getJSONObject("state").toString());
-            }
-            return;
-          }
-          if (requireGameCore().isSpecialRuleAction(action)) {
-            JSONObject special = new JSONObject(requireGameCore().processRule(currentView, action));
-            emit("backroomTurn", special.getJSONObject("state").toString());
-            return;
-          }
-          // All chat turns enter one EXECUTE lane; Core owns encounter/exit gates.
-          JSONObject actionStart = new JSONObject(requireGameCore().beginAction(currentView, actionKind, action));
-          if (!actionStart.optBoolean("handled", false)) {
-            throw new Exception("Action Runtime từ chối hành động: " + actionStart.optString("error", "action_start_failed"));
-          }
-          // P0-A: Extract Core-confirmed pending NPC encounters from beginAction response.
-          // These are first-meeting events the GM must narrate; Core deferred the commit
-          // until the turn succeeds. Contract: [{characterId, flagKey, name}], no secrets.
-          JSONArray pendingNpcEncounters = actionStart.optJSONArray("pendingNpcEncounters");
-          if (pendingNpcEncounters == null) pendingNpcEncounters = new JSONArray();
-          // P0 Entity GM: Extract Core-reserved Entity encounter (if any) from beginAction response.
-          // Contract: {entityKey, entityName, encounterId} — public perception only, no secrets.
-          // The GM must narrate the correct Entity in this turn; Core reserved the encounter.
-          JSONObject pendingEntityEncounter = actionStart.optJSONObject("pendingEntityEncounter");
-          JSONObject before = new JSONObject(currentView);
-          boolean meta = isMetaAction(action);
-          JSONObject rolls = makeGameplayRolls(before, actionKind, action, meta, pendingEntityEncounter != null);
-
-          JSONObject generated = parseModelJson(generateText(writerPrompt(before, action, rolls, pendingNpcEncounters, pendingEntityEncounter)));
+          if (departure != null) requireGameCore().recordReaderAmbient(before.optInt("turn"), currentNodeId(before), departure);
+          clearAmbientEncounter();
+          JSONObject rolls = start.getJSONObject("rolls");
+          JSONArray npcs = start.optJSONArray("pendingNpcEncounters");
+          JSONObject entity = start.optJSONObject("pendingEntityEncounter");
+          String prompt = writerPrompt(before, start.getString("action"), rolls, npcs, entity) +
+            "\n" + start.getString("context");
+          JSONObject generated = parseModelJson(generateText(prompt));
           String reply = generated.optString("reply", "").trim();
-          if (reply.isEmpty()) throw new Exception("GM không trả lời kể chuyện; lượt này không được ghi.");
-          // SnapshotSceneProgress consumes this roll flag. Populate it from the
-          // Core-confirmed encounter, not from GM narration or an extra RNG roll.
-          // Added after the writer call: no extra GM tokens or API requests.
-          if (pendingEntityEncounter != null &&
-              !pendingEntityEncounter.optString("entityKey", "").isEmpty()) {
-            rolls.put("entityEncounter", new JSONObject()
-              .put("eligible", true).put("success", true));
-          }
-          if (meta) {
-            requireGameCore().abortAction("meta_action");
-            JSONObject view = new JSONObject(requireGameCore().currentClientState(currentView));
-            JSONArray log = view.optJSONArray("log");
-            if (log == null) log = new JSONArray();
-            log.put(new JSONObject().put("role", "player").put("text", action));
-            log.put(new JSONObject().put("role", "gm").put("text", reply));
-            view.put("log", log);
-            emit("backroomTurn", view.toString());
-            return;
-          }
-          // Only deterministic Core rolls.
-          // P0-3 FIX: Core-authoritative exit destination. Core decides the destination
-          // node (HiddenExitStreak + LevelRouteRegistry + Core-parsed intent). The GM/AI
-          // never chooses the destination; its words cannot move the player.
-          JSONObject destResult = new JSONObject(requireGameCore().determineExitDestination(
-            currentView, actionKind, action));
-          String destinationId = destResult.isNull("destinationId") ? null
-            : destResult.optString("destinationId", null);
-          if (destinationId != null && destinationId.isEmpty()) destinationId = null;
-
-          JSONObject candidateState = new JSONObject(before.toString());
-          JSONObject candidateFlags = candidateState.optJSONObject("flags");
-          if (candidateFlags == null) { candidateFlags = new JSONObject(); candidateState.put("flags", candidateFlags); }
-          candidateFlags.put("lastRolls", rolls);
-
-          // Apply Core's destination decision to the candidate (not AI's words).
-          if (destinationId != null) {
-            LevelRouteRegistry.Node dest = LevelRouteRegistry.node(destinationId);
-            if (dest != null) {
-              candidateState.put("level", dest.asJson());
-              candidateState.put("title", dest.title());
-              candidateState.put("location", dest.location());
-            } else {
-              destinationId = null; // Unknown node — treat as no transition.
-            }
-          }
-
-          // reconcileVisualWorldState now enforces Core's decision (no AI smuggling).
-          reconcileVisualWorldState(before, candidateState, rolls, action, destinationId);
-          JSONObject state = candidateState;
-          String oldNodeId = currentNodeId(before);
-          String newNodeId = currentNodeId(state);
-          boolean levelChanged = !oldNodeId.equals(newNodeId);
-          // P0-3: Core's destination is authoritative. The old client-side gate
-          // (canTransition + playerTraverses + canMove) is replaced: Core already
-          // confirmed exit readiness, intent, and edge validity when authorizing.
-          boolean transitionAccepted = !levelChanged ||
-            (destinationId != null && destinationId.equals(newNodeId));
-          if (!transitionAccepted) {
-            LevelRouteRegistry.Node previous = LevelRouteRegistry.node(oldNodeId);
-            state.put("level", before.optJSONObject("level") == null
-              ? previous.asJson() : new JSONObject(before.optJSONObject("level").toString()));
-            state.put("title", before.optString("title", previous.title()));
-            state.put("location", before.optString("location", previous.location()));
-            newNodeId = oldNodeId;
-            levelChanged = false;
-          }
-
-          state.put("turn", before.optInt("turn", 1) + 1).put("mode", "Single Player: Hard Mode");
-          JSONObject flags = state.optJSONObject("flags");
-          if (flags == null) flags = new JSONObject();
-          flags.put("currentLevel", LevelRouteRegistry.node(newNodeId).asJson());
-          flags.remove("lastAudit");
-          state.put("flags", flags);
-          com.rabpit.backroom.core.HiddenExitStreak.apply(before, state, rolls, oldNodeId, newNodeId);
-          state.put("_snapshotEvent", new JSONObject()
-            .put("shouldGenerate", false).put("kind", "").put("reason", ""));
-
-          if (!meta) {
-            state = new JSONObject(com.rabpit.backroom.core.knowledge.StoryContinuityReducer.apply(
-              before.toString(), state.toString(), action));
-            // Persist scene progression with the validated Core delta, never as WebView-only state.
-            com.rabpit.backroom.core.SnapshotSceneProgress.apply(before, state, rolls, actionKind, action);
-          }
-
-          JSONArray log = state.optJSONArray("log");
-          if (log == null) log = new JSONArray();
-          log.put(new JSONObject().put("role", "player").put("text", action));
-          state.put("log", log);
-          JSONObject coreCommit = new JSONObject(requireGameCore().processValidatedCandidate(
-            before.toString(), state.toString(), action, reply));
-          if (!coreCommit.optBoolean("handled", false)) {
-            throw new Exception("Game State Core từ chối lượt: " + coreCommit.optString("error", "invalid_delta"));
-          }
-          state = coreCommit.getJSONObject("state");
-
-          state.put("canonVersion", KNOWLEDGE_CANON_VERSION);
-          log = state.optJSONArray("log");
-          if (log == null) log = new JSONArray();
-          if (!state.has("pendingEncounter"))
-            log.put(new JSONObject().put("role", "gm").put("text", reply));
-          state.put("log", log);
+          if (reply.isEmpty()) throw new Exception("GM trả trang rỗng; hãy thử lại cùng trang.");
+          if (com.rabpit.backroom.core.knowledge.GmNarrativeVoicePolicy.hasSecondPersonNarration(reply))
+            throw new Exception("GM sai ngôi kể; hãy thử lại cùng trang.");
+          JSONObject committed = new JSONObject(requireGameCore().commitReaderPage(stateJson,
+            new JSONObject(requestJson).getString("requestId"), generated.toString()));
+          if (!committed.optBoolean("handled")) throw new Exception(committed.optString("error", "page_commit_failed"));
+          JSONObject state = committed.getJSONObject("state");
           emit("backroomTurn", state.toString());
-          if (coreCommit.optBoolean("ambientNpcRolled", false)) beginAmbientGeneration(state);
-          DiagnosticLog.timing(MainActivity.this, "turn.total",
-            java.util.concurrent.TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - turnStartNs),
-            reply.length());
-        } catch (Exception e) {
-          DiagnosticLog.timing(MainActivity.this, "turn.failed",
-            java.util.concurrent.TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - turnStartNs),
-            0);
-          DiagnosticLog.error("turn.pipeline_error", e);
-          try { requireGameCore().abortAction("pipeline_error"); } catch (Exception ignored) {}
-          emit("backroomError", e.getMessage() == null ? "Không thể xử lý lượt." : e.getMessage());
+          if (committed.optBoolean("ambientNpcRolled")) beginAmbientGeneration(state);
+          DiagnosticLog.timing(MainActivity.this, "reader.total",
+            java.util.concurrent.TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started), reply.length());
+        } catch (Exception error) {
+          // Do not abort or reroll: Core keeps the exact plan, selected branch and tickets.
+          DiagnosticLog.error("reader.pipeline_error", error);
+          emit("backroomError", error.getMessage() == null ? "Không thể viết trang; hãy thử lại." : error.getMessage());
         }
       });
     }
 
-
+    private void submitTurnInternal(String stateJson, String actionKind, String action) {
+      io.execute(() -> {
+        try {
+          String current = requireGameCore().currentClientState(stateJson);
+          JSONObject combat = new JSONObject(requireGameCore().processCombat(current, actionKind, action));
+          if (!combat.optBoolean("handled")) throw new Exception("Khám phá dùng Trang tiếp; Combat dùng Poker Dice.");
+          if (combat.has("error")) throw new Exception(combat.optString("reply", combat.optString("error")));
+          emit("backroomTurn", combat.getJSONObject("state").toString());
+        } catch (Exception error) { emit("backroomError", error.getMessage()); }
+      });
+    }
 
     @JavascriptInterface public void itemAction(String stateJson, String requestJson) {
       io.execute(() -> {

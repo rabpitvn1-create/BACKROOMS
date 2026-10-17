@@ -46,7 +46,7 @@ test('Battle Start follows all narrative paragraphs and uses the Core registry d
     assert.equal(r.ctx.state.combat.active, false);
   }
   assert.doesNotMatch(html, /id="exploreActionButton"/);
-  assert.match(html, /id="submit"/);
+  assert.match(html, /id="nextPage"/);
 });
 
 test('rapid clicks send one exact Core encounter and success removes the button', () => {
@@ -104,15 +104,12 @@ test('pending encounters show no Entity image; confirmed encounter clears a prev
   assert.ok(fs.existsSync(path.join(assets, 'entity', ctx.activeEntityKey() + '.webp')));
 });
 
-test('the native bridge commits validated GM narration and confirmation never calls submitAction', () => {
-  assert.match(java, /processValidatedCandidate\(\s*before\.toString\(\), state\.toString\(\), action, reply\)/);
-  assert.doesNotMatch(java, /processValidatedCandidate\(\s*before\.toString\(\), state\.toString\(\), action, reply, generated\.toString\(\)\)/);
-  assert.match(java, /@JavascriptInterface public void battleStart\(String stateJson, String encounterId\)/);
-  assert.doesNotMatch(source, /submitAction|selectedEntityKey|startCombatState/);
-  assert.doesNotMatch(java, /forceEntityEncounterFlag|requireGameCore\(\)\.startCombatState/);
+test('native reader commits generated pages and Battle Start stays a separate endpoint',()=>{
+  assert.match(java,/requireGameCore\(\)\.commitReaderPage/);
+  assert.match(java,/@JavascriptInterface public void battleStart\(String stateJson, String encounterId\)/);
+  assert.doesNotMatch(source,/submitAction|selectedEntityKey|startCombatState/);
 });
-
-test('pending encounters are included in the inline composer lock', () => {
-  const composer = fs.readFileSync(path.join(assets, 'player-composer.js'), 'utf8');
-  assert.match(composer, /state.pendingEncounter/);
+test('reader locks confirmed encounters and retains Poker Dice',()=>{
+  assert.match(html,/state.pendingEncounter&&!state.reader\?\.pendingPage/);
+  assert.match(html,/Android.submitAction\(JSON.stringify\(state\),"EXECUTE",DIRECT_COMBAT_ACTION\)/);
 });

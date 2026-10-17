@@ -42,19 +42,25 @@ test('GM prompt has no milestone due events and recruitment uses a separate nati
  assert.match(java,/@JavascriptInterface public void recruitFollower\(String stateJson, String characterId\)/);
 });
 
-test('chat sends only EXECUTE through Core NPC, exit and snapshot paths',()=>{
- assert.match(html,/window\.Android\.submitAction\(JSON\.stringify\(state\),"EXECUTE",a\)/);
- assert.doesNotMatch(java,/ExplorerActionKind\.resolve/);
- assert.match(java,/beginAction\(currentView, actionKind, action\)/);
- assert.match(java,/makeGameplayRolls\(before, actionKind, action, meta, pendingEntityEncounter != null\)/);
- assert.match(java,/determineExitDestination\(\s*currentView, actionKind, action\)/);
- assert.match(java,/SnapshotSceneProgress\.apply\(before, state, rolls, actionKind, action\)/);
+test('reader uses the Core page pipeline rather than player text',()=>{
+ assert.match(html,/Android.nextReaderPage\(JSON.stringify\(state\),JSON.stringify\(request\)\)/);
+ assert.match(java,/beginReaderPage\(stateJson, requestJson\)/);
+ assert.match(java,/commitReaderPage\(stateJson,/);
+ assert.doesNotMatch(java,/PLAYER_ACTION:|actionEl|formEl|submitEl/);
  const spawner=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/core/EntitySpawnPool.kt'),'utf8');
  assert.match(spawner,/val ambientNpcRolled = kind == ActionKind\.EXECUTE/);
- assert.doesNotMatch(spawner,/ActionKind\.EXPLORE/);
- assert.match(java,/boolean exitDiscoveryAction = executeAction &&/);
- assert.match(java,/PhysicalActionDetector\.isSceneFacing\(action\)/);
- assert.match(java,/exitDiscoveryAction && !entityReserved && !com\.rabpit\.backroom\.core\.HiddenExitStreak\.ready\(state\)/);
- assert.match(java,/pendingEntityEncounter != null &&/);
- assert.match(java,/rolls\.put\("entityEncounter", new JSONObject\(\)/);
+});
+
+test('native ambient callback never unlocks a reader request and works without the retired input',()=>{
+ const line=java.split('\n').find(line=>line.includes('"window.backroomAmbientEvent=function'));
+ const code=JSON.parse(line.trim().replace(/\s*\+$/,''));
+ let rendered=0,persisted=0;
+ const ctx={state:{turn:2,level:{number:0},reader:{pendingPage:false},log:[]},busy:true,
+   syncPrimaryActions(){},persistPresentation(){persisted++},render(){rendered++},focusLatestGmStart(){},console};
+ ctx.window=ctx;vm.createContext(ctx);vm.runInContext(code,ctx);
+ const event=JSON.stringify({turn:2,level:'0',text:'Một người sống sót đi ngang.'});
+ ctx.backroomAmbientEvent(event);assert.equal(ctx.busy,true);assert.equal(rendered,0);
+ ctx.busy=false;ctx.state.reader.pendingPage=true;ctx.backroomAmbientEvent(event);assert.equal(rendered,0);
+ ctx.state.reader.pendingPage=false;ctx.backroomAmbientEvent(event);assert.equal(rendered,1);assert.equal(persisted,1);
+ assert.equal(ctx.state.log[0].text,'Một người sống sót đi ngang.');
 });

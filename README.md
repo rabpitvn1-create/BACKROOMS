@@ -6,7 +6,7 @@ Game chạy độc lập trong APK Android. Giao diện WebView, canon, ảnh Le
 
 - `android-apk/app/src/main/assets/index.html`: giao diện text game.
 - `android-apk/app/src/main/java/com/rabpit/backroom/MainActivity.java`: Android/WebView bridge và AI orchestration.
-- `android-apk/app/src/main/java/com/rabpit/backroom/core/`: Game State Core, inventory, party, continuity và save migration.
+- `android-apk/app/src/main/java/com/rabpit/backroom/core/`: Game State Core, inventory, party, continuity và save/checkpoint hiện hành.
 - `android-apk/app/src/main/assets/knowledge/`: ba kho Canon offline (`knowledge_db.json`, `canon_detail_db.json`, `canon_support_db.json`), có provenance nguồn.
 - `.github/workflows/build-backroom-apk.yml`: test, build, emulator launch smoke test và phát hành APK.
 
@@ -22,3 +22,9 @@ gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
 ```
 
 APK được tạo tại `android-apk/app/build/outputs/apk/debug/app-debug.apk`.
+
+## Interactive reader (#651)
+
+Explorer dùng Trang tiếp, lựa chọn nội truyện và cấu hình tông kể/độ khó mỗi Level.
+Core giữ RNG, reservation, Combat/Poker Dice và save. Thiết kế, bảng độ khó đề xuất
+và giới hạn kiểm chứng: [ISSUE-651-READER.md](android-apk/docs/ISSUE-651-READER.md).

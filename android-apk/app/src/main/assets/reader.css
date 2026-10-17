@@ -1,0 +1,15 @@
+/* A continuous reading surface; no player/GM chat bubbles in Explorer. */
+#log{display:block;line-height:1.7;overflow-wrap:anywhere}
+#log .message.gm{border:0;border-image:none;box-shadow:none;background:transparent;margin:0;padding:14px 12px}
+#log .message.gm:before,#log .message.gm:after,#log .role{display:none}
+#log .text{line-height:1.75;font-size:16px}
+#readerActionBar{display:flex;padding:12px;justify-content:center}
+#nextPage{width:100%;min-height:48px;border-radius:9px}
+.reader-options{display:grid;gap:10px;margin-top:18px}
+.reader-options button{min-height:48px;text-align:left;white-space:normal;line-height:1.5;border-radius:8px}
+#readerSettings{padding:14px;border:1px solid #796a43;margin:10px;border-radius:10px}
+#readerSettings[hidden]{display:none}
+#readerSettings label{display:grid;gap:7px;margin:12px 0}
+#readerSettings select{font:inherit;color:#eee;background:#171d21;padding:12px;max-width:100%;border:1px solid #796a43}
+#readerSettings p{font-size:13px;color:#b7bdb9;line-height:1.5}
+button:disabled{opacity:.45}
