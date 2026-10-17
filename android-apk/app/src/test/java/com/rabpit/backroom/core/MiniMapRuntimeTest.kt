@@ -151,8 +151,9 @@ class MiniMapRuntimeTest {
     machineCodes.getJSONArray("interactions").getJSONObject(3).put("label","Chọn khóa có dấu đỏ")
     assertEquals("investigation",MiniMapScenario.validate(machineCodes,"0",1).getString("id"))
     val unsafeControl=script()
+    val controlValue = "mau" + 1.toChar() + "do"
     unsafeControl.getJSONArray("facts").getJSONObject(0)
-      .put("value","mau\\u0001do").put("values",JSONArray().put("mau\\u0001do").put("xanh"))
+      .put("value",controlValue).put("values",JSONArray().put(controlValue).put("xanh"))
     assertEquals("fact_human_value", assertThrows(IllegalArgumentException::class.java) {
       MiniMapScenario.validate(unsafeControl,"0",1)
     }.message)
