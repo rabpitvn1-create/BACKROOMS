@@ -13,7 +13,9 @@
 ## Đường chạy
 
 `prepareScene` → Gemini scenario transport (tối đa 2 lane/request, cooldown riêng 60s)
-→ parse bounded JSON → validate outline/script + proof hữu hạn → lưu cùng Core.
+→ nếu các lượt Gemini được phép đều lỗi/quota/schema hoặc không có key khả dụng: thử **một lần Gehihi tạo kịch bản** (output cap 10000 tokens)
+→ cả hai provider đều phải parse bounded JSON, validate cùng schema v4/outline/script + proof hữu hạn → chỉ kịch bản hợp lệ mới được lưu vào Core.
+Gehihi dự phòng ở đây chỉ là **biên kịch outline/mini-map**, không đổi vai trò Gehihi làm GM duy nhất. Dự phòng không dùng chung giới hạn 2048 tokens của lời kể. Nếu cả hai cùng thất bại, state giữ nguyên và UI cho thử lại.
 
 `submitSceneAction` → kiểm tra actionId/version/room/availableActions
 → stage movement/search/claim → roll tại exact node đích → reserve encounter
@@ -61,6 +63,6 @@ Các API Core cũ còn test độc lập không được UI mới sử dụng; `
 - Regression mục tiêu: spawn baseline, Combat/Party, codec/checkpoint, route registry, provider contract.
 - Test JS: popup không submit, versioned command, double tap, generation retry, pending retry, combat và textContent; verifier payload APK đổi sang Explorer controls.
 - Compile Kotlin 2.3.0 và Java với Android API 35 bằng compiler độc lập; không đồng nghĩa Gradle assemble/APK đã thành công.
-- Chưa gọi Gemini/Gehihi thực, chưa đo latency/token thực, chưa chạy APK/emulator. Cần nghiệm thu mẫu puzzle sinh thực tế và nhiều đường đi trên Android trước phát hành.
+- Chưa gọi Gemini/Gehihi thực để kiểm tra khả năng sinh JSON dài qua endpoint Gehihi, chưa đo latency/token thực, chưa chạy APK/emulator. Test Core xác minh chọn provider và validator, không đảm bảo model Gehihi sẽ thực sự hoàn thành mini-map. Cần nghiệm thu mẫu puzzle sinh thực tế và nhiều đường đi trên Android trước phát hành.
 - Chưa có browser smoke: tải Chromium của môi trường thất bại. Test JS chạy bằng Node VM, không thay thế render/WebView thực.
 - Không merge/release/đóng issue trong tác vụ này. PR giữ draft cho đến khi các cổng Android/CI và nghiệm thu nội dung hoàn tất.
