@@ -14,7 +14,7 @@
   const retry=document.createElement('button');retry.type='button';retry.textContent='Thử lại';retry.onclick=()=>{
     const scene=state&&state.scene;if(!scene||busy)return;
     busy=true;refresh();
-    if(!scene.pendingActionId)writerPending('Gemini');
+    if(!scene.pendingActionId)writerPending();
     try{if(scene.pendingActionId)Android.submitSceneAction(JSON.stringify(state),'RETRY');else Android.prepareScene(JSON.stringify(state));}
     catch(e){global.backroomError('Không gửi được yêu cầu tới Core.');}
   };
@@ -39,18 +39,20 @@
       const label=document.createElement('span');label.className='gm-thinking-name';
       indicator.append(mark,label);line.append(indicator);pending.append(role,line);log.appendChild(pending);
     }
-    const name=provider==='Gehihi'?'Gehihi':'Gemini';
+    // One fixed UI identity for the entire current mini-map. The real provider
+    // can change to Gehihi in the worker; that detail stays in diagnostics.
+    const labelText='Gemini 4.0 Argon đang chuẩn bị màn chơi. Xin vui lòng chờ trong giây lát.';
     const indicator=pending.querySelector('.gm-thinking');
-    if(indicator)indicator.setAttribute('aria-label',name+' đang tạo mini-map');
-    const label=pending.querySelector('.gm-thinking-name');if(label)label.textContent=name+' đang tạo mini-map…';
-    const mark=pending.querySelector('.scene-provider-logo');if(mark)mark.hidden=name!=='Gemini';
+    if(indicator)indicator.setAttribute('aria-label',labelText);
+    const label=pending.querySelector('.gm-thinking-name');if(label)label.textContent=labelText;
+    const mark=pending.querySelector('.scene-provider-logo');if(mark)mark.hidden=false;
     log.scrollTop=log.scrollHeight;
   }
   function clearWriterPending(){
     const log=document.getElementById('log');
     if(log)log.querySelectorAll('[data-scene-preparing="1"]').forEach(n=>n.remove());
   }
-  global.backroomSceneWriterProvider=provider=>{if(preparing)writerPending(provider);};
+  global.backroomSceneWriterProvider=()=>{if(preparing)writerPending();};
   function locked(){return busy||coreUnavailable||!!state.pendingEncounter||!!(state.combat&&state.combat.active);}
   function open(kind){
     if(locked())return;choices.replaceChildren();
@@ -87,7 +89,7 @@
     retry.hidden=!(scene.generationNeeded||scene.pendingActionId);retry.disabled=busy||coreUnavailable;
     if(scene.generationNeeded&&!scene.pendingActionId&&!locked()&&!preparing&&!failed){
       preparing=true;busy=true;retry.disabled=true;
-      writerPending('Gemini');
+      writerPending();
       try{Android.prepareScene(JSON.stringify(state));}catch(e){global.backroomError('Không thể chuẩn bị mini-map.');}
     }
   }
