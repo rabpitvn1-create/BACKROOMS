@@ -65,6 +65,76 @@ class MiniMapRuntimeTest {
     core.beginSceneAction(command)
     core.commitSceneAction(JSONObject(command).getString("actionId"),"Cao Minh quan sát kết quả.","{}")
   }
+  @Test fun currentLevelZeroRejectsScenesThatPreviewLevelOne() {
+    val concreteExit = script()
+    concreteExit.getJSONArray("rooms").getJSONObject(0).put("name", "Lối ra vùng bê tông")
+    assertEquals("scene_canon_boundary", assertThrows(IllegalArgumentException::class.java) {
+      MiniMapScenario.validate(concreteExit, "0", 1)
+    }.message)
+    val futureObjective = script().put("objective", "Đến Level 1 trước khi kết thúc nhiệm vụ")
+    assertEquals("scene_canon_boundary", assertThrows(IllegalArgumentException::class.java) {
+      MiniMapScenario.validate(futureObjective, "0", 1)
+    }.message)
+    val futureProse = script()
+    futureProse.getJSONArray("interactions").getJSONObject(0).put("observation",
+      "Một khoảng hành lang công nghiệp xuất hiện ở đầu đường, ngay sát tấm thảm mục.")
+    assertEquals("scene_canon_boundary", assertThrows(IllegalArgumentException::class.java) {
+      MiniMapScenario.validate(futureProse, "0", 1)
+    }.message)
+  }
+
+  @Test fun observationsAndInferenceHideInternalEnumsAndOnlySuggestAvailableSteps() {
+    val scene = script()
+    scene.getJSONArray("interactions").getJSONObject(0).put("observation",
+      "Mảnh hồ sơ ghi rõ màu khóa cùng dấu sáp niêm phong còn nguyên vẹn trên mép giấy.")
+    scene.getJSONArray("interactions").getJSONObject(2).put("observation",
+      "Tôi thấy chiếc khóa màu xanh khi đang đứng trực ca đêm, nhưng đèn hành lang chớp liên tục.")
+    MiniMapScenario.validate(scene, "0", 1)
+    val base = state()
+    val p = MiniMapRuntime.progress(base)
+    val withCast = base.copy(world = base.world + (MiniMapRuntime.scriptKey(p) to scene.toString()))
+    val repo = MemorySave(withCast)
+    val core = facade(repo)
+    assertTrue(MiniMapRuntime.publicView(repo.state).getString("temporaryInference").contains("Chưa đủ dữ kiện"))
+    apply(core, repo, "room:witness")
+    apply(core, repo, "guard")
+    val claimView = MiniMapRuntime.publicView(repo.state)
+    val claim = claimView.getJSONArray("records").getJSONObject(0).getString("text")
+    assertTrue(claim.contains("Trần Văn Duy"))
+    assertTrue(claim.contains("chiếc khóa màu xanh"))
+    assertFalse(claim.contains("= xanh"))
+    assertTrue(claimView.getString("temporaryInference").contains("vật chứng độc lập"))
+    apply(core, repo, "room:hall")
+    apply(core, repo, "room:lab")
+    apply(core, repo, "paper")
+    val evidence = MiniMapRuntime.publicView(repo.state)
+    assertTrue(evidence.getJSONArray("records").getJSONObject(1).getString("text").contains("Mảnh hồ sơ"))
+    assertTrue(evidence.getString("temporaryInference").contains("so sánh"))
+    assertFalse(evidence.toString().contains("facts"))
+    // Saved technical receipts are re-rendered from script without mutating game state.
+    val stale = MiniMapRuntime.progress(repo.state)
+    stale.getJSONArray("records").getJSONObject(0).put("text", "lech_the_ky")
+    val staleSave = repo.state.copy(world = repo.state.world + (MiniMapRuntime.STATE to stale.toString()))
+    assertFalse(MiniMapRuntime.publicView(staleSave).toString().contains("lech_the_ky"))
+    assertEquals("lech_the_ky", MiniMapRuntime.progress(staleSave)
+      .getJSONArray("records").getJSONObject(0).getString("text"))
+  }
+
+  @Test fun newAuthoredObservationsMustBeConcreteAndDistinct() {
+    val scene = script()
+    scene.getJSONArray("interactions").getJSONObject(0).put("observation", "le_ch_the_ky")
+    assertEquals("scene_observation_quality", assertThrows(IllegalArgumentException::class.java) {
+      MiniMapScenario.validate(scene, "0", 1)
+    }.message)
+    val duplicate = script()
+    val line = "Một dấu vết hình mũi tên bị che bên dưới lớp giấy dán tường ẩm mốc."
+    duplicate.getJSONArray("interactions").getJSONObject(0).put("observation", line)
+    duplicate.getJSONArray("interactions").getJSONObject(1).put("observation", line)
+    assertEquals("scene_duplicate_observation", assertThrows(IllegalArgumentException::class.java) {
+      MiniMapScenario.validate(duplicate, "0", 1)
+    }.message)
+  }
+
   @Test fun graphClaimAndProofValidationRejectInvalidScripts() {
     assertEquals("investigation",MiniMapScenario.validate(script(),"0",1).getString("id"))
     val onlyThree=script();onlyThree.getJSONArray("rooms").remove(3)
