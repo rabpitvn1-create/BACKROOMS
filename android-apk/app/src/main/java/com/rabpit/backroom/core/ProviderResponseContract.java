@@ -9,10 +9,7 @@ public final class ProviderResponseContract {
 
   public static void requireWriter(JSONObject packet) {
     Object reply = packet == null ? null : packet.opt("reply");
-    JSONArray scenes = packet == null ? null : packet.optJSONArray("eventNarrations");
-    // A scene-only response has no prelude. Content is validated by Core before committing.
-    if (!(reply instanceof String) || (((String) reply).trim().isEmpty() &&
-        (scenes == null || scenes.length() == 0))) {
+    if (!(reply instanceof String) || ((String) reply).trim().isEmpty()) {
       throw new IllegalArgumentException("GM provider JSON không có reply hợp lệ.");
     }
   }

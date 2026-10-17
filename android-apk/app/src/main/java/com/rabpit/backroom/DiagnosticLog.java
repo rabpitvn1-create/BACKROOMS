@@ -102,7 +102,7 @@ final class DiagnosticLog {
     }
   }
 
-  static String build(String webJson, boolean includeSensitive, String milestoneProvider, int inFlight, int lastWorker, int lastModel) throws Exception {
+  static String build(String webJson, boolean includeSensitive, int lastWorker, int lastModel) throws Exception {
     if (webJson == null || webJson.length() > 6_000_000) throw new IllegalArgumentException("diagnostic_payload_too_large");
     JSONObject credentials = new JSONObject();
     for (String[] item : keyPairs()) {
@@ -124,11 +124,9 @@ final class DiagnosticLog {
         .put("device", Build.MANUFACTURER + " " + Build.MODEL)
         .put("androidSdk", Build.VERSION.SDK_INT))
       .put("provider", new JSONObject()
-        .put("milestone", milestoneProvider)
         .put("writer", "GEHIHI")
         .put("lastGeminiWorker", lastWorker)
-        .put("lastGeminiModel", lastModel)
-        .put("milestonePlansInFlight", inFlight))
+        .put("lastGeminiModel", lastModel))
       .put("credentials", credentials)
       .put("nativeEvents", events)
       .put("performanceTimings", applicationContext == null ? new JSONArray() : persistedTimings(applicationContext))
