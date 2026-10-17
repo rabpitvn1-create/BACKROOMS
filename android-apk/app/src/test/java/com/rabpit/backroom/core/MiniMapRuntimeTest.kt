@@ -152,8 +152,10 @@ class MiniMapRuntimeTest {
     assertEquals("investigation",MiniMapScenario.validate(machineCodes,"0",1).getString("id"))
     val unsafeControl=script()
     val controlValue = "mau" + 1.toChar() + "do"
+    // Keep the correct answer printable. Only an alternate choice carries a
+    // control byte, so this specifically exercises the fact-domain check.
     unsafeControl.getJSONArray("facts").getJSONObject(0)
-      .put("value",controlValue).put("values",JSONArray().put(controlValue).put("xanh"))
+      .put("values",JSONArray().put("đỏ").put("xanh").put(controlValue))
     assertEquals("fact_human_value", assertThrows(IllegalArgumentException::class.java) {
       MiniMapScenario.validate(unsafeControl,"0",1)
     }.message)
