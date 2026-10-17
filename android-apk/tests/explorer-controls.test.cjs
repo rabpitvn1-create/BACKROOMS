@@ -79,12 +79,13 @@ test('existing ornate frames and Gemini logo are used in Explorer controls',()=>
   assert.match(source,/provider-logos\/gemini\.svg/);
   assert.match(source,/backroomSceneWriterProvider/);
 });
-test('Gemini spark persists on GM messages and animates while response is pending',()=>{
+test('waiting GM row shows animated Gemini 4.0 Argon logo below plain GAME MASTER header',()=>{
   const html=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/index.html'),'utf8');
-  assert.ok(html.includes("gm-brand-spark' src='provider-logos/gemini.svg'"));
-  assert.match(html,/\.message\.gm\.pending \.gm-brand-spark\{animation:gm-thinking-pulse/);
-  assert.ok(html.includes("gm-thinking' role='status' aria-label='Gehihi đang chuẩn bị câu trả lời'><span class='gm-thinking-name'"));
-  assert.match(html,/GAME MASTER/);
+  assert.ok(html.includes("gm.innerHTML=\"<div class='role'>GAME MASTER</div>"));
+  assert.ok(html.includes("<div class='gm-thinking' role='status' aria-label='Đang chờ phản hồi'><img src='provider-logos/gemini.svg' alt='' aria-hidden='true'><span class='gm-thinking-brand'>Gemini 4.0 Argon</span>"));
+  assert.doesNotMatch(html,/gm-brand-spark/);
+  assert.match(html,/\.gm-thinking img\{[^}]*animation:gm-thinking-pulse/);
+  assert.match(html,/\.gm-thinking-brand\{color/);
   assert.match(html,/>BACKROOM TEXT GAME<\/div>/);
   assert.match(html,/>TURN <strong id="turn"/);
   assert.match(html,/id="gameMenuTitle">GAME MENU/);
