@@ -65,6 +65,7 @@ class MiniMapRuntimeTest {
   @Test fun graphClaimAndProofValidationRejectInvalidScripts() {
     assertEquals("investigation",MiniMapScenario.validate(script(),"0",1).getString("id"))
     val onlyThree=script();onlyThree.getJSONArray("rooms").remove(3)
+    onlyThree.getJSONArray("rooms").getJSONObject(0).put("adjacentRoomIds",JSONArray().put("lab").put("witness"))
     assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.validate(onlyThree,"0",1) }
     val disconnected=script();disconnected.getJSONArray("rooms").getJSONObject(1).put("adjacentRoomIds",JSONArray().put("witness"))
     assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.validate(disconnected,"0",1) }
@@ -231,6 +232,30 @@ class MiniMapRuntimeTest {
     finished=finished.copy(world=finished.world+(MiniMapRuntime.STATE to p.toString()))
     assertFalse(MiniMapScenario.objects(MiniMapRuntime.actions(finished)).any { it.getString("targetId").startsWith("node:") })
   }
+  @Test fun everyMainSublevelAreaAndSpecialNodeHasItsOwnTenMapOutline() {
+    val nodeIds = listOf(
+      "0", "0.1", "0.2", "0.5", "0.7", "manila_room", "the_torment", "red_rooms",
+      "dullness", "epsilon", "ls_2", "1", "1.2", "1.5", "traders_vault",
+      "base_alpha", "2", "office_space_el3a", "3", "4", "office_market",
+      "5", "5.1", "6", "6.1"
+    )
+    val outlineKeys = mutableSetOf<String>()
+    val scriptKeys = mutableSetOf<String>()
+    nodeIds.forEach { id ->
+      val parent = requireNotNull(LevelRouteRegistry.node(id)).parent
+      val validated = MiniMapScenario.validateOutline(outline(id), id)
+      assertEquals(id, validated.getString("nodeAnchor"))
+      assertEquals(10, validated.getJSONArray("entries").length())
+      val map = MiniMapScenario.validate(script(parent, 1, id), id, 1)
+      assertEquals(4, map.getJSONArray("rooms").length())
+      val progress = MiniMapRuntime.progress(state(parent, 1, id))
+      assertEquals(id, progress.getString("nodeId"))
+      assertEquals(1, progress.getInt("index"))
+      assertTrue(outlineKeys.add(MiniMapRuntime.outlineKey(progress)))
+      assertTrue(scriptKeys.add(MiniMapRuntime.scriptKey(progress)))
+    }
+  }
+
   @Test fun optionalNodeHasItsOwnTenMapsAndRestoresFrozenSourceAfterCompletion() {
     val repo=MemorySave(solvedState(0,10));val core=facade(repo)
     val source=MiniMapRuntime.script(repo.state)!!.toString()
