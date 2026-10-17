@@ -65,6 +65,26 @@ class MiniMapRuntimeTest {
     core.beginSceneAction(command)
     core.commitSceneAction(JSONObject(command).getString("actionId"),"Cao Minh quan sát kết quả.","{}")
   }
+  @Test fun sceneNamesMustUseVietnameseExceptCanonProperNames() {
+    val hybrid = script()
+    hybrid.getJSONArray("rooms").getJSONObject(0).put("name", "Khu Trần Giả Vòng Down")
+    assertEquals("scene_language_mixed", assertThrows(IllegalArgumentException::class.java) {
+      MiniMapScenario.validate(hybrid, "0", 1)
+    }.message)
+
+    val hybridDescription = script()
+    hybridDescription.getJSONArray("rooms").getJSONObject(0)
+      .put("description", "Phía sau lớp giấy dán tường là một hidden room nhỏ.")
+    assertEquals("scene_language_mixed", assertThrows(IllegalArgumentException::class.java) {
+      MiniMapScenario.validate(hybridDescription, "0", 1)
+    }.message)
+
+    val namedCanon = script()
+    namedCanon.getJSONArray("rooms").getJSONObject(0)
+      .put("name", "Góc tường gần Hollow Grasper")
+    assertEquals("investigation", MiniMapScenario.validate(namedCanon, "0", 1).getString("id"))
+  }
+
   @Test fun currentLevelZeroRejectsScenesThatPreviewLevelOne() {
     val concreteExit = script()
     concreteExit.getJSONArray("rooms").getJSONObject(0).put("name", "Lối ra vùng bê tông")
