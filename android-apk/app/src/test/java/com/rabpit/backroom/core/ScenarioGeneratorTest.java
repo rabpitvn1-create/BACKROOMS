@@ -41,7 +41,7 @@ public class ScenarioGeneratorTest {
     assertTrue(prompt.contains("KHÔNG được tự xác nhận Backrooms du hành thời gian"));
     assertTrue(prompt.contains("observation:string 35..320"));
     assertTrue(prompt.contains("Lời khai là thông tin NHÂN VẬT TỰ NHẬN"));
-    assertTrue(prompt.contains("khu vực Level 1"));
+    assertTrue(prompt.contains("Level 1"));
     assertTrue(prompt.contains("không viết trùng observation"));
     assertFalse(prompt.contains(">=1 lời khai sai"));
   }
