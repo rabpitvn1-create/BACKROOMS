@@ -24,7 +24,9 @@
   const heading=document.createElement('strong');heading.textContent='Chọn tương tác';
   const close=document.createElement('button');close.type='button';close.className='explorer-dialog-close';close.textContent='×';close.setAttribute('aria-label','Đóng lựa chọn');close.onclick=()=>dialog.close();
   header.append(heading,close);
-  const choices=document.createElement('div');choices.className='explorer-choice-list';dialog.append(header,choices);document.body.appendChild(dialog);
+  const choices=document.createElement('div');choices.className='explorer-choice-list';
+  const nextArea=document.createElement('section');nextArea.className='explorer-next-area-panel';nextArea.hidden=true;
+  dialog.append(header,choices,nextArea);document.body.appendChild(dialog);
   let preparing=false,failed=false;
   function writerPending(provider){
     const log=document.getElementById('log');if(!log)return;
@@ -55,10 +57,13 @@
   global.backroomSceneWriterProvider=()=>{if(preparing)writerPending();};
   function locked(){return busy||coreUnavailable||!!state.pendingEncounter||!!(state.combat&&state.combat.active);}
   function open(kind){
-    if(locked())return;choices.replaceChildren();
+    if(locked())return;choices.replaceChildren();nextArea.replaceChildren();nextArea.hidden=true;
     const scene=state.scene;if(!scene)return;
     (scene.availableActions||[]).filter(a=>a.kind===kind).forEach(a=>{
-      const b=document.createElement('button');b.type='button';b.textContent=a.label;
+      const isNextArea=kind==='MOVE'&&(a.targetId==='next'||a.targetId.startsWith('node:'));
+      const b=document.createElement('button');b.type='button';
+      b.textContent=a.label;
+      if(isNextArea)b.className='explorer-next-area-option';
       b.onclick=()=>{
         if(locked())return;
         // Capture the exact versioned Core choice; a stale popup is rejected by Core.
@@ -66,7 +71,9 @@
         dialog.close();busy=true;appendActionPending(a.label);refresh();
         try{Android.submitSceneAction(JSON.stringify(state),JSON.stringify(command));}
         catch(e){global.backroomError('Không gửi được hành động tới Core.');}
-      };choices.appendChild(b);
+      };
+      if(isNextArea){nextArea.appendChild(b);nextArea.hidden=false;}
+      else choices.appendChild(b);
     });
     dialog.showModal();
   }
