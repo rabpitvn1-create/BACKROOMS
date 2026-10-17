@@ -146,6 +146,11 @@ class MiniMapRuntimeTest {
     assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.validate(lying,"0",1) }
     val impossible=script();impossible.getJSONArray("interactions").getJSONObject(0).put("requires",JSONObject("{\"op\":\"HAS\",\"id\":\"answer_red\"}"))
     assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.validate(impossible,"0",1) }
+    val guessable=script()
+    guessable.getJSONArray("interactions").getJSONObject(3).put("requires",JSONObject("""{"op":"TRUE"}"""))
+    assertEquals("answer_without_observed_proof", assertThrows(IllegalArgumentException::class.java) {
+      MiniMapScenario.validate(guessable,"0",1)
+    }.message)
     val injected=script().put("eval","grantItem()")
     assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.validate(injected,"0",1) }
     assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.parse("[".repeat(13)+"]".repeat(13)) }
