@@ -15,7 +15,7 @@ function runtime(scene={}){
       querySelectorAll(selector){
         const found=[];function walk(node){
           for(const child of node.children){
-            if(selector.startsWith('.')&&String(child.className||'').split(/\\s+/).includes(selector.slice(1))||
+            if(selector.startsWith('.')&&String(child.className||'').split(/\s+/).includes(selector.slice(1))||
               selector==='[data-scene-preparing="1"]'&&child.attributes['data-scene-preparing']==='1')found.push(child);
             walk(child);
           }
