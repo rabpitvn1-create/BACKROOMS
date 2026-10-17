@@ -82,7 +82,7 @@ object MiniMapRuntime {
       else if ((1..9).all { index -> p.getJSONArray("completed").let { entries ->
           (0 until entries.length()).any { entries.getInt(it) == index }
         } }) LevelRouteRegistry.exits(current.id).forEach { destination ->
-          add("MOVE", "node:$destination", "Rời ${current.name} → ${LevelRouteRegistry.node(destination).name}")
+          add("MOVE", "node:$destination", "Tiến vào khu vực kế tiếp.")
         }
     }
     return out
