@@ -142,6 +142,12 @@ class MiniMapRuntimeTest {
     assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.validate(onlyThree,"0",1) }
     val disconnected=script();disconnected.getJSONArray("rooms").getJSONObject(1).put("adjacentRoomIds",JSONArray().put("witness"))
     assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.validate(disconnected,"0",1) }
+    val machineCodes=script()
+    machineCodes.getJSONArray("facts").getJSONObject(0)
+      .put("value","mau_khoa_do").put("values",JSONArray().put("mau_khoa_do").put("xanh"))
+    assertEquals("fact_human_value", assertThrows(IllegalArgumentException::class.java) {
+      MiniMapScenario.validate(machineCodes,"0",1)
+    }.message)
     val lying=script();lying.getJSONArray("interactions").getJSONObject(2).getJSONObject("effect").put("value","đỏ")
     assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.validate(lying,"0",1) }
     val impossible=script();impossible.getJSONArray("interactions").getJSONObject(0).put("requires",JSONObject("{\"op\":\"HAS\",\"id\":\"answer_red\"}"))
