@@ -28,6 +28,22 @@ object MiniMapScenario {
     val proseWithoutCanonTitles = allowedEnglishCanonTitles.replace(value, " ")
     require(!mixedLanguageWords.containsMatchIn(proseWithoutCanonTitles)) { "scene_language_mixed" }
   }
+  // Only reject unambiguous location-name mistakes. Grammar and meaning still
+  // belong to the writer; a broad Vietnamese word blacklist would reject valid Canon.
+  private val roomActionStart = Regex(
+    """^(?:nghe|lắng nghe|nhìn|quan sát|tìm|kiểm tra|khám phá|chọn|bước vào|đi tới)\s+""",
+    RegexOption.IGNORE_CASE
+  )
+  private val genericLocationStarts = setOf("phòng", "hành", "góc", "khu", "ngách",
+    "buồng", "lối", "kho", "cầu", "đường")
+  private fun naturalRoomName(name: String) {
+    val words = name.trim().split(Regex("""\s+"""))
+    // A whole Title-Case generic phrase is not how Vietnamese names ordinary rooms.
+    // Canon titles and proper names embedded after lowercase connectors stay valid.
+    val genericTitleCase = words.size >= 3 && words.first().lowercase() in genericLocationStarts &&
+      words.all { word -> word.firstOrNull()?.isUpperCase() == true }
+    require(!roomActionStart.containsMatchIn(name.trim()) && !genericTitleCase) { "scene_room_name" }
+  }
   // Scene-local prose must not describe a later level before Core moves to that node.
   fun canonBoundary(nodeId: String, prose: String) {
     if (nodeId != "0") return
@@ -98,6 +114,7 @@ object MiniMapScenario {
       fields(r, setOf("id", "name", "description", "adjacentRoomIds"))
       canonBoundary(nodeId, text(r, "name", 90)); canonBoundary(nodeId, text(r, "description", 600))
       vietnameseSceneLabel(r.getString("name")); vietnameseSceneLabel(r.getString("description"))
+      naturalRoomName(r.getString("name"))
       val adj = strings(r.getJSONArray("adjacentRoomIds")); require(adj.size in 1..6 && adj.distinct().size == adj.size)
       require(adj.all { it in roomIds && it != r.getString("id") }) { "graph_reference" }
       // Every movement has an unconditional return edge. No irreversible softlocks.
