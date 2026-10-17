@@ -1,3 +1,5 @@
+/* URLs in custom properties resolve at the consuming stylesheet. */
+#explorerControls,#explorerChoices{--ornate-frame:url('ui/backrooms-reference-frame-v2.png')}
 #explorerControls{padding:10px;background:#10171ce8;border:1px solid #57605c;border-radius:8px;color:#e2e7e1}
 #sceneJournal>p{margin:0 0 8px;font-size:13px;line-height:1.4}
 .explorer-buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
@@ -16,7 +18,7 @@
 #explorerControls .explorer-control-slot{position:relative;isolation:isolate;min-width:0}
 #explorerControls .explorer-control-slot button{display:block;width:100%;height:100%}
 #explorerControls .explorer-buttons button,#explorerChoices .explorer-choice-list button{
-  position:relative;isolation:isolate;border:1px solid #9c8c5c;
+  position:relative;isolation:isolate;border:1px solid transparent;
   background:linear-gradient(145deg,#1d2628,#11191c);color:#e6d9af;
   padding:16px 13px;min-height:58px;font-weight:750
 }
@@ -65,9 +67,9 @@
 #explorerControls,#explorerControls .explorer-buttons button,
 #explorerChoices,#explorerChoices .explorer-choice-list button{border-radius:0!important}
 #explorerChoices{
-  border:26px solid transparent;
-  border-image:var(--ornate-frame) var(--ornate-slice) / 26px / 0 stretch;
+  border:40px solid transparent;
+  border-image:var(--ornate-frame) var(--ornate-slice) / 40px / 0 stretch;
   padding:8px
 }
 #explorerChoices::after{content:none}
-#explorerChoices .explorer-choice-list{max-height:calc(min(78vh,640px) - 164px)}
+#explorerChoices .explorer-choice-list{max-height:calc(min(78vh,640px) - 192px)}

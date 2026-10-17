@@ -10,7 +10,7 @@ const verifier=path.join(__dirname,'../verify-explorer-controls.mjs');
 function fixture(t){
   const assets=fs.mkdtempSync(path.join(os.tmpdir(),'packaged-composer-'));
   t.after(()=>fs.rmSync(assets,{recursive:true,force:true}));
-  for(const file of ['index.html','explorer-controls.js','explorer-controls.css','ui/ornate-frame-v1.css']){
+  for(const file of ['index.html','explorer-controls.js','explorer-controls.css','ui/ornate-frame-v1.css','ui/backrooms-reference-frame-v2.png']){
     fs.mkdirSync(path.dirname(path.join(assets,file)),{recursive:true});
     fs.copyFileSync(path.join(source,file),path.join(assets,file));
   }
@@ -32,4 +32,10 @@ test('APK Explorer contract rejects stale packaged styles',t=>{
   const assets=fixture(t);fs.appendFileSync(path.join(assets,'explorer-controls.css'),'\n/* stale payload */');
   const result=verify(assets);
   assert.notEqual(result.status,0);assert.match(result.stderr,/differs from source: explorer-controls.css/);
+});
+
+test('APK Explorer contract rejects a missing reference frame PNG',t=>{
+  const assets=fixture(t);fs.unlinkSync(path.join(assets,'ui/backrooms-reference-frame-v2.png'));
+  const result=verify(assets);
+  assert.notEqual(result.status,0);assert.match(result.stderr,/backrooms-reference-frame-v2.png/);
 });
