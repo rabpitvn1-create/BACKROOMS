@@ -96,19 +96,21 @@ object CoreClientProjection {
     if (MiniMapRuntime.STATE in state.world) {
       val progress = MiniMapRuntime.progress(state)
       val currentMap = "${progress.getString("nodeId")}:${progress.getInt("index")}"
+      val endingComplete = progress.optBoolean("endingComplete", false)
       // Presentation owns its log, but completed puzzle dialogue must not travel
       // into another mini-map. Preserve untagged global/canonical narration.
       out.optJSONArray("log")?.let { oldLog ->
         val kept = JSONArray()
         for (i in 0 until oldLog.length()) {
           val entry = oldLog.optJSONObject(i)
-          if (entry != null && (!entry.has("sceneMap") || entry.optString("sceneMap") == currentMap))
+          if (entry != null && (!entry.has("sceneMap") ||
+              (!endingComplete && entry.optString("sceneMap") == currentMap)))
             kept.put(entry)
         }
         out.put("log", kept)
       }
       out.put("scene", MiniMapRuntime.publicView(state))
-      state.world[MiniMapRuntime.RECEIPT]?.let { receipt ->
+      if (!endingComplete) state.world[MiniMapRuntime.RECEIPT]?.let { receipt ->
         val r = JSONObject(receipt)
         val log = out.optJSONArray("log") ?: JSONArray().also { out.put("log", it) }
         if ((0 until log.length()).none { log.optJSONObject(it)?.optString("sceneActionId") == r.getString("actionId") }) {
