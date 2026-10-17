@@ -73,3 +73,9 @@
 }
 #explorerChoices::after{content:none}
 #explorerChoices .explorer-choice-list{max-height:calc(min(78vh,640px) - 192px)}
+
+/* Inference is derived by Core from observed evidence; keep it visually separate. */
+#sceneJournal .scene-inference{margin:12px 0 4px;padding:10px 12px;
+ border-left:3px solid #b78c4f;background:rgba(184,151,86,.07);line-height:1.5}
+#sceneJournal .scene-inference strong{display:block;color:#e4c688;margin-bottom:6px;font-size:13px}
+#sceneJournal .scene-inference p{margin:0;color:#d0d5cf;font-size:12px;white-space:pre-wrap}
