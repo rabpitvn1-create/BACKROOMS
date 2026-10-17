@@ -51,6 +51,11 @@ public class ScenarioGeneratorTest {
     // A size guard catches accidental reintroduction of verbose duplicated advice,
     // but correctness still depends on the schema and proof requirements below.
     assertTrue(prompt.length() < 7000);
+    assertTrue(prompt.contains("TÊN ĐỊA ĐIỂM:"));
+    assertTrue(prompt.contains("Hành lang có góc khuất"));
+    assertTrue(prompt.contains("Phòng có dây điện hở"));
+    assertTrue(prompt.contains("không chơi chữ"));
+    assertTrue(prompt.contains("tương tác SEARCH"));
     assertEquals(prompt.indexOf("INPUT="), prompt.lastIndexOf("INPUT="));
     for (String rule : new String[]{
       "4..12 phòng", "2..12 fact", "4..36", "0..12 NPC",
