@@ -7,7 +7,9 @@
   const row=document.createElement('div');row.className='explorer-buttons';
   const buttons={};
   Object.entries({MOVE:'Di chuyển',SEARCH:'Tìm kiếm',TALK:'Giao tiếp'}).forEach(([kind,label])=>{
-    const b=document.createElement('button');b.type='button';b.textContent=label;b.onclick=()=>open(kind);buttons[kind]=b;row.appendChild(b);
+    const slot=document.createElement('div');slot.className='explorer-control-slot';
+    const b=document.createElement('button');b.type='button';b.textContent=label;b.onclick=()=>open(kind);
+    buttons[kind]=b;slot.appendChild(b);row.appendChild(slot);
   });
   const retry=document.createElement('button');retry.type='button';retry.textContent='Thử lại';retry.onclick=()=>{
     const scene=state&&state.scene;if(!scene||busy)return;
