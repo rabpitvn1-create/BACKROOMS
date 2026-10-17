@@ -92,6 +92,27 @@ class MiniMapRuntimeTest {
     assertEquals("investigation", MiniMapScenario.validate(canonicalEntity, "0", 1).getString("id"))
   }
 
+  @Test fun roomNamesArePlacesNotActionCommandsOrTitleCaseWordSalad() {
+    for (bad in listOf("Hành Lang Góc Khuyết", "Phòng Dây Điện Hở", "Nghe Âm Huỳnh Quang")) {
+      val scene = script()
+      scene.getJSONArray("rooms").getJSONObject(0).put("name", bad)
+      assertEquals(bad, "scene_room_name", assertThrows(IllegalArgumentException::class.java) {
+        MiniMapScenario.validate(scene, "0", 1)
+      }.message)
+    }
+    for (natural in listOf("Hành lang có góc khuất", "Phòng có dây điện hở",
+      "Hành lang đèn huỳnh quang kêu rè", "Góc tường gần Hollow Grasper",
+      "Lối rẽ gần Manila Room")) {
+      val scene = script()
+      scene.getJSONArray("rooms").getJSONObject(0).put("name", natural)
+      assertEquals(natural, "investigation", MiniMapScenario.validate(scene, "0", 1).getString("id"))
+    }
+    // The check applies to room names only, not player actions.
+    val scene = script()
+    scene.getJSONArray("interactions").getJSONObject(0).put("label", "Nghe tiếng đèn kêu rè")
+    assertEquals("investigation", MiniMapScenario.validate(scene, "0", 1).getString("id"))
+  }
+
   @Test fun currentLevelZeroRejectsScenesThatPreviewLevelOne() {
     val concreteExit = script()
     concreteExit.getJSONArray("rooms").getJSONObject(0).put("name", "Lối ra vùng bê tông")
