@@ -3,15 +3,15 @@
   const bar=document.getElementById('playerActionBar'),form=document.getElementById('form');
   const journal=document.getElementById('sceneJournal'),room=document.getElementById('sceneJournalRoom'),objective=document.getElementById('sceneJournalObjective'),records=document.getElementById('sceneJournalRecords'),inference=document.getElementById('sceneJournalInference');
   if(!bar||!form||!journal||!room||!objective||!records)return;
-  const panel=document.createElement('section');panel.id='explorerControls';panel.setAttribute('aria-label','Khám phá');
+  const panel=document.createElement('section');panel.id='explorerControls';panel.setAttribute('aria-label','Explore');
   const row=document.createElement('div');row.className='explorer-buttons';
   const buttons={};
-  Object.entries({MOVE:'Di chuyển',SEARCH:'Tìm kiếm',TALK:'Giao tiếp'}).forEach(([kind,label])=>{
+  Object.entries({MOVE:'Move',SEARCH:'Search',TALK:'Talk'}).forEach(([kind,label])=>{
     const slot=document.createElement('div');slot.className='explorer-control-slot';
     const b=document.createElement('button');b.type='button';b.textContent=label;b.onclick=()=>open(kind);
     buttons[kind]=b;slot.appendChild(b);row.appendChild(slot);
   });
-  const retry=document.createElement('button');retry.type='button';retry.textContent='Thử lại';retry.onclick=()=>{
+  const retry=document.createElement('button');retry.type='button';retry.textContent='Retry';retry.onclick=()=>{
     const scene=state&&state.scene;if(!scene||busy)return;
     busy=true;refresh();
     if(!scene.pendingActionId)writerPending();
@@ -19,10 +19,10 @@
     catch(e){global.backroomError('Không gửi được yêu cầu tới Core.');}
   };
   panel.append(row,retry);bar.appendChild(panel);
-  const dialog=document.createElement('dialog');dialog.id='explorerChoices';dialog.setAttribute('aria-label','Chọn tương tác');
+  const dialog=document.createElement('dialog');dialog.id='explorerChoices';dialog.setAttribute('aria-label','Choose Interaction');
   const header=document.createElement('div');header.className='explorer-dialog-header';
-  const heading=document.createElement('strong');heading.textContent='Chọn tương tác';
-  const close=document.createElement('button');close.type='button';close.className='explorer-dialog-close';close.textContent='×';close.setAttribute('aria-label','Đóng lựa chọn');close.onclick=()=>dialog.close();
+  const heading=document.createElement('strong');heading.textContent='Choose Interaction';
+  const close=document.createElement('button');close.type='button';close.className='explorer-dialog-close';close.textContent='×';close.setAttribute('aria-label','Close choices');close.onclick=()=>dialog.close();
   header.append(heading,close);
   const choices=document.createElement('div');choices.className='explorer-choice-list';
   const nextArea=document.createElement('section');nextArea.className='explorer-next-area-panel';nextArea.hidden=true;
@@ -34,7 +34,7 @@
     if(!pending){
       pending=document.createElement('article');pending.className='message gm pending scene-generation-pending';
       pending.setAttribute('data-scene-preparing','1');pending.setAttribute('data-pending','1');
-      const role=document.createElement('div');role.className='role';role.textContent='BIÊN KỊCH';
+      const role=document.createElement('div');role.className='role';role.textContent='SCENE WRITER';
       const line=document.createElement('div');line.className='text';
       const indicator=document.createElement('div');indicator.className='gm-thinking';indicator.setAttribute('role','status');
       const mark=document.createElement('img');mark.src='provider-logos/gemini.svg';mark.alt='';mark.className='scene-provider-logo';
