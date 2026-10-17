@@ -1000,17 +1000,19 @@ public class MainActivity extends Activity {
     return new JSONObject().put("reply", packet.getString("reply")).toString();
   }
 
-  private String scenarioTransport(String key, String prompt) throws Exception {
+  private String scenarioTransport(String key, String prompt, boolean outline) throws Exception {
     long start = System.nanoTime();
     DiagnosticLog.timing(MainActivity.this, "scenario.prompt", 0L, prompt.length());
     try {
       JSONObject config = new JSONObject().put("responseMimeType", "application/json")
-        .put("maxOutputTokens", 10000).put("thinkingConfig", new JSONObject().put("thinkingLevel", geminiThinkingLevel(0)));
+        .put("maxOutputTokens", outline ? 2500 : 10000)
+        .put("thinkingConfig", new JSONObject().put("thinkingLevel", geminiThinkingLevel(0)));
       JSONObject body = new JSONObject().put("contents", new JSONArray().put(new JSONObject()
         .put("role", "user").put("parts", new JSONArray().put(new JSONObject().put("text", prompt)))))
         .put("generationConfig", config);
       JSONObject response = new JSONObject(postJsonGeminiMatrix(
-        "https://generativelanguage.googleapis.com/v1beta/models/" + geminiModelChain()[0] + ":generateContent", key, body, 30000));
+        "https://generativelanguage.googleapis.com/v1beta/models/" + geminiModelChain()[0] + ":generateContent",
+        key, body, outline ? 30000 : 60000));
       JSONObject candidate = response.getJSONArray("candidates").getJSONObject(0);
       if (!"STOP".equals(candidate.optString("finishReason"))) throw new Exception("scenario_incomplete");
       JSONArray parts = candidate.getJSONObject("content").getJSONArray("parts");
@@ -1436,9 +1438,12 @@ public class MainActivity extends Activity {
 
     @JavascriptInterface public void prepareScene(String stateJson) {
       io.execute(() -> {
+        String[] lastFailure = {""};
+        String[] phaseName = {"outline"};
         try {
           for (int phase = 0; phase < 2; phase++) {
             JSONObject request = new JSONObject(requireGameCore().sceneGenerationRequest());
+            phaseName[0] = request.getString("kind");
             if ("ready".equals(request.getString("kind"))) break;
             JSONObject canonView = new JSONObject(requireGameCore().currentClientState("{}"));
             request.put("canonEnvironment", com.rabpit.backroom.core.knowledge.KnowledgeContextEngine.build(
@@ -1446,19 +1451,31 @@ public class MainActivity extends Activity {
             emit("backroomProvider", "Gemini");
             emit("backroomSceneWriterProvider", "Gemini");
             String raw = scenarioGenerator.generate(geminiKeys(), request,
-              (key, prompt) -> scenarioTransport(key, prompt),
+              (key, prompt) -> scenarioTransport(key, prompt, "outline".equals(request.getString("kind"))),
               prompt -> {
                 DiagnosticLog.record("scenario.fallback", "gehihi");
                 emit("backroomProvider", "Gehihi");
                 emit("backroomSceneWriterProvider", "Gehihi");
                 return gehihiScenarioText(prompt);
+              },
+              (provider, category, code) -> {
+                // Category and code are strictly fixed or validator-owned, never raw API text.
+                lastFailure[0] = provider + ":" + category + ":" + code;
+                DiagnosticLog.record("scenario.attempt_failed", phaseName[0] + ":" + lastFailure[0]);
               });
             requireGameCore().acceptSceneGeneration(request.getString("token"), raw);
           }
           emit("backroomTurn", requireGameCore().currentClientState(stateJson));
         } catch (Exception error) {
-          DiagnosticLog.record("scenario.failed", error.getClass().getSimpleName());
-          emit("backroomError", "Gemini và Gehihi chưa tạo được mini-map hợp lệ (mạng/quota/schema). Tiến trình giữ nguyên. Nhấn Thử lại.");
+          String failure = lastFailure[0];
+          String category = failure.contains(":validation:") ? "JSON/câu đố không hợp lệ" :
+            failure.contains(":transport:") ? "không nhận đủ phản hồi từ nhà cung cấp" :
+            "lỗi chuẩn bị kịch bản";
+          // Keep diagnostics useful without embedding provider bodies, keys or prompts.
+          DiagnosticLog.record("scenario.failed", phaseName[0] + ":" +
+            (failure.isEmpty() ? "internal:" + error.getClass().getSimpleName() : failure));
+          emit("backroomError", "Tạo " + ("outline".equals(phaseName[0]) ? "đề cương" : "mini-map")
+            + " thất bại: " + category + ". Tiến trình giữ nguyên. Nhấn Thử lại.");
         }
       });
     }
