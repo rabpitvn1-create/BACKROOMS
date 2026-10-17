@@ -4,7 +4,7 @@
 
 - Quyết định cập nhật sau nghiệm thu APK: **mỗi exact Canon node có 10 mini-map riêng**, thay mapping gộp 10 mini/parent trước đó.
 - Level 0 mini 1..10 đều ở node `0`; hoàn tất mini 10 và đến đúng exit room mới mở `0.1`/Dullness/Epsilon/LS-2 theo registry.
-- Mỗi sublevel và khu phụ cũng có outline, script, tiến trình 1..10 riêng. Mọi cạnh chuyển node, kể cả lối quay lại, đều dùng gate hoàn thành node. Quay lại node đã chơi thì khôi phục tiến trình/script đã đóng băng, không khởi tạo lại.
+- **Tất cả** Canon node đều có đúng 10 mini-map độc lập: Level chính, mọi sublevel, mọi khu phụ (AREA) và khu đặc biệt (SPECIAL), bao gồm Dullness/Epsilon/LS-2, Manila Room, The Torment và Red Rooms. Mỗi mini-map là một phân đoạn cần giải khóa, bên trong có 4–12 khu vực/phòng phục vụ giải đố hoặc nhiệm vụ. Mọi cạnh chuyển node, kể cả lối quay lại, đều dùng gate hoàn thành node. Quay lại node đã chơi thì khôi phục tiến trình/script đã đóng băng, không khởi tạo lại.
 - Chuỗi bắt buộc `0 → 0.1 → 0.2 → 0.5 → 0.7 → Manila → Torment → Red Rooms → 1` không thay cạnh hoặc bỏ node.
 - Level 3: cả 10 mini neo node `3`; người chơi chọn Exit sang `4` hoặc `6` sau hoàn thành.
 - Level 6 mini 10 hoàn thành: chờ ending, không thêm Level 7 hoặc tuyên bố thoát Backrooms.
