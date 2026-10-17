@@ -19,9 +19,24 @@ public final class ScenarioGenerator {
     return generate(keys, request, transport, fallback, null);
   }
 
+  private static final java.util.Set<String> SAFE_CODES = new java.util.HashSet<>(java.util.Arrays.asList(
+    "scenario_incomplete", "scenario_json", "scenario_fields", "scenario_id",
+    "scenario_text", "scenario_count", "scenario_duplicate_id", "scenario_integer",
+    "scenario_too_large", "scenario_too_deep", "scenario_trailing_json", "scenario_node",
+    "scenario_canon_identity", "outline_route", "outline_dependency", "script_route",
+    "graph_reference", "graph_return_edge", "graph_disconnected",
+    "npc_room", "npc_name_required", "npc_duplicate_name", "npc_period_diversity",
+    "npc_talk_binding", "npc_search_binding", "npc_without_interaction",
+    "fact_domain", "fact_human_value", "claim_truth_policy", "predicate_reference",
+    "predicate_operator", "scene_observation_quality", "scene_observation_missing",
+    "scene_duplicate_observation", "puzzle_unsolvable_or_empty",
+    "answer_without_evidence", "answer_without_observed_proof", "puzzle_requires_two_inferences"
+  ));
   private static String safeCode(Exception error) {
     String message = error.getMessage();
-    return message != null && message.matches("[a-z][a-z0-9_]{2,60}") ? message : "invalid_output";
+    if (message != null && SAFE_CODES.contains(message)) return message;
+    if (message != null && message.matches("http_(?:400|401|403|404|408|429|500|502|503|504)")) return message;
+    return "invalid_output";
   }
   private static void report(FailureReporter reporter, String provider, String category, String code) {
     if (reporter != null) reporter.report(provider, category, code);
