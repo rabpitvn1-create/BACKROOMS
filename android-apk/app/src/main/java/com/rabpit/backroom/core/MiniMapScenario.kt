@@ -64,7 +64,7 @@ object MiniMapScenario {
     require(index in 1..10 && int(raw, "schemaVersion") == SCHEMA && int(raw, "levelNumber") == node.parent && int(raw, "index") == index)
     id(raw); text(raw, "objective", 400)
     require(raw.getString("nodeAnchor") == nodeId) { "script_route" }
-    val rooms = list(raw, "rooms", 3, 12); val roomIds = rooms.map { it.getString("id") }.toSet()
+    val rooms = list(raw, "rooms", 4, 12); val roomIds = rooms.map { it.getString("id") }.toSet()
     require(id(raw, "entryRoomId") in roomIds && id(raw, "exitRoomId") in roomIds)
     rooms.forEach { r ->
       fields(r, setOf("id", "name", "description", "adjacentRoomIds"))
