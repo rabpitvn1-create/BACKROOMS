@@ -136,6 +136,18 @@ object MiniMapRuntime {
     return reasoning + next
   }
 
+  private fun publicRecords(s: JSONObject, p: JSONObject): JSONArray {
+    val interactions = MiniMapScenario.objects(s.getJSONArray("interactions")).associateBy { it.getString("id") }
+    return JSONArray().apply {
+      MiniMapScenario.objects(p.getJSONArray("records")).forEach { record ->
+        val action = interactions[record.getString("id")]
+        val displayed = MiniMapScenario.copy(record)
+        if (action != null) displayed.put("text", MiniMapScenario.effectText(s, action).first)
+        put(displayed)
+      }
+    }
+  }
+
   fun publicView(state: GameState): JSONObject {
     val p = progress(state); val s = script(state)
     val out = JSONObject().put("miniIndex", p.getInt("index")).put("parentLevel", p.getInt("parent"))
@@ -147,6 +159,8 @@ object MiniMapRuntime {
         LevelRouteRegistry.exits(p.getString("nodeId")).isNotEmpty())
     if (s != null) {
       out.put("objective", s.getString("objective"))
+      // Re-project saved receipts from script data; never expose internal fact enum IDs.
+      out.put("records", publicRecords(s, p))
       out.put("temporaryInference", temporaryInference(state, s, p))
       val r = room(s, p)
       out.put("room", JSONObject().put("id", r.getString("id")).put("name", r.getString("name")).put("description", r.getString("description")))
