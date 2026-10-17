@@ -216,7 +216,7 @@ class MiniMapRuntimeTest {
     assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.validateOutline(swapped,"0") }
     assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.validate(script(0,1,"0.1"),"0",1) }
     assertTrue(LevelRouteRegistry.exits("6").none { LevelRouteRegistry.node(it).parent==7 })
-    assertEquals(setOf("4","6"),LevelRouteRegistry.exits("3").toSet())
+    assertEquals(listOf("4"),LevelRouteRegistry.exits("3"))
   }
   private fun outline(nodeId: String) = JSONObject().put("schemaVersion",3)
     .put("levelNumber",LevelRouteRegistry.node(nodeId).parent).put("nodeAnchor",nodeId).put("entries",JSONArray().apply {
@@ -261,18 +261,23 @@ class MiniMapRuntimeTest {
   private fun solvedState(level: Int, index: Int, nodeId: String = level.toString()): GameState {
     val state=state(level,index,nodeId);val p=MiniMapRuntime.progress(state);val s=MiniMapRuntime.script(state)!!
     p.put("accepted",JSONArray(MiniMapScenario.objects(s.getJSONArray("interactions")).filter { MiniMapScenario.effectText(s,it).second }.map { it.getString("id") }))
-    p.put("completed",JSONArray().apply { (1 until index).forEach { put(JSONObject().put("nodeId",nodeId).put("parent",level).put("index",it).put("objective","Đã giải")) } })
+    p.put("completed",JSONArray().apply { (1 until index).forEach { put(it) } })
     return state.copy(world=state.world+(MiniMapRuntime.STATE to p.toString()))
   }
-  @Test fun tenthMapUnlocksOnlyRegistryEdgesAndLevelSixWaitsForEnding() {
-    val repo=MemorySave(solvedState(3,10));val core=facade(repo)
-    val exits=MiniMapScenario.objects(MiniMapRuntime.actions(repo.state)).map { it.getString("targetId") }.filter { it.startsWith("node:") }
-    assertEquals(setOf("node:4","node:6"),exits.toSet())
-    apply(core,repo,"node:6")
-    assertEquals(6,MiniMapRuntime.progress(repo.state).getInt("parent"));assertEquals(1,MiniMapRuntime.progress(repo.state).getInt("index"))
-    val end=solvedState(6,10)
+  @Test fun tenthMapUnlocksOnlyNextNodeAndEndingRequiresLevelSixSublevel() {
+    val repo = MemorySave(solvedState(3,10)); val core = facade(repo)
+    val exits = MiniMapScenario.objects(MiniMapRuntime.actions(repo.state))
+      .map { it.getString("targetId") }.filter { it.startsWith("node:") }
+    assertEquals(listOf("node:4"), exits)
+    apply(core, repo, "node:4")
+    assertEquals("4", MiniMapRuntime.node(repo.state).id)
+    assertEquals(1, MiniMapRuntime.progress(repo.state).getInt("index"))
+    assertFalse(MiniMapRuntime.publicView(solvedState(6,10)).getBoolean("awaitingEnding"))
+    val end = solvedState(6,10,"6.1")
     assertTrue(MiniMapRuntime.publicView(end).getBoolean("awaitingEnding"))
-    assertFalse(MiniMapScenario.objects(MiniMapRuntime.actions(end)).any { it.optString("targetId")=="node:7" })
+    assertTrue(LevelRouteRegistry.exits("6.1").isEmpty())
+    assertFalse(MiniMapScenario.objects(MiniMapRuntime.actions(end))
+      .any { it.getString("targetId").startsWith("node:") })
   }
   @Test fun unfinishedNodeExposesOnlyRoomsAndRejectsForgedCrossNodeCommandsWithoutRng() {
     for (index in 1..9) {
@@ -330,15 +335,20 @@ class MiniMapRuntimeTest {
     }
   }
 
-  @Test fun levelZeroHasTheConfirmedIrreversibleSequenceIncludingThreeAreas() {
+  @Test fun everyCanonNodeHasExactlyOneForwardDestinationExceptTheEnding() {
     val chain = listOf("0", "0.1", "0.2", "0.5", "0.7",
-      "dullness", "epsilon", "ls_2", "manila_room", "the_torment", "red_rooms", "1")
+      "dullness", "epsilon", "ls_2", "manila_room", "the_torment", "red_rooms",
+      "1", "1.2", "1.5", "traders_vault", "base_alpha",
+      "2", "office_space_el3a", "3", "4", "office_market",
+      "5", "5.1", "6", "6.1")
     for (index in 0 until chain.lastIndex) {
       val from = chain[index]
       val to = chain[index + 1]
       assertEquals(listOf(to), LevelRouteRegistry.exits(from))
       assertFalse(LevelRouteRegistry.canMove(to, from))
     }
+    assertEquals(chain.size, LevelRouteRegistry.size())
+    assertTrue(LevelRouteRegistry.exits(chain.last()).isEmpty())
     val repo = MemorySave(solvedState(0, 10))
     val core = facade(repo)
     val staleAction = choice(repo.state, "room:lab")
