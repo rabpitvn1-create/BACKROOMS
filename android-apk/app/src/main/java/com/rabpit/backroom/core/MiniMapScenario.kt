@@ -15,7 +15,7 @@ object MiniMapScenario {
     RegexOption.IGNORE_CASE
   )
   // Scene-local prose must not describe a later level before Core moves to that node.
-  private fun canonBoundary(nodeId: String, prose: String) {
+  fun canonBoundary(nodeId: String, prose: String) {
     if (nodeId != "0") return
     val restricted = listOf("level 1", "level-1", "level one", "vùng bê tông",
       "khu bê tông", "giao thoa kiến trúc", "dầm thép lộ thiên",
