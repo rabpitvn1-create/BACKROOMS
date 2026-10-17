@@ -20,8 +20,13 @@ object MiniMapScenario {
   private val mixedLanguageWords = Regex(
     """(?iu)\b(?:down|up|floor|ceiling|wall|corner|room|hall|hallway|door|window|exit|entrance|zone|area|loop|fake|false|wet|dark|light|left|right|passage|corridor|stairs|staircase|broken|hidden)\b"""
   )
+  private val allowedEnglishCanonTitles = Regex(
+    """(?iu)\b(?:manila room|parking zone|predatory window)\b"""
+  )
   private fun vietnameseSceneLabel(value: String) {
-    require(!mixedLanguageWords.containsMatchIn(value)) { "scene_language_mixed" }
+    // Proper Canon level/entity titles can remain English inside Vietnamese prose.
+    val proseWithoutCanonTitles = allowedEnglishCanonTitles.replace(value, " ")
+    require(!mixedLanguageWords.containsMatchIn(proseWithoutCanonTitles)) { "scene_language_mixed" }
   }
   // Scene-local prose must not describe a later level before Core moves to that node.
   fun canonBoundary(nodeId: String, prose: String) {
