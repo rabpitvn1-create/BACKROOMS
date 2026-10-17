@@ -6,27 +6,48 @@ import org.json.JSONObject;
 /** Scenario-only quota/circuit state. Shares transport and configured keys, never GM state. */
 public final class ScenarioGenerator {
   public interface Transport { String generate(String key, String prompt) throws Exception; }
+  public interface Fallback { String generate(String prompt) throws Exception; }
   private final long[] cooldown = new long[5];
   private int rotation;
+
+  // The existing API is kept for callers that do not configure a secondary writer.
   public synchronized String generate(String[] keys, JSONObject request, Transport transport) throws Exception {
+    return generate(keys, request, transport, null);
+  }
+
+  private String validated(String raw, JSONObject request) throws Exception {
+    JSONObject parsed = MiniMapScenario.INSTANCE.parse(raw);
+    if ("outline".equals(request.getString("kind")))
+      MiniMapScenario.INSTANCE.validateOutline(parsed, request.getString("nodeAnchor"));
+    else
+      MiniMapScenario.INSTANCE.validate(parsed, request.getString("nodeAnchor"), request.getInt("index"));
+    return parsed.toString();
+  }
+
+  public synchronized String generate(String[] keys, JSONObject request, Transport transport, Fallback fallback) throws Exception {
+    String prompt = prompt(request);
     int count = Math.min(5, keys.length);
     int attempts = 0;
-    String prompt = prompt(request);
     for (int offset = 0; offset < count && attempts < 2; offset++) {
       int lane = (rotation + offset) % count;
       if (keys[lane] == null || keys[lane].trim().isEmpty() || cooldown[lane] > System.currentTimeMillis()) continue;
       attempts++;
       try {
-        String raw = transport.generate(keys[lane], prompt);
-        JSONObject parsed = MiniMapScenario.INSTANCE.parse(raw);
-        if ("outline".equals(request.getString("kind")))
-          MiniMapScenario.INSTANCE.validateOutline(parsed, request.getString("nodeAnchor"));
-        else MiniMapScenario.INSTANCE.validate(parsed, request.getString("nodeAnchor"), request.getInt("index"));
+        String result = validated(transport.generate(keys[lane], prompt), request);
         rotation = (lane + 1) % count;
-        return parsed.toString();
+        return result;
       } catch (Exception error) {
         cooldown[lane] = System.currentTimeMillis() + 60_000L;
-        // Provider messages may contain request bodies/credentials. Expose only a fixed error.
+        // Never include provider payloads or credentials in user-visible errors.
+      }
+    }
+    // Gehihi is a scenario-only fallback, not a substitute GM for story turns.
+    // Exactly one attempt; the same strict Core validator applies to both providers.
+    if (fallback != null) {
+      try {
+        return validated(fallback.generate(prompt), request);
+      } catch (Exception error) {
+        throw new IllegalStateException("Gemini và Gehihi đều chưa tạo được mini-map hợp lệ. Tiến trình giữ nguyên; nhấn Thử lại.");
       }
     }
     throw new IllegalStateException("Biên kịch chưa sẵn sàng (quota/mạng/schema). Tiến trình giữ nguyên; thử lại sau một phút.");
@@ -47,7 +68,7 @@ public final class ScenarioGenerator {
     }
     return intro + "Sinh một mini-map, không sinh lại outline, không viết lời kể dài. "
       + "Đúng schemaVersion=4; levelNumber,index,nodeAnchor lấy INPUT. Tối đa 48000 ký tự. Schema chính xác: "
-      + "{schemaVersion:3,id:snake_case,levelNumber:int,index:int,nodeAnchor:string,objective:string<=400,entryRoomId:id,exitRoomId:id,"
+      + "{schemaVersion:4,id:snake_case,levelNumber:int,index:int,nodeAnchor:string,objective:string<=400,entryRoomId:id,exitRoomId:id,"
       + "rooms:[{id,name:string<=90,description:string<=600,adjacentRoomIds:[id]}],"
       + "npcs:[{id,name:string<=90,originPeriod:string<=100,role:string<=120,purpose:string<=220,description:string<=350,roomId:id}],"
       + "facts:[{id,label:string<=90,value:string,values:[2..5 giá trị chuỗi khác nhau gồm value]}],"
