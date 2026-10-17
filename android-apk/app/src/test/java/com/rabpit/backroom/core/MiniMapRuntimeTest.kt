@@ -8,17 +8,20 @@ import java.security.SecureRandom
 
 class MiniMapRuntimeTest {
   private fun script(level: Int = 0, index: Int = 1, nodeId: String = level.toString()) = MiniMapScenario.parse("""
-    {"schemaVersion":2,"id":"investigation","levelNumber":$level,"index":$index,"nodeAnchor":"${nodeId}",
+    {"schemaVersion":3,"id":"investigation","levelNumber":$level,"index":$index,"nodeAnchor":"${nodeId}",
     "objective":"Đối chiếu dấu hiệu và lời khai để xác định màu khóa, hướng van.","entryRoomId":"hall","exitRoomId":"hall",
     "rooms":[{"id":"hall","name":"Hành lang","description":"Một bảng điều khiển có hai hàng lựa chọn.","adjacentRoomIds":["lab","witness","alcove"]},
     {"id":"lab","name":"Kho hồ sơ","description":"Tủ hồ sơ và một mảnh giấy.","adjacentRoomIds":["hall"]},
     {"id":"witness","name":"Phòng trực","description":"Một người gác đang chờ.","adjacentRoomIds":["hall"]},
     {"id":"alcove","name":"Hốc tường","description":"Một góc phòng để quan sát.","adjacentRoomIds":["hall"]}],
+    "npcs":[{"id":"guard_npc","name":"Người gác","role":"Nhân chứng trong phòng trực",
+    "purpose":"Cung cấp lời khai để người chơi kiểm chứng bằng hồ sơ",
+    "description":"Một người đang đứng cạnh bàn trực.","roomId":"witness"}],
     "facts":[{"id":"color","label":"Màu khóa","value":"đỏ","values":["đỏ","xanh"]},{"id":"valve","label":"Hướng van","value":"trái","values":["trái","phải"]}],
     "interactions":[
     {"id":"paper","kind":"SEARCH","roomId":"lab","label":"Đọc hồ sơ","requires":{"op":"TRUE"},"effect":{"type":"CLUE","factId":"color"}},
     {"id":"mark","kind":"SEARCH","roomId":"hall","label":"Đối chiếu dấu van","requires":{"op":"HAS","id":"paper"},"effect":{"type":"EVIDENCE","factId":"valve"}},
-    {"id":"guard","kind":"TALK","roomId":"witness","label":"Người gác: hỏi về màu khóa","requires":{"op":"TRUE"},"effect":{"type":"CLAIM","factId":"color","value":"xanh","policy":"LIE"}},
+    {"id":"guard","kind":"TALK","roomId":"witness","npcId":"guard_npc","label":"Hỏi về màu khóa","requires":{"op":"TRUE"},"effect":{"type":"CLAIM","factId":"color","value":"xanh","policy":"LIE"}},
     {"id":"answer_red","kind":"SEARCH","roomId":"hall","label":"Chọn màu đỏ","requires":{"op":"AND","args":[{"op":"HAS","id":"mark"},{"op":"HAS","id":"guard"}]},"effect":{"type":"ANSWER","factId":"color","value":"đỏ"}},
     {"id":"answer_blue","kind":"SEARCH","roomId":"hall","label":"Chọn màu xanh","requires":{"op":"AND","args":[{"op":"HAS","id":"mark"},{"op":"HAS","id":"guard"}]},"effect":{"type":"ANSWER","factId":"color","value":"xanh"}},
     {"id":"answer_left","kind":"SEARCH","roomId":"hall","label":"Chọn van trái","requires":{"op":"HAS","id":"answer_red"},"effect":{"type":"ANSWER","factId":"valve","value":"trái"}},
@@ -78,6 +81,77 @@ class MiniMapRuntimeTest {
     assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.parse("[".repeat(13)+"]".repeat(13)) }
     assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.parse(" ".repeat(48001)) }
   }
+  private fun noNpcScript(): JSONObject {
+    val scene = script().put("npcs", JSONArray())
+    val interactions = scene.getJSONArray("interactions")
+    for (i in interactions.length() - 1 downTo 0) {
+      if (interactions.getJSONObject(i).getString("id") == "guard") interactions.remove(i)
+    }
+    MiniMapScenario.objects(interactions).filter {
+      it.getString("id") in setOf("answer_red", "answer_blue")
+    }.forEach { it.put("requires", JSONObject("""{"op":"HAS","id":"mark"}""")) }
+    return scene
+  }
+
+  @Test fun puzzlesWithoutNpcOrClaimsAreValidAndPlayable() {
+    val scene = MiniMapScenario.validate(noNpcScript(), "0", 1)
+    assertEquals(0, scene.getJSONArray("npcs").length())
+    assertTrue(MiniMapScenario.objects(scene.getJSONArray("interactions")).all { it.getString("kind") == "SEARCH" })
+    val base = state()
+    val repo = MemorySave(base.copy(world = base.world +
+      (MiniMapRuntime.scriptKey(MiniMapRuntime.progress(base)) to scene.toString())))
+    val core = facade(repo)
+    apply(core, repo, "room:lab"); apply(core, repo, "paper")
+    apply(core, repo, "room:hall"); apply(core, repo, "mark")
+    apply(core, repo, "answer_red"); apply(core, repo, "answer_left")
+    assertTrue(MiniMapRuntime.complete(repo.state))
+    assertEquals(0, MiniMapRuntime.publicView(repo.state).getJSONArray("npcs").length())
+    assertTrue(MiniMapScenario.objects(MiniMapRuntime.actions(repo.state)).any {
+      it.getString("targetId") == "next"
+    })
+  }
+
+  @Test fun multipleNpcHaveStableIdentityRoomAndActualTalkActions() {
+    val scene = script()
+    scene.getJSONArray("npcs").put(JSONObject()
+      .put("id", "technician").put("name", "Người kỹ thuật")
+      .put("role", "Người trông phòng máy")
+      .put("purpose", "Đối chiếu hướng van với vật chứng")
+      .put("description", "Đứng bên bộ điều khiển.")
+      .put("roomId", "lab"))
+    scene.getJSONArray("interactions").put(JSONObject()
+      .put("id", "tech_claim").put("kind", "TALK").put("npcId", "technician")
+      .put("roomId", "lab").put("label", "Hỏi về hướng van")
+      .put("requires", JSONObject("""{"op":"TRUE"}"""))
+      .put("effect", JSONObject("""{"type":"CLAIM","factId":"valve","value":"trái","policy":"TRUTH"}""")))
+    val validated = MiniMapScenario.validate(scene, "0", 1)
+    val base = state()
+    val repo = MemorySave(base.copy(world = base.world +
+      (MiniMapRuntime.scriptKey(MiniMapRuntime.progress(base)) to validated.toString())))
+    val core = facade(repo)
+    val witnessView = MiniMapRuntime.publicView(repo.state)
+    assertEquals(0, witnessView.getJSONArray("npcs").length())
+    assertFalse(MiniMapScenario.objects(MiniMapRuntime.actions(repo.state)).any { it.getString("targetId") == "guard" })
+    apply(core, repo, "room:witness")
+    assertEquals("guard_npc", MiniMapRuntime.publicView(repo.state).getJSONArray("npcs").getJSONObject(0).getString("id"))
+    apply(core, repo, "guard")
+    assertTrue(MiniMapRuntime.progress(repo.state).getJSONArray("records").length() > 0)
+    apply(core, repo, "room:hall"); apply(core, repo, "room:lab")
+    val labView = MiniMapRuntime.publicView(repo.state)
+    assertEquals("technician", labView.getJSONArray("npcs").getJSONObject(0).getString("id"))
+    assertFalse(labView.toString().contains("Đối chiếu hướng van với vật chứng"))
+    assertTrue(MiniMapScenario.objects(MiniMapRuntime.actions(repo.state)).any {
+      it.getString("targetId") == "tech_claim" && it.getString("label").contains("Người kỹ thuật")
+    })
+    apply(core, repo, "tech_claim")
+    val badRoom = script()
+    badRoom.getJSONArray("interactions").getJSONObject(2).put("roomId", "lab")
+    assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.validate(badRoom, "0", 1) }
+    val orphan = script()
+    orphan.getJSONArray("npcs").getJSONObject(0).put("id", "someone_else")
+    assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.validate(orphan, "0", 1) }
+  }
+
   @Test fun publicViewNeverContainsAnswerKeyOrTruthPolicy() {
     val view=MiniMapRuntime.publicView(state()).toString()
     assertFalse(view.contains("facts"));assertFalse(view.contains("LIE"));assertFalse(view.contains("factId"));assertFalse(view.contains("answer_red"))
@@ -144,7 +218,7 @@ class MiniMapRuntimeTest {
     assertTrue(LevelRouteRegistry.exits("6").none { LevelRouteRegistry.node(it).parent==7 })
     assertEquals(setOf("4","6"),LevelRouteRegistry.exits("3").toSet())
   }
-  private fun outline(nodeId: String) = JSONObject().put("schemaVersion",2)
+  private fun outline(nodeId: String) = JSONObject().put("schemaVersion",3)
     .put("levelNumber",LevelRouteRegistry.node(nodeId).parent).put("nodeAnchor",nodeId).put("entries",JSONArray().apply {
       (1..10).forEach { put(JSONObject().put("index",it).put("nodeAnchor",nodeId).put("beat","Điều tra").put("objective","Đối chiếu dữ kiện").put("dependencyRefs",JSONArray())) }
     })
