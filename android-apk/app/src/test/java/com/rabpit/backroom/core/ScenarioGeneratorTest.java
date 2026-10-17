@@ -24,6 +24,14 @@ public class ScenarioGeneratorTest {
     });
     assertEquals(10,new JSONObject(out).getJSONArray("entries").length());assertEquals(1,calls.get());
   }
+  @Test public void scriptPromptAllowsNoNpcMultipleNpcAndNoForcedLies() throws Exception {
+    String prompt = ScenarioGenerator.prompt(request().put("kind", "script"));
+    assertTrue(prompt.contains("npcs:"));
+    assertTrue(prompt.contains("npcs=[]"));
+    assertTrue(prompt.contains("NHIỀU NPC"));
+    assertTrue(prompt.contains("KHÔNG bắt buộc có NPC hay lời khai sai"));
+    assertFalse(prompt.contains(">=1 lời khai sai"));
+  }
   @Test public void quotaAndMalformedResponsesHaveBoundedAttemptsAndIndependentCircuit() throws Exception {
     AtomicInteger calls=new AtomicInteger();ScenarioGenerator generator=new ScenarioGenerator();
     String[] keys={"secret-1","secret-2"};
