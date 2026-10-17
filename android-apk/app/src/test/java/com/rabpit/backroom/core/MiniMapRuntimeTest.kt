@@ -518,8 +518,9 @@ class MiniMapRuntimeTest {
   @Test fun tenthMapUnlocksOnlyNextNodeAndEndingRequiresLevelSixSublevel() {
     val repo = MemorySave(solvedState(3,10)); val core = facade(repo)
     val exits = MiniMapScenario.objects(MiniMapRuntime.actions(repo.state))
-      .map { it.getString("targetId") }.filter { it.startsWith("node:") }
-    assertEquals(listOf("node:4"), exits)
+      .filter { it.getString("targetId").startsWith("node:") }
+    assertEquals(listOf("node:4"), exits.map { it.getString("targetId") })
+    assertEquals("Tiến vào khu vực kế tiếp.", exits.single().getString("label"))
     apply(core, repo, "node:4")
     assertEquals("4", MiniMapRuntime.node(repo.state).id)
     assertEquals(1, MiniMapRuntime.progress(repo.state).getInt("index"))
