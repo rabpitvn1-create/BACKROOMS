@@ -221,8 +221,12 @@ public class ScenarioGeneratorTest {
       prompt -> outline(),
       (provider, category, code) -> issues.add(provider + ":" + category + ":" + code));
     assertEquals(10, new JSONObject(result).getJSONArray("entries").length());
-    assertEquals(1, issues.size());
+    // Unclassified exceptions must not poison the key lane. Both bounded
+    // attempts may run, and neither diagnostic may expose a provider payload.
+    assertEquals(2, issues.size());
     assertEquals("gemini:transport:invalid_output", issues.get(0));
+    assertEquals("gemini:transport:invalid_output", issues.get(1));
+    assertFalse(String.join("|", issues).contains("secret"));
   }
 
   @Test public void gehihiFailuresUseSpecificSafeCodesWithoutExposingProviderPayload() throws Exception {
