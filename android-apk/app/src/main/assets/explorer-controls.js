@@ -17,9 +17,37 @@
   };
   panel.append(row,retry);bar.appendChild(panel);
   const dialog=document.createElement('dialog');dialog.id='explorerChoices';dialog.setAttribute('aria-label','Chọn tương tác');
-  const close=document.createElement('button');close.type='button';close.textContent='Đóng';close.onclick=()=>dialog.close();
-  const choices=document.createElement('div');dialog.append(close,choices);document.body.appendChild(dialog);
+  const header=document.createElement('div');header.className='explorer-dialog-header';
+  const heading=document.createElement('strong');heading.textContent='Chọn tương tác';
+  const close=document.createElement('button');close.type='button';close.className='explorer-dialog-close';close.textContent='×';close.setAttribute('aria-label','Đóng lựa chọn');close.onclick=()=>dialog.close();
+  header.append(heading,close);
+  const choices=document.createElement('div');choices.className='explorer-choice-list';dialog.append(header,choices);document.body.appendChild(dialog);
   let preparing=false,failed=false;
+  function writerPending(provider){
+    const log=document.getElementById('log');if(!log)return;
+    let pending=log.querySelector('[data-scene-preparing="1"]');
+    if(!pending){
+      pending=document.createElement('article');pending.className='message gm pending scene-generation-pending';
+      pending.setAttribute('data-scene-preparing','1');pending.setAttribute('data-pending','1');
+      const role=document.createElement('div');role.className='role';role.textContent='BIÊN KỊCH';
+      const line=document.createElement('div');line.className='text';
+      const indicator=document.createElement('div');indicator.className='gm-thinking';indicator.setAttribute('role','status');
+      const mark=document.createElement('img');mark.src='provider-logos/gemini.svg';mark.alt='';mark.className='scene-provider-logo';
+      const label=document.createElement('span');label.className='gm-thinking-name';
+      indicator.append(mark,label);line.append(indicator);pending.append(role,line);log.appendChild(pending);
+    }
+    const name=provider==='Gehihi'?'Gehihi':'Gemini';
+    const indicator=pending.querySelector('.gm-thinking');
+    if(indicator)indicator.setAttribute('aria-label',name+' đang tạo mini-map');
+    const label=pending.querySelector('.gm-thinking-name');if(label)label.textContent=name+' đang tạo mini-map…';
+    const mark=pending.querySelector('.scene-provider-logo');if(mark)mark.hidden=name!=='Gemini';
+    log.scrollTop=log.scrollHeight;
+  }
+  function clearWriterPending(){
+    const log=document.getElementById('log');
+    if(log)log.querySelectorAll('[data-scene-preparing="1"]').forEach(n=>n.remove());
+  }
+  global.backroomSceneWriterProvider=provider=>{if(preparing)writerPending(provider);};
   function locked(){return busy||coreUnavailable||!!state.pendingEncounter||!!(state.combat&&state.combat.active);}
   function open(kind){
     if(locked())return;choices.replaceChildren();
@@ -48,14 +76,15 @@
     retry.hidden=!(scene.generationNeeded||scene.pendingActionId);retry.disabled=busy||coreUnavailable;
     if(scene.generationNeeded&&!scene.pendingActionId&&!locked()&&!preparing&&!failed){
       preparing=true;busy=true;retry.disabled=true;
+      writerPending('Gemini');
       try{Android.prepareScene(JSON.stringify(state));}catch(e){global.backroomError('Không thể chuẩn bị mini-map.');}
     }
   }
   // The combat system still owns its direct action form; Explorer has no text input.
   form.addEventListener('submit',e=>{if(!(state.combat&&state.combat.active)){e.preventDefault();e.stopImmediatePropagation();}},true);
   const turn=global.backroomTurn,error=global.backroomError;
-  global.backroomTurn=function(json){preparing=false;failed=false;if(turn)turn(json);refresh();};
-  global.backroomError=function(message){preparing=false;failed=true;if(error)error(message);refresh();};
+  global.backroomTurn=function(json){preparing=false;failed=false;clearWriterPending();if(turn)turn(json);refresh();};
+  global.backroomError=function(message){preparing=false;failed=true;clearWriterPending();if(error)error(message);refresh();};
   global.backroomSyncExplorer=refresh;
   refresh();
 })(window);
