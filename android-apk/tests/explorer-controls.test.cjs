@@ -37,12 +37,16 @@ function runtime(scene={}){
   return {ctx,calls,panel,dialog,buttons:panel.children[0].children.map(slot=>slot.children[0]),retry:panel.children[1],journal:elements.sceneJournal,room:elements.sceneJournalRoom,objective:elements.sceneJournalObjective,records:elements.sceneJournalRecords,log:elements.log};
 }
 test('three controls enable only Core-provided actions; popups do not submit or roll',()=>{
-  const r=runtime();assert.deepEqual(r.buttons.map(b=>b.textContent),['Di chuyển','Tìm kiếm','Giao tiếp']);
+  const r=runtime();assert.deepEqual(r.buttons.map(b=>b.textContent),['Move','Search','Talk']);
   assert.equal(r.buttons[1].disabled,true);assert.equal(r.buttons[2].disabled,true);
   assert.equal(r.panel.children[0].children.length,3);
   assert.ok(r.panel.children[0].children.every(slot=>slot.className==='explorer-control-slot'&&slot.children.length===1));
   for(let i=0;i<4;i++){r.buttons[0].onclick();r.dialog.children[0].children[1].onclick();}
   assert.equal(r.calls.length,0);
+  assert.equal(r.dialog.children[0].children[0].textContent,'Choose Interaction');
+  assert.equal(r.dialog.attributes['aria-label'],'Choose Interaction');
+  assert.equal(r.dialog.children[0].children[1].attributes['aria-label'],'Close choices');
+  assert.equal(r.retry.textContent,'Retry');
   assert.equal(r.dialog.children[0].children[1].textContent,'×');
   assert.equal(r.dialog.children[0].children[1].open,undefined);
 });
