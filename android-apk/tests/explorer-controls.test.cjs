@@ -17,11 +17,13 @@ function runtime(scene={}){
     appendActionPending(){},backroomTurn(json){ctx.state=JSON.parse(json);ctx.busy=false;},backroomError(){ctx.busy=false;}};
   ctx.window=ctx;vm.runInNewContext(source,ctx);
   const panel=elements.playerActionBar.children[0],dialog=document.body.children[0];
-  return {ctx,calls,panel,dialog,buttons:panel.children[0].children,retry:panel.children[1],journal:elements.sceneJournal,room:elements.sceneJournalRoom,objective:elements.sceneJournalObjective,records:elements.sceneJournalRecords};
+  return {ctx,calls,panel,dialog,buttons:panel.children[0].children.map(slot=>slot.children[0]),retry:panel.children[1],journal:elements.sceneJournal,room:elements.sceneJournalRoom,objective:elements.sceneJournalObjective,records:elements.sceneJournalRecords};
 }
 test('three controls enable only Core-provided actions; popups do not submit or roll',()=>{
   const r=runtime();assert.deepEqual(r.buttons.map(b=>b.textContent),['Di chuyển','Tìm kiếm','Giao tiếp']);
   assert.equal(r.buttons[1].disabled,true);assert.equal(r.buttons[2].disabled,true);
+  assert.equal(r.panel.children[0].children.length,3);
+  assert.ok(r.panel.children[0].children.every(slot=>slot.className==='explorer-control-slot'&&slot.children.length===1));
   for(let i=0;i<4;i++){r.buttons[0].onclick();r.dialog.children[0].children[1].onclick();}
   assert.equal(r.calls.length,0);
   assert.equal(r.dialog.children[0].children[1].textContent,'×');
@@ -70,8 +72,10 @@ test('unresolved puzzle offers an in-menu evidence hint without revealing an ans
 test('existing ornate frames and Gemini logo are used in Explorer controls',()=>{
   const css=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/explorer-controls.css'),'utf8');
   assert.match(css,/--ornate-frame/);
-  assert.match(css,/\.explorer-buttons button::after/);
+  assert.match(css,/\.explorer-control-slot::after/);
   assert.match(css,/#explorerChoices::after/);
+  assert.match(css,/\.explorer-control-slot::after\{[\s\S]*border-width:26px;border-image-width:26px/);
+  assert.match(css,/pointer-events:none/);
   assert.match(source,/provider-logos\/gemini\.svg/);
   assert.match(source,/backroomSceneWriterProvider/);
 });
