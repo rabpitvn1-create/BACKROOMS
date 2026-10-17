@@ -11,13 +11,12 @@ object MiniMapRuntime {
   const val RECEIPT = "scene.receipt"
   fun scriptKey(p: JSONObject) = "scene.script.${p.getString("nodeId")}.${p.getInt("index")}"
   fun outlineKey(p: JSONObject) = "scene.outline.${p.getString("nodeId")}"
-  fun nodeProgressKey(nodeId: String) = "scene.node.$nodeId"
   private fun freshProgress(runId: String, nodeId: String): JSONObject {
     val node = requireNotNull(LevelRouteRegistry.node(nodeId)) { "scene_node" }
     return JSONObject().put("runId", runId).put("nodeId", nodeId).put("parent", node.parent)
       .put("index", 1).put("version", 1).put("roomId", "")
       .put("accepted", JSONArray()).put("attempted", JSONArray()).put("records", JSONArray())
-      .put("completed", JSONArray()).put("history", JSONArray()).put("arrival", JSONArray())
+      .put("completed", JSONArray())
   }
   fun progress(state: GameState): JSONObject = state.world[STATE]?.let(::JSONObject)
     ?: freshProgress(state.metadata["story.runId"] ?: UUID.randomUUID().toString(), node(state).id)
@@ -71,12 +70,12 @@ object MiniMapRuntime {
     presentCharacters(state).forEach { character ->
       dialogueTopics.forEach { (topicId, label) -> add("TALK", "character:${character.id}:$topicId", "${character.name} · $label") }
     }
-    // All cross-node edges, including optional areas and return routes, require
-    // ten completed mini-maps in THIS exact node and the scene's actual exit room.
+    // The route is one-way: never offer a previous mini-map or Canon node.
+    // Cross-node transitions require all ten maps and the real exit room.
     if (complete(state) && r.getString("id") == script.getString("exitRoomId")) {
       if (p.getInt("index") < 10) add("MOVE", "next", "Sang mini-map ${p.getInt("index") + 1}/10")
-      else if ((1..9).all { index -> MiniMapScenario.objects(p.getJSONArray("completed")).any {
-          it.getString("nodeId") == current.id && it.getInt("index") == index
+      else if ((1..9).all { index -> p.getJSONArray("completed").let { entries ->
+          (0 until entries.length()).any { entries.getInt(it) == index }
         } }) LevelRouteRegistry.exits(current.id).forEach { destination ->
           add("MOVE", "node:$destination", "Rời ${current.name} → ${LevelRouteRegistry.node(destination).name}")
         }
@@ -88,9 +87,10 @@ object MiniMapRuntime {
     val out = JSONObject().put("miniIndex", p.getInt("index")).put("parentLevel", p.getInt("parent"))
       .put("nodeId", p.getString("nodeId")).put("nodeTitle", node(state).title())
       .put("sceneVersion", p.getInt("version")).put("availableActions", actions(state))
-      .put("records", p.getJSONArray("records")).put("previousObservations", previousObservations(p)).put("generationNeeded", s == null)
-      .put("awaitingEnding", p.getString("nodeId") == "6" && p.getInt("index") == 10 && complete(state))
-      .put("nodeExitUnlocked", p.getInt("index") == 10 && complete(state))
+      .put("records", p.getJSONArray("records")).put("generationNeeded", s == null)
+      .put("awaitingEnding", p.getString("nodeId") == "6.1" && p.getInt("index") == 10 && complete(state))
+      .put("nodeExitUnlocked", p.getInt("index") == 10 && complete(state) &&
+        LevelRouteRegistry.exits(p.getString("nodeId")).isNotEmpty())
     if (s != null) {
       out.put("objective", s.getString("objective"))
       val r = room(s, p)
@@ -102,16 +102,6 @@ object MiniMapRuntime {
     state.world[PENDING]?.let { raw -> out.put("pendingActionId", JSONObject(raw).getString("actionId")) }
     return out
   }
-  private fun previousObservations(p: JSONObject): JSONArray {
-    val previous = MiniMapScenario.objects(p.getJSONArray("history")).lastOrNull {
-      it.getInt("index") < p.getInt("index")
-    }
-    return previous?.getJSONArray("records") ?: p.getJSONArray("arrival")
-  }
-  private fun archive(p: JSONObject, s: JSONObject) {
-    p.getJSONArray("history").put(JSONObject().put("nodeId", p.getString("nodeId")).put("parent", p.getInt("parent")).put("index", p.getInt("index"))
-      .put("objective", s.getString("objective")).put("records", JSONArray(p.getJSONArray("records").toString())))
-  }
   fun generationRequest(state: GameState): JSONObject {
     check(!blocked(state)) { "scene_busy" }
     val p = progress(state); val outline = state.world[outlineKey(p)]
@@ -120,14 +110,10 @@ object MiniMapRuntime {
       .put("index", p.getInt("index")).put("nodeAnchor", p.getString("nodeId"))
       .apply {
         if (outline != null && kind == "script") {
-          put("outline", JSONObject(outline)); put("completed", p.getJSONArray("completed"))
-          put("previousOutcome", if (p.getInt("index") == 1) p.getJSONArray("arrival") else p.getJSONArray("records"))
-          val dependencies = MiniMapScenario.objects(JSONObject(outline).getJSONArray("entries"))[p.getInt("index") - 1].getJSONArray("dependencyRefs")
-          val wanted = (0 until dependencies.length()).map { dependencies.getInt(it) }.toSet()
-          put("dependencyOutcomes", JSONArray(MiniMapScenario.objects(p.getJSONArray("history")).filter {
-            it.getString("nodeId") == p.getString("nodeId") && it.getInt("index") in wanted
-          }.map { outcome -> JSONObject().put("index", outcome.getInt("index")).put("objective", outcome.getString("objective"))
-            .put("observations", JSONArray(MiniMapScenario.objects(outcome.getJSONArray("records")).takeLast(6))) }))
+          // Only the immutable plan and completed indices cross mini-map boundaries.
+          // Never send previous puzzle evidence, NPC statements, answers or records.
+          put("outline", JSONObject(outline))
+          put("completed", p.getJSONArray("completed"))
         }
       }
   }
@@ -143,7 +129,7 @@ object MiniMapRuntime {
     p.put("roomId", script.getString("entryRoomId")).put("accepted", JSONArray()).put("attempted", JSONArray()).put("records", JSONArray())
     return state.copy(world = state.world + mapOf(scriptKey(p) to script.toString(), STATE to p.toString()))
   }
-  data class Staged(val progress: JSONObject, val nodeId: String, val event: JSONObject, val label: String, val nodeProgress: Map<String, String>)
+  data class Staged(val progress: JSONObject, val nodeId: String, val event: JSONObject, val label: String, val discardKeys: Set<String>)
   fun stage(state: GameState, command: JSONObject): Staged {
     var p = progress(state); val s = requireNotNull(script(state)) { "scene_not_ready" }
     require(command.keys().asSequence().toSet() == setOf("actionId", "sceneVersion", "roomId", "kind", "targetId")) { "command_fields" }
@@ -153,7 +139,7 @@ object MiniMapRuntime {
     } ?: error("scene_choice_unavailable")
     val kind = command.getString("kind"); val target = command.getString("targetId")
     var nodeId = node(state).id
-    val nodeUpdates = mutableMapOf<String, String>()
+    val discardKeys = mutableSetOf<String>()
     val label = choice.getString("label")
     var line = label
     var dialogue: JSONObject? = null
@@ -162,27 +148,18 @@ object MiniMapRuntime {
       when {
         target.startsWith("room:") -> p.put("roomId", target.removePrefix("room:"))
         target == "next" -> {
-          archive(p, s)
-          p.getJSONArray("completed").put(JSONObject().put("nodeId", p.getString("nodeId")).put("parent", p.getInt("parent")).put("index", p.getInt("index")).put("objective", s.getString("objective")))
+          discardKeys += scriptKey(p)
+          p.getJSONArray("completed").put(p.getInt("index"))
           p.put("index", p.getInt("index") + 1).put("roomId", "")
+            .put("accepted", JSONArray()).put("attempted", JSONArray()).put("records", JSONArray())
         }
         target.startsWith("node:") -> {
           nodeId = target.removePrefix("node:")
-          // actions() already checked goal/index/exit/registry. Archive the source
-          // atomically with the transition, then initialize or resume the target node.
-          if (MiniMapScenario.objects(p.getJSONArray("completed")).none { it.getInt("index") == 10 }) {
-            archive(p, s)
-            p.getJSONArray("completed").put(JSONObject().put("nodeId", p.getString("nodeId"))
-              .put("parent", p.getInt("parent")).put("index", 10).put("objective", s.getString("objective")))
-          }
-          p.put("version", p.getInt("version") + 1)
-          nodeUpdates[nodeProgressKey(p.getString("nodeId"))] = p.toString()
-          val source = p
-          p = state.world[nodeProgressKey(nodeId)]?.let(::JSONObject)
-            ?: freshProgress(source.getString("runId"), nodeId).put("arrival", JSONArray(
-              MiniMapScenario.objects(source.getJSONArray("records")).takeLast(6)))
-          require(p.getString("runId") == source.getString("runId") && p.getString("nodeId") == nodeId) { "scene_node_cache" }
-
+          // All 10 maps must be finished before this one-way move can be offered.
+          // Discard the final puzzle and outline atomically on narration commit.
+          discardKeys += scriptKey(p)
+          discardKeys += outlineKey(p)
+          p = freshProgress(p.getString("runId"), nodeId)
         }
         else -> error("scene_move")
       }
@@ -208,8 +185,7 @@ object MiniMapRuntime {
       p.getJSONArray("records").put(JSONObject().put("id", target).put("kind", a.getJSONObject("effect").getString("type")).put("text", fact))
     }
     p.put("version", p.getInt("version") + 1)
-    // On transitions the previous observations are only for the next generator; they
-    // cannot satisfy a new puzzle. acceptGeneration resets them before activating it.
+    // A transition carries no solved puzzle records; only the fresh scene may produce new evidence.
     val nextScript = state.world[scriptKey(p)]?.let(::JSONObject)
     val roomPublic = if (nextScript != null && p.getString("roomId").isNotEmpty()) room(nextScript, p).let {
       JSONObject().put("name", it.getString("name")).put("description", it.getString("description"))
@@ -220,6 +196,6 @@ object MiniMapRuntime {
         authoredNpcs(nextScript, p.getString("roomId")) else JSONArray())
     if (authoredSpeaker != null) event.put("npc", authoredSpeaker)
     if (dialogue != null) event.put("dialogue", dialogue)
-    return Staged(p, nodeId, event, label, nodeUpdates)
+    return Staged(p, nodeId, event, label, discardKeys)
   }
 }
