@@ -23,6 +23,16 @@ class EntityCombatExpTest {
     assertTrue(result.reply.contains("+8 EXP"))
   }
 
+  @Test fun diepMinhAwardsTwentyFourTimesStandardEntityExp() {
+    val boss = defeated(CombatRuntime.start(levelState(0), "diep_minh"))
+    val ordinary = defeated(CombatRuntime.start(levelState(0), "hound"))
+    assertTrue(boss.entityDestroyed)
+    assertTrue(boss.state.metadata.filterKeys { it.startsWith("exp.awarded.") }.values.contains("48"))
+    assertTrue(boss.reply.contains("+48 EXP"))
+    assertTrue(ordinary.reply.contains("+2 EXP"))
+    assertEquals(1, boss.state.metadata.keys.count { it.startsWith("exp.awarded.") })
+  }
+
   @Test fun fractionalWorldRankDoesNotAdvanceFullLevelExpReward() {
     assertEquals(4, EntityExpRewards.expForRank(1_500_000L))
     try {
