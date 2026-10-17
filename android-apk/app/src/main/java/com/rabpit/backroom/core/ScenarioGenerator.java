@@ -43,6 +43,10 @@ public final class ScenarioGenerator {
     if (message != null && message.matches("http_(?:400|401|403|404|408|429|500|502|503|504)")) return message;
     return "invalid_output";
   }
+  /** Server outages/timeouts do not imply that a Gemini API key is unhealthy. */
+  private static boolean keyCooldownRequired(String code) {
+    return "http_401".equals(code) || "http_403".equals(code) || "http_429".equals(code);
+  }
   private static void report(FailureReporter reporter, String provider, String category, String code) {
     if (reporter != null) reporter.report(provider, category, code);
   }
@@ -94,8 +98,9 @@ public final class ScenarioGenerator {
       try {
         raw = transport.generate(keys[lane], attemptPrompt);
       } catch (Exception error) {
-        cooldown[lane] = System.currentTimeMillis() + 60_000L;
-        report(reporter, "gemini", "transport", safeCode(error));
+        String code = safeCode(error);
+        if (keyCooldownRequired(code)) cooldown[lane] = System.currentTimeMillis() + 60_000L;
+        report(reporter, "gemini", "transport", code);
         continue;
       }
       try {
