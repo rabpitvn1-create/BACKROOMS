@@ -202,7 +202,9 @@ body.game-menu-open{overflow:hidden}
   <h2 id="sceneJournalTitle">Nhật ký khám phá</h2>
   <p id="sceneJournalRoom"></p>
   <p id="sceneJournalObjective"></p>
-  <details open><summary>Manh mối và lời khai</summary><div id="sceneJournalRecords"></div></details>
+  <details open><summary>Manh mối và lời khai</summary><div id="sceneJournalRecords"></div>
+    <div class="scene-inference"><strong>Suy luận tạm thời</strong><p id="sceneJournalInference" aria-live="polite"></p></div>
+  </details>
 </section>
 <div class="card"><h2>Trạng thái</h2><div class="row"><b>Vị trí</b><span id="location"></span></div><div class="row"><b>Chế độ</b><span id="mode"></span></div><div class="row"><b>Nhân vật</b><span id="player"></span></div></div>
 <div class="card"><h2>Save / Load</h2><div class="actions"><button type="button" id="saveButton" onclick="save()">Lưu</button><button type="button" id="loadButton" onclick="load()">Tải</button><button type="button" id="newGameButton" class="wide" onclick="resetGame()">Bắt đầu lại từ đầu</button><button type="button" id="deleteSaveButton" class="wide danger" onclick="clearSave()">Xóa save trên máy</button></div></div>
