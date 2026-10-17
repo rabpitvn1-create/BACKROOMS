@@ -124,20 +124,8 @@ class MiniMapRuntimeTest {
       .put("roomId", "lab").put("label", "Hỏi về hướng van")
       .put("requires", JSONObject("""{"op":"TRUE"}"""))
       .put("effect", JSONObject("""{"type":"CLAIM","factId":"valve","value":"trái","policy":"TRUTH"}""")))
-    // A named NPC with an optional line should not clutter the scene.
-    assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.validate(scene, "0", 1) }
-    // Both NPCs now contribute dialogue required on the solution path.
-    MiniMapScenario.objects(scene.getJSONArray("interactions")).filter {
-      it.getString("id") in setOf("answer_left", "answer_right")
-    }.forEach { it.put("requires", JSONObject("""{"op":"AND","args":[{"op":"HAS","id":"answer_red"},{"op":"HAS","id":"tech_claim"}]}""")) }
+    // Useful optional dialogue is valid; a character need not be an unlock key.
     val validated = MiniMapScenario.validate(scene, "0", 1)
-    val overcrowded = MiniMapScenario.copy(scene)
-    overcrowded.getJSONArray("npcs").put(MiniMapScenario.copy(
-      overcrowded.getJSONArray("npcs").getJSONObject(1)).put("id", "unneeded_extra"))
-    val limitError = assertThrows(IllegalArgumentException::class.java) {
-      MiniMapScenario.validate(overcrowded, "0", 1)
-    }
-    assertEquals("scenario_count", limitError.message)
     val base = state()
     val repo = MemorySave(base.copy(world = base.world +
       (MiniMapRuntime.scriptKey(MiniMapRuntime.progress(base)) to validated.toString())))
@@ -163,6 +151,50 @@ class MiniMapRuntimeTest {
     val orphan = script()
     orphan.getJSONArray("npcs").getJSONObject(0).put("id", "someone_else")
     assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.validate(orphan, "0", 1) }
+  }
+
+  @Test fun twelveNpcIsTotalScriptCapacityNotSimultaneousRoomPopulation() {
+    val scene = script()
+    // Twelve stable characters spread among rooms; each has real TALK content.
+    val rooms = listOf("lab", "alcove", "witness")
+    for (i in 1..11) {
+      val id = "witness_$i"
+      val roomId = rooms[(i - 1) % rooms.size]
+      scene.getJSONArray("npcs").put(JSONObject()
+        .put("id", id).put("name", "Nhân chứng $i")
+        .put("role", "Người nắm thông tin").put("purpose", "Đưa lời khai có thể đối chiếu")
+        .put("description", "Một nhân chứng đang quan sát dấu vết.")
+        .put("roomId", roomId))
+      scene.getJSONArray("interactions").put(JSONObject()
+        .put("id", "talk_$i").put("kind", "TALK").put("npcId", id)
+        .put("roomId", roomId).put("label", "Hỏi về ký hiệu $i")
+        .put("requires", JSONObject("""{"op":"TRUE"}"""))
+        .put("effect", JSONObject("""{"type":"CLAIM","factId":"color","value":"đỏ","policy":"TRUTH"}""")))
+    }
+    val valid = MiniMapScenario.validate(scene, "0", 1)
+    assertEquals(12, valid.getJSONArray("npcs").length())
+    val base = state()
+    val scriptKey = MiniMapRuntime.scriptKey(MiniMapRuntime.progress(base))
+    val withCast = base.copy(world = base.world + (scriptKey to valid.toString()))
+    val shown = mutableSetOf<String>()
+    for (roomId in listOf("hall", "lab", "witness", "alcove")) {
+      val p = MiniMapRuntime.progress(withCast).put("roomId", roomId)
+      val inRoom = withCast.copy(world = withCast.world + (MiniMapRuntime.STATE to p.toString()))
+      val visible = MiniMapScenario.objects(MiniMapRuntime.publicView(inRoom).getJSONArray("npcs"))
+      assertTrue("Room $roomId must not show all NPCs", visible.size < 12)
+      assertTrue(visible.all { it.getString("id") !in shown })
+      shown += visible.map { it.getString("id") }
+    }
+    assertEquals(12, shown.size)
+    // A thirteenth NPC still violates the global mini-map cap, independent of room.
+    scene.getJSONArray("npcs").put(JSONObject()
+      .put("id", "extra_witness").put("name", "Nhân chứng thêm")
+      .put("role", "Người quan sát").put("purpose", "Đối chiếu dấu vết")
+      .put("description", "Đứng cạnh máy ghi âm.").put("roomId", "lab"))
+    val rejected = assertThrows(IllegalArgumentException::class.java) {
+      MiniMapScenario.validate(scene, "0", 1)
+    }
+    assertEquals("scenario_count", rejected.message)
   }
 
   @Test fun publicViewNeverContainsAnswerKeyOrTruthPolicy() {
