@@ -1473,6 +1473,11 @@ public class MainActivity extends Activity {
           if (!start.optBoolean("committed")) {
             JSONObject reply = new JSONObject(generateText(sceneWriterPrompt()));
             ProviderResponseContract.requireWriter(reply);
+            // Validate narration against the staged destination, not the old level.
+            // Failed prose must never be committed to Core or consume reserved rolls.
+            JSONObject stagedEvent = new JSONObject(requireGameCore().sceneNarrationContext());
+            com.rabpit.backroom.core.MiniMapScenario.INSTANCE.canonBoundary(
+              stagedEvent.getString("node"), reply.getString("reply"));
             requireGameCore().commitSceneAction(new JSONObject(command).getString("actionId"), reply.getString("reply"), stateJson);
           }
           String committedView = requireGameCore().currentClientState(stateJson);
