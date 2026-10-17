@@ -75,6 +75,16 @@ test('existing ornate frames and Gemini logo are used in Explorer controls',()=>
   assert.match(source,/provider-logos\/gemini\.svg/);
   assert.match(source,/backroomSceneWriterProvider/);
 });
+test('Gemini spark persists on GM messages and animates while response is pending',()=>{
+  const html=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/index.html'),'utf8');
+  assert.match(html,/gm-brand-spark' src='provider-logos\\/gemini\\.svg'/);
+  assert.match(html,/\.message\.gm\.pending \.gm-brand-spark\{animation:gm-thinking-pulse/);
+  assert.match(html,/gm-thinking' role='status' aria-label='Gehihi đang chuẩn bị câu trả lời'><img src='provider-logos\\/gemini\\.svg'/);
+  assert.match(html,/GAME MASTER/);
+  assert.match(html,/>BACKROOM TEXT GAME<\/div>/);
+  assert.match(html,/>TURN <strong id="turn"/);
+  assert.match(html,/id="gameMenuTitle">GAME MENU/);
+});
 test('Core-confirmed Lucia enables communication even without a scenario NPC topic',()=>{
   const r=runtime({availableActions:[{actionId:'r:0:8:TALK:character:lucia:introduce',sceneVersion:8,roomId:'hall',kind:'TALK',targetId:'character:lucia:introduce',label:'Lucia "Lục" · Giới thiệu và hỏi tên'}]});
   assert.equal(r.buttons[2].disabled,false);r.buttons[2].onclick();
