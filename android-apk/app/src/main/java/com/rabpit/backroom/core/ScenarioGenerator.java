@@ -61,7 +61,7 @@ public final class ScenarioGenerator {
     String lastValidationCode = null;
     // Two bounded Gemini calls at most; avoid penalizing a working API key
     // when a model produces malformed JSON or an invalid puzzle.
-    for (int offset = 0; offset < count && attempts < 2; offset++) {
+    for (int offset = 0; offset < (count == 1 ? 2 : count) && attempts < 2; offset++) {
       int lane = (rotation + offset) % count;
       if (keys[lane] == null || keys[lane].trim().isEmpty() || cooldown[lane] > System.currentTimeMillis()) continue;
       attempts++;
@@ -121,6 +121,12 @@ public final class ScenarioGenerator {
         + "Tất cả 10 mini-map thuộc CÙNG exact node INPUT.nodeAnchor, không chuyển node trong outline. levelNumber chỉ là Level cha để scaling. nodeAnchor theo thứ tự: " + anchors + ". INPUT=" + request;
     }
     return intro + "Sinh một mini-map, không sinh lại outline, không viết lời kể dài. "
+      + "Để giữ JSON đủ ngắn và kiểm tra được: ưu tiên 4 phòng (đồ thị sao với 1 phòng trung tâm nối 3 phòng lá, cạnh đối xứng), "
+      + "2 fact, 2 SEARCH lấy vật chứng khác factId, 4 SEARCH dạng ANSWER (mỗi fact có 1 đúng 1 sai), "
+      + "goal AND của 2 ANSWER đúng. Mỗi ANSWER đúng có requires HAS trỏ tới SEARCH chứng cứ cùng factId; "
+      + "hai lựa chọn của cùng một fact có requires giống nhau. "
+      + "NPC không bắt buộc; chỉ thêm NPC khi có vai trò/câu thoại cụ thể, và có thể tạo tới 12 NPC nếu câu chuyện cần. "
+      + "Ưu tiên JSON súc tích, không vượt giới hạn output tokens. Tránh tự làm câu đố phức tạp hơn hợp đồng. "
       + "Đúng schemaVersion=4; levelNumber,index,nodeAnchor lấy INPUT. Tối đa 48000 ký tự. Schema chính xác: "
       + "{schemaVersion:4,id:snake_case,levelNumber:int,index:int,nodeAnchor:string,objective:string<=400,entryRoomId:id,exitRoomId:id,"
       + "rooms:[{id,name:string<=90,description:string<=600,adjacentRoomIds:[id]}],"
