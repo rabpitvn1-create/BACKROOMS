@@ -124,7 +124,20 @@ class MiniMapRuntimeTest {
       .put("roomId", "lab").put("label", "Hỏi về hướng van")
       .put("requires", JSONObject("""{"op":"TRUE"}"""))
       .put("effect", JSONObject("""{"type":"CLAIM","factId":"valve","value":"trái","policy":"TRUTH"}""")))
+    // A named NPC with an optional line should not clutter the scene.
+    assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.validate(scene, "0", 1) }
+    // Both NPCs now contribute dialogue required on the solution path.
+    MiniMapScenario.objects(scene.getJSONArray("interactions")).filter {
+      it.getString("id") in setOf("answer_left", "answer_right")
+    }.forEach { it.put("requires", JSONObject("""{"op":"AND","args":[{"op":"HAS","id":"answer_red"},{"op":"HAS","id":"tech_claim"}]}""")) }
     val validated = MiniMapScenario.validate(scene, "0", 1)
+    val overcrowded = MiniMapScenario.copy(scene)
+    overcrowded.getJSONArray("npcs").put(MiniMapScenario.copy(
+      overcrowded.getJSONArray("npcs").getJSONObject(1)).put("id", "unneeded_extra"))
+    val limitError = assertThrows(IllegalArgumentException::class.java) {
+      MiniMapScenario.validate(overcrowded, "0", 1)
+    }
+    assertEquals("scenario_count", limitError.message)
     val base = state()
     val repo = MemorySave(base.copy(world = base.world +
       (MiniMapRuntime.scriptKey(MiniMapRuntime.progress(base)) to validated.toString())))
