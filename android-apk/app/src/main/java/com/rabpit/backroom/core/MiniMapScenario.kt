@@ -14,6 +14,15 @@ object MiniMapScenario {
     "^(?:npc(?:[ _-]*[0-9]+)?|người (?:gác|lạ|sống sót|kỹ thuật)(?: [0-9]+)?|nhân chứng(?: [0-9]+)?|guard(?: [0-9]+)?|witness(?: [0-9]+)?|survivor(?: [0-9]+)?)$",
     RegexOption.IGNORE_CASE
   )
+  // Generated Vietnamese scenery is not an excuse to splice English directions
+  // into room names (e.g. "Khu Trần Giả Vòng Down"). Canon proper names
+  // such as The Lobby, Hollow Grasper and Zenith Station remain unchanged.
+  private val mixedLanguageWords = Regex(
+    """(?iu)\b(?:down|up|floor|ceiling|wall|corner|room|hall|hallway|door|window|exit|entrance|zone|area|loop|fake|false|wet|dark|light|left|right|passage|corridor|stairs|staircase|broken|hidden)\b"""
+  )
+  private fun vietnameseSceneLabel(value: String) {
+    require(!mixedLanguageWords.containsMatchIn(value)) { "scene_language_mixed" }
+  }
   // Scene-local prose must not describe a later level before Core moves to that node.
   fun canonBoundary(nodeId: String, prose: String) {
     if (nodeId != "0") return
@@ -64,6 +73,7 @@ object MiniMapScenario {
       fields(e, setOf("index", "nodeAnchor", "beat", "objective", "dependencyRefs"))
       require(int(e, "index") == i + 1 && e.getString("nodeAnchor") == nodeId) { "outline_route" }
       canonBoundary(nodeId, text(e, "beat", 220)); canonBoundary(nodeId, text(e, "objective", 220))
+      vietnameseSceneLabel(e.getString("beat")); vietnameseSceneLabel(e.getString("objective"))
       val deps = e.getJSONArray("dependencyRefs")
       require(deps.length() <= i && (0 until deps.length()).all { d -> deps.get(d) is Int && deps.getInt(d) in 1..i }) { "outline_dependency" }
     }
@@ -75,12 +85,14 @@ object MiniMapScenario {
     val node = requireNotNull(LevelRouteRegistry.node(nodeId)) { "scenario_node" }
     require(index in 1..10 && int(raw, "schemaVersion") == SCHEMA && int(raw, "levelNumber") == node.parent && int(raw, "index") == index)
     id(raw); canonBoundary(nodeId, text(raw, "objective", 400))
+    vietnameseSceneLabel(raw.getString("objective"))
     require(raw.getString("nodeAnchor") == nodeId) { "script_route" }
     val rooms = list(raw, "rooms", 4, 12); val roomIds = rooms.map { it.getString("id") }.toSet()
     require(id(raw, "entryRoomId") in roomIds && id(raw, "exitRoomId") in roomIds)
     rooms.forEach { r ->
       fields(r, setOf("id", "name", "description", "adjacentRoomIds"))
       canonBoundary(nodeId, text(r, "name", 90)); canonBoundary(nodeId, text(r, "description", 600))
+      vietnameseSceneLabel(r.getString("name")); vietnameseSceneLabel(r.getString("description"))
       val adj = strings(r.getJSONArray("adjacentRoomIds")); require(adj.size in 1..6 && adj.distinct().size == adj.size)
       require(adj.all { it in roomIds && it != r.getString("id") }) { "graph_reference" }
       // Every movement has an unconditional return edge. No irreversible softlocks.
@@ -132,12 +144,14 @@ object MiniMapScenario {
           .getString("roomId") == a.getString("roomId")) { "npc_talk_binding" }
       } else require(!a.has("npcId")) { "npc_search_binding" }
       canonBoundary(nodeId, text(a, "label", 120))
+      vietnameseSceneLabel(a.getString("label"))
       require(!reservedNames.containsMatchIn(a.getString("label"))) { "scenario_canon_identity" }
       if (a.has("observation")) {
         val observation = text(a, "observation", 320)
         require(observation.trim().length >= 35 && observation.trim() != a.getString("label").trim() &&
           !Regex("[a-z]+(?:_[a-z0-9]+)+").containsMatchIn(observation)) { "scene_observation_quality" }
         canonBoundary(nodeId, observation)
+        vietnameseSceneLabel(observation)
       }
       predicate(a.getJSONObject("requires"), actionIds)
       val effect = a.getJSONObject("effect")
