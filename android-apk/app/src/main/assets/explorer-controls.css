@@ -11,7 +11,7 @@
 #playerActionBar{position:sticky;bottom:0;z-index:20;width:100%;padding-bottom:env(safe-area-inset-bottom)}
 #form .chat-avatar{display:none}
 
-/* Reuse the installed ornate-frame asset used by the GM log, without blocking taps. */
+/* Share the CSS square-knot frame with narrative, menu and combat panels. */
 #explorerControls{background:linear-gradient(145deg,#182022,#0d1316);border:1px solid #b5a16a66;border-radius:8px;padding:12px}
 #explorerControls .explorer-control-slot{position:relative;isolation:isolate;min-width:0}
 #explorerControls .explorer-control-slot button{display:block;width:100%;height:100%}
@@ -23,7 +23,7 @@
 #explorerControls .explorer-control-slot::after,#explorerChoices .explorer-choice-list button::after,
 #explorerChoices::after{
   content:'';position:absolute;inset:0;z-index:1;border:18px solid transparent;
-  border-image:var(--ornate-frame) 32% / 18px / 0 stretch;pointer-events:none
+  border-image:var(--ornate-frame) var(--ornate-slice) / 18px / 0 stretch;pointer-events:none
 }
 #explorerControls .explorer-control-slot::after{
   /* Match the visible 26px corners already used by message.gm::after. */
@@ -59,3 +59,15 @@
 @media(prefers-reduced-motion:reduce){
   #explorerControls button,#explorerChoices button{transition:none!important}
 }
+
+/* Keep the reference's square outline. A real dialog border remains visible
+   while the choice list scrolls; decorative button overlays never catch taps. */
+#explorerControls,#explorerControls .explorer-buttons button,
+#explorerChoices,#explorerChoices .explorer-choice-list button{border-radius:0!important}
+#explorerChoices{
+  border:26px solid transparent;
+  border-image:var(--ornate-frame) var(--ornate-slice) / 26px / 0 stretch;
+  padding:8px
+}
+#explorerChoices::after{content:none}
+#explorerChoices .explorer-choice-list{max-height:calc(min(78vh,640px) - 164px)}
