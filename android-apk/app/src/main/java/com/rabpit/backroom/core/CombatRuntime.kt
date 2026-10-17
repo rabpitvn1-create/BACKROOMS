@@ -1289,7 +1289,8 @@ object CombatRuntime {
     val persisted = encode(state, c.copy(phase = Phase.RESOLVED, entityCondition = EntityCondition.DESTROYED))
     val withPassive = if (leaderPassive) afterActiveLeaderTurn(persisted) else persisted
     val instanceId = if (queue.size == 1) c.encounterId else "${c.encounterId}:wave:$index"
-    val exp = EntityExpRewards.award(withPassive, instanceId, c.progressionRank, 1)
+    val exp = EntityExpRewards.award(withPassive, instanceId, c.progressionRank,
+      if (c.entityKey == DIEP_MINH_KEY) 24 else 1)
     val loot = OfflineEntityLoot.award(exp.state, instanceId, c.seed)
     val defeatNarrative = "${c.entityName} đã không còn sinh khí ngã xuống. Backrooms nuốt chửng lấy tử thi của nó vào nền."
     val resultText = "$log $defeatNarrative ${exp.text} ${loot.text}".trim()
