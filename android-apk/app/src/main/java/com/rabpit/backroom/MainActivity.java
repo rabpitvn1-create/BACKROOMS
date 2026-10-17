@@ -1016,14 +1016,31 @@ public class MainActivity extends Activity {
     DiagnosticLog.timing(MainActivity.this, "scenario.prompt", 0L, prompt.length());
     try {
       JSONObject config = new JSONObject().put("responseMimeType", "application/json")
-        .put("maxOutputTokens", outline ? 2500 : 10000)
-        .put("thinkingConfig", new JSONObject().put("thinkingLevel", geminiThinkingLevel(0)));
+        .put("maxOutputTokens", outline ? 2500 : 10000);
       JSONObject body = new JSONObject().put("contents", new JSONArray().put(new JSONObject()
         .put("role", "user").put("parts", new JSONArray().put(new JSONObject().put("text", prompt)))))
         .put("generationConfig", config);
-      JSONObject response = new JSONObject(postJsonGeminiMatrix(
-        "https://generativelanguage.googleapis.com/v1beta/models/" + geminiModelChain()[0] + ":generateContent",
-        key, body, outline ? 30000 : 60000));
+      JSONObject response = null;
+      HttpError missingModel = null;
+      String[] models = geminiModelChain();
+      for (int index = 0; index < models.length; index++) {
+        config.put("thinkingConfig", new JSONObject().put("thinkingLevel", geminiThinkingLevel(index)));
+        try {
+          response = new JSONObject(postJsonGeminiMatrix(
+            "https://generativelanguage.googleapis.com/v1beta/models/" + models[index] + ":generateContent",
+            key, body, outline ? 30000 : 60000));
+          break;
+        } catch (HttpError error) {
+          if (error.status != 404) throw error;
+          // A missing model is not a bad API key. Try the other configured models.
+          missingModel = error;
+          DiagnosticLog.record("scenario.model_not_found", "index=" + index);
+        }
+      }
+      if (response == null) {
+        if (missingModel != null) throw missingModel;
+        throw new Exception("scenario_model_unavailable");
+      }
       JSONObject candidate = response.getJSONArray("candidates").getJSONObject(0);
       if (!"STOP".equals(candidate.optString("finishReason"))) throw new Exception("scenario_incomplete");
       JSONArray parts = candidate.getJSONObject("content").getJSONArray("parts");
