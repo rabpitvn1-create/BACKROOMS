@@ -46,6 +46,21 @@ public class ProviderResponseContractTest {
     }
   }
 
+  @Test public void directWriterPreservesDecisionsAndNarrativeNotesButNeverStateOperations() throws Exception {
+    JSONObject input = new JSONObject().put("reply", "Dấu vết có thể thuộc về một thanh kiếm.")
+      .put("decision", new JSONObject().put("options", new JSONArray()
+        .put(new JSONObject().put("label", "Điều tra").put("intent", "INVESTIGATE"))
+        .put(new JSONObject().put("label", "Tránh xa").put("intent", "AVOID"))))
+      .put("continuity", new JSONArray().put(new JSONObject().put("kind", "SUSPICION").put("text", "Dấu vết")))
+      .put("state", new JSONObject().put("hp", 999)).put("ops", new JSONArray().put("spawn"));
+    JSONObject out = ProviderResponseContract.normalizeDirectWriter(input.toString());
+    assertEquals(2, out.getJSONObject("decision").getJSONArray("options").length());
+    assertEquals(1, out.getJSONArray("continuity").length());
+    assertFalse(out.has("state")); assertFalse(out.has("ops"));
+    assertThrows(IllegalArgumentException.class, () -> ProviderResponseContract.normalizeDirectWriter(
+      new JSONObject().put("reply", "Trang").put("decision", "invalid").toString()));
+  }
+
   @Test public void auditUsesItsOwnPassAndIssuesContract() throws Exception {
     ProviderResponseContract.requireAudit(new JSONObject().put("pass", true).put("issues", new JSONArray()));
     ProviderResponseContract.requireAudit(new JSONObject().put("pass", false).put("issues",

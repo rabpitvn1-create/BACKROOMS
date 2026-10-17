@@ -736,7 +736,14 @@ object KnowledgeContextEngine {
           "communication", "exploration", "iris", "syvial", "reunionPath",
           "survivorRegistry", "entityRegistry", "survivorsConfirmed", "entitiesConfirmedLocal",
           "entityEncounterKey", "currentLevel", "storyContinuity"
-        ).forEach { key -> if (flags.has(key)) continuity.put(key, flags.get(key)) }
+        ).forEach { key -> if (flags.has(key)) {
+          val value = flags.get(key)
+          // Reader memories are quoted narrative, not Core/Canon facts. Their bounded,
+          // uncertainty-preserving retrieval lives in ReaderRuntime.context instead.
+          if (key == "storyContinuity" && value is JSONObject)
+            continuity.put(key, JSONObject(value.toString()).apply { remove("narrativeNotes") })
+          else continuity.put(key, value)
+        } }
         if (continuity.length() > 0) out.put("continuity", continuity)
       }
       return clipped(out.toString(), 5200)

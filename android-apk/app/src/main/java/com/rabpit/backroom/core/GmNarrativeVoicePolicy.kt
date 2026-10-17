@@ -12,8 +12,7 @@ package com.rabpit.backroom.core
  * Nguyên tắc nền tảng (Game Core là nguồn sự thật duy nhất):
  * - GM chỉ kể lại sự kiện đã được Core xác nhận; không tự spawn Entity/NPC,
  *   không tự quyết Combat/loot/EXP/Inventory/vị trí thoát/chuyển Level/Party.
- * - Người chơi là chủ duy nhất của Cao Minh: GM không được tự quyết định các
- *   hành động quan trọng của Cao Minh vượt quá nội dung người chơi yêu cầu.
+ * - GM tự kể phần thường; người chơi giữ decision gates và quyền điều khiển Combat.
  */
 object GmNarrativeVoicePolicy {
 
@@ -88,11 +87,9 @@ object GmNarrativeVoicePolicy {
         |người sống sót thời nay...) phải nói năng tự nhiên theo xuất thân và thời đại
         |của họ — KHÔNG ép lời thoại của họ thành giọng cổ trang, kiếm hiệp.
         |
-        |5. NGƯỜI CHƠI LÀ CHỦ CỦA CAO MINH. GM TUYỆT ĐỐI KHÔNG tự quyết định các hành
-        |động quan trọng của Cao Minh vượt quá nội dung người chơi yêu cầu: chiến thuật
-        |đối đầu, dùng vật phẩm, thay đổi quan hệ với NPC, gia nhập tổ chức, bước qua
-        |lối thoát hay chuyển Level. Chỉ kể những gì người chơi đã ra lệnh và Core đã
-        |xác nhận. Khi ý định chưa rõ, dừng ở thế giằng co và để người chơi quyết định.
+        |5. GM tự sáng tác hành động và lời thoại thường của Cao Minh/NPC đúng Canon.
+        |Trước quyết định lớn hoặc hậu quả khó đảo ngược, dừng ở decision gate để người chơi chọn.
+        |Không tự chọn chiến thuật Combat, dùng vật phẩm, thay đổi Party hay đi qua Exit.
         |
         |6. KHÔNG KỂ VƯỢT SỰ THẬT CORE. Chỉ miêu tả cảnh hiện tại đã được xác nhận.
         |KHÔNG viết như thể Cao Minh "gần như đã vượt qua Level này" hay "đã sang nơi

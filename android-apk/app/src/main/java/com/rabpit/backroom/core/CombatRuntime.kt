@@ -272,7 +272,7 @@ object CombatRuntime {
     val seed = stableSeed(entityKey, state.turn.currentTurnId, state.time.elapsedSubjectiveMinutes xor serial)
     val progressionRank = EntityPowerScaling.rankFor(state)
     val unscaledEntityMaxHp = if (profile.key == DIEP_MINH_KEY) DIEP_MINH_MAX_HP else profile.maxHp + ENTITY_HP_BONUS
-    val enhancedEntityMaxHp = EntityPowerScaling.scale(unscaledEntityMaxHp, progressionRank)
+    val enhancedEntityMaxHp = ReaderRuntime.scale(EntityPowerScaling.scale(unscaledEntityMaxHp, progressionRank), ReaderRuntime.difficulty(state).hpPercent)
     val snapshot = Snapshot(
       encounterId = encounterId ?: "$serial:${state.turn.currentTurnId}:$entityKey",
       entityKey = entityKey,
@@ -1078,7 +1078,7 @@ object CombatRuntime {
       val enemyChance = (profile.aggression * 8 - defense + max(0, -c.momentum) * 7 - companionEnemyAccuracyPenalty).coerceIn(0, 88)
       if (incomingRoll < enemyChance) {
         val lifeformSkill = rollLifeformSkill(c)
-        val damage = if (c.entityKey == DIEP_MINH_KEY) {
+        val baseIncomingDamage = if (c.entityKey == DIEP_MINH_KEY) {
           EntityPowerScaling.scale(percentDamage(c.playerMaxHp, DIEP_MINH_ATTACK_PERCENT), c.progressionRank)
         } else {
           run {
@@ -1087,6 +1087,7 @@ object CombatRuntime {
             else CharacterStatCore.scaleByPercent(basicDamage, lifeformSkill.basicAttackPercent)
           }
         }
+        val damage = ReaderRuntime.scale(baseIncomingDamage, ReaderRuntime.difficulty(state).attackPercent)
         // Ordinary counterattacks drain the Party pool once. Snapshot.playerHp
         // remains Cao Minh's canonical HP for targeted/status-specific skills.
         // Commit pre-attack personal status ticks before sharing this hit.
@@ -1301,7 +1302,7 @@ object CombatRuntime {
     val nextIndex = index + 1
     val nextProfile = profiles.getValue(queue[nextIndex])
     val baseMax = if (nextProfile.key == DIEP_MINH_KEY) DIEP_MINH_MAX_HP else nextProfile.maxHp + ENTITY_HP_BONUS
-    val maxHp = EntityPowerScaling.scale(baseMax, c.progressionRank)
+    val maxHp = ReaderRuntime.scale(EntityPowerScaling.scale(baseMax, c.progressionRank), ReaderRuntime.difficulty(state).hpPercent)
     val nextSeed = mix(c.seed, nextIndex)
     val clean = clearTargetEffects(loot.state)
     val leaderHp = clean.characters[CAO_MINH_ID]?.vitalState?.currentHp ?: c.playerHp
@@ -1456,7 +1457,7 @@ object CombatRuntime {
     val profile = profiles[key] ?: return null
     val progressionRank = m["${PREFIX}progressionRank"]?.toLongOrNull()?.let(EntityPowerScaling::requireRank) ?: 0L
     val unscaledCanonicalMaxHp = if (profile.key == DIEP_MINH_KEY) DIEP_MINH_MAX_HP else profile.maxHp + ENTITY_HP_BONUS
-    val canonicalMaxHp = EntityPowerScaling.scale(unscaledCanonicalMaxHp, progressionRank)
+    val canonicalMaxHp = ReaderRuntime.scale(EntityPowerScaling.scale(unscaledCanonicalMaxHp, progressionRank), ReaderRuntime.difficulty(state).hpPercent)
     val storedMaxHp = m["${PREFIX}entityMaxHp"]?.toIntOrNull()?.coerceAtLeast(1) ?: canonicalMaxHp
     val maxHp = max(storedMaxHp, canonicalMaxHp)
     val storedHp = m["${PREFIX}entityHp"]?.toIntOrNull()?.coerceIn(0, storedMaxHp) ?: storedMaxHp

@@ -92,8 +92,9 @@ object CoreClientProjection {
       PokerDiceCore.diceJson(state)?.let { combat.put("diceState", it) }
       out.put("combat", combat)
     }
+    ReaderRuntime.project(out, state)
     CombatRuntime.pendingJson(state)?.let { out.put("pendingEncounter", it) }
-    state.metadata["combat.encounterNarrative"]?.let { raw ->
+    state.metadata["combat.encounterNarrative"]?.takeIf { ReaderRuntime.data(state).optJSONArray("journal") == null }?.let { raw ->
       val entry = JSONObject(raw)
       val log = out.optJSONArray("log") ?: JSONArray().also { out.put("log", it) }
       if ((0 until log.length()).none {

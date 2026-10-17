@@ -18,6 +18,8 @@ class GameCoreFacade private constructor(
   private data class ExitAuthorization(val turn: Int, val fromId: String, val toId: String)
 
   companion object {
+    internal fun forTests(repository: SaveRepository): GameCoreFacade = GameCoreFacade(repository, NoOpGamePipelineLogger)
+
     /** Traversal intent keywords (Core-owned; mirrors client playerTraverses). */
     val TRAVERSAL_KEYWORDS = listOf(
       "đi qua", "bước qua", "chạy qua", "vượt qua", "băng qua", "chui qua", "leo qua",
@@ -187,6 +189,71 @@ class GameCoreFacade private constructor(
     val msg=if(x.added) "MadGod Set đã kích hoạt dưới dạng trang bị Bound Forever trong Character Core, không chiếm Inventory." else "MadGod Set đã được kích hoạt; /madgod không tạo thêm trang bị."; appendLog(out,MadGodCanon.CHEAT_CODE,msg); return response(true,out,null,"cheat_committed",msg)
   }
 
+  @Synchronized fun recordReaderAmbient(turn: Int, nodeId: String, text: String) {
+    val state = loadCurrentState()
+    if (ReaderRuntime.active(state) != null || CoreClientProjection.turnIndex(state) != turn || ReaderRuntime.node(state) != nodeId) return
+    repository.save(ReaderRuntime.appendReceipt(state, text))
+  }
+
+  @Synchronized fun configureReaderLevel(clientJson: String, tone: String, difficulty: String): String {
+    val state = loadCurrentState()
+    require(JSONObject(clientJson).getInt("turn") == CoreClientProjection.turnIndex(state)) { "stale_client_state" }
+    val next = ReaderRuntime.reserve(ReaderRuntime.configure(state, tone, difficulty))
+    repository.save(next)
+    return currentClientState(clientJson)
+  }
+
+  /** Stable request identity comes from Core's projected page token, never a random UI click. */
+  @Synchronized fun beginReaderPage(clientJson: String, requestJson: String): String {
+    val state = loadCurrentState()
+    val request = JSONObject(requestJson)
+    if (ReaderRuntime.data(state).optString("completedRequest") == request.optString("requestId"))
+      return JSONObject().put("replayed", true).put("state", JSONObject(currentClientState(clientJson))).toString()
+    val prepared = ReaderRuntime.prepare(state, request)
+    repository.save(prepared) // reservation is durable BEFORE spawn, provider call or process death
+    val a = requireNotNull(ReaderRuntime.active(prepared))
+    val start = JSONObject(beginAction(clientJson, "EXECUTE", a.getString("action")))
+    require(start.optBoolean("handled")) { start.optString("error", "page_start_failed") }
+    start.put("action", a.getString("action"))
+    start.put("rolls", ReaderRuntime.activeRolls(prepared))
+    start.put("context", ReaderRuntime.context(loadCurrentState()))
+    val narrationState = JSONObject(currentClientState(clientJson))
+    a.optString("destination").takeIf { it.isNotBlank() }?.let { id ->
+      val target = requireNotNull(LevelRouteRegistry.node(id))
+      narrationState.put("level", target.asJson()).put("title", target.title()).put("location", target.location())
+    }
+    start.put("state", narrationState)
+    return start.toString()
+  }
+
+  @Synchronized fun commitReaderPage(clientJson: String, requestId: String, generatedJson: String): String {
+    val core = loadCurrentState()
+    val a = requireNotNull(ReaderRuntime.active(core)) { "page_missing" }
+    require(a.getString("requestId") == requestId) { "stale_page_request" }
+    val generated = JSONObject(generatedJson)
+    ReaderRuntime.validatePage(core, generated)
+    val before = CoreClientProjection.project(JSONObject(clientJson), core)
+    val candidate = JSONObject(before.toString())
+    val rolls = ReaderRuntime.activeRolls(core)
+    val from = ReaderRuntime.node(core)
+    val destination = a.optString("destination")
+    if (destination.isNotBlank()) {
+      val auth = JSONObject(determineExitDestination(before.toString(), "EXECUTE", a.getString("action")))
+      require(auth.optString("destinationId") == destination) { "exit_authorization_failed" }
+      val target = requireNotNull(LevelRouteRegistry.node(destination))
+      candidate.put("level", target.asJson()).put("title", target.title()).put("location", target.location())
+    }
+    val to = if (destination.isBlank()) from else destination
+    candidate.getJSONObject("flags").put("lastRolls", rolls)
+    HiddenExitStreak.apply(before, candidate, rolls, from, to)
+    if (CombatRuntime.pending(core) != null) rolls.put("entityEncounter", JSONObject().put("eligible", true).put("success", true))
+    SnapshotSceneProgress.apply(before, candidate, rolls, "EXECUTE", a.getString("action"))
+    val continuity = JSONObject(com.rabpit.backroom.core.knowledge.StoryContinuityReducer.apply(
+      before.toString(), candidate.toString(), a.getString("action")))
+    return processValidatedCandidate(before.toString(), continuity.toString(), a.getString("action"),
+      generated.getString("reply"), generatedJson)
+  }
+
   @Synchronized fun beginAction(clientStateJson: String, kindRaw: String, action: String): String {
     val client = JSONObject(clientStateJson)
     val state = loadCurrentState()
@@ -242,7 +309,7 @@ class GameCoreFacade private constructor(
       // Meta turns never roll, never consume RNG, never create pending encounters.
       // Client's isMetaAction() is not trusted for spawn decisions.
       val coreIsMeta = isMetaAction(action)
-      val spawnResult = SpawnMechanism.rollSpawns(
+      val spawnResult = if (ReaderRuntime.active(started.state) != null) ReaderRuntime.spawnForActive(started.state) else SpawnMechanism.rollSpawns(
         started.state, kind, action,
         isMeta = coreIsMeta, inCombatOrPending = false
       ) { bound -> spawnRng.nextInt(bound) }
@@ -260,7 +327,7 @@ class GameCoreFacade private constructor(
         next = SpawnMechanism.discardPendingNpcEncounters(next)
       }
       next
-    }.getOrDefault(started.state)
+    }.getOrElse { if (ReaderRuntime.active(started.state) != null) throw it else started.state }
     repository.save(withSpawns)
     // P0 Entity GM: extract the Core-reserved Entity encounter (if any) for the GM narration prompt.
     // beginAction() returns early if pending() != null, so any pending here was created this turn.
@@ -298,6 +365,7 @@ class GameCoreFacade private constructor(
     exitAuthorization = null
     if (!repository.exists()) return false
     val state = repository.load()
+    if (ReaderRuntime.active(state) != null) return false // retry must reuse the durable page/roll reservation
     val active = ActionRuntime.activeSession(state) ?: return false
     // P0-2: discard deferred NPC encounters. A failed/aborted turn must NOT consume
     // the once-only first meeting — the NPC may roll again on a later turn.
@@ -488,11 +556,15 @@ class GameCoreFacade private constructor(
   @Synchronized fun saveManualCheckpoint(clientStateJson: String): String {
     val current = loadCurrentState()
     if (current.metadata.containsKey("loadError")) return checkpointError("core_load_failed")
-    if (current.turn.pending != null || ActionRuntime.activeSession(current) != null) return checkpointError("turn_in_progress")
+    if (current.turn.pending != null || ActionRuntime.activeSession(current) != null || ReaderRuntime.active(current) != null) return checkpointError("turn_in_progress")
     val client = JSONObject(clientStateJson)
     if (client.optInt("turn", -1) != CoreClientProjection.turnIndex(current)) return checkpointError("stale_client_state")
-    val view = CoreClientProjection.project(client, current)
-    repository.saveCheckpoint(current, view)
+    // A checkpoint before the first page must also freeze its tickets, preventing
+    // save -> roll -> load from manufacturing a different first reservation.
+    val reserved = ReaderRuntime.reserve(current)
+    repository.save(reserved)
+    val view = CoreClientProjection.project(client, reserved)
+    repository.saveCheckpoint(reserved, view)
     return JSONObject().put("ok", true).put("state", view).toString()
   }
 
@@ -500,7 +572,7 @@ class GameCoreFacade private constructor(
   @Synchronized fun loadManualCheckpoint(): String {
     val current = repository.load()
     if (!current.metadata.containsKey("loadError") &&
-      (current.turn.pending != null || ActionRuntime.activeSession(current) != null)) return checkpointError("turn_in_progress")
+      (current.turn.pending != null || ActionRuntime.activeSession(current) != null || ReaderRuntime.active(current) != null)) return checkpointError("turn_in_progress")
     val saved = repository.loadCheckpoint() ?: return checkpointError("checkpoint_missing")
     val loaded = saved.core
     repository.save(loaded)
@@ -568,11 +640,13 @@ class GameCoreFacade private constructor(
     if (exits.isEmpty())
       return destResult(null, "no_exits")
 
-    val destinationId = if (exits.size == 1) {
-      exits[0]
-    } else {
-      matchDestinationIntent(action, exits) ?: return destResult(null, "destination_ambiguous")
-    }
+    val readerDestination = ReaderRuntime.active(core)?.takeIf { it.optString("intent") == "TRAVERSE" }
+      ?.optString("destination")?.takeIf { it.isNotBlank() }
+    val destinationId = if (readerDestination != null) {
+      if (readerDestination !in exits) return destResult(null, "invalid_edge")
+      readerDestination
+    } else if (exits.size == 1) exits[0]
+    else matchDestinationIntent(action, exits) ?: return destResult(null, "destination_ambiguous")
 
     // Defense in depth: destination must be a valid edge (never trust selection alone).
     if (!LevelRouteRegistry.canMove(currentNode.id, destinationId))
@@ -615,11 +689,15 @@ class GameCoreFacade private constructor(
    * from commands and then projected back onto the UI state.
    */
   @JvmOverloads @Synchronized fun processValidatedCandidate(
-    beforeJson: String, candidateJson: String, action: String, narrative: String = ""
+    beforeJson: String, candidateJson: String, action: String, narrative: String = "", readerPageJson: String = ""
   ): String {
     val before = JSONObject(beforeJson)
     val candidate = JSONObject(candidateJson)
     val core = loadCurrentState()
+    val readerPage = if (readerPageJson.isNotBlank()) JSONObject(readerPageJson) else null
+    if (ReaderRuntime.active(core) != null && readerPage == null)
+      return response(false, clientSnapshot(before, core), "reader_page_required", "gemini_delta_rejected")
+    val readerGate = readerPage?.let { ReaderRuntime.validatePage(core, it) }
     val reserved = CombatRuntime.pending(core)
     val session = ActionRuntime.activeSession(core)
     val ownedNarration = reserved != null && session != null &&
@@ -712,7 +790,8 @@ class GameCoreFacade private constructor(
     // The ambient roll is a one-shot presentation event, not persistent game state.
     // Return it only for a successfully committed turn; never replay a stale marker.
     val ambientRolled = SpawnMechanism.ambientNpcRolled(accepted)
-    val stored = SpawnMechanism.clearAmbientNpcMarker(accepted)
+    var stored = SpawnMechanism.clearAmbientNpcMarker(accepted)
+    if (readerPage != null) stored = ReaderRuntime.complete(core, stored, readerPage, readerGate, before)
     repository.save(stored)
     val synchronized = clientSnapshot(candidate, stored)
     logger.log(PipelineLogEvent("GEMINI_COMMIT", turnId = turnId, source = CommandSource.GEMINI, details = mapOf("commands" to commands.size.toString())))
@@ -847,6 +926,8 @@ class GameCoreFacade private constructor(
     // Combat is a Core commit too. Capture any supported state deltas without
     // guessing at NPC witness knowledge or converting combat prose into facts.
     // Combat resolves its own rounds; Explorer Turn advances only on Explorer actions.
+    if (resolution.entityDestroyed || resolution.escaped)
+      next = ReaderRuntime.appendReceipt(next, resolution.completionNarrative.ifBlank { resolution.reply }, client)
     repository.save(CharacterMemoryBags.recordCommitted(current, next))
 
     val output = clientSnapshot(client, next)
@@ -864,7 +945,7 @@ class GameCoreFacade private constructor(
     }
     if (action != PokerDiceCore.DIRECT_COMBAT_ACTION) {
       appendLog(output, action, combatReply)
-    } else if (resolution.completionNarrative.isNotBlank()) {
+    } else if (resolution.completionNarrative.isNotBlank() && ReaderRuntime.data(next).optJSONArray("journal") == null) {
       // Keep turn-by-turn combat details transient, but retain the Core-confirmed
       // closing narrative after the Combat Log disappears.
       val log = output.optJSONArray("log") ?: JSONArray().also { output.put("log", it) }
@@ -1038,11 +1119,11 @@ class GameCoreFacade private constructor(
       operation = operation, itemId = item.itemId, itemName = item.name, quantity = quantity)
     val execution = StateReducer.execute(state, command)
     if (!execution.applied) return reject(execution.validation.reason ?: "item_action_resolution_required")
-    val next = OfflineEntityLoot.collectPending(execution.state)
+    val reply = eventReply(execution.events)
+    val next = ReaderRuntime.appendReceipt(OfflineEntityLoot.collectPending(execution.state), reply, client)
     repository.save(next)
     val result = clientSnapshot(client, next)
-    val reply = eventReply(execution.events)
-    appendLog(result, action, reply)
+    if (ReaderRuntime.data(next).optJSONArray("journal") == null) appendLog(result, action, reply)
     return response(true, result, null, "item_ui_committed", reply)
   }
 

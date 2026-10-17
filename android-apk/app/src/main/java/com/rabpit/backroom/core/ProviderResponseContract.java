@@ -33,7 +33,18 @@ public final class ProviderResponseContract {
       requireWriter(packet);
       String reply = packet.optString("reply", "").trim();
       if (reply.isEmpty()) throw new IllegalArgumentException("GM provider JSON không có reply hợp lệ.");
-      return new JSONObject().put("reply", reply);
+      JSONObject normalized = new JSONObject().put("reply", reply);
+      if (packet.has("decision") && !packet.isNull("decision")) {
+        if (!(packet.opt("decision") instanceof JSONObject))
+          throw new IllegalArgumentException("GM decision không đúng định dạng.");
+        normalized.put("decision", packet.getJSONObject("decision"));
+      }
+      if (packet.has("continuity") && !packet.isNull("continuity")) {
+        if (!(packet.opt("continuity") instanceof JSONArray))
+          throw new IllegalArgumentException("GM continuity không đúng định dạng.");
+        normalized.put("continuity", packet.getJSONArray("continuity"));
+      }
+      return normalized;
     }
     // No game-state operations can originate from prose. Prose is GM narration only.
     JSONObject packet = new JSONObject().put("reply", text);
