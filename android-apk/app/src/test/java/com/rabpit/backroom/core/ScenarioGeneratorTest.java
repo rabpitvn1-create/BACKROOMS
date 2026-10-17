@@ -78,7 +78,7 @@ public class ScenarioGeneratorTest {
     AtomicInteger calls=new AtomicInteger();ScenarioGenerator generator=new ScenarioGenerator();
     String[] keys={"secret-1","secret-2"};
     Exception error=assertThrows(IllegalStateException.class,()->generator.generate(keys,request(),(key,prompt)->{
-      calls.incrementAndGet();throw new Exception("429 private payload "+key);
+      calls.incrementAndGet();throw new Exception("http_429");
     }));
     assertEquals(2,calls.get());assertFalse(error.getMessage().contains("secret"));
     assertThrows(IllegalStateException.class,()->generator.generate(keys,request(),(key,prompt)->{calls.incrementAndGet();return "bad";}));
@@ -90,7 +90,7 @@ public class ScenarioGeneratorTest {
     AtomicInteger gehihiCalls = new AtomicInteger();
     ScenarioGenerator generator = new ScenarioGenerator();
     String result = generator.generate(new String[]{"key-a", "key-b"}, request(),
-      (key, prompt) -> { geminiCalls.incrementAndGet(); throw new Exception("quota key=secret"); },
+      (key, prompt) -> { geminiCalls.incrementAndGet(); throw new Exception("http_429"); },
       prompt -> { gehihiCalls.incrementAndGet(); return outline(); });
     assertEquals(10, new JSONObject(result).getJSONArray("entries").length());
     assertEquals(2, geminiCalls.get());
@@ -101,6 +101,50 @@ public class ScenarioGeneratorTest {
       prompt -> { gehihiCalls.incrementAndGet(); return outline(); });
     assertEquals(2, geminiCalls.get());
     assertEquals(2, gehihiCalls.get());
+  }
+
+  @Test public void transientGeminiErrorsNeverCooldownAnOtherwiseHealthyKey() throws Exception {
+    AtomicInteger calls = new AtomicInteger();
+    java.util.List<String> issues = new java.util.ArrayList<>();
+    ScenarioGenerator generator = new ScenarioGenerator();
+    // Both 503 attempts may fail, but the next user retry must still try Gemini
+    // instead of skipping directly to Gehihi for the next minute.
+    assertThrows(IllegalStateException.class, () -> generator.generate(new String[]{"valid-key"}, request(),
+      (key, prompt) -> {
+        calls.incrementAndGet();
+        throw new Exception("http_503");
+      }, null, (provider, category, code) -> issues.add(provider + ":" + category + ":" + code)));
+    assertEquals(2, calls.get());
+    assertEquals(2, issues.size());
+    assertEquals("gemini:transport:http_503", issues.get(0));
+    assertEquals(10, new JSONObject(generator.generate(new String[]{"valid-key"}, request(),
+      (key, prompt) -> { calls.incrementAndGet(); return outline(); })).getJSONArray("entries").length());
+    assertEquals(3, calls.get());
+
+    AtomicInteger timeoutCalls = new AtomicInteger();
+    ScenarioGenerator timeoutGenerator = new ScenarioGenerator();
+    assertThrows(IllegalStateException.class, () -> timeoutGenerator.generate(new String[]{"valid-key"}, request(),
+      (key, prompt) -> { timeoutCalls.incrementAndGet(); throw new java.net.SocketTimeoutException("private-token"); }));
+    assertEquals(2, timeoutCalls.get());
+    timeoutGenerator.generate(new String[]{"valid-key"}, request(), (key, prompt) -> {
+      timeoutCalls.incrementAndGet();
+      return outline();
+    });
+    assertEquals(3, timeoutCalls.get());
+  }
+
+  @Test public void quotaCooldownStillSkipsUnhealthyKeyWithoutRepeatingRequests() throws Exception {
+    AtomicInteger calls = new AtomicInteger();
+    java.util.List<String> issues = new java.util.ArrayList<>();
+    ScenarioGenerator generator = new ScenarioGenerator();
+    assertThrows(IllegalStateException.class, () -> generator.generate(new String[]{"limited-key"}, request(),
+      (key, prompt) -> { calls.incrementAndGet(); throw new Exception("http_429"); },
+      null, (provider, category, code) -> issues.add(code)));
+    assertEquals(1, calls.get());
+    assertEquals(java.util.Collections.singletonList("http_429"), issues);
+    assertThrows(IllegalStateException.class, () -> generator.generate(new String[]{"limited-key"}, request(),
+      (key, prompt) -> { calls.incrementAndGet(); return outline(); }));
+    assertEquals(1, calls.get());
   }
 
   @Test public void malformedGeminiScenarioUsesFallbackButValidGeminiDoesNot() throws Exception {
