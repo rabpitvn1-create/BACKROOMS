@@ -152,6 +152,21 @@ public class ScenarioGeneratorTest {
     assertEquals("gemini:transport:invalid_output", issues.get(0));
   }
 
+  @Test public void gehihiFailuresUseSpecificSafeCodesWithoutExposingProviderPayload() throws Exception {
+    java.util.List<String> issues = new java.util.ArrayList<>();
+    assertThrows(IllegalStateException.class, () -> new ScenarioGenerator().generate(
+      new String[0], request(), (key, prompt) -> outline(),
+      prompt -> { throw new IllegalArgumentException("scenario_gehihi_truncated"); },
+      (provider, category, code) -> issues.add(provider + ":" + category + ":" + code)));
+    assertEquals(java.util.Collections.singletonList("gehihi:transport:scenario_gehihi_truncated"), issues);
+    issues.clear();
+    assertThrows(IllegalStateException.class, () -> new ScenarioGenerator().generate(
+      new String[0], request(), (key, prompt) -> outline(),
+      prompt -> { throw new java.net.SocketTimeoutException("private request token secret"); },
+      (provider, category, code) -> issues.add(provider + ":" + category + ":" + code)));
+    assertEquals(java.util.Collections.singletonList("gehihi:transport:scenario_timeout"), issues);
+  }
+
   @Test public void gmRejectsProseEmptyTruncationExtraFieldsAndNeverParsesState() throws Exception {
     assertEquals("Cao Minh quan sát.",ProviderResponseContract.parseSceneWriter("{\"reply\":\"Cao Minh quan sát.\"}").getString("reply"));
     for(String raw:new String[]{"Văn xuôi", "{\"reply\":\"\"}","{\"reply\":\"dang dở", "{\"reply\":\"a\",\"state\":{}}", "{\"reply\":\"a\"}{\"reply\":\"b\"}"})
