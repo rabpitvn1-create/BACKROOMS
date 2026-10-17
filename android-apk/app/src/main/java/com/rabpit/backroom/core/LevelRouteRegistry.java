@@ -87,13 +87,16 @@ public final class LevelRouteRegistry {
     forward("0.1", "0.2");
     forward("0.2", "0.5");
     forward("0.5", "0.7");
-    forward("0.7", "manila_room");
+    forward("0.7", "dullness");
+    forward("dullness", "epsilon");
+    forward("epsilon", "ls_2");
+    forward("ls_2", "manila_room");
     forward("manila_room", "the_torment");
     forward("the_torment", "red_rooms");
     forward("red_rooms", "1");
 
     // Parent Level progression never returns to an earlier main Level.
-    // Same-parent AREA/SUBLEVEL detours remain bidirectional below.
+    // Level 0 is a fully ordered one-way route, including its sublevels and areas.
     forward("1", "2");
     forward("2", "3");
     forward("3", "4");
@@ -101,10 +104,8 @@ public final class LevelRouteRegistry {
     forward("4", "5");
     forward("5", "6");
 
-    // Image-referenced optional environments, attached only to their parent level.
-    both("0", "dullness");
-    both("0", "epsilon");
-    both("0", "ls_2");
+    // Level-0 areas are mandatory links in the locked one-way route above.
+    // Other parents still have legacy side-area topology pending a confirmed order.
     both("1", "1.2");
     both("1", "1.5");
     both("1", "traders_vault");
@@ -251,7 +252,8 @@ public final class LevelRouteRegistry {
       .append("not a freeform change to location alone. Never skip mandatory Level-0 nodes. ")
       .append("An available exit does not move the player: only the player's deliberate traversal does. ")
       .append("All moves require authoritative hidden Exit readiness. ")
-      .append("Named optional areas are local detours, not shortcuts across main levels. ")
+      .append("Level-0 Dullness, Epsilon and LS-2 are mandatory one-way stages before Manila Room. ")
+      .append("Do not offer a return to previously completed areas. ")
       .append("Use parent Level for hazards/entity rolls. No Level 7.");
     return result.toString();
   }
