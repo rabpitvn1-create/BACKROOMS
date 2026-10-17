@@ -1,7 +1,7 @@
 (function(global){
   'use strict';
   const bar=document.getElementById('playerActionBar'),form=document.getElementById('form');
-  const journal=document.getElementById('sceneJournal'),room=document.getElementById('sceneJournalRoom'),objective=document.getElementById('sceneJournalObjective'),records=document.getElementById('sceneJournalRecords');
+  const journal=document.getElementById('sceneJournal'),room=document.getElementById('sceneJournalRoom'),objective=document.getElementById('sceneJournalObjective'),records=document.getElementById('sceneJournalRecords'),inference=document.getElementById('sceneJournalInference');
   if(!bar||!form||!journal||!room||!objective||!records)return;
   const panel=document.createElement('section');panel.id='explorerControls';panel.setAttribute('aria-label','Khám phá');
   const row=document.createElement('div');row.className='explorer-buttons';
@@ -79,6 +79,7 @@
       (' · Đã ghi '+found+' manh mối.'+(searchCount?' Phòng này còn '+searchCount+' thao tác tìm kiếm.':' Hãy kiểm tra phòng khác nếu còn thiếu manh mối.'));
     objective.textContent=`${scene.nodeTitle||'Khu vực hiện tại'} · Mini-map ${scene.miniIndex}/10 · ${scene.objective||'Đang chuẩn bị kịch bản'}`+(!scene.generationNeeded?hint:'')+(scene.awaitingEnding?' · Đã hoàn thành khu 6.1. Chờ kết thúc.':'');
     records.replaceChildren();[...(scene.records||[])].forEach(r=>{const p=document.createElement('p');p.textContent=r.text;records.appendChild(p);});
+    if(inference)inference.textContent=scene.temporaryInference||'Chưa có đủ thông tin để đưa ra suy luận.';
     if(scene.generationNeeded){const p=document.createElement('p');p.textContent='Đang tạo nhiệm vụ mới; thử lại nếu nhà cung cấp tạm lỗi.';records.appendChild(p);}
     else if(scene.completed){const p=document.createElement('p');p.textContent='Đã giải xong nhiệm vụ. Hãy tìm đường tới phòng thoát để tiếp tục.';records.appendChild(p);}
     else if(!found){const p=document.createElement('p');p.textContent='Chưa có chứng cứ: hãy dùng thao tác tìm kiếm trong phòng, kiểm tra các phòng kề và đối chiếu manh mối trước khi chọn đáp án.';records.appendChild(p);}
