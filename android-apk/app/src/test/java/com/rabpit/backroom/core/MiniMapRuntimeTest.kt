@@ -10,9 +10,10 @@ class MiniMapRuntimeTest {
   private fun script(level: Int = 0, index: Int = 1, nodeId: String = level.toString()) = MiniMapScenario.parse("""
     {"schemaVersion":2,"id":"investigation","levelNumber":$level,"index":$index,"nodeAnchor":"${nodeId}",
     "objective":"Đối chiếu dấu hiệu và lời khai để xác định màu khóa, hướng van.","entryRoomId":"hall","exitRoomId":"hall",
-    "rooms":[{"id":"hall","name":"Hành lang","description":"Một bảng điều khiển có hai hàng lựa chọn.","adjacentRoomIds":["lab","witness"]},
+    "rooms":[{"id":"hall","name":"Hành lang","description":"Một bảng điều khiển có hai hàng lựa chọn.","adjacentRoomIds":["lab","witness","alcove"]},
     {"id":"lab","name":"Kho hồ sơ","description":"Tủ hồ sơ và một mảnh giấy.","adjacentRoomIds":["hall"]},
-    {"id":"witness","name":"Phòng trực","description":"Một người gác đang chờ.","adjacentRoomIds":["hall"]}],
+    {"id":"witness","name":"Phòng trực","description":"Một người gác đang chờ.","adjacentRoomIds":["hall"]},
+    {"id":"alcove","name":"Hốc tường","description":"Một góc phòng để quan sát.","adjacentRoomIds":["hall"]}],
     "facts":[{"id":"color","label":"Màu khóa","value":"đỏ","values":["đỏ","xanh"]},{"id":"valve","label":"Hướng van","value":"trái","values":["trái","phải"]}],
     "interactions":[
     {"id":"paper","kind":"SEARCH","roomId":"lab","label":"Đọc hồ sơ","requires":{"op":"TRUE"},"effect":{"type":"CLUE","factId":"color"}},
@@ -63,6 +64,8 @@ class MiniMapRuntimeTest {
   }
   @Test fun graphClaimAndProofValidationRejectInvalidScripts() {
     assertEquals("investigation",MiniMapScenario.validate(script(),"0",1).getString("id"))
+    val onlyThree=script();onlyThree.getJSONArray("rooms").remove(3)
+    assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.validate(onlyThree,"0",1) }
     val disconnected=script();disconnected.getJSONArray("rooms").getJSONObject(1).put("adjacentRoomIds",JSONArray().put("witness"))
     assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.validate(disconnected,"0",1) }
     val lying=script();lying.getJSONArray("interactions").getJSONObject(2).getJSONObject("effect").put("value","đỏ")
