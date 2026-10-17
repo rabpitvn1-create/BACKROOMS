@@ -4,11 +4,28 @@ const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const source=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/explorer-controls.js'),'utf8');
 function runtime(scene={}){
   const elements={};
-  function element(){return {children:[],listeners:{},disabled:false,hidden:false,
-    append(...nodes){this.children.push(...nodes);},appendChild(node){this.children.push(node);},
-    replaceChildren(...nodes){this.children=nodes;},setAttribute(){},addEventListener(k,fn){this.listeners[k]=fn;},
-    showModal(){this.open=true;},close(){this.open=false;}};}
-  elements.playerActionBar=element();elements.form=element();
+  function element(){
+    return {children:[],listeners:{},attributes:{},disabled:false,hidden:false,
+      append(...nodes){nodes.forEach(node=>{node.parent=this;this.children.push(node);});},
+      appendChild(node){node.parent=this;this.children.push(node);},
+      replaceChildren(...nodes){this.children=[];this.append(...nodes);},
+      setAttribute(k,v){this.attributes[k]=v;},
+      addEventListener(k,fn){this.listeners[k]=fn;},
+      querySelector(selector){return this.querySelectorAll(selector)[0]||null;},
+      querySelectorAll(selector){
+        const found=[];function walk(node){
+          for(const child of node.children){
+            if(selector.startsWith('.')&&String(child.className||'').split(/\\s+/).includes(selector.slice(1))||
+              selector==='[data-scene-preparing="1"]'&&child.attributes['data-scene-preparing']==='1')found.push(child);
+            walk(child);
+          }
+        }walk(this);return found;
+      },
+      remove(){if(this.parent)this.parent.children=this.parent.children.filter(n=>n!==this);},
+      showModal(){this.open=true;},close(){this.open=false;}
+    };
+  }
+  elements.playerActionBar=element();elements.form=element();elements.log=element();
   for(const id of ['sceneJournal','sceneJournalRoom','sceneJournalObjective','sceneJournalRecords'])elements[id]=element();
   const calls=[];
   const document={getElementById:id=>elements[id],createElement:element,body:element()};
@@ -17,7 +34,7 @@ function runtime(scene={}){
     appendActionPending(){},backroomTurn(json){ctx.state=JSON.parse(json);ctx.busy=false;},backroomError(){ctx.busy=false;}};
   ctx.window=ctx;vm.runInNewContext(source,ctx);
   const panel=elements.playerActionBar.children[0],dialog=document.body.children[0];
-  return {ctx,calls,panel,dialog,buttons:panel.children[0].children.map(slot=>slot.children[0]),retry:panel.children[1],journal:elements.sceneJournal,room:elements.sceneJournalRoom,objective:elements.sceneJournalObjective,records:elements.sceneJournalRecords};
+  return {ctx,calls,panel,dialog,buttons:panel.children[0].children.map(slot=>slot.children[0]),retry:panel.children[1],journal:elements.sceneJournal,room:elements.sceneJournalRoom,objective:elements.sceneJournalObjective,records:elements.sceneJournalRecords,log:elements.log};
 }
 test('three controls enable only Core-provided actions; popups do not submit or roll',()=>{
   const r=runtime();assert.deepEqual(r.buttons.map(b=>b.textContent),['Di chuyển','Tìm kiếm','Giao tiếp']);
@@ -38,6 +55,39 @@ test('generation failure stops automatic requests and leaves explicit retry avai
   const r=runtime({generationNeeded:true,availableActions:[]});assert.equal(r.calls.length,1);
   r.ctx.backroomError('429');r.ctx.backroomSyncExplorer();assert.equal(r.calls.length,1);
   assert.equal(r.retry.hidden,false);r.retry.onclick();assert.equal(r.calls.length,2);
+});
+test('current mini-map generation keeps Gemini 4.0 Argon icon and message during Gehihi fallback',()=>{
+  const r=runtime({generationNeeded:true,availableActions:[]});
+  assert.equal(r.calls.length,1);
+  assert.equal(r.log.children.length,1);
+  const pending=r.log.children[0];
+  const indicator=pending.querySelector('.gm-thinking');
+  const logo=pending.querySelector('.scene-provider-logo');
+  const label=pending.querySelector('.gm-thinking-name');
+  const copy='Gemini 4.0 Argon đang chuẩn bị màn chơi. Xin vui lòng chờ trong giây lát.';
+  assert.equal(logo.src,'provider-logos/gemini.svg');
+  assert.equal(logo.hidden,false);
+  assert.equal(label.textContent,copy);
+  assert.equal(indicator.attributes['aria-label'],copy);
+  r.ctx.backroomSceneWriterProvider('Gehihi');
+  assert.equal(r.log.children.length,1);
+  assert.equal(logo.hidden,false);
+  assert.equal(label.textContent,copy);
+  assert.equal(r.calls.length,1,'provider switch must not restart generation');
+  const next={...r.ctx.state,scene:{miniIndex:1,generationNeeded:false,availableActions:[]}};
+  r.ctx.backroomTurn(JSON.stringify(next));
+  assert.equal(r.log.children.length,0,'completed background generation removes the indicator');
+});
+test('Android scene worker stays within one mini-map and never emits provider-name changes',()=>{
+  const java=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/MainActivity.java'),'utf8');
+  const start=java.indexOf('@JavascriptInterface public void prepareScene(');
+  const end=java.indexOf('@JavascriptInterface public void submitSceneAction(',start);
+  const worker=java.slice(start,end);
+  assert.ok(start>0&&end>start);
+  assert.match(worker,/currentMiniMapToken/);
+  assert.match(worker,/phase < 2/);
+  assert.doesNotMatch(worker,/emit\("backroomProvider"/);
+  assert.doesNotMatch(worker,/emit\("backroomSceneWriterProvider"/);
 });
 test('pending narration retries the saved command and combat hides Explorer',()=>{
   const r=runtime({pendingActionId:'p',availableActions:[]});r.retry.onclick();assert.equal(r.calls[0][1],'RETRY');
