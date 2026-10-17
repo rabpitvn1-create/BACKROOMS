@@ -6,7 +6,7 @@ import org.json.JSONTokener
 
 /** Bounded, monotone puzzle language. Generated strings are never executable predicates. */
 object MiniMapScenario {
-  const val SCHEMA = 2
+  const val SCHEMA = 3
   const val MAX_CHARS = 48000
   private val idPattern = Regex("[a-z][a-z0-9_]{0,39}")
   private val reservedNames = Regex("lucia|lục trầm|luc tram|iris|syvial|an nhiên|an nhien|diệp minh|cao minh", RegexOption.IGNORE_CASE)
@@ -59,7 +59,7 @@ object MiniMapScenario {
   }
   fun validate(raw: JSONObject, nodeId: String, index: Int): JSONObject {
     require(raw.toString().length <= MAX_CHARS)
-    fields(raw, setOf("schemaVersion", "id", "levelNumber", "index", "nodeAnchor", "objective", "entryRoomId", "exitRoomId", "rooms", "facts", "interactions", "goal"))
+    fields(raw, setOf("schemaVersion", "id", "levelNumber", "index", "nodeAnchor", "objective", "entryRoomId", "exitRoomId", "rooms", "npcs", "facts", "interactions", "goal"))
     val node = requireNotNull(LevelRouteRegistry.node(nodeId)) { "scenario_node" }
     require(index in 1..10 && int(raw, "schemaVersion") == SCHEMA && int(raw, "levelNumber") == node.parent && int(raw, "index") == index)
     id(raw); text(raw, "objective", 400)
@@ -77,6 +77,16 @@ object MiniMapScenario {
     val reached = mutableSetOf(raw.getString("entryRoomId"))
     repeat(rooms.size) { rooms.filter { it.getString("id") in reached }.forEach { reached.addAll(strings(it.getJSONArray("adjacentRoomIds"))) } }
     require(reached == roomIds) { "graph_disconnected" }
+    // NPCs are authored actors in the scene, never ephemeral random passersby.
+    // Zero NPCs is valid; each declared NPC must have a concrete puzzle interaction.
+    val npcs = list(raw, "npcs", 0, 12)
+    val npcIds = npcs.map { it.getString("id") }.toSet()
+    npcs.forEach { npc ->
+      fields(npc, setOf("id", "name", "role", "purpose", "description", "roomId"))
+      text(npc, "name", 90); text(npc, "role", 120); text(npc, "purpose", 220); text(npc, "description", 350)
+      require(id(npc, "roomId") in roomIds) { "npc_room" }
+      require(!reservedNames.containsMatchIn(npc.getString("name"))) { "scenario_canon_identity" }
+    }
     val facts = list(raw, "facts", 2, 12); val factIds = facts.map { it.getString("id") }.toSet()
     facts.forEach { f ->
       fields(f, setOf("id", "label", "value", "values")); text(f, "label", 90); text(f, "value", 90)
@@ -84,8 +94,15 @@ object MiniMapScenario {
     }
     val interactions = list(raw, "interactions", 4, 36); val actionIds = interactions.map { it.getString("id") }.toSet()
     interactions.forEach { a ->
-      fields(a, setOf("id", "kind", "roomId", "label", "requires", "effect"))
-      require(a.getString("kind") in setOf("SEARCH", "TALK")); require(id(a, "roomId") in roomIds)
+      fields(a, setOf("id", "kind", "roomId", "label", "requires", "effect"),
+        setOf("npcId"))
+      val kind = a.getString("kind")
+      require(kind in setOf("SEARCH", "TALK")); require(id(a, "roomId") in roomIds)
+      if (kind == "TALK") {
+        val speakerId = id(a, "npcId")
+        require(speakerId in npcIds && npcs.first { it.getString("id") == speakerId }
+          .getString("roomId") == a.getString("roomId")) { "npc_talk_binding" }
+      } else require(!a.has("npcId")) { "npc_search_binding" }
       text(a, "label", 120); require(!reservedNames.containsMatchIn(a.getString("label"))) { "scenario_canon_identity" }
       predicate(a.getJSONObject("requires"), actionIds)
       val effect = a.getJSONObject("effect")
@@ -102,6 +119,11 @@ object MiniMapScenario {
         }
       } else require(a.getString("kind") == "SEARCH")
       require(effect.has("value") == (type in setOf("CLAIM", "ANSWER")) && effect.has("policy") == (type == "CLAIM"))
+    }
+    // Prevent decorative NPCs which cannot be spoken to or provide no quest data.
+    npcs.forEach { npc ->
+      require(interactions.any { it.getString("kind") == "TALK" &&
+        it.getString("npcId") == npc.getString("id") }) { "npc_without_interaction" }
     }
     predicate(raw.getJSONObject("goal"), actionIds)
     // Forward chaining is complete for this finite monotone language: acquiring facts
@@ -124,7 +146,6 @@ object MiniMapScenario {
     require(answerGroups.count { (_, options) ->
       !holds(raw.getJSONObject("goal"), solved - options.map { it.getString("id") }.toSet())
     } >= 2) { "puzzle_requires_two_inferences" }
-    require(interactions.any { it.getJSONObject("effect").optString("policy") in setOf("LIE", "MISTAKEN") }) { "puzzle_requires_verifiable_claim" }
     return copy(raw)
   }
   private fun predicate(p: JSONObject, ids: Set<String>, depth: Int = 0) {
