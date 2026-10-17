@@ -16,9 +16,7 @@ import org.json.JSONObject
  * - Luc Tram: 25 (0.25%) — Level 4+ physical, once-only
  * - Iris/Syvial reunion: 25 (0.25%) each — physical, continuity SEPARATED/LOST/UNKNOWN
  * - An Nhien: 25 (0.25%) — physical, once-only
- * - Ambient NPC: 3000 (30%) — ephemeral marker only (state.metadata),
- *   NEVER a CharacterState/Follower/Canon encounter. Entity and Canon NPCs
- *   take priority over ambient.
+ * - Temporary ambient NPC generation is archived and never triggered.
  *
  * Eligibility (from baseline MainActivity.makeGameplayRolls @ 202737c2):
  * - Meta turns (status/inventory/help): NO rolls at all
@@ -175,11 +173,8 @@ object NpcSpawnTable {
   // Canon files, data and table references are kept intact — but auto-spawn is OFF.
   // Do NOT re-enable without the owner's explicit request.
   const val AN_NHIEN_LEGACY_ENABLED = false
-  // Ambient crowd NPC: 30% on d10000. Ephemeral only — rolled in
-  // SpawnMechanism.rollSpawns (NOT via the NpcEncounter pipeline) and surfaced
-  // as state.metadata["spawn.ambientNpcRolled"]. Replaces the old Survivor 2%
-  // branch (removed 2026-10-15) to avoid two overlapping crowd-spawn types.
-  const val AMBIENT_THRESHOLD = 3000    // 30%
+  // Archived legacy crowd-NPC probability. No gameplay path rolls it anymore.
+  const val AMBIENT_THRESHOLD = 3000
 
   /** Result of NPC spawn rolls: character ID -> encounter flag key */
   data class NpcEncounter(val characterId: String, val flagKey: String)
@@ -225,8 +220,7 @@ object NpcSpawnTable {
    * - `physical` is inferred from ACTION TEXT verbs, NOT action kind.
    *   A dialogue-only EXECUTE ("nói chuyện", "hỏi") is NOT physical → no NPC rolls.
    * - Lucia: EXECUTE kind only at Level 0 (not text-based)
-   * - Ambient NPC: rolled in SpawnMechanism.rollSpawns (not here) — 30%,
-   *   entity and Canon NPCs take priority, never a Canon encounter.
+   * - Legacy random ambient NPCs are disabled; only scripted NPCs and Canon first meetings remain.
    *
    * @param state current game state
    * @param kind action kind — only EXECUTE is eligible for Core spawns
@@ -322,9 +316,7 @@ object SpawnMechanism {
    * 3. Entity: action kind EXECUTE AND
    *    flags.entityEncountersAllowed (default true)
    * 4. NPCs: physical from action TEXT (see PhysicalActionDetector)
-   * 5. Ambient NPC: 30% on eligible EXECUTE turns — only if NO entity rolled AND no
-   *    Canon NPC encounters. Meta/combat already returned above. The "currently
-   *    in ambient dialogue" check is RAM-side (MainActivity), not Core state.
+   * 5. Ephemeral ambient NPC spawns are archived (no RNG calls).
    *
    * @param state current game state
    * @param kind action kind
@@ -362,16 +354,9 @@ object SpawnMechanism {
     val level = currentLevelNumber(state)
     val npcEncounters = NpcSpawnTable.rollNpcs(state, kind, actionText, level, nextInt)
 
-    // Gate 5: Ambient crowd NPC — 30% on d10000, ephemeral only.
-    // Priority: entity and Canon NPCs take precedence over ambient.
-    // Ambient characters need a scene-facing action. This preserves the single
-    // EXECUTE lane without triggering an extra ambient Gemini request on dialogue.
-    val ambientActivity = PhysicalActionDetector.isSceneFacing(actionText)
-    val ambientNpcRolled = kind == ActionKind.EXECUTE && ambientActivity &&
-      entityKey == null && npcEncounters.isEmpty() &&
-      nextInt(10000) + 1 <= NpcSpawnTable.AMBIENT_THRESHOLD
-
-    return SpawnResult(entityKey, npcEncounters, ambientNpcRolled)
+    // Archived: free-roaming ephemeral crowd NPCs never spawn.
+    // Canon first meetings and combat encounters remain unchanged.
+    return SpawnResult(entityKey, npcEncounters)
   }
 
   /** Called only AFTER Core validates a typed scene target. No text classification. */
@@ -383,8 +368,8 @@ object SpawnMechanism {
     val entity = if (flags.optBoolean("entityEncountersAllowed", true))
       EntitySpawnPool.rollEntity(currentLevelId(state), nextInt) else null
     val npcs = NpcSpawnTable.rollNpcsWithPhysical(state, ActionKind.EXECUTE, "", currentLevelNumber(state), nextInt, true)
-    val ambient = entity == null && npcs.isEmpty() && nextInt(10000) + 1 <= NpcSpawnTable.AMBIENT_THRESHOLD
-    return SpawnResult(entity, npcs, ambient)
+    // Explorer NPCs are scripted, local and interactable, never random passersby.
+    return SpawnResult(entity, npcs)
   }
 
   /**
@@ -408,7 +393,7 @@ object SpawnMechanism {
   fun applySpawns(state: GameState, result: SpawnResult): GameState {
     var next = applyEntitySpawn(state, result.entityKey)
     next = applyNpcEncounters(next, result.npcEncounters)
-    next = applyAmbientMarker(next, result.ambientNpcRolled)
+    next = clearAmbientNpcMarker(next)
     return next
   }
 
@@ -424,7 +409,7 @@ object SpawnMechanism {
   fun prepareSpawns(state: GameState, result: SpawnResult): GameState {
     var next = applyEntitySpawn(state, result.entityKey)
     next = prepareNpcEncounters(next, result.npcEncounters)
-    next = applyAmbientMarker(next, result.ambientNpcRolled)
+    next = clearAmbientNpcMarker(next)
     return next
   }
 
@@ -443,14 +428,8 @@ object SpawnMechanism {
   /**
    * Sets the ephemeral ambient-NPC marker. No-op when the roll did not succeed.
    */
-  private fun applyAmbientMarker(state: GameState, rolled: Boolean): GameState {
-    val cleared = state.metadata - AMBIENT_NPC_METADATA_KEY
-    return state.copy(metadata = if (rolled) cleared + (AMBIENT_NPC_METADATA_KEY to "true") else cleared)
-  }
-
   /** Reads the ephemeral ambient-NPC marker (true if rolled this turn). */
-  fun ambientNpcRolled(state: GameState): Boolean =
-    state.metadata[AMBIENT_NPC_METADATA_KEY] == "true"
+  fun ambientNpcRolled(state: GameState): Boolean = false // Legacy source archived.
 
   /**
    * Clears the ephemeral ambient-NPC marker after MainActivity consumes it
