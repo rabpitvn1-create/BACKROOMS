@@ -29,7 +29,7 @@ public final class ScenarioGenerator {
     "npc_talk_binding", "npc_search_binding", "npc_without_interaction",
     "fact_domain", "fact_human_value", "claim_truth_policy", "predicate_reference",
     "predicate_operator", "scene_observation_quality", "scene_observation_missing",
-    "scene_duplicate_observation", "scene_language_mixed", "puzzle_unsolvable_or_empty",
+    "scene_duplicate_observation", "scene_language_mixed", "scene_room_name", "puzzle_unsolvable_or_empty",
     "answer_without_evidence", "answer_without_observed_proof", "puzzle_requires_two_inferences",
     "scenario_gehihi_envelope", "scenario_gehihi_truncated",
     "scenario_gehihi_filtered", "scenario_gehihi_empty"
@@ -66,10 +66,15 @@ public final class ScenarioGenerator {
   }
 
   private static String correctivePrompt(String prompt, String code) {
+    String repair = "scene_room_name".equals(code)
+      ? " Tên rooms[].name phải là địa điểm thực tế với tiếng Việt tự nhiên, không mở đầu bằng động từ "
+        + "Nghe/Nhìn/Tìm/Kiểm tra, không viết hoa mọi từ. Ví dụ 'Hành lang có góc khuất', "
+        + "'Phòng có dây điện hở', 'Hành lang đèn kêu rè'."
+      : "";
     return prompt + "\nLƯU Ý SỬA PHẢN HỒI TRƯỚC: kết quả không qua kiểm tra " + code
       + ". Hãy tạo lại TOÀN BỘ đối tượng JSON từ đầu, giữ đúng schema, node/index, "
       + "đáp án chỉ mở khi đã thu thập vật chứng cùng factId, các phòng có cạnh hai chiều; "
-      + "không sao chép nội dung lỗi hay thêm trường ngoài schema.";
+      + "không sao chép nội dung lỗi hay thêm trường ngoài schema." + repair;
   }
 
   public synchronized String generate(String[] keys, JSONObject request, Transport transport,
