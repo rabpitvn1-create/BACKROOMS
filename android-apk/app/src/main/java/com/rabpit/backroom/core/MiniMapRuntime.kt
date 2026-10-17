@@ -36,6 +36,7 @@ object MiniMapRuntime {
   private fun authoredNpcs(s: JSONObject, roomId: String): JSONArray = JSONArray().apply {
     MiniMapScenario.objects(s.getJSONArray("npcs")).filter { it.getString("roomId") == roomId }.forEach { npc ->
       put(JSONObject().put("id", npc.getString("id")).put("name", npc.getString("name"))
+        .put("originPeriod", npc.getString("originPeriod"))
         .put("role", npc.getString("role")).put("description", npc.getString("description")))
     }
   }
@@ -183,6 +184,7 @@ object MiniMapRuntime {
       if (kind == "TALK") {
         val npc = MiniMapScenario.objects(s.getJSONArray("npcs")).first { it.getString("id") == a.getString("npcId") }
         authoredSpeaker = JSONObject().put("id", npc.getString("id")).put("name", npc.getString("name"))
+          .put("originPeriod", npc.getString("originPeriod"))
           .put("role", npc.getString("role")).put("description", npc.getString("description"))
       }
       val (fact, correct) = MiniMapScenario.effectText(s, a)
