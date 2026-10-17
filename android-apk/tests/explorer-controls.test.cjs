@@ -90,6 +90,15 @@ test('waiting GM row shows animated Gemini 4.0 Argon logo below plain GAME MASTE
   assert.match(html,/>TURN <strong id="turn"/);
   assert.match(html,/id="gameMenuTitle">GAME MENU/);
 });
+test('exploration journal shows confirmed records and separate Core-only provisional inference',()=>{
+  const html=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/index.html'),'utf8');
+  const js=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/explorer-controls.js'),'utf8');
+  assert.match(html,/id="sceneJournalRecords"/);
+  assert.match(html,/Suy luận tạm thời/);
+  assert.match(html,/id="sceneJournalInference"/);
+  assert.match(js,/inference\.textContent=scene\.temporaryInference/);
+  assert.doesNotMatch(js,/scene\.facts/);
+});
 test('Core-confirmed Lucia enables communication even without a scenario NPC topic',()=>{
   const r=runtime({availableActions:[{actionId:'r:0:8:TALK:character:lucia:introduce',sceneVersion:8,roomId:'hall',kind:'TALK',targetId:'character:lucia:introduce',label:'Lucia "Lục" · Giới thiệu và hỏi tên'}]});
   assert.equal(r.buttons[2].disabled,false);r.buttons[2].onclick();
