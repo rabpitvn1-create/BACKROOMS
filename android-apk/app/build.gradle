@@ -3,12 +3,9 @@ plugins {
   id 'org.jetbrains.kotlin.android'
 }
 
-def twoProviderGameplayTest = project.findProperty('backroomTwoProviderTest')?.toString() == 'true'
 def canonRetrievalTrial = project.findProperty('backroomCanonTrial')?.toString() == 'true'
 def secret = { name ->
-  // The instrumentation APK must not even contain Gemini/Haku credentials.
-  def excluded = twoProviderGameplayTest && (name.startsWith('GEMINI_API_KEY_') || name.startsWith('HAKU_'))
-  def value = excluded ? "" : (System.getenv(name) ?: "")
+  def value = System.getenv(name) ?: ""
   return value.replace("\\", "\\\\").replace("\"", "\\\"")
 }
 
@@ -27,8 +24,6 @@ android {
     buildConfigField "String", "GEHIHI_API_KEY", "\"" + secret("GEHIHI_API_KEY") + "\""
     buildConfigField "String", "GEHIHI_BASE_URL", "\"" + secret("GEHIHI_BASE_URL") + "\""
     buildConfigField "String", "GEHIHI_MODEL", "\"" + secret("GEHIHI_MODEL") + "\""
-    buildConfigField "String", "SOL_API_KEY", "\"" + secret("SOL_API_KEY") + "\""
-    buildConfigField "boolean", "TWO_PROVIDER_GAMEPLAY_TEST", (twoProviderGameplayTest ? "true" : "false")
     buildConfigField "String", "HAKU_API_KEY", "\"" + secret("HAKU_API_KEY") + "\""
     buildConfigField "String", "HAKU_BASE_URL", "\"" + secret("HAKU_BASE_URL") + "\""
     buildConfigField "String", "HAKU_MODEL", "\"" + secret("HAKU_MODEL") + "\""

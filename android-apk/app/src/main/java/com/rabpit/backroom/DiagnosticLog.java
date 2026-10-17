@@ -76,7 +76,6 @@ final class DiagnosticLog {
   private static String[][] keyPairs() {
     return new String[][]{
       {"GEHIHI_API_KEY", BuildConfig.GEHIHI_API_KEY},
-      {"SOL_API_KEY", BuildConfig.SOL_API_KEY},
       {"HAKU_API_KEY", BuildConfig.HAKU_API_KEY},
       {"GEMINI_API_KEY_1", BuildConfig.GEMINI_API_KEY_1},
       {"GEMINI_API_KEY_2", BuildConfig.GEMINI_API_KEY_2},
@@ -124,7 +123,6 @@ final class DiagnosticLog {
         .put("device", Build.MANUFACTURER + " " + Build.MODEL)
         .put("androidSdk", Build.VERSION.SDK_INT))
       .put("provider", new JSONObject()
-        .put("writer", "GEHIHI")
         .put("lastGeminiWorker", lastWorker)
         .put("lastGeminiModel", lastModel))
       .put("credentials", credentials)

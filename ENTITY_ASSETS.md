@@ -31,9 +31,9 @@ Runtime chỉ dùng canonical Entity key trùng chính xác với tên file bỏ
 | `sinew_strider` | `sinew_strider.webp` |
 | `hollow_grasper` | `hollow_grasper.webp` |
 
-Cả **22 Entity** chỉ xuất hiện theo Milestone đã được Core chấp nhận. Planner khóa Explorer Turn, canonical Entity key; mọi ENTITY trong Milestone đều bắt buộc Combat, không còn `combatRequired=false`. Không có pool xác suất hoặc random encounter thay thế khi chưa có plan.
+Cả **22 Entity** thuộc Registry/asset catalog. Core tự roll encounter với xác suất **35% mỗi lượt EXECUTE đủ điều kiện**, dùng resident pool theo exact Level ID và roaming pool khi Level không có danh sách resident. Meta action, Combat đang diễn ra hoặc encounter chờ xác nhận không kích hoạt lượt roll. Xem [ENTITY_SPAWNS.md](ENTITY_SPAWNS.md) và `EntitySpawnPool.kt` để biết điều kiện và danh sách cụ thể.
 
-Entity thường và Boss đều bắt buộc Combat và được giữ ở `PENDING_ENCOUNTER_CONFIRMATION`; chỉ Battle Start mới kích hoạt Combat và hiển thị ảnh. Tên/chỉ số lấy từ Registry, encounter ID lấy từ Core, không dò câu chữ GM.
+Entity do Core chọn được giữ ở `PENDING_ENCOUNTER_CONFIRMATION`; chỉ Battle Start mới kích hoạt Combat và hiển thị ảnh. Tên/chỉ số lấy từ Registry, encounter ID lấy từ Core, không dò câu chữ GM. Không có quota hoặc Boss bắt buộc do Story Milestone cũ quyết định.
 
 Base profile của cả ba bằng **Hound × 1.3**, làm tròn về stat nguyên: **104 HP / 20 ATK / 3 Armor / 10 Aggression** trước shared Entity durability và Level scaling. Ở Level 0, shared +30 HP khiến Max HP thực tế là **134**.
 
@@ -49,4 +49,4 @@ Snapshot đọc trực tiếp bằng đường dẫn:
 
 `file:///android_asset/entity/<canonical-key>.webp`
 
-Gameplay runtime không được suy ra Entity từ Level hoặc từ registry lịch sử. Một Entity hiện tại chỉ được nhận diện bằng canonical key đang hoạt động trong state.
+Core dùng exact Level ID để chọn pool hợp lệ; phía UI không được tự suy ra Entity từ Level, ảnh hoặc lời kể. Một encounter hiện tại chỉ được nhận diện bằng canonical Entity key và encounter ID do Core cung cấp.

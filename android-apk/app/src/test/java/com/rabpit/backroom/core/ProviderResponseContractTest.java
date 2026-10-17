@@ -15,6 +15,7 @@ public class ProviderResponseContractTest {
     for (JSONObject payload : new JSONObject[] {
         new JSONObject(),
         new JSONObject().put("reply", "   "),
+        new JSONObject().put("reply", "").put("eventNarrations", new JSONArray().put(new JSONObject().put("eventId", "retired"))),
         new JSONObject().put("reply", 42),
         new JSONObject().put("reply", JSONObject.NULL)
     }) {

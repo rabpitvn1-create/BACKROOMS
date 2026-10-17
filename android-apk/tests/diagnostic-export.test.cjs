@@ -10,12 +10,9 @@ const code=fs.readFileSync(path.join(assets,'diagnostic-export.js'),'utf8');
 
 function boot(){
   const listeners={},elements={},exports=[];
-  const ids=['exportDiagnosticButton','milestoneExportDiagnostic','diagnosticSensitive',
-    'milestoneDiagnosticSensitive','diagnosticExportStatus','milestoneDiagnosticStatus',
-    'milestoneLoading','milestoneLoadingMessage','status','log'];
+  const ids=['exportDiagnosticButton','diagnosticSensitive','diagnosticExportStatus','status','log'];
   for(const id of ids)elements[id]={checked:false,hidden:false,textContent:'',innerText:'',
     addEventListener(name,fn){this[name]=fn;}};
-  elements.milestoneLoading.hidden=true;
   const env={
     document:{getElementById:id=>elements[id]||null,addEventListener(name,fn){listeners[name]=fn;}},
     addEventListener(name,fn){listeners[name]=fn;},
@@ -23,7 +20,7 @@ function boot(){
     location:{protocol:'file:',host:''},
     localStorage:{getItem:()=>null},
     console:{warn(){},error(){}},
-    Android:{currentClientState:()=>JSON.stringify({turn:9,story:{checkpointId:'CP1'},log:[{text:'Core event'}]}),
+    Android:{currentClientState:()=>JSON.stringify({turn:9,log:[{text:'Core event'}]}),
       exportDiagnosticLog(json,raw){exports.push({data:JSON.parse(json),raw});return '{"ok":true}';}},
     state:{turn:8,log:[{text:'UI event'}],combat:{active:false}},
     Date
