@@ -31,7 +31,7 @@ Combat/Poker Dice tiếp tục dùng endpoint và state hiện có. Encounter ch
 Schema thực nằm ở `MiniMapScenario.kt`; prompt tương ứng ở `ScenarioGenerator.java`.
 
 - Đúng 10 outline entries cho cùng nodeAnchor, index/node anchor được Core khóa; dependencies chỉ trỏ mini trước trong node. `levelNumber` chỉ là Level cha phục vụ scaling, không dùng làm khóa tiến trình. Schema scenario 2, không nhận outline gộp cũ.
-- 3..12 room, graph liên thông, cạnh hai chiều, tối đa 6 cạnh/room. V2 không sinh phòng bí mật: chỉ trình bày phòng kề.
+- 4..12 room, graph liên thông, cạnh hai chiều, tối đa 6 cạnh/room. V2 không sinh phòng bí mật: chỉ trình bày phòng kề.
 - 2..12 fact với domain hữu hạn 2..5 giá trị. 4..36 interaction, ID giới hạn 40 ký tự.
 - Predicate: `TRUE`, `HAS(interactionId)`, `AND`, `OR`; sâu tối đa 4, 8 nhánh.
 - SEARCH: clue/vật chứng xác nhận từ fact; TALK: claim với truth policy TRUTH/LIE/MISTAKEN; ANSWER: lựa chọn khớp fact mới được ghi nhận thành công.
