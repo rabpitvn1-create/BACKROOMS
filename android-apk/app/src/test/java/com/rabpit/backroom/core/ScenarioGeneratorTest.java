@@ -127,7 +127,7 @@ public class ScenarioGeneratorTest {
   @Test public void validationFailuresReportOnlySafeCodesAndForwardRepairHintToGehihi() throws Exception {
     java.util.List<String> issues = new java.util.ArrayList<>();
     String result = new ScenarioGenerator().generate(new String[]{"key-a", "key-b"}, request(),
-      (key, prompt) -> "{\\"schemaVersion\\":4,\\"secret\\":\\"user-token\\":\\"invalid\\":true}",
+      (key, prompt) -> "{\"schemaVersion\":4,\"secret\":\"user-token\",\"invalid\":true}",
       prompt -> {
         assertTrue(prompt.contains("invalid_output"));
         assertFalse(prompt.contains("user-token"));
