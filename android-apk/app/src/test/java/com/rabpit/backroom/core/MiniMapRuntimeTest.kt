@@ -298,7 +298,7 @@ class MiniMapRuntimeTest {
     assertFalse(MiniMapScenario.objects(MiniMapRuntime.actions(unfinished)).any { it.getString("targetId").startsWith("node:") })
     var finished=solvedState(0,10)
     val targets=MiniMapScenario.objects(MiniMapRuntime.actions(finished)).map { it.getString("targetId") }
-    assertTrue(targets.containsAll(listOf("node:0.1","node:dullness","node:epsilon","node:ls_2")))
+    assertEquals(listOf("node:0.1"),targets.filter { it.startsWith("node:") })
     val p=MiniMapRuntime.progress(finished).put("roomId","lab")
     finished=finished.copy(world=finished.world+(MiniMapRuntime.STATE to p.toString()))
     assertFalse(MiniMapScenario.objects(MiniMapRuntime.actions(finished)).any { it.getString("targetId").startsWith("node:") })
@@ -330,44 +330,27 @@ class MiniMapRuntimeTest {
     }
   }
 
-  @Test fun optionalNodeHasItsOwnTenMapsAndRestoresFrozenSourceAfterCompletion() {
-    val repo=MemorySave(solvedState(0,10));val core=facade(repo)
-    val source=MiniMapRuntime.script(repo.state)!!.toString()
-    val oldCommand=choice(repo.state,"room:lab")
-    apply(core,repo,"node:dullness")
-    val p=MiniMapRuntime.progress(repo.state)
-    assertEquals("dullness",p.getString("nodeId"));assertEquals(1,p.getInt("index"))
-    assertNull(MiniMapRuntime.script(repo.state))
-    assertEquals(0,p.getJSONArray("accepted").length())
-    val token=MiniMapRuntime.token(repo.state)
-    core.acceptSceneGeneration(token,outline("dullness").toString())
-    core.acceptSceneGeneration(token,script(0,1,"dullness").toString())
-    assertTrue(MiniMapRuntime.scriptKey(p).contains("dullness"))
-    assertFalse(MiniMapScenario.objects(MiniMapRuntime.actions(repo.state)).any { it.getString("targetId")=="node:0" })
-    assertThrows(IllegalArgumentException::class.java) { core.beginSceneAction(oldCommand) }
-    // Complete all ten maps through the same versioned transition path. The puzzle
-    // solver supplies the accepted set; interaction behavior is exercised separately.
-    for (index in 1..10) {
-      if (MiniMapRuntime.script(repo.state)==null) core.acceptSceneGeneration(MiniMapRuntime.token(repo.state),script(0,index,"dullness").toString())
-      val current=MiniMapRuntime.progress(repo.state)
-      val scene=MiniMapRuntime.script(repo.state)!!
-      current.put("accepted",JSONArray(MiniMapScenario.objects(scene.getJSONArray("interactions")).filter { MiniMapScenario.effectText(scene,it).second }.map { it.getString("id") }))
-      repo.state=repo.state.copy(world=repo.state.world+(MiniMapRuntime.STATE to current.toString()))
-      if (index<10) apply(core,repo,"next")
+  @Test fun levelZeroHasTheConfirmedIrreversibleSequenceIncludingThreeAreas() {
+    val chain = listOf("0", "0.1", "0.2", "0.5", "0.7",
+      "dullness", "epsilon", "ls_2", "manila_room", "the_torment", "red_rooms", "1")
+    for (index in 0 until chain.lastIndex) {
+      val from = chain[index]
+      val to = chain[index + 1]
+      assertEquals(listOf(to), LevelRouteRegistry.exits(from))
+      assertFalse(LevelRouteRegistry.canMove(to, from))
     }
-    apply(core,repo,"node:0")
-    assertEquals("0",MiniMapRuntime.node(repo.state).id)
-    assertEquals(10,MiniMapRuntime.progress(repo.state).getInt("index"))
-    assertEquals(source,MiniMapRuntime.script(repo.state)!!.toString())
-    assertTrue(MiniMapRuntime.complete(repo.state))
-    assertThrows(IllegalArgumentException::class.java) { core.beginSceneAction(oldCommand) }
-    val cached=JSONObject(repo.state.world.getValue(MiniMapRuntime.nodeProgressKey("dullness")))
-    assertEquals(10,cached.getInt("index"));assertEquals(10,cached.getJSONArray("completed").length())
-    // Save/restart/checkpoint retain both node caches and frozen content.
-    assertTrue(JSONObject(core.saveManualCheckpoint(core.currentClientState("{}"))).getBoolean("ok"))
-    apply(core,repo,"node:dullness");assertEquals(10,MiniMapRuntime.progress(repo.state).getInt("index"))
-    assertTrue(JSONObject(facade(repo).loadManualCheckpoint()).getBoolean("ok"))
-    assertEquals("0",MiniMapRuntime.node(repo.state).id)
+    val repo = MemorySave(solvedState(0, 10))
+    val core = facade(repo)
+    val staleAction = choice(repo.state, "room:lab")
+    apply(core, repo, "node:0.1")
+    assertEquals("0.1", MiniMapRuntime.node(repo.state).id)
+    assertEquals(1, MiniMapRuntime.progress(repo.state).getInt("index"))
+    assertNull(MiniMapRuntime.script(repo.state))
+    assertThrows(IllegalArgumentException::class.java) { core.beginSceneAction(staleAction) }
+    core.acceptSceneGeneration(MiniMapRuntime.token(repo.state), outline("0.1").toString())
+    core.acceptSceneGeneration(MiniMapRuntime.token(repo.state), script(0, 1, "0.1").toString())
+    assertFalse(MiniMapScenario.objects(MiniMapRuntime.actions(repo.state))
+      .any { it.getString("targetId") == "node:0" })
   }
 
   @Test fun luciaSpawnImmediatelyEnablesTypedDialogueWithoutAnyNewRollOrPuzzleReward() {
