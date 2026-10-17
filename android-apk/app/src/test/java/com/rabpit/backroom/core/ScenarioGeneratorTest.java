@@ -45,6 +45,31 @@ public class ScenarioGeneratorTest {
     assertTrue(prompt.contains("Không viết trùng observation"));
     assertFalse(prompt.contains(">=1 lời khai sai"));
   }
+  @Test public void compactWriterPromptRetainsStoryAndPuzzleContractsWithoutDuplicatedNodeList() throws Exception {
+    JSONObject input = request().put("kind", "script");
+    String prompt = ScenarioGenerator.prompt(input);
+    // A size guard catches accidental reintroduction of verbose duplicated advice,
+    // but correctness still depends on the schema and proof requirements below.
+    assertTrue(prompt.length() < 7000);
+    assertEquals(prompt.indexOf("INPUT="), prompt.lastIndexOf("INPUT="));
+    for (String rule : new String[]{
+      "4..12 phòng", "2..12 fact", "4..36", "0..12 NPC",
+      "2..5 giá trị", "4 SEARCH ANSWER", "CLUE/EVIDENCE",
+      ">=2 ANSWER", "same_fact_unused_sentinel", "35..320", "2 NPC",
+      "CANON", "Level 1", "Hollow Grasper", "scene_unused_sentinel",
+      "Lời khai là thông tin NHÂN VẬT TỰ NHẬN", "độc lập"
+    }) {
+      if (rule.endsWith("_sentinel")) continue;
+      assertTrue("Missing writer requirement: " + rule, prompt.contains(rule));
+    }
+    String outlinePrompt = ScenarioGenerator.prompt(request());
+    assertTrue(outlinePrompt.length() < 3000);
+    assertTrue(outlinePrompt.contains("10 beat"));
+    assertTrue(outlinePrompt.contains("dependencyRefs"));
+    assertTrue(outlinePrompt.contains("INPUT.nodeAnchor"));
+    assertFalse(outlinePrompt.contains("nodeAnchor theo thứ tự:"));
+  }
+
   @Test public void quotaAndMalformedResponsesHaveBoundedAttemptsAndIndependentCircuit() throws Exception {
     AtomicInteger calls=new AtomicInteger();ScenarioGenerator generator=new ScenarioGenerator();
     String[] keys={"secret-1","secret-2"};
