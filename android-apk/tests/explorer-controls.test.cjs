@@ -51,6 +51,38 @@ test('selection sends exactly one captured versioned target and no label/client 
   const r=runtime();r.buttons[0].onclick();const select=r.dialog.children[1].children[0];select.onclick();select.onclick();
   assert.equal(r.calls.length,1);assert.deepEqual(JSON.parse(r.calls[0][1]),{actionId:'run:1:MOVE:room:x',sceneVersion:1,roomId:'hall',kind:'MOVE',targetId:'room:x'});
 });
+test('completed mini-map uses a distinct dark-green next-area choice with Core-authored label',()=>{
+  const normal={actionId:'r:0:9:MOVE:room:lab',sceneVersion:9,roomId:'hall',kind:'MOVE',targetId:'room:lab',label:'Kho hồ sơ'};
+  const transition={actionId:'r:0:9:MOVE:next',sceneVersion:9,roomId:'hall',kind:'MOVE',targetId:'next',label:'Tiến vào khu vực kế tiếp.'};
+  const r=runtime({completed:true,availableActions:[normal,transition]});
+  r.buttons[0].onclick();
+  const choices=r.dialog.children[1],nextPanel=r.dialog.children[2];
+  assert.equal(choices.children.length,1);
+  assert.equal(choices.children[0].textContent,'Kho hồ sơ');
+  assert.equal(nextPanel.hidden,false);
+  assert.equal(nextPanel.children.length,1);
+  const green=nextPanel.children[0];
+  assert.equal(green.className,'explorer-next-area-option');
+  assert.equal(green.textContent,'Tiến vào khu vực kế tiếp.');
+  assert.doesNotMatch(green.textContent,/mini-map|\\/10/);
+  green.onclick();
+  assert.deepEqual(JSON.parse(r.calls[0][1]),{
+    actionId:transition.actionId,sceneVersion:9,roomId:'hall',kind:'MOVE',targetId:'next'
+  });
+  const css=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/explorer-controls.css'),'utf8');
+  assert.match(css,/\\.explorer-next-area-panel\\{/);
+  assert.match(css,/background:linear-gradient\\(150deg,#173d2b,#0a261b\\)/);
+  assert.match(css,/\\.explorer-next-area-option\\{/);
+});
+test('completion styling cannot create an unauthorized transition',()=>{
+  const r=runtime({completed:true,availableActions:[{
+    actionId:'r:0:9:MOVE:room:hall',sceneVersion:9,roomId:'lab',kind:'MOVE',targetId:'room:hall',label:'Hành lang'
+  }]});
+  r.buttons[0].onclick();
+  assert.equal(r.dialog.children[2].hidden,true);
+  assert.equal(r.dialog.children[2].children.length,0);
+  assert.equal(r.dialog.children[1].children.length,1);
+});
 test('generation failure stops automatic requests and leaves explicit retry available',()=>{
   const r=runtime({generationNeeded:true,availableActions:[]});assert.equal(r.calls.length,1);
   r.ctx.backroomError('429');r.ctx.backroomSyncExplorer();assert.equal(r.calls.length,1);
