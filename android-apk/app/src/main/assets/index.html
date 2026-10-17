@@ -1732,7 +1732,7 @@ function appendActionPending(label){
   player.querySelector(".text").textContent=label;logEl.appendChild(player);
   const gm=document.createElement("article");
   gm.className="message gm pending";gm.setAttribute("data-pending","1");
-  gm.innerHTML="<div class='role'><img class='gm-brand-spark' src='provider-logos/gemini.svg' alt='' aria-hidden='true'>GAME MASTER</div><div class='text'><div class='gm-thinking' role='status' aria-label='Gehihi đang chuẩn bị câu trả lời'><img src='provider-logos/gemini.svg' alt='' aria-hidden='true'><span class='gm-thinking-name' aria-hidden='true'>Gehihi</span></div></div>";
+  gm.innerHTML="<div class='role'><img class='gm-brand-spark' src='provider-logos/gemini.svg' alt='' aria-hidden='true'>GAME MASTER</div><div class='text'><div class='gm-thinking' role='status' aria-label='Gehihi đang chuẩn bị câu trả lời'><span class='gm-thinking-name' aria-hidden='true'>Gehihi</span></div></div>";
   logEl.appendChild(gm);logEl.scrollTop=logEl.scrollHeight;
 }
 if(actionEl)actionEl.addEventListener("input",syncPrimaryActions);
