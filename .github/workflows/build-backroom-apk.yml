@@ -185,7 +185,7 @@ jobs:
           grep -q 'combatStatus' apk-check/assets/index.html
           ! grep -q 'renderCorePanel' apk-check/assets/index.html
           ! grep -q 'Android.coreUpgrade' apk-check/assets/index.html
-          grep -q 'DIRECT_COMBAT_GATE_V1' apk-check/assets/index.html
+          grep -Fq 'function readerBlocked()' apk-check/assets/index.html
           grep -q 'ensureDirectCombatDice' apk-check/assets/index.html
           grep -q 'mountNearSnapshot();' apk-check/assets/index.html
           ! grep -q 'if(window.__combatFeedbackBusy){hide();return;}' apk-check/assets/index.html
@@ -350,7 +350,7 @@ jobs:
           ! unzip -p Backroom-1.2.0.0.38-verified.apk assets/combat-feedback-1193a.js | grep -q 'state.log'
           ! unzip -p Backroom-1.2.0.0.38-verified.apk assets/combat-feedback-1193a.js | grep -q 'localStorage'
           ! unzip -p Backroom-1.2.0.0.38-verified.apk assets/combat-feedback-1193a.js | grep -q 'modal.hidden=true'
-          unzip -p Backroom-1.2.0.0.38-verified.apk assets/index.html | grep -q 'DIRECT_COMBAT_GATE_V1'
+          unzip -p Backroom-1.2.0.0.38-verified.apk assets/index.html | grep -Fq 'function readerBlocked()'
           unzip -p Backroom-1.2.0.0.38-verified.apk assets/index.html | grep -q 'ensureDirectCombatDice'
           unzip -p Backroom-1.2.0.0.38-verified.apk assets/index.html | grep -q 'mountNearSnapshot();'
           ! unzip -p Backroom-1.2.0.0.38-verified.apk assets/index.html | grep -q 'if(window.__combatFeedbackBusy){hide();return;}'
