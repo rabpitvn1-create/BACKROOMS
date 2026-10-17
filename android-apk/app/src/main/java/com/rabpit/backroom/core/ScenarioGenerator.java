@@ -29,7 +29,7 @@ public final class ScenarioGenerator {
     "npc_talk_binding", "npc_search_binding", "npc_without_interaction",
     "fact_domain", "fact_human_value", "claim_truth_policy", "predicate_reference",
     "predicate_operator", "scene_observation_quality", "scene_observation_missing",
-    "scene_duplicate_observation", "puzzle_unsolvable_or_empty",
+    "scene_duplicate_observation", "scene_language_mixed", "puzzle_unsolvable_or_empty",
     "answer_without_evidence", "answer_without_observed_proof", "puzzle_requires_two_inferences",
     "scenario_gehihi_envelope", "scenario_gehihi_truncated",
     "scenario_gehihi_filtered", "scenario_gehihi_empty"
@@ -130,7 +130,11 @@ public final class ScenarioGenerator {
       + "CANON TRONG INPUT LÀ NGUỒN THẨM QUYỀN. Không tự suy diễn tính chất phòng, vật liệu, cấu trúc hay hiện tượng trái Canon của Level hiện tại. "
       + "Level 0 có thảm ẩm mốc, giấy dán tường vàng và đèn huỳnh quang; không tự gán nước thảm thành ma nguyên hoặc thêm linh khí phát ra từ tường, dầm thép. "
       + "Chỉ tạo vật chứng/quy tắc câu đố quan sát được và phù hợp địa điểm, không bịa quy luật mới của Backrooms. "
-      + "Tất cả mô tả, objective, label, beat phải là tiếng Việt tự nhiên; giữ tiếng Anh chỉ với tên riêng Canon đã định danh như The Lobby, không dùng room, quest, puzzle, level up trong văn bản hiển thị. ";
+      + "Tất cả mô tả, objective, label, beat phải là tiếng Việt tự nhiên; giữ tiếng Anh chỉ với tên riêng Canon đã định danh như The Lobby, không dùng room, quest, puzzle, level up trong văn bản hiển thị. "
+      + "Tên phòng, mô tả cảnh vật, nhãn tương tác và lời khai TUYỆT ĐỐI KHÔNG trộn từ tiếng Anh miêu tả không gian/hướng đi vào câu tiếng Việt. "
+      + "Ví dụ SAI: 'Khu Trần Giả Vòng Down', 'Góc Fake Wall', 'Hành lang Dark'; hãy viết thành tên hoàn toàn tự nhiên như 'Khu trần giả sụt xuống', 'Góc tường giả', 'Hành lang tối'. "
+      + "Đừng dịch tên riêng Canon như Hollow Grasper, The Lobby, Zenith Station; các tên đó không phải từ vựng miêu tả thông thường. "
+      + "Kịch bản bị Core từ chối với mã scene_language_mixed nếu còn trộn các từ tiếng Anh mô tả. ";
     if ("outline".equals(request.getString("kind"))) {
       JSONArray anchors = new JSONArray();
       for (int i = 1; i <= 10; i++) anchors.put(request.getString("nodeAnchor"));
