@@ -142,11 +142,19 @@ class MiniMapRuntimeTest {
     assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.validate(onlyThree,"0",1) }
     val disconnected=script();disconnected.getJSONArray("rooms").getJSONObject(1).put("adjacentRoomIds",JSONArray().put("witness"))
     assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.validate(disconnected,"0",1) }
+    // Regression: Gemini uses private snake_case codes for answer matching.
+    // They must be accepted, not accidentally treated as display prose.
     val machineCodes=script()
     machineCodes.getJSONArray("facts").getJSONObject(0)
       .put("value","mau_khoa_do").put("values",JSONArray().put("mau_khoa_do").put("xanh"))
+    machineCodes.getJSONArray("interactions").getJSONObject(3).getJSONObject("effect").put("value","mau_khoa_do")
+    machineCodes.getJSONArray("interactions").getJSONObject(3).put("label","Chọn khóa có dấu đỏ")
+    assertEquals("investigation",MiniMapScenario.validate(machineCodes,"0",1).getString("id"))
+    val unsafeControl=script()
+    unsafeControl.getJSONArray("facts").getJSONObject(0)
+      .put("value","mau\\u0001do").put("values",JSONArray().put("mau\\u0001do").put("xanh"))
     assertEquals("fact_human_value", assertThrows(IllegalArgumentException::class.java) {
-      MiniMapScenario.validate(machineCodes,"0",1)
+      MiniMapScenario.validate(unsafeControl,"0",1)
     }.message)
     val lying=script();lying.getJSONArray("interactions").getJSONObject(2).getJSONObject("effect").put("value","đỏ")
     assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.validate(lying,"0",1) }
