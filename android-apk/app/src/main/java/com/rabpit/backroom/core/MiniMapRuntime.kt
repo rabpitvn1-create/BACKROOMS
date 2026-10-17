@@ -87,6 +87,55 @@ object MiniMapRuntime {
     }
     return out
   }
+  /** Derived from already tried interactions, never from the hidden answer key. */
+  private fun temporaryInference(state: GameState, s: JSONObject, p: JSONObject): String {
+    if (complete(state)) return "Các suy luận cần thiết đã được xác nhận. Hãy tìm đến lối ra của mini-map."
+    val done = attempted(p)
+    val tried = MiniMapScenario.objects(s.getJSONArray("interactions")).filter { it.getString("id") in done }
+    val claims = tried.filter { it.getJSONObject("effect").getString("type") == "CLAIM" }
+    val evidence = tried.filter { it.getJSONObject("effect").getString("type") in setOf("CLUE", "EVIDENCE") }
+    val verifiedFactIds = evidence.map { it.getJSONObject("effect").getString("factId") }.toSet()
+    val unverified = claims.filter { it.getJSONObject("effect").getString("factId") !in verifiedFactIds }
+    val reasoning = when {
+      unverified.isNotEmpty() ->
+        "Có ${claims.size} lời khai nhưng ít nhất một nhận định vẫn thiếu vật chứng độc lập. Chưa thể coi lời kể của nhân chứng là sự thật."
+      claims.isNotEmpty() && evidence.isNotEmpty() ->
+        "Đã thu thập lời khai và dấu vết vật lý. Hãy so sánh chúng để loại những giả thuyết không phù hợp."
+      evidence.isNotEmpty() ->
+        "Đã tìm thấy ${evidence.size} dấu vết. Cần đối chiếu thêm trước khi kết luận."
+      claims.isNotEmpty() ->
+        "Lời khai chỉ là nhận định từ góc nhìn nhân chứng. Hãy tìm chứng cứ tại hiện trường."
+      else -> "Chưa đủ dữ kiện để suy luận. Hãy quan sát những vật thể hoặc dấu vết có thể kiểm chứng."
+    }
+    val current = p.getString("roomId")
+    val remaining = MiniMapScenario.objects(s.getJSONArray("interactions")).filter {
+      it.getString("id") !in done && it.getString("kind") == "SEARCH" &&
+        it.getJSONObject("effect").getString("type") != "ANSWER" &&
+        MiniMapScenario.holds(it.getJSONObject("requires"), accepted(p))
+    }
+    val here = remaining.firstOrNull { it.getString("roomId") == current }
+    val next = when {
+      here != null -> " Gợi ý bước tiếp: ${here.getString("label")}."
+      else -> {
+        val currentRoom = room(s, p)
+        val adjacent = MiniMapScenario.strings(currentRoom.getJSONArray("adjacentRoomIds"))
+        val nearby = remaining.firstOrNull { it.getString("roomId") in adjacent }
+        if (nearby != null) {
+          val name = MiniMapScenario.objects(s.getJSONArray("rooms"))
+            .first { it.getString("id") == nearby.getString("roomId") }.getString("name")
+          " Gợi ý bước tiếp: kiểm tra thêm phòng $name."
+        } else if (MiniMapScenario.objects(actions(state)).any {
+            it.getString("kind") == "SEARCH" && it.getString("targetId") in
+              MiniMapScenario.objects(s.getJSONArray("interactions")).filter { item ->
+                item.getJSONObject("effect").getString("type") == "ANSWER"
+              }.map { item -> item.getString("id") }
+          }) " Gợi ý bước tiếp: đã có lựa chọn đối chiếu khả dụng trong phòng này."
+        else " Gợi ý bước tiếp: khám phá các phòng nối với phòng hiện tại để tìm thêm dấu vết."
+      }
+    }
+    return reasoning + next
+  }
+
   fun publicView(state: GameState): JSONObject {
     val p = progress(state); val s = script(state)
     val out = JSONObject().put("miniIndex", p.getInt("index")).put("parentLevel", p.getInt("parent"))
@@ -98,6 +147,7 @@ object MiniMapRuntime {
         LevelRouteRegistry.exits(p.getString("nodeId")).isNotEmpty())
     if (s != null) {
       out.put("objective", s.getString("objective"))
+      out.put("temporaryInference", temporaryInference(state, s, p))
       val r = room(s, p)
       out.put("room", JSONObject().put("id", r.getString("id")).put("name", r.getString("name")).put("description", r.getString("description")))
       // Only residents of the current room are public; NPC motivation stays in the script.
