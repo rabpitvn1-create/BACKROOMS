@@ -149,6 +149,8 @@ public final class ScenarioGenerator {
       + "facts:[{id,label:string<=90,value:string,values:[2..5 giá trị chuỗi khác nhau gồm value]}],"
       + "interactions:[{id,kind:SEARCH hoặc TALK,roomId:id,npcId:id chỉ khi TALK,label:string<=120,observation:string 35..320 (mọi effect trừ ANSWER),requires:predicate,effect:effect}],goal:predicate}. "
       + "Có 4..12 phòng, graph liên thông, cạnh hai chiều, tối đa 6 cạnh/phòng. 2..12 facts bí mật có answer value cố định. "
+      + "facts[].value/values là mã đối chiếu NỘI BỘ, có thể là snake_case như lech_the_ky; Core không hiển thị trực tiếp. "
+      + "Chỉ label, observation và lời khai được hiển thị nên các trường đó phải dùng câu chữ tự nhiên, không nhắc mã kỹ thuật. "
       + "0..12 NPC kịch bản TRONG TOÀN MINI-MAP: 12 là GIỚI HẠN TỐI ĐA, KHÔNG phải số NPC phải tạo và KHÔNG phải số NPC xuất hiện cùng lúc. "
       + "Chọn số NPC tự nhiên theo bối cảnh, có thể npcs=[] và mọi interaction đều SEARCH. "
       + "Phân bố NPC theo roomId thật hợp lý: chỉ NPC thuộc phòng đang đến mới xuất hiện ở đó, không dồn tất cả vào một phòng hoặc một khoảnh khắc. "
