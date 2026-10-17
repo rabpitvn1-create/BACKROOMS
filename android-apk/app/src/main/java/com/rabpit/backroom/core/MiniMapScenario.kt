@@ -115,7 +115,10 @@ object MiniMapScenario {
       val values = strings(f.getJSONArray("values"))
       require(values.size in 2..5 && values.distinct().size == values.size &&
         f.getString("value") in values && values.all { it.isNotBlank() && it.length <= 90 }) { "fact_domain" }
-      require(values.none { it.contains('_') || it.any { c -> c < ' ' || c == '\u007f' } }) { "fact_human_value" }
+      // These are private matching tokens, not prose shown to players.
+      // Snake_case tokens are valid (the identifier schema uses them too);
+      // human-readable labels and interaction observations are validated separately.
+      require(values.none { it.any { c -> c < ' ' || c == '\u007f' } }) { "fact_human_value" }
     }
     val interactions = list(raw, "interactions", 4, 36); val actionIds = interactions.map { it.getString("id") }.toSet()
     interactions.forEach { a ->
