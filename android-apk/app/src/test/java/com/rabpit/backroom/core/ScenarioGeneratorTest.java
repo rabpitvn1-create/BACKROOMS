@@ -28,8 +28,10 @@ public class ScenarioGeneratorTest {
     String prompt = ScenarioGenerator.prompt(request().put("kind", "script"));
     assertTrue(prompt.contains("npcs:"));
     assertTrue(prompt.contains("npcs=[]"));
-    assertTrue(prompt.contains("0..2 NPC"));
-    assertTrue(prompt.contains("TOÀN BỘ TALK"));
+    assertTrue(prompt.contains("0..12 NPC"));
+    assertTrue(prompt.contains("GIỚI HẠN TỐI ĐA"));
+    assertTrue(prompt.contains("KHÔNG phải số NPC xuất hiện cùng lúc"));
+    assertTrue(prompt.contains("không nhất thiết phải là điều kiện bắt buộc"));
     assertTrue(prompt.contains("KHÔNG bắt buộc có NPC hay lời khai sai"));
     assertFalse(prompt.contains(">=1 lời khai sai"));
   }
