@@ -42,7 +42,7 @@ public class ScenarioGeneratorTest {
     assertTrue(prompt.contains("observation:string 35..320"));
     assertTrue(prompt.contains("Lời khai là thông tin NHÂN VẬT TỰ NHẬN"));
     assertTrue(prompt.contains("Level 1"));
-    assertTrue(prompt.contains("không viết trùng observation"));
+    assertTrue(prompt.contains("Không viết trùng observation"));
     assertFalse(prompt.contains(">=1 lời khai sai"));
   }
   @Test public void quotaAndMalformedResponsesHaveBoundedAttemptsAndIndependentCircuit() throws Exception {
