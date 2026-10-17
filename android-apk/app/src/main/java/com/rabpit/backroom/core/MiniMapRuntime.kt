@@ -30,6 +30,12 @@ object MiniMapRuntime {
   private fun attempted(p: JSONObject) = MiniMapScenario.strings(p.getJSONArray("attempted")).toSet()
   fun complete(state: GameState): Boolean = script(state)?.let { MiniMapScenario.holds(it.getJSONObject("goal"), accepted(progress(state))) } ?: false
   private fun room(s: JSONObject, p: JSONObject) = MiniMapScenario.objects(s.getJSONArray("rooms")).first { it.getString("id") == p.getString("roomId") }
+  private fun authoredNpcs(s: JSONObject, roomId: String): JSONArray = JSONArray().apply {
+    MiniMapScenario.objects(s.getJSONArray("npcs")).filter { it.getString("roomId") == roomId }.forEach { npc ->
+      put(JSONObject().put("id", npc.getString("id")).put("name", npc.getString("name"))
+        .put("role", npc.getString("role")).put("description", npc.getString("description")))
+    }
+  }
   private val dialogueTopics = linkedMapOf(
     "introduce" to "Giới thiệu và hỏi tên",
     "situation" to "Hỏi về tình hình hiện tại",
@@ -55,7 +61,13 @@ object MiniMapRuntime {
     MiniMapScenario.strings(r.getJSONArray("adjacentRoomIds")).forEach { id -> add("MOVE", "room:$id", rooms.first { it.getString("id") == id }.getString("name")) }
     MiniMapScenario.objects(script.getJSONArray("interactions")).filter {
       it.getString("roomId") == p.getString("roomId") && it.getString("id") !in attempted(p) && MiniMapScenario.holds(it.getJSONObject("requires"), accepted(p))
-    }.forEach { a -> add(a.getString("kind"), a.getString("id"), a.getString("label")) }
+    }.forEach { a ->
+      val label = if (a.getString("kind") == "TALK") {
+        val npc = MiniMapScenario.objects(script.getJSONArray("npcs")).first { it.getString("id") == a.getString("npcId") }
+        "${npc.getString("name")} · ${a.getString("label")}"
+      } else a.getString("label")
+      add(a.getString("kind"), a.getString("id"), label)
+    }
     presentCharacters(state).forEach { character ->
       dialogueTopics.forEach { (topicId, label) -> add("TALK", "character:${character.id}:$topicId", "${character.name} · $label") }
     }
@@ -83,6 +95,8 @@ object MiniMapRuntime {
       out.put("objective", s.getString("objective"))
       val r = room(s, p)
       out.put("room", JSONObject().put("id", r.getString("id")).put("name", r.getString("name")).put("description", r.getString("description")))
+      // Only residents of the current room are public; NPC motivation stays in the script.
+      out.put("npcs", authoredNpcs(s, p.getString("roomId")))
       out.put("completed", complete(state))
     }
     state.world[PENDING]?.let { raw -> out.put("pendingActionId", JSONObject(raw).getString("actionId")) }
@@ -143,6 +157,7 @@ object MiniMapRuntime {
     val label = choice.getString("label")
     var line = label
     var dialogue: JSONObject? = null
+    var authoredSpeaker: JSONObject? = null
     if (kind == "MOVE") {
       when {
         target.startsWith("room:") -> p.put("roomId", target.removePrefix("room:"))
@@ -181,6 +196,11 @@ object MiniMapRuntime {
         "Chỉ đối thoại theo Canon và thông tin đã biết; không cấp vật phẩm, gia nhập Party hoặc tiết lộ lời giải mới."
     } else {
       val a = MiniMapScenario.objects(s.getJSONArray("interactions")).first { it.getString("id") == target }
+      if (kind == "TALK") {
+        val npc = MiniMapScenario.objects(s.getJSONArray("npcs")).first { it.getString("id") == a.getString("npcId") }
+        authoredSpeaker = JSONObject().put("id", npc.getString("id")).put("name", npc.getString("name"))
+          .put("role", npc.getString("role")).put("description", npc.getString("description"))
+      }
       val (fact, correct) = MiniMapScenario.effectText(s, a)
       line = fact
       p.getJSONArray("attempted").put(target)
@@ -196,6 +216,9 @@ object MiniMapRuntime {
     } else JSONObject().put("description", "Đang tới phân đoạn tiếp theo; chưa khám phá căn phòng mới.")
     val event = JSONObject().put("kind", kind).put("interaction", label).put("result", line).put("node", nodeId).put("room", roomPublic)
       .put("miniIndex", p.getInt("index")).put("observations", p.getJSONArray("records"))
+      .put("npcs", if (nextScript != null && p.getString("roomId").isNotEmpty())
+        authoredNpcs(nextScript, p.getString("roomId")) else JSONArray())
+    if (authoredSpeaker != null) event.put("npc", authoredSpeaker)
     if (dialogue != null) event.put("dialogue", dialogue)
     return Staged(p, nodeId, event, label, nodeUpdates)
   }
