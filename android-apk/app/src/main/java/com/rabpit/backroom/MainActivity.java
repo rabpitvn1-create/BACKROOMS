@@ -1816,9 +1816,9 @@ public class MainActivity extends Activity {
       submitTurnInternal(stateJson, actionKind, action);
     }
 
-    @JavascriptInterface public void configureReaderLevel(String stateJson, String tone, String difficulty) {
+    @JavascriptInterface public void configureReaderLevel(String stateJson, String stylesJson, String difficulty) {
       io.execute(() -> {
-        try { emit("backroomTurn", requireGameCore().configureReaderLevel(stateJson, tone, difficulty)); }
+        try { emit("backroomTurn", requireGameCore().configureReaderLevel(stateJson, stylesJson, difficulty)); }
         catch (Exception error) { emit("backroomError", error.getMessage()); }
       });
     }
@@ -1849,6 +1849,7 @@ public class MainActivity extends Activity {
           JSONObject committed = new JSONObject(requireGameCore().commitReaderPage(stateJson,
             new JSONObject(requestJson).getString("requestId"), generated.toString()));
           if (!committed.optBoolean("handled")) throw new Exception(committed.optString("error", "page_commit_failed"));
+          DiagnosticLog.record("reader.notes_rejected", "count=" + committed.optInt("readerNotesRejected"));
           JSONObject state = committed.getJSONObject("state");
           emit("backroomTurn", state.toString());
           if (committed.optBoolean("ambientNpcRolled")) beginAmbientGeneration(state);

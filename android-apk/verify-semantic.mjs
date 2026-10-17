@@ -27,6 +27,6 @@ assert.equal(labels("semanticResolve('Hound',null,null)").length, 0, 'unencounte
 ctx.before = { log: [] };
 ctx.current = { ...state, log: [{role:'gm',text:'Iris nhận ra Hound',semanticVersion:2,semanticSpans:[{start:0,end:4,kind:'item'}]}] };
 const next = labels('semanticPrepareNextState(before, JSON.stringify(current))');
-assert.equal(next.log[0].semanticVersion,3);
+assert.equal(next.log[0].semanticVersion,4);
 assert.equal(next.log[0].semanticSpans[0].kind,'character');
 console.log('Active-state semantic recognition verified');

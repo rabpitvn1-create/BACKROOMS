@@ -2,6 +2,7 @@ package com.rabpit.backroom.core
 
 import org.json.JSONArray
 import org.json.JSONObject
+import java.text.Normalizer
 import java.security.SecureRandom
 
 /** Reader orchestration uses the existing Core state/codec/checkpoint, never WebView storage.
@@ -29,13 +30,16 @@ object ReaderRuntime {
   fun scale(value: Int, percent: Int): Int = ((value.toLong() * percent + 50) / 100).coerceIn(1, Int.MAX_VALUE.toLong()).toInt()
   fun active(state: GameState): JSONObject? = data(state).optJSONObject("active")
   fun requiresSettings(state: GameState): Boolean = data(state).optString("configuredNode") != node(state)
-  fun configure(state: GameState, tone: String, difficulty: String): GameState {
+  fun configure(state: GameState, styles: List<String>, difficulty: String): GameState {
     require(idle(state) && active(state) == null) { "turn_in_progress" }
     require(requiresSettings(state)) { "level_settings_locked" }
-    require(tone in tones) { "tone_invalid" }
+    require(styles.isNotEmpty() && styles.distinct().size == styles.size && styles.all { it in tones }) { "narrative_styles_invalid" }
     Difficulty.valueOf(difficulty)
-    return store(state, data(state).put("tone", tone).put("difficulty", difficulty).put("configuredNode", node(state)))
+    return store(state, data(state).put("styles", JSONArray(styles)).put("difficulty", difficulty).put("configuredNode", node(state)))
   }
+  fun selectedStyles(state: GameState): List<String> = data(state).optJSONArray("styles")?.let { a ->
+    (0 until a.length()).map { a.getString(it) }
+  } ?: listOf("HORROR")
   private fun idle(state: GameState) = CombatRuntime.pending(state) == null && CombatRuntime.active(state) == null &&
     state.turn.pending == null && ActionRuntime.activeSession(state) == null
   fun requestId(state: GameState) = "PAGE:${CoreClientProjection.turnIndex(state)}"
@@ -154,7 +158,8 @@ object ReaderRuntime {
       Có thể thêm continuity: tối đa 3 ghi chú {"kind":"OBSERVATION|SUSPICION|PROMISE","text":"trích nguyên một chi tiết quan trọng trong reply, tối đa 240 ký tự"}.
       Ghi chú chỉ là ký ức kể chuyện của Cao Minh, không cấp tri thức cho NPC và không xác lập sự thật gameplay.
       OUTPUT: một JSON object {"reply":"trang truyện", "decision":null} hoặc decision={"options":[{"label":"...","intent":"INVESTIGATE"},{"label":"...","intent":"AVOID"}]}.
-      TONE_PRESENTATION_ONLY: ${tones.getValue(d.optString("tone", "HORROR"))}. Không sửa Canon/tính cách/quy tắc vì đổi giọng.
+      Các phong cách được phối thành một giọng kể nhất quán, không chia cảnh theo từng mục và không đổi gameplay/Canon/tính cách.
+      STYLES_PRESENTATION_ONLY: ${selectedStyles(state).joinToString("; ") { tones.getValue(it) }}
       CORE_STEP_PLAN: ${active(state)?.let { JSONObject().put("intent", it.getString("intent")).put("action", it.getString("action"))
         .put("authorizedDestination", it.optString("destination")).put("selected", it.optJSONObject("selected")) }}
       Nếu authorizedDestination rỗng, không được kể đã đi qua Exit dù intent là TRAVERSE: Encounter có thể đã chặn đường.
@@ -181,23 +186,36 @@ object ReaderRuntime {
     val indices = (relevant + (maxOf(0, all.length() - 8) until all.length()).toList()).distinct().sorted()
     return JSONArray().apply { indices.forEach { put(all.get(it)) } }
   }
-  private fun validateNotes(page: JSONObject) {
-    if (page.has("continuity") && !page.isNull("continuity")) {
-      val notes = page.getJSONArray("continuity")
-      require(notes.length() <= 3) { "narrative_notes_limit" }
-      for (i in 0 until notes.length()) {
-        val note = notes.getJSONObject(i)
-        require(note.getString("kind") in setOf("OBSERVATION", "SUSPICION", "PROMISE")) { "narrative_note_kind_invalid" }
-        val text = note.getString("text")
-        require(text.length in 1..240 && page.getString("reply").contains(text)) { "narrative_note_not_in_page" }
-        if (Regex("(?iu)có lẽ|có thể|dường như|lời đồn|nghi vấn").containsMatchIn(text))
-          require(note.getString("kind") == "SUSPICION") { "narrative_uncertainty_required" }
+  data class NarrativeNotes(val accepted: JSONArray, val rejected: Int)
+
+  /** Optional writing metadata must never veto an otherwise valid gameplay page.
+   * Only quotes grounded in the visible reply enter memory. No fuzzy/paraphrase facts.
+   */
+  fun groundedNotes(page: JSONObject): NarrativeNotes {
+    if (!page.has("continuity") || page.isNull("continuity")) return NarrativeNotes(JSONArray(), 0)
+    val raw = page.optJSONArray("continuity") ?: return NarrativeNotes(JSONArray(), 1)
+    val accepted = JSONArray()
+    var rejected = 0
+    fun normalized(text: String) = Normalizer.normalize(text, Normalizer.Form.NFC)
+      .replace('“', '"').replace('”', '"').replace('‘', '\'').replace('’', '\'')
+      .replace(Regex("\\s+"), " ").trim()
+    val reply = normalized(page.getString("reply"))
+    for (i in 0 until raw.length()) {
+      val note = raw.optJSONObject(i)
+      val text = (note?.opt("text") as? String)?.let(::normalized).orEmpty()
+      val kind = note?.optString("kind").orEmpty()
+      if (accepted.length() >= 3 || kind !in setOf("OBSERVATION", "SUSPICION", "PROMISE") ||
+        text.length !in 1..240 || !reply.contains(text)) {
+        rejected++
+        continue
       }
+      val uncertain = Regex("(?iu)có lẽ|có thể|dường như|lời đồn|nghi vấn").containsMatchIn(text)
+      accepted.put(JSONObject().put("kind", if (uncertain) "SUSPICION" else kind).put("text", text))
     }
+    return NarrativeNotes(accepted, rejected)
   }
   fun validatePage(state: GameState, generated: JSONObject): JSONObject? {
     require(generated.getString("reply").isNotBlank()) { "empty_page" }
-    validateNotes(generated)
     val decision = if (generated.has("decision") && !generated.isNull("decision")) generated.getJSONObject("decision") else return null
     require(CombatRuntime.pending(state) == null) { "decision_during_encounter" }
     val raw = decision.getJSONArray("options")
@@ -250,7 +268,9 @@ object ReaderRuntime {
     val flags = JSONObject(after.world.getValue("flagsJson"))
     val continuity = flags.optJSONObject("storyContinuity") ?: JSONObject().also { flags.put("storyContinuity", it) }
     val notes = continuity.optJSONArray("narrativeNotes") ?: JSONArray().also { continuity.put("narrativeNotes", it) }
-    page.optJSONArray("continuity")?.let { incoming ->
+    val grounded = groundedNotes(page)
+    d.put("rejectedNotes", grounded.rejected)
+    grounded.accepted.let { incoming ->
       for (i in 0 until incoming.length()) notes.put(JSONObject().put("kind", incoming.getJSONObject(i).getString("kind"))
         .put("text", incoming.getJSONObject(i).getString("text")).put("pageId", a.getString("requestId"))
         .put("ownerId", CAO_MINH_ID).put("authority", "NARRATIVE_ONLY"))
@@ -272,7 +292,7 @@ object ReaderRuntime {
     val a = active(state)
     out.put("reader", JSONObject().put("requestId", requestId(state))
       .put("settingsRequired", requiresSettings(state) && idle(state))
-      .put("tone", d.optString("tone", "HORROR")).put("difficulty", d.optString("difficulty", "NORMAL"))
+      .put("styles", JSONArray(selectedStyles(state))).put("difficulty", d.optString("difficulty", "NORMAL"))
       .put("pendingPage", a != null)
       .apply {
         d.optJSONObject("gate")?.let { put("gate", it) }

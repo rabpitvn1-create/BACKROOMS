@@ -61,6 +61,13 @@ public class ProviderResponseContractTest {
       new JSONObject().put("reply", "Trang").put("decision", "invalid").toString()));
   }
 
+  @Test public void malformedOptionalNotesReachCoreWithoutRejectingValidNarration() throws Exception {
+    JSONObject packet = ProviderResponseContract.normalizeDirectWriter(
+      new JSONObject().put("reply", "Cao Minh bước tiếp.").put("continuity", "invalid optional metadata").toString());
+    assertEquals("Cao Minh bước tiếp.", packet.getString("reply"));
+    assertEquals("invalid optional metadata", packet.getString("continuity"));
+  }
+
   @Test public void auditUsesItsOwnPassAndIssuesContract() throws Exception {
     ProviderResponseContract.requireAudit(new JSONObject().put("pass", true).put("issues", new JSONArray()));
     ProviderResponseContract.requireAudit(new JSONObject().put("pass", false).put("issues",

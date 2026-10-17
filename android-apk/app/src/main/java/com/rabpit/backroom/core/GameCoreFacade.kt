@@ -195,10 +195,11 @@ class GameCoreFacade private constructor(
     repository.save(ReaderRuntime.appendReceipt(state, text))
   }
 
-  @Synchronized fun configureReaderLevel(clientJson: String, tone: String, difficulty: String): String {
+  @Synchronized fun configureReaderLevel(clientJson: String, stylesJson: String, difficulty: String): String {
     val state = loadCurrentState()
     require(JSONObject(clientJson).getInt("turn") == CoreClientProjection.turnIndex(state)) { "stale_client_state" }
-    val next = ReaderRuntime.reserve(ReaderRuntime.configure(state, tone, difficulty))
+    val styles = JSONArray(stylesJson).let { a -> (0 until a.length()).map { a.getString(it) } }
+    val next = ReaderRuntime.reserve(ReaderRuntime.configure(state, styles, difficulty))
     repository.save(next)
     return currentClientState(clientJson)
   }
@@ -796,7 +797,8 @@ class GameCoreFacade private constructor(
     val synchronized = clientSnapshot(candidate, stored)
     logger.log(PipelineLogEvent("GEMINI_COMMIT", turnId = turnId, source = CommandSource.GEMINI, details = mapOf("commands" to commands.size.toString())))
     return JSONObject(response(true, synchronized, null, "gemini_delta_committed"))
-      .put("ambientNpcRolled", ambientRolled).toString()
+      .put("ambientNpcRolled", ambientRolled)
+      .put("readerNotesRejected", ReaderRuntime.data(stored).optInt("rejectedNotes")).toString()
   }
 
   /**

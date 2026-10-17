@@ -40,9 +40,8 @@ public final class ProviderResponseContract {
         normalized.put("decision", packet.getJSONObject("decision"));
       }
       if (packet.has("continuity") && !packet.isNull("continuity")) {
-        if (!(packet.opt("continuity") instanceof JSONArray))
-          throw new IllegalArgumentException("GM continuity không đúng định dạng.");
-        normalized.put("continuity", packet.getJSONArray("continuity"));
+        // Optional narrative metadata is grounded/filtered by Core, never a page gate.
+        normalized.put("continuity", packet.get("continuity"));
       }
       return normalized;
     }

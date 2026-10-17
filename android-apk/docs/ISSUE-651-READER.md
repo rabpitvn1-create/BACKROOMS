@@ -69,7 +69,10 @@ Confirmed decisions and the complete reading journal persist. Recent pages and
 prior decisions enter the prompt. Optional quoted narrative memories are stored
 in the existing storyContinuity namespace, tagged NARRATIVE_ONLY and owned only
 by Cao Minh. They cannot grant NPC knowledge or overwrite gameplay facts. A note
-must quote the visible page; uncertainty words require SUSPICION. Prompt retrieval
+must quote the visible page. Invalid optional notes are omitted with a diagnostic
+count instead of rejecting an otherwise valid page or trapping a selected branch.
+Quote matching normalizes Unicode, whitespace and typographic quotes; uncertainty
+words promote a grounded note to SUSPICION. Paraphrases are never stored as facts. Prompt retrieval
 uses recent and relevant older notes; the Canon compact-state packet excludes
 these narrative notes to avoid upgrading them into Core facts.
 
@@ -95,17 +98,24 @@ player input, loot, spawn and streak are unchanged. Damage scaling includes the
 special percentage attack path; periodic status rules retain their Canon values.
 No forced death or forced loss is introduced. These are explicit initial balance
 proposals, not an assertion that extensive gameplay balance has been proven.
-Tone is a separate presentation policy, with six choices. Settings are locked
+Narrative styles are a separate presentation policy: six checkboxes allow one or
+more simultaneous choices. Core persists the selected set, validates it and blends
+the styles in the narration prompt independently of difficulty. Settings are locked
 inside a Level and never open during Combat.
 
 ## P5: evidence and remaining limits
 
-Executed locally: JavaScript regression suite **140/140 PASS**; the semantic,
+Executed locally: JavaScript regression suite **144/144 PASS**; the semantic,
 MadGod, Lucia overlay and Combat-layout source verifiers PASS; `assembleDebug`
 PASS; packaged reader verification against the extracted debug APK PASS (no
 retired composer assets). Headless Chromium at 412×915 with a mocked Android
 bridge: no page errors, no horizontal overflow, inline choices lock Next Page.
 The PR records the final targeted Kotlin/JUnit counts after completion.
+
+The continuous reading area retains one ornate frame. Semantic emphasis rejects
+pronouns/common words and prefers exact Core names over contextual guesses; cached
+rendering annotations are recomputed with the corrected recognizer. Phone smoke
+checks confirm three checked styles, the loaded frame asset and no overflow.
 
 Targeted coverage:
 thresholds, projected-vs-committed unlock/reset, Entity blocking streak, provider

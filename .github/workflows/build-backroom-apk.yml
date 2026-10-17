@@ -124,7 +124,7 @@ jobs:
           "$BUILD_TOOLS/aapt" dump badging Backroom-1.2.0.0.38.apk | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
           "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 Backroom-1.2.0.0.38.apk
           rm -rf apk-check && mkdir apk-check
-          unzip -q Backroom-1.2.0.0.38.apk 'assets/index.html' 'assets/reader.css' 'assets/ui/ornate-frame-v1.css' 'assets/diagnostic-export.js' 'assets/item-icons.js' 'assets/item-icons/*' 'assets/provider-logos/*' 'assets/combat-feedback-1193a.*' 'assets/entity/*' 'assets/fx/*' 'assets/CaoMinh_MadGod_snapshot_overlay.png' 'assets/CAO_MINH_OVERLAY_EXPLORER_IDLE.png' 'assets/CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png' 'assets/avatars/MadGod.jpg' 'assets/avatars/CAO_MINH_AVATAR.jpg' 'assets/hud/player_action_backrooms.png' 'assets/dice/*' 'assets/fonts/Play-Bold.ttf' 'assets/level_snapshots/*' -d apk-check
+          unzip -q Backroom-1.2.0.0.38.apk 'assets/index.html' 'assets/reader.css' 'assets/ui/ornate-frame-v1.css' 'assets/ui/backrooms-narrative-frame-v1.png' 'assets/diagnostic-export.js' 'assets/item-icons.js' 'assets/item-icons/*' 'assets/provider-logos/*' 'assets/combat-feedback-1193a.*' 'assets/entity/*' 'assets/fx/*' 'assets/CaoMinh_MadGod_snapshot_overlay.png' 'assets/CAO_MINH_OVERLAY_EXPLORER_IDLE.png' 'assets/CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png' 'assets/avatars/MadGod.jpg' 'assets/avatars/CAO_MINH_AVATAR.jpg' 'assets/hud/player_action_backrooms.png' 'assets/dice/*' 'assets/fonts/Play-Bold.ttf' 'assets/level_snapshots/*' -d apk-check
           ! grep -q 'id="searchActionButton"' apk-check/assets/index.html
           grep -q 'id="nextPage"' apk-check/assets/index.html
           node android-apk/verify-reader.mjs apk-check/assets
@@ -323,7 +323,7 @@ jobs:
           unzip -p Backroom-1.2.0.0.38-verified.apk assets/index.html | grep -q 'function semanticTerms(before,after)'
           unzip -p Backroom-1.2.0.0.38-verified.apk assets/index.html | grep -q 'UI_119_BACKPORT_R01'
           rm -rf verified-reader && mkdir verified-reader
-          unzip -q Backroom-1.2.0.0.38-verified.apk 'assets/index.html' 'assets/reader.css' 'assets/ui/ornate-frame-v1.css' -d verified-reader
+          unzip -q Backroom-1.2.0.0.38-verified.apk 'assets/index.html' 'assets/reader.css' 'assets/ui/ornate-frame-v1.css' 'assets/ui/backrooms-narrative-frame-v1.png' -d verified-reader
           node android-apk/verify-reader.mjs verified-reader/assets
           unzip -p Backroom-1.2.0.0.38-verified.apk assets/index.html | grep -q 'POKER_DICE_CORE_BACKPORT_R01'
           unzip -p Backroom-1.2.0.0.38-verified.apk assets/index.html | grep -q 'pokerDiceModal'

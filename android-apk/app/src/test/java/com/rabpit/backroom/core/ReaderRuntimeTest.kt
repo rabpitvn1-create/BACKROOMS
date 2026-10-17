@@ -15,7 +15,7 @@ class ReaderRuntimeTest {
     override fun saveCheckpoint(state: GameState, presentation: JSONObject) { slot = GameCheckpointCodec.encode(state, presentation) }
     override fun loadCheckpoint() = slot?.let(GameCheckpointCodec::decode)
   }
-  private fun configured(): GameState = ReaderRuntime.configure(CoreClientProjection.initialize(GameState.initial()), "HORROR", "NORMAL")
+  private fun configured(): GameState = ReaderRuntime.configure(CoreClientProjection.initialize(GameState.initial()), listOf("HORROR"), "NORMAL")
   private fun ticket(entity: Int = 9999, streak: Int = 0) = JSONObject().put("entity", entity).put("streak", streak).put("npcRolls", JSONArray(List(6) { 9999 }))
   private fun fixed(state: GameState = configured(), entity: Int = 9999, streak: Int = 0): GameState =
     ReaderRuntime.store(state, ReaderRuntime.data(state).put("tickets", JSONArray().put(ticket(entity, streak)).put(ticket())))
@@ -141,9 +141,7 @@ class ReaderRuntimeTest {
     val req = request(repo.state); val before = view(f)
     f.beginReaderPage(before, req.toString())
     val text = "Dấu vết có thể thuộc về Lục Trầm."
-    val observation = page(text).put("continuity", JSONArray().put(JSONObject().put("kind", "OBSERVATION").put("text", text)))
-    assertThrows(IllegalArgumentException::class.java) { f.commitReaderPage(before, req.getString("requestId"), observation.toString()) }
-    val note = JSONObject().put("kind", "SUSPICION").put("text", text)
+    val note = JSONObject().put("kind", "OBSERVATION").put("text", text)
     f.commitReaderPage(before, req.getString("requestId"), page(text).put("continuity", JSONArray().put(note)).toString())
     val saved = JSONObject(repo.state.world.getValue("flagsJson")).getJSONObject("storyContinuity").getJSONArray("narrativeNotes").getJSONObject(0)
     assertEquals("NARRATIVE_ONLY", saved.getString("authority")); assertEquals(CAO_MINH_ID, saved.getString("ownerId"))
@@ -151,10 +149,52 @@ class ReaderRuntimeTest {
     assertTrue(ReaderRuntime.context(repo.state).contains(text))
     assertFalse(repo.state.characters.getValue(LUC_TRAM_ID).metadata["encountered"] == "true")
   }
+  @Test fun invalidOptionalNotesCannotRejectASelectedBranchOrRerollItsStep() {
+    val repo = MemorySave(fixed()); val f = GameCoreFacade.forTests(repo)
+    val first = commit(f, request(repo.state), page().put("decision", gate()))
+    val gateId = first.getJSONObject("reader").getJSONObject("gate").getString("id")
+    val req = request(repo.state).put("gateId", gateId).put("optionId", "B")
+    val before = view(f); f.beginReaderPage(before, req.toString())
+    val nextTicket = ReaderRuntime.data(repo.state).getJSONArray("tickets").getJSONObject(1).toString()
+    val generated = page().put("continuity", JSONArray().put(JSONObject().put("kind", "OBSERVATION").put("text", "Một chi tiết không xuất hiện trong trang.")))
+    val result = JSONObject(f.commitReaderPage(before, req.getString("requestId"), generated.toString()))
+    assertTrue(result.getBoolean("handled")); assertEquals(1, result.getInt("readerNotesRejected"))
+    assertEquals(3, CoreClientProjection.turnIndex(repo.state))
+    assertEquals(nextTicket, ReaderRuntime.data(repo.state).getJSONArray("tickets").getJSONObject(0).toString())
+    assertEquals("B", ReaderRuntime.data(repo.state).getJSONArray("decisions").getJSONObject(0).getJSONObject("option").getString("id"))
+    assertEquals(0, JSONObject(repo.state.world.getValue("flagsJson")).getJSONObject("storyContinuity").getJSONArray("narrativeNotes").length())
+    assertTrue(JSONObject(f.beginReaderPage(before, req.toString())).getBoolean("replayed"))
+    assertEquals(3, CoreClientProjection.turnIndex(repo.state))
+  }
+  @Test fun groundedNotesNormalizeTypographyButRejectParaphraseAndMalformedMetadata() {
+    val text = "Cao Minh nghe “tiếng gọi”. Dấu vết có thể là giả."
+    val notes = JSONArray()
+      .put(JSONObject().put("kind", "OBSERVATION").put("text", "Cao Minh nghe \"tiếng gọi\"."))
+      .put(JSONObject().put("kind", "OBSERVATION").put("text", "Dấu vết có thể là giả."))
+      .put(JSONObject().put("kind", "OBSERVATION").put("text", "Một âm thanh bí ẩn vang lên."))
+      .put("bad note")
+    val grounded = ReaderRuntime.groundedNotes(page(text).put("continuity", notes))
+    assertEquals(2, grounded.accepted.length()); assertEquals(2, grounded.rejected)
+    assertEquals("SUSPICION", grounded.accepted.getJSONObject(1).getString("kind"))
+    assertEquals(1, ReaderRuntime.groundedNotes(page(text).put("continuity", "bad container")).rejected)
+  }
+  @Test fun multipleStylesRoundTripAndNeverAlterGameplayRules() {
+    val base = CoreClientProjection.initialize(GameState.initial())
+    val configured = ReaderRuntime.configure(base, listOf("HORROR", "BODY_HORROR", "SURVIVAL"), "HARD")
+    val restored = GameStateCodec.decode(GameStateCodec.encode(configured))
+    assertEquals(listOf("HORROR", "BODY_HORROR", "SURVIVAL"), ReaderRuntime.selectedStyles(restored))
+    val view = CoreClientProjection.project(JSONObject(), restored)
+    assertEquals(3, view.getJSONObject("reader").getJSONArray("styles").length())
+    assertTrue(ReaderRuntime.context(restored).contains("Body Horror"))
+    assertEquals(ReaderRuntime.Difficulty.HARD, ReaderRuntime.difficulty(restored))
+    assertEquals(base.world, configured.world); assertEquals(base.characters, configured.characters)
+    for (styles in listOf(emptyList(), listOf("BAD"), listOf("HORROR", "HORROR")))
+      assertThrows(IllegalArgumentException::class.java) { ReaderRuntime.configure(base, styles, "NORMAL") }
+  }
   @Test fun difficultyIncreasesRealCounterattackDamageAndDoesNotForceLoss() {
     val base = CoreClientProjection.initialize(GameState.initial())
     fun combat(difficulty: String, seed: Int): GameState {
-      val configured = ReaderRuntime.configure(base, "HORROR", difficulty)
+      val configured = ReaderRuntime.configure(base, listOf("HORROR"), difficulty)
       val state = CombatRuntime.start(configured, "hound")
       return state.copy(metadata = state.metadata + ("combat.seed" to seed.toString()))
     }
@@ -180,10 +220,10 @@ class ReaderRuntimeTest {
   }
   @Test fun toneNeverChangesGameplayAndDifficultyChangesActualCombatWithoutEditingSkills() {
     val baseline = CoreClientProjection.initialize(GameState.initial())
-    val normal = ReaderRuntime.configure(baseline, "HORROR", "NORMAL")
-    val bright = ReaderRuntime.configure(baseline, "BRIGHT", "NORMAL")
-    val hard = ReaderRuntime.configure(baseline, "HORROR", "HARD")
-    val cmd = ReaderRuntime.configure(baseline, "HORROR", "CAO_MINH_MUST_DIE")
+    val normal = ReaderRuntime.configure(baseline, listOf("HORROR"), "NORMAL")
+    val bright = ReaderRuntime.configure(baseline, listOf("BRIGHT"), "NORMAL")
+    val hard = ReaderRuntime.configure(baseline, listOf("HORROR"), "HARD")
+    val cmd = ReaderRuntime.configure(baseline, listOf("HORROR"), "CAO_MINH_MUST_DIE")
     val baseCombat = CombatRuntime.active(CombatRuntime.start(baseline, "hound"))!!
     val normalCombat = CombatRuntime.active(CombatRuntime.start(normal, "hound"))!!
     assertEquals(baseCombat, normalCombat)

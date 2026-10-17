@@ -9,7 +9,7 @@ const assets = process.argv[2];
 assert.ok(assets, 'Usage: node android-apk/verify-reader.mjs <extracted-assets-directory>');
 
 // Verify the actual APK payload, including the reading surface and styles.
-for (const file of ['index.html', 'reader.css', 'ui/ornate-frame-v1.css']) {
+for (const file of ['index.html', 'reader.css', 'ui/ornate-frame-v1.css', 'ui/backrooms-narrative-frame-v1.png']) {
   assert.deepEqual(
     fs.readFileSync(path.join(assets, file)),
     fs.readFileSync(path.join(source, file)),

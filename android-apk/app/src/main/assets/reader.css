@@ -1,5 +1,5 @@
 /* A continuous reading surface; no player/GM chat bubbles in Explorer. */
-#log{display:block;line-height:1.7;overflow-wrap:anywhere}
+#log{display:block;line-height:1.7;overflow-wrap:anywhere;border:20px solid transparent;border-image:url('ui/backrooms-narrative-frame-v1.png') 32% / 20px / 0 stretch;padding:6px;background:linear-gradient(145deg,#182022,#0d1316)}
 #log .message.gm{border:0;border-image:none;box-shadow:none;background:transparent;margin:0;padding:14px 12px}
 #log .message.gm:before,#log .message.gm:after,#log .role{display:none}
 #log .text{line-height:1.75;font-size:16px}
@@ -13,3 +13,10 @@
 #readerSettings select{font:inherit;color:#eee;background:#171d21;padding:12px;max-width:100%;border:1px solid #796a43}
 #readerSettings p{font-size:13px;color:#b7bdb9;line-height:1.5}
 button:disabled{opacity:.45}
+
+.reader-styles{margin:12px 0;padding:10px;border:1px solid #796a43;border-radius:8px}
+.reader-styles legend{padding:0 5px;font-size:13px}
+#readerSettings .reader-style-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+#readerSettings .reader-style-grid label{display:flex;align-items:center;gap:8px;margin:0;min-height:44px;font-size:13px}
+.reader-style-grid input{width:18px;height:18px;accent-color:#b5a16a}
+#readerSettings{max-height:52dvh;overflow:auto}
