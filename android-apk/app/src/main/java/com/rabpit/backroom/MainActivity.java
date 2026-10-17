@@ -875,9 +875,20 @@ public class MainActivity extends Activity {
     return gehihiText(prompt, 2048, "gm.http");
   }
 
-  private String gehihiScenarioText(String prompt) throws Exception {
-    // Scenario JSON can be much larger than GM prose. Do not reuse the 2048-token cap.
-    return gehihiText(prompt, 10000, "scenario.fallback.http");
+  private String gehihiScenarioText(String prompt, boolean outline) throws Exception {
+    // A successful 2048-token provider health check does not prove it accepts
+    // a 10000-token script budget. Keep outline small and retry a rejected
+    // large-budget script with a compact output budget only on HTTP 400.
+    if (outline) return gehihiText(prompt, 2500, "scenario.fallback.http");
+    try {
+      return gehihiText(prompt, 10000, "scenario.fallback.http");
+    } catch (HttpError error) {
+      if (error.status != 400) throw error;
+      DiagnosticLog.record("scenario.fallback_budget", "4096");
+      return gehihiText(prompt +
+        "\nGiới hạn phản hồi 4096 tokens. Ưu tiên 4 phòng, 2 sự kiện tìm vật chứng và 4 lựa chọn đáp án; "
+        + "giữ toàn bộ điều kiện schema/Canon/đường giải; JSON cô đọng.", 4096, "scenario.fallback.http");
+    }
   }
 
   private String gehihiText(String prompt, int maxTokens, String timingCategory) throws Exception {
@@ -1451,12 +1462,22 @@ public class MainActivity extends Activity {
             emit("backroomProvider", "Gemini");
             emit("backroomSceneWriterProvider", "Gemini");
             String raw = scenarioGenerator.generate(geminiKeys(), request,
-              (key, prompt) -> scenarioTransport(key, prompt, "outline".equals(request.getString("kind"))),
+              (key, prompt) -> {
+                try {
+                  return scenarioTransport(key, prompt, "outline".equals(request.getString("kind")));
+                } catch (HttpError error) {
+                  throw new Exception("http_" + error.status);
+                }
+              },
               prompt -> {
                 DiagnosticLog.record("scenario.fallback", "gehihi");
                 emit("backroomProvider", "Gehihi");
                 emit("backroomSceneWriterProvider", "Gehihi");
-                return gehihiScenarioText(prompt);
+                try {
+                  return gehihiScenarioText(prompt, "outline".equals(request.getString("kind")));
+                } catch (HttpError error) {
+                  throw new Exception("http_" + error.status);
+                }
               },
               (provider, category, code) -> {
                 // Category and code are strictly fixed or validator-owned, never raw API text.
