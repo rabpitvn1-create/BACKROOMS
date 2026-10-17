@@ -15,7 +15,7 @@ public class ScenarioGeneratorTest {
     for (int i=1;i<=10;i++) entries.put(new JSONObject().put("index",i)
       .put("nodeAnchor","0").put("beat","Quan sát và đối chiếu")
       .put("objective","Giải mục tiêu").put("dependencyRefs",new JSONArray()));
-    return new JSONObject().put("schemaVersion",3).put("levelNumber",0).put("nodeAnchor","0").put("entries",entries).toString();
+    return new JSONObject().put("schemaVersion",4).put("levelNumber",0).put("nodeAnchor","0").put("entries",entries).toString();
   }
   @Test public void validOutlineUsesScenarioContractAndExactlyOneTransportCall() throws Exception {
     AtomicInteger calls=new AtomicInteger();
@@ -33,6 +33,10 @@ public class ScenarioGeneratorTest {
     assertTrue(prompt.contains("KHÔNG phải số NPC xuất hiện cùng lúc"));
     assertTrue(prompt.contains("không nhất thiết phải là điều kiện bắt buộc"));
     assertTrue(prompt.contains("KHÔNG bắt buộc có NPC hay lời khai sai"));
+    assertTrue(prompt.contains("originPeriod"));
+    assertTrue(prompt.contains("TỰ SÁNG TÁC tên riêng"));
+    assertTrue(prompt.contains("hai originPeriod khác nhau"));
+    assertTrue(prompt.contains("KHÔNG được tự xác nhận Backrooms du hành thời gian"));
     assertFalse(prompt.contains(">=1 lời khai sai"));
   }
   @Test public void quotaAndMalformedResponsesHaveBoundedAttemptsAndIndependentCircuit() throws Exception {
