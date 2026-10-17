@@ -55,11 +55,10 @@ public class ScenarioGeneratorTest {
     for (String rule : new String[]{
       "4..12 phòng", "2..12 fact", "4..36", "0..12 NPC",
       "2..5 giá trị", "4 SEARCH ANSWER", "CLUE/EVIDENCE",
-      ">=2 ANSWER", "same_fact_unused_sentinel", "35..320", "2 NPC",
-      "CANON", "Level 1", "Hollow Grasper", "scene_unused_sentinel",
+      ">=2 ANSWER", "35..320", "2 NPC",
+      "CANON", "Level 1", "Hollow Grasper",
       "Lời khai là thông tin NHÂN VẬT TỰ NHẬN", "độc lập"
     }) {
-      if (rule.endsWith("_sentinel")) continue;
       assertTrue("Missing writer requirement: " + rule, prompt.contains(rule));
     }
     String outlinePrompt = ScenarioGenerator.prompt(request());
