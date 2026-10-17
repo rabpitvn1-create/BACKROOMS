@@ -112,7 +112,10 @@ object MiniMapScenario {
     facts.forEach { f ->
       fields(f, setOf("id", "label", "value", "values"))
       canonBoundary(nodeId, text(f, "label", 90)); text(f, "value", 90)
-      val values = strings(f.getJSONArray("values")); require(values.size in 2..5 && values.distinct().size == values.size && f.getString("value") in values && values.all { it.isNotBlank() && it.length <= 90 }) { "fact_domain" }
+      val values = strings(f.getJSONArray("values"))
+      require(values.size in 2..5 && values.distinct().size == values.size &&
+        f.getString("value") in values && values.all { it.isNotBlank() && it.length <= 90 }) { "fact_domain" }
+      require(values.none { it.contains('_') || it.any(Char::isISOControl) }) { "fact_human_value" }
     }
     val interactions = list(raw, "interactions", 4, 36); val actionIds = interactions.map { it.getString("id") }.toSet()
     interactions.forEach { a ->
