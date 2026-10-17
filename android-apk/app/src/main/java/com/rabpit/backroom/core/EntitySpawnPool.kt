@@ -416,25 +416,13 @@ object SpawnMechanism {
   /** Metadata key holding deferred NPC encounters as a JSON array string. */
   const val PENDING_NPC_METADATA_KEY = "spawn.pendingNpcEncounters"
 
-  /**
-   * Metadata key for the ephemeral ambient-NPC roll marker.
-   * Value "true" (string, per GameState.metadata: Map<String, String> convention) =
-   * an ambient NPC was rolled this turn. Consumed by MainActivity (Gemini
-   * generation + RAM cache), cleared after use. NEVER creates a CharacterState,
-   * Follower, or Canon encounter — it bypasses applyNpcEncounters entirely.
-   */
+  /** Archived marker, retained only to discard lingering legacy state safely. */
   const val AMBIENT_NPC_METADATA_KEY = "spawn.ambientNpcRolled"
 
-  /**
-   * Sets the ephemeral ambient-NPC marker. No-op when the roll did not succeed.
-   */
-  /** Reads the ephemeral ambient-NPC marker (true if rolled this turn). */
-  fun ambientNpcRolled(state: GameState): Boolean = false // Legacy source archived.
+  /** Archived legacy event: never treat even a stale marker as a new NPC encounter. */
+  fun ambientNpcRolled(@Suppress("UNUSED_PARAMETER") state: GameState): Boolean = false
 
-  /**
-   * Clears the ephemeral ambient-NPC marker after MainActivity consumes it
-   * (Gemini success/failure, or scene end). Safe to call when absent.
-   */
+  /** Discard a stale legacy marker without activating the old encounter flow. */
   fun clearAmbientNpcMarker(state: GameState): GameState {
     if (!state.metadata.containsKey(AMBIENT_NPC_METADATA_KEY)) return state
     return state.copy(metadata = state.metadata - AMBIENT_NPC_METADATA_KEY)
