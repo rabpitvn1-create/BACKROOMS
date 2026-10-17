@@ -338,6 +338,31 @@ class MiniMapRuntimeTest {
     assertFalse(MiniMapScenario.objects(MiniMapRuntime.actions(end))
       .any { it.getString("targetId").startsWith("node:") })
   }
+  @Test fun levelSixOneFinalPuzzleCleansUpAndEndsWithoutAnotherLevel() {
+    val base=solvedState(6,10,"6.1")
+    val p=MiniMapRuntime.progress(base)
+    val accepted=MiniMapScenario.strings(p.getJSONArray("accepted")).filter { it != "answer_left" }
+    p.put("accepted",JSONArray(accepted)).put("records",JSONArray().put(
+      JSONObject().put("id","temporary_key").put("kind","EVIDENCE").put("text","Mã dùng một lần")))
+    val repo=MemorySave(base.copy(world=base.world+(MiniMapRuntime.STATE to p.toString())))
+    val core=facade(repo)
+    core.acceptSceneGeneration(MiniMapRuntime.token(repo.state),outline("6.1").toString())
+    val scriptKey=MiniMapRuntime.scriptKey(p);val outlineKey=MiniMapRuntime.outlineKey(p)
+    assertFalse(MiniMapRuntime.complete(repo.state))
+    apply(core,repo,"answer_left")
+    assertTrue(MiniMapRuntime.complete(repo.state))
+    assertTrue(MiniMapRuntime.publicView(repo.state).getBoolean("awaitingEnding"))
+    assertFalse(MiniMapRuntime.publicView(repo.state).getBoolean("generationNeeded"))
+    assertEquals("ready",JSONObject(core.sceneGenerationRequest()).getString("kind"))
+    assertFalse(repo.state.world.containsKey(scriptKey))
+    assertFalse(repo.state.world.containsKey(outlineKey))
+    assertEquals(0,MiniMapRuntime.progress(repo.state).getJSONArray("records").length())
+    assertEquals(0,MiniMapRuntime.actions(repo.state).length())
+    assertThrows(IllegalStateException::class.java) {
+      core.acceptSceneGeneration(MiniMapRuntime.token(repo.state),script(6,10,"6.1").toString())
+    }
+  }
+
   @Test fun unfinishedNodeExposesOnlyRoomsAndRejectsForgedCrossNodeCommandsWithoutRng() {
     for (index in 1..9) {
       val repo=MemorySave(solvedState(0,index));val rng=CountingRng();val core=facade(repo,rng)
