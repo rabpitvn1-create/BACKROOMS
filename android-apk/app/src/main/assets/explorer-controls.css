@@ -13,16 +13,23 @@
 
 /* Reuse the installed ornate-frame asset used by the GM log, without blocking taps. */
 #explorerControls{background:linear-gradient(145deg,#182022,#0d1316);border:1px solid #b5a16a66;border-radius:8px;padding:12px}
+#explorerControls .explorer-control-slot{position:relative;isolation:isolate;min-width:0}
+#explorerControls .explorer-control-slot button{display:block;width:100%;height:100%}
 #explorerControls .explorer-buttons button,#explorerChoices .explorer-choice-list button{
   position:relative;isolation:isolate;border:1px solid #9c8c5c;
   background:linear-gradient(145deg,#1d2628,#11191c);color:#e6d9af;
   padding:16px 13px;min-height:58px;font-weight:750
 }
-#explorerControls .explorer-buttons button::after,#explorerChoices .explorer-choice-list button::after,
+#explorerControls .explorer-control-slot::after,#explorerChoices .explorer-choice-list button::after,
 #explorerChoices::after{
   content:'';position:absolute;inset:0;z-index:1;border:18px solid transparent;
   border-image:var(--ornate-frame) 32% / 18px / 0 stretch;pointer-events:none
 }
+#explorerControls .explorer-control-slot::after{
+  /* Match the visible 26px corners already used by message.gm::after. */
+  border-width:26px;border-image-width:26px
+}
+#explorerControls .explorer-control-slot:has(>button:disabled)::after{opacity:.42}
 #explorerControls .explorer-buttons button:focus-visible,#explorerChoices button:focus-visible{
   outline:2px solid #efdb9b;outline-offset:2px
 }
