@@ -68,6 +68,6 @@ public final class ScenarioGenerator {
       + "Mỗi ANSWER có nhiều lựa chọn value khác nhau qua các interaction, cùng requires; label là câu trả lời người chơi chọn. "
       + "Dùng requires để người chơi phải thu thập dữ kiện trước khi suy luận. Goal cần >=2 ANSWER đúng và nhiều lớp evidence, không goal TRUE. "
       + "Không điều kiện âm/consumption, không softlock, không random đáp án, không item gameplay. Quest evidence tối đa36/map, không cân nặng/gameplay effect. "
-      + "Dependencies outline là các mini đã hoàn thành; ghi continuity từ previousOutcome, không đòi vật phẩm ngẫu nhiên. INPUT=" + request;
+      + "Outline chỉ định nhịp truyện và thứ tự mini-map; các chỉ số completed chỉ xác nhận tiến trình. Mỗi mini-map phải tự giải được bằng dữ kiện riêng của nó, không yêu cầu lời khai, bằng chứng hay vật phẩm từ nhiệm vụ trước. Không giữ hoặc tái tạo lịch sử câu đố đã hoàn thành. INPUT=" + request;
   }
 }
