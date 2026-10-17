@@ -42,8 +42,8 @@
     panel.hidden=combat||!scene;form.hidden=!combat;journal.hidden=!scene;
     if(!scene)return;
     room.textContent=scene.room?`${scene.room.name} · ${scene.room.description}`:'';
-    objective.textContent=`${scene.nodeTitle||'Khu vực hiện tại'} · Mini-map ${scene.miniIndex}/10 · ${scene.objective||'Đang chuẩn bị kịch bản'}`+(scene.awaitingEnding?' · Đã hoàn thành Level 6. Chờ ending.':'');
-    records.replaceChildren();[...(scene.previousObservations||[]),...(scene.records||[])].forEach(r=>{const p=document.createElement('p');p.textContent=r.text;records.appendChild(p);});
+    objective.textContent=`${scene.nodeTitle||'Khu vực hiện tại'} · Mini-map ${scene.miniIndex}/10 · ${scene.objective||'Đang chuẩn bị kịch bản'}`+(scene.awaitingEnding?' · Đã hoàn thành Level 6.1. Chờ ending.':'');
+    records.replaceChildren();[...(scene.records||[])].forEach(r=>{const p=document.createElement('p');p.textContent=r.text;records.appendChild(p);});
     Object.entries(buttons).forEach(([kind,b])=>{b.disabled=locked()||!(scene.availableActions||[]).some(a=>a.kind===kind);});
     retry.hidden=!(scene.generationNeeded||scene.pendingActionId);retry.disabled=busy||coreUnavailable;
     if(scene.generationNeeded&&!scene.pendingActionId&&!locked()&&!preparing&&!failed){
