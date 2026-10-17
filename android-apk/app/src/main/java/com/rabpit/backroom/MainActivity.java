@@ -1476,8 +1476,11 @@ public class MainActivity extends Activity {
           // The former temporary passerby feature is archived. Scene NPCs are script-owned.
           DiagnosticLog.timing(MainActivity.this, "scene.action", java.util.concurrent.TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started), 0);
         } catch (Exception error) {
-          DiagnosticLog.record("scene.failed", error.getClass().getSimpleName() +
-            "; code=" + (error instanceof IllegalArgumentException ? "invalid_scene_action" : "scene_processing_error"));
+          // Only code-owned scene errors are safe to log. Never serialize provider messages,
+          // as HTTP exceptions can contain private request/credential details.
+          String code = error.getMessage();
+          if (code == null || !code.matches("scene_[a-z0-9_]{2,60}")) code = "scene_processing_error";
+          DiagnosticLog.record("scene.failed", error.getClass().getSimpleName() + "; code=" + code);
           try { emit("backroomTurn", requireGameCore().currentClientState(stateJson)); } catch (Exception ignored) {}
           emit("backroomError", "Lượt chưa hoàn tất. State và roll đang chờ được giữ nguyên; nhấn Thử lại.");
         }
