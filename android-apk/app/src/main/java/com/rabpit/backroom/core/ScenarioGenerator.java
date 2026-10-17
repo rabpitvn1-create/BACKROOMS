@@ -7,12 +7,24 @@ import org.json.JSONObject;
 public final class ScenarioGenerator {
   public interface Transport { String generate(String key, String prompt) throws Exception; }
   public interface Fallback { String generate(String prompt) throws Exception; }
+  /** Only report fixed categories and code-owned validator IDs, never provider payloads. */
+  public interface FailureReporter { void report(String provider, String category, String code); }
   private final long[] cooldown = new long[5];
   private int rotation;
 
-  // The existing API is kept for callers that do not configure a secondary writer.
   public synchronized String generate(String[] keys, JSONObject request, Transport transport) throws Exception {
-    return generate(keys, request, transport, null);
+    return generate(keys, request, transport, null, null);
+  }
+  public synchronized String generate(String[] keys, JSONObject request, Transport transport, Fallback fallback) throws Exception {
+    return generate(keys, request, transport, fallback, null);
+  }
+
+  private static String safeCode(Exception error) {
+    String message = error.getMessage();
+    return message != null && message.matches("[a-z][a-z0-9_]{2,60}") ? message : "invalid_output";
+  }
+  private static void report(FailureReporter reporter, String provider, String category, String code) {
+    if (reporter != null) reporter.report(provider, category, code);
   }
 
   private String validated(String raw, JSONObject request) throws Exception {
@@ -21,9 +33,9 @@ public final class ScenarioGenerator {
       MiniMapScenario.INSTANCE.validateOutline(parsed, request.getString("nodeAnchor"));
     else {
       MiniMapScenario.INSTANCE.validate(parsed, request.getString("nodeAnchor"), request.getInt("index"));
-      // Existing saved scripts remain readable, but new AI scripts must provide
-      // meaningful public prose for every non-answer finding or NPC statement.
-      org.json.JSONArray interactions = parsed.getJSONArray("interactions");
+      // New AI scripts need public evidence prose, while existing saved scripts
+      // remain readable under the unchanged Core schema.
+      JSONArray interactions = parsed.getJSONArray("interactions");
       for (int i = 0; i < interactions.length(); i++) {
         JSONObject action = interactions.getJSONObject(i);
         if (!"ANSWER".equals(action.getJSONObject("effect").getString("type"))
@@ -33,33 +45,58 @@ public final class ScenarioGenerator {
     return parsed.toString();
   }
 
-  public synchronized String generate(String[] keys, JSONObject request, Transport transport, Fallback fallback) throws Exception {
-    String prompt = prompt(request);
+  private static String correctivePrompt(String prompt, String code) {
+    return prompt + "\nLƯU Ý SỬA PHẢN HỒI TRƯỚC: kết quả không qua kiểm tra " + code
+      + ". Hãy tạo lại TOÀN BỘ đối tượng JSON từ đầu, giữ đúng schema, node/index, "
+      + "đáp án chỉ mở khi đã thu thập vật chứng cùng factId, các phòng có cạnh hai chiều; "
+      + "không sao chép nội dung lỗi hay thêm trường ngoài schema.";
+  }
+
+  public synchronized String generate(String[] keys, JSONObject request, Transport transport,
+                                      Fallback fallback, FailureReporter reporter) throws Exception {
+    String originalPrompt = prompt(request);
+    String attemptPrompt = originalPrompt;
     int count = Math.min(5, keys.length);
     int attempts = 0;
+    String lastValidationCode = null;
+    // Two bounded Gemini calls at most; avoid penalizing a working API key
+    // when a model produces malformed JSON or an invalid puzzle.
     for (int offset = 0; offset < count && attempts < 2; offset++) {
       int lane = (rotation + offset) % count;
       if (keys[lane] == null || keys[lane].trim().isEmpty() || cooldown[lane] > System.currentTimeMillis()) continue;
       attempts++;
+      String raw;
       try {
-        String result = validated(transport.generate(keys[lane], prompt), request);
+        raw = transport.generate(keys[lane], attemptPrompt);
+      } catch (Exception error) {
+        cooldown[lane] = System.currentTimeMillis() + 60_000L;
+        report(reporter, "gemini", "transport", safeCode(error));
+        continue;
+      }
+      try {
+        String result = validated(raw, request);
         rotation = (lane + 1) % count;
         return result;
       } catch (Exception error) {
-        cooldown[lane] = System.currentTimeMillis() + 60_000L;
-        // Never include provider payloads or credentials in user-visible errors.
+        lastValidationCode = safeCode(error);
+        report(reporter, "gemini", "validation", lastValidationCode);
+        attemptPrompt = correctivePrompt(originalPrompt, lastValidationCode);
       }
     }
-    // Gehihi is a scenario-only fallback, not a substitute GM for story turns.
-    // Exactly one attempt; the same strict Core validator applies to both providers.
     if (fallback != null) {
       try {
-        return validated(fallback.generate(prompt), request);
+        String raw = fallback.generate(attemptPrompt);
+        try {
+          return validated(raw, request);
+        } catch (Exception error) {
+          report(reporter, "gehihi", "validation", safeCode(error));
+        }
       } catch (Exception error) {
-        throw new IllegalStateException("Gemini và Gehihi đều chưa tạo được mini-map hợp lệ. Tiến trình giữ nguyên; nhấn Thử lại.");
+        report(reporter, "gehihi", "transport", safeCode(error));
       }
+      throw new IllegalStateException("Gemini và Gehihi chưa tạo được JSON kịch bản hợp lệ. Tiến trình giữ nguyên; nhấn Thử lại.");
     }
-    throw new IllegalStateException("Biên kịch chưa sẵn sàng (quota/mạng/schema). Tiến trình giữ nguyên; thử lại sau một phút.");
+    throw new IllegalStateException("Gemini chưa tạo được JSON kịch bản hợp lệ. Tiến trình giữ nguyên; nhấn Thử lại.");
   }
   static String prompt(JSONObject request) throws Exception {
     String intro = "Bạn chỉ biên kịch mini-map Backrooms bằng tiếng Việt. Không làm GM, không cấp loot, không spawn Entity/Follower, không sửa Canon/route. "
