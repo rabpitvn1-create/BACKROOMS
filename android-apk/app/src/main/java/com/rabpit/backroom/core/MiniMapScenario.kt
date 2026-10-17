@@ -14,6 +14,14 @@ object MiniMapScenario {
     "^(?:npc(?:[ _-]*[0-9]+)?|người (?:gác|lạ|sống sót|kỹ thuật)(?: [0-9]+)?|nhân chứng(?: [0-9]+)?|guard(?: [0-9]+)?|witness(?: [0-9]+)?|survivor(?: [0-9]+)?)$",
     RegexOption.IGNORE_CASE
   )
+  // Scene-local prose must not describe a later level before Core moves to that node.
+  private fun canonBoundary(nodeId: String, prose: String) {
+    if (nodeId != "0") return
+    val restricted = listOf("level 1", "level-1", "level one", "vùng bê tông",
+      "khu bê tông", "giao thoa kiến trúc", "dầm thép lộ thiên",
+      "hành lang công nghiệp", "rời khỏi level 0", "thoát khỏi level 0")
+    require(restricted.none { prose.lowercase().contains(it) }) { "scene_canon_boundary" }
+  }
   fun objects(a: JSONArray): List<JSONObject> = (0 until a.length()).map { a.getJSONObject(it) }
   fun strings(a: JSONArray): List<String> = (0 until a.length()).map { a.get(it) as String }
   fun copy(o: JSONObject) = JSONObject(o.toString())
@@ -55,7 +63,7 @@ object MiniMapScenario {
     entries.forEachIndexed { i, e ->
       fields(e, setOf("index", "nodeAnchor", "beat", "objective", "dependencyRefs"))
       require(int(e, "index") == i + 1 && e.getString("nodeAnchor") == nodeId) { "outline_route" }
-      text(e, "beat", 220); text(e, "objective", 220)
+      canonBoundary(nodeId, text(e, "beat", 220)); canonBoundary(nodeId, text(e, "objective", 220))
       val deps = e.getJSONArray("dependencyRefs")
       require(deps.length() <= i && (0 until deps.length()).all { d -> deps.get(d) is Int && deps.getInt(d) in 1..i }) { "outline_dependency" }
     }
@@ -66,13 +74,13 @@ object MiniMapScenario {
     fields(raw, setOf("schemaVersion", "id", "levelNumber", "index", "nodeAnchor", "objective", "entryRoomId", "exitRoomId", "rooms", "npcs", "facts", "interactions", "goal"))
     val node = requireNotNull(LevelRouteRegistry.node(nodeId)) { "scenario_node" }
     require(index in 1..10 && int(raw, "schemaVersion") == SCHEMA && int(raw, "levelNumber") == node.parent && int(raw, "index") == index)
-    id(raw); text(raw, "objective", 400)
+    id(raw); canonBoundary(nodeId, text(raw, "objective", 400))
     require(raw.getString("nodeAnchor") == nodeId) { "script_route" }
     val rooms = list(raw, "rooms", 4, 12); val roomIds = rooms.map { it.getString("id") }.toSet()
     require(id(raw, "entryRoomId") in roomIds && id(raw, "exitRoomId") in roomIds)
     rooms.forEach { r ->
       fields(r, setOf("id", "name", "description", "adjacentRoomIds"))
-      text(r, "name", 90); text(r, "description", 600)
+      canonBoundary(nodeId, text(r, "name", 90)); canonBoundary(nodeId, text(r, "description", 600))
       val adj = strings(r.getJSONArray("adjacentRoomIds")); require(adj.size in 1..6 && adj.distinct().size == adj.size)
       require(adj.all { it in roomIds && it != r.getString("id") }) { "graph_reference" }
       // Every movement has an unconditional return edge. No irreversible softlocks.
@@ -89,7 +97,9 @@ object MiniMapScenario {
       fields(npc, setOf("id", "name", "originPeriod", "role", "purpose", "description", "roomId"))
       val name = text(npc, "name", 90).trim()
       text(npc, "originPeriod", 100)
-      text(npc, "role", 120); text(npc, "purpose", 220); text(npc, "description", 350)
+      canonBoundary(nodeId, text(npc, "role", 120))
+      canonBoundary(nodeId, text(npc, "purpose", 220))
+      canonBoundary(nodeId, text(npc, "description", 350))
       require(id(npc, "roomId") in roomIds) { "npc_room" }
       require(!reservedNames.containsMatchIn(name)) { "scenario_canon_identity" }
       require(name.any(Char::isLetter) && !genericNpcNames.matches(name)) { "npc_name_required" }
@@ -100,13 +110,14 @@ object MiniMapScenario {
     require(npcs.size < 2 || npcs.map { it.getString("originPeriod").trim().lowercase() }.distinct().size >= 2) { "npc_period_diversity" }
     val facts = list(raw, "facts", 2, 12); val factIds = facts.map { it.getString("id") }.toSet()
     facts.forEach { f ->
-      fields(f, setOf("id", "label", "value", "values")); text(f, "label", 90); text(f, "value", 90)
+      fields(f, setOf("id", "label", "value", "values"))
+      canonBoundary(nodeId, text(f, "label", 90)); text(f, "value", 90)
       val values = strings(f.getJSONArray("values")); require(values.size in 2..5 && values.distinct().size == values.size && f.getString("value") in values && values.all { it.isNotBlank() && it.length <= 90 }) { "fact_domain" }
     }
     val interactions = list(raw, "interactions", 4, 36); val actionIds = interactions.map { it.getString("id") }.toSet()
     interactions.forEach { a ->
       fields(a, setOf("id", "kind", "roomId", "label", "requires", "effect"),
-        setOf("npcId"))
+        setOf("npcId", "observation"))
       val kind = a.getString("kind")
       require(kind in setOf("SEARCH", "TALK")); require(id(a, "roomId") in roomIds)
       if (kind == "TALK") {
@@ -114,7 +125,14 @@ object MiniMapScenario {
         require(speakerId in npcIds && npcs.first { it.getString("id") == speakerId }
           .getString("roomId") == a.getString("roomId")) { "npc_talk_binding" }
       } else require(!a.has("npcId")) { "npc_search_binding" }
-      text(a, "label", 120); require(!reservedNames.containsMatchIn(a.getString("label"))) { "scenario_canon_identity" }
+      canonBoundary(nodeId, text(a, "label", 120))
+      require(!reservedNames.containsMatchIn(a.getString("label"))) { "scenario_canon_identity" }
+      if (a.has("observation")) {
+        val observation = text(a, "observation", 320)
+        require(observation.trim().length >= 35 && observation.trim() != a.getString("label").trim() &&
+          !Regex("[a-z]+(?:_[a-z0-9]+)+").containsMatchIn(observation)) { "scene_observation_quality" }
+        canonBoundary(nodeId, observation)
+      }
       predicate(a.getJSONObject("requires"), actionIds)
       val effect = a.getJSONObject("effect")
       fields(effect, setOf("type", "factId"), setOf("value", "policy"))
@@ -131,6 +149,9 @@ object MiniMapScenario {
       } else require(a.getString("kind") == "SEARCH")
       require(effect.has("value") == (type in setOf("CLAIM", "ANSWER")) && effect.has("policy") == (type == "CLAIM"))
     }
+    val observations = interactions.filter { it.has("observation") }
+      .map { it.getString("observation").trim().lowercase() }
+    require(observations.distinct().size == observations.size) { "scene_duplicate_observation" }
     // Prevent decorative NPCs which cannot be spoken to or provide no quest data.
     npcs.forEach { npc ->
       require(interactions.any { it.getString("kind") == "TALK" &&
@@ -179,10 +200,15 @@ object MiniMapScenario {
     val e = a.getJSONObject("effect"); val fact = objects(script.getJSONArray("facts")).first { it.getString("id") == e.getString("factId") }
     val type = e.getString("type")
     val correct = type != "ANSWER" || fact.getString("value") == e.getString("value")
+    val observation = a.optString("observation").trim()
+    val speaker = if (type == "CLAIM") objects(script.getJSONArray("npcs"))
+      .firstOrNull { it.getString("id") == a.optString("npcId") }?.getString("name") ?: "Nhân chứng" else ""
     val line = when(type) {
-      "CLAIM" -> "Lời khai chưa xác minh: ${fact.getString("label")} = ${e.getString("value")}."
-      "ANSWER" -> if (correct) "Đối chiếu chính xác: ${fact.getString("label")} = ${e.getString("value")}." else "Giả thuyết không khớp; có thể chọn phương án khác."
-      else -> "${if (type == "EVIDENCE") "Vật chứng nhiệm vụ" else "Quan sát xác nhận"}: ${fact.getString("label")} = ${fact.getString("value")}."
+      "CLAIM" -> if (observation.isNotEmpty()) "Lời khai của $speaker (chưa xác minh): $observation"
+        else "Lời khai của $speaker (chưa xác minh) về ${fact.getString("label")}. Cần đối chiếu với vật chứng độc lập."
+      "ANSWER" -> if (correct) "Đối chiếu chính xác: ${fact.getString("label")}." else "Giả thuyết không khớp; có thể chọn phương án khác."
+      else -> if (observation.isNotEmpty()) "${if (type == "EVIDENCE") "Vật chứng" else "Quan sát"}: $observation"
+        else "${if (type == "EVIDENCE") "Vật chứng" else "Quan sát"}: ${a.getString("label")}. Hãy ghi nhớ dấu vết này để đối chiếu."
     }
     return line to correct
   }
