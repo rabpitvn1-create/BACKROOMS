@@ -83,6 +83,13 @@ class MiniMapRuntimeTest {
     namedCanon.getJSONArray("rooms").getJSONObject(0)
       .put("name", "Góc tường gần Hollow Grasper")
     assertEquals("investigation", MiniMapScenario.validate(namedCanon, "0", 1).getString("id"))
+    val canonicalDestination = script()
+    canonicalDestination.getJSONArray("rooms").getJSONObject(0).put("name", "Lối rẽ gần Manila Room")
+    assertEquals("investigation", MiniMapScenario.validate(canonicalDestination, "0", 1).getString("id"))
+    val canonicalEntity = script()
+    canonicalEntity.getJSONArray("rooms").getJSONObject(0)
+      .put("description", "Một dấu hiệu của Predatory Window hiện rõ trên mặt giấy cũ.")
+    assertEquals("investigation", MiniMapScenario.validate(canonicalEntity, "0", 1).getString("id"))
   }
 
   @Test fun currentLevelZeroRejectsScenesThatPreviewLevelOne() {
