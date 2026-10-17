@@ -78,7 +78,7 @@ object MiniMapRuntime {
     // The route is one-way: never offer a previous mini-map or Canon node.
     // Cross-node transitions require all ten maps and the real exit room.
     if (complete(state) && r.getString("id") == script.getString("exitRoomId")) {
-      if (p.getInt("index") < 10) add("MOVE", "next", "Sang mini-map ${p.getInt("index") + 1}/10")
+      if (p.getInt("index") < 10) add("MOVE", "next", "Tiến vào khu vực kế tiếp.")
       else if ((1..9).all { index -> p.getJSONArray("completed").let { entries ->
           (0 until entries.length()).any { entries.getInt(it) == index }
         } }) LevelRouteRegistry.exits(current.id).forEach { destination ->
