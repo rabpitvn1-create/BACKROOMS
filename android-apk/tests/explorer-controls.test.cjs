@@ -74,7 +74,7 @@ test('existing ornate frames and Gemini logo are used in Explorer controls',()=>
   assert.match(css,/--ornate-frame/);
   assert.match(css,/\.explorer-control-slot::after/);
   assert.match(css,/#explorerChoices::after/);
-  assert.match(css,/\.explorer-control-slot::after\{[\s\S]*border-width:26px;border-image-width:26px/);
+  assert.match(css,/\.explorer-control-slot::after\{[\s\S]*border-width:18px;border-image-width:18px/);
   assert.match(css,/pointer-events:none/);
   assert.match(source,/provider-logos\/gemini\.svg/);
   assert.match(source,/backroomSceneWriterProvider/);

@@ -24,12 +24,12 @@
 }
 #explorerControls .explorer-control-slot::after,#explorerChoices .explorer-choice-list button::after,
 #explorerChoices::after{
-  content:'';position:absolute;inset:0;z-index:1;border:18px solid transparent;
-  border-image:var(--ornate-frame) var(--ornate-slice) / 18px / 4.5px 3.5px stretch;pointer-events:none
+  content:'';position:absolute;inset:0;z-index:1;border:14px solid transparent;
+  border-image:var(--ornate-frame) var(--ornate-slice) / 14px / 3.5px 2.8px stretch;pointer-events:none
 }
 #explorerControls .explorer-control-slot::after{
-  /* Same PNG margin compensation at the compact 26px corner size. */
-  border-width:26px;border-image-width:26px;border-image-outset:6.5px 5px
+  /* Same PNG margin compensation at the compact 18px corner size. */
+  border-width:18px;border-image-width:18px;border-image-outset:4.5px 3.6px
 }
 #explorerControls .explorer-control-slot:has(>button:disabled)::after{opacity:.42}
 #explorerControls .explorer-buttons button:focus-visible,#explorerChoices button:focus-visible{
@@ -39,7 +39,7 @@
 #explorerChoices{position:relative;isolation:isolate;padding:18px 18px 12px;
   background:linear-gradient(145deg,#182022,#0d1316);border:1px solid #b5a16a;
   max-height:min(78vh,640px);overflow:hidden}
-#explorerChoices::after{border-width:26px;border-image-width:26px;border-image-outset:6.5px 5px}
+#explorerChoices::after{border-width:18px;border-image-width:18px;border-image-outset:4.5px 3.6px}
 #explorerChoices .explorer-dialog-header{position:relative;z-index:2;display:flex;
   align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;
   padding:2px 4px 10px;border-bottom:1px solid #b5a16a66;color:#ebd7a1}
@@ -67,12 +67,12 @@
 #explorerControls,#explorerControls .explorer-buttons button,
 #explorerChoices,#explorerChoices .explorer-choice-list button{border-radius:0!important}
 #explorerChoices{
-  border:40px solid transparent;
-  border-image:var(--ornate-frame) var(--ornate-slice) / 40px / 10px 8px stretch;
+  border:28px solid transparent;
+  border-image:var(--ornate-frame) var(--ornate-slice) / 28px / 7px 5.6px stretch;
   padding:8px
 }
 #explorerChoices::after{content:none}
-#explorerChoices .explorer-choice-list{max-height:calc(min(78vh,640px) - 192px)}
+#explorerChoices .explorer-choice-list{max-height:calc(min(78vh,640px) - 168px)}
 
 /* Inference is derived by Core from observed evidence; keep it visually separate. */
 #sceneJournal .scene-inference{margin:12px 0 4px;padding:10px 12px;

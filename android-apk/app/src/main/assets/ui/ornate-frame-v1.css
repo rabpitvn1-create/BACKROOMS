@@ -4,16 +4,16 @@
 
 /* Decorative overlays never intercept taps or change the panel's layout. */
 .message.gm,.message.player,.game-menu-sheet .card,.character-section{position:relative;isolation:isolate}
-.message.gm::after,.message.player::after,.game-menu-sheet .card::after,.character-section::after{content:'';position:absolute;inset:0;z-index:3;border:40px solid transparent;border-image:var(--ornate-frame) var(--ornate-slice) / 40px / 10px 8px stretch;pointer-events:none}
+.message.gm::after,.message.player::after,.game-menu-sheet .card::after,.character-section::after{content:'';position:absolute;inset:0;z-index:3;border:28px solid transparent;border-image:var(--ornate-frame) var(--ornate-slice) / 28px / 7px 5.6px stretch;pointer-events:none}
 
-.log .message.gm,.log .message.player{border:0;padding:32px;background:linear-gradient(145deg,#182022,#0d1316);color:#cbd0d1}
+.log .message.gm,.log .message.player{border:0;padding:24px;background:linear-gradient(145deg,#182022,#0d1316);color:#cbd0d1}
 .log .message.gm .role{color:#b6a878}
 .log .message.gm .text,.log .message.player .text{overflow-wrap:anywhere}
 .log .message.gm.warning{background:#231a0b}
 .log .message.gm.warning .role{color:#e3a83a}
 .log .message.gm.warning .text{color:#ffd27a}
 
-.game-menu-sheet .card,.character-section{border-color:transparent;padding:32px;background:linear-gradient(145deg,#141b1d,#0b1012)}
+.game-menu-sheet .card,.character-section{border-color:transparent;padding:24px;background:linear-gradient(145deg,#141b1d,#0b1012)}
 .game-menu-sheet .card h2,.character-section h3{color:#d5c58f}
 .character-core-stat,.character-status-row,.equipment-card,.inventory-item-card,.party-member{border-color:#b5a16a66;background-color:#101619}
 .character-core-stat b,.character-status-row b{color:#b9ac80}
@@ -21,19 +21,19 @@
 /* Compact frames on interactive choices; dice HOLD/ROLL and warning colours
    remain meaningful rather than being replaced by a single gold colour. */
 .gm-choice,
-.poker-dice-actions>button{border-image:var(--ornate-frame) var(--ornate-slice) / 18px / 4.5px 3.5px stretch!important}
+.poker-dice-actions>button{border-image:var(--ornate-frame) var(--ornate-slice) / 14px / 3.5px 2.8px stretch!important}
 .gm-choice{border-color:#9c8c5c;background-color:#151b1c;color:#e0d1a1}
 .gm-choice:focus-visible,
 .poker-dice-actions>button:focus-visible{outline:2px solid #efdb9b;outline-offset:2px}
-@media(max-width:360px){.log .message.gm,.log .message.player{padding:30px}}
+@media(max-width:360px){.log .message.gm,.log .message.player{padding:24px}}
 
 /* Scrollable sheets use their own border so all four corners stay at the
    viewport edge while their contents scroll. Overlay frames cover static rows. */
-.game-menu-modal .game-menu-sheet,.character-skills-modal .character-skills-sheet,
+.character-skills-modal .character-skills-sheet,
 .game .poker-dice-sheet,.equipment-detail-sheet,
 .game .combat-dice-panel,.game .combat-feedback-panel{
-  border:40px solid transparent;
-  border-image:var(--ornate-frame) var(--ornate-slice) / 40px / 10px 8px stretch;
+  border:28px solid transparent;
+  border-image:var(--ornate-frame) var(--ornate-slice) / 28px / 7px 5.6px stretch;
   /* Gradients and wallpaper span the border too; avoid a second rectangle
      caused by the default padding-box background origin. */
   background-origin:border-box;
@@ -47,3 +47,19 @@
    otherwise draw another rectangle inside the new decorated border. */
 .game .poker-dice-sheet,.game .combat-feedback-panel{box-shadow:0 12px 32px #0009!important}
 .game .poker-dice-sheet::before{content:none}
+
+/* The menu frame is paint, not a 40px layout gutter on each side. */
+.game-menu-modal .game-menu-sheet{
+  border:1px solid transparent;
+  border-image:var(--ornate-frame) var(--ornate-slice) / 20px / 5px 4px stretch;
+  border-radius:0!important;background-origin:border-box;
+  padding:14px 12px calc(14px + env(safe-area-inset-bottom))
+}
+.game-menu-sheet .game-menu-head{top:0;margin:0 0 12px;padding:12px 8px}
+.game-menu-sheet .side,.game-menu-sheet .card{min-width:0}
+.game-menu-sheet .card{padding:24px 18px}
+.game-menu-sheet .card::after{
+  border-width:24px;
+  border-image-width:24px;
+  border-image-outset:6px 4.8px
+}
