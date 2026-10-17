@@ -77,9 +77,9 @@ test('existing ornate frames and Gemini logo are used in Explorer controls',()=>
 });
 test('Gemini spark persists on GM messages and animates while response is pending',()=>{
   const html=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/index.html'),'utf8');
-  assert.match(html,/gm-brand-spark' src='provider-logos\\/gemini\\.svg'/);
+  assert.ok(html.includes("gm-brand-spark' src='provider-logos/gemini.svg'"));
   assert.match(html,/\.message\.gm\.pending \.gm-brand-spark\{animation:gm-thinking-pulse/);
-  assert.match(html,/gm-thinking' role='status' aria-label='Gehihi đang chuẩn bị câu trả lời'><img src='provider-logos\\/gemini\\.svg'/);
+  assert.ok(html.includes("gm-thinking' role='status' aria-label='Gehihi đang chuẩn bị câu trả lời'><img src='provider-logos/gemini.svg'"));
   assert.match(html,/GAME MASTER/);
   assert.match(html,/>BACKROOM TEXT GAME<\/div>/);
   assert.match(html,/>TURN <strong id="turn"/);
