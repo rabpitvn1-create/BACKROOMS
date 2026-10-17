@@ -2135,7 +2135,6 @@ function selected(){const id=view&&view.dataset.characterId||'cao_minh';return m
     menu.hidden=true;menu.setAttribute("aria-hidden","true");open.setAttribute("aria-expanded","false");document.body.classList.remove("game-menu-open");
   }
   open.addEventListener("click",function(){
-    document.getElementById("action").blur();
     menu.hidden=false;menu.setAttribute("aria-hidden","false");open.setAttribute("aria-expanded","true");document.body.classList.add("game-menu-open");
   });
   document.getElementById("gameMenuClose").addEventListener("click",closeMenu);
