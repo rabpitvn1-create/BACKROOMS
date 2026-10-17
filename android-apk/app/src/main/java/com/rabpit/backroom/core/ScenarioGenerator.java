@@ -30,9 +30,14 @@ public final class ScenarioGenerator {
     "fact_domain", "fact_human_value", "claim_truth_policy", "predicate_reference",
     "predicate_operator", "scene_observation_quality", "scene_observation_missing",
     "scene_duplicate_observation", "puzzle_unsolvable_or_empty",
-    "answer_without_evidence", "answer_without_observed_proof", "puzzle_requires_two_inferences"
+    "answer_without_evidence", "answer_without_observed_proof", "puzzle_requires_two_inferences",
+    "scenario_gehihi_envelope", "scenario_gehihi_truncated",
+    "scenario_gehihi_filtered", "scenario_gehihi_empty"
   ));
   private static String safeCode(Exception error) {
+    if (error instanceof java.net.SocketTimeoutException) return "scenario_timeout";
+    if (error instanceof java.net.UnknownHostException || error instanceof java.net.ConnectException)
+      return "scenario_network";
     String message = error.getMessage();
     if (message != null && SAFE_CODES.contains(message)) return message;
     if (message != null && message.matches("http_(?:400|401|403|404|408|429|500|502|503|504)")) return message;
