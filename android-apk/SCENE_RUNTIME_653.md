@@ -23,7 +23,7 @@
 Retry dùng nguyên command/encounter/public event đã lưu. Không gọi lại Gemini trên lượt chơi thường.
 Provider lỗi giữ pending; process death đọc lại pending; không tự fallback sang provider GM khác.
 Core không nhận world delta từ Gehihi. UI chỉ gửi ID, không có ô nhập hành động tự do.
-Giao tiếp kết hợp NPC kịch bản (0–12 NPC độc lập trong một Mini-map, không spawn ngẫu nhiên) và nhân vật Canon do Core xác nhận đang ACTIVE/đã gặp, cùng thành viên Party đang hiện diện. NPC kịch bản được lưu cố định theo script với danh tính, vị trí, vai trò, mục đích và ít nhất một tương tác TALK có dữ kiện; TALK phải gắn đúng npcId cùng phòng. Core công khai NPC đúng phòng và sự kiện giao tiếp, không rò rỉ mục đích nội bộ. NPC Canon có các chủ đề riêng; TALK không roll spawn, không tự cấp item hoặc gia nhập Party. Nhân vật mất tích/tách nhóm/chết không được chọn.
+Giao tiếp kết hợp NPC kịch bản (0–2 NPC độc lập trong một Mini-map, không spawn ngẫu nhiên) và nhân vật Canon do Core xác nhận đang ACTIVE/đã gặp, cùng thành viên Party đang hiện diện. NPC kịch bản được lưu cố định theo script với danh tính, vị trí, vai trò, mục đích và ít nhất một tương tác TALK có dữ kiện; TALK phải gắn đúng npcId cùng phòng. Core công khai NPC đúng phòng và sự kiện giao tiếp, không rò rỉ mục đích nội bộ. NPC Canon có các chủ đề riêng; TALK không roll spawn, không tự cấp item hoặc gia nhập Party. Nhân vật mất tích/tách nhóm/chết không được chọn.
 Combat/Poker Dice tiếp tục dùng endpoint và state hiện có. Encounter chỉ hiện Battle Start sau narration commit.
 
 ## Ngôn ngữ scenario v3
@@ -32,7 +32,7 @@ Schema thực nằm ở `MiniMapScenario.kt`; prompt tương ứng ở `Scenario
 
 - Đúng 10 outline entries cho cùng nodeAnchor, index/node anchor được Core khóa; dependencies chỉ trỏ mini trước trong node. `levelNumber` chỉ là Level cha phục vụ scaling, không dùng làm khóa tiến trình. Schema scenario 3, không nhận outline gộp cũ.
 - 4..12 room, graph liên thông, cạnh hai chiều, tối đa 6 cạnh/room. V3 không sinh phòng bí mật: chỉ trình bày phòng kề.
-- NPC list bắt buộc trong schema nhưng có thể rỗng (`npcs: []`). Nếu có NPC thì được phép nhiều người (tối đa 12), mỗi người có `id`, `name`, `role`, `purpose`, `description`, `roomId` và ít nhất một TALK gắn `npcId` ở đúng phòng. SEARCH không có `npcId`. Không cho mạo danh Canon hoặc NPC chỉ để trang trí.
+- NPC list bắt buộc trong schema nhưng có thể rỗng (`npcs: []`). Ưu tiên **không có NPC** cho câu đố môi trường; tối đa 2 NPC kịch bản trên mỗi mini-map, mỗi người có `id`, `name`, `role`, `purpose`, `description`, `roomId` và ít nhất một TALK gắn `npcId` ở đúng phòng. SEARCH không có `npcId`. Core loại tất cả TALK của từng NPC rồi giải lại predicate; nếu vẫn đạt goal, NPC đó không thiết yếu và script bị từ chối. Đây là kiểm tra sự cần thiết về cơ chế, không tự chứng minh chất lượng lời thoại. Không cho mạo danh Canon hoặc NPC chỉ để trang trí.
 - 2..12 fact với domain hữu hạn 2..5 giá trị. 4..36 interaction, ID giới hạn 40 ký tự.
 - Predicate: `TRUE`, `HAS(interactionId)`, `AND`, `OR`; sâu tối đa 4, 8 nhánh.
 - SEARCH: clue/vật chứng xác nhận từ fact; TALK: claim với truth policy TRUTH/LIE/MISTAKEN; ANSWER: lựa chọn khớp fact mới được ghi nhận thành công.
