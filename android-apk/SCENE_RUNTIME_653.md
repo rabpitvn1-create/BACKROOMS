@@ -7,7 +7,7 @@
 - **Tất cả** Canon node đều có đúng 10 mini-map độc lập: Level chính, mọi sublevel, mọi khu phụ (AREA) và khu đặc biệt (SPECIAL), bao gồm Dullness/Epsilon/LS-2, Manila Room, The Torment và Red Rooms. Mỗi mini-map là một phân đoạn cần giải khóa, bên trong có 4–12 khu vực/phòng phục vụ giải đố hoặc nhiệm vụ. Mọi cạnh chuyển node đều phải hoàn thành mini 10. Cả 25 Canon node tạo thành **một tuyến duy nhất một chiều**, không quay lại được Mini-map hay node đã hoàn thành.
 - Chuỗi bắt buộc đã chốt: `0 → 0.1 → 0.2 → 0.5 → 0.7 → Dullness → Epsilon → LS-2 → Manila Room → The Torment → Red Rooms → 1`; không có nhánh tắt, không đường về.
 - Level 1–6 có tuyến bắt buộc: `1 → 1.2 → 1.5 → Trader’s Vault → Base Alpha → 2 → Office Space EL3A → 3 → 4 → Office Market → 5 → 5.1 → 6 → 6.1`; không có nhánh tắt `3 → 6` và không có bất kỳ cạnh ngược nào.
-- Level `6` mini 10 chỉ dẫn tới `6.1`; chỉ khi hoàn thành mini 10 của `6.1` mới `awaitingEnding`. Không có Level 7.
+- Level `6` mini 10 chỉ dẫn tới `6.1`; chỉ khi hoàn thành mini 10 của `6.1` mới `awaitingEnding`. Khi đạt goal cuối, Core đánh dấu `endingComplete`, xóa script/outline, vật chứng tạm ngay trong commit và không tái tạo kịch bản. Không có Level 7.
 - Cơ chế **NPC tạm thời ngẫu nhiên (ambient NPC)** đã lưu trữ/ngừng chạy ở cả lượt chữ cũ và Explorer: không roll, không gọi Gemini ambient, không khôi phục NPC vãng lai từ cache. Các cuộc gặp nhân vật Canon do Core kiểm soát vẫn độc lập.
 
 ## Đường chạy
