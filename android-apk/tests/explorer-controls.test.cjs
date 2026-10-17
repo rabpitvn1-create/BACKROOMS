@@ -57,6 +57,16 @@ test('room objective and observations live only in a separate Game Menu journal'
   assert.equal(r.records.children[0].textContent,'Vật chứng đã xác nhận');
   assert.equal(r.journal.hidden,false);assert.equal(r.calls.length,0);
 });
+test('unresolved puzzle offers an in-menu evidence hint without revealing an answer',()=>{
+  const r=runtime({room:{name:'Góc Thảm',description:'Thảm ẩm'},records:[],completed:false});
+  assert.match(r.records.children[0].textContent,/Chưa có chứng cứ/);
+  assert.match(r.records.children[0].textContent,/tìm kiếm/);
+  assert.doesNotMatch(r.records.children[0].textContent,/answer|factId|policy/);
+  r.ctx.state.scene={...r.ctx.state.scene,completed:true,records:[{text:'Đối chiếu xong'}]};
+  r.ctx.backroomSyncExplorer();
+  assert.match(r.records.children[1].textContent,/Đã giải xong nhiệm vụ/);
+});
+
 test('existing ornate frames and Gemini logo are used in Explorer controls',()=>{
   const css=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/explorer-controls.css'),'utf8');
   assert.match(css,/--ornate-frame/);
