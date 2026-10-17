@@ -119,6 +119,8 @@ public final class ScenarioGenerator {
       + "Mỗi ANSWER có nhiều lựa chọn value khác nhau qua các interaction, cùng requires; label là câu trả lời người chơi chọn. "
       + "Dùng requires để người chơi phải thu thập dữ kiện trước khi suy luận; những hành động SEARCH/CLUE quan trọng phải có nhãn dễ nhận biết là vật gì đang được quan sát. "
       + "Mọi ANSWER đúng phải có dấu vết SEARCH giải thích vì sao lựa chọn đó đúng; không viết câu đố mà chỉ người tạo biết đáp án. "
+      + "Các requires của lựa chọn ANSWER ĐÚNG phải phụ thuộc trực tiếp hoặc gián tiếp ít nhất một CLUE/EVIDENCE có CÙNG factId; "
+      + "nếu bỏ toàn bộ vật chứng của fact đó mà vẫn chọn được đáp án đúng thì Core sẽ từ chối script. "
       + "Mỗi SEARCH/CLUE/EVIDENCE cần observation riêng 35..320 ký tự bằng tiếng Việt: mô tả cụ thể điều nhìn/nghe/sờ được và cách nó liên quan tới lựa chọn tiếp theo, KHÔNG chép mã factId hoặc enum như lech_the_ky. "
       + "Không viết trùng observation giữa các tương tác, không dùng câu chung chung 'phát hiện manh mối', không cung cấp đáp án trọn vẹn trước khi người chơi đối chiếu. "
       + "Giữ rõ ít nhất hai tuyến suy luận để đạt goal; goal cần >=2 ANSWER đúng và nhiều lớp vật chứng, không goal TRUE. "
