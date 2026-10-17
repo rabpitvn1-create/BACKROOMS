@@ -64,15 +64,15 @@ test('completed mini-map uses a distinct dark-green next-area choice with Core-a
   const green=nextPanel.children[0];
   assert.equal(green.className,'explorer-next-area-option');
   assert.equal(green.textContent,'Tiến vào khu vực kế tiếp.');
-  assert.doesNotMatch(green.textContent,/mini-map|\\/10/);
+  assert.doesNotMatch(green.textContent,/mini-map|10/);
   green.onclick();
   assert.deepEqual(JSON.parse(r.calls[0][1]),{
     actionId:transition.actionId,sceneVersion:9,roomId:'hall',kind:'MOVE',targetId:'next'
   });
   const css=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/explorer-controls.css'),'utf8');
-  assert.match(css,/\\.explorer-next-area-panel\\{/);
-  assert.match(css,/background:linear-gradient\\(150deg,#173d2b,#0a261b\\)/);
-  assert.match(css,/\\.explorer-next-area-option\\{/);
+  assert.ok(css.includes('#explorerChoices .explorer-next-area-panel{'));
+  assert.ok(css.includes('background:linear-gradient(150deg,#173d2b,#0a261b)'));
+  assert.ok(css.includes('#explorerChoices .explorer-next-area-panel .explorer-next-area-option{'));
 });
 test('completion styling cannot create an unauthorized transition',()=>{
   const r=runtime({completed:true,availableActions:[{
