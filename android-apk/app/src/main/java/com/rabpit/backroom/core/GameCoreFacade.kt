@@ -106,7 +106,7 @@ class GameCoreFacade private constructor(
       SpawnMechanism.pendingNpcEncounters(reserved).forEach { put(JSONObject().put("characterId", it.characterId).put("name", SpawnMechanism.npcDisplayName(it.characterId))) }
     })
     val pending = JSONObject().put("actionId", actionId).put("command", command)
-      .put("progress", staged.progress).put("nodeProgress", JSONObject(staged.nodeProgress))
+      .put("progress", staged.progress).put("discardKeys", JSONArray(staged.discardKeys.toList()))
       .put("nodeId", staged.nodeId).put("label", staged.label)
       .put("public", public)
     repository.save(reserved.copy(world = reserved.world + (MiniMapRuntime.PENDING to pending.toString())))
@@ -142,7 +142,11 @@ class GameCoreFacade private constructor(
       put("currentLevel", node.asJson())
     }
     val receipt = JSONObject().put("actionId", actionId).put("label", pending.getString("label")).put("reply", reply)
-    var next = finished.state.copy(world = (finished.state.world - MiniMapRuntime.PENDING) + jsonObjectStrings(pending.getJSONObject("nodeProgress")) + mapOf(
+    // Finish a mini-map by atomically dropping its puzzle script and evidence.
+    // A pending narration failure leaves the old state untouched for retry.
+    val discarded = MiniMapScenario.strings(pending.getJSONArray("discardKeys")).toSet()
+    require(discarded.all { it.startsWith("scene.script.") || it.startsWith("scene.outline.") }) { "scene_discard_keys" }
+    var next = finished.state.copy(world = (finished.state.world - MiniMapRuntime.PENDING - discarded) + mapOf(
       MiniMapRuntime.STATE to pending.getJSONObject("progress").toString(),
       MiniMapRuntime.RECEIPT to receipt.toString(),
       "levelJson" to node.asJson().toString(), "title" to node.title(), "location" to node.location(), "flagsJson" to flags.toString()),
