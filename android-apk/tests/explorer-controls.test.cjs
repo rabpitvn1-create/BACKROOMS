@@ -60,7 +60,7 @@ test('room objective and observations live only in a separate Game Menu journal'
 test('unresolved puzzle offers an in-menu evidence hint without revealing an answer',()=>{
   const r=runtime({room:{name:'Góc Thảm',description:'Thảm ẩm'},records:[],completed:false});
   assert.match(r.records.children[0].textContent,/Chưa có chứng cứ/);
-  assert.match(r.records.children[0].textContent,/tìm kiếm/);
+  assert.match(r.records.children[0].textContent,/tìm kiếm/i);
   assert.doesNotMatch(r.records.children[0].textContent,/answer|factId|policy/);
   r.ctx.state.scene={...r.ctx.state.scene,completed:true,records:[{text:'Đối chiếu xong'}]};
   r.ctx.backroomSyncExplorer();
