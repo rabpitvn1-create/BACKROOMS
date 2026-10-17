@@ -105,6 +105,53 @@ public class ScenarioGeneratorTest {
       prompt -> { throw new Exception("Bearer secret credential"); }));
   }
 
+  @Test public void invalidGeminiJsonCanBeCorrectedWithSameKeyWithoutCooldown() throws Exception {
+    AtomicInteger calls = new AtomicInteger();
+    java.util.List<String> issues = new java.util.ArrayList<>();
+    ScenarioGenerator generator = new ScenarioGenerator();
+    String out = generator.generate(new String[]{"valid-key"}, request(),
+      (key, prompt) -> {
+        int call = calls.incrementAndGet();
+        if (call == 1) return "not-json";
+        assertTrue(prompt.contains("scenario_json"));
+        assertTrue(prompt.contains("LƯU Ý SỬA PHẢN HỒI TRƯỚC"));
+        return outline();
+      }, prompt -> { throw new AssertionError("Fallback must not run after corrected Gemini response"); },
+      (provider, category, code) -> issues.add(provider + ":" + category + ":" + code));
+    assertEquals(2, calls.get());
+    assertEquals("gemini:validation:scenario_json", issues.get(0));
+    assertEquals(1, issues.size());
+    assertEquals(10, new JSONObject(out).getJSONArray("entries").length());
+  }
+
+  @Test public void validationFailuresReportOnlySafeCodesAndForwardRepairHintToGehihi() throws Exception {
+    java.util.List<String> issues = new java.util.ArrayList<>();
+    String result = new ScenarioGenerator().generate(new String[]{"key-a", "key-b"}, request(),
+      (key, prompt) -> "{\\"schemaVersion\\":4,\\"secret\\":\\"user-token\\":\\"invalid\\":true}",
+      prompt -> {
+        assertTrue(prompt.contains("invalid_output"));
+        assertFalse(prompt.contains("user-token"));
+        return outline();
+      },
+      (provider, category, code) -> issues.add(provider + ":" + category + ":" + code));
+    assertEquals(10, new JSONObject(result).getJSONArray("entries").length());
+    assertEquals(2, issues.size());
+    assertEquals("gemini:validation:invalid_output", issues.get(0));
+    assertFalse(String.join("|", issues).contains("user-token"));
+  }
+
+  @Test public void transportFailureIsLoggedSeparatelyAndDoesNotExposeProviderPayload() throws Exception {
+    java.util.List<String> issues = new java.util.ArrayList<>();
+    ScenarioGenerator generator = new ScenarioGenerator();
+    String result = generator.generate(new String[]{"key-a"}, request(),
+      (key, prompt) -> { throw new Exception("429 private bearer secret"); },
+      prompt -> outline(),
+      (provider, category, code) -> issues.add(provider + ":" + category + ":" + code));
+    assertEquals(10, new JSONObject(result).getJSONArray("entries").length());
+    assertEquals(1, issues.size());
+    assertEquals("gemini:transport:invalid_output", issues.get(0));
+  }
+
   @Test public void gmRejectsProseEmptyTruncationExtraFieldsAndNeverParsesState() throws Exception {
     assertEquals("Cao Minh quan sát.",ProviderResponseContract.parseSceneWriter("{\"reply\":\"Cao Minh quan sát.\"}").getString("reply"));
     for(String raw:new String[]{"Văn xuôi", "{\"reply\":\"\"}","{\"reply\":\"dang dở", "{\"reply\":\"a\",\"state\":{}}", "{\"reply\":\"a\"}{\"reply\":\"b\"}"})
