@@ -56,6 +56,25 @@ class PlayerActionPresentationTest {
     assertEquals(2, JSONObject(second.toString()).getJSONArray("log").length())
   }
 
+  @Test fun projectorRecognizesFoldedReceiptAfterReloadWithoutDuplicatingLastAction() {
+    val core = WorldGraphRuntime.initialize(CoreClientProjection.initialize(GameState.initial()), 418L)
+    val old = view(player("one", "Nhãn"), gm("Câu đầu."))
+    PlayerActionPresentation.fold(old, "one", "one", "Tôi quan sát rồi ghi dấu.")
+    old.getJSONArray("log").put(player("two", "Nhãn thứ hai"))
+    old.getJSONArray("log").put(gm("Câu cuối."))
+    PlayerActionPresentation.fold(old, "one", "two", "Tôi quan sát rồi ghi dấu.")
+    val receipt = JSONObject().put("actionId", "two").put("label", "Ghi dấu")
+      .put("reply", "Câu cuối.").put("playerText", "Tôi quan sát rồi ghi dấu.")
+    val saved = core.copy(world = core.world +
+      (MiniMapRuntime.RECEIPT to receipt.toString()))
+    val displayed = CoreClientProjection.project(JSONObject(old.toString()), saved)
+    val records = displayed.getJSONArray("log")
+    assertEquals(2, records.length())
+    assertEquals("Tôi quan sát rồi ghi dấu.", records.getJSONObject(0).getString("text"))
+    assertEquals("Câu đầu. Câu cuối.", records.getJSONObject(1).getString("text"))
+    assertEquals(2, records.getJSONObject(0).getJSONArray("sceneBatchActions").length())
+  }
+
   @Test fun singleActionIsIdempotentAndKeepsWhitespaceInPlayerText() {
     val raw = "  Tôi hỏi: \"Đây là đâu?\"  "
     val state = view(player("one", "Trò chuyện: nhân vật"), gm("Một câu trả lời.\n\nKhác."))
