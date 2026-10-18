@@ -114,6 +114,39 @@ test('device controls use one popup, preserve Core commands and stay open across
   assert.equal(r.dialog.open,false,'Core completion automatically closes the device popup');
   assert.equal(r.ctx.backroomFreezeSnapshot,false,'completed mechanism resumes normal snapshot rendering');
 });
+test('Player Action runs Gehihi narration only after Core validates each MOVE/SEARCH step',()=>{
+  const java=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/MainActivity.java'),'utf8');
+  const helper=java.slice(java.indexOf('private String narrateStagedSceneAction('),
+    java.indexOf('private JSONObject parseModelJson(',java.indexOf('private String narrateStagedSceneAction(')));
+  const player=java.slice(java.indexOf('@JavascriptInterface public void submitPlayerAction('),
+    java.indexOf('@JavascriptInterface public void submitSceneAction('));
+  const direct=java.slice(java.indexOf('@JavascriptInterface public void submitSceneAction('),
+    java.indexOf('@JavascriptInterface public void submitTurn('));
+  assert.match(helper,/generateText\(sceneWriterPrompt\(\)\)/);
+  assert.match(helper,/ProviderResponseContract\.requireWriter\(reply\)/);
+  assert.match(helper,/canonBoundary\(sceneNode, reply\.getString\("reply"\)\)/);
+  assert.match(player,/deviceStep \? staged\.getString\("result"\) : narrateStagedSceneAction\(staged\)/);
+  assert.ok(player.indexOf('beginSceneAction(command.toString())') <
+    player.indexOf('narrateStagedSceneAction(staged)'));
+  assert.ok(player.indexOf('narrateStagedSceneAction(staged)') <
+    player.indexOf('commitSceneAction('));
+  assert.match(player,/emit\("backroomTurn", requireGameCore\(\)\.currentClientState\(projection\)\)/);
+  assert.match(direct,/narrateStagedSceneAction\(stagedEvent\)/);
+  assert.doesNotMatch(player,/if \(result\.isEmpty\(\)\) result = action\.getString\("label"\)/);
+});
+test('failed GM narration retries the persisted pending step, never the prior Player Action plan',()=>{
+  const r=runtime();r.player.onclick();
+  const input=r.actionDialog.children[1];input.value='Đi vào phòng bên cạnh';input.oninput();
+  r.actionDialog.children[2].onclick();
+  r.ctx.backroomTurn(JSON.stringify({...r.ctx.state,scene:{...r.ctx.state.scene,
+    pendingActionId:'run:1:MOVE:room:x'}}));
+  r.ctx.backroomPlayerActionError(JSON.stringify({committed:1,message:'Gehihi tạm thời gián đoạn'}));
+  assert.equal(r.retry.hidden,false);
+  r.retry.onclick();
+  assert.equal(r.calls.length,2);
+  assert.equal(r.calls[1][0],'action');
+  assert.equal(r.calls[1][1],'RETRY');
+});
 test('mechanism button presses use local Core narration, not a remote GM call',()=>{
   const runtimeSource=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/core/MiniMapRuntime.kt'),'utf8');
   const java=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/MainActivity.java'),'utf8');
