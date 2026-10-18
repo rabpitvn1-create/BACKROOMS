@@ -165,6 +165,7 @@ object KnowledgeContextEngine {
       resolvePresence()
       addMandatory()
       addCurrentLevel()
+      addCurrentZoneCanon()
       addPresentRuntimeCards()
       addAuthoredDetails()
       addRelationships()
@@ -250,6 +251,35 @@ object KnowledgeContextEngine {
         .trim()
       if (node.matches(Regex("[a-z0-9_.-]{1,48}"))) {
         add("LEVEL.NODE.$node", "exact current environment node")
+      }
+      if (number == 0 && node == "0")
+        add("LEVEL.00.ZONES.OVERVIEW", "author-approved Level 0 zone index")
+    }
+
+    /**
+     * Details are indexed in the APK, but zone numbers are not mini-map indices.
+     * Only a future Core-confirmed scene.zoneId / scene.subzoneId may select them.
+     * Neither a player's mention nor a generated room name proves location.
+     */
+    private fun addCurrentZoneCanon() {
+      val level = state.optJSONObject("level") ?: return
+      val scene = state.optJSONObject("scene") ?: return
+      if (level.optInt("number", -1) != 0 || level.optString("id") != "0" ||
+          scene.optString("nodeId") != "0") return
+      val zone = scene.optString("zoneId")
+      if (!zone.matches(Regex("[1-8]"))) return
+      val zoneKey = zone.padStart(2, '0')
+      db.tagIndex["level0:zone:$zoneKey"].orEmpty().sorted().forEach { id ->
+        if (id.startsWith("LEVEL.00.ZONE.$zoneKey.DETAIL."))
+          add(id, "Core-confirmed Level 0 zone")
+      }
+      val subzone = scene.optString("subzoneId")
+      val allowedCount = if (zone in setOf("2", "4", "6")) 3 else 4
+      if (!Regex(Regex.escape(zone) + """\.[1-$allowedCount]""").matches(subzone)) return
+      val subKey = subzone.substringAfter('.').padStart(2, '0')
+      db.tagIndex["level0:zone:$zoneKey:subzone:$subKey"].orEmpty().sorted().forEach { id ->
+        if (id.startsWith("LEVEL.00.ZONE.$zoneKey.SUBZONE.$subKey.DETAIL."))
+          add(id, "Core-confirmed Level 0 subzone")
       }
     }
 
