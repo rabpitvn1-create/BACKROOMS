@@ -30,6 +30,15 @@ class MiniMapRuntimeTest {
   """.trimIndent())
   private fun leverPuzzle(): JSONObject {
     val scene = script()
+    // This device-only task should not retain the unrelated color/valve puzzle
+    // from the shared test fixture: it would be rejected as dead story logic.
+    val clue = MiniMapScenario.copy(MiniMapScenario.objects(scene.getJSONArray("interactions"))
+      .first { it.getString("id") == "paper" })
+      .put("label", "Đọc sơ đồ cần gạt")
+      .put("observation", "Trên giấy có vệt đỏ thành chuỗi 1–1–2–2–3; nét vẽ mô tả các lần gạt lên rồi xuống.")
+      .put("effect", JSONObject().put("type", "HINT"))
+    scene.put("npcs", JSONArray()).put("facts", JSONArray())
+      .put("interactions", JSONArray().put(clue))
     val controls = listOf("lever_1_up", "lever_1_down", "lever_2_up",
       "lever_2_down", "lever_3_up", "lever_3_down")
     val labels = listOf("Gạt cần số 1 lên", "Gạt cần số 1 xuống", "Gạt cần số 2 lên",
