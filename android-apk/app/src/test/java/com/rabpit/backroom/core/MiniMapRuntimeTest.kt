@@ -63,6 +63,7 @@ class MiniMapRuntimeTest {
       it.copy(world = it.world + ("levelJson" to node.asJson().toString()))
     })
     val p = MiniMapRuntime.progress(state).put("parent",level).put("index",index).put("roomId","hall")
+      .put("visitedRooms", JSONArray().put("hall")).put("areaEvents", JSONArray())
     state = state.copy(world = state.world + (MiniMapRuntime.STATE to p.toString()))
     return state.copy(world = state.world + (MiniMapRuntime.scriptKey(p) to MiniMapScenario.validate(script(level,index,nodeId),nodeId,index).toString()))
   }
@@ -98,6 +99,38 @@ class MiniMapRuntimeTest {
     core.beginSceneAction(command)
     core.commitSceneAction(JSONObject(command).getString("actionId"),"Cao Minh quan sát kết quả.","{}")
   }
+  @Test fun mapBranchesRevealOnlyDiscoveredRoomsAndAreaLogExcludesPuzzleAnswers() {
+    val repo = MemorySave(state())
+    val core = facade(repo)
+    val initial = MiniMapRuntime.publicView(repo.state)
+    val initialMap = initial.getJSONObject("map")
+    assertEquals("hall", initialMap.getString("currentRoomId"))
+    assertEquals("hall", initialMap.getString("entryRoomId"))
+    val initialRooms = MiniMapScenario.objects(initialMap.getJSONArray("rooms"))
+    assertEquals("Hành lang", initialRooms.first { it.getString("id") == "hall" }.getString("name"))
+    assertEquals("Chưa khám phá", initialRooms.first { it.getString("id") == "lab" }.getString("name"))
+    assertFalse(initial.toString().contains("MẬT MÃ"))
+    apply(core, repo, "room:lab")
+    val explored = MiniMapRuntime.publicView(repo.state)
+    val map = explored.getJSONObject("map")
+    assertEquals("lab", map.getString("currentRoomId"))
+    assertEquals("Kho hồ sơ", MiniMapScenario.objects(map.getJSONArray("rooms"))
+      .first { it.getString("id") == "lab" }.getString("name"))
+    val events = MiniMapScenario.objects(explored.getJSONArray("areaLog"))
+    assertEquals(1, events.size)
+    assertTrue(events[0].getString("text").contains("Kho hồ sơ"))
+    apply(core, repo, "paper")
+    val log = MiniMapRuntime.publicView(repo.state).getJSONArray("areaLog").toString()
+    assertFalse(log.contains("Màu khóa"))
+    assertFalse(log.contains("đỏ"))
+    assertFalse(log.contains("paper"))
+    assertFalse(log.contains("manh mối"))
+    // Retracing a room does not create another discovery event.
+    apply(core, repo, "room:hall")
+    apply(core, repo, "room:lab")
+    assertEquals(1, MiniMapRuntime.publicView(repo.state).getJSONArray("areaLog").length())
+  }
+
   @Test fun sequencePuzzleRequiresDeductionAndCorrectControlOrderWithPersistentRetries() {
     val script = leverPuzzle()
     assertEquals("investigation", MiniMapScenario.validate(script, "0", 1).getString("id"))
