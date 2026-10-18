@@ -62,7 +62,7 @@
     const command={actionId:a.actionId,sceneVersion:a.sceneVersion,roomId:a.roomId,kind:a.kind,targetId:a.targetId};
     if(!keepPopup)dialog.close();
     busy=true;
-    if(keepPopup)choices.children.forEach(b=>{b.disabled=true;});
+    if(keepPopup)Array.from(choices.children).forEach(b=>{b.disabled=true;});
     else appendActionPending(a.label);
     refresh();
     try{Android.submitSceneAction(JSON.stringify(state),JSON.stringify(command));}
