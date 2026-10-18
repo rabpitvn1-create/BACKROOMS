@@ -135,3 +135,8 @@ Refactor verification: Core Kotlin 2.3.0 and Java 17 compilation PASS; **108 JUn
 - Save schema **12**, Level 0 definition **4**; prior saves deliberately unsupported. In addition to existing validation, the Level 0 definition now compares the stored structural graph with `generate(savedSeed)`: a connected but rewritten topology is rejected on load. Stored field-note observations must correspond to their authored environment; comparisons must reference two actually visited/studied rooms in the same zone.
 - The player can review the full casebook, while each GM stage now includes only current-room observations (maximum six), preventing a 29-zone study from flooding the Gehihi prompt with distant notes.
 - These field studies are optional thematic gameplay, **not 29 separate puzzles and not a claim that 10 hours have been achieved**. Exit `0 → 0.1` remains locked pending owner decision.
+
+
+## Directed but non-spoiling exploration objectives
+- For Level 0 only, the visible objective now advances from initial landmark marking to first field study, independent observations, optional comparison, evidence testing and continued exploration. It derives entirely from Core-persisted progress and never grants evidence, authorizes Level routes or exposes puzzle target IDs.
+- The generic WorldDefinition contract defaults to its existing fixed objective, so this does not change unregistered test definitions or non-Level-0 content. No save schema change, no new Canon, no mandatory NPC/EXP/combat grind. These are near-term navigation goals, **not** a fabricated exit or a completion ending.

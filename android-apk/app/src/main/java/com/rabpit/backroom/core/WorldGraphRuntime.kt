@@ -340,7 +340,7 @@ object WorldGraphRuntime {
       .put("awaitingEnding", false).put("nodeExitUnlocked", false).put("completed", false)
       .put("availableActions", actions(state, p, definition)).put("records", p.getJSONArray("records"))
       .put("areaLog", p.getJSONArray("areaEvents")).put("temporaryInference", "")
-      .put("objective", definition.objective)
+      .put("objective", definition.currentObjective(p))
       .apply { locationTags(this, e) }
       .put("environment", JSONObject().put("id", e.id).put("name", e.name).put("zoneId", e.zoneId).put("canon", e.canon))
       .put("room", JSONObject().put("id", current).put("name", displayName(g, current, definition)).put("description", e.canon)

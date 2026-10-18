@@ -35,6 +35,8 @@ interface WorldDefinition {
   val nodeId: String
   val version: Int
   val objective: String
+  /** Core-derived near-term goal, not a walkthrough or an exit authorization. */
+  fun currentObjective(progress: JSONObject): String = objective
   val environments: List<WorldEnvironment>
   val requireAlternateRoutes: Boolean
   /** Identifiers of authored, Core-verifiable passage conditions for this definition. */

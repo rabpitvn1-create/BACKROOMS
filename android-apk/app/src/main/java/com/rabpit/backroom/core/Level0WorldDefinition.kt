@@ -9,6 +9,27 @@ object Level0WorldDefinition : WorldDefinition {
   override val nodeId = "0"
   override val version = 4
   override val objective = "Khám phá Level 0 và ghi nhận những gì có thể kiểm chứng."
+  override fun currentObjective(progress: JSONObject): String {
+    val marked = progress.getJSONObject("markers").length()
+    val records = progress.getJSONArray("records")
+    val noteKinds = (0 until records.length()).map { records.getJSONObject(it).optString("kind") }
+    val notes = noteKinds.count { it == "FIELD_NOTE" }
+    val comparisons = noteKinds.count { it == "COMPARISON" }
+    val proofs = progress.getJSONObject("evidenceState").length()
+    val verified = progress.getJSONObject("ruleFlags").length()
+    val visited = progress.getJSONArray("visitedRooms").length()
+    return when {
+      marked == 0 -> "Ghi dấu vị trí đầu tiên vào MAP để có điểm mốc khi quay lại."
+      notes == 0 -> "Khám phá một khu nhỏ, kiểm tra hiện trường và lưu ghi chép đầu tiên vào Sổ tay."
+      notes < 2 -> "Tiếp tục khảo sát một môi trường khác; ghi nhận vật chứng trước khi kết luận."
+      comparisons == 0 ->
+        "Đối chiếu ghi chép ở hai phòng thuộc cùng một khu chính, hoặc tìm thêm chi tiết vật lý có thể kiểm chứng."
+      proofs < 2 -> "Quan sát kỹ hiện tượng vật lý tại các khu đã gặp; thử cách kiểm tra khác khi quay lại."
+      verified == 0 -> "Đối chiếu chứng cứ độc lập và thử kiểm chứng tại hiện trường; thất bại không xóa dấu vết."
+      visited < 45 -> "Tiếp tục khám phá những lối chưa biết và quay lại các địa điểm cần kiểm chứng."
+      else -> "Tổng hợp ghi chép, kiểm chứng các giả thuyết còn mở. Lối thoát Level 0 chưa được xác nhận."
+    }
+  }
   override val requireAlternateRoutes = true
   override val passageConditions = setOf("wet-ceiling", "loop-reflection")
   override val evidenceLaws = listOf(
