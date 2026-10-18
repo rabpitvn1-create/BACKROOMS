@@ -553,6 +553,8 @@ object KnowledgeContextEngine {
           it.id.endsWith(".AUTHORED") -> 32
           // Compact Level 0 index precedes contextual passages, never all 29 details.
           it.id == "LEVEL.00.ZONES.OVERVIEW" -> 33
+          // Once Core confirms a zone, its local environment outranks generic R2.
+          it.id.startsWith("LEVEL.00.ZONE.") -> 33
           it.kind == "authored-detail" && it.id.startsWith("SUPPORT.") -> 33
           it.kind == "authored-detail" -> 34
           else -> it.priority
