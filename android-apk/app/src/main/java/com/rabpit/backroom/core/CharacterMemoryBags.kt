@@ -66,8 +66,8 @@ object CharacterMemoryBags {
       .filter { actor ->
         actor.id != CAO_MINH_ID &&
           (actor.presence == CharacterPresence.ACTIVE &&
-            (MiniMapRuntime.STATE !in state.world || !Level0WorldRuntime.active(MiniMapRuntime.progress(state)) ||
-              Level0WorldRuntime.characterPresent(state, actor)) ||
+            (MiniMapRuntime.STATE !in state.world || !WorldGraphRuntime.active(MiniMapRuntime.progress(state)) ||
+              WorldGraphRuntime.characterPresent(state, actor)) ||
             (actor.id in pendingConfirmed &&
               actor.presence in setOf(CharacterPresence.SEPARATED, CharacterPresence.MISSING))) &&
           (actor.metadata["encountered"] == "true" || actor.id in state.party.memberIds)

@@ -31,9 +31,9 @@ RPG balance inspected at the source HEAD: total Entity gate `3500/10000` per eli
 
 ## Implemented end-to-end slice
 
-`Level0WorldRuntime` owns a versioned graph inside `scene.progress.worldGraph`. This reuses the proven pending transaction rather than introducing a parallel persistence or narration engine.
+`WorldGraphRuntime` is the shared exploration engine; `WorldDefinition` supplies content/layout policy, `WorldDefinitions` registers supported nodes, and `Level0WorldDefinition` supplies only the Level 0 catalog adapter/generator/validation. The runtime owns a versioned graph inside `scene.progress.worldGraph`. This reuses the proven pending transaction rather than introducing a parallel persistence or narration engine.
 
-- Persist decimal-string 64-bit seed, actual adjacency, stable opaque gameplay-room IDs, Canon environment and parent-zone IDs. Stored graph is loaded as saved, never regenerated from a provider response.
+- Persist decimal-string 64-bit seed, exact node ID, definition version, actual adjacency, stable opaque gameplay-room IDs, Canon environment and parent-zone IDs. Stored graph is loaded as saved, never regenerated from a provider response.
 - Initial allocation: one gameplay room per Canon environment, 37 total. The schema separates room identity from environment identity; additional rooms per environment and conditional edges are later work.
 - Generation uses a seeded permutation of a cyclic zone backbone, a local cycle for each zone's child rooms, and cross-zone chords. Before acceptance, validate environment membership, unique IDs, bidirectional edges, full reachability and reachability after **every single edge removal**. Every area has alternative approaches and return routes. This proof covers the ungated foundation only, not future conditional puzzle edges.
 - New production runs at exact node `0` use this world immediately. No outline/script provider request is needed; generation request returns `ready`, public `generationNeeded=false`, and scenario replacement is rejected.
@@ -44,11 +44,11 @@ RPG balance inspected at the source HEAD: total Entity gate `3500/10000` per eli
 - Ordinary MOVE keeps the existing physical encounter gate and Canon first-meeting rates. Passive observation and personal map annotation use **zero spawn rolls**, avoiding 35% encounter spam while reading or annotating; regression asserts zero RNG calls. Full environmental/action risk tuning remains phase 5.
 - Core-confirmed non-Party NPCs bind to the room of their first world encounter; leaving the room removes TALK, public presence, active GM memory and recruitment eligibility. Party members remain available under existing presence rules. No authored NPC is created by the world generator.
 - Staged events carry destination `zoneId/subzoneId`; Android Canon retrieval now uses the destination instead of stale pre-MOVE scene data. GM prompt follows the environment Canon, including Fracture architecture, without treating it as a transition.
-- Save schema is now **8**, manual slot `manual_checkpoint_v8`; no migration/old-save adapter. Codec checks graph/position/visited markers/observations and rejects a pending graph replacement. Autosave contains pending progress and already reserved encounters; manual checkpoints retain their existing no-active-action restriction.
+- Save schema is now **9**, manual slot `manual_checkpoint_v9`; no migration/old-save adapter. Codec checks graph/position/visited markers/observations and rejects a pending graph replacement. Autosave contains pending progress and already reserved encounters; manual checkpoints retain their existing no-active-action restriction.
 
 ## Validation and limits
 
-Regression targets: `Level0WorldRuntimeTest`, existing `MiniMapRuntimeTest`, `GameStateCodecTest`, `GameCheckpointCodecTest`, `EntityCombatExpTest`, `EntitySpawnPoolTest`, `CharacterMemoryBagsTest`; Node `explorer-controls.test.cjs`, `level-snapshot-routing.test.cjs`.
+Regression targets: `Level0WorldExplorationTest`, existing `MiniMapRuntimeTest`, `GameStateCodecTest`, `GameCheckpointCodecTest`, `EntityCombatExpTest`, `EntitySpawnPoolTest`, `CharacterMemoryBagsTest`; Node `explorer-controls.test.cjs`, `level-snapshot-routing.test.cjs`.
 
 The new tests exercise 128 seeded layouts, single-edge-removal reachability, an independent BFS traversal visiting every location and returning, a deterministic random explorer, backtracking and record survival, exact environment projection, private/frontier data boundaries, forged/stale commands, pending save/reload/retry, RNG idempotency, repeated commits, passive-action RNG exclusion, encounter blocking, NPC locality, manual checkpoint and provider-independent production initialization. Random exploration cannot unlock an unimplemented exit. These are architectural checks; they do not establish puzzle difficulty or play duration.
 
@@ -69,7 +69,7 @@ Reproduce targeted checks in an Android SDK/Gradle environment:
 ```sh
 node --test android-apk/tests/explorer-controls.test.cjs android-apk/tests/level-snapshot-routing.test.cjs
 cd android-apk
-gradle :app:testDebugUnitTest --tests 'com.rabpit.backroom.core.Level0WorldRuntimeTest' --tests 'com.rabpit.backroom.core.MiniMapRuntimeTest' --tests 'com.rabpit.backroom.core.GameStateCodecTest' --tests 'com.rabpit.backroom.core.GameCheckpointCodecTest' --tests 'com.rabpit.backroom.core.EntityCombatExpTest' --tests 'com.rabpit.backroom.core.EntitySpawnPoolTest' --tests 'com.rabpit.backroom.core.CharacterMemoryBagsTest' --no-daemon
+gradle :app:testDebugUnitTest --tests 'com.rabpit.backroom.core.WorldGraphRuntimeTest' --tests 'com.rabpit.backroom.core.Level0WorldExplorationTest' --tests 'com.rabpit.backroom.core.MiniMapRuntimeTest' --tests 'com.rabpit.backroom.core.GameStateCodecTest' --tests 'com.rabpit.backroom.core.GameCheckpointCodecTest' --tests 'com.rabpit.backroom.core.EntityCombatExpTest' --tests 'com.rabpit.backroom.core.EntitySpawnPoolTest' --tests 'com.rabpit.backroom.core.CharacterMemoryBagsTest' --no-daemon
 ```
 
 ### Verified milestone results — 18 October 2026
@@ -80,3 +80,21 @@ gradle :app:testDebugUnitTest --tests 'com.rabpit.backroom.core.Level0WorldRunti
 - `git diff --check`: PASS.
 - The host has no Gradle/Android SDK or javac executable. A partial-source incremental compiler attempt was rejected because of missing Java class outputs and Kotlin cross-module smart casts; no repository workaround was applied. Rebuilt the complete Core Kotlin source module with Java sources, compiled Java outputs with ECJ, then executed the above JUnit targets successfully.
 - APK build, Android WebView/device playtest, live Gemini/Gehihi, CI for this new commit, human puzzle difficulty and ten-hour pacing: **not verified in this local milestone**.
+
+
+## Architecture correction — shared world engine
+
+The first milestone coupled reusable exploration to Level 0. That coupling has been removed rather than replicated for future Levels:
+
+- `WorldGraphRuntime.kt`: shared initialization, graph acceptance, actions, observation/markers, exploration history, MAP, public events, save validation and node-scoped NPC presence. No Level 0 environment, room prefix, fixed room count, reference-number parsing or generator is referenced here.
+- `WorldDefinition.kt`: small content contract and immutable supported-definition registry. Adding a supported Level requires a definition/registration, not another movement/save runtime. Registration does not add an edge to `LevelRouteRegistry` or enable a transition.
+- `Level0WorldDefinition.kt`: existing seed algorithm, Canon catalog adapter, objective, scene zone/subzone tags, exact 37-location constraint and Level 0 room-ID/entry policy. This is a content definition, not an independent runtime.
+- Generic validation allows multiple gameplay rooms to share an environment and makes single-edge-removal redundancy a definition policy. Current shared edge implementation remains bidirectional/ungated; conditional/one-way mechanics remain explicitly outstanding.
+- Graph version 2 binds `nodeId` and `definitionVersion`; save schema 9 and checkpoint slot v9 reject earlier schemas without migration. NPC location keys are `world.nodeId` + `world.roomId`, so identical room IDs in different Levels cannot imply presence.
+- Core initialization chooses a registered definition without a Level 0 branch. Codec, projections, Party recruitment and GM memory refer only to the shared runtime. Android staged Canon context uses the actual event node.
+- `WorldGraphRuntimeTest` supplies an unregistered, test-only definition at node 1 with three differently named rooms, two environments and a tree layout. The same runtime explores, backtracks, observes, marks and round-trips its state payload. Tests also cover policy-specific redundancy, unknown environment, disconnection, node/version/seed mismatch, NPC node isolation and refusal to load an unregistered definition in production. This fixture is not Level 1 content or Canon.
+
+The 104-JUnit result above belongs to the first milestone. Refactor validation is recorded separately in the follow-up commit/PR; do not treat the earlier result as validation of new code.
+
+
+Refactor verification: Core Kotlin 2.3.0 and Java 17 compilation PASS; **108 JUnit tests PASS** across the eight targeted classes (including four new generic-world tests); **34 Node tests PASS** for Explorer and snapshot routing; diff check PASS. JUnit execution reported 8.789 seconds. No APK/device/live-provider acceptance is claimed. The existing unrelated CombatRuntime unnecessary-`!!` warning remains.

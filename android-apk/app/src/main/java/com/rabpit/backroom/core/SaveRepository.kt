@@ -41,6 +41,6 @@ class SharedPreferencesSaveRepository(context: Context) : SaveRepository {
 
   companion object {
     private const val KEY_STATE = "game_state"
-    private const val KEY_CHECKPOINT = "manual_checkpoint_v8"
+    private const val KEY_CHECKPOINT = "manual_checkpoint_v9"
   }
 }

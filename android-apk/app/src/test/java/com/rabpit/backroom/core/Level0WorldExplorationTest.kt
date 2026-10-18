@@ -5,8 +5,8 @@ import org.junit.Assert.*
 import org.junit.Test
 import java.security.SecureRandom
 
-class Level0WorldRuntimeTest {
-  private fun world(seed: Long = 41L) = Level0WorldRuntime.initialize(CoreClientProjection.initialize(GameState.initial()), seed)
+class Level0WorldExplorationTest {
+  private fun world(seed: Long = 41L) = WorldGraphRuntime.initialize(CoreClientProjection.initialize(GameState.initial()), seed)
   private fun p(s: GameState) = MiniMapRuntime.progress(s)
   private fun command(s: GameState, target: String): String = MiniMapScenario.objects(MiniMapRuntime.actions(s))
     .first { it.getString("targetId") == target }.let { JSONObject(it.toString()).apply { remove("label") }.toString() }
@@ -37,16 +37,16 @@ class Level0WorldRuntimeTest {
   @Test fun seededGraphHasAllEnvironmentsAndSurvivesEverySinglePassageFailure() {
     val layouts = mutableSetOf<String>()
     for (seed in 0L until 128L) {
-      val graph = Level0WorldRuntime.generate(seed)
-      assertEquals(graph.toString(), Level0WorldRuntime.generate(seed).toString())
-      Level0WorldRuntime.validate(graph) // BFS plus independent removal of every edge.
+      val graph = Level0WorldDefinition.generate(seed)
+      assertEquals(graph.toString(), Level0WorldDefinition.generate(seed).toString())
+      WorldGraphRuntime.validate(graph) // BFS plus independent removal of every edge.
       assertEquals(37, graph.getJSONArray("rooms").length())
       layouts.add(graph.getJSONArray("rooms").toString())
     }
     assertTrue(layouts.size > 100)
-    val bad = Level0WorldRuntime.generate(0L)
+    val bad = Level0WorldDefinition.generate(0L)
     bad.getJSONArray("rooms").getJSONObject(0).getJSONArray("adjacentRoomIds").put("missing")
-    assertThrows(IllegalArgumentException::class.java) { Level0WorldRuntime.validate(bad) }
+    assertThrows(IllegalArgumentException::class.java) { WorldGraphRuntime.validate(bad) }
   }
 
   @Test fun backtrackingPreservesObservationsMarkersAndExactSnapshotIdentity() {
@@ -128,7 +128,7 @@ class Level0WorldRuntimeTest {
   @Test fun productionNewRunUsesWorldWithoutProviderAndRejectsScenarioReplacement() {
     val repo = MemorySave(GameState.initial(), false); val core = facade(repo, CountingRng())
     val view = JSONObject(core.currentClientState("{}"))
-    assertEquals("level0-world-v1", view.getJSONObject("scene").getString("runtime"))
+    assertEquals("world-graph-v2", view.getJSONObject("scene").getString("runtime"))
     assertFalse(view.getJSONObject("scene").getBoolean("generationNeeded"))
     val request = JSONObject(core.sceneGenerationRequest())
     assertEquals("ready", request.getString("kind"))
@@ -184,7 +184,7 @@ class Level0WorldRuntimeTest {
     val current = p(state).getString("roomId")
     val character = state.characters.values.first { it.id != CAO_MINH_ID }
     state = state.copy(characters = state.characters + (character.id to character.copy(
-      presence = CharacterPresence.ACTIVE, metadata = character.metadata + mapOf("encountered" to "true", "level0.roomId" to current))))
+      presence = CharacterPresence.ACTIVE, metadata = character.metadata + mapOf("encountered" to "true", "world.roomId" to current, "world.nodeId" to "0"))))
     assertTrue(MiniMapScenario.objects(MiniMapRuntime.actions(state)).any { it.getString("kind") == "TALK" })
     state = move(state, MiniMapRuntime.actions(state).getJSONObject(0).getString("targetId"))
     assertFalse(MiniMapScenario.objects(MiniMapRuntime.actions(state)).any { it.getString("kind") == "TALK" })

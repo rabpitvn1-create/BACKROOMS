@@ -29,11 +29,11 @@ object GameStateCodec {
     val decoded = decodeCurrent(root)
     decoded.world[MiniMapRuntime.STATE]?.let { raw ->
       val progress = JSONObject(raw)
-      if (Level0WorldRuntime.active(progress)) {
-        Level0WorldRuntime.validateSavedProgress(progress)
+      if (WorldGraphRuntime.active(progress)) {
+        WorldGraphRuntime.validateSavedProgress(progress)
         decoded.world[MiniMapRuntime.PENDING]?.let { pending ->
           val staged = JSONObject(pending).getJSONObject("progress")
-          Level0WorldRuntime.validateSavedProgress(staged)
+          WorldGraphRuntime.validateSavedProgress(staged)
           require(staged.getJSONObject("worldGraph").toString() == progress.getJSONObject("worldGraph").toString()) { "world_pending_graph_changed" }
         }
       }

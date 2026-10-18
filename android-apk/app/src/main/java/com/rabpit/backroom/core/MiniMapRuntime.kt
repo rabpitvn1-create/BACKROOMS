@@ -36,7 +36,7 @@ object MiniMapRuntime {
   private fun attempted(p: JSONObject) = MiniMapScenario.strings(p.getJSONArray("attempted")).toSet()
   fun complete(state: GameState): Boolean {
     val p = progress(state)
-    if (Level0WorldRuntime.active(p)) return false
+    if (WorldGraphRuntime.active(p)) return false
     return script(state)?.let { MiniMapScenario.holds(it.getJSONObject("goal"), accepted(p)) } ?: false
   }
   private fun room(s: JSONObject, p: JSONObject) = MiniMapScenario.objects(s.getJSONArray("rooms")).first { it.getString("id") == p.getString("roomId") }
@@ -59,7 +59,7 @@ object MiniMapRuntime {
   }
   fun actions(state: GameState): JSONArray {
     val p = progress(state)
-    if (Level0WorldRuntime.active(p)) return Level0WorldRuntime.actions(state, p)
+    if (WorldGraphRuntime.active(p)) return WorldGraphRuntime.actions(state, p)
     if (node(state).id != MiniMapScenario.ACTIVE_NODE_ID ||
       p.getString("nodeId") != MiniMapScenario.ACTIVE_NODE_ID ||
       p.getInt("index") !in 1..MiniMapScenario.MINI_MAP_COUNT) return JSONArray()
@@ -177,7 +177,7 @@ object MiniMapRuntime {
 
   fun publicView(state: GameState): JSONObject {
     val p = progress(state); val s = script(state)
-    if (Level0WorldRuntime.active(p)) return Level0WorldRuntime.publicView(state, p)
+    if (WorldGraphRuntime.active(p)) return WorldGraphRuntime.publicView(state, p)
     val out = JSONObject().put("miniIndex", p.getInt("index")).put("parentLevel", p.getInt("parent"))
       .put("nodeId", p.getString("nodeId")).put("nodeTitle", node(state).title())
       .put("sceneVersion", p.getInt("version")).put("availableActions", actions(state))
@@ -235,7 +235,7 @@ object MiniMapRuntime {
   fun generationRequest(state: GameState): JSONObject {
     check(!blocked(state)) { "scene_busy" }
     val p = progress(state)
-    if (Level0WorldRuntime.active(p)) return JSONObject().put("kind", "ready").put("token", token(state))
+    if (WorldGraphRuntime.active(p)) return JSONObject().put("kind", "ready").put("token", token(state))
     require(node(state).id == MiniMapScenario.ACTIVE_NODE_ID &&
       p.getString("nodeId") == MiniMapScenario.ACTIVE_NODE_ID &&
       p.getInt("index") in 1..MiniMapScenario.MINI_MAP_COUNT) { "scene_node_scope" }
@@ -255,7 +255,7 @@ object MiniMapRuntime {
   fun acceptGeneration(state: GameState, expected: String, raw: String): GameState {
     check(expected == token(state) && !blocked(state)) { "generation_stale" }
     val p = progress(state)
-    check(!Level0WorldRuntime.active(p)) { "world_generation_not_allowed" }
+    check(!WorldGraphRuntime.active(p)) { "world_generation_not_allowed" }
     check(node(state).id == MiniMapScenario.ACTIVE_NODE_ID &&
       p.getString("nodeId") == MiniMapScenario.ACTIVE_NODE_ID &&
       p.getInt("index") in 1..MiniMapScenario.MINI_MAP_COUNT) { "scene_node_scope" }
@@ -277,7 +277,7 @@ object MiniMapRuntime {
   data class Staged(val progress: JSONObject, val nodeId: String, val event: JSONObject, val label: String, val discardKeys: Set<String>)
   fun stage(state: GameState, command: JSONObject): Staged {
     var p = progress(state)
-    if (Level0WorldRuntime.active(p)) return Level0WorldRuntime.stage(state, command, p)
+    if (WorldGraphRuntime.active(p)) return WorldGraphRuntime.stage(state, command, p)
     val s = requireNotNull(script(state)) { "scene_not_ready" }
     require(command.keys().asSequence().toSet() == setOf("actionId", "sceneVersion", "roomId", "kind", "targetId")) { "command_fields" }
     require(command.get("sceneVersion") is Int && command.getInt("sceneVersion") == p.getInt("version") && command.getString("roomId") == p.getString("roomId")) { "scene_stale" }

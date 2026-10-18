@@ -1081,7 +1081,7 @@ public class MainActivity extends Activity {
     view.put("pendingNpcEncounters", packet.getJSONArray("npcEncounters"));
     // Canon retrieval must use the staged destination, not the pre-MOVE scene.
     if (packet.has("zoneId")) {
-      JSONObject destination = new JSONObject().put("nodeId", "0").put("zoneId", packet.getString("zoneId"));
+      JSONObject destination = new JSONObject().put("nodeId", packet.getString("node")).put("zoneId", packet.getString("zoneId"));
       if (packet.has("subzoneId")) destination.put("subzoneId", packet.getString("subzoneId"));
       view.put("scene", destination);
     }

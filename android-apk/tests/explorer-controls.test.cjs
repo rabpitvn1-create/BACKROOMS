@@ -330,7 +330,7 @@ test('Core-confirmed Lucia enables communication even without a scenario NPC top
 });
 
 test('world MAP displays Core-confirmed personal markers without triggering generation',()=>{
-  const r=runtime({runtime:'level0-world-v1',generationNeeded:false,map:{
+  const r=runtime({runtime:'world-graph-v2',generationNeeded:false,map:{
     currentRoomId:'l0:r000',entryRoomId:'l0:r000',rooms:[
       {id:'l0:r000',name:'Vàng Úa',visited:true,marked:true,adjacentRoomIds:['l0:r009']},
       {id:'l0:r009',name:'Chưa khám phá',visited:false,marked:false,adjacentRoomIds:[]}
