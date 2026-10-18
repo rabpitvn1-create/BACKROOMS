@@ -1726,10 +1726,12 @@ public class MainActivity extends Activity {
               ? "Không phân tích được toàn bộ yêu cầu thành hành động hợp lệ."
               : "invalid_input".equals(failureCode) ? "Lệnh trống hoặc vượt giới hạn ký tự."
               : "Core chưa hoàn tất bước này. Nếu có lệnh chờ, hãy dùng Retry.";
-          emit("backroomPlayerActionError", new JSONObject()
-            .put("committed", committed).put("requested", requested)
-            .put("stoppedStep", stoppedStep).put("stopCode", failureCode)
-            .put("message", message).toString());
+          // Java's org.json.put throws a checked exception: serialize only
+          // fixed codes, integers and safely quoted messages in the catch path.
+          emit("backroomPlayerActionError", "{\"committed\":" + committed +
+            ",\"requested\":" + requested + ",\"stoppedStep\":" + stoppedStep +
+            ",\"stopCode\":" + JSONObject.quote(failureCode) +
+            ",\"message\":" + JSONObject.quote(message) + "}");
         }
       });
     }
