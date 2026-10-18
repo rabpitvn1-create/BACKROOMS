@@ -105,7 +105,10 @@ test('pending encounters show no Entity image; confirmed encounter clears a prev
 });
 
 test('the native bridge commits validated GM narration and confirmation never calls submitAction', () => {
-  assert.match(java, /commitSceneAction\(new JSONObject\(command\)\.getString\("actionId"\), reply\.getString\("reply"\), stateJson\)/);
+  assert.match(java, /private String narrateStagedSceneAction\(JSONObject stagedEvent\)/);
+  assert.match(java, /ProviderResponseContract\.requireWriter\(reply\)/);
+  assert.match(java, /canonBoundary\(sceneNode, reply\.getString\("reply"\)\)/);
+  assert.match(java, /commitSceneAction\(new JSONObject\(command\)\.getString\("actionId"\),\s*narrateStagedSceneAction\(stagedEvent\), stateJson\)/);
   assert.doesNotMatch(java, /processValidatedCandidate/);
   assert.match(java, /@JavascriptInterface public void battleStart\(String stateJson, String encounterId\)/);
   assert.doesNotMatch(source, /submitAction|selectedEntityKey|startCombatState/);
