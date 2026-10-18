@@ -63,8 +63,12 @@ object MiniMapRuntime {
     val r = room(script, p)
     val rooms = MiniMapScenario.objects(script.getJSONArray("rooms"))
     MiniMapScenario.strings(r.getJSONArray("adjacentRoomIds")).forEach { id -> add("MOVE", "room:$id", rooms.first { it.getString("id") == id }.getString("name")) }
-    MiniMapScenario.objects(script.getJSONArray("interactions")).filter {
-      it.getString("roomId") == p.getString("roomId") && it.getString("id") !in attempted(p) && MiniMapScenario.holds(it.getJSONObject("requires"), accepted(p))
+    MiniMapScenario.objects(script.getJSONArray("interactions")).filter { action ->
+      val effect = action.getJSONObject("effect")
+      val step = effect.getString("type") == "STEP"
+      action.getString("roomId") == p.getString("roomId") &&
+        (step && effect.getString("mechanismId") !in accepted(p) || !step && action.getString("id") !in attempted(p)) &&
+        MiniMapScenario.holds(action.getJSONObject("requires"), accepted(p))
     }.forEach { a ->
       val label = if (a.getString("kind") == "TALK") {
         val npc = MiniMapScenario.objects(script.getJSONArray("npcs")).first { it.getString("id") == a.getString("npcId") }
@@ -224,6 +228,7 @@ object MiniMapRuntime {
           p.getJSONArray("completed").put(p.getInt("index"))
           p.put("index", p.getInt("index") + 1).put("roomId", "")
             .put("accepted", JSONArray()).put("attempted", JSONArray()).put("records", JSONArray())
+          p.remove("mechanismPositions")
         }
         target.startsWith("node:") -> {
           nodeId = target.removePrefix("node:")
@@ -251,11 +256,35 @@ object MiniMapRuntime {
           .put("originPeriod", npc.getString("originPeriod"))
           .put("role", npc.getString("role")).put("description", npc.getString("description"))
       }
-      val (fact, correct) = MiniMapScenario.effectText(s, a)
-      line = fact
-      p.getJSONArray("attempted").put(target)
-      if (correct) p.getJSONArray("accepted").put(target)
-      p.getJSONArray("records").put(JSONObject().put("id", target).put("kind", a.getJSONObject("effect").getString("type")).put("text", fact))
+      val effect = a.getJSONObject("effect")
+      if (effect.getString("type") == "STEP") {
+        val mechanismId = effect.getString("mechanismId")
+        val mechanism = MiniMapScenario.objects(s.getJSONArray("mechanisms"))
+          .first { it.getString("id") == mechanismId }
+        val steps = MiniMapScenario.strings(mechanism.getJSONArray("steps"))
+        val positions = p.optJSONObject("mechanismPositions") ?: JSONObject()
+        val position = positions.optInt(mechanismId, 0)
+        val next = if (steps[position] == target) position + 1 else 0
+        if (next == steps.size) {
+          positions.remove(mechanismId)
+          p.getJSONArray("accepted").put(mechanismId)
+          line = "Cơ cấu khóa vang lên tiếng bật chốt. Cánh cửa đã được mở khóa."
+          p.getJSONArray("records").put(JSONObject().put("id", mechanismId)
+            .put("kind", "MECHANISM").put("text", line))
+        } else {
+          positions.put(mechanismId, next)
+          line = if (next == 0) "Cơ cấu trở lại trạng thái ban đầu; chốt cửa vẫn khóa."
+            else "Cần điều khiển chuyển vị trí. Chốt cửa vẫn chưa mở."
+        }
+        p.put("mechanismPositions", positions)
+      } else {
+        val (fact, correct) = MiniMapScenario.effectText(s, a)
+        line = fact
+        p.getJSONArray("attempted").put(target)
+        if (correct) p.getJSONArray("accepted").put(target)
+        p.getJSONArray("records").put(JSONObject().put("id", target)
+          .put("kind", effect.getString("type")).put("text", fact))
+      }
       if (p.getString("nodeId") == "6.1" && p.getInt("index") == 10 &&
           MiniMapScenario.holds(s.getJSONObject("goal"), accepted(p))) {
         // Final chapter has no later transition. Drop its puzzle on commit.
@@ -263,6 +292,7 @@ object MiniMapRuntime {
         discardKeys += outlineKey(p)
         p.put("endingComplete", true).put("accepted", JSONArray())
           .put("attempted", JSONArray()).put("records", JSONArray())
+        p.remove("mechanismPositions")
       }
     }
     p.put("version", p.getInt("version") + 1)
