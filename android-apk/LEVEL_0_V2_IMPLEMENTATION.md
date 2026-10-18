@@ -54,8 +54,15 @@
 Chạy từ `android-apk/` trong môi trường đã có Android SDK/Gradle:
 
 ```sh
-./gradlew :app:testDebugUnitTest --tests 'com.rabpit.backroom.core.Level0FieldStudyTest' --tests 'com.rabpit.backroom.core.Level0PuzzleSolverTest' --tests 'com.rabpit.backroom.core.WorldHintTest' --tests 'com.rabpit.backroom.core.Level0ObjectiveTest' --tests 'com.rabpit.backroom.core.WorldCasebookIntegrityTest' --no-daemon
+./gradlew :app:testDebugUnitTest --tests 'com.rabpit.backroom.core.Level0FieldStudyTest' --tests 'com.rabpit.backroom.core.Level0PuzzleSolverTest' --tests 'com.rabpit.backroom.core.WorldHintTest' --tests 'com.rabpit.backroom.core.Level0ObjectiveTest' --tests 'com.rabpit.backroom.core.WorldCasebookIntegrityTest' --tests 'com.rabpit.backroom.core.Level0CombatContinuityTest' --no-daemon
 node --test tests/explorer-controls.test.cjs tests/level-snapshot-routing.test.cjs
 ```
 
 Không tự chạy lại toàn suite/build mỗi commit; xem CI bắt buộc theo mốc quyết định. Không force-push/merge/release/đóng Issue.
+
+
+## Regression combat và giới hạn provider (2026-10-19)
+
+- `Level0CombatContinuityTest.kt` đi qua `CombatRuntime.start/resolve` thật, kiểm tra rút lui, kết thúc combat khi đánh bại Hound, rồi save/load. Mọi bước phải giữ nguyên `scene.progress`, dấu mốc, vết khắc và lịch sử điều tra; không thay xác suất Entity hoặc quy tắc loot.
+- Player Action vẫn có giới hạn 12 bước và tối đa 4 lượt Gemini planner. Trong một lượt, `geminiTextPolicy` giới hạn hai worker thử, ngân sách khoảng 30 giây; read/connect timeout của request được giảm theo thời gian còn lại. Đây là giới hạn **best-effort** do socket read timeout không phải deadline tuyệt đối của OS. Provider vẫn chỉ đưa đề xuất JSON; Core xác minh lại tất cả action. Không fallback sang Gehihi để lập kế hoạch.
+- Kiểm thử WebView/Android thật và các lỗi mạng sống còn là nghiệm thu riêng, không suy từ test tĩnh hay CI APK xanh.
