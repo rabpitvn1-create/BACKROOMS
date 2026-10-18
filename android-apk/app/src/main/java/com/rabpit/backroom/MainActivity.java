@@ -1552,11 +1552,17 @@ public class MainActivity extends Activity {
           if ("RETRY".equals(command)) command = requireGameCore().retrySceneAction();
           JSONObject start = new JSONObject(requireGameCore().beginSceneAction(command));
           if (!start.optBoolean("committed")) {
+            JSONObject stagedEvent = new JSONObject(requireGameCore().sceneNarrationContext());
+            if (stagedEvent.optBoolean("mechanismStep", false)) {
+              // Device buttons already have a Core-authored result: do not call
+              // a remote narrator or make players wait for each switch press.
+              requireGameCore().commitSceneAction(
+                new JSONObject(command).getString("actionId"), stagedEvent.getString("result"), stateJson);
+            } else {
             JSONObject reply = new JSONObject(generateText(sceneWriterPrompt()));
             ProviderResponseContract.requireWriter(reply);
             // Validate narration against the staged destination, not the old level.
             // Failed prose must never be committed to Core or consume reserved rolls.
-            JSONObject stagedEvent = new JSONObject(requireGameCore().sceneNarrationContext());
             // Already running scene scripts can contain bad location names produced before
             // this rule existed. Do not strand an active encounter in an endless retry loop;
             // all newly generated scripts are checked strictly at creation time.
@@ -1574,6 +1580,7 @@ public class MainActivity extends Activity {
             if (!stagedLocationAlreadyInvalid) com.rabpit.backroom.core.MiniMapScenario.INSTANCE.canonBoundary(
               sceneNode, reply.getString("reply"));
             requireGameCore().commitSceneAction(new JSONObject(command).getString("actionId"), reply.getString("reply"), stateJson);
+            }
           }
           String committedView = requireGameCore().currentClientState(stateJson);
           emit("backroomTurn", committedView);
