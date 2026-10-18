@@ -62,7 +62,7 @@
   actionInput.oninput=()=>{draft=actionInput.value;actionSend.disabled=!draft.trim();};
   actionSend.onclick=()=>{
     if(locked()||!actionInput.value.trim())return;
-    draft=actionInput.value.trim();
+    draft=actionInput.value;
     // Opening the panel itself does not consume a turn or roll an encounter.
     const devices=(state.scene?.availableActions||[]).filter(a=>a.mechanismId);
     if(/^(?:mở|xem|sử dụng)\s+(?:bảng điều khiển|bảng điện|cần gạt)/i.test(draft)&&devices.length){
@@ -107,7 +107,7 @@
     batchBusy=true;failed=false;busy=true;refresh();
     try{
       if(!Android.submitPlayerAction)throw Error('Player Action chưa được Core hỗ trợ.');
-      Android.submitPlayerAction(JSON.stringify(state),value.trim());
+      Android.submitPlayerAction(JSON.stringify(state),value);
     }catch(e){batchBusy=false;busy=false;global.backroomError('Không gửi được Player Action tới Core.');}
   }
   function submitChoice(a,keepPopup){
