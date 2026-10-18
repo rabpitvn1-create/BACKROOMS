@@ -73,7 +73,7 @@ public class ScenarioGeneratorTest {
     assertTrue(outlinePrompt.contains("INPUT.nodeAnchor"));
     assertFalse(outlinePrompt.contains("nodeAnchor theo thứ tự:"));
     assertTrue(outlinePrompt.contains("giải trình tự thiết bị"));
-    assertFalse(outlinePrompt.contains("nhặt hai manh mối rồi chọn câu trả lời"));
+    assertTrue(outlinePrompt.contains("Không lặp chu kỳ"));
   }
 
   @Test public void quotaAndMalformedResponsesHaveBoundedAttemptsAndIndependentCircuit() throws Exception {
