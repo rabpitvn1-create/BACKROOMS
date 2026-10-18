@@ -114,7 +114,19 @@
 
 /* MAP / Area Log / Giao tiếp share the compact row.
    Player Action and red Retry occupy exactly the same full-width lower slot. */
-#explorerControls .explorer-action-slot{position:relative;isolation:isolate;margin-top:8px}
+#explorerControls .explorer-action-slot{
+  position:relative;isolation:isolate;margin-top:8px;
+  display:grid;grid-template-columns:minmax(0,1fr) 92px;gap:7px
+}
+#explorerControls .explorer-action-slot button:not(#explorerCasebook){grid-column:1;grid-row:1}
+#explorerControls .explorer-action-slot #explorerCasebook{
+  grid-column:2;grid-row:1;font-size:12px;padding:10px 5px;min-width:0
+}
+#explorerChoices .explorer-casebook-record,#explorerChoices .explorer-hint{
+  white-space:pre-wrap;overflow-wrap:anywhere;padding:8px 10px;
+  border-left:2px solid #9f9069;background:#1d2829;line-height:1.5
+}
+#explorerChoices .explorer-hint{border-left-color:#80a3a8;color:#e2edec}
 #explorerControls .explorer-action-slot button{
   display:block;width:100%;min-height:58px;padding:13px 18px;font-weight:800;
   color:#ead6a7;border:1px solid #7c6847;background:linear-gradient(145deg,#26302b,#141b19)
