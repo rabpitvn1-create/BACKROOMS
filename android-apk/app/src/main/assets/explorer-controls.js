@@ -257,22 +257,29 @@
     global.backroomFreezeSnapshot=false;
     busy=true;refresh();
   };
+  function playerActionStopText(result,count){
+    const step=Number.isInteger(result.stoppedStep)&&result.stoppedStep>0
+      ?' Dừng tại bước '+result.stoppedStep+'.':'';
+    return 'Đã xác nhận '+count+' bước.'+step+' '+String(result.message||'Chuỗi hành động chưa hoàn tất.');
+  }
   global.backroomPlayerActionFinished=function(raw){
     const result=JSON.parse(raw);batchBusy=false;busy=false;
     failed=false;retryPlayer=false;
     if(result.completed){draft='';actionInput.value='';actionSend.disabled=true;}
     else{
       const s=document.getElementById('status');
-      if(s)s.textContent='Đã thực hiện '+result.executed+'/'+result.requested+
-        ' bước. Chuỗi dừng tại giới hạn của Core hoặc sự kiện phát sinh.';
+      if(s)s.textContent=playerActionStopText(result,result.executed);
     }
     refresh();
   };
   global.backroomPlayerActionError=function(raw){
     const result=JSON.parse(raw);
     batchBusy=false;busy=false;
-    retryPlayer=result.committed===0;
-    global.backroomError(result.message||'Player Action không thành công.');
+    // Saved Core pending always has priority over replanning the original text.
+    retryPlayer=result.committed===0&&!state.scene?.pendingActionId;
+    const stopped=playerActionStopText(result,result.committed);
+    global.backroomError(stopped);
+    const s=document.getElementById('status');if(s)s.textContent=stopped;
     // A partially committed plan must never be replayed from its first step.
     if(result.committed>0){failed=false;retryPlayer=false;refresh();}
   };
