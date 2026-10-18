@@ -1,14 +1,14 @@
 # Explorer mini-map · #653
 
-## Quyết định sản phẩm đã xác nhận trong phiên triển khai
+## Quyết định sản phẩm đã xác nhận
 
-- Quyết định cập nhật sau nghiệm thu APK: **mỗi exact Canon node có 10 mini-map riêng**, thay mapping gộp 10 mini/parent trước đó.
-- Level 0 mini 1..10 đều ở node `0`; hoàn tất mini 10 và đến đúng exit room mới mở **duy nhất `0.1`**. Không thể nhảy thẳng sang Dullness/Epsilon/LS-2.
-- **Tất cả** Canon node đều có đúng 10 mini-map độc lập: Level chính, mọi sublevel, mọi khu phụ (AREA) và khu đặc biệt (SPECIAL), bao gồm Dullness/Epsilon/LS-2, Manila Room, The Torment và Red Rooms. Mỗi mini-map là một phân đoạn cần giải khóa, bên trong có 4–12 khu vực/phòng phục vụ giải đố hoặc nhiệm vụ. Mọi cạnh chuyển node đều phải hoàn thành mini 10. Cả 25 Canon node tạo thành **một tuyến duy nhất một chiều**, không quay lại được Mini-map hay node đã hoàn thành.
-- Chuỗi bắt buộc đã chốt: `0 → 0.1 → 0.2 → 0.5 → 0.7 → Dullness → Epsilon → LS-2 → Manila Room → The Torment → Red Rooms → 1`; không có nhánh tắt, không đường về.
-- Level 1–6 có tuyến bắt buộc: `1 → 1.2 → 1.5 → Trader’s Vault → Base Alpha → 2 → Office Space EL3A → 3 → 4 → Office Market → 5 → 5.1 → 6 → 6.1`; không có nhánh tắt `3 → 6` và không có bất kỳ cạnh ngược nào.
-- Level `6` mini 10 chỉ dẫn tới `6.1`; chỉ khi hoàn thành mini 10 của `6.1` mới `awaitingEnding`. Khi đạt goal cuối, Core đánh dấu `endingComplete`, xóa script/outline, vật chứng tạm ngay trong commit và không tái tạo kịch bản. Không có Level 7.
-- Cơ chế **NPC tạm thời ngẫu nhiên (ambient NPC)** đã lưu trữ/ngừng chạy ở cả lượt chữ cũ và Explorer: không roll, không gọi Gemini ambient, không khôi phục NPC vãng lai từ cache. Các cuộc gặp nhân vật Canon do Core kiểm soát vẫn độc lập.
+## Phạm vi triển khai hiện hành
+
+- Chỉ **Level 0** (node `0`) sử dụng Explorer mini-map trong đợt này, gồm đúng **8 mini-map** đánh số 1–8. Không sinh outline hay mini-map cho sublevel, khu phụ hoặc Level khác.
+- Mỗi mini-map là một phân đoạn giải đố/nhiệm vụ với 4–12 phòng/khu vực. Hoàn thành mục tiêu và tới phòng thoát mới mở lệnh `next` từ mini-map 1–7.
+- **Sau mini-map 8 không có lệnh `next`, không có `node:...`, không chuyển Level và không kích hoạt kết thúc game.** Nội dung mini-map 8, tiến trình và dữ kiện đã xác nhận được giữ nguyên để tiếp tục lưu/tải.
+- `LevelRouteRegistry` vẫn chứa dữ liệu Canon của các Level/khu khác cho những hệ thống không liên quan; **không** đồng nghĩa chúng đã có Explorer mini-map.
+- Tính năng NPC vãng lai ngẫu nhiên vẫn bị tắt; NPC kịch bản và cuộc gặp nhân vật Canon tiếp tục do Core kiểm soát.
 
 ## Đường chạy
 
@@ -32,7 +32,7 @@ Combat/Poker Dice tiếp tục dùng endpoint và state hiện có. Encounter ch
 
 Schema thực nằm ở `MiniMapScenario.kt`; prompt tương ứng ở `ScenarioGenerator.java`.
 
-- Đúng 10 outline entries cho cùng nodeAnchor, index/node anchor được Core khóa; dependencies chỉ trỏ mini trước trong node. `levelNumber` chỉ là Level cha phục vụ scaling, không dùng làm khóa tiến trình. Schema scenario 4, không nhận outline gộp cũ.
+- Đúng 8 outline entries chỉ cho nodeAnchor `0`, index/node anchor được Core khóa; dependencies chỉ trỏ mini trước trong node. `levelNumber` chỉ là Level cha phục vụ scaling, không dùng làm khóa tiến trình. Schema scenario 4, không nhận outline gộp cũ.
 - 4..12 room, graph liên thông, cạnh hai chiều, tối đa 6 cạnh/room. V3 không sinh phòng bí mật: chỉ trình bày phòng kề.
 - NPC list bắt buộc trong schema nhưng có thể rỗng (`npcs: []`). **0–12 NPC là giới hạn tổng của mỗi mini-map, không phải số phải sinh, không phải số xuất hiện đồng thời.** Gemini chọn số lượng theo kịch bản, phân bổ `roomId` theo vị trí; Core chỉ hiển thị NPC ở phòng hiện tại khi người chơi đến đó. Mỗi NPC có `id`, `name` (tên riêng do Gemini sáng tác), `originPeriod` (thời kỳ nhân vật tự nhận xuất thân), `role`, `purpose`, `description`, `roomId` và ít nhất một TALK gắn đúng `npcId` ở cùng phòng. SEARCH không có `npcId`. NPC có thể cung cấp dữ kiện phụ hữu ích, không bắt buộc là chốt mở goal; không cho mạo danh Canon hoặc NPC vô nghĩa. Tên riêng không được là nhãn chung (ví dụ `NPC 1`, `Người gác 2`), không trùng trong cùng mini-map. Khi có ít nhất 2 NPC, phải có ít nhất 2 giá trị `originPeriod` khác nhau. Gemini có thể sáng tác lai lịch từ nhiều thế kỷ/giai đoạn, chọn tên và cách ứng xử phù hợp ngôn ngữ, văn hóa của thời kỳ; không biến lai lịch ấy thành tuyên bố Canon về du hành thời gian. 12 vẫn chỉ là giới hạn tổng, không phải số xuất hiện cùng lúc. Không áp đặt giới hạn đồng thời mới khi chưa có yêu cầu của chủ dự án.
 - 2..12 fact với domain hữu hạn 2..5 giá trị. 4..36 interaction, ID giới hạn 40 ký tự.
@@ -49,7 +49,7 @@ Schema thực nằm ở `MiniMapScenario.kt`; prompt tương ứng ở `Scenario
 ## Save, continuity và projection
 
 Save schema **7**, checkpoint riêng phiên bản hiện hành. Không migration/adapter/fallback đọc save cũ.
-Chỉ script Mini-map đang chơi và outline của node hiện tại nằm tạm trong `world` để lưu/tải nhiệm vụ dở. Bằng chứng (`records`), hành động đã thử và lời khai chỉ có hiệu lực trong Mini-map hiện tại. Trên bước chuyển Mini-map, Core xóa script cũ cùng `accepted/attempted/records`; khi rời node xóa cả outline. Chỉ giữ index các Mini-map đã hoàn thành trong node hiện tại để mở khóa một chiều; không có `history`, `arrival`, `scene.node.*` hay cache tiến trình node đã rời.
+Chỉ script Mini-map đang chơi và outline của node hiện tại nằm tạm trong `world` để lưu/tải nhiệm vụ dở. Bằng chứng (`records`), hành động đã thử và lời khai chỉ có hiệu lực trong Mini-map hiện tại. Trên bước chuyển mini-map 1–7, Core xóa script cũ cùng `accepted/attempted/records`; mini-map 8 không có lệnh chuyển, nên giữ nguyên script, outline và tiến trình đã giải. Chỉ giữ index các mini-map đã hoàn thành trong Level 0; không có `history`, `arrival`, `scene.node.*` hay cache tiến trình node đã rời.
 Generator chỉ nhận outline và index hoàn thành; không truyền `previousOutcome`, `dependencyOutcomes` hoặc vật chứng từ nhiệm vụ cũ. Chưa thay thế tầng xác minh puzzle hữu hạn bằng AI tự quyết định đáp án; Core hiện vẫn là nơi kiểm tra goal/ANSWER. Dữ liệu tạm được duy trì khi nhiệm vụ chưa kết thúc để lưu/tải và retry.
 UI/Gehihi không nhận fact table, truth policy, answer key, graph đầy đủ hoặc mini tương lai. Các đoạn log câu đố gắn `sceneMap` và bị lọc khỏi presentation khi sang Mini-map mới; không xóa phần kể Canon/global.
 NPC claim luôn có nhãn chưa xác minh; quan sát/vật chứng mới là evidence. Receipt append log chống lặp action.
@@ -59,7 +59,7 @@ Các API Core cũ còn test độc lập không được UI mới sử dụng; `
 
 ## Xác minh và giới hạn
 
-- Test JVM mục tiêu: schema/graph/claim/proof; privacy; typed spawn gate; pending/retry/replay; đồng hồ một lần; restart; Entity/Battle Start; di chuyển nội bộ phòng; xóa script/bằng chứng/log sau khi hoàn thành; checkpoint; tuyến một chiều đủ 25 node, chỉ kết thúc sau 6.1.
+- Test JVM mục tiêu: schema/graph/claim/proof; privacy; typed spawn gate; pending/retry/replay; đồng hồ một lần; restart; Entity/Battle Start; di chuyển nội bộ phòng; xóa script/bằng chứng/log sau khi hoàn thành; checkpoint; tuyến Level 0 gồm 8 mini-map, chặn chuyển mini-map 8 sang node khác và không kích hoạt kết thúc game.
 - Regression mục tiêu: spawn baseline, Combat/Party, codec/checkpoint, route registry, provider contract.
 - Test JS: popup không submit, versioned command, double tap, generation retry, pending retry, combat và textContent; verifier payload APK đổi sang Explorer controls.
 - Compile Kotlin 2.3.0 và Java với Android API 35 bằng compiler độc lập; không đồng nghĩa Gradle assemble/APK đã thành công.
