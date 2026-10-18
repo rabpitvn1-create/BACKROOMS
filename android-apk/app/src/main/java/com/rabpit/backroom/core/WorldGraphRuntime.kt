@@ -128,6 +128,10 @@ object WorldGraphRuntime {
         law.probes.size >= 2 && law.probes.map { it.id }.distinct().size == law.probes.size &&
         law.probes.all { it.method in probeLabels && it.environmentId in catalog } &&
         law.verifyEnvironmentId in catalog && law.physicalAnchors.all { it in catalog } }) { "world_law_definition" }
+    val studies = definition.fieldStudies
+    require(studies.map { it.environmentId }.distinct().size == studies.size &&
+      studies.all { it.environmentId in catalog && it.focus.isNotBlank() &&
+        it.observation.isNotBlank() }) { "world_field_studies" }
     val frozen = g.optJSONArray("lawInstances") ?: JSONArray()
     require(frozen.toString() == JSONArray().apply { laws.forEach { put(it.freeze()) } }.toString()) { "world_law_parameters" }
     // Open corridors alone must remain viable with all optional gates closed. This
@@ -159,7 +163,21 @@ object WorldGraphRuntime {
     require(p.getString("nodeId") == definition.nodeId && p.getInt("version") > 0 &&
       p.getString("roomId") in visited && visited.all { it in ids }) { "world_saved_position" }
     require(p.getJSONObject("markers").keys().asSequence().all { it in visited }) { "world_saved_markers" }
-    require(objects(p.getJSONArray("records")).all { it.getString("id") in visited }) { "world_saved_observations" }
+    val savedRecords = objects(p.getJSONArray("records"))
+    require(savedRecords.all { it.getString("id") in visited }) { "world_saved_observations" }
+    require(savedRecords.filter { it.optString("kind") == "FIELD_NOTE" }.all { entry ->
+      val matching = definition.fieldStudies.firstOrNull { it.environmentId ==
+        room(g, entry.getString("id")).getString("environmentId") }
+      matching != null && entry.getString("text") == matching.observation
+    }) { "world_saved_field_notes" }
+    require(savedRecords.filter { it.optString("kind") == "COMPARISON" }.all { entry ->
+      val id = entry.getString("id")
+      val other = entry.optString("otherRoomId")
+      other in visited && id != other &&
+        room(g, id).getString("zoneId") == room(g, other).getString("zoneId") &&
+        savedRecords.any { it.optString("kind") == "FIELD_NOTE" && it.optString("id") == id } &&
+        savedRecords.any { it.optString("kind") == "FIELD_NOTE" && it.optString("id") == other }
+    }) { "world_saved_comparisons" }
     val states = passageStates(p)
     require(states.keys().asSequence().toSet() == passages(g).map { it.getString("id") }.toSet()) { "world_saved_passages" }
     val facts = flags(p)
@@ -220,6 +238,20 @@ object WorldGraphRuntime {
     }
     add("SEARCH", "observe", "Quan sát môi trường hiện tại")
     add("SEARCH", "inspect", "Khảo sát cấu trúc hiện tại")
+    definition.fieldStudies.firstOrNull { it.environmentId == environment(room(g, current), definition).id }
+      ?.let { add("SEARCH", "study", it.focus) }
+    val localHasNote = objects(p.getJSONArray("records")).any {
+      it.optString("kind") == "FIELD_NOTE" && it.optString("id") == current
+    }
+    if (localHasNote) {
+      objects(p.getJSONArray("records")).filter {
+        it.optString("kind") == "FIELD_NOTE" && it.optString("id") != current &&
+          room(g, it.getString("id")).getString("zoneId") == room(g, current).getString("zoneId")
+      }.distinctBy { it.getString("id") }.takeLast(5).forEach {
+        add("INTERACT", "compare:" + it.getString("id"),
+          "Đối chiếu ghi chép: " + displayName(g, it.getString("id"), definition))
+      }
+    }
     probeLabels.forEach { (id, label) -> add("SEARCH", "probe:" + id, label) }
     add("INTERACT", "trace", "Tạo dấu kiểm chứng trên bề mặt")
     add("INTERACT", "verify", "Thử kiểm chứng nhận định tại chỗ")
@@ -309,6 +341,19 @@ object WorldGraphRuntime {
           result = if (found.isEmpty()) "Đã khảo sát cấu trúc, không xác nhận được lối nối mới."
             else "Phát hiện khe ghép cấu trúc. Chưa rõ có thể vượt qua hay không."
           p.getJSONArray("areaEvents").put(JSONObject().put("type", "INSPECT").put("text", result))
+        } else if (target == "study") {
+          val study = definition.fieldStudies.first {
+            it.environmentId == environment(room(g, id), definition).id
+          }
+          result = study.observation
+          if (objects(p.getJSONArray("records")).none {
+            it.optString("kind") == "FIELD_NOTE" && it.optString("id") == id
+          }) {
+            p.getJSONArray("records").put(JSONObject().put("id", id)
+              .put("kind", "FIELD_NOTE").put("text", study.observation))
+            p.getJSONArray("areaEvents").put(JSONObject().put("type", "FIELD")
+              .put("text", "Đã ghi nhận: " + study.focus + "."))
+          }
         } else if (target.startsWith("probe:")) {
           val method = target.removePrefix("probe:")
           val source = definition.evidenceLaws.flatMap { it.probes }.firstOrNull {
@@ -334,7 +379,21 @@ object WorldGraphRuntime {
         }
       }
       "INTERACT" -> {
-        if (target == "trace") {
+        if (target.startsWith("compare:")) {
+          val otherId = target.removePrefix("compare:")
+          val here = p.getString("roomId")
+          result = "Đã đối chiếu ghi chép tại " + displayName(g, here, definition) +
+            " với " + displayName(g, otherId, definition) +
+            ". Hai quan sát chưa đủ chứng minh chúng có cùng nguyên nhân."
+          if (objects(p.getJSONArray("records")).none {
+            it.optString("kind") == "COMPARISON" && it.optString("id") == here &&
+              it.optString("otherRoomId") == otherId
+          }) {
+            p.getJSONArray("records").put(JSONObject().put("id", here)
+              .put("otherRoomId", otherId).put("kind", "COMPARISON").put("text", result))
+            p.getJSONArray("areaEvents").put(JSONObject().put("type", "COMPARE").put("text", result))
+          }
+        } else if (target == "trace") {
           val id = p.getString("roomId")
           val changed = trace(p, id)
           if (changed.optBoolean("trace")) {
@@ -385,9 +444,13 @@ object WorldGraphRuntime {
     val event = JSONObject().put("kind", kind).put("interaction", choice.getString("label")).put("result", result)
       .put("node", p.getString("nodeId")).put("miniIndex", 1)
       .apply { locationTags(this, e) }
-      .put("room", JSONObject().put("name", e.name).put("description", e.canon)
+      .put("room", JSONObject().put("name", displayName(g, p.getString("roomId"), definition)).put("description", e.canon)
         .put("environmentId", e.id).put("environmentCanon", e.canon))
-      .put("observations", p.getJSONArray("records")).put("npcs", JSONArray())
+      // Only current-room evidence is sent to Gehihi. Player's full casebook
+      // remains in publicView, but distant evidence is not GM omniscience.
+      .put("observations", JSONArray(objects(p.getJSONArray("records")).filter {
+        it.getString("id") == p.getString("roomId")
+      }.takeLast(6))).put("npcs", JSONArray())
       .put("presentCharacterIds", JSONArray(state.characters.values.filter { characterPresent(state, it, p.getString("roomId")) }.map { it.id }))
     dialogue?.let { event.put("dialogue", it) }
     return MiniMapRuntime.Staged(p, p.getString("nodeId"), event, choice.getString("label"), emptySet())

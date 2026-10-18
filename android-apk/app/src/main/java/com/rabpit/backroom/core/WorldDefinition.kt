@@ -26,6 +26,10 @@ data class WorldEvidenceLaw(
     .put("physicalAnchors", JSONArray(physicalAnchors.sorted()))
 }
 
+/** Optional authored investigation; it records a player-visible Canon observation
+ * without creating an NPC, item, cosmic rule, or new Level. */
+data class WorldFieldStudy(val environmentId: String, val focus: String, val observation: String)
+
 /** Level-specific content and layout policy. No movement, save or action implementation here. */
 interface WorldDefinition {
   val nodeId: String
@@ -36,6 +40,7 @@ interface WorldDefinition {
   /** Identifiers of authored, Core-verifiable passage conditions for this definition. */
   val passageConditions: Set<String> get() = emptySet()
   val evidenceLaws: List<WorldEvidenceLaw> get() = emptyList()
+  val fieldStudies: List<WorldFieldStudy> get() = emptyList()
   fun generate(seed: Long): JSONObject
   fun validateLayout(graph: JSONObject)
 }

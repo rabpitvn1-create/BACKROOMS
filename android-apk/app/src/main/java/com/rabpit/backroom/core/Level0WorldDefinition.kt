@@ -7,7 +7,7 @@ import java.util.Random
 /** Level 0 content and generator only. Environmental Canon remains in Level0Environments. */
 object Level0WorldDefinition : WorldDefinition {
   override val nodeId = "0"
-  override val version = 3
+  override val version = 4
   override val objective = "Khám phá Level 0 và ghi nhận những gì có thể kiểm chứng."
   override val requireAlternateRoutes = true
   override val passageConditions = setOf("wet-ceiling", "loop-reflection")
@@ -30,6 +30,44 @@ object Level0WorldDefinition : WorldDefinition {
       "Dấu có sẵn chưa chứng minh được vị trí; thử nghiệm không tạo ra đường nối.",
       setOf("hanh_lang_lap", "phong_dao"))
   )
+  /** Player investigations explicitly anchored to the approved 29 subzone descriptions.
+   * The observation is copied from the same catalog used by the knowledge packet.
+   * These are optional field notes, not hidden puzzle solutions or Canon amendments. */
+  private val fieldFocus = mapOf(
+    "phong_moc" to "Kiểm tra giấy tường phủ mốc",
+    "hanh_lang_dai" to "Đối chiếu tầm nhìn cuối hành lang",
+    "goc_khuat" to "Theo dõi góc khuất",
+    "phong_trong" to "Khảo sát vết lõm trên thảm",
+    "phong_chop" to "Ghi nhận biến đổi theo nhịp đèn",
+    "hanh_lang_toi" to "Khảo sát ánh sáng từ phòng xa",
+    "tram_dien" to "Kiểm tra hộp điện và cáp cháy",
+    "vung_den" to "Đối chiếu phản chiếu trong vũng",
+    "tham_phong" to "Quan sát nền thảm phồng",
+    "phong_ngap" to "Theo dấu vệt kéo lê dưới nước",
+    "goc_thoi" to "Xác định nguồn giọt nước",
+    "hanh_lang_cam" to "So sánh nhịp bước và tiếng vọng",
+    "phong_thi_tham" to "Lắng nghe tiếng nói sau vách",
+    "nga_ba_chet" to "Kiểm tra độ cao dấu bàn tay",
+    "tran_vo" to "Khảo sát những tấm trần rơi",
+    "khoang_ky_thuat" to "Khảo sát đường ống và âm thanh",
+    "gieng_tran" to "Kiểm tra độ sâu nhìn thấy trên trần",
+    "phong_treo" to "Quan sát chuyển động dây cáp",
+    "phong_ky_uc" to "Đối chiếu chi tiết quen thuộc",
+    "tuong_mat" to "Quan sát vết ố dưới ánh đèn",
+    "phong_tieng_goi" to "Theo dõi vị trí tiếng gọi",
+    "hanh_lang_lap" to "So sánh ký hiệu dọc hành lang",
+    "phong_ban_sao" to "Đối chiếu các vật thể tương tự",
+    "nga_tu_vo_tan" to "Đánh dấu hướng tại ngã tư",
+    "phong_dao" to "Kiểm tra bố cục phản chiếu",
+    "tuong_nut" to "Lắng nghe tiếng rung từ vết nứt",
+    "san_lech" to "Khảo sát chênh lệch mặt sàn",
+    "khe_toi" to "Kiểm tra giới hạn tầm nhìn",
+    "phong_giao_thoa" to "Đối chiếu hai lớp bề mặt tường"
+  )
+  override val fieldStudies = Level0Environments.all.filter { it.parent != null }.map {
+    WorldFieldStudy(it.id, fieldFocus.getValue(it.id), it.canon)
+  }
+
   override val environments = Level0Environments.all.map {
     WorldEnvironment(it.id, it.name, it.parent ?: it.id, it.canon,
       it.reference.substringBefore('.'), if (it.parent != null) it.reference else null)
@@ -95,5 +133,12 @@ object Level0WorldDefinition : WorldDefinition {
       it.getString("environmentId") == "yellow_rot" } &&
       rooms.all { it.getString("id").matches(Regex("l0:r[0-9]{3}")) }) { "world_identity" }
     require(graph.getJSONArray("passages").length() == 2) { "world_passage_layout" }
+    // A structurally valid graph is not necessarily the world generated from
+    // its stored seed. Reject room/edge/passage rewrites instead of accepting
+    // a reconfigured game after save/load.
+    val canonical = generate(graph.getString("seed").toLong())
+    require(graph.getJSONArray("rooms").toString() == canonical.getJSONArray("rooms").toString() &&
+      graph.getJSONArray("passages").toString() == canonical.getJSONArray("passages").toString() &&
+      graph.getString("entryRoomId") == canonical.getString("entryRoomId")) { "world_seeded_topology" }
   }
 }
