@@ -309,6 +309,18 @@ test('planner error leaves the original Player Action editable; committed steps 
   assert.equal(partial.retry.hidden,true);
   assert.equal(partial.calls.length,1);
 });
+test('Gemini planning has an explicit network budget and never falls back to GM planning',()=>{
+  const java=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/MainActivity.java'),'utf8');
+  const worker=java.slice(java.indexOf('private String geminiTextPolicy('),
+    java.indexOf('private String[] geminiModelChain()'));
+  assert.match(worker,/plannerDeadlineMs = System\.currentTimeMillis\(\) \+ 30_000L/);
+  assert.match(worker,/workerAttempt < Math\.min\(2, attempted\.length\)/);
+  assert.match(worker,/plannerDeadlineMs - System\.currentTimeMillis\(\)/);
+  const action=java.slice(java.indexOf('@JavascriptInterface public void submitPlayerAction('),
+    java.indexOf('@JavascriptInterface public void submitSceneAction('));
+  assert.match(action,/geminiTextPolicy\(plannerPrompt, -1, 0\.0, 850, false\)/);
+  assert.doesNotMatch(action,/gehihiText\(plannerPrompt/);
+});
 test('long Player Action replans from fresh public state with committed history and bounded steps',()=>{
   const java=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/MainActivity.java'),'utf8');
   const worker=java.slice(java.indexOf('@JavascriptInterface public void submitPlayerAction('),
