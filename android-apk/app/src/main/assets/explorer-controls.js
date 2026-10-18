@@ -326,8 +326,12 @@
   global.backroomPlayerActionFinished=function(raw){
     const result=JSON.parse(raw);batchBusy=false;busy=false;
     failed=false;
-    if(result.completed){draft='';actionInput.value='';actionSend.disabled=true;}
-    else{
+    // A confirmed step is never re-submitted by tapping the old draft again.
+    // Continuation always requires a fresh deliberate player instruction.
+    if(result.executed>0||result.completed){
+      draft='';actionInput.value='';actionSend.disabled=true;
+    }
+    if(!result.completed){
       const s=document.getElementById('status');
       if(s)s.textContent=playerActionStopText(result,result.executed);
     }
@@ -341,7 +345,10 @@
     global.backroomError(stopped);
     const s=document.getElementById('status');if(s)s.textContent=stopped;
     // A partially committed plan must never be replayed from its first step.
-    if(result.committed>0){failed=false;refresh();}
+    if(result.committed>0){
+      draft='';actionInput.value='';actionSend.disabled=true;
+      failed=false;refresh();
+    }
   };
   global.backroomSyncExplorer=refresh;
   refresh();
