@@ -235,8 +235,12 @@
     batchBusy=false;global.backroomFreezeSnapshot=false;refresh();
   };
   global.backroomPlayerActionProgress=function(json){
-    // Preserve the draft and lock the controls until the entire ordered plan finishes.
-    if(turn)turn(json);
+    // Use the complete WebView turn renderer so MAP movement updates Snapshot.
+    // Puzzle-device steps freeze Snapshot exactly as the standalone popup does.
+    const update=JSON.parse(json);
+    if(update.mechanismStep)global.backroomFreezeSnapshot=true;
+    global.backroomTurn(JSON.stringify(update.state));
+    global.backroomFreezeSnapshot=false;
     busy=true;refresh();
   };
   global.backroomPlayerActionFinished=function(raw){
