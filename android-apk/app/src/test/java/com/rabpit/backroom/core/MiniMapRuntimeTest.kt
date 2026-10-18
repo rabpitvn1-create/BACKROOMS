@@ -87,7 +87,11 @@ class MiniMapRuntimeTest {
     }
   }
   private fun choice(state: GameState, target: String): String = MiniMapScenario.objects(MiniMapRuntime.actions(state)).first { it.getString("targetId") == target }.let {
-    MiniMapScenario.copy(it).apply { remove("label") }.toString()
+    MiniMapScenario.copy(it).apply {
+    remove("label")
+    // Display-only mechanism grouping metadata is not part of the Core command.
+    remove("mechanismId")
+  }.toString()
   }
   private fun apply(core: GameCoreFacade, repo: MemorySave, target: String) {
     val command = choice(repo.state,target)
@@ -181,7 +185,7 @@ class MiniMapRuntimeTest {
       MiniMapScenario.validate(short, "0", 1)
     }.message)
     val hidden = leverPuzzle()
-    hidden.getJSONArray("interactions").getJSONObject(7)
+    hidden.getJSONArray("interactions").getJSONObject(1)
       .put("requires", JSONObject("""{"op":"HAS","id":"paper"}"""))
     assertEquals("mechanism_control", assertThrows(IllegalArgumentException::class.java) {
       MiniMapScenario.validate(hidden, "0", 1)
