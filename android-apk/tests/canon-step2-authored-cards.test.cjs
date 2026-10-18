@@ -97,8 +97,13 @@ test('encounter context comes from Core-confirmed pending encounters rather than
 test('legacy provenance is labeled, not silently promoted into author Canon', () => {
   assert.ok(db.records.length >= 89, "adding author-approved Canon must not shrink the registry");
   assert.ok(db.records.some(r => r.id === "ENTITY.DIEP_MINH.CANON"));
-  const legacy = db.records.filter(r => !r.source.document.startsWith('Google Drive /Novel/Asset/'));
-  assert.equal(legacy.length, 42);
+  const approved = db.records.filter(r => r.id === 'LEVEL.00.ZONES.OVERVIEW' &&
+    r.source.document === 'android-apk/LEVEL_0_EIGHT_ZONES_CANON.md');
+  assert.equal(approved.length, 1, 'author-approved in-repository Canon has separate provenance');
+  const legacy = db.records.filter(r =>
+    !r.source.document.startsWith('Google Drive /Novel/Asset/') &&
+    !approved.includes(r));
+  assert.equal(legacy.length, 42, 'the existing unverified records remain unchanged');
   assert.ok(reader.includes('LEGACY_UNVERIFIED'));
   assert.ok(reader.includes('provenance='));
 });
