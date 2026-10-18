@@ -58,7 +58,8 @@ object MiniMapRuntime {
   }
   fun actions(state: GameState): JSONArray {
     val p = progress(state)
-    if (p.getString("nodeId") != MiniMapScenario.ACTIVE_NODE_ID ||
+    if (node(state).id != MiniMapScenario.ACTIVE_NODE_ID ||
+      p.getString("nodeId") != MiniMapScenario.ACTIVE_NODE_ID ||
       p.getInt("index") !in 1..MiniMapScenario.MINI_MAP_COUNT) return JSONArray()
     val script = script(state) ?: return JSONArray()
     val out = JSONArray(); if (blocked(state)) return out
@@ -224,7 +225,8 @@ object MiniMapRuntime {
   fun generationRequest(state: GameState): JSONObject {
     check(!blocked(state)) { "scene_busy" }
     val p = progress(state)
-    require(p.getString("nodeId") == MiniMapScenario.ACTIVE_NODE_ID &&
+    require(node(state).id == MiniMapScenario.ACTIVE_NODE_ID &&
+      p.getString("nodeId") == MiniMapScenario.ACTIVE_NODE_ID &&
       p.getInt("index") in 1..MiniMapScenario.MINI_MAP_COUNT) { "scene_node_scope" }
     val outline = state.world[outlineKey(p)]
     val kind = if (outline == null) "outline" else if (script(state) == null) "script" else "ready"
@@ -242,7 +244,8 @@ object MiniMapRuntime {
   fun acceptGeneration(state: GameState, expected: String, raw: String): GameState {
     check(expected == token(state) && !blocked(state)) { "generation_stale" }
     val p = progress(state)
-    check(p.getString("nodeId") == MiniMapScenario.ACTIVE_NODE_ID &&
+    check(node(state).id == MiniMapScenario.ACTIVE_NODE_ID &&
+      p.getString("nodeId") == MiniMapScenario.ACTIVE_NODE_ID &&
       p.getInt("index") in 1..MiniMapScenario.MINI_MAP_COUNT) { "scene_node_scope" }
     val data = MiniMapScenario.parse(raw)
     if (state.world[outlineKey(p)] == null) {
