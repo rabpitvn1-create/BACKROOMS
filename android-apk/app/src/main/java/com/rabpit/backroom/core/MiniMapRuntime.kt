@@ -152,10 +152,11 @@ object MiniMapRuntime {
   }
 
   /** Area Log only records confirmed, non-sensitive milestones. Do not copy observations or solution labels. */
-  private fun noteAreaEvent(p: JSONObject, type: String, text: String) {
+  private fun noteAreaEvent(p: JSONObject, type: String, sourceId: String, text: String) {
     val events = p.optJSONArray("areaEvents") ?: JSONArray()
-    if (MiniMapScenario.objects(events).none { it.optString("type") == type && it.optString("text") == text }) {
-      events.put(JSONObject().put("type", type).put("text", text))
+    // Deduplicate by confirmed Core identity, not by generic public prose.
+    if (MiniMapScenario.objects(events).none { it.optString("type") == type && it.optString("sourceId") == sourceId }) {
+      events.put(JSONObject().put("type", type).put("sourceId", sourceId).put("text", text))
       p.put("areaEvents", events)
     }
   }
@@ -204,7 +205,12 @@ object MiniMapRuntime {
                 } else emptyList<String>())))
           }
         }))
-      out.put("areaLog", p.optJSONArray("areaEvents") ?: JSONArray())
+      // Internal sourceId exists only for deduplication and never enters WebView or AI context.
+      out.put("areaLog", JSONArray().apply {
+        MiniMapScenario.objects(p.optJSONArray("areaEvents") ?: JSONArray()).forEach { event ->
+          put(JSONObject().put("type", event.getString("type")).put("text", event.getString("text")))
+        }
+      })
       out.put("objective", s.getString("objective"))
       // Re-project saved receipts from script data; never expose internal fact enum IDs.
       out.put("records", publicRecords(s, p))
@@ -325,9 +331,9 @@ object MiniMapRuntime {
       }
       val effect = a.getJSONObject("effect")
       if (effect.getString("type") == "STEP") {
-        if (kind == "SEARCH") noteAreaEvent(p, "DEVICE",
-          "Đã phát hiện một cơ cấu điều khiển tại " + room(s, p).getString("name") + ".")
         val mechanismId = effect.getString("mechanismId")
+        if (kind == "SEARCH") noteAreaEvent(p, "DEVICE", mechanismId,
+          "Đã phát hiện một cơ cấu điều khiển tại " + room(s, p).getString("name") + ".")
         val mechanism = MiniMapScenario.objects(s.getJSONArray("mechanisms"))
           .first { it.getString("id") == mechanismId }
         val steps = MiniMapScenario.strings(mechanism.getJSONArray("steps"))
@@ -340,9 +346,7 @@ object MiniMapRuntime {
           line = "Cơ cấu khóa vang lên tiếng bật chốt. Cánh cửa đã được mở khóa."
           p.getJSONArray("records").put(JSONObject().put("id", mechanismId)
             .put("kind", "MECHANISM").put("text", line))
-          val events = p.optJSONArray("areaEvents") ?: JSONArray()
-          events.put(JSONObject().put("type", "UNLOCK").put("text", "Một cơ cấu khóa đã mở."))
-          p.put("areaEvents", events)
+          noteAreaEvent(p, "UNLOCK", mechanismId, "Một cơ cấu khóa đã mở.")
         } else {
           positions.put(mechanismId, next)
           line = if (next == 0) "Cơ cấu trở lại trạng thái ban đầu; chốt cửa vẫn khóa."
@@ -357,7 +361,7 @@ object MiniMapRuntime {
         p.getJSONArray("records").put(JSONObject().put("id", target)
           .put("kind", effect.getString("type")).put("text", fact))
         if (kind == "SEARCH" && correct && effect.getString("type") in setOf("CLUE", "EVIDENCE", "HINT"))
-          noteAreaEvent(p, "DISCOVERY",
+          noteAreaEvent(p, "DISCOVERY", target,
             "Đã ghi nhận dấu vết tại " + room(s, p).getString("name") + ".")
       }
       if (p.getString("nodeId") == "6.1" && p.getInt("index") == 10 &&
