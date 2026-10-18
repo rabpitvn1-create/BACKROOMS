@@ -183,8 +183,9 @@ class MiniMapRuntimeTest {
     assertFalse(MiniMapRuntime.complete(repo.state))
     apply(core, repo, "lever_3_up")
     assertTrue(MiniMapRuntime.complete(repo.state))
-    assertEquals(1, MiniMapScenario.objects(MiniMapRuntime.publicView(repo.state).getJSONArray("areaLog"))
-      .count { it.getString("type") == "DEVICE" }, "Repeating controls must not duplicate device discovery")
+    assertEquals("Repeating controls must not duplicate device discovery", 1,
+      MiniMapScenario.objects(MiniMapRuntime.publicView(repo.state).getJSONArray("areaLog"))
+        .count { it.getString("type") == "DEVICE" })
     assertEquals("Mechanical inputs must not randomly spawn enemies", 0, rng.calls)
     val postDevice = JSONObject(repo.state.world.getValue("flagsJson"))
     assertEquals(7, postDevice.getJSONObject("exploration").getInt(SnapshotSceneProgress.STEP_KEY))
