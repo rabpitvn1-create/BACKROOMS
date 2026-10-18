@@ -818,6 +818,8 @@ class MiniMapRuntimeTest {
   @Test fun eighthMapOffersNoNextOrNodeTransitionAndDoesNotEndGame() {
     val repo=MemorySave(solvedState(0,8))
     val core=facade(repo)
+    // Match an actual generated scene: its outline is stored alongside the script.
+    core.acceptSceneGeneration(MiniMapRuntime.token(repo.state),outline("0").toString())
     val actions=MiniMapScenario.objects(MiniMapRuntime.actions(repo.state))
     assertTrue(MiniMapRuntime.complete(repo.state))
     assertFalse(actions.any { it.getString("targetId") == "next" || it.getString("targetId").startsWith("node:") })
