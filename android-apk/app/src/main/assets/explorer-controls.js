@@ -61,6 +61,9 @@
     // Only versioned Core choices are submitted. The UI never sees the solution.
     const command={actionId:a.actionId,sceneVersion:a.sceneVersion,roomId:a.roomId,kind:a.kind,targetId:a.targetId};
     if(!keepPopup)dialog.close();
+    // A device input is stationary: keep the exact Snapshot DOM/artwork
+    // through the authoritative Core turn. Only the puzzle popup updates.
+    if(keepPopup)global.backroomFreezeSnapshot=true;
     busy=true;
     if(keepPopup)Array.from(choices.children).forEach(b=>{b.disabled=true;});
     else appendActionPending(a.label);
@@ -136,8 +139,12 @@
     // A device remains in the same popup across taps. If Core solved it,
     // the device controls disappear and the popup closes automatically.
     if(activeMechanismId&&dialog.open&&!busy)showMechanism(activeMechanismId);
+    global.backroomFreezeSnapshot=false;
   };
-  global.backroomError=function(message){preparing=false;failed=true;clearWriterPending();if(error)error(message);refresh();};
+  global.backroomError=function(message){
+    preparing=false;failed=true;clearWriterPending();if(error)error(message);refresh();
+    global.backroomFreezeSnapshot=false;
+  };
   global.backroomSyncExplorer=refresh;
   refresh();
 })(window);
