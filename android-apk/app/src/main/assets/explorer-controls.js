@@ -33,7 +33,10 @@
       else{busy=false;refresh();}
     }catch(e){global.backroomError('Không gửi được yêu cầu thử lại tới Core.');}
   };
-  actionSlot.append(playerAction,retry);panel.append(row,objectivePanel,actionSlot);bar.appendChild(panel);
+  const casebook=document.createElement('button');casebook.type='button';
+  casebook.id='explorerCasebook';casebook.textContent='Sổ tay';
+  casebook.onclick=()=>{if(state?.scene?.map)openCasebook();};
+  actionSlot.append(playerAction,retry,casebook);panel.append(row,objectivePanel,actionSlot);bar.appendChild(panel);
   const dialog=document.createElement('dialog');dialog.id='explorerChoices';dialog.setAttribute('aria-label','Chọn tương tác');
   const header=document.createElement('div');header.className='explorer-dialog-header';
   const heading=document.createElement('strong');heading.textContent='Chọn tương tác';
@@ -139,6 +142,43 @@
     });
     if(!choices.children.length){const p=document.createElement('p');p.textContent='Không có ai để giao tiếp tại đây.';choices.appendChild(p);}
   }
+  let hintTier=0;
+  function openCasebook(){
+    activeMechanismId=null;hintTier=0;showPopup('Sổ tay điều tra');
+    const notes=Array.isArray(state.scene?.records)?state.scene.records:[];
+    if(!notes.length){
+      const empty=document.createElement('p');empty.textContent='Chưa có ghi chép nào được xác nhận.';
+      choices.appendChild(empty);
+    }
+    notes.forEach(note=>{
+      if(typeof note.text!=='string')return;
+      const record=document.createElement('p');record.className='explorer-casebook-record';
+      record.textContent=note.text;choices.appendChild(record);
+    });
+    if(state.scene?.runtime==='world-graph-v3'){
+      const hint=document.createElement('button');hint.type='button';hint.textContent='Gợi ý cấp 1';
+      hint.onclick=()=>{
+        if(hintTier>=3||typeof Android.requestWorldHint!=='function')return;
+        hintTier++;
+        Android.requestWorldHint(hintTier);
+        hint.textContent=hintTier<3?'Gợi ý cấp '+(hintTier+1):'Đã xem đủ 3 cấp';
+        hint.disabled=hintTier>=3;
+      };
+      choices.appendChild(hint);
+    }
+  }
+  global.backroomWorldHint=function(raw){
+    if(!dialog.open||heading.textContent!=='Sổ tay điều tra')return;
+    const packet=JSON.parse(raw);
+    if(packet.error){
+      const warning=document.createElement('p');
+      warning.textContent='Không thể lấy gợi ý tại thời điểm này.';choices.appendChild(warning);
+      return;
+    }
+    if(packet.roomId!==state.scene?.room?.id||packet.sceneVersion!==state.scene?.sceneVersion)return;
+    const p=document.createElement('p');p.className='explorer-hint';
+    p.textContent='Gợi ý cấp '+packet.tier+': '+packet.text;choices.appendChild(p);
+  };
   function openAreaLog(){
     activeMechanismId=null;showPopup('Area Log');
     const events=state.scene?.areaLog||[];
@@ -222,6 +262,7 @@
     buttons.MAP.disabled=!scene.map;
     buttons.AREA_LOG.disabled=!scene.map;
     buttons.TALK.disabled=locked()||!(scene.availableActions||[]).some(a=>a.kind==='TALK');
+    casebook.disabled=!scene.map;
     // Invalid input/planner failures leave Player Action editable.
     const showRetry=!!scene.pendingActionId||(failed&&!!scene.generationNeeded);
     playerAction.hidden=showRetry;retry.hidden=!showRetry;
