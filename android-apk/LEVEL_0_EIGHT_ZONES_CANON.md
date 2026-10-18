@@ -112,4 +112,6 @@ Có cảm giác cấu trúc quen thuộc của Level 0 đang dần nhường ch�
 | 7. Vòng Lặp | Mất phương hướng và không gian phi lý |
 | 8. Rạn Nứt | Kiến trúc bất ổn và nỗi sợ điều chưa biết |
 
+**Phân cấp môi trường:** Tám khu chính đã có [29 khu nhỏ được tác giả xác nhận](LEVEL_0_TWENTY_NINE_SUBZONES_CANON.md), phân bố 4/3/4/3/4/3/4/4. Số mục chỉ dùng để tham chiếu Canon, không phải thứ tự di chuyển hay Sublevel độc lập. Hiện chưa chốt đồ thị kết nối hoặc đưa khu nhỏ vào Game Data.
+
 **Quy tắc tích hợp:** Đây là Canon mô tả môi trường, **không phải** sơ đồ định tuyến, thứ tự nhiệm vụ, điều kiện chiến thắng hay quyền điều khiển Core. Mỗi khu chỉ được gắn vào lời kể khi trạng thái Core thực sự xác nhận khu hiện tại. Sơ đồ di chuyển và cơ chế tiến trình sẽ được thiết kế riêng.
