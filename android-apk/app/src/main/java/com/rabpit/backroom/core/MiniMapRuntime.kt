@@ -151,6 +151,15 @@ object MiniMapRuntime {
     return reasoning + next
   }
 
+  /** Area Log only records confirmed, non-sensitive milestones. Do not copy observations or solution labels. */
+  private fun noteAreaEvent(p: JSONObject, type: String, text: String) {
+    val events = p.optJSONArray("areaEvents") ?: JSONArray()
+    if (MiniMapScenario.objects(events).none { it.optString("type") == type && it.optString("text") == text }) {
+      events.put(JSONObject().put("type", type).put("text", text))
+      p.put("areaEvents", events)
+    }
+  }
+
   private fun publicRecords(s: JSONObject, p: JSONObject): JSONArray {
     val interactions = MiniMapScenario.objects(s.getJSONArray("interactions")).associateBy { it.getString("id") }
     return JSONArray().apply {
@@ -316,6 +325,8 @@ object MiniMapRuntime {
       }
       val effect = a.getJSONObject("effect")
       if (effect.getString("type") == "STEP") {
+        if (kind == "SEARCH") noteAreaEvent(p, "DEVICE",
+          "Đã phát hiện một cơ cấu điều khiển tại " + room(s, p).getString("name") + ".")
         val mechanismId = effect.getString("mechanismId")
         val mechanism = MiniMapScenario.objects(s.getJSONArray("mechanisms"))
           .first { it.getString("id") == mechanismId }
@@ -345,6 +356,9 @@ object MiniMapRuntime {
         if (correct) p.getJSONArray("accepted").put(target)
         p.getJSONArray("records").put(JSONObject().put("id", target)
           .put("kind", effect.getString("type")).put("text", fact))
+        if (kind == "SEARCH" && correct && effect.getString("type") in setOf("CLUE", "EVIDENCE", "HINT"))
+          noteAreaEvent(p, "DISCOVERY",
+            "Đã ghi nhận dấu vết tại " + room(s, p).getString("name") + ".")
       }
       if (p.getString("nodeId") == "6.1" && p.getInt("index") == 10 &&
           MiniMapScenario.holds(s.getJSONObject("goal"), accepted(p))) {
