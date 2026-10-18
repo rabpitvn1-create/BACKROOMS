@@ -65,7 +65,8 @@
     draft=actionInput.value;
     // Opening the panel itself does not consume a turn or roll an encounter.
     const devices=(state.scene?.availableActions||[]).filter(a=>a.mechanismId);
-    if(/^(?:mở|xem|sử dụng)\s+(?:bảng điều khiển|bảng điện|cần gạt)/i.test(draft)&&devices.length){
+    if(/^(?:mở|xem|sử dụng)\s+(?:bảng điều khiển|bảng điện|cần gạt)/i.test(draft)&&
+       !/(?:rồi|sau đó|tiếp theo|đồng thời)/i.test(draft)&&devices.length){
       actionDialog.close();showMechanism(devices[0].mechanismId);if(!dialog.open)dialog.showModal();return;
     }
     actionDialog.close();sendPlayerAction(draft);
@@ -310,12 +311,18 @@
     batchBusy=false;global.backroomFreezeSnapshot=false;refresh();
   };
   global.backroomPlayerActionProgress=function(json){
-    // Use the complete WebView turn renderer so MAP movement updates Snapshot.
-    // Puzzle-device steps freeze Snapshot exactly as the standalone popup does.
+    // Core has committed a step. Save the newest combined presentation for
+    // process-death recovery, but DO NOT render until the whole utterance ends.
+    // A multi-action command is one readable turn, not a stream of GM messages.
     const update=JSON.parse(json);
-    if(update.mechanismStep)global.backroomFreezeSnapshot=true;
-    global.backroomTurn(JSON.stringify(update.state));
-    global.backroomFreezeSnapshot=false;
+    if(update.state){
+      try{
+        if(global.localStorage)
+          global.localStorage.setItem('backroom-apk-state',JSON.stringify(update.state));
+      }catch(_){/* Core save remains authoritative. */}
+    }
+    const status=document.getElementById('status');
+    if(status)status.textContent='Đang xử lý hành động '+update.executed+'/'+update.requested+'…';
     busy=true;refresh();
   };
   function playerActionStopText(result,count){
