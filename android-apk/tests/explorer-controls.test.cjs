@@ -97,6 +97,17 @@ test('MAP distinguishes physical marks from personal annotations without showing
   assert.ok(labels.some(n=>n==='Chưa khám phá'));
   assert.equal(r.calls.length,0);
 });
+test('MAP shows only inspected blocked seams with generic reason and no hidden endpoint',()=>{
+  const r=runtime({map:{currentRoomId:'hall',entryRoomId:'hall',rooms:[
+    {id:'hall',name:'Hành lang',visited:true,adjacentRoomIds:[]}
+  ],knownObstructions:['Lối nối đã được nhận biết nhưng chưa đủ chứng cứ kiểm chứng để mở.']}});
+  r.buttons[0].onclick();
+  const notices=r.dialog.querySelectorAll('.explorer-map-obstruction');
+  assert.equal(notices.length,1);
+  assert.match(notices[0].textContent,/chưa đủ chứng cứ/);
+  assert.doesNotMatch(notices[0].textContent,/passage:|wet-ceiling|loop-reflection/);
+  assert.equal(r.calls.length,0);
+});
 test('device controls use one popup, preserve Core commands and stay open across inputs',()=>{
   const lever=(id,version)=>({actionId:'run:0:'+version+':SEARCH:'+id,sceneVersion:version,
     roomId:'panel',kind:'SEARCH',targetId:id,label:id==='up'?'Gạt cần lên':'Gạt cần xuống',mechanismId:'door_lock'});

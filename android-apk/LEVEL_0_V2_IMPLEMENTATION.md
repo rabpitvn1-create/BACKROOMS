@@ -115,3 +115,9 @@ Refactor verification: Core Kotlin 2.3.0 and Java 17 compilation PASS; **108 JUn
 - Free-text intent planning now uses Gemini's bounded JSON response (max 850 output tokens per invocation), **not Gehihi**. A proposed step is never trusted: the current Core list, room, actionId, version and target still authorize it immediately before staging. Gehihi remains solely the storyteller of confirmed public events.
 - Physical traces and personal map annotations have distinct symbols on MAP. Repeat physical marking is idempotent, repeated incorrect verification counts are bounded without dropping existing evidence.
 - Offline, provider-independent seeded puzzle solver and a public-action random walker are regression aids, not a human difficulty or 10-hour timing study. APK CI proves compilation/build only, not WebView layout or live-provider behavior.
+
+
+## Verified-access and RPG regression follow-up
+
+- Once inspected, a blocked optional passage can expose a generic explanation of missing evidence or need for physical manipulation; public map contains no passage ID, hidden endpoint or condition identifier.
+- An interrupted Core puzzle probe persists its reserved pending action; retry neither grants facts twice nor rerolls RNG. GM narration cannot award puzzle flags or change the Level route. Pending combat blocks exploration, while Core EXP and loot updates leave prior evidence and markers intact. Offline tests exercise these boundaries; live combat retreat and real-device interruptions remain outside this proof.

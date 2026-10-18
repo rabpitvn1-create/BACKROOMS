@@ -224,6 +224,18 @@ object WorldGraphRuntime {
     val visited = strings(p.getJSONArray("visitedRooms")).toSet()
     val frontier = visited + rs.filter { it.getString("id") in visited }
       .flatMap { knownNeighbors(g, p, it.getString("id")) }
+    // Inaccessible seams become visible only after inspection. Never include
+    // private passage IDs, endpoints or requirement keys in any public packet.
+    val obstructions = passages(g).filter { passage ->
+      departure(passage, current) != null &&
+        passageStates(p).getJSONObject(passage.getString("id")).let {
+          it.getBoolean("discovered") && !it.getBoolean("unlocked")
+        }
+    }.map { passage ->
+      if (passage.optString("requires").isEmpty() || flags(p).optBoolean(passage.getString("requires")))
+        "Lối nối đã được nhận biết nhưng chưa mở; có thể thử thao tác tại đây."
+      else "Lối nối đã được nhận biết nhưng chưa đủ chứng cứ kiểm chứng để mở."
+    }
     return JSONObject().put("runtime", "world-graph-v3").put("miniIndex", 1)
       .put("nodeId", p.getString("nodeId")).put("parentLevel", p.getInt("parent")).put("nodeTitle", MiniMapRuntime.node(state).title())
       .put("sceneVersion", p.getInt("version")).put("generationNeeded", false)
@@ -237,6 +249,7 @@ object WorldGraphRuntime {
         .put("physicalTrace", p.getJSONObject("environmentChanges").optJSONObject(current)?.optBoolean("trace") == true))
       .put("npcs", JSONArray())
       .put("map", JSONObject().put("currentRoomId", current).put("entryRoomId", g.getString("entryRoomId"))
+        .put("knownObstructions", JSONArray(obstructions))
         .put("rooms", JSONArray().apply {
           rs.filter { it.getString("id") in frontier }.forEach { r ->
             val id = r.getString("id"); val known = id in visited

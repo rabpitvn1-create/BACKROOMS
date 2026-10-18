@@ -201,6 +201,10 @@
       g.append(rect,label);svg.appendChild(g);
     });
     sc.appendChild(svg);choices.appendChild(sc);
+    (Array.isArray(map.knownObstructions)?map.knownObstructions:[]).forEach(reason=>{
+      const p=document.createElement('p');p.className='explorer-map-obstruction';
+      p.textContent=String(reason);choices.appendChild(p);
+    });
     const legend=document.createElement('p');legend.className='explorer-map-legend';
     legend.textContent='● Cao Minh · ◆ dấu bản đồ cá nhân · ✚ vết khắc thực tế · MAP chỉ để xem, di chuyển bằng Player Action.';
     choices.appendChild(legend);

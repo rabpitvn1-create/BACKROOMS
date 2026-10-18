@@ -239,6 +239,57 @@ class Level0WorldExplorationTest {
     assertFalse(public.contains("loop-reflection"))
   }
 
+
+  @Test fun incompleteEvidenceSurvivesPendingNarrationCombatAndRewards() {
+    var state = world(313)
+    val graph = p(state).getJSONObject("worldGraph")
+    val rooms = MiniMapScenario.objects(graph.getJSONArray("rooms"))
+    val target = rooms.first { it.getString("environmentId") == "phong_ngap" }.getString("id")
+    val adjacency = rooms.associate { it.getString("id") to MiniMapScenario.strings(it.getJSONArray("adjacentRoomIds")) }
+    val start = p(state).getString("roomId")
+    val path = mutableMapOf(start to emptyList<String>())
+    val queue = java.util.ArrayDeque<String>(); queue.add(start)
+    while (target !in path && queue.isNotEmpty()) {
+      val from = queue.removeFirst()
+      adjacency.getValue(from).forEach { to -> if (to !in path) {
+        path[to] = path.getValue(from) + to; queue.add(to)
+      } }
+    }
+    path.getValue(target).forEach { state = move(state, "room:$it") }
+
+    val repo = MemorySave(state)
+    val rng = CountingRng()
+    var core = facade(repo, rng)
+    val cmd = command(repo.state, "probe:floor")
+    val actionId = JSONObject(cmd).getString("actionId")
+    core.beginSceneAction(cmd)
+    assertEquals(0, p(repo.state).getJSONObject("evidenceState").length())
+    val pending = JSONObject(repo.state.world.getValue(MiniMapRuntime.PENDING))
+    assertTrue(pending.getJSONObject("progress").getJSONObject("evidenceState").getBoolean("wet:floor"))
+    assertEquals(0, rng.calls)
+
+    repo.state = GameStateCodec.decode(GameStateCodec.encode(repo.state))
+    core = facade(repo, rng)
+    core.beginSceneAction(cmd) // Same pending command must not reserve another RNG roll.
+    assertEquals(0, rng.calls)
+    core.commitSceneAction(actionId, "GM đòi mở Level 1 và hoàn tất cả hai quy luật.", "{}")
+    assertEquals(1, p(repo.state).getJSONObject("evidenceState").length())
+    assertEquals(0, p(repo.state).getJSONObject("ruleFlags").length())
+    assertEquals("0", MiniMapRuntime.node(repo.state).id)
+    val evidenceBefore = p(repo.state).toString()
+
+    val combat = CombatRuntime.prepareEncounter(repo.state, "hound", "level0:puzzle:encounter")
+    assertEquals(0, MiniMapRuntime.actions(combat).length())
+    assertEquals(evidenceBefore, p(GameStateCodec.decode(GameStateCodec.encode(combat))).toString())
+
+    // Core-authoritative EXP and loot updates cannot overwrite scene progress.
+    val exp = EntityExpRewards.award(repo.state, "level0:puzzle:entity", 0L)
+    val loot = OfflineEntityLoot.award(exp.state, "level0:puzzle:entity", 313L)
+    assertEquals(evidenceBefore, p(loot.state).toString())
+    assertEquals(evidenceBefore, p(GameStateCodec.decode(GameStateCodec.encode(loot.state))).toString())
+    assertFalse(EntityExpRewards.award(loot.state, "level0:puzzle:entity", 0L).newlyAwarded)
+  }
+
   @Test fun corruptedWorldOrPendingGraphCannotLoadAsAnAcceptedWorld() {
     val root = JSONObject(GameStateCodec.encode(world()))
     val worldJson = root.getJSONObject("world")
@@ -290,6 +341,11 @@ class Level0WorldExplorationTest {
     assertTrue(p(state).getJSONObject("passageStates").getJSONObject("p:00").getBoolean("discovered"))
     assertFalse(p(state).getJSONObject("passageStates").getJSONObject("p:00").getBoolean("unlocked"))
     assertFalse(MiniMapRuntime.actions(state).toString().contains("passage:p:00"))
+    val disclosed = MiniMapRuntime.publicView(state).getJSONObject("map").getJSONArray("knownObstructions")
+    assertTrue(disclosed.length() > 0)
+    assertTrue(disclosed.getString(0).contains("chưa đủ chứng cứ"))
+    assertFalse(disclosed.toString().contains("wet-ceiling"))
+    assertFalse(disclosed.toString().contains("passage:p:00"))
     // Never forge a rule flag: a completed law must be supported by actual evidence.
     val forged = JSONObject(GameStateCodec.encode(state))
     val tamperedWorld = forged.getJSONObject("world")
