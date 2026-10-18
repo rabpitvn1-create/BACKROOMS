@@ -768,6 +768,11 @@ class MiniMapRuntimeTest {
     assertNotNull(LevelRouteRegistry.node("0.1"))
     assertEquals(listOf("0.1"),LevelRouteRegistry.exits("0"))
   }
+  private fun outline(nodeId: String) = JSONObject().put("schemaVersion",4)
+    .put("levelNumber",LevelRouteRegistry.node(nodeId).parent).put("nodeAnchor",nodeId).put("entries",JSONArray().apply {
+      (1..8).forEach { put(JSONObject().put("index",it).put("nodeAnchor",nodeId)
+        .put("beat","Điều tra").put("objective","Đối chiếu dữ kiện").put("dependencyRefs",JSONArray())) }
+    })
   @Test fun acceptedScriptIsFrozenAndBadGenerationCannotModifySave() {
     var initial=state()
     val p=MiniMapRuntime.progress(initial)
