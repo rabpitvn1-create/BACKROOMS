@@ -1575,6 +1575,9 @@ public class MainActivity extends Activity {
             throw new IllegalArgumentException("player_plan_steps");
           String initialNode = context.getString("nodeId");
           int initialIndex = context.getInt("miniIndex");
+          // Presentation log belongs to the WebView. Carry each confirmed
+          // projection into the next step instead of reusing a stale client log.
+          String projection = clientJson;
           for (int i = 0; i < plan.length(); i++) {
             JSONObject planned = plan.getJSONObject(i);
             if (planned.length() != 2 || !planned.has("kind") || !planned.has("targetId"))
@@ -1585,7 +1588,7 @@ public class MainActivity extends Activity {
             if ("MOVE".equals(kind) && !targetId.startsWith("room:") &&
                 !"next".equals(targetId) && !targetId.startsWith("node:"))
               throw new IllegalArgumentException("player_plan_route");
-            JSONObject snapshot = new JSONObject(requireGameCore().currentClientState(clientJson));
+            JSONObject snapshot = new JSONObject(requireGameCore().currentClientState(projection));
             if (snapshot.has("pendingEncounter") ||
                 snapshot.optJSONObject("combat") != null &&
                   snapshot.getJSONObject("combat").optBoolean("active", false)) break;
@@ -1617,10 +1620,12 @@ public class MainActivity extends Activity {
               // physical result; puzzles remain validated by Core.
               String result = staged.optString("result", "");
               if (result.isEmpty()) result = action.getString("label");
-              requireGameCore().commitSceneAction(action.getString("actionId"), result, clientJson);
+              projection = requireGameCore().commitSceneAction(
+                action.getString("actionId"), result, projection);
             }
             committed++;
-            JSONObject updated = new JSONObject(requireGameCore().currentClientState(clientJson));
+            JSONObject updated = new JSONObject(requireGameCore().currentClientState(projection));
+            projection = updated.toString();
             emit("backroomPlayerActionProgress", new JSONObject()
               .put("state", updated).put("mechanismStep",
                 deviceStep).toString());
