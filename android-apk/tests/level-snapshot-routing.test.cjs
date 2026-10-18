@@ -79,7 +79,8 @@ test("WebView actually loads the manifest and renders images behind unchanged ov
   assert.ok(native.includes("appendEntityOverlay()"));
   assert.ok(native.includes("appendLuciaCombatOverlay()"));
   const core=fs.readFileSync(path.join(__dirname,"../app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt"),"utf8");
-  assert.ok(core.includes('SnapshotSceneProgress.apply(beforeView, continued, visualRolls, "EXECUTE", actionText)'));
+  assert.ok(core.includes('SnapshotSceneProgress.apply(beforeView, continued, visualRolls,'));
+  assert.ok(core.includes('if (deviceControl) "DEVICE" else "EXECUTE"'));
 });
 
 // Exercise the same router used by renderSnapshot, rather than checking prompt text.
