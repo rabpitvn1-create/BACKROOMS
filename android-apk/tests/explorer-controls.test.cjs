@@ -30,7 +30,7 @@ function runtime(scene={}){
   const calls=[];
   const document={getElementById:id=>elements[id],createElement:element,createElementNS:element,body:element()};
   const ctx={document,state:{scene:{miniIndex:1,generationNeeded:false,map:{currentRoomId:'hall',entryRoomId:'hall',rooms:[{id:'hall',name:'Hành lang',visited:true,adjacentRoomIds:['x']},{id:'x',name:'Chưa khám phá',visited:false,adjacentRoomIds:[]}]},areaLog:[],availableActions:[{actionId:'run:1:MOVE:room:x',sceneVersion:1,roomId:'hall',kind:'MOVE',targetId:'room:x',label:'Phòng X'}],...scene}},busy:false,coreUnavailable:false,
-    Android:{prepareScene:json=>calls.push(['prepare',json]),submitSceneAction:(json,c)=>calls.push(['action',c]),submitPlayerAction:(json,text)=>calls.push(['player',text])},
+    Android:{prepareScene:json=>calls.push(['prepare',json]),submitSceneAction:(json,c)=>calls.push(['action',c]),submitPlayerAction:(json,text)=>calls.push(['player',text]),requestWorldHint:tier=>calls.push(['hint',tier])},
     appendActionPending(){},backroomTurn(json){ctx.state=JSON.parse(json);ctx.busy=false;},backroomError(){ctx.busy=false;}};
   ctx.window=ctx;vm.runInNewContext(source,ctx);
   const panel=elements.playerActionBar.children[0],dialog=document.body.children[0];
@@ -41,13 +41,30 @@ test('MAP, Area Log, Giao tiếp occupy the top row; Player Action and Retry sha
   assert.deepEqual(r.buttons.map(b=>b.textContent),['MAP','Area Log','Giao tiếp']);
   assert.equal(r.buttons[2].disabled,true);
   assert.equal(r.panel.children[0].children.length,3);
-  assert.equal(r.panel.children[2].children.length,2);
+  assert.equal(r.panel.children[2].children.length,3);
   assert.equal(r.player.textContent,'Player Action');
   assert.equal(r.player.hidden,false);assert.equal(r.retry.hidden,true);
   assert.equal(r.retry.className,'explorer-retry-danger');
   r.buttons[0].onclick();r.dialog.children[0].children[1].onclick();
   r.buttons[1].onclick();r.dialog.children[0].children[1].onclick();
   assert.equal(r.calls.length,0,'MAP and Area Log do not submit gameplay actions');
+});
+test('Casebook is read-only and three hint tiers require explicit request',()=>{
+  const r=runtime({runtime:'world-graph-v3',sceneVersion:9,room:{id:'hall'},
+    records:[{id:'hall',kind:'FIELD_NOTE',text:'Ghi nhận vết ố trên tường.'}]});
+  const casebook=r.panel.children[2].children[2];
+  assert.equal(r.calls.length,0);
+  casebook.onclick();
+  const notes=r.dialog.querySelectorAll('.explorer-casebook-record');
+  assert.equal(notes.length,1);
+  assert.equal(notes[0].textContent,'Ghi nhận vết ố trên tường.');
+  const hint=r.dialog.children[1].children.at(-1);
+  hint.onclick();hint.onclick();hint.onclick();hint.onclick();
+  assert.deepEqual(r.calls,[['hint',1],['hint',2],['hint',3]]);
+  r.ctx.backroomWorldHint(JSON.stringify({roomId:'wrong',sceneVersion:9,tier:1,text:'stale'}));
+  assert.equal(r.dialog.querySelectorAll('.explorer-hint').length,0);
+  r.ctx.backroomWorldHint(JSON.stringify({roomId:'hall',sceneVersion:9,tier:3,text:'Kiểm tra dấu'}));
+  assert.equal(r.dialog.querySelectorAll('.explorer-hint').length,1);
 });
 test('mini-map objective remains visible and updates without exposing hidden clues',()=>{
   const r=runtime({objective:'Tìm lối sang phòng kế tiếp.',records:[{text:'MẬT MÃ 213546'}],
@@ -281,6 +298,7 @@ test('long Player Action replans from fresh public state with committed history 
   const worker=java.slice(java.indexOf('@JavascriptInterface public void submitPlayerAction('),
     java.indexOf('@JavascriptInterface public void submitSceneAction('));
   assert.match(worker,/while \(committed < 12\)/);
+  assert.match(worker,/plannerCalls >= 4/);
   assert.match(worker,/CONFIRMED_STEPS=/);
   assert.match(worker,/new JSONObject\(requireGameCore\(\)\.scenePlayerActionContext\(\)\)/);
   assert.match(worker,/confirmedSteps\.put\(new JSONObject\(\)/);
