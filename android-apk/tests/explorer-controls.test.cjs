@@ -222,13 +222,11 @@ test('waiting GM row shows animated Gemini 4.0 Argon logo below plain GAME MASTE
   assert.match(html,/>TURN <strong id="turn"/);
   assert.match(html,/id="gameMenuTitle">GAME MENU/);
 });
-test('exploration journal shows confirmed records and separate Core-only provisional inference',()=>{
-  const html=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/index.html'),'utf8');
+test('obsolete evidence journal is hidden; Area Log only reads sanitized events',()=>{
   const js=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/explorer-controls.js'),'utf8');
-  assert.match(html,/id="sceneJournalRecords"/);
-  assert.match(html,/Suy luận tạm thời/);
-  assert.match(html,/id="sceneJournalInference"/);
-  assert.match(js,/inference\.textContent=scene\.temporaryInference/);
+  assert.match(js,/journal\.hidden=true/);
+  assert.match(js,/scene\?\.areaLog/);
+  assert.doesNotMatch(js,/inference\.textContent=scene\.temporaryInference/);
   assert.doesNotMatch(js,/scene\.facts/);
 });
 test('Core-confirmed Lucia enables communication even without a scenario NPC topic',()=>{
