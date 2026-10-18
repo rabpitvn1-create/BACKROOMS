@@ -290,10 +290,34 @@ class Level0WorldExplorationTest {
     assertTrue(p(state).getJSONObject("passageStates").getJSONObject("p:00").getBoolean("discovered"))
     assertFalse(p(state).getJSONObject("passageStates").getJSONObject("p:00").getBoolean("unlocked"))
     assertFalse(MiniMapRuntime.actions(state).toString().contains("passage:p:00"))
-    // Frozen rule facts, once independently established by gameplay, may permit the route.
-    val progress = JSONObject(p(state).toString())
-    progress.getJSONObject("ruleFlags").put("wet-ceiling", true)
-    state = state.copy(world = state.world + (MiniMapRuntime.STATE to progress.toString()))
+    // Never forge a rule flag: a completed law must be supported by actual evidence.
+    val forged = JSONObject(GameStateCodec.encode(state))
+    val tamperedWorld = forged.getJSONObject("world")
+    val tamperedProgress = JSONObject(tamperedWorld.getString(MiniMapRuntime.STATE))
+    tamperedProgress.getJSONObject("ruleFlags").put("wet-ceiling", true)
+    tamperedWorld.put(MiniMapRuntime.STATE, tamperedProgress.toString())
+    assertThrows(IllegalArgumentException::class.java) { GameStateCodec.decode(forged) }
+    fun navigate(to: String) {
+      val here = p(state).getString("roomId")
+      val routes = mutableMapOf(here to emptyList<String>())
+      val pending = java.util.ArrayDeque<String>(); pending.add(here)
+      while (to !in routes && pending.isNotEmpty()) {
+        val current = pending.removeFirst()
+        adjacency.getValue(current).forEach { neighbor ->
+          if (neighbor !in routes) {
+            routes[neighbor] = routes.getValue(current) + neighbor
+            pending.add(neighbor)
+          }
+        }
+      }
+      routes.getValue(to).forEach { state = move(state, "room:$it") }
+    }
+    state = move(state, "probe:floor")
+    navigate(destination)
+    state = move(state, "probe:ceiling")
+    state = move(state, "verify")
+    assertTrue(p(state).getJSONObject("ruleFlags").getBoolean("wet-ceiling"))
+    navigate(source)
     state = move(state, "passage:p:00")
     assertTrue(p(state).getJSONObject("passageStates").getJSONObject("p:00").getBoolean("unlocked"))
     assertTrue(MiniMapRuntime.actions(state).toString().contains("passage:p:00"))
