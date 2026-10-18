@@ -200,7 +200,7 @@ class GameCoreFacade private constructor(
     // Core has already checked the MOVE command against the actual scene graph.
     // Do not infer room transitions from text like "Di chuyển: Kho hồ sơ".
     SnapshotSceneProgress.apply(beforeView, continued, visualRolls,
-      if (deviceControl) "DEVICE" else if (sceneKind == "MOVE") "MOVE" else "EXECUTE",
+      if (deviceControl) "DEVICE" else if (sceneKind == "MOVE") "SCENE_MOVE" else "EXECUTE",
       if (deviceControl) "" else actionText)
     next = next.copy(world = next.world + ("flagsJson" to continued.getJSONObject("flags").toString()))
     next = CoreClientProjection.advance(CharacterMemoryBags.recordCommitted(core, next))
