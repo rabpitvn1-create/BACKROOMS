@@ -65,6 +65,7 @@ class GameCoreFacade private constructor(
     return JSONObject().put("currentRoomId", progress.getString("roomId"))
       .put("nodeId", progress.getString("nodeId"))
       .put("miniIndex", progress.getInt("index"))
+      .put("availableActions", MiniMapRuntime.actions(state))
       .put("rooms", JSONArray().apply {
         MiniMapScenario.objects(script.getJSONArray("rooms")).forEach { room ->
           put(JSONObject().put("id", room.getString("id"))
