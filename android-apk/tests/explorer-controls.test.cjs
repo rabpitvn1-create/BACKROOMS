@@ -113,7 +113,7 @@ test('mechanism button presses use local Core narration, not a remote GM call',(
   assert.ok(runtimeSource.includes('if (deviceControl) "DEVICE"') === false,
     'device routing belongs to GameCoreFacade, not the scene model');
   const facade=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt'),'utf8');
-  assert.ok(facade.includes('if (deviceControl) "DEVICE" else "EXECUTE"'));
+  assert.ok(facade.includes('if (deviceControl) "DEVICE" else if (sceneKind == "MOVE") "SCENE_MOVE" else "EXECUTE"'));
 });
 test('MAP is read-only even when a Core-authorized next area is available',()=>{
   const r=runtime({completed:true,availableActions:[
