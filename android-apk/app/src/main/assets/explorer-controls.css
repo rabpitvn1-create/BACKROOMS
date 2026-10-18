@@ -2,6 +2,13 @@
 #explorerControls,#explorerChoices{--ornate-frame:url('ui/backrooms-reference-frame-v2.png')}
 #explorerControls{padding:10px;background:#10171ce8;border:1px solid #57605c;border-radius:8px;color:#e2e7e1}
 #sceneJournal>p{margin:0 0 8px;font-size:13px;line-height:1.4}
+#explorerControls .explorer-current-objective{
+  margin:9px 0 8px;padding:9px 11px;border-left:2px solid #b59b65;
+  background:#222c2d;color:#e5e1d5;max-height:24vh;overflow-y:auto
+}
+#explorerControls .explorer-current-objective[hidden]{display:none!important}
+#explorerControls .explorer-current-objective strong{display:block;font-size:12px;color:#ddc18a;margin-bottom:4px}
+#explorerControls .explorer-current-objective p{margin:0;font-size:13px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
 .explorer-buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
 .explorer-buttons button{min-height:48px;padding:8px 4px;font-weight:700;font-size:13px;touch-action:manipulation}
 #sceneJournal details{margin-bottom:8px;font-size:12px;max-height:28vh;overflow:auto}
