@@ -47,6 +47,10 @@ class GameCoreFacade private constructor(
     )
   }
 
+  /** A hint request never starts an action, consumes RNG or modifies a save. */
+  @Synchronized fun sceneHint(tier: Int): String =
+    WorldGraphRuntime.hint(loadCurrentState(), tier).toString()
+
   @Synchronized fun sceneGenerationRequest(): String = MiniMapRuntime.generationRequest(loadCurrentState()).toString()
 
   @Synchronized fun acceptSceneGeneration(token: String, raw: String): String {
