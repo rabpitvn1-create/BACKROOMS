@@ -104,8 +104,9 @@ object MiniMapRuntime {
     val done = attempted(p)
     val tried = MiniMapScenario.objects(s.getJSONArray("interactions")).filter { it.getString("id") in done }
     val claims = tried.filter { it.getJSONObject("effect").getString("type") == "CLAIM" }
-    val evidence = tried.filter { it.getJSONObject("effect").getString("type") in setOf("CLUE", "EVIDENCE") }
-    val verifiedFactIds = evidence.map { it.getJSONObject("effect").getString("factId") }.toSet()
+    val evidence = tried.filter { it.getJSONObject("effect").getString("type") in setOf("CLUE", "EVIDENCE", "HINT") }
+    val verifiedFactIds = evidence.filter { it.getJSONObject("effect").has("factId") }
+      .map { it.getJSONObject("effect").getString("factId") }.toSet()
     val unverified = claims.filter { it.getJSONObject("effect").getString("factId") !in verifiedFactIds }
     val reasoning = when {
       unverified.isNotEmpty() ->
@@ -113,7 +114,7 @@ object MiniMapRuntime {
       claims.isNotEmpty() && evidence.isNotEmpty() ->
         "Đã thu thập lời khai và dấu vết vật lý. Hãy so sánh chúng để loại những giả thuyết không phù hợp."
       evidence.isNotEmpty() ->
-        "Đã tìm thấy ${evidence.size} dấu vết. Cần đối chiếu thêm trước khi kết luận."
+        "Đã tìm thấy ${evidence.size} dấu vết. Hãy suy ra quy luật trước khi thử thao tác."
       claims.isNotEmpty() ->
         "Lời khai chỉ là nhận định từ góc nhìn nhân chứng. Hãy tìm chứng cứ tại hiện trường."
       else -> "Chưa đủ dữ kiện để suy luận. Hãy quan sát những vật thể hoặc dấu vết có thể kiểm chứng."
