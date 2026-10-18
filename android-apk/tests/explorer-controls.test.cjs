@@ -66,6 +66,22 @@ test('Casebook is read-only and three hint tiers require explicit request',()=>{
   r.ctx.backroomWorldHint(JSON.stringify({roomId:'hall',sceneVersion:9,tier:3,text:'Kiểm tra dấu'}));
   assert.equal(r.dialog.querySelectorAll('.explorer-hint').length,1);
 });
+test('Core action palette bypasses Gemini planning but still sends only an offered validated command',()=>{
+  const r=runtime({runtime:'world-graph-v3',room:{id:'hall'},records:[],
+    availableActions:[{actionId:'world:3:SEARCH:inspect',sceneVersion:3,
+      roomId:'hall',kind:'SEARCH',targetId:'inspect',label:'Khảo sát cấu trúc hiện tại'}]});
+  r.panel.children[2].children[2].onclick();
+  assert.equal(r.calls.length,0);
+  r.dialog.children[1].children[0].onclick();
+  assert.equal(r.dialog.children[1].children[0].textContent,'Khảo sát cấu trúc hiện tại');
+  r.dialog.children[1].children[0].onclick();
+  assert.equal(r.calls.length,1);
+  assert.equal(r.calls[0][0],'action');
+  assert.deepEqual(JSON.parse(r.calls[0][1]),{
+    actionId:'world:3:SEARCH:inspect',sceneVersion:3,roomId:'hall',kind:'SEARCH',targetId:'inspect'
+  });
+  assert.equal(r.calls.some(([type])=>type==='player'||type==='hint'),false);
+});
 test('mini-map objective remains visible and updates without exposing hidden clues',()=>{
   const r=runtime({objective:'Tìm lối sang phòng kế tiếp.',records:[{text:'MẬT MÃ 213546'}],
     temporaryInference:'Gợi ý 213546'});
