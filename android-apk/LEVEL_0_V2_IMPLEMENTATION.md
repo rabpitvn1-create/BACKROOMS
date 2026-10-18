@@ -61,6 +61,14 @@ node --test tests/explorer-controls.test.cjs tests/level-snapshot-routing.test.c
 Không tự chạy lại toàn suite/build mỗi commit; xem CI bắt buộc theo mốc quyết định. Không force-push/merge/release/đóng Issue.
 
 
+## 2026-10-19 — Player Action nhiều bước, một đoạn lời kể
+
+- **Quy tắc gameplay:** mỗi câu player là một yêu cầu có số hành động tường minh `totalActions` do Gemini planner xác định ở lượt phân tích đầu tiên (1–12); các lần phân tích sau phải giữ nguyên số đó. Core chỉ chấp nhận `MOVE/SEARCH/INTERACT/TALK` đã có trong `availableActions` của **đúng phòng và phiên bản scene hiện tại**. Không bổ sung hành động do AI tự suy diễn, không chạy khi thiếu thông tin, gặp Entity hoặc vượt ngân sách planner 4 lần. Gemini là bộ phân tích intent, không được trực tiếp sửa Core; Gehihi chỉ kể các bước đã xác nhận.
+- **Một câu nhập, một lượt hiển thị:** Core vẫn stage/commit từng bước và lưu từng pending/receipt để có thể retry, nhưng Android giữ các bản tiến độ đã commit ở phần presentation và **không phát render giữa chừng**. `PlayerActionPresentation.fold` giữ một dòng **BẠN** nguyên văn và gộp tất cả kết quả Gehihi thành **một đoạn GM không xuống dòng**. Chỉ khi hoàn thành/hủy một phần thì WebView nhận một `backroomTurn` hiển thị. Không đánh đồng số hành động với số đoạn văn.
+- Mỗi trạng thái giữa chừng được lưu âm thầm vào presentation cache để giảm rủi ro mất lịch sử khi ứng dụng bị ngắt; Core save mới là nguồn xác minh gameplay. `sceneBatchActions` là marker trình bày để Core projection không nhân đôi receipt cuối, không phải trạng thái cho phép thao tác.
+- Đầu vào người chơi luôn giữ nguyên trong `scene.pending.playerText` và `scene.receipt.playerText`; nhãn Core và reply GM không thay lời BẠN. Nếu planner thất bại từ đầu, không có bước nào được commit. Nếu đã commit một phần rồi gặp lỗi, giữ phần đã thực hiện và báo rõ phần chưa thực hiện, không tự replay.
+- **Giới hạn nghiệm thu:** đây là điều kiện thực thi được kiểm soát bằng action count do model phân loại, không thể khẳng định model luôn phân tách tiếng Việt đúng mọi câu nhập. Cần playtest câu ghép, tham chiếu ngữ cảnh, câu không hành động và thao tác nhiều bước bị encounter xen ngang. Vẫn giữ nguyên Entity, Canon và khóa exit `0→0.1`.
+
 ## Regression combat và giới hạn provider (2026-10-19)
 
 - `Level0CombatContinuityTest.kt` đi qua `CombatRuntime.start/resolve` thật, kiểm tra rút lui, kết thúc combat khi đánh bại Hound, rồi save/load. Mọi bước phải giữ nguyên `scene.progress`, dấu mốc, vết khắc và lịch sử điều tra; không thay xác suất Entity hoặc quy tắc loot.
