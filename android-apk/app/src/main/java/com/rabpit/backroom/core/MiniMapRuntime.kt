@@ -36,7 +36,6 @@ object MiniMapRuntime {
   private fun attempted(p: JSONObject) = MiniMapScenario.strings(p.getJSONArray("attempted")).toSet()
   fun complete(state: GameState): Boolean {
     val p = progress(state)
-    if (p.optBoolean("endingComplete", false)) return true
     return script(state)?.let { MiniMapScenario.holds(it.getJSONObject("goal"), accepted(p)) } ?: false
   }
   private fun room(s: JSONObject, p: JSONObject) = MiniMapScenario.objects(s.getJSONArray("rooms")).first { it.getString("id") == p.getString("roomId") }
@@ -58,7 +57,10 @@ object MiniMapRuntime {
       (it.id in state.party.memberIds || it.metadata["encountered"] == "true")
   }
   fun actions(state: GameState): JSONArray {
-    val p = progress(state); val script = script(state) ?: return JSONArray()
+    val p = progress(state)
+    if (p.getString("nodeId") != MiniMapScenario.ACTIVE_NODE_ID ||
+      p.getInt("index") !in 1..MiniMapScenario.MINI_MAP_COUNT) return JSONArray()
+    val script = script(state) ?: return JSONArray()
     val out = JSONArray(); if (blocked(state)) return out
     fun add(kind: String, target: String, label: String) {
       out.put(JSONObject().put("kind", kind).put("targetId", target).put("label", label)
@@ -89,16 +91,11 @@ object MiniMapRuntime {
     presentCharacters(state).forEach { character ->
       dialogueTopics.forEach { (topicId, label) -> add("TALK", "character:${character.id}:$topicId", "${character.name} · $label") }
     }
-    // The route is one-way: never offer a previous mini-map or Canon node.
-    // Cross-node transitions require all ten maps and the real exit room.
-    if (complete(state) && r.getString("id") == script.getString("exitRoomId")) {
-      if (p.getInt("index") < 10) add("MOVE", "next", "Tiến vào khu vực kế tiếp.")
-      else if ((1..9).all { index -> p.getJSONArray("completed").let { entries ->
-          (0 until entries.length()).any { entries.getInt(it) == index }
-        } }) LevelRouteRegistry.exits(current.id).forEach { destination ->
-          add("MOVE", "node:$destination", "Tiến vào khu vực kế tiếp.")
-        }
-    }
+    // Mini-maps 1..7 advance inside Level 0. Mini-map 8 has no next
+    // command and no cross-level transition or ending mechanism yet.
+    if (complete(state) && r.getString("id") == script.getString("exitRoomId") &&
+      p.getInt("index") < MiniMapScenario.MINI_MAP_COUNT)
+      add("MOVE", "next", "Tiến vào khu vực kế tiếp.")
     return out
   }
   /** Derived from already tried interactions, never from the hidden answer key. */
@@ -178,10 +175,10 @@ object MiniMapRuntime {
     val out = JSONObject().put("miniIndex", p.getInt("index")).put("parentLevel", p.getInt("parent"))
       .put("nodeId", p.getString("nodeId")).put("nodeTitle", node(state).title())
       .put("sceneVersion", p.getInt("version")).put("availableActions", actions(state))
-      .put("records", p.getJSONArray("records")).put("generationNeeded", s == null && !p.optBoolean("endingComplete", false))
-      .put("awaitingEnding", p.getString("nodeId") == "6.1" && p.getInt("index") == 10 && complete(state))
-      .put("nodeExitUnlocked", p.getInt("index") == 10 && complete(state) &&
-        LevelRouteRegistry.exits(p.getString("nodeId")).isNotEmpty())
+      .put("records", p.getJSONArray("records")).put("generationNeeded",
+        s == null && p.getString("nodeId") == MiniMapScenario.ACTIVE_NODE_ID &&
+          p.getInt("index") in 1..MiniMapScenario.MINI_MAP_COUNT)
+      .put("awaitingEnding", false).put("nodeExitUnlocked", false)
     if (s != null) {
       // Only explored room names are revealed. Edges beyond the discovered
       // frontier stay hidden and no interaction/fact/solution enters MAP.
@@ -226,9 +223,11 @@ object MiniMapRuntime {
   }
   fun generationRequest(state: GameState): JSONObject {
     check(!blocked(state)) { "scene_busy" }
-    val p = progress(state); val outline = state.world[outlineKey(p)]
-    val kind = if (p.optBoolean("endingComplete", false)) "ready"
-      else if (outline == null) "outline" else if (script(state) == null) "script" else "ready"
+    val p = progress(state)
+    require(p.getString("nodeId") == MiniMapScenario.ACTIVE_NODE_ID &&
+      p.getInt("index") in 1..MiniMapScenario.MINI_MAP_COUNT) { "scene_node_scope" }
+    val outline = state.world[outlineKey(p)]
+    val kind = if (outline == null) "outline" else if (script(state) == null) "script" else "ready"
     return JSONObject().put("kind", kind).put("token", token(state)).put("levelNumber", p.getInt("parent"))
       .put("index", p.getInt("index")).put("nodeAnchor", p.getString("nodeId"))
       .apply {
@@ -243,7 +242,8 @@ object MiniMapRuntime {
   fun acceptGeneration(state: GameState, expected: String, raw: String): GameState {
     check(expected == token(state) && !blocked(state)) { "generation_stale" }
     val p = progress(state)
-    check(!p.optBoolean("endingComplete", false)) { "scene_ending_finalized" }
+    check(p.getString("nodeId") == MiniMapScenario.ACTIVE_NODE_ID &&
+      p.getInt("index") in 1..MiniMapScenario.MINI_MAP_COUNT) { "scene_node_scope" }
     val data = MiniMapScenario.parse(raw)
     if (state.world[outlineKey(p)] == null) {
       val outline = MiniMapScenario.validateOutline(data, p.getString("nodeId"))
@@ -296,6 +296,7 @@ object MiniMapRuntime {
           }
         }
         target == "next" -> {
+          check(p.getInt("index") < MiniMapScenario.MINI_MAP_COUNT) { "scene_mini_limit" }
           discardKeys += scriptKey(p)
           p.getJSONArray("completed").put(p.getInt("index"))
           p.put("index", p.getInt("index") + 1).put("roomId", "")
@@ -303,17 +304,9 @@ object MiniMapRuntime {
             .put("visitedRooms", JSONArray()).put("areaEvents", JSONArray())
           p.remove("mechanismPositions")
         }
-        target.startsWith("node:") -> {
-          nodeId = target.removePrefix("node:")
-          // All 10 maps must be finished before this one-way move can be offered.
-          // Discard the final puzzle and outline atomically on narration commit.
-          discardKeys += scriptKey(p)
-          discardKeys += outlineKey(p)
-          p = freshProgress(p.getString("runId"), nodeId)
-        }
         else -> error("scene_move")
       }
-      require(nodeId == node(state).id || LevelRouteRegistry.canMove(node(state).id, nodeId)) { "scene_route" }
+      require(nodeId == MiniMapScenario.ACTIVE_NODE_ID) { "scene_node_scope" }
     } else if (kind == "TALK" && target.startsWith("character:")) {
       val parts = target.split(':')
       val character = presentCharacters(state).first { it.id == parts[1] }
@@ -363,15 +356,6 @@ object MiniMapRuntime {
         if (kind == "SEARCH" && correct && effect.getString("type") in setOf("CLUE", "EVIDENCE", "HINT"))
           noteAreaEvent(p, "DISCOVERY", target,
             "Đã ghi nhận dấu vết tại " + room(s, p).getString("name") + ".")
-      }
-      if (p.getString("nodeId") == "6.1" && p.getInt("index") == 10 &&
-          MiniMapScenario.holds(s.getJSONObject("goal"), accepted(p))) {
-        // Final chapter has no later transition. Drop its puzzle on commit.
-        discardKeys += scriptKey(p)
-        discardKeys += outlineKey(p)
-        p.put("endingComplete", true).put("accepted", JSONArray())
-          .put("attempted", JSONArray()).put("records", JSONArray())
-        p.remove("mechanismPositions")
       }
     }
     p.put("version", p.getInt("version") + 1)
