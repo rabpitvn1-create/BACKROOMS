@@ -101,7 +101,9 @@ object MiniMapRuntime {
   }
   /** Derived from already tried interactions, never from the hidden answer key. */
   private fun temporaryInference(state: GameState, s: JSONObject, p: JSONObject): String {
-    if (complete(state)) return "Các suy luận cần thiết đã được xác nhận. Hãy tìm đến lối ra của mini-map."
+    if (complete(state)) return if (p.getInt("index") == MiniMapScenario.MINI_MAP_COUNT)
+      "Đã hoàn thành mục tiêu mini-map hiện tại." else
+      "Các suy luận cần thiết đã được xác nhận. Hãy tìm đến lối ra của mini-map."
     val done = attempted(p)
     val tried = MiniMapScenario.objects(s.getJSONArray("interactions")).filter { it.getString("id") in done }
     val claims = tried.filter { it.getJSONObject("effect").getString("type") == "CLAIM" }
