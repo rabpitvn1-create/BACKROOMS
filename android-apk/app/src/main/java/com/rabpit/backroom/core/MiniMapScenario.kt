@@ -7,6 +7,8 @@ import org.json.JSONTokener
 /** Bounded, monotone puzzle language. Generated strings are never executable predicates. */
 object MiniMapScenario {
   const val SCHEMA = 4
+  const val ACTIVE_NODE_ID = "0"
+  const val MINI_MAP_COUNT = 8
   const val MAX_CHARS = 48000
   private val idPattern = Regex("[a-z][a-z0-9_]{0,39}")
   private val reservedNames = Regex("lucia|lục trầm|luc tram|iris|syvial|an nhiên|an nhien|diệp minh|cao minh", RegexOption.IGNORE_CASE)
@@ -89,9 +91,10 @@ object MiniMapScenario {
   }
   fun validateOutline(raw: JSONObject, nodeId: String): JSONObject {
     fields(raw, setOf("schemaVersion", "levelNumber", "nodeAnchor", "entries"))
+    require(nodeId == ACTIVE_NODE_ID) { "scenario_node_scope" }
     val node = requireNotNull(LevelRouteRegistry.node(nodeId)) { "scenario_node" }
     require(int(raw, "schemaVersion") == SCHEMA && int(raw, "levelNumber") == node.parent && raw.getString("nodeAnchor") == nodeId)
-    val entries = objects(raw.getJSONArray("entries")); require(entries.size == 10)
+    val entries = objects(raw.getJSONArray("entries")); require(entries.size == MINI_MAP_COUNT)
     entries.forEachIndexed { i, e ->
       fields(e, setOf("index", "nodeAnchor", "beat", "objective", "dependencyRefs"))
       require(int(e, "index") == i + 1 && e.getString("nodeAnchor") == nodeId) { "outline_route" }
@@ -106,8 +109,9 @@ object MiniMapScenario {
     require(raw.toString().length <= MAX_CHARS)
     fields(raw, setOf("schemaVersion", "id", "levelNumber", "index", "nodeAnchor", "objective", "entryRoomId", "exitRoomId", "rooms", "npcs", "facts", "interactions", "goal"),
       setOf("mechanisms"))
+    require(nodeId == ACTIVE_NODE_ID) { "scenario_node_scope" }
     val node = requireNotNull(LevelRouteRegistry.node(nodeId)) { "scenario_node" }
-    require(index in 1..10 && int(raw, "schemaVersion") == SCHEMA && int(raw, "levelNumber") == node.parent && int(raw, "index") == index)
+    require(index in 1..MINI_MAP_COUNT && int(raw, "schemaVersion") == SCHEMA && int(raw, "levelNumber") == node.parent && int(raw, "index") == index)
     id(raw); canonBoundary(nodeId, text(raw, "objective", 400))
     vietnameseSceneLabel(raw.getString("objective"))
     require(raw.getString("nodeAnchor") == nodeId) { "script_route" }
