@@ -4,7 +4,7 @@
 
 **Nguồn:** Nội dung do tác giả cung cấp trực tiếp trong cuộc trò chuyện ngày 18/10/2026, bổ sung cho [Canon tám khu vực chính](LEVEL_0_EIGHT_ZONES_CANON.md).
 
-**Trạng thái:** Canon thiết kế môi trường, chưa triển khai vào Game Data, room graph hay hệ thống di chuyển.
+**Trạng thái:** Canon môi trường đã được nhập vào `app/src/main/assets/knowledge/canon_detail_db.json` để game tải cùng các Canon khác. Chưa tạo địa điểm runtime trong Game Core, room graph hoặc hệ thống di chuyển.
 
 **Phân cấp:** Level 0 → 8 khu vực chính → 29 khu vực nhỏ. Tất cả đều thuộc **Level 0**, không phải Canon sublevel độc lập (ví dụ số mục “1.1” không phải Level 1.1). Tên và số lượng khu nhỏ dưới mỗi khu chính là cố định theo tài liệu này; vị trí, hướng nối, cách bố trí hay tính ngẫu nhiên của bản đồ **chưa được chốt**. Văn bản cảm nhận bóng người, tiếng nói, dấu vết hoặc hiện tượng bất thường không tự động xác nhận Entity, NPC, vật phẩm, puzzle, lối thoát hay sự kiện Core.
 
