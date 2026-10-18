@@ -116,7 +116,7 @@ object CoreClientProjection {
         val r = JSONObject(receipt)
         val log = out.optJSONArray("log") ?: JSONArray().also { out.put("log", it) }
         if ((0 until log.length()).none { log.optJSONObject(it)?.optString("sceneActionId") == r.getString("actionId") }) {
-          log.put(JSONObject().put("role", "player").put("text", r.getString("label"))
+          log.put(JSONObject().put("role", "player").put("text", r.optString("playerText", r.getString("label")))
             .put("sceneMap", currentMap).put("sceneActionId", r.getString("actionId")))
           if (CombatRuntime.pending(state) == null) log.put(JSONObject().put("role", "gm")
             .put("text", r.getString("reply")).put("sceneMap", currentMap))
