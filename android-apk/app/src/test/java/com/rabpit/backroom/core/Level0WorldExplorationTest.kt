@@ -40,7 +40,7 @@ class Level0WorldExplorationTest {
       val graph = Level0WorldDefinition.generate(seed)
       assertEquals(graph.toString(), Level0WorldDefinition.generate(seed).toString())
       WorldGraphRuntime.validate(graph) // BFS plus independent removal of every edge.
-      assertEquals(37, graph.getJSONArray("rooms").length())
+      assertEquals(45, graph.getJSONArray("rooms").length())
       layouts.add(graph.getJSONArray("rooms").toString())
     }
     assertTrue(layouts.size > 100)
@@ -71,7 +71,7 @@ class Level0WorldExplorationTest {
   @Test fun mapAndPlannerExposeOnlyKnownFrontierWithoutSeedOrUnvisitedIdentities() {
     val state = world(); val view = MiniMapRuntime.publicView(state)
     val map = view.getJSONObject("map"); val known = p(state).getString("roomId")
-    assertTrue(map.getJSONArray("rooms").length() < 37)
+    assertTrue(map.getJSONArray("rooms").length() < 45)
     MiniMapScenario.objects(map.getJSONArray("rooms")).filter { it.getString("id") != known }.forEach {
       assertEquals("Chưa khám phá", it.getString("name"))
       assertEquals(0, it.getJSONArray("adjacentRoomIds").length())
@@ -128,7 +128,7 @@ class Level0WorldExplorationTest {
   @Test fun productionNewRunUsesWorldWithoutProviderAndRejectsScenarioReplacement() {
     val repo = MemorySave(GameState.initial(), false); val core = facade(repo, CountingRng())
     val view = JSONObject(core.currentClientState("{}"))
-    assertEquals("world-graph-v2", view.getJSONObject("scene").getString("runtime"))
+    assertEquals("world-graph-v3", view.getJSONObject("scene").getString("runtime"))
     assertFalse(view.getJSONObject("scene").getBoolean("generationNeeded"))
     val request = JSONObject(core.sceneGenerationRequest())
     assertEquals("ready", request.getString("kind"))
@@ -155,7 +155,7 @@ class Level0WorldExplorationTest {
     }
     adjacency.keys.forEach { go(it) }
     go(graph.getString("entryRoomId"))
-    assertEquals(37, p(state).getJSONArray("visitedRooms").length())
+    assertEquals(45, p(state).getJSONArray("visitedRooms").length())
     assertEquals(graph.getString("entryRoomId"), p(state).getString("roomId"))
     assertFalse(MiniMapRuntime.complete(state)) // Exhaustive discovery cannot invent an exit.
   }
@@ -211,4 +211,52 @@ class Level0WorldExplorationTest {
     savedWorld.put(MiniMapRuntime.PENDING, pending.toString())
     assertThrows(IllegalArgumentException::class.java) { GameStateCodec.decode(raw) }
   }
+
+  @Test fun concealedPassagesRequireDiscoveryAndFlagsAndNeverLeakDestinations() {
+    var state = world(123)
+    val graph = p(state).getJSONObject("worldGraph")
+    val edge = graph.getJSONArray("passages").getJSONObject(0)
+    val source = edge.getString("from")
+    val destination = edge.getString("to")
+    val adjacency = MiniMapScenario.objects(graph.getJSONArray("rooms")).associate {
+      it.getString("id") to MiniMapScenario.strings(it.getJSONArray("adjacentRoomIds"))
+    }
+    // Independent ordinary-corridor traversal to the hidden connection's source.
+    val start = p(state).getString("roomId")
+    val predecessor = mutableMapOf(start to "")
+    val queue = java.util.ArrayDeque<String>(); queue.add(start)
+    while (queue.isNotEmpty() && source !in predecessor) {
+      val from = queue.removeFirst()
+      adjacency.getValue(from).forEach { to ->
+        if (to !in predecessor) { predecessor[to] = from; queue.add(to) }
+      }
+    }
+    val steps = mutableListOf<String>(); var cursor = source
+    while (cursor != start) { steps.add(cursor); cursor = predecessor.getValue(cursor) }
+    steps.asReversed().forEach { state = move(state, "room:$it") }
+    val before = MiniMapRuntime.publicView(state).toString()
+    assertFalse(before.contains("passage:p:00"))
+    assertFalse(before.contains("wet-ceiling"))
+    assertFalse(before.contains(destination)) // Destination identity is not available through a concealed passage.
+    assertThrows(Exception::class.java) {
+      MiniMapRuntime.stage(state, JSONObject().put("actionId", "fake").put("sceneVersion", p(state).getInt("version"))
+        .put("roomId", source).put("kind", "MOVE").put("targetId", "passage:p:00"))
+    }
+    state = move(state, "inspect")
+    assertTrue(p(state).getJSONObject("passageStates").getJSONObject("p:00").getBoolean("discovered"))
+    assertFalse(p(state).getJSONObject("passageStates").getJSONObject("p:00").getBoolean("unlocked"))
+    assertFalse(MiniMapRuntime.actions(state).toString().contains("passage:p:00"))
+    // Frozen rule facts, once independently established by gameplay, may permit the route.
+    val progress = JSONObject(p(state).toString())
+    progress.getJSONObject("ruleFlags").put("wet-ceiling", true)
+    state = state.copy(world = state.world + (MiniMapRuntime.STATE to progress.toString()))
+    state = move(state, "passage:p:00")
+    assertTrue(p(state).getJSONObject("passageStates").getJSONObject("p:00").getBoolean("unlocked"))
+    assertTrue(MiniMapRuntime.actions(state).toString().contains("passage:p:00"))
+    state = move(state, "passage:p:00")
+    assertEquals(destination, p(state).getString("roomId"))
+    val roundTrip = GameStateCodec.decode(GameStateCodec.encode(state))
+    assertEquals(p(state).toString(), p(roundTrip).toString())
+  }
+
 }

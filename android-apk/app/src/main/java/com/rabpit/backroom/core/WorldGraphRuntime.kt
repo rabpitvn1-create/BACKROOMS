@@ -9,11 +9,26 @@ import java.util.UUID
  * No provider is needed to create, restore or traverse this world. */
 object WorldGraphRuntime {
   private const val GRAPH = "worldGraph"
-  const val GRAPH_VERSION = 2
+  const val GRAPH_VERSION = 3
   fun active(p: JSONObject) = p.has(GRAPH)
   private fun strings(a: JSONArray) = (0 until a.length()).map { a.getString(it) }
   private fun objects(a: JSONArray) = (0 until a.length()).map { a.getJSONObject(it) }
   private fun rooms(g: JSONObject) = objects(g.getJSONArray("rooms"))
+  private fun passages(g: JSONObject): List<JSONObject> = g.optJSONArray("passages")?.let(::objects) ?: emptyList()
+  private fun passageStates(p: JSONObject) = p.getJSONObject("passageStates")
+  private fun flags(p: JSONObject) = p.getJSONObject("ruleFlags")
+  private fun passable(p: JSONObject, passage: JSONObject) =
+    passageStates(p).getJSONObject(passage.getString("id")).let { it.getBoolean("discovered") && it.getBoolean("unlocked") }
+  private fun departure(passage: JSONObject, current: String): String? = when (current) {
+    passage.getString("from") -> passage.getString("to")
+    passage.getString("to") -> if (passage.optBoolean("oneWay")) null else passage.getString("from")
+    else -> null
+  }
+  private fun knownNeighbors(g: JSONObject, p: JSONObject, current: String): List<String> =
+    strings(room(g, current).getJSONArray("adjacentRoomIds")) + passages(g).mapNotNull { passage ->
+      if (passable(p, passage)) departure(passage, current) else null
+    }
+
   private fun room(g: JSONObject, id: String) = rooms(g).first { it.getString("id") == id }
   private fun environment(r: JSONObject, definition: WorldDefinition): WorldEnvironment =
     requireNotNull(definition.environments.firstOrNull { it.id == r.getString("environmentId") }) { "world_environment" }
@@ -35,6 +50,14 @@ object WorldGraphRuntime {
       .put("parent", MiniMapRuntime.node(state).parent).put("index", 1).put("version", 1).put("roomId", start)
       .put(GRAPH, g).put("visitedRooms", JSONArray().put(start))
       .put("records", JSONArray()).put("markers", JSONObject())
+      .put("ruleFlags", JSONObject()).put("environmentChanges", JSONObject())
+      .put("passageStates", JSONObject().apply {
+        passages(g).forEach { passage ->
+          put(passage.getString("id"), JSONObject()
+            .put("discovered", !passage.optBoolean("hidden"))
+            .put("unlocked", passage.optString("requires").isEmpty()))
+        }
+      })
       .put("areaEvents", JSONArray().put(JSONObject().put("type", "AREA")
         .put("text", "Đã bước vào " + environment(room(g, start), definition).name + ".")))
     return state.copy(world = state.world + (MiniMapRuntime.STATE to p.toString()))
@@ -58,6 +81,18 @@ object WorldGraphRuntime {
       require(edges.distinct().size == edges.size && id !in edges) { "world_edges" }
       edges.forEach { to -> require(to in ids && id in graph.getValue(to)) { "world_bidirectional" } }
     }
+    val ps = passages(g)
+    require(ps.map { it.getString("id") }.distinct().size == ps.size) { "world_passage_id" }
+    ps.forEach { edge ->
+      require(edge.getString("id").matches(Regex("[a-zA-Z0-9:_-]{1,96}")) &&
+        edge.getString("from") in ids && edge.getString("to") in ids &&
+        edge.getString("from") != edge.getString("to")) { "world_passage_target" }
+      require(!edge.has("requires") || edge.getString("requires") in definition.passageConditions) { "world_passage_condition" }
+      require(!edge.has("oneWay") || edge.get("oneWay") is Boolean) { "world_passage_direction" }
+      require(!edge.has("hidden") || edge.get("hidden") is Boolean) { "world_passage_visibility" }
+    }
+    // Open corridors alone must remain viable with all optional gates closed. This
+    // proves no collectible, NPC, fight or secret route is mandatory for backtracking.
     val entry = g.getString("entryRoomId")
     require(entry in ids) { "world_entry" }
     fun reachesAll(blockA: String?, blockB: String?): Boolean {
@@ -86,6 +121,19 @@ object WorldGraphRuntime {
       p.getString("roomId") in visited && visited.all { it in ids }) { "world_saved_position" }
     require(p.getJSONObject("markers").keys().asSequence().all { it in visited }) { "world_saved_markers" }
     require(objects(p.getJSONArray("records")).all { it.getString("id") in visited }) { "world_saved_observations" }
+    val states = passageStates(p)
+    require(states.keys().asSequence().toSet() == passages(g).map { it.getString("id") }.toSet()) { "world_saved_passages" }
+    val facts = flags(p)
+    passages(g).forEach { passage ->
+      val status = states.getJSONObject(passage.getString("id"))
+      require(status.get("discovered") is Boolean && status.get("unlocked") is Boolean) { "world_passage_state" }
+      require(!status.getBoolean("unlocked") || (status.getBoolean("discovered") &&
+        (passage.optString("requires").isEmpty() || facts.optBoolean(passage.getString("requires"))))) { "world_passage_unlock" }
+    }
+    require(facts.keys().asSequence().all { it in definition.passageConditions && facts.get(it) is Boolean }) { "world_saved_facts" }
+    val changes = p.getJSONObject("environmentChanges")
+    require(changes.keys().asSequence().all { it in ids && it in visited &&
+      changes.getJSONObject(it).keys().asSequence().all { key -> key.matches(Regex("[a-zA-Z0-9:_-]{1,64}")) } }) { "world_saved_changes" }
   }
 
   fun characterPresent(state: GameState, actor: CharacterState, roomId: String = MiniMapRuntime.progress(state).getString("roomId")): Boolean =
@@ -109,7 +157,18 @@ object WorldGraphRuntime {
     strings(room(g, current).getJSONArray("adjacentRoomIds")).forEachIndexed { index, to ->
       add("MOVE", "room:$to", if (to in visited) environment(room(g, to), definition).name else "Lối chưa khám phá ${index + 1}")
     }
+    passages(g).forEach { passage ->
+      val dest = departure(passage, current) ?: return@forEach
+      val status = passageStates(p).getJSONObject(passage.getString("id"))
+      if (status.getBoolean("discovered") && status.getBoolean("unlocked"))
+        add("MOVE", "passage:" + passage.getString("id"),
+          if (dest in visited) environment(room(g, dest), definition).name else "Lối nối đã mở")
+      else if (status.getBoolean("discovered") && !status.getBoolean("unlocked") &&
+        (passage.optString("requires").isEmpty() || flags(p).optBoolean(passage.getString("requires"))))
+        add("INTERACT", "passage:" + passage.getString("id"), "Thử mở lối nối đã phát hiện")
+    }
     add("SEARCH", "observe", "Quan sát môi trường hiện tại")
+    add("SEARCH", "inspect", "Khảo sát cấu trúc hiện tại")
     if (!p.getJSONObject("markers").has(current)) add("SEARCH", "mark", "Ghi dấu mốc vị trí vào bản đồ")
     presentCharacters(state).forEach { add("TALK", "character:${it.id}", "${it.name} · Trò chuyện") }
     return out
@@ -120,8 +179,8 @@ object WorldGraphRuntime {
     val rs = rooms(g); val e = environment(room(g, current), definition)
     val visited = strings(p.getJSONArray("visitedRooms")).toSet()
     val frontier = visited + rs.filter { it.getString("id") in visited }
-      .flatMap { strings(it.getJSONArray("adjacentRoomIds")) }
-    return JSONObject().put("runtime", "world-graph-v2").put("miniIndex", 1)
+      .flatMap { knownNeighbors(g, p, it.getString("id")) }
+    return JSONObject().put("runtime", "world-graph-v3").put("miniIndex", 1)
       .put("nodeId", p.getString("nodeId")).put("parentLevel", p.getInt("parent")).put("nodeTitle", MiniMapRuntime.node(state).title())
       .put("sceneVersion", p.getInt("version")).put("generationNeeded", false)
       .put("awaitingEnding", false).put("nodeExitUnlocked", false).put("completed", false)
@@ -139,7 +198,7 @@ object WorldGraphRuntime {
             put(JSONObject().put("id", id).put("visited", known)
               .put("name", if (known) environment(r, definition).name else "Chưa khám phá")
               .put("marked", p.getJSONObject("markers").has(id))
-              .put("adjacentRoomIds", JSONArray(if (known) strings(r.getJSONArray("adjacentRoomIds")) else emptyList<String>())))
+              .put("adjacentRoomIds", JSONArray(if (known) knownNeighbors(g, p, id) else emptyList<String>())))
           }
         }))
       .apply { state.world[MiniMapRuntime.PENDING]?.let { put("pendingActionId", JSONObject(it).getString("actionId")) } }
@@ -157,7 +216,13 @@ object WorldGraphRuntime {
     var dialogue: JSONObject? = null
     when (kind) {
       "MOVE" -> {
-        val to = target.removePrefix("room:"); p.put("roomId", to)
+        val from = p.getString("roomId")
+        val to = if (target.startsWith("passage:")) {
+          val passage = passages(g).first { "passage:" + it.getString("id") == target }
+          require(passable(p, passage)) { "world_passage_closed" }
+          requireNotNull(departure(passage, from)) { "world_passage_direction" }
+        } else target.removePrefix("room:")
+        p.put("roomId", to)
         val name = environment(room(g, to), definition).name
         if (to !in strings(p.getJSONArray("visitedRooms"))) {
           p.getJSONArray("visitedRooms").put(to)
@@ -167,7 +232,15 @@ object WorldGraphRuntime {
       }
       "SEARCH" -> {
         val id = p.getString("roomId")
-        if (target == "mark") {
+        if (target == "inspect") {
+          val found = passages(g).filter { departure(it, id) != null }.filter { passage ->
+            val s = passageStates(p).getJSONObject(passage.getString("id"))
+            if (s.getBoolean("discovered")) false else { s.put("discovered", true); true }
+          }
+          result = if (found.isEmpty()) "Đã khảo sát cấu trúc, không xác nhận được lối nối mới."
+            else "Phát hiện khe ghép cấu trúc. Chưa rõ có thể vượt qua hay không."
+          p.getJSONArray("areaEvents").put(JSONObject().put("type", "INSPECT").put("text", result))
+        } else if (target == "mark") {
           result = "Đã ghi vị trí ${environment(room(g, id), definition).name} làm dấu mốc trên bản đồ cá nhân."
           p.getJSONObject("markers").put(id, true)
           p.getJSONArray("areaEvents").put(JSONObject().put("type", "MARK").put("text", result))
@@ -176,6 +249,16 @@ object WorldGraphRuntime {
           if (objects(p.getJSONArray("records")).none { it.getString("id") == id })
             p.getJSONArray("records").put(JSONObject().put("id", id).put("kind", "OBSERVATION").put("text", result))
         }
+      }
+      "INTERACT" -> {
+        val passage = passages(g).first { "passage:" + it.getString("id") == target }
+        require(departure(passage, p.getString("roomId")) != null) { "world_passage_direction" }
+        val status = passageStates(p).getJSONObject(passage.getString("id"))
+        require(status.getBoolean("discovered") && !status.getBoolean("unlocked") &&
+          (passage.optString("requires").isEmpty() || flags(p).optBoolean(passage.getString("requires")))) { "world_passage_closed" }
+        status.put("unlocked", true)
+        result = "Lối nối cấu trúc đã mở và có thể quay lại kiểm tra."
+        p.getJSONArray("areaEvents").put(JSONObject().put("type", "ROUTE").put("text", result))
       }
       "TALK" -> {
         val character = presentCharacters(state).first { "character:${it.id}" == target }

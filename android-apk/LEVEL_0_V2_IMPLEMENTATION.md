@@ -98,3 +98,12 @@ The 104-JUnit result above belongs to the first milestone. Refactor validation i
 
 
 Refactor verification: Core Kotlin 2.3.0 and Java 17 compilation PASS; **108 JUnit tests PASS** across the eight targeted classes (including four new generic-world tests); **34 Node tests PASS** for Explorer and snapshot routing; diff check PASS. JUnit execution reported 8.789 seconds. No APK/device/live-provider acceptance is claimed. The existing unrelated CombatRuntime unnecessary-`!!` warning remains.
+
+
+## Phase 2 — conditional graph follow-up (implementation commit)
+
+- Graph schema 3, definition version 2, save version 10, checkpoint slot v10; old save formats are intentionally unsupported.
+- Level 0 generator uses seeded, opaque room IDs and 45 physical rooms across exactly 37 Canon environment identities (two rooms per parent zone, one per subzone). All 45 rooms remain reachable through ordinary bidirectional corridors even if any one corridor fails.
+- Optional concealed passages are frozen in the persisted graph: Wetfloor ↔ Hollow Ceiling and a one-way Loop → Afterimage approach. Each passage has an independently persisted discovery/unlock state and authored condition identifier; these are gameplay shortcuts, **not** new Canon or exits.
+- Public map/planner show neither the secret endpoint nor unavailable movement. Inspection discovers a structural seam but does not unlock it. A verified gameplay rule fact will be needed to expose a Core-validated opening interaction. At this checkpoint rule facts have not yet been awarded by a puzzle.
+- Target tests cover hidden passage discovery, forged traversal rejection, condition opening and save/load; outcomes require CI verification against this commit.

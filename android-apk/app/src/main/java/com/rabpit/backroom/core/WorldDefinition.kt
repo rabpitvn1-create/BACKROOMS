@@ -15,6 +15,8 @@ interface WorldDefinition {
   val objective: String
   val environments: List<WorldEnvironment>
   val requireAlternateRoutes: Boolean
+  /** Identifiers of authored, Core-verifiable passage conditions for this definition. */
+  val passageConditions: Set<String> get() = emptySet()
   fun generate(seed: Long): JSONObject
   fun validateLayout(graph: JSONObject)
 }
