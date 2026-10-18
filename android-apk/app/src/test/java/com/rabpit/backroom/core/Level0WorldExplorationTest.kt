@@ -290,6 +290,30 @@ class Level0WorldExplorationTest {
     assertFalse(EntityExpRewards.award(loot.state, "level0:puzzle:entity", 0L).newlyAwarded)
   }
 
+
+  @Test fun roomsSharingAnEnvironmentHaveDistinctPublicLabelsAndStableSnapshotIdentity() {
+    var state = world(314)
+    val graphRooms = MiniMapScenario.objects(p(state).getJSONObject("worldGraph").getJSONArray("rooms"))
+    val hub = graphRooms.filter { it.getString("environmentId") == "yellow_rot" }
+    assertEquals(2, hub.size)
+    val home = p(state).getString("roomId")
+    val annex = hub.first { it.getString("id") != home }.getString("id")
+    val firstMap = MiniMapRuntime.publicView(state).getJSONObject("map")
+    assertEquals("Chưa khám phá", MiniMapScenario.objects(firstMap.getJSONArray("rooms"))
+      .first { it.getString("id") == annex }.getString("name"))
+    state = move(state, "room:$annex")
+    val scene = MiniMapRuntime.publicView(state)
+    val names = MiniMapScenario.objects(scene.getJSONObject("map").getJSONArray("rooms"))
+      .filter { it.getString("id") in hub.map { r -> r.getString("id") } }
+      .map { it.getString("name") }
+    assertEquals(2, names.distinct().size)
+    assertTrue(names.all { it.startsWith("Vàng Úa · vị trí ") })
+    assertEquals("yellow_rot", scene.getJSONObject("environment").getString("id"))
+    val loaded = GameStateCodec.decode(GameStateCodec.encode(state))
+    assertEquals(scene.getJSONObject("room").getString("name"),
+      MiniMapRuntime.publicView(loaded).getJSONObject("room").getString("name"))
+  }
+
   @Test fun corruptedWorldOrPendingGraphCannotLoadAsAnAcceptedWorld() {
     val root = JSONObject(GameStateCodec.encode(world()))
     val worldJson = root.getJSONObject("world")

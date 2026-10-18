@@ -51,6 +51,16 @@ object WorldGraphRuntime {
   private fun room(g: JSONObject, id: String) = rooms(g).first { it.getString("id") == id }
   private fun environment(r: JSONObject, definition: WorldDefinition): WorldEnvironment =
     requireNotNull(definition.environments.firstOrNull { it.id == r.getString("environmentId") }) { "world_environment" }
+  /** Gameplay-room label, not a new Canon identity. Stable in the saved graph and
+   * shown only after discovery; snapshot and knowledge still use environmentId. */
+  private fun displayName(g: JSONObject, roomId: String, definition: WorldDefinition): String {
+    val selected = room(g, roomId)
+    val identity = selected.getString("environmentId")
+    val e = environment(selected, definition)
+    val duplicates = rooms(g).filter { it.getString("environmentId") == identity }
+    if (duplicates.size == 1) return e.name
+    return e.name + " · vị trí " + (duplicates.indexOfFirst { it.getString("id") == roomId } + 1)
+  }
   private fun definition(p: JSONObject) = WorldDefinitions.require(p.getString("nodeId"))
   private fun locationTags(out: JSONObject, e: WorldEnvironment): JSONObject = out.apply {
     e.sceneZoneId?.let { put("zoneId", it) }
@@ -196,14 +206,14 @@ object WorldGraphRuntime {
         .put("actionId", "${p.getString("runId")}:world:${p.getInt("version")}:$kind:$target"))
     }
     strings(room(g, current).getJSONArray("adjacentRoomIds")).forEachIndexed { index, to ->
-      add("MOVE", "room:$to", if (to in visited) environment(room(g, to), definition).name else "Lối chưa khám phá ${index + 1}")
+      add("MOVE", "room:$to", if (to in visited) displayName(g, to, definition) else "Lối chưa khám phá ${index + 1}")
     }
     passages(g).forEach { passage ->
       val dest = departure(passage, current) ?: return@forEach
       val status = passageStates(p).getJSONObject(passage.getString("id"))
       if (status.getBoolean("discovered") && status.getBoolean("unlocked"))
         add("MOVE", "passage:" + passage.getString("id"),
-          if (dest in visited) environment(room(g, dest), definition).name else "Lối nối đã mở")
+          if (dest in visited) displayName(g, dest, definition) else "Lối nối đã mở")
       else if (status.getBoolean("discovered") && !status.getBoolean("unlocked") &&
         (passage.optString("requires").isEmpty() || flags(p).optBoolean(passage.getString("requires"))))
         add("INTERACT", "passage:" + passage.getString("id"), "Thử mở lối nối đã phát hiện")
@@ -245,7 +255,7 @@ object WorldGraphRuntime {
       .put("objective", definition.objective)
       .apply { locationTags(this, e) }
       .put("environment", JSONObject().put("id", e.id).put("name", e.name).put("zoneId", e.zoneId).put("canon", e.canon))
-      .put("room", JSONObject().put("id", current).put("name", e.name).put("description", e.canon)
+      .put("room", JSONObject().put("id", current).put("name", displayName(g, current, definition)).put("description", e.canon)
         .put("physicalTrace", p.getJSONObject("environmentChanges").optJSONObject(current)?.optBoolean("trace") == true))
       .put("npcs", JSONArray())
       .put("map", JSONObject().put("currentRoomId", current).put("entryRoomId", g.getString("entryRoomId"))
@@ -254,7 +264,7 @@ object WorldGraphRuntime {
           rs.filter { it.getString("id") in frontier }.forEach { r ->
             val id = r.getString("id"); val known = id in visited
             put(JSONObject().put("id", id).put("visited", known)
-              .put("name", if (known) environment(r, definition).name else "Chưa khám phá")
+              .put("name", if (known) displayName(g, id, definition) else "Chưa khám phá")
               .put("marked", p.getJSONObject("markers").has(id))
               .put("traced", if (known) p.getJSONObject("environmentChanges").optJSONObject(id)?.optBoolean("trace") == true else false)
               .put("adjacentRoomIds", JSONArray(if (known) knownNeighbors(g, p, id) else emptyList<String>())))

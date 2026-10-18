@@ -121,3 +121,8 @@ Refactor verification: Core Kotlin 2.3.0 and Java 17 compilation PASS; **108 JUn
 
 - Once inspected, a blocked optional passage can expose a generic explanation of missing evidence or need for physical manipulation; public map contains no passage ID, hidden endpoint or condition identifier.
 - An interrupted Core puzzle probe persists its reserved pending action; retry neither grants facts twice nor rerolls RNG. GM narration cannot award puzzle flags or change the Level route. Pending combat blocks exploration, while Core EXP and loot updates leave prior evidence and markers intact. Offline tests exercise these boundaries; live combat retreat and real-device interruptions remain outside this proof.
+
+
+## Multi-room visual distinction
+
+- Rooms sharing an authored environment retain the same Canon environmentId and snapshot. Once visited, MAP and the room header distinguish them using stable position numbers derived from the saved graph; unvisited rooms remain anonymous. These numbers are gameplay display labels, not Canon geography or traversal order.
