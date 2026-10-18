@@ -104,6 +104,38 @@ class Level0WorldExplorationTest {
     assertThrows(IllegalArgumentException::class.java) { MiniMapRuntime.stage(repo.state, JSONObject(cmd)) }
   }
 
+  @Test fun verbatimPlayerTextSurvivesRetrySaveAndDoesNotBecomeTheActionLabel() {
+    val repo = MemorySave(world(59L))
+    val rng = CountingRng()
+    var core = facade(repo, rng)
+    val cmd = command(repo.state, "observe")
+    val actionId = JSONObject(cmd).getString("actionId")
+    val original = "  Tôi muốn nhìn kỹ những vệt nước, đừng tự viết lại lời tôi!  "
+    core.beginSceneAction(cmd, original)
+    val reserved = JSONObject(repo.state.world.getValue(MiniMapRuntime.PENDING))
+    assertEquals(original, reserved.getString("playerText"))
+    val afterFirstReserve = rng.calls
+    repo.state = GameStateCodec.decode(GameStateCodec.encode(repo.state))
+    core = facade(repo, rng)
+    core.beginSceneAction(cmd, "Câu khác không được phép ghi đè pending")
+    assertEquals(original, JSONObject(repo.state.world.getValue(MiniMapRuntime.PENDING)).getString("playerText"))
+    assertEquals(afterFirstReserve, rng.calls)
+    core.commitSceneAction(actionId, "Đã quan sát.", "{}")
+    val receipt = JSONObject(repo.state.world.getValue(MiniMapRuntime.RECEIPT))
+    assertEquals(original, receipt.getString("playerText"))
+    assertNotEquals(original, receipt.getString("label"))
+    val visible = JSONObject(core.currentClientState("{}"))
+    val lines = MiniMapScenario.objects(visible.getJSONArray("log")).filter {
+      it.optString("sceneActionId") == actionId
+    }
+    assertEquals(1, lines.size)
+    assertEquals("player", lines.single().getString("role"))
+    assertEquals(original, lines.single().getString("text"))
+    assertFalse(visible.toString().contains("Câu khác không được phép"))
+    val decoded = GameStateCodec.decode(GameStateCodec.encode(repo.state))
+    assertEquals(original, JSONObject(decoded.world.getValue(MiniMapRuntime.RECEIPT)).getString("playerText"))
+  }
+
   @Test fun observationsAndPersonalMapMarkersDoNotRollPhysicalEncounters() {
     val repo = MemorySave(world()); val rng = CountingRng(); val core = facade(repo, rng)
     for (target in listOf("observe", "mark", "observe")) {
