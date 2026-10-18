@@ -120,7 +120,7 @@ class MiniMapRuntimeTest {
     assertFalse(MiniMapRuntime.complete(repo.state))
     apply(core, repo, "lever_3_up")
     assertTrue(MiniMapRuntime.complete(repo.state))
-    assertEquals(0, rng.calls, "Mechanical inputs must not randomly spawn enemies")
+    assertEquals("Mechanical inputs must not randomly spawn enemies", 0, rng.calls)
     assertEquals(1, MiniMapScenario.objects(MiniMapRuntime.progress(repo.state).getJSONArray("records"))
       .count { it.getString("kind") == "MECHANISM" })
     assertTrue(MiniMapScenario.objects(MiniMapRuntime.actions(repo.state))
