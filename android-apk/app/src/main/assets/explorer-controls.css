@@ -103,3 +103,49 @@
 #explorerChoices:has(.explorer-next-area-panel:not([hidden])) .explorer-choice-list{
   max-height:calc(min(78vh,640px) - 260px)
 }
+
+
+/* MAP / Area Log / Giao tiếp share the compact row.
+   Player Action and red Retry occupy exactly the same full-width lower slot. */
+#explorerControls .explorer-action-slot{position:relative;isolation:isolate;margin-top:8px}
+#explorerControls .explorer-action-slot button{
+  display:block;width:100%;min-height:58px;padding:13px 18px;font-weight:800;
+  color:#ead6a7;border:1px solid #7c6847;background:linear-gradient(145deg,#26302b,#141b19)
+}
+#explorerControls .explorer-action-slot button[hidden]{display:none!important}
+#explorerControls .explorer-action-slot .explorer-retry-danger{
+  color:#fff0ed!important;border-color:#c7635f!important;
+  background:linear-gradient(145deg,#8d292c,#54191d)!important
+}
+#explorerControls .explorer-action-slot::after{
+  content:'';position:absolute;inset:0;z-index:1;pointer-events:none;
+  border:18px solid transparent;
+  border-image:var(--ornate-frame) var(--ornate-slice) / 18px / 4.5px 3.6px stretch
+}
+#explorerControls .explorer-action-slot:has(>button:not([hidden]):disabled)::after{opacity:.42}
+#explorerControls .explorer-action-slot button:disabled{opacity:.42}
+#explorerPlayerAction{
+  color:#ecdec0;background:#151c1e;border:2px solid #aa9364;
+  width:min(92vw,480px);max-height:80vh;padding:16px;overflow:auto
+}
+#explorerPlayerAction::backdrop{background:#000b}
+#explorerPlayerAction .explorer-dialog-header{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px
+}
+#explorerPlayerAction .explorer-dialog-header button{width:44px;min-height:44px}
+#explorerPlayerAction textarea{
+  display:block;width:100%;min-height:130px;resize:vertical;line-height:1.5;
+  background:#0b1112;color:#f2e8d4;border:1px solid #87724f
+}
+#explorerPlayerAction #explorerActionText+button{
+  display:block;width:100%;min-height:52px;margin-top:12px;
+  background:#2a392b;border-color:#78936f;color:#edffe7
+}
+#explorerPlayerAction #explorerActionText+button:disabled{opacity:.4}
+#explorerChoices .explorer-map-scroll{max-width:100%;overflow:auto;padding:12px 4px}
+#explorerChoices .explorer-map-scroll svg{display:block;max-height:52vh}
+#explorerChoices .explorer-map-legend{font-size:12px;color:#c6b68e}
+#explorerChoices .explorer-area-event{
+  padding:10px 12px;margin:0 0 8px;
+  border-left:2px solid #b59b65;background:#202829;color:#e5e1d5;line-height:1.5
+}
