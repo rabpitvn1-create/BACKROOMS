@@ -10,24 +10,6 @@ object Level0WorldDefinition : WorldDefinition {
   override val version = 4
   override val objective = "Khám phá Level 0 và ghi nhận những gì có thể kiểm chứng."
   override val requireAlternateRoutes = true
-  /** Provisional encounter pacing, NOT a Canon Entity habitat declaration.
-   * Calibrated to allow long, reversible investigation without forcing repeated
-   * fights on every return walk; existing NPC first-meeting tables are untouched. */
-  override fun movementEncounterChanceBp(environmentId: String, revisiting: Boolean): Int {
-    val zone = environments.first { it.id == environmentId }.zoneId
-    val (newRoom, returnVisit) = when (zone) {
-      "yellow_rot" -> 650 to 250
-      "deadlight" -> 1100 to 400
-      "wetfloor" -> 1050 to 400
-      "silent_hall" -> 800 to 300
-      "hollow_ceiling" -> 1150 to 450
-      "afterimage" -> 850 to 350
-      "the_loop" -> 950 to 350
-      "the_fracture" -> 1200 to 450
-      else -> error("level0_encounter_zone")
-    }
-    return if (revisiting) returnVisit else newRoom
-  }
   override val passageConditions = setOf("wet-ceiling", "loop-reflection")
   override val evidenceLaws = listOf(
     WorldEvidenceLaw("wet-ceiling", WorldLawFamily.PHYSICAL_CORRELATION, listOf(

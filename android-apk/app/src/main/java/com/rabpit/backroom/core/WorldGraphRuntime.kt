@@ -212,21 +212,6 @@ object WorldGraphRuntime {
   private fun presentCharacters(state: GameState) = state.characters.values.filter {
     it.id != CAO_MINH_ID && characterPresent(state, it)
   }
-  /** The Core receives a validated staged destination. Compare visited state
-   * from BEFORE the move so returning to a known room has lower encounter risk. */
-  fun movementEncounterChanceBp(before: JSONObject, staged: JSONObject,
-    definition: WorldDefinition = definition(before)): Int {
-    require(before.getString("nodeId") == staged.getString("nodeId") &&
-      before.getJSONObject(GRAPH).toString() == staged.getJSONObject(GRAPH).toString()) { "world_encounter_graph" }
-    val destination = staged.getString("roomId")
-    require(destination != before.getString("roomId")) { "world_encounter_stationary" }
-    val known = destination in strings(before.getJSONArray("visitedRooms"))
-    val value = definition.movementEncounterChanceBp(
-      environment(room(before.getJSONObject(GRAPH), destination), definition).id, known)
-    require(value in 0..EntitySpawnPool.TOTAL_BP) { "world_encounter_policy" }
-    return value
-  }
-
   fun actions(state: GameState, p: JSONObject, definition: WorldDefinition = definition(p)): JSONArray {
     require(MiniMapRuntime.node(state).id == definition.nodeId && p.getString("nodeId") == definition.nodeId) { "world_node_scope" }
     val out = JSONArray()
