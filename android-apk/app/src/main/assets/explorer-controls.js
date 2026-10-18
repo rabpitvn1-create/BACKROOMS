@@ -12,6 +12,11 @@
     b.onclick=()=>kind==='MAP'?openMap():kind==='AREA_LOG'?openAreaLog():openTalk();
     buttons[kind]=b;slot.appendChild(b);row.appendChild(slot);
   });
+  const objectivePanel=document.createElement('section');objectivePanel.className='explorer-current-objective';
+  objectivePanel.setAttribute('aria-label','Mục tiêu mini-map');objectivePanel.hidden=true;
+  const objectiveLabel=document.createElement('strong');objectiveLabel.textContent='Mục tiêu hiện tại';
+  const objectiveText=document.createElement('p');objectiveText.id='explorerCurrentObjective';
+  objectivePanel.append(objectiveLabel,objectiveText);
   const actionSlot=document.createElement('div');actionSlot.className='explorer-action-slot';
   const playerAction=document.createElement('button');playerAction.type='button';
   playerAction.id='explorerPlayerButton';playerAction.textContent='Player Action';
@@ -29,7 +34,7 @@
       else{busy=false;refresh();}
     }catch(e){global.backroomError('Không gửi được yêu cầu thử lại tới Core.');}
   };
-  actionSlot.append(playerAction,retry);panel.append(row,actionSlot);bar.appendChild(panel);
+  actionSlot.append(playerAction,retry);panel.append(row,objectivePanel,actionSlot);bar.appendChild(panel);
   const dialog=document.createElement('dialog');dialog.id='explorerChoices';dialog.setAttribute('aria-label','Chọn tương tác');
   const header=document.createElement('div');header.className='explorer-dialog-header';
   const heading=document.createElement('strong');heading.textContent='Chọn tương tác';
@@ -205,6 +210,9 @@
     const scene=state&&state.scene,combat=!!(state&&state.combat&&state.combat.active);
     panel.hidden=combat||!scene;form.hidden=!combat;
     journal.hidden=true; // Area Log replaces the obsolete clue/answer journal.
+    const currentObjective=typeof scene?.objective==='string'?scene.objective.trim():'';
+    objectivePanel.hidden=!currentObjective;
+    if(objectiveText.textContent!==currentObjective)objectiveText.textContent=currentObjective;
     if(!scene)return;
     room.textContent='';objective.textContent='';records.replaceChildren();
     if(inference)inference.textContent='';
