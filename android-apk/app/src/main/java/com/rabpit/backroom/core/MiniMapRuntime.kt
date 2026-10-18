@@ -82,6 +82,9 @@ object MiniMapRuntime {
         "${npc.getString("name")} · ${a.getString("label")}"
       } else a.getString("label")
       add(a.getString("kind"), a.getString("id"), label)
+      val effect = a.getJSONObject("effect")
+      if (effect.getString("type") == "STEP")
+        out.getJSONObject(out.length() - 1).put("mechanismId", effect.getString("mechanismId"))
     }
     presentCharacters(state).forEach { character ->
       dialogueTopics.forEach { (topicId, label) -> add("TALK", "character:${character.id}:$topicId", "${character.name} · $label") }
@@ -310,6 +313,10 @@ object MiniMapRuntime {
       JSONObject().put("name", it.getString("name")).put("description", it.getString("description"))
     } else JSONObject().put("description", "Đang tới phân đoạn tiếp theo; chưa khám phá căn phòng mới.")
     val event = JSONObject().put("kind", kind).put("interaction", label).put("result", line).put("node", nodeId).put("room", roomPublic)
+    if (kind == "SEARCH" && s.getJSONArray("interactions").let { interactions ->
+      MiniMapScenario.objects(interactions).any { it.getString("id") == target &&
+        it.getJSONObject("effect").getString("type") == "STEP" }
+    }) event.put("mechanismStep", true)
       .put("miniIndex", p.getInt("index"))
       .put("observations", if (nextScript != null) publicRecords(nextScript, p) else JSONArray())
       .put("npcs", if (nextScript != null && p.getString("roomId").isNotEmpty())
