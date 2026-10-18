@@ -79,10 +79,10 @@ test('device controls use one popup, preserve Core commands and stay open across
 test('mechanism button presses use local Core narration, not a remote GM call',()=>{
   const runtimeSource=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/core/MiniMapRuntime.kt'),'utf8');
   const java=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/MainActivity.java'),'utf8');
-  assert.match(runtimeSource,/put\\("mechanismId", effect\\.getString\\("mechanismId"\\)\\)/);
-  assert.match(runtimeSource,/event\\.put\\("mechanismStep", true\\)/);
-  assert.match(java,/stagedEvent\\.optBoolean\\("mechanismStep", false\\)/);
-  assert.match(java,/stagedEvent\\.getString\\("result"\\)/);
+  assert.ok(runtimeSource.includes('put("mechanismId", effect.getString("mechanismId"))'));
+  assert.ok(runtimeSource.includes('event.put("mechanismStep", true)'));
+  assert.ok(java.includes('stagedEvent.optBoolean("mechanismStep", false)'));
+  assert.ok(java.includes('stagedEvent.getString("result")'));
 });
 test('completed mini-map uses a distinct dark-green next-area choice with Core-authored label',()=>{
   const normal={actionId:'r:0:9:MOVE:room:lab',sceneVersion:9,roomId:'hall',kind:'MOVE',targetId:'room:lab',label:'Kho hồ sơ'};
