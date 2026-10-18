@@ -25,7 +25,7 @@ function runtime(scene={}){
       showModal(){this.open=true;},close(){this.open=false;}
     };
   }
-  elements.playerActionBar=element();elements.form=element();elements.log=element();
+  elements.playerActionBar=element();elements.form=element();elements.log=element();elements.status=element();
   for(const id of ['sceneJournal','sceneJournalRoom','sceneJournalObjective','sceneJournalRecords'])elements[id]=element();
   const calls=[];
   const document={getElementById:id=>elements[id],createElement:element,createElementNS:element,body:element()};
@@ -34,7 +34,7 @@ function runtime(scene={}){
     appendActionPending(){},backroomTurn(json){ctx.state=JSON.parse(json);ctx.busy=false;},backroomError(){ctx.busy=false;}};
   ctx.window=ctx;vm.runInNewContext(source,ctx);
   const panel=elements.playerActionBar.children[0],dialog=document.body.children[0];
-  return {ctx,calls,panel,dialog,actionDialog:document.body.children[1],buttons:panel.children[0].children.map(slot=>slot.children[0]),objectivePanel:panel.children[1],objectiveText:panel.children[1].children[1],player:panel.children[2].children[0],retry:panel.children[2].children[1],journal:elements.sceneJournal,room:elements.sceneJournalRoom,objective:elements.sceneJournalObjective,records:elements.sceneJournalRecords,log:elements.log};
+  return {ctx,calls,panel,dialog,actionDialog:document.body.children[1],buttons:panel.children[0].children.map(slot=>slot.children[0]),objectivePanel:panel.children[1],objectiveText:panel.children[1].children[1],player:panel.children[2].children[0],retry:panel.children[2].children[1],journal:elements.sceneJournal,room:elements.sceneJournalRoom,objective:elements.sceneJournalObjective,records:elements.sceneJournalRecords,log:elements.log,status:elements.status};
 }
 test('MAP, Area Log, Giao tiếp occupy the top row; Player Action and Retry share the bottom slot',()=>{
   const r=runtime();
@@ -247,6 +247,34 @@ test('Player Action error preserves text and Retry replaces the bottom button wi
   partial.ctx.backroomPlayerActionError(JSON.stringify({committed:1,message:'Đã dừng'}));
   assert.equal(partial.player.hidden,false,'partial commits must not expose replay-from-start Retry');
   assert.equal(partial.calls.length,1);
+});
+test('Player Action reports one-based stopped step and Vietnamese reason without offering replay',()=>{
+  const r=runtime();r.player.onclick();
+  r.actionDialog.children[1].value='Đi qua hai phòng';r.actionDialog.children[1].oninput();
+  r.actionDialog.children[2].onclick();
+  r.ctx.backroomPlayerActionFinished(JSON.stringify({executed:1,requested:2,
+    completed:false,stopCode:'invalid_route',stoppedStep:2,
+    message:'Không có lối đi hợp lệ đến vị trí đã yêu cầu.'}));
+  assert.match(r.status.textContent,/Đã xác nhận 1 bước/);
+  assert.match(r.status.textContent,/Dừng tại bước 2/);
+  assert.match(r.status.textContent,/Không có lối đi hợp lệ/);
+  assert.equal(r.retry.hidden,true,'do not replay already committed moves');
+  assert.equal(r.player.hidden,false);
+});
+test('pending GM failure retries saved Core command after partial Player Action commits',()=>{
+  const r=runtime();r.player.onclick();
+  r.actionDialog.children[1].value='Đi qua hai phòng';r.actionDialog.children[1].oninput();
+  r.actionDialog.children[2].onclick();
+  r.ctx.backroomTurn(JSON.stringify({...r.ctx.state,scene:{...r.ctx.state.scene,
+    pendingActionId:'run:2:SEARCH:panel'}}));
+  r.ctx.backroomPlayerActionError(JSON.stringify({committed:1,requested:2,
+    stopCode:'narration_failed',stoppedStep:2,
+    message:'Gehihi chưa hoàn tất lời kể. Bước đang chờ được giữ nguyên.'}));
+  assert.match(r.status.textContent,/Dừng tại bước 2/);
+  assert.equal(r.retry.hidden,false);
+  r.retry.onclick();
+  assert.deepEqual(r.calls.map(x=>x[0]),['player','action']);
+  assert.equal(r.calls[1][1],'RETRY');
 });
 test('existing ornate frames and Gemini logo are used in Explorer controls',()=>{
   const css=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/explorer-controls.css'),'utf8');
