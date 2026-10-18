@@ -60,16 +60,16 @@ class GameCoreFacade private constructor(
    * interactions in rooms the player has not reached. */
   @Synchronized fun scenePlayerActionContext(): String {
     val state = loadCurrentState()
-    val public = MiniMapRuntime.publicView(state)
-    val map = public.optJSONObject("map") ?: error("scene_not_ready")
+    val view = MiniMapRuntime.publicView(state)
+    val map = view.optJSONObject("map") ?: error("scene_not_ready")
     val rooms = MiniMapScenario.objects(map.getJSONArray("rooms"))
     val discovered = rooms.filter { it.optBoolean("visited", false) }.map { it.getString("id") }.toSet()
     return JSONObject().put("currentRoomId", map.getString("currentRoomId"))
-      .put("nodeId", public.getString("nodeId"))
-      .put("miniIndex", public.getInt("miniIndex"))
+      .put("nodeId", view.getString("nodeId"))
+      .put("miniIndex", view.getInt("miniIndex"))
       .put("rooms", map.getJSONArray("rooms"))
       .put("availableActions", JSONArray().apply {
-        MiniMapScenario.objects(public.getJSONArray("availableActions")).forEach { action ->
+        MiniMapScenario.objects(view.getJSONArray("availableActions")).forEach { action ->
           if (action.getString("kind") !in setOf("MOVE", "SEARCH")) return@forEach
           val targetId = action.getString("targetId")
           val label = if (action.getString("kind") == "MOVE" && targetId.startsWith("room:") &&
