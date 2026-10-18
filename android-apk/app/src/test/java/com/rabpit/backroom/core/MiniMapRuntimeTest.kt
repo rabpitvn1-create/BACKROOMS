@@ -832,9 +832,13 @@ class MiniMapRuntimeTest {
       core.acceptSceneGeneration(MiniMapRuntime.token(repo.state),outline("0.1").toString())
     }
     assertEquals(old,GameStateCodec.encode(repo.state))
-    val wrongNode=repo.state.copy(world=repo.state.world+
-      ("levelJson" to LevelRouteRegistry.node("0.1").asJson().toString()))
+    val otherProgress=MiniMapRuntime.progress(repo.state)
+      .put("nodeId","0.1").put("parent",0).put("roomId","")
+    val wrongNode=repo.state.copy(world=repo.state.world+mapOf(
+      MiniMapRuntime.STATE to otherProgress.toString(),
+      "levelJson" to LevelRouteRegistry.node("0.1").asJson().toString()))
     assertThrows(IllegalArgumentException::class.java) { MiniMapRuntime.generationRequest(wrongNode) }
+    assertFalse(MiniMapRuntime.publicView(wrongNode).getBoolean("generationNeeded"))
     assertEquals(0,MiniMapRuntime.actions(wrongNode).length())
   }
   @Test fun firstSevenMiniMapsRejectCrossNodeCommandsAndAdvanceOnlyLocally() {
