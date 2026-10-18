@@ -363,11 +363,11 @@ object MiniMapRuntime {
       JSONObject().put("name", it.getString("name")).put("description", it.getString("description"))
     } else JSONObject().put("description", "Đang tới phân đoạn tiếp theo; chưa khám phá căn phòng mới.")
     val event = JSONObject().put("kind", kind).put("interaction", label).put("result", line).put("node", nodeId).put("room", roomPublic)
-    if (kind == "SEARCH" && s.getJSONArray("interactions").let { interactions ->
-      MiniMapScenario.objects(interactions).any { it.getString("id") == target &&
+    val deviceStep = kind == "SEARCH" && MiniMapScenario.objects(s.getJSONArray("interactions"))
+      .any { it.getString("id") == target &&
         it.getJSONObject("effect").getString("type") == "STEP" }
-    }) event.put("mechanismStep", true)
-      .put("miniIndex", p.getInt("index"))
+    if (deviceStep) event.put("mechanismStep", true)
+    event.put("miniIndex", p.getInt("index"))
       .put("observations", if (nextScript != null) publicRecords(nextScript, p) else JSONArray())
       .put("npcs", if (nextScript != null && p.getString("roomId").isNotEmpty())
         authoredNpcs(nextScript, p.getString("roomId")) else JSONArray())
