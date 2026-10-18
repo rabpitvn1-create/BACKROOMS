@@ -63,18 +63,22 @@ test('device controls use one popup, preserve Core commands and stay open across
   assert.equal(r.dialog.children[1].children.length,3,'back button and two physical controls');
   r.dialog.children[1].children[1].onclick();
   assert.equal(r.calls.length,1);
+  assert.equal(r.ctx.backroomFreezeSnapshot,true,'stationary controls freeze Snapshot while Core processes input');
   assert.equal(r.dialog.open,true,'popup remains open for multi-step puzzle');
   assert.deepEqual(JSON.parse(r.calls[0][1]),{
     actionId:'run:0:3:SEARCH:up',sceneVersion:3,roomId:'panel',kind:'SEARCH',targetId:'up'
   });
   const next={...r.ctx.state,scene:{...r.ctx.state.scene,availableActions:[lever('up',4),lever('down',4)]}};
   r.ctx.backroomTurn(JSON.stringify(next));
+  assert.equal(r.ctx.backroomFreezeSnapshot,false,'Snapshot freeze clears after Core acknowledgement');
   assert.equal(r.dialog.open,true);
   r.dialog.children[1].children[2].onclick();
   assert.equal(r.calls.length,2);
+  assert.equal(r.ctx.backroomFreezeSnapshot,true);
   assert.equal(JSON.parse(r.calls[1][1]).sceneVersion,4,'the popup must use refreshed Core choices');
   r.ctx.backroomTurn(JSON.stringify({...next,scene:{...next.scene,availableActions:[],completed:true}}));
   assert.equal(r.dialog.open,false,'Core completion automatically closes the device popup');
+  assert.equal(r.ctx.backroomFreezeSnapshot,false,'completed mechanism resumes normal snapshot rendering');
 });
 test('mechanism button presses use local Core narration, not a remote GM call',()=>{
   const runtimeSource=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/core/MiniMapRuntime.kt'),'utf8');
@@ -83,6 +87,13 @@ test('mechanism button presses use local Core narration, not a remote GM call',(
   assert.ok(runtimeSource.includes('event.put("mechanismStep", true)'));
   assert.ok(java.includes('stagedEvent.optBoolean("mechanismStep", false)'));
   assert.ok(java.includes('stagedEvent.getString("result")'));
+  assert.ok(java.includes('renderSnapshot=function(){if(window.backroomFreezeSnapshot)return;'));
+  assert.ok(java.includes('if(!window.backroomFreezeSnapshot&&cinema&&previousScene)cinema.play'));
+  assert.ok(java.includes('if(should&&!window.backroomFreezeSnapshot)requestSnapshot()'));
+  assert.ok(runtimeSource.includes('if (deviceControl) "DEVICE"') === false,
+    'device routing belongs to GameCoreFacade, not the scene model');
+  const facade=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt'),'utf8');
+  assert.ok(facade.includes('if (deviceControl) "DEVICE" else "EXECUTE"'));
 });
 test('completed mini-map uses a distinct dark-green next-area choice with Core-authored label',()=>{
   const normal={actionId:'r:0:9:MOVE:room:lab',sceneVersion:9,roomId:'hall',kind:'MOVE',targetId:'room:lab',label:'Kho hồ sơ'};
