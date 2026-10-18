@@ -27,7 +27,7 @@
   const choices=document.createElement('div');choices.className='explorer-choice-list';
   const nextArea=document.createElement('section');nextArea.className='explorer-next-area-panel';nextArea.hidden=true;
   dialog.append(header,choices,nextArea);document.body.appendChild(dialog);
-  let preparing=false,failed=false;
+  let preparing=false,failed=false,activeMechanismId=null;
   function writerPending(provider){
     const log=document.getElementById('log');if(!log)return;
     let pending=log.querySelector('[data-scene-preparing="1"]');
@@ -56,26 +56,54 @@
   }
   global.backroomSceneWriterProvider=()=>{if(preparing)writerPending();};
   function locked(){return busy||coreUnavailable||!!state.pendingEncounter||!!(state.combat&&state.combat.active);}
+  function submitChoice(a,keepPopup){
+    if(locked())return;
+    // Only versioned Core choices are submitted. The UI never sees the solution.
+    const command={actionId:a.actionId,sceneVersion:a.sceneVersion,roomId:a.roomId,kind:a.kind,targetId:a.targetId};
+    if(!keepPopup)dialog.close();
+    busy=true;
+    if(keepPopup)choices.children.forEach(b=>{b.disabled=true;});
+    else appendActionPending(a.label);
+    refresh();
+    try{Android.submitSceneAction(JSON.stringify(state),JSON.stringify(command));}
+    catch(e){global.backroomError('Không gửi được hành động tới Core.');}
+  }
+  function showMechanism(id){
+    activeMechanismId=id;
+    heading.textContent='Bảng điều khiển';
+    choices.replaceChildren();nextArea.replaceChildren();nextArea.hidden=true;
+    const controls=(state.scene?.availableActions||[]).filter(a=>a.kind==='SEARCH'&&a.mechanismId===id);
+    if(!controls.length){activeMechanismId=null;dialog.close();return;}
+    const back=document.createElement('button');back.type='button';back.textContent='Quay lại';
+    back.onclick=()=>open('SEARCH');choices.appendChild(back);
+    controls.forEach(a=>{
+      const b=document.createElement('button');b.type='button';b.textContent=a.label;
+      b.onclick=()=>submitChoice(a,true);choices.appendChild(b);
+    });
+  }
   function open(kind){
-    if(locked())return;choices.replaceChildren();nextArea.replaceChildren();nextArea.hidden=true;
+    if(locked())return;
+    activeMechanismId=null;heading.textContent='Chọn tương tác';
+    choices.replaceChildren();nextArea.replaceChildren();nextArea.hidden=true;
     const scene=state.scene;if(!scene)return;
+    const groups=new Set();
     (scene.availableActions||[]).filter(a=>a.kind===kind).forEach(a=>{
+      if(kind==='SEARCH'&&a.mechanismId){
+        if(groups.has(a.mechanismId))return;
+        groups.add(a.mechanismId);
+        const b=document.createElement('button');b.type='button';
+        b.textContent=groups.size===1?'Bảng điều khiển':'Bảng điều khiển '+groups.size;
+        b.onclick=()=>showMechanism(a.mechanismId);
+        choices.appendChild(b);return;
+      }
       const isNextArea=kind==='MOVE'&&(a.targetId==='next'||a.targetId.startsWith('node:'));
-      const b=document.createElement('button');b.type='button';
-      b.textContent=a.label;
+      const b=document.createElement('button');b.type='button';b.textContent=a.label;
       if(isNextArea)b.className='explorer-next-area-option';
-      b.onclick=()=>{
-        if(locked())return;
-        // Capture the exact versioned Core choice; a stale popup is rejected by Core.
-        const command={actionId:a.actionId,sceneVersion:a.sceneVersion,roomId:a.roomId,kind:a.kind,targetId:a.targetId};
-        dialog.close();busy=true;appendActionPending(a.label);refresh();
-        try{Android.submitSceneAction(JSON.stringify(state),JSON.stringify(command));}
-        catch(e){global.backroomError('Không gửi được hành động tới Core.');}
-      };
+      b.onclick=()=>submitChoice(a,false);
       if(isNextArea){nextArea.appendChild(b);nextArea.hidden=false;}
       else choices.appendChild(b);
     });
-    dialog.showModal();
+    if(!dialog.open)dialog.showModal();
   }
   function refresh(){
     const scene=state&&state.scene,combat=!!(state&&state.combat&&state.combat.active);
@@ -103,7 +131,12 @@
   // The combat system still owns its direct action form; Explorer has no text input.
   form.addEventListener('submit',e=>{if(!(state.combat&&state.combat.active)){e.preventDefault();e.stopImmediatePropagation();}},true);
   const turn=global.backroomTurn,error=global.backroomError;
-  global.backroomTurn=function(json){preparing=false;failed=false;clearWriterPending();if(turn)turn(json);refresh();};
+  global.backroomTurn=function(json){
+    preparing=false;failed=false;clearWriterPending();if(turn)turn(json);refresh();
+    // A device remains in the same popup across taps. If Core solved it,
+    // the device controls disappear and the popup closes automatically.
+    if(activeMechanismId&&dialog.open&&!busy)showMechanism(activeMechanismId);
+  };
   global.backroomError=function(message){preparing=false;failed=true;clearWriterPending();if(error)error(message);refresh();};
   global.backroomSyncExplorer=refresh;
   refresh();
