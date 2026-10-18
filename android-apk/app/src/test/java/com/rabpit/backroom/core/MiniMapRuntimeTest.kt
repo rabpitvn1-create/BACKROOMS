@@ -132,10 +132,11 @@ class MiniMapRuntimeTest {
     assertFalse(log.contains("đỏ"))
     assertFalse(log.contains("paper"))
     assertFalse(log.contains("manh mối"))
+    assertTrue(log.contains("Đã ghi nhận dấu vết tại Kho hồ sơ."))
     // Retracing a room does not create another discovery event.
     apply(core, repo, "room:hall")
     apply(core, repo, "room:lab")
-    assertEquals(1, MiniMapRuntime.publicView(repo.state).getJSONArray("areaLog").length())
+    assertEquals(2, MiniMapRuntime.publicView(repo.state).getJSONArray("areaLog").length())
   }
 
   @Test fun sequencePuzzleRequiresDeductionAndCorrectControlOrderWithPersistentRetries() {
@@ -168,6 +169,10 @@ class MiniMapRuntimeTest {
     apply(core, repo, "lever_3_up")
     assertFalse(MiniMapRuntime.complete(repo.state))
     assertEquals(0, MiniMapRuntime.progress(repo.state).getJSONObject("mechanismPositions").getInt("door_lock"))
+    val discoveredDeviceEvents = MiniMapScenario.objects(MiniMapRuntime.publicView(repo.state).getJSONArray("areaLog"))
+    assertEquals(1, discoveredDeviceEvents.count { it.getString("type") == "DEVICE" })
+    assertFalse(discoveredDeviceEvents.toString().contains("lever_"))
+    assertFalse(discoveredDeviceEvents.toString().contains("1–1–2–2–3"))
     apply(core, repo, "lever_1_up")
     apply(core, repo, "lever_1_down")
     assertEquals(2, MiniMapRuntime.progress(repo.state).getJSONObject("mechanismPositions").getInt("door_lock"))
@@ -178,6 +183,8 @@ class MiniMapRuntimeTest {
     assertFalse(MiniMapRuntime.complete(repo.state))
     apply(core, repo, "lever_3_up")
     assertTrue(MiniMapRuntime.complete(repo.state))
+    assertEquals(1, MiniMapScenario.objects(MiniMapRuntime.publicView(repo.state).getJSONArray("areaLog"))
+      .count { it.getString("type") == "DEVICE" }, "Repeating controls must not duplicate device discovery")
     assertEquals("Mechanical inputs must not randomly spawn enemies", 0, rng.calls)
     val postDevice = JSONObject(repo.state.world.getValue("flagsJson"))
     assertEquals(7, postDevice.getJSONObject("exploration").getInt(SnapshotSceneProgress.STEP_KEY))
