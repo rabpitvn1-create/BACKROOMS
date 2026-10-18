@@ -28,6 +28,26 @@ class MiniMapRuntimeTest {
     {"id":"answer_right","kind":"SEARCH","roomId":"hall","label":"Chọn van phải","requires":{"op":"HAS","id":"answer_red"},"effect":{"type":"ANSWER","factId":"valve","value":"phải"}}],
     "goal":{"op":"AND","args":[{"op":"HAS","id":"answer_red"},{"op":"HAS","id":"answer_left"}]}}
   """.trimIndent())
+  private fun leverPuzzle(): JSONObject {
+    val scene = script()
+    val controls = listOf("lever_1_up", "lever_1_down", "lever_2_up",
+      "lever_2_down", "lever_3_up", "lever_3_down")
+    val labels = listOf("Gạt cần số 1 lên", "Gạt cần số 1 xuống", "Gạt cần số 2 lên",
+      "Gạt cần số 2 xuống", "Gạt cần số 3 lên", "Gạt cần số 3 xuống")
+    controls.forEachIndexed { i, control ->
+      scene.getJSONArray("interactions").put(JSONObject()
+        .put("id", control).put("kind", "SEARCH").put("roomId", "hall")
+        .put("label", labels[i]).put("requires", JSONObject("""{"op":"TRUE"}"""))
+        .put("effect", JSONObject().put("type", "STEP").put("mechanismId", "door_lock")))
+    }
+    scene.put("mechanisms", JSONArray().put(JSONObject().put("id", "door_lock")
+      .put("clueId", "paper").put("steps", JSONArray()
+        .put("lever_1_up").put("lever_1_down").put("lever_2_up")
+        .put("lever_2_down").put("lever_3_up"))))
+      .put("goal", JSONObject().put("op", "HAS").put("id", "door_lock"))
+    return scene
+  }
+
   private fun state(level: Int = 0, index: Int = 1, nodeId: String = level.toString()): GameState {
     val node = LevelRouteRegistry.node(nodeId)
     var state = MiniMapRuntime.initialize(CoreClientProjection.initialize(GameState.initial()).let {
@@ -65,6 +85,74 @@ class MiniMapRuntimeTest {
     core.beginSceneAction(command)
     core.commitSceneAction(JSONObject(command).getString("actionId"),"Cao Minh quan sát kết quả.","{}")
   }
+  @Test fun sequencePuzzleRequiresDeductionAndCorrectControlOrderWithPersistentRetries() {
+    val script = leverPuzzle()
+    assertEquals("investigation", MiniMapScenario.validate(script, "0", 1).getString("id"))
+    val base = state()
+    val progress = MiniMapRuntime.progress(base)
+    val scripted = base.copy(world = base.world + (MiniMapRuntime.scriptKey(progress) to script.toString()))
+    val repo = MemorySave(scripted)
+    val rng = CountingRng()
+    val core = facade(repo, rng)
+    // Six controls remain selectable, including the one decoy. Solving is not a
+    // matter of tapping each button once or answering immediately.
+    assertEquals(6, MiniMapScenario.objects(MiniMapRuntime.actions(repo.state)).count {
+      it.getString("targetId").startsWith("lever_")
+    })
+    apply(core, repo, "lever_2_up")
+    assertFalse(MiniMapRuntime.complete(repo.state))
+    assertEquals(0, MiniMapRuntime.progress(repo.state).getJSONObject("mechanismPositions").getInt("door_lock"))
+    apply(core, repo, "lever_1_up")
+    assertTrue(MiniMapScenario.objects(MiniMapRuntime.actions(repo.state)).any {
+      it.getString("targetId") == "lever_1_up"
+    })
+    // Wrong second input resets progress rather than unlocking or softlocking.
+    apply(core, repo, "lever_3_up")
+    assertFalse(MiniMapRuntime.complete(repo.state))
+    assertEquals(0, MiniMapRuntime.progress(repo.state).getJSONObject("mechanismPositions").getInt("door_lock"))
+    apply(core, repo, "lever_1_up")
+    apply(core, repo, "lever_1_down")
+    assertEquals(2, MiniMapRuntime.progress(repo.state).getJSONObject("mechanismPositions").getInt("door_lock"))
+    val afterReload = GameStateCodec.decode(GameStateCodec.encode(repo.state))
+    assertEquals(2, MiniMapRuntime.progress(afterReload).getJSONObject("mechanismPositions").getInt("door_lock"))
+    apply(core, repo, "lever_2_up")
+    apply(core, repo, "lever_2_down")
+    assertFalse(MiniMapRuntime.complete(repo.state))
+    apply(core, repo, "lever_3_up")
+    assertTrue(MiniMapRuntime.complete(repo.state))
+    assertEquals(0, rng.calls, "Mechanical inputs must not randomly spawn enemies")
+    assertEquals(1, MiniMapScenario.objects(MiniMapRuntime.progress(repo.state).getJSONArray("records"))
+      .count { it.getString("kind") == "MECHANISM" })
+    assertTrue(MiniMapScenario.objects(MiniMapRuntime.actions(repo.state))
+      .any { it.getString("targetId") == "next" })
+    assertFalse(MiniMapScenario.objects(MiniMapRuntime.actions(repo.state))
+      .any { it.getString("targetId").startsWith("lever_") })
+    assertFalse(MiniMapRuntime.publicView(repo.state).toString().contains("mechanismPositions"))
+    assertFalse(MiniMapRuntime.publicView(repo.state).toString().contains("lever_1_down"))
+  }
+
+  @Test fun invalidDeviceScriptsCannotCreateUnsolvableSequence() {
+    val missing = leverPuzzle().put("mechanisms", JSONArray().put(JSONObject()
+      .put("id", "door_lock").put("clueId", "unknown_evidence")
+      .put("steps", JSONArray().put("lever_1_up").put("lever_1_down")
+        .put("lever_2_up").put("lever_2_down").put("lever_3_up"))))
+    assertEquals("mechanism_missing_clue", assertThrows(IllegalArgumentException::class.java) {
+      MiniMapScenario.validate(missing, "0", 1)
+    }.message)
+    val short = leverPuzzle()
+    short.getJSONArray("mechanisms").getJSONObject(0)
+      .put("steps", JSONArray().put("lever_1_up").put("lever_3_up"))
+    assertEquals("mechanism_sequence", assertThrows(IllegalArgumentException::class.java) {
+      MiniMapScenario.validate(short, "0", 1)
+    }.message)
+    val hidden = leverPuzzle()
+    hidden.getJSONArray("interactions").getJSONObject(7)
+      .put("requires", JSONObject("""{"op":"HAS","id":"paper"}"""))
+    assertEquals("mechanism_control", assertThrows(IllegalArgumentException::class.java) {
+      MiniMapScenario.validate(hidden, "0", 1)
+    }.message)
+  }
+
   @Test fun sceneNamesMustUseVietnameseExceptCanonProperNames() {
     val hybrid = script()
     hybrid.getJSONArray("rooms").getJSONObject(0).put("name", "Khu Trần Giả Vòng Down")
@@ -116,9 +204,8 @@ class MiniMapRuntimeTest {
   @Test fun currentLevelZeroRejectsScenesThatPreviewLevelOne() {
     val concreteExit = script()
     concreteExit.getJSONArray("rooms").getJSONObject(0).put("name", "Lối ra vùng bê tông")
-    assertEquals("scene_canon_boundary", assertThrows(IllegalArgumentException::class.java) {
-      MiniMapScenario.validate(concreteExit, "0", 1)
-    }.message)
+    // A concrete wall or improvised mechanism is allowed inside Level 0.
+    assertEquals("investigation", MiniMapScenario.validate(concreteExit, "0", 1).getString("id"))
     val futureObjective = script().put("objective", "Đến Level 1 trước khi kết thúc nhiệm vụ")
     assertEquals("scene_canon_boundary", assertThrows(IllegalArgumentException::class.java) {
       MiniMapScenario.validate(futureObjective, "0", 1)
@@ -126,9 +213,7 @@ class MiniMapRuntimeTest {
     val futureProse = script()
     futureProse.getJSONArray("interactions").getJSONObject(0).put("observation",
       "Một khoảng hành lang công nghiệp xuất hiện ở đầu đường, ngay sát tấm thảm mục.")
-    assertEquals("scene_canon_boundary", assertThrows(IllegalArgumentException::class.java) {
-      MiniMapScenario.validate(futureProse, "0", 1)
-    }.message)
+    assertEquals("investigation", MiniMapScenario.validate(futureProse, "0", 1).getString("id"))
   }
 
   @Test fun observationsAndInferenceHideInternalEnumsAndOnlySuggestAvailableSteps() {
