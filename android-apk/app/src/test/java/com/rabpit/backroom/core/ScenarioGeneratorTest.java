@@ -50,7 +50,7 @@ public class ScenarioGeneratorTest {
     String prompt = ScenarioGenerator.prompt(input);
     // A size guard catches accidental reintroduction of verbose duplicated advice,
     // but correctness still depends on the schema and proof requirements below.
-    assertTrue(prompt.length() < 7000);
+    assertTrue("Bounded prompt including generic device contract", prompt.length() < 10500);
     assertTrue(prompt.contains("TÊN ĐỊA ĐIỂM:"));
     assertTrue(prompt.contains("Hành lang có góc khuất"));
     assertTrue(prompt.contains("Phòng có dây điện hở"));
@@ -59,8 +59,8 @@ public class ScenarioGeneratorTest {
     assertEquals(prompt.indexOf("INPUT="), prompt.lastIndexOf("INPUT="));
     for (String rule : new String[]{
       "4..12 phòng", "2..12 fact", "4..36", "0..12 NPC",
-      "2..5 giá trị", "4 SEARCH ANSWER", "CLUE/EVIDENCE",
-      ">=2 ANSWER", "35..320", "2 NPC",
+      "2..5 giá trị", "mechanisms:OPTIONAL", "CLUE/EVIDENCE",
+      ">=2 ANSWER", "35..320", "2 NPC", "mechanismId", "steps",
       "CANON", "Level 1", "Hollow Grasper",
       "Lời khai là thông tin NHÂN VẬT TỰ NHẬN", "độc lập"
     }) {
@@ -72,6 +72,8 @@ public class ScenarioGeneratorTest {
     assertTrue(outlinePrompt.contains("dependencyRefs"));
     assertTrue(outlinePrompt.contains("INPUT.nodeAnchor"));
     assertFalse(outlinePrompt.contains("nodeAnchor theo thứ tự:"));
+    assertTrue(outlinePrompt.contains("giải trình tự thiết bị"));
+    assertFalse(outlinePrompt.contains("nhặt hai manh mối rồi chọn câu trả lời"));
   }
 
   @Test public void quotaAndMalformedResponsesHaveBoundedAttemptsAndIndependentCircuit() throws Exception {
