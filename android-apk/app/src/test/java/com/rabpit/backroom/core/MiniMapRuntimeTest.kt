@@ -715,24 +715,33 @@ class MiniMapRuntimeTest {
     assertEquals(0,MiniMapRuntime.progress(repo.state).getJSONArray("records").length())
   }
 
-  @Test fun leavingLevelDeletesItsOutlineAndFinalPuzzleWithoutAnyBacktrackCache() {
-    val repo=MemorySave(solvedState(0,10))
+  @Test fun completingEighthMiniMapKeepsScriptAndOutlineWithoutEndingGame() {
+    val base=solvedState(0,8)
+    val p=MiniMapRuntime.progress(base)
+    val accepted=MiniMapScenario.strings(p.getJSONArray("accepted")).filter { it != "answer_left" }
+    p.put("accepted",JSONArray(accepted))
+    val repo=MemorySave(base.copy(world=base.world+(MiniMapRuntime.STATE to p.toString())))
     val core=facade(repo)
     core.acceptSceneGeneration(MiniMapRuntime.token(repo.state),outline("0").toString())
-    val p=MiniMapRuntime.progress(repo.state)
-    val scriptKey=MiniMapRuntime.scriptKey(p)
-    val outlineKey=MiniMapRuntime.outlineKey(p)
-    apply(core,repo,"node:0.1")
-    assertFalse(repo.state.world.containsKey(scriptKey))
-    assertFalse(repo.state.world.containsKey(outlineKey))
-    assertTrue(repo.state.world.keys.none { it.startsWith("scene.node.") })
-    assertEquals("0.1",MiniMapRuntime.progress(repo.state).getString("nodeId"))
-    assertEquals(0,MiniMapRuntime.progress(repo.state).getJSONArray("completed").length())
-    assertEquals(0,MiniMapRuntime.progress(repo.state).getJSONArray("records").length())
-    assertEquals("outline",JSONObject(core.sceneGenerationRequest()).getString("kind"))
-    assertFalse(LevelRouteRegistry.canMove("0.1","0"))
+    val scriptKey=MiniMapRuntime.scriptKey(p);val outlineKey=MiniMapRuntime.outlineKey(p)
+    assertFalse(MiniMapRuntime.complete(repo.state))
+    apply(core,repo,"answer_left")
+    assertTrue(MiniMapRuntime.complete(repo.state))
+    assertEquals("0",MiniMapRuntime.progress(repo.state).getString("nodeId"))
+    assertEquals(8,MiniMapRuntime.progress(repo.state).getInt("index"))
+    assertTrue(repo.state.world.containsKey(scriptKey))
+    assertTrue(repo.state.world.containsKey(outlineKey))
+    assertFalse(MiniMapRuntime.publicView(repo.state).getBoolean("awaitingEnding"))
+    assertFalse(MiniMapRuntime.publicView(repo.state).getBoolean("nodeExitUnlocked"))
+    assertFalse(MiniMapRuntime.publicView(repo.state).getBoolean("generationNeeded"))
+    assertEquals("ready",JSONObject(core.sceneGenerationRequest()).getString("kind"))
+    val actions=MiniMapScenario.objects(MiniMapRuntime.actions(repo.state))
+    assertFalse(actions.any { it.getString("targetId")=="next" || it.getString("targetId").startsWith("node:") })
+    assertTrue(JSONObject(core.saveManualCheckpoint(core.currentClientState("{}"))).getBoolean("ok"))
+    assertTrue(JSONObject(core.loadManualCheckpoint()).getBoolean("ok"))
+    assertEquals(8,MiniMapRuntime.progress(repo.state).getInt("index"))
+    assertTrue(repo.state.world.containsKey(scriptKey))
   }
-
   @Test fun typedSpawnGateDoesNotConsumeRngOnTalkOrCombat() {
     var calls=0;val rng:(Int)->Int={ calls++;9999 }
     val s=state()
@@ -741,21 +750,24 @@ class MiniMapRuntimeTest {
     calls=0
     SpawnMechanism.rollSceneSpawns(CombatRuntime.prepareEncounter(s,"hound","e1"),"MOVE",rng);assertEquals(0,calls)
   }
-  @Test fun nodeOutlineNeverChangesCanonicalAnchorInsideItsTenMaps() {
-    for (id in listOf("0", "0.1", "dullness", "6", "6.1")) {
-      assertEquals(id,MiniMapScenario.validateOutline(outline(id),id).getString("nodeAnchor"))
-      assertEquals(id,MiniMapScenario.validate(script(LevelRouteRegistry.node(id).parent,3,id),id,3).getString("nodeAnchor"))
-    }
+  @Test fun levelZeroOutlineAndScriptsUseExactlyEightSegments() {
+    val valid=MiniMapScenario.validateOutline(outline("0"),"0")
+    assertEquals(8,valid.getJSONArray("entries").length())
+    assertEquals("0",MiniMapScenario.validate(script(0,8), "0", 8).getString("nodeAnchor"))
+    assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.validate(script(0,9), "0", 9) }
+    assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.validateOutline(
+      outline("0").put("entries",JSONArray().apply {
+        (1..9).forEach { put(JSONObject().put("index",it).put("nodeAnchor","0")
+          .put("beat","Điều tra").put("objective","Đối chiếu dữ kiện").put("dependencyRefs",JSONArray())) }
+      }),"0") }
+    assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.validateOutline(outline("0.1"),"0.1") }
+    assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.validate(script(0,1,"0.1"),"0.1",1) }
     val swapped=outline("0").apply { getJSONArray("entries").getJSONObject(2).put("nodeAnchor","0.1") }
     assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.validateOutline(swapped,"0") }
-    assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.validate(script(0,1,"0.1"),"0",1) }
-    assertTrue(LevelRouteRegistry.exits("6").none { LevelRouteRegistry.node(it).parent==7 })
-    assertEquals(listOf("4"),LevelRouteRegistry.exits("3"))
+    // Canon metadata remains available without enabling that node's Explorer.
+    assertNotNull(LevelRouteRegistry.node("0.1"))
+    assertEquals(listOf("0.1"),LevelRouteRegistry.exits("0"))
   }
-  private fun outline(nodeId: String) = JSONObject().put("schemaVersion",4)
-    .put("levelNumber",LevelRouteRegistry.node(nodeId).parent).put("nodeAnchor",nodeId).put("entries",JSONArray().apply {
-      (1..10).forEach { put(JSONObject().put("index",it).put("nodeAnchor",nodeId).put("beat","Điều tra").put("objective","Đối chiếu dữ kiện").put("dependencyRefs",JSONArray())) }
-    })
   @Test fun acceptedScriptIsFrozenAndBadGenerationCannotModifySave() {
     var initial=state()
     val p=MiniMapRuntime.progress(initial)
@@ -798,49 +810,35 @@ class MiniMapRuntimeTest {
     p.put("completed",JSONArray().apply { (1 until index).forEach { put(it) } })
     return state.copy(world=state.world+(MiniMapRuntime.STATE to p.toString()))
   }
-  @Test fun tenthMapUnlocksOnlyNextNodeAndEndingRequiresLevelSixSublevel() {
-    val repo = MemorySave(solvedState(3,10)); val core = facade(repo)
-    val exits = MiniMapScenario.objects(MiniMapRuntime.actions(repo.state))
-      .filter { it.getString("targetId").startsWith("node:") }
-    assertEquals(listOf("node:4"), exits.map { it.getString("targetId") })
-    assertEquals("Tiến vào khu vực kế tiếp.", exits.single().getString("label"))
-    apply(core, repo, "node:4")
-    assertEquals("4", MiniMapRuntime.node(repo.state).id)
-    assertEquals(1, MiniMapRuntime.progress(repo.state).getInt("index"))
-    assertFalse(MiniMapRuntime.publicView(solvedState(6,10)).getBoolean("awaitingEnding"))
-    val end = solvedState(6,10,"6.1")
-    assertTrue(MiniMapRuntime.publicView(end).getBoolean("awaitingEnding"))
-    assertTrue(LevelRouteRegistry.exits("6.1").isEmpty())
-    assertFalse(MiniMapScenario.objects(MiniMapRuntime.actions(end))
-      .any { it.getString("targetId").startsWith("node:") })
-  }
-  @Test fun levelSixOneFinalPuzzleCleansUpAndEndsWithoutAnotherLevel() {
-    val base=solvedState(6,10,"6.1")
-    val p=MiniMapRuntime.progress(base)
-    val accepted=MiniMapScenario.strings(p.getJSONArray("accepted")).filter { it != "answer_left" }
-    p.put("accepted",JSONArray(accepted)).put("records",JSONArray().put(
-      JSONObject().put("id","temporary_key").put("kind","EVIDENCE").put("text","Mã dùng một lần")))
-    val repo=MemorySave(base.copy(world=base.world+(MiniMapRuntime.STATE to p.toString())))
+  @Test fun eighthMapOffersNoNextOrNodeTransitionAndDoesNotEndGame() {
+    val repo=MemorySave(solvedState(0,8))
     val core=facade(repo)
-    core.acceptSceneGeneration(MiniMapRuntime.token(repo.state),outline("6.1").toString())
-    val scriptKey=MiniMapRuntime.scriptKey(p);val outlineKey=MiniMapRuntime.outlineKey(p)
-    assertFalse(MiniMapRuntime.complete(repo.state))
-    apply(core,repo,"answer_left")
+    val actions=MiniMapScenario.objects(MiniMapRuntime.actions(repo.state))
     assertTrue(MiniMapRuntime.complete(repo.state))
-    assertTrue(MiniMapRuntime.publicView(repo.state).getBoolean("awaitingEnding"))
-    assertFalse(MiniMapRuntime.publicView(repo.state).getBoolean("generationNeeded"))
+    assertFalse(actions.any { it.getString("targetId") == "next" || it.getString("targetId").startsWith("node:") })
+    assertFalse(MiniMapRuntime.publicView(repo.state).getBoolean("awaitingEnding"))
+    assertFalse(MiniMapRuntime.publicView(repo.state).getBoolean("nodeExitUnlocked"))
     assertEquals("ready",JSONObject(core.sceneGenerationRequest()).getString("kind"))
-    assertFalse(repo.state.world.containsKey(scriptKey))
-    assertFalse(repo.state.world.containsKey(outlineKey))
-    assertEquals(0,MiniMapRuntime.progress(repo.state).getJSONArray("records").length())
-    assertEquals(0,MiniMapRuntime.actions(repo.state).length())
-    assertThrows(IllegalStateException::class.java) {
-      core.acceptSceneGeneration(MiniMapRuntime.token(repo.state),script(6,10,"6.1").toString())
-    }
+    val before=GameStateCodec.encode(repo.state)
+    val forged=JSONObject(choice(repo.state,"room:lab")).put("targetId","node:0.1")
+    assertThrows(IllegalStateException::class.java) { core.beginSceneAction(forged.toString()) }
+    assertEquals(before,GameStateCodec.encode(repo.state))
   }
-
-  @Test fun unfinishedNodeExposesOnlyRoomsAndRejectsForgedCrossNodeCommandsWithoutRng() {
-    for (index in 1..9) {
+  @Test fun levelZeroIsTheOnlyNodeAllowedForNewScenarioGeneration() {
+    val repo=MemorySave(state())
+    val core=facade(repo)
+    val old=GameStateCodec.encode(repo.state)
+    assertThrows(IllegalArgumentException::class.java) {
+      core.acceptSceneGeneration(MiniMapRuntime.token(repo.state),outline("0.1").toString())
+    }
+    assertEquals(old,GameStateCodec.encode(repo.state))
+    val wrongNode=repo.state.copy(world=repo.state.world+
+      ("levelJson" to LevelRouteRegistry.node("0.1").asJson().toString()))
+    assertThrows(IllegalArgumentException::class.java) { MiniMapRuntime.generationRequest(wrongNode) }
+    assertEquals(0,MiniMapRuntime.actions(wrongNode).length())
+  }
+  @Test fun firstSevenMiniMapsRejectCrossNodeCommandsAndAdvanceOnlyLocally() {
+    for (index in 1..7) {
       val repo=MemorySave(solvedState(0,index));val rng=CountingRng();val core=facade(repo,rng)
       val actions=MiniMapScenario.objects(MiniMapRuntime.actions(repo.state))
       assertFalse(actions.any { it.getString("targetId").startsWith("node:") })
@@ -850,79 +848,52 @@ class MiniMapRuntimeTest {
         assertThrows(IllegalStateException::class.java) { core.beginSceneAction(forged.toString()) }
       }
       assertEquals(0,rng.calls)
-      if (index == 2) {
+      if (index == 7) {
         apply(core,repo,"next")
         assertEquals("0",MiniMapRuntime.node(repo.state).id)
         assertEquals("0",MiniMapRuntime.progress(repo.state).getString("nodeId"))
-        assertEquals(3,MiniMapRuntime.progress(repo.state).getInt("index"))
+        assertEquals(8,MiniMapRuntime.progress(repo.state).getInt("index"))
       }
     }
   }
-  @Test fun nodeExitsRequireTenthGoalAllEarlierMapsAndTheExitRoom() {
-    val unfinished=state(0,10)
-    assertFalse(MiniMapScenario.objects(MiniMapRuntime.actions(unfinished)).any { it.getString("targetId").startsWith("node:") })
-    var finished=solvedState(0,10)
-    val targets=MiniMapScenario.objects(MiniMapRuntime.actions(finished)).map { it.getString("targetId") }
-    assertEquals(listOf("node:0.1"),targets.filter { it.startsWith("node:") })
+  @Test fun eighthGoalDoesNotExposeTransitionEvenAtExitRoom() {
+    val unfinished=state(0,8)
+    assertFalse(MiniMapScenario.objects(MiniMapRuntime.actions(unfinished))
+      .any { it.getString("targetId")=="next" || it.getString("targetId").startsWith("node:") })
+    var finished=solvedState(0,8)
+    assertEquals("hall",MiniMapRuntime.progress(finished).getString("roomId"))
+    assertFalse(MiniMapScenario.objects(MiniMapRuntime.actions(finished))
+      .any { it.getString("targetId")=="next" || it.getString("targetId").startsWith("node:") })
     val p=MiniMapRuntime.progress(finished).put("roomId","lab")
     finished=finished.copy(world=finished.world+(MiniMapRuntime.STATE to p.toString()))
-    assertFalse(MiniMapScenario.objects(MiniMapRuntime.actions(finished)).any { it.getString("targetId").startsWith("node:") })
-    p.put("roomId","hall").put("completed",JSONArray())
-    finished=finished.copy(world=finished.world+(MiniMapRuntime.STATE to p.toString()))
-    assertFalse(MiniMapScenario.objects(MiniMapRuntime.actions(finished)).any { it.getString("targetId").startsWith("node:") })
+    assertFalse(MiniMapScenario.objects(MiniMapRuntime.actions(finished))
+      .any { it.getString("targetId")=="next" || it.getString("targetId").startsWith("node:") })
   }
-  @Test fun everyMainSublevelAreaAndSpecialNodeHasItsOwnTenMapOutline() {
-    val nodeIds = listOf(
-      "0", "0.1", "0.2", "0.5", "0.7", "manila_room", "the_torment", "red_rooms",
-      "dullness", "epsilon", "ls_2", "1", "1.2", "1.5", "traders_vault",
-      "base_alpha", "2", "office_space_el3a", "3", "4", "office_market",
-      "5", "5.1", "6", "6.1"
-    )
-    val outlineKeys = mutableSetOf<String>()
-    val scriptKeys = mutableSetOf<String>()
-    nodeIds.forEach { id ->
-      val parent = requireNotNull(LevelRouteRegistry.node(id)).parent
-      val validated = MiniMapScenario.validateOutline(outline(id), id)
-      assertEquals(id, validated.getString("nodeAnchor"))
-      assertEquals(10, validated.getJSONArray("entries").length())
-      val map = MiniMapScenario.validate(script(parent, 1, id), id, 1)
-      assertEquals(4, map.getJSONArray("rooms").length())
-      val progress = MiniMapRuntime.progress(state(parent, 1, id))
-      assertEquals(id, progress.getString("nodeId"))
-      assertEquals(1, progress.getInt("index"))
-      assertTrue(outlineKeys.add(MiniMapRuntime.outlineKey(progress)))
-      assertTrue(scriptKeys.add(MiniMapRuntime.scriptKey(progress)))
+  @Test fun eightLevelZeroKeysAreDistinctAndNoOtherNodeCanGenerate() {
+    val validated=MiniMapScenario.validateOutline(outline("0"),"0")
+    assertEquals(8,validated.getJSONArray("entries").length())
+    val keys=mutableSetOf<String>()
+    for (index in 1..8) {
+      val p=MiniMapRuntime.progress(state(0,index))
+      assertEquals("0",p.getString("nodeId"))
+      assertEquals(index,p.getInt("index"))
+      assertTrue(keys.add(MiniMapRuntime.scriptKey(p)))
+      assertEquals("investigation",MiniMapScenario.validate(script(0,index),"0",index).getString("id"))
     }
+    assertEquals(8,keys.size)
+    for (node in listOf("0.1","dullness","1","6.1"))
+      assertThrows(IllegalArgumentException::class.java) { MiniMapScenario.validateOutline(outline(node),node) }
   }
-
-  @Test fun everyCanonNodeHasExactlyOneForwardDestinationExceptTheEnding() {
-    val chain = listOf("0", "0.1", "0.2", "0.5", "0.7",
-      "dullness", "epsilon", "ls_2", "manila_room", "the_torment", "red_rooms",
-      "1", "1.2", "1.5", "traders_vault", "base_alpha",
-      "2", "office_space_el3a", "3", "4", "office_market",
-      "5", "5.1", "6", "6.1")
-    for (index in 0 until chain.lastIndex) {
-      val from = chain[index]
-      val to = chain[index + 1]
-      assertEquals(listOf(to), LevelRouteRegistry.exits(from))
-      assertFalse(LevelRouteRegistry.canMove(to, from))
-    }
-    assertEquals(chain.size, LevelRouteRegistry.size())
-    assertTrue(LevelRouteRegistry.exits(chain.last()).isEmpty())
-    val repo = MemorySave(solvedState(0, 10))
-    val core = facade(repo)
-    val staleAction = choice(repo.state, "room:lab")
-    apply(core, repo, "node:0.1")
-    assertEquals("0.1", MiniMapRuntime.node(repo.state).id)
-    assertEquals(1, MiniMapRuntime.progress(repo.state).getInt("index"))
-    assertNull(MiniMapRuntime.script(repo.state))
-    assertThrows(IllegalArgumentException::class.java) { core.beginSceneAction(staleAction) }
-    core.acceptSceneGeneration(MiniMapRuntime.token(repo.state), outline("0.1").toString())
-    core.acceptSceneGeneration(MiniMapRuntime.token(repo.state), script(0, 1, "0.1").toString())
-    assertFalse(MiniMapScenario.objects(MiniMapRuntime.actions(repo.state))
-      .any { it.getString("targetId") == "node:0" })
+  @Test fun canonicalLevelRoutesRemainMetadataNotExplorerControls() {
+    assertEquals(25,LevelRouteRegistry.size())
+    assertEquals(listOf("0.1"),LevelRouteRegistry.exits("0"))
+    val repo=MemorySave(solvedState(0,8));val core=facade(repo)
+    assertTrue(MiniMapScenario.objects(MiniMapRuntime.actions(repo.state))
+      .none { it.getString("targetId").startsWith("node:") })
+    val staleAction=JSONObject(choice(repo.state,"room:lab")).put("targetId","node:0.1")
+    assertThrows(IllegalStateException::class.java) { core.beginSceneAction(staleAction.toString()) }
+    assertEquals("0",MiniMapRuntime.node(repo.state).id)
   }
-
   @Test fun luciaSpawnImmediatelyEnablesTypedDialogueWithoutAnyNewRollOrPuzzleReward() {
     val repo=MemorySave(state());var calls=0
     val rng=object: SecureRandom() { override fun nextInt(bound: Int): Int {
