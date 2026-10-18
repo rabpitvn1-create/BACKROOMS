@@ -25,6 +25,13 @@ object MiniMapRuntime {
   fun node(state: GameState) = LevelRouteRegistry.requested(JSONObject(state.world.getValue("levelJson")))!!
   fun token(state: GameState): String = progress(state).let { "${it.getString("runId")}:${it.getString("nodeId")}:${it.getInt("index")}" }
   fun blocked(state: GameState) = CombatRuntime.active(state) != null || CombatRuntime.pending(state) != null || PENDING in state.world || ActionRuntime.activeSession(state) != null || state.turn.pending != null
+  /** A checked scene control is a small, repeatable action, not a new encounter roll. */
+  fun isMechanismControl(state: GameState, actionId: String): Boolean {
+    val s = script(state) ?: return false
+    return MiniMapScenario.objects(s.getJSONArray("interactions")).any {
+      it.getString("id") == actionId && it.getJSONObject("effect").getString("type") == "STEP"
+    }
+  }
   private fun accepted(p: JSONObject) = MiniMapScenario.strings(p.getJSONArray("accepted")).toSet()
   private fun attempted(p: JSONObject) = MiniMapScenario.strings(p.getJSONArray("attempted")).toSet()
   fun complete(state: GameState): Boolean {
