@@ -228,7 +228,13 @@
   global.backroomTurn=function(json){
     preparing=false;failed=false;clearWriterPending();if(turn)turn(json);refresh();
     if(activeMechanismId&&dialog.open&&!busy)showMechanism(activeMechanismId);
-    global.backroomFreezeSnapshot=false;
+    // MainActivity wraps backroomTurn and renders Snapshot AFTER this callback.
+    // Keep the guard alive until that wrapper returns; batches clear it explicitly.
+    if(!batchBusy&&global.backroomFreezeSnapshot){
+      if(typeof global.requestAnimationFrame==='function')
+        global.requestAnimationFrame(()=>{global.backroomFreezeSnapshot=false;});
+      else global.backroomFreezeSnapshot=false;
+    }
   };
   global.backroomError=function(message){
     preparing=false;failed=true;clearWriterPending();if(error)error(message);
