@@ -80,7 +80,9 @@ object CoreClientProjection {
           .put("kind", character.metadata["encounterKind"])
           .put("encounterId", character.metadata["encounterId"])
           .put("turn", character.metadata["encounterTurn"]?.toIntOrNull())
-          .put("present", character.presence == CharacterPresence.ACTIVE)
+          .put("present", character.presence == CharacterPresence.ACTIVE &&
+            (MiniMapRuntime.STATE !in state.world || !Level0WorldRuntime.active(MiniMapRuntime.progress(state)) ||
+              Level0WorldRuntime.characterPresent(state, character)))
           .put("inParty", character.id in state.party.memberIds)
           .put("joinEligible", character.metadata["joinEligible"] == "true"))
       }

@@ -27,6 +27,17 @@ object GameStateCodec {
     val version = root.optInt("saveVersion", 0)
     require(version == CURRENT_SAVE_VERSION) { "Unsupported save schema: $version" }
     val decoded = decodeCurrent(root)
+    decoded.world[MiniMapRuntime.STATE]?.let { raw ->
+      val progress = JSONObject(raw)
+      if (Level0WorldRuntime.active(progress)) {
+        Level0WorldRuntime.validateSavedProgress(progress)
+        decoded.world[MiniMapRuntime.PENDING]?.let { pending ->
+          val staged = JSONObject(pending).getJSONObject("progress")
+          Level0WorldRuntime.validateSavedProgress(staged)
+          require(staged.getJSONObject("worldGraph").toString() == progress.getJSONObject("worldGraph").toString()) { "world_pending_graph_changed" }
+        }
+      }
+    }
     CharacterMemoryBags.validate(decoded)
     return CharacterProgressionCore.normalize(CharacterEquipmentSystem.normalize(SpecialFollowersCanon.ensure(AnNhienCanon.ensure(decoded))))
   }

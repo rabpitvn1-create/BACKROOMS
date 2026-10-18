@@ -117,7 +117,8 @@ class GameCoreFacade private constructor(
       "levelJson" to target.asJson().toString(), "location" to target.location(), "title" to target.title()))
     // One device sequence can require many taps; these control inputs must not
     // reroll an encounter on every switch flip. Other SEARCH/MOVE rolls stay intact.
-    val roll = if (deviceControl) SpawnResult(null, emptyList())
+    val worldObservation = Level0WorldRuntime.active(MiniMapRuntime.progress(state)) && command.getString("kind") == "SEARCH"
+    val roll = if (deviceControl || worldObservation) SpawnResult(null, emptyList())
       else SpawnMechanism.rollSceneSpawns(atTarget, command.getString("kind")) { spawnRng.nextInt(it) }
     var reserved = SpawnMechanism.prepareSpawns(atTarget, roll)
     if (roll.entityKey != null) {
@@ -182,6 +183,13 @@ class GameCoreFacade private constructor(
       "levelJson" to node.asJson().toString(), "title" to node.title(), "location" to node.location(), "flagsJson" to flags.toString()),
       metadata = finished.state.metadata - SPAWN_ENCOUNTER_OWNER)
     next = SpawnMechanism.commitPendingNpcEncounters(next)
+    if (Level0WorldRuntime.active(MiniMapRuntime.progress(next))) {
+      val location = MiniMapRuntime.progress(next).getString("roomId")
+      next = next.copy(characters = next.characters.mapValues { (id, character) ->
+        if (character.metadata["encountered"] == "true" && core.characters[id]?.metadata?.get("encountered") != "true")
+          character.copy(metadata = character.metadata + ("level0.roomId" to location)) else character
+      })
+    }
     next = separateNonPartyNpcsAfterParentTransition(core, next)
     CombatRuntime.pending(next)?.let {
       next = next.copy(metadata = next.metadata + ("combat.encounterNarrative" to JSONObject()
@@ -645,7 +653,11 @@ class GameCoreFacade private constructor(
     val pending = if (ActionRuntime.activeSession(state) != null)
       SpawnMechanism.pendingNpcEncounters(state).map { it.characterId }.toSet()
     else emptySet()
-    val present = CharacterMemoryBags.sceneContext(state, pending)
+    val memoryState = state.world[MiniMapRuntime.PENDING]?.let { raw ->
+      val staged = JSONObject(raw).getJSONObject("progress")
+      if (Level0WorldRuntime.active(staged)) state.copy(world = state.world + (MiniMapRuntime.STATE to staged.toString())) else state
+    } ?: state
+    val present = CharacterMemoryBags.sceneContext(memoryState, pending)
     // An explicit recollection can reference Cao Minh's own past events without
     // loading or activating any absent character's bag.
     val recalled = CharacterMemoryBags.playerRecallContext(state, action)
@@ -960,7 +972,9 @@ class GameCoreFacade private constructor(
     val command = PartyCommand("JOIN:${character.metadata["encounterId"]}:$characterId",
       current.turn.currentTurnId, CAO_MINH_ID, characterId, CommandSource.UI, PartyCommand.Operation.ADD,
       consentConfirmed = character.metadata["joinEligible"] == "true" && character.metadata["followsPlayer"] == "true",
-      targetPresent = character.presence == CharacterPresence.ACTIVE)
+      targetPresent = character.presence == CharacterPresence.ACTIVE &&
+        (MiniMapRuntime.STATE !in current.world || !Level0WorldRuntime.active(MiniMapRuntime.progress(current)) ||
+          Level0WorldRuntime.characterPresent(current, character)))
     val result = PartyEngine.execute(current, command)
     if (!result.applied) return reject(result.validation.reason ?: "recruitment_failed")
     var next = result.state
@@ -1053,7 +1067,9 @@ class GameCoreFacade private constructor(
 
   /** New-run initialization: no Milestone planning, no story checkpoint seeding. */
   private fun newStoryRun(state: GameState): GameState {
-    return MiniMapRuntime.initialize(CoreClientProjection.initialize(state))
+    val ready = CoreClientProjection.initialize(state)
+    return if (MiniMapRuntime.node(ready).id == "0") Level0WorldRuntime.initialize(ready)
+      else MiniMapRuntime.initialize(ready)
   }
 
   private fun characterFlagKey(id: String): String? = when (id) {

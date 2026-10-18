@@ -328,3 +328,17 @@ test('Core-confirmed Lucia enables communication even without a scenario NPC top
   r.dialog.children[1].children[0].onclick();
   const command=JSON.parse(r.calls[0][1]);assert.equal(command.kind,'TALK');assert.equal(command.targetId,'character:lucia:introduce');
 });
+
+test('world MAP displays Core-confirmed personal markers without triggering generation',()=>{
+  const r=runtime({runtime:'level0-world-v1',generationNeeded:false,map:{
+    currentRoomId:'l0:r000',entryRoomId:'l0:r000',rooms:[
+      {id:'l0:r000',name:'Vàng Úa',visited:true,marked:true,adjacentRoomIds:['l0:r009']},
+      {id:'l0:r009',name:'Chưa khám phá',visited:false,marked:false,adjacentRoomIds:[]}
+    ]}});
+  r.buttons[0].onclick();
+  const svg=r.dialog.children[1].children[0].children[0];
+  const texts=svg.children.flatMap(g=>g.children||[]).map(el=>el.textContent||'');
+  assert.ok(texts.some(t=>t.includes('● ◆ Vàng Úa')));
+  assert.ok(texts.some(t=>t==='Chưa khám phá'));
+  assert.equal(r.calls.length,0);
+});

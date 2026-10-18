@@ -197,7 +197,7 @@
       label.setAttribute('x',String(pos.x));label.setAttribute('y',String(pos.y+5));
       label.setAttribute('text-anchor','middle');label.setAttribute('font-size','12');
       label.setAttribute('fill',current?'#ecfff1':'#e3d4af');
-      label.textContent=(current?'● ':'')+(r.name||'Chưa khám phá').slice(0,24);
+      label.textContent=(current?'● ':'')+(r.marked?'◆ ':'')+(r.name||'Chưa khám phá').slice(0,24);
       g.append(rect,label);svg.appendChild(g);
     });
     sc.appendChild(svg);choices.appendChild(sc);
