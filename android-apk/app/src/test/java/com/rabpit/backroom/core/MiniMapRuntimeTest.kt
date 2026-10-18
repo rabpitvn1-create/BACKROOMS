@@ -155,6 +155,44 @@ class MiniMapRuntimeTest {
     assertEquals(2, MiniMapRuntime.publicView(repo.state).getJSONArray("areaLog").length())
   }
 
+  @Test fun distinctDiscoveriesInOneRoomHaveSeparateSafeAreaLogEntries() {
+    val initial = state()
+    val progress = MiniMapRuntime.progress(initial)
+    val revised = MiniMapScenario.copy(requireNotNull(MiniMapRuntime.script(initial)))
+    MiniMapScenario.objects(revised.getJSONArray("interactions"))
+      .first { it.getString("id") == "mark" }.put("roomId", "lab")
+    val validated = MiniMapScenario.validate(revised, "0", 1)
+    val repo = MemorySave(initial.copy(world = initial.world +
+      (MiniMapRuntime.scriptKey(progress) to validated.toString())))
+    val core = facade(repo)
+    apply(core, repo, "room:lab")
+    apply(core, repo, "paper")
+    apply(core, repo, "mark")
+    val privateLog = MiniMapScenario.objects(MiniMapRuntime.progress(repo.state).getJSONArray("areaEvents"))
+    assertEquals(setOf("paper", "mark"), privateLog.filter { it.getString("type") == "DISCOVERY" }
+      .map { it.getString("sourceId") }.toSet())
+    val visibleLog = MiniMapScenario.objects(MiniMapRuntime.publicView(repo.state).getJSONArray("areaLog"))
+    assertEquals(2, visibleLog.count { it.getString("type") == "DISCOVERY" })
+    assertTrue(visibleLog.all { it.keys().asSequence().toSet() == setOf("type", "text") })
+    assertFalse(visibleLog.toString().contains("paper"))
+    assertFalse(visibleLog.toString().contains("mark"))
+    assertFalse(visibleLog.toString().contains("sourceId"))
+  }
+
+  @Test fun generatedObjectivesCannotGiveCorrectAnswersOrDeviceOrder() {
+    val answer = script().put("objective", "Chọn màu đỏ rồi chọn van trái để mở đường.")
+    val answerError = assertThrows(IllegalArgumentException::class.java) {
+      MiniMapScenario.validate(answer, "0", 1)
+    }
+    assertEquals("scene_objective_spoiler", answerError.message)
+    val order = leverPuzzle().put("objective", "Gạt các cần theo đúng thứ tự 1–1–2–2–3 để mở khóa.")
+    val orderError = assertThrows(IllegalArgumentException::class.java) {
+      MiniMapScenario.validate(order, "0", 1)
+    }
+    assertEquals("scene_objective_spoiler", orderError.message)
+    assertEquals("investigation", MiniMapScenario.validate(script(), "0", 1).getString("id"))
+  }
+
   @Test fun sequencePuzzleRequiresDeductionAndCorrectControlOrderWithPersistentRetries() {
     val script = leverPuzzle()
     assertEquals("investigation", MiniMapScenario.validate(script, "0", 1).getString("id"))
