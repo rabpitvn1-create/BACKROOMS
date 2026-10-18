@@ -225,6 +225,35 @@ object MiniMapScenario {
       require(steps.size in 5..12 && steps.all { it in ids } && steps.toSet().size >= 3 &&
         (ids - steps.toSet()).isNotEmpty()) { "mechanism_sequence" }
     }
+    // Objectives are visible before evidence. Reject direct answer labels and
+    // explicit control sequences rather than trusting the generator prompt.
+    val objective = raw.getString("objective").trim()
+    val answerActions = interactions.filter { action ->
+      val effect = action.getJSONObject("effect")
+      effect.getString("type") == "ANSWER" &&
+        facts.any { fact -> fact.getString("id") == effect.getString("factId") &&
+          fact.getString("value") == effect.getString("value") }
+    }
+    val answerCue = Regex("""(?iu)(?:đáp\s*án|lời\s*giải|chọn|nhập|mật\s*mã|giá\s*trị)\s*(?:là|:)?\s*[\p{L}\p{N}\s]{0,24}""")
+    require(answerActions.none { action ->
+      val secret = action.getJSONObject("effect").getString("value").trim()
+      val token = Regex("""(?iu)(?<![\p{L}\p{N}])""" + Regex.escape(secret) + """(?![\p{L}\p{N}])""")
+      objective.contains(action.getString("label").trim(), ignoreCase = true) ||
+        answerCue.findAll(objective).any { cue -> token.containsMatchIn(cue.value) }
+    }) { "scene_objective_spoiler" }
+    val controlsById = interactions.associateBy { it.getString("id") }
+    mechanisms.forEach { mechanism ->
+      val numbers = strings(mechanism.getJSONArray("steps")).map { stepId ->
+        Regex("""\d+""").find(controlsById.getValue(stepId).getString("label"))?.value
+      }
+      // Only an entire ordered sequence is sensitive, not an isolated number.
+      if (numbers.all { it != null }) {
+        val sequence = numbers.filterNotNull().joinToString("""[\s,;:>→/–—-]+""") { Regex.escape(it) }
+        require(!Regex("""(?<!\d)""" + sequence + """(?!\d)""").containsMatchIn(objective)) {
+          "scene_objective_spoiler"
+        }
+      }
+    }
     val observations = interactions.filter { it.has("observation") }
       .map { it.getString("observation").trim().lowercase() }
     require(observations.distinct().size == observations.size) { "scene_duplicate_observation" }
