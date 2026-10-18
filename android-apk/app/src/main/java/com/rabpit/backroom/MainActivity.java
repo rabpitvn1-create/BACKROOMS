@@ -1586,10 +1586,23 @@ public class MainActivity extends Activity {
      * Parse only player-known commands; execute each step against the current
      * Core action list. Stopped steps are explicitly reported, never replayed.
      */
+    /** On-demand assistance only: offline Core read, no turn or provider call. */
+    @JavascriptInterface public void requestWorldHint(int tier) {
+      io.execute(() -> {
+        try {
+          emit("backroomWorldHint", requireGameCore().sceneHint(tier));
+        } catch (Exception failure) {
+          DiagnosticLog.record("world.hint.failed", failure.getClass().getSimpleName());
+          emit("backroomWorldHint", "{\\"error\\":\\"hint_unavailable\\"}");
+        }
+      });
+    }
+
     @JavascriptInterface public void submitPlayerAction(String clientJson, String rawAction) {
       io.execute(() -> {
         int committed = 0;
         int requested = 0;
+        int plannerCalls = 0;
         int stoppedStep = 1; // One-based, including an attempted but uncommitted step.
         String failureCode = "invalid_input";
         String projection = clientJson;
@@ -1607,6 +1620,12 @@ public class MainActivity extends Activity {
           // to the planner before the player actually reaches that room.
           while (committed < 12) {
             stoppedStep = committed + 1;
+            if (plannerCalls >= 4) {
+              stopCode = "planner_budget";
+              stopMessage = "Đã đạt ngân sách 4 lượt lập kế hoạch. Các bước đã xác nhận được giữ nguyên.";
+              break;
+            }
+            plannerCalls++;
             JSONObject snapshot = new JSONObject(requireGameCore().currentClientState(projection));
             if (snapshot.has("pendingEncounter") ||
                 snapshot.optJSONObject("combat") != null &&
@@ -1668,7 +1687,7 @@ public class MainActivity extends Activity {
               if (!"MOVE".equals(kind) && !"SEARCH".equals(kind) &&
                   !"INTERACT".equals(kind) && !"TALK".equals(kind)) {
                 stopCode = "invalid_plan";
-                stopMessage = "Bước không thuộc nhóm di chuyển hoặc tìm kiếm.";
+                stopMessage = "Hành động không thuộc danh sách Core hỗ trợ.";
                 break;
               }
               if ("MOVE".equals(kind) && !targetId.startsWith("room:") &&
