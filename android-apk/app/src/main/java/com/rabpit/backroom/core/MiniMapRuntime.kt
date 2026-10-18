@@ -216,6 +216,11 @@ object MiniMapRuntime {
       out.put("records", publicRecords(s, p))
       out.put("temporaryInference", temporaryInference(state, s, p))
       val r = room(s, p)
+      val environment = Level0Environments.requireEnvironment(r.getString("environmentId"))
+      out.put("zoneId", environment.reference.substringBefore('.'))
+      if (environment.parent != null) out.put("subzoneId", environment.reference)
+      out.put("environment", JSONObject().put("id", environment.id).put("name", environment.name)
+        .put("zoneId", environment.parent ?: environment.id).put("canon", environment.canon))
       out.put("room", JSONObject().put("id", r.getString("id")).put("name", r.getString("name")).put("description", r.getString("description")))
       // Only residents of the current room are public; NPC motivation stays in the script.
       out.put("npcs", authoredNpcs(s, p.getString("roomId")))
@@ -367,7 +372,9 @@ object MiniMapRuntime {
     // A transition carries no solved puzzle records; only the fresh scene may produce new evidence.
     val nextScript = state.world[scriptKey(p)]?.let(::JSONObject)
     val roomPublic = if (nextScript != null && p.getString("roomId").isNotEmpty()) room(nextScript, p).let {
+      val environment = Level0Environments.requireEnvironment(it.getString("environmentId"))
       JSONObject().put("name", it.getString("name")).put("description", it.getString("description"))
+        .put("environmentId", environment.id).put("environmentCanon", environment.canon)
     } else JSONObject().put("description", "Đang tới phân đoạn tiếp theo; chưa khám phá căn phòng mới.")
     val event = JSONObject().put("kind", kind).put("interaction", label).put("result", line).put("node", nodeId).put("room", roomPublic)
     val deviceStep = kind == "SEARCH" && MiniMapScenario.objects(s.getJSONArray("interactions"))

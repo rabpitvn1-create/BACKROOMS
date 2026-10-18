@@ -33,31 +33,18 @@ test("every canonical route uses a dedicated background instead of its parent fa
     assert.ok(router.filesFor(id).includes(image.file),id);
   }
 });
-test("Core-confirmed visual steps cycle images without repetition or turn-based drift",()=>{
-  const first=router.resolve({...s("0","Level 0 / Phòng phía đông"),turn:1});
-  const again=router.resolve({...s("0","Level 0 / Phòng phía đông"),turn:41});
-  assert.equal(first.file,again.file);
-  assert.equal(first.variantCount,8);
-  const seen=new Set([first.file]);
-  let previous=first;
-  for(let step=1;step<8;step++){
-    const current=router.resolve(s("0","Level 0 / Hall "+step,step));
-    assert.notEqual(current.file,previous.file,"each new step must change the image");
-    seen.add(current.file);
-    previous=current;
+test("snapshot remains fixed despite turns, MOVE steps, labels and reload",()=>{
+  for(const id of ids){
+    const first=router.resolve(s(id,"first",0));
+    for(const step of [1,2,99,-1,1.5]){
+      const state={...s(id,"different room",step),turn:900};
+      assert.equal(router.resolve(state).file,first.file,id);
+      assert.equal(router.sceneKey(state),router.sceneKey(s(id)),id);
+      assert.equal(router.resolve(JSON.parse(JSON.stringify(state))).file,first.file,id);
+    }
   }
-  assert.equal(seen.size,8,"all variants should be visited before repeating");
-  assert.equal(router.resolve(s("0","Level 0 / Phòng phía đông",8)).file,first.file);
-  assert.equal(router.resolve(s("0","Level 0 / Other Room",0)).file,first.file,
-    "location prose alone must not change the frame without authoritative progress");
-  assert.equal(router.resolve(s("0","Level 0 / Phòng phía đông",-1)).file,first.file);
-  assert.equal(router.resolve(s("0","Level 0 / Phòng phía đông",1.5)).file,first.file);
-  assert.notEqual(router.sceneKey(s("0","Level 0 / Phòng phía đông",0)),
-    router.sceneKey(s("0","Level 0 / Phòng phía đông",1)));
-  assert.notEqual(router.resolve(s("1","Parking",0)).file,router.resolve(s("1","Parking",1)).file);
-  assert.equal(router.resolve(s("manila_room","Manila",0)).file,
-    router.resolve(s("manila_room","Manila",router.filesFor("manila_room").length)).file,"the full cycle restores the canonical frame");
 });
+
 test("node ID is authoritative and malicious or invalid identifiers cannot choose arbitrary paths",()=>{
   assert.equal(router.resolve({level:{id:"6.1",number:6}}).nodeId,"6.1");
   assert.equal(router.resolve({level:{number:3}}).nodeId,"3");
@@ -84,22 +71,9 @@ test("WebView actually loads the manifest and renders images behind unchanged ov
 });
 
 // Exercise the same router used by renderSnapshot, rather than checking prompt text.
-test("Sublevel 0.2 displays its new background and rotates only on confirmed progress",()=>{
-  const files=router.filesFor("0.2");
-  assert.ok(files.includes("level_00p2__snapshot_001.webp"));
-  assert.ok(files.includes("level_00p2__snapshot_002.webp"));
-  const first=router.resolve(s("0.2","renovated room",0));
-  const next=router.resolve(s("0.2","renovated room",1));
-  assert.notEqual(first.file,next.file);
-  assert.equal(first.fallback,false);
-  assert.equal(next.src,"file:///android_asset/level_snapshots/"+next.file);
-  assert.equal(router.resolve(s("0.2","different prose",0)).file,first.file);
-  assert.equal(router.resolve(JSON.parse(JSON.stringify(s("0.2","renovated room",1)))).file,next.file);
-  assert.equal(router.resolve(s("0.2","renovated room",files.length)).file,first.file);
-  const added=fs.readFileSync(path.join(assets,"level_00p2__snapshot_002.webp"));
-  assert.equal(added.subarray(0,4).toString(),"RIFF");
-  assert.equal(added.subarray(8,12).toString(),"WEBP");
-  assert.ok(added.length<=300000,"new background must fit 300 kB");
+test("sublevels retain their own fixed image",()=>{
+  assert.equal(router.resolve(s("0.2","room",0)).file,router.resolve(s("0.2","other",99)).file);
+  assert.ok(router.filesFor("0.2").includes(router.resolve(s("0.2")).file));
 });
 
 test("native WebView renderer attaches the resolved background beneath the character",()=>{
@@ -108,10 +82,13 @@ test("native WebView renderer attaches the resolved background beneath the chara
   const line=native.split("\n").find(value=>value.includes('"function visualSceneKey()'));
   assert.ok(line,"native renderer source must be available");
   const source=JSON.parse(line.trim().replace(/\s*\+$/, ""));
-  for(const id of ids){
+  const states=ids.map(id=>s(id,"test room",1)).concat(router.environmentIds().map(id=>({
+    ...s("0"),scene:{nodeId:"0",environment:{id}}
+  })));
+  for(const state of states){
+    const id=state.scene?state.scene.environment.id:state.level.id;
     const children=[];
     const box={appendChild:child=>children.push(child)};
-    const state=s(id,"test room",1);
     const context={window:{BackroomSnapshotAssets:router},state,
       document:{getElementById:key=>key==="snapshot"?box:null,createElement:tag=>({tag})},
       caoMinhOverlaySource:()=>"test-character.png"};
@@ -122,26 +99,55 @@ test("native WebView renderer attaches the resolved background beneath the chara
     assert.equal(children[0].src,router.resolve(state).src,id);
     assert.equal(children[1].className,"snapshot-character");
     assert.equal(children[1].src,"test-character.png");
+    if(state.scene){
+      const background=children[0];
+      background.removeAttribute=key=>{delete background[key];};
+      background.onerror();
+      assert.equal(background.src,undefined,"load failure must not substitute another area's image");
+      assert.match(background.alt,/Không tải được/);
+    }
   }
 });
 
-test("every canonical node visits all distinct backgrounds before repeating and survives state restore",()=>{
-  for(const id of ids){
-    const files=router.filesFor(id);
-    const seen=new Set();
-    for(let step=0;step<files.length;step++){
-      const state=s(id,"scene",step);
-      const image=router.resolve(state);
-      assert.equal(image.variantCount,files.length,id);
-      assert.ok(files.includes(image.file),id);
-      assert.equal(seen.has(image.file),false,id+" step "+step);
-      seen.add(image.file);
-      assert.equal(router.resolve(JSON.parse(JSON.stringify(state))).file,image.file,id);
-      assert.equal(router.resolve({...state,turn:100+step}).file,image.file,id);
-    }
-    assert.equal(seen.size,files.length,id);
-    assert.equal(router.resolve(s(id,"scene",files.length)).file,router.resolve(s(id,"scene",0)).file,id);
+test("37 exact environment identities resolve only their matching local WebP",()=>{
+  const manifest=JSON.parse(fs.readFileSync(path.join(assets,"level0-environments.json")));
+  assert.equal(manifest.environments.length,37);
+  const kotlin=fs.readFileSync(path.join(__dirname,"../app/src/main/java/com/rabpit/backroom/core/Level0Environments.kt"),"utf8");
+  const coreRows=[...kotlin.matchAll(/Environment\("([^"]+)", "([^"]+)", (null|"[^"]+"), "([^"]+)"/g)];
+  assert.equal(coreRows.length,37);
+  for(const row of coreRows){
+    const record=manifest.environments.find(e=>e.id===row[1]);
+    assert.ok(record,row[1]);
+    assert.equal(record.name,row[2]);
+    assert.equal(record.parent,row[3]==="null"?null:JSON.parse(row[3]));
+    assert.equal(record.number,row[4]);
   }
+
+  assert.equal(manifest.environments.filter(e=>!e.parent).length,8);
+  assert.equal(new Set(manifest.environments.map(e=>e.file)).size,37);
+  assert.deepEqual(router.environmentIds().sort(),manifest.environments.map(e=>e.id).sort());
+  for(const e of manifest.environments){
+    const state={...s("0"),scene:{nodeId:"0",environment:{id:e.id}}};
+    const resolved=router.resolve(state);
+    assert.equal(resolved.file,e.file,e.id);
+    assert.equal(resolved.environmentId,e.id);
+    for(const step of [0,1,37,1000]){
+      const changed={...state,turn:step,location:"misleading name",flags:{exploration:{snapshotStep:step}}};
+      assert.equal(router.resolve(changed).file,e.file);
+      assert.equal(router.sceneKey(changed),router.sceneKey(state));
+    }
+    assert.equal(router.resolve(JSON.parse(JSON.stringify(state))).file,e.file);
+    const bytes=fs.readFileSync(path.join(assets,e.file));
+    assert.equal(bytes.subarray(0,4).toString(),"RIFF");
+    assert.equal(bytes.subarray(8,12).toString(),"WEBP");
+    assert.ok(bytes.length>=220000 && bytes.length<=275000,e.file+" about 250kB");
+  }
+  const a={...s("0"),scene:{nodeId:"0",environment:{id:"phong_moc"}}};
+  const b={...a,scene:{nodeId:"0",environment:{id:"phong_chop"}}};
+  assert.notEqual(router.resolve(a).file,router.resolve(b).file);
+  assert.notEqual(router.sceneKey(a),router.sceneKey(b));
+  assert.equal(router.resolve({...s("1"),scene:a.scene}).environmentId,null);
+  assert.equal(router.resolve({...s("0"),scene:{nodeId:"0",environment:{id:"../../evil"}}}).environmentId,null);
 });
 
 test("completed scenery batches contain three WebP frames with compact new assets",()=>{

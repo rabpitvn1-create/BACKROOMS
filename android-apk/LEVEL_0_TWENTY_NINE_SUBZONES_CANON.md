@@ -4,7 +4,7 @@
 
 **Nguồn:** Nội dung do tác giả cung cấp trực tiếp trong cuộc trò chuyện ngày 18/10/2026, bổ sung cho [Canon tám khu vực chính](LEVEL_0_EIGHT_ZONES_CANON.md).
 
-**Trạng thái:** Canon môi trường đã được nhập vào `app/src/main/assets/knowledge/canon_detail_db.json` để game tải cùng các Canon khác. Chưa tạo địa điểm runtime trong Game Core, room graph hoặc hệ thống di chuyển.
+**Trạng thái:** Canon môi trường đã được nhập vào `app/src/main/assets/knowledge/canon_detail_db.json` để game tải cùng các Canon khác. Mỗi phòng kịch bản hiện có `environmentId` được Core kiểm tra theo `Level0Environments`; public scene phát đúng `zoneId`/`subzoneId` để truy xuất Canon và chọn snapshot cố định. Không áp sơ đồ hoặc thứ tự di chuyển cố định từ số mục.
 
 **Phân cấp:** Level 0 → 8 khu vực chính → 29 khu vực nhỏ. Tất cả đều thuộc **Level 0**, không phải Canon sublevel độc lập (ví dụ số mục “1.1” không phải Level 1.1). Tên và số lượng khu nhỏ dưới mỗi khu chính là cố định theo tài liệu này; vị trí, hướng nối, cách bố trí hay tính ngẫu nhiên của bản đồ **chưa được chốt**. Văn bản cảm nhận bóng người, tiếng nói, dấu vết hoặc hiện tượng bất thường không tự động xác nhận Entity, NPC, vật phẩm, puzzle, lối thoát hay sự kiện Core.
 
@@ -112,4 +112,4 @@
 | Rạn Nứt | 4 |
 | **Tổng cộng** | **29** |
 
-**Ranh giới triển khai:** Chưa tạo room ID, adjacency, transition, spawn hoặc sự kiện ngầm từ tài liệu này. Khi Game Core có xác nhận vị trí khu/khu nhỏ hiện hành, mới ánh xạ đúng Canon của vị trí đó vào trình sinh kịch bản hoặc lời kể. Không tự động phát toàn bộ 29 mô tả vào prompt và không suy diễn thứ tự di chuyển từ số mục.
+**Ranh giới triển khai:** `environmentId` chỉ định danh môi trường của phòng được Core xác nhận; room graph vẫn do kịch bản sinh và validator kiểm tra. Không tạo transition, spawn hoặc sự kiện ngầm từ tài liệu này. Snapshot dùng đúng một ảnh cho mỗi định danh, không quay vòng. Không tự động phát toàn bộ 29 mô tả vào prompt và không suy diễn thứ tự di chuyển từ số mục.

@@ -29,7 +29,7 @@ public final class ScenarioGenerator {
     "npc_talk_binding", "npc_search_binding", "npc_without_interaction",
     "fact_domain", "fact_human_value", "claim_truth_policy", "predicate_reference",
     "predicate_operator", "scene_observation_quality", "scene_observation_missing",
-    "scene_duplicate_observation", "scene_language_mixed", "scene_room_name", "puzzle_unsolvable_or_empty",
+    "scene_environment", "scene_duplicate_observation", "scene_language_mixed", "scene_room_name", "puzzle_unsolvable_or_empty",
     "answer_without_evidence", "answer_without_observed_proof", "puzzle_requires_two_inferences",
     "mechanism_id_collision", "scene_effect_type", "mechanism_control",
     "mechanism_missing_clue", "mechanism_controls", "mechanism_sequence",
@@ -59,8 +59,8 @@ public final class ScenarioGenerator {
       MiniMapScenario.INSTANCE.validateOutline(parsed, request.getString("nodeAnchor"));
     else {
       MiniMapScenario.INSTANCE.validate(parsed, request.getString("nodeAnchor"), request.getInt("index"));
-      // New AI scripts need public evidence prose, while existing saved scripts
-      // remain readable under the unchanged Core schema.
+      // New AI scripts need public evidence prose, and every room carries an exact
+      // authored environment identity under the current schema.
       JSONArray interactions = parsed.getJSONArray("interactions");
       for (int i = 0; i < interactions.length(); i++) {
         JSONObject action = interactions.getJSONObject(i);
@@ -156,7 +156,7 @@ public final class ScenarioGenerator {
         + "Mỗi objective phải có điều kiện hoàn thành xác định và dependencyRefs chỉ trỏ index nhỏ hơn. "
         + "Không lặp chu kỳ đi kiểm tra, nhặt hai manh mối rồi chọn câu trả lời. "
         + "Chỉ thêm NPC vào beat nếu hữu ích. Có thể gặp người lạc từ XIX, 1940, 1990, XXI; không bắt buộc NPC mỗi beat, không xác nhận du hành thời gian. "
-        + "Schema {schemaVersion:4,levelNumber:int,nodeAnchor:string,entries:[{index:1..8,nodeAnchor:string,beat:string<=220,objective:string<=220,dependencyRefs:[index trước]}]}. "
+        + "Schema {schemaVersion:5,levelNumber:int,nodeAnchor:string,entries:[{index:1..8,nodeAnchor:string,beat:string<=220,objective:string<=220,dependencyRefs:[index trước]}]}. "
         + "Cả 8 mini-map dùng INPUT.nodeAnchor=0 và INPUT.levelNumber=0; không có nội dung Level khác. INPUT=" + request;
     }
     return intro
@@ -165,9 +165,11 @@ public final class ScenarioGenerator {
       + "Không cho hành động đúng lần lượt hiện ra một cách tự động để người chơi chỉ chạm liên tục đến cuối. "
       + "Đa dạng giữa câu đố đối chiếu có đáp án sai hợp lý và cơ cấu điều khiển NHIỀU BƯỚC (tối ưu chọn cơ cấu khi beat phù hợp). "
       + "Không ép công thức 2 vật chứng/4 đáp án cho mọi mini-map; hãy sáng tác một nút thắt có nguyên nhân, kết quả và tín hiệu mở khóa. "
-      + "SchemaVersion=4; levelNumber,index,nodeAnchor lấy từ INPUT; JSON <=48000 ký tự. Schema chính xác, không field khác: "
-      + "{schemaVersion:4,id:snake_case,levelNumber:int,index:int,nodeAnchor:string,objective:string<=400,entryRoomId:id,exitRoomId:id,rooms:[{id,name:string<=90,description:string<=600,adjacentRoomIds:[id]}],npcs:[{id,name:string<=90,originPeriod:string<=100,role:string<=120,purpose:string<=220,description:string<=350,roomId:id}],facts:[{id,label:string<=90,value:string,values:[2..5 giá trị gồm value]}],mechanisms:OPTIONAL [{id,clueId,steps:[interactionId...]}],interactions:[{id,kind:SEARCH hoặc TALK,roomId:id,npcId:id chỉ khi TALK,label:string<=120,observation:string 35..320 (trừ ANSWER/STEP),requires:predicate,effect:effect}],goal:predicate}. "
+      + "SchemaVersion=5; levelNumber,index,nodeAnchor lấy từ INPUT; JSON <=48000 ký tự. Schema chính xác, không field khác: "
+      + "{schemaVersion:5,id:snake_case,levelNumber:int,index:int,nodeAnchor:string,objective:string<=400,entryRoomId:id,exitRoomId:id,rooms:[{id,name:string<=90,description:string<=600,adjacentRoomIds:[id],environmentId:ID_CANON}],npcs:[{id,name:string<=90,originPeriod:string<=100,role:string<=120,purpose:string<=220,description:string<=350,roomId:id}],facts:[{id,label:string<=90,value:string,values:[2..5 giá trị gồm value]}],mechanisms:OPTIONAL [{id,clueId,steps:[interactionId...]}],interactions:[{id,kind:SEARCH hoặc TALK,roomId:id,npcId:id chỉ khi TALK,label:string<=120,observation:string 35..320 (trừ ANSWER/STEP),requires:predicate,effect:effect}],goal:predicate}. "
       + "ID: [a-z][a-z0-9_]{0,39} không trùng trong mỗi nhóm; 4..12 phòng, đồ thị liên thông, cạnh hai chiều, tối đa 6 cạnh/phòng; entry/exit thuộc rooms. "
+      + "Mỗi rooms[].environmentId BẮT BUỘC thuộc catalog sau; chọn theo cảnh quan đúng Canon, không suy từ index mini-map. Mỗi phòng chỉ thuộc một khu chính hoặc khu phụ, giữ identity cố định suốt kịch bản. Không tự coi thứ tự catalog là route. Mô tả và vật thể phải hợp environmentId; khu phụ kế thừa khu chính. Catalog: "
+      + Level0Environments.promptCatalog() + ". "
       + "TÊN ĐỊA ĐIỂM: Đặt tên như người Việt chỉ đường, bằng danh từ chỉ không gian + một đặc điểm thực tế nhìn thấy; ngắn, rõ nghĩa và khác biệt giữa các phòng. "
       + "Viết hoa đầu tên và tên riêng, KHÔNG viết hoa từng từ, không chơi chữ, ghép danh từ thiếu quan hệ, hoặc dùng hành động nghe/nhìn/tìm kiếm làm tên phòng. "
       + "SAI 'Hành Lang Góc Khuyết', 'Phòng Dây Điện Hở', 'Nghe Âm Huỳnh Quang'; "

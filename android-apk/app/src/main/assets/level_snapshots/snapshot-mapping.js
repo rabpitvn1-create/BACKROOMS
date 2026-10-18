@@ -119,6 +119,193 @@ const images={
     "level_06p1__snapshot_001.webp"
   ]
 };
+const environments={
+  "yellow_rot": {
+    "file": "level_00__zone_01__yellow_rot.webp",
+    "name": "Vàng Úa",
+    "zoneId": "yellow_rot"
+  },
+  "deadlight": {
+    "file": "level_00__zone_02__deadlight.webp",
+    "name": "Đèn Chết",
+    "zoneId": "deadlight"
+  },
+  "wetfloor": {
+    "file": "level_00__zone_03__wetfloor.webp",
+    "name": "Thảm Sũng",
+    "zoneId": "wetfloor"
+  },
+  "silent_hall": {
+    "file": "level_00__zone_04__silent_hall.webp",
+    "name": "Lối Câm",
+    "zoneId": "silent_hall"
+  },
+  "hollow_ceiling": {
+    "file": "level_00__zone_05__hollow_ceiling.webp",
+    "name": "Trần Rỗng",
+    "zoneId": "hollow_ceiling"
+  },
+  "afterimage": {
+    "file": "level_00__zone_06__afterimage.webp",
+    "name": "Hồi Ảnh",
+    "zoneId": "afterimage"
+  },
+  "the_loop": {
+    "file": "level_00__zone_07__the_loop.webp",
+    "name": "Vòng Lặp",
+    "zoneId": "the_loop"
+  },
+  "the_fracture": {
+    "file": "level_00__zone_08__the_fracture.webp",
+    "name": "Rạn Nứt",
+    "zoneId": "the_fracture"
+  },
+  "phong_moc": {
+    "file": "level_00__zone_01__sub_01__phong_moc.webp",
+    "name": "Phòng Mốc",
+    "zoneId": "yellow_rot"
+  },
+  "hanh_lang_dai": {
+    "file": "level_00__zone_01__sub_02__hanh_lang_dai.webp",
+    "name": "Hành Lang Dài",
+    "zoneId": "yellow_rot"
+  },
+  "goc_khuat": {
+    "file": "level_00__zone_01__sub_03__goc_khuat.webp",
+    "name": "Góc Khuất",
+    "zoneId": "yellow_rot"
+  },
+  "phong_trong": {
+    "file": "level_00__zone_01__sub_04__phong_trong.webp",
+    "name": "Phòng Trống",
+    "zoneId": "yellow_rot"
+  },
+  "phong_chop": {
+    "file": "level_00__zone_02__sub_01__phong_chop.webp",
+    "name": "Phòng Chớp",
+    "zoneId": "deadlight"
+  },
+  "hanh_lang_toi": {
+    "file": "level_00__zone_02__sub_02__hanh_lang_toi.webp",
+    "name": "Hành Lang Tối",
+    "zoneId": "deadlight"
+  },
+  "tram_dien": {
+    "file": "level_00__zone_02__sub_03__tram_dien.webp",
+    "name": "Trạm Điện",
+    "zoneId": "deadlight"
+  },
+  "vung_den": {
+    "file": "level_00__zone_03__sub_01__vung_den.webp",
+    "name": "Vũng Đen",
+    "zoneId": "wetfloor"
+  },
+  "tham_phong": {
+    "file": "level_00__zone_03__sub_02__tham_phong.webp",
+    "name": "Thảm Phồng",
+    "zoneId": "wetfloor"
+  },
+  "phong_ngap": {
+    "file": "level_00__zone_03__sub_03__phong_ngap.webp",
+    "name": "Phòng Ngập",
+    "zoneId": "wetfloor"
+  },
+  "goc_thoi": {
+    "file": "level_00__zone_03__sub_04__goc_thoi.webp",
+    "name": "Góc Thối",
+    "zoneId": "wetfloor"
+  },
+  "hanh_lang_cam": {
+    "file": "level_00__zone_04__sub_01__hanh_lang_cam.webp",
+    "name": "Hành Lang Câm",
+    "zoneId": "silent_hall"
+  },
+  "phong_thi_tham": {
+    "file": "level_00__zone_04__sub_02__phong_thi_tham.webp",
+    "name": "Phòng Thì Thầm",
+    "zoneId": "silent_hall"
+  },
+  "nga_ba_chet": {
+    "file": "level_00__zone_04__sub_03__nga_ba_chet.webp",
+    "name": "Ngã Ba Chết",
+    "zoneId": "silent_hall"
+  },
+  "tran_vo": {
+    "file": "level_00__zone_05__sub_01__tran_vo.webp",
+    "name": "Trần Vỡ",
+    "zoneId": "hollow_ceiling"
+  },
+  "khoang_ky_thuat": {
+    "file": "level_00__zone_05__sub_02__khoang_ky_thuat.webp",
+    "name": "Khoang Kỹ Thuật",
+    "zoneId": "hollow_ceiling"
+  },
+  "gieng_tran": {
+    "file": "level_00__zone_05__sub_03__gieng_tran.webp",
+    "name": "Giếng Trần",
+    "zoneId": "hollow_ceiling"
+  },
+  "phong_treo": {
+    "file": "level_00__zone_05__sub_04__phong_treo.webp",
+    "name": "Phòng Treo",
+    "zoneId": "hollow_ceiling"
+  },
+  "phong_ky_uc": {
+    "file": "level_00__zone_06__sub_01__phong_ky_uc.webp",
+    "name": "Phòng Ký Ức",
+    "zoneId": "afterimage"
+  },
+  "tuong_mat": {
+    "file": "level_00__zone_06__sub_02__tuong_mat.webp",
+    "name": "Tường Mặt",
+    "zoneId": "afterimage"
+  },
+  "phong_tieng_goi": {
+    "file": "level_00__zone_06__sub_03__phong_tieng_goi.webp",
+    "name": "Phòng Tiếng Gọi",
+    "zoneId": "afterimage"
+  },
+  "hanh_lang_lap": {
+    "file": "level_00__zone_07__sub_01__hanh_lang_lap.webp",
+    "name": "Hành Lang Lặp",
+    "zoneId": "the_loop"
+  },
+  "phong_ban_sao": {
+    "file": "level_00__zone_07__sub_02__phong_ban_sao.webp",
+    "name": "Phòng Bản Sao",
+    "zoneId": "the_loop"
+  },
+  "nga_tu_vo_tan": {
+    "file": "level_00__zone_07__sub_03__nga_tu_vo_tan.webp",
+    "name": "Ngã Tư Vô Tận",
+    "zoneId": "the_loop"
+  },
+  "phong_dao": {
+    "file": "level_00__zone_07__sub_04__phong_dao.webp",
+    "name": "Phòng Đảo",
+    "zoneId": "the_loop"
+  },
+  "tuong_nut": {
+    "file": "level_00__zone_08__sub_01__tuong_nut.webp",
+    "name": "Tường Nứt",
+    "zoneId": "the_fracture"
+  },
+  "san_lech": {
+    "file": "level_00__zone_08__sub_02__san_lech.webp",
+    "name": "Sàn Lệch",
+    "zoneId": "the_fracture"
+  },
+  "khe_toi": {
+    "file": "level_00__zone_08__sub_03__khe_toi.webp",
+    "name": "Khe Tối",
+    "zoneId": "the_fracture"
+  },
+  "phong_giao_thoa": {
+    "file": "level_00__zone_08__sub_04__phong_giao_thoa.webp",
+    "name": "Phòng Giao Thoa",
+    "zoneId": "the_fracture"
+  }
+};
 const specialParents={
   "manila_room": 0,
   "the_torment": 0,
@@ -139,34 +326,33 @@ function nodeId(state){
   if(level&&level.number!=null&&owns(images,String(level.number).trim()))return String(level.number).trim();
   return "0";
 }
-function snapshotStep(state){
-  const exploration=state&&state.flags&&state.flags.exploration;
-  const step=Number(exploration&&exploration.snapshotStep);
-  return Number.isSafeInteger(step)&&step>=0?step:0;
+function environment(state){
+  if(nodeId(state)!=="0" || !state || !state.scene || state.scene.nodeId!=="0")return null;
+  const id=state.scene.environment&&state.scene.environment.id;
+  return typeof id==="string"&&owns(environments,id)?{id:id,...environments[id]}:null;
 }
 function sceneKey(state){
-  const location=String(state&&state.location||"").trim().toLocaleLowerCase();
-  const area=String(state&&state.flags&&state.flags.visualAreaKey||"").trim().toLocaleLowerCase();
-  return nodeId(state)+"|"+location+"|"+area+"|"+snapshotStep(state);
-}
-function stableHash(value){
-  let hash=2166136261;
-  for(let i=0;i<value.length;i++)hash=Math.imul(hash^value.charCodeAt(i),16777619)>>>0;
-  return hash;
+  const current=environment(state);
+  return nodeId(state)+"|"+(current?current.id:"unassigned");
 }
 function resolve(state){
   const id=nodeId(state);
   const parent=owns(specialParents,id)?specialParents[id]:parseInt(id,10);
   const variants=images[id];
   const dedicated=variants.length>0;
-  // Location and visualAreaKey identify the scene; only Core-confirmed progress rotates its image.
-  // Hashing the full location here can collide even after a successful EXPLORE.
-  const index=dedicated?(stableHash(id)%variants.length+snapshotStep(state)%variants.length)%variants.length:-1;
-  const file=dedicated?variants[index]:"level_"+parent+".webp";
+  const current=environment(state);
+  // Snapshot identity follows Core's exact environment only. Never rotate by
+  // turn, action, room name, mini index, hash, or visual progress counters.
+  const index=dedicated?0:-1;
+  const file=current?current.file:(dedicated?variants[0]:"level_"+parent+".webp");
   return {nodeId:id,parent:parent,file:file,src:assetPrefix+file,
-    hasDedicatedImage:dedicated,fallback:!dedicated,variantIndex:index,variantCount:variants.length};
+    environmentId:current?current.id:null,environmentName:current?current.name:null,
+    hasDedicatedImage:!!current||dedicated,fallback:!current&&!dedicated,
+    variantIndex:index,variantCount:1};
 }
 const api=Object.freeze({nodeId:nodeId,sceneKey:sceneKey,resolve:resolve,
+  environmentIds:function(){return Object.keys(environments);},
+  environmentFile:function(id){return owns(environments,id)?environments[id].file:null;},
   knownIds:function(){return Object.keys(images);},
   filesFor:function(id){return owns(images,id)?images[id].slice():[];}});
 root.BackroomSnapshotAssets=api;

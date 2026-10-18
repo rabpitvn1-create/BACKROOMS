@@ -267,7 +267,7 @@ object KnowledgeContextEngine {
 
     /**
      * Details are indexed in the APK, but zone numbers are not mini-map indices.
-     * Only a future Core-confirmed scene.zoneId / scene.subzoneId may select them.
+     * Only Core-confirmed scene.zoneId / scene.subzoneId may select them.
      * Neither a player's mention nor a generated room name proves location.
      */
     private fun addCurrentZoneCanon() {

@@ -6,7 +6,7 @@ import org.json.JSONTokener
 
 /** Bounded, monotone puzzle language. Generated strings are never executable predicates. */
 object MiniMapScenario {
-  const val SCHEMA = 4
+  const val SCHEMA = 5
   const val ACTIVE_NODE_ID = "0"
   const val MINI_MAP_COUNT = 8
   const val MAX_CHARS = 48000
@@ -118,10 +118,11 @@ object MiniMapScenario {
     val rooms = list(raw, "rooms", 4, 12); val roomIds = rooms.map { it.getString("id") }.toSet()
     require(id(raw, "entryRoomId") in roomIds && id(raw, "exitRoomId") in roomIds)
     rooms.forEach { r ->
-      fields(r, setOf("id", "name", "description", "adjacentRoomIds"))
+      fields(r, setOf("id", "name", "description", "adjacentRoomIds", "environmentId"))
+      val environment = Level0Environments.requireEnvironment(r.getString("environmentId"))
       canonBoundary(nodeId, text(r, "name", 90)); canonBoundary(nodeId, text(r, "description", 600))
       vietnameseSceneLabel(r.getString("name")); vietnameseSceneLabel(r.getString("description"))
-      naturalRoomName(r.getString("name"))
+      if (r.getString("name") != environment.name) naturalRoomName(r.getString("name"))
       val adj = strings(r.getJSONArray("adjacentRoomIds")); require(adj.size in 1..6 && adj.distinct().size == adj.size)
       require(adj.all { it in roomIds && it != r.getString("id") }) { "graph_reference" }
       // Every movement has an unconditional return edge. No irreversible softlocks.

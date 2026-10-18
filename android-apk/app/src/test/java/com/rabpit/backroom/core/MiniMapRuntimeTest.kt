@@ -8,12 +8,12 @@ import java.security.SecureRandom
 
 class MiniMapRuntimeTest {
   private fun script(level: Int = 0, index: Int = 1, nodeId: String = level.toString()) = MiniMapScenario.parse("""
-    {"schemaVersion":4,"id":"investigation","levelNumber":$level,"index":$index,"nodeAnchor":"${nodeId}",
+    {"schemaVersion":5,"id":"investigation","levelNumber":$level,"index":$index,"nodeAnchor":"${nodeId}",
     "objective":"Đối chiếu dấu hiệu và lời khai để xác định màu khóa, hướng van.","entryRoomId":"hall","exitRoomId":"hall",
-    "rooms":[{"id":"hall","name":"Hành lang","description":"Một bảng điều khiển có hai hàng lựa chọn.","adjacentRoomIds":["lab","witness","alcove"]},
-    {"id":"lab","name":"Kho hồ sơ","description":"Tủ hồ sơ và một mảnh giấy.","adjacentRoomIds":["hall"]},
-    {"id":"witness","name":"Phòng trực","description":"Một người gác đang chờ.","adjacentRoomIds":["hall"]},
-    {"id":"alcove","name":"Hốc tường","description":"Một góc phòng để quan sát.","adjacentRoomIds":["hall"]}],
+    "rooms":[{"id":"hall","name":"Hành lang","description":"Một bảng điều khiển có hai hàng lựa chọn.","environmentId":"phong_moc","adjacentRoomIds":["lab","witness","alcove"]},
+    {"id":"lab","name":"Kho hồ sơ","description":"Tủ hồ sơ và một mảnh giấy.","environmentId":"phong_moc","adjacentRoomIds":["hall"]},
+    {"id":"witness","name":"Phòng trực","description":"Một người gác đang chờ.","environmentId":"phong_moc","adjacentRoomIds":["hall"]},
+    {"id":"alcove","name":"Hốc tường","description":"Một góc phòng để quan sát.","environmentId":"phong_moc","adjacentRoomIds":["hall"]}],
     "npcs":[{"id":"guard_npc","name":"Trần Văn Duy","originPeriod":"thập niên 1940","role":"Nhân chứng trong phòng trực",
     "purpose":"Cung cấp lời khai để người chơi kiểm chứng bằng hồ sơ",
     "description":"Một người đang đứng cạnh bàn trực.","roomId":"witness"}],
@@ -28,6 +28,25 @@ class MiniMapRuntimeTest {
     {"id":"answer_right","kind":"SEARCH","roomId":"hall","label":"Chọn van phải","requires":{"op":"HAS","id":"answer_red"},"effect":{"type":"ANSWER","factId":"valve","value":"phải"}}],
     "goal":{"op":"AND","args":[{"op":"HAS","id":"answer_red"},{"op":"HAS","id":"answer_left"}]}}
   """.trimIndent())
+  @Test fun exactEnvironmentIdsAreValidatedWithoutInferringFromRoomNames() {
+    assertEquals(37, Level0Environments.all.size)
+    assertEquals(8, Level0Environments.all.count { it.parent == null })
+    for (environment in Level0Environments.all) {
+      val scene = leverPuzzle()
+      scene.getJSONArray("rooms").getJSONObject(0).put("environmentId", environment.id).put("name", environment.name)
+      MiniMapScenario.validate(scene, "0", 1)
+    }
+    for (invalid in listOf("unknown", "../phong_moc", "Phòng Mốc", "0.1")) {
+      val scene = leverPuzzle()
+      scene.getJSONArray("rooms").getJSONObject(0).put("environmentId", invalid)
+      try { MiniMapScenario.validate(scene, "0", 1); fail("Rejected environment required") }
+      catch (expected: IllegalArgumentException) { assertEquals("scene_environment", expected.message) }
+    }
+    val missing = leverPuzzle()
+    missing.getJSONArray("rooms").getJSONObject(0).remove("environmentId")
+    try { MiniMapScenario.validate(missing, "0", 1); fail("Missing identity must fail") }
+    catch (expected: IllegalArgumentException) { assertEquals("scenario_fields", expected.message) }
+  }
   private fun leverPuzzle(): JSONObject {
     val scene = script()
     // This device-only task should not retain the unrelated color/valve puzzle
@@ -627,6 +646,31 @@ class MiniMapRuntimeTest {
     assertFalse(visible.toString().contains("Trần Văn Duy"))
   }
 
+  @Test fun snapshotIdentityFollowsCommittedRoomAndRejectsClientSpoofing() {
+    val initial = state()
+    val progress = MiniMapRuntime.progress(initial)
+    val scene = JSONObject(initial.world.getValue(MiniMapRuntime.scriptKey(progress)))
+    scene.getJSONArray("rooms").getJSONObject(1).put("environmentId", "phong_chop")
+    val repo = MemorySave(initial.copy(world = initial.world + (MiniMapRuntime.scriptKey(progress) to scene.toString())))
+    val core = facade(repo)
+    val before = MiniMapRuntime.publicView(repo.state)
+    assertEquals("phong_moc", before.getJSONObject("environment").getString("id"))
+    assertEquals("1", before.getString("zoneId"))
+    assertEquals("1.1", before.getString("subzoneId"))
+    val command = choice(repo.state, "room:lab")
+    core.beginSceneAction(command)
+    assertEquals("phong_moc", MiniMapRuntime.publicView(repo.state).getJSONObject("environment").getString("id"))
+    assertEquals("phong_chop", JSONObject(core.sceneNarrationContext()).getJSONObject("room").getString("environmentId"))
+    core.commitSceneAction(JSONObject(command).getString("actionId"), "Cao Minh bước vào phòng.", "{}")
+    val after = MiniMapRuntime.publicView(repo.state)
+    assertEquals("phong_chop", after.getJSONObject("environment").getString("id"))
+    assertEquals("2.1", after.getString("subzoneId"))
+    val spoof = JSONObject().put("scene", JSONObject().put("environment", JSONObject().put("id", "khe_toi")))
+    assertEquals("phong_chop", CoreClientProjection.project(spoof, repo.state).getJSONObject("scene").getJSONObject("environment").getString("id"))
+    val restored = GameStateCodec.decode(GameStateCodec.encode(repo.state))
+    assertEquals("phong_chop", MiniMapRuntime.publicView(restored).getJSONObject("environment").getString("id"))
+  }
+
   @Test fun publicViewNeverContainsAnswerKeyOrTruthPolicy() {
     val view=MiniMapRuntime.publicView(state()).toString()
     assertFalse(view.contains("facts"));assertFalse(view.contains("LIE"));assertFalse(view.contains("factId"));assertFalse(view.contains("answer_red"))
@@ -768,7 +812,7 @@ class MiniMapRuntimeTest {
     assertNotNull(LevelRouteRegistry.node("0.1"))
     assertEquals(listOf("0.1"),LevelRouteRegistry.exits("0"))
   }
-  private fun outline(nodeId: String) = JSONObject().put("schemaVersion",4)
+  private fun outline(nodeId: String) = JSONObject().put("schemaVersion",5)
     .put("levelNumber",LevelRouteRegistry.node(nodeId).parent).put("nodeAnchor",nodeId).put("entries",JSONArray().apply {
       (1..8).forEach { put(JSONObject().put("index",it).put("nodeAnchor",nodeId)
         .put("beat","Điều tra").put("objective","Đối chiếu dữ kiện").put("dependencyRefs",JSONArray())) }

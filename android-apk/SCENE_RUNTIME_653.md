@@ -14,7 +14,7 @@
 
 `prepareScene` → Gemini scenario transport (tối đa 2 lane/request, cooldown riêng 60s)
 → nếu các lượt Gemini được phép đều lỗi/quota/schema hoặc không có key khả dụng: thử **một lần Gehihi tạo kịch bản** (output cap 10000 tokens)
-→ cả hai provider đều phải parse bounded JSON, validate cùng schema v4/outline/script + proof hữu hạn → chỉ kịch bản hợp lệ mới được lưu vào Core.
+→ cả hai provider đều phải parse bounded JSON, validate cùng schema v5/outline/script + proof hữu hạn → chỉ kịch bản hợp lệ mới được lưu vào Core.
 Gehihi dự phòng ở đây chỉ là **biên kịch outline/mini-map**, không đổi vai trò Gehihi làm GM duy nhất. Dự phòng không dùng chung giới hạn 2048 tokens của lời kể. Nếu cả hai cùng thất bại, state giữ nguyên và UI cho thử lại.
 
 `submitSceneAction` → kiểm tra actionId/version/room/availableActions
@@ -66,3 +66,9 @@ Các API Core cũ còn test độc lập không được UI mới sử dụng; `
 - Chưa gọi Gemini/Gehihi thực để kiểm tra khả năng sinh JSON dài qua endpoint Gehihi, chưa đo latency/token thực, chưa chạy APK/emulator. Test Core xác minh chọn provider và validator, không đảm bảo model Gehihi sẽ thực sự hoàn thành mini-map. Cần nghiệm thu mẫu puzzle sinh thực tế và nhiều đường đi trên Android trước phát hành.
 - Chưa có browser smoke: tải Chromium của môi trường thất bại. Test JS chạy bằng Node VM, không thay thế render/WebView thực.
 - Không merge/release/đóng issue trong tác vụ này. PR giữ draft cho đến khi các cổng Android/CI và nghiệm thu nội dung hoàn tất.
+
+## Định danh môi trường và snapshot Level 0
+
+Schema v5 bắt buộc `rooms[].environmentId` thuộc 37 định danh trong `Level0Environments` (8 khu chính + 29 khu phụ). Không suy khu từ index mini-map hay tên phòng. Core chỉ công khai vị trí của phòng hiện tại; MOVE pending chưa đổi snapshot, commit mới đổi định danh. `scene.zoneId`/`scene.subzoneId` chọn đúng Canon; GM nhận môi trường của phòng đích.
+
+Mỗi định danh có đúng một WebP trong `level_snapshots/level0-environments.json`. Snapshot không quay vòng ở bất kỳ node nào; bỏ phụ thuộc hash, turn, tên phòng và snapshotStep. Lỗi tải ảnh không thay bằng ảnh khu khác. Không nhập/chuyển đổi kịch bản hoặc save cũ; bắt đầu lượt chơi mới với dữ liệu hiện hành.

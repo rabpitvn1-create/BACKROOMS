@@ -15,7 +15,7 @@ public class ScenarioGeneratorTest {
     for (int i=1;i<=8;i++) entries.put(new JSONObject().put("index",i)
       .put("nodeAnchor","0").put("beat","Quan sát và đối chiếu")
       .put("objective","Giải mục tiêu").put("dependencyRefs",new JSONArray()));
-    return new JSONObject().put("schemaVersion",4).put("levelNumber",0).put("nodeAnchor","0").put("entries",entries).toString();
+    return new JSONObject().put("schemaVersion",5).put("levelNumber",0).put("nodeAnchor","0").put("entries",entries).toString();
   }
   @Test public void validOutlineUsesScenarioContractAndExactlyOneTransportCall() throws Exception {
     AtomicInteger calls=new AtomicInteger();
@@ -33,9 +33,12 @@ public class ScenarioGeneratorTest {
     assertTrue(prompt.contains("KHÔNG phải số NPC xuất hiện cùng lúc"));
     assertTrue(prompt.contains("không nhất thiết phải là điều kiện bắt buộc"));
     assertTrue(prompt.contains("KHÔNG bắt buộc có NPC hay lời khai sai"));
-    assertTrue(prompt.contains("{schemaVersion:4,id:"));
+    assertTrue(prompt.contains("{schemaVersion:5,id:"));
     assertFalse(prompt.contains("{schemaVersion:3,id:"));
     assertTrue(prompt.contains("originPeriod"));
+    assertTrue(prompt.contains("environmentId:ID_CANON"));
+    assertTrue(prompt.contains("phong_moc=Phòng Mốc"));
+    assertTrue(prompt.contains("phong_giao_thoa=Phòng Giao Thoa"));
     assertTrue(prompt.contains("TỰ SÁNG TÁC tên riêng"));
     assertTrue(prompt.contains("hai originPeriod khác nhau"));
     assertTrue(prompt.contains("KHÔNG được tự xác nhận Backrooms du hành thời gian"));
@@ -50,7 +53,7 @@ public class ScenarioGeneratorTest {
     String prompt = ScenarioGenerator.prompt(input);
     // A size guard catches accidental reintroduction of verbose duplicated advice,
     // but correctness still depends on the schema and proof requirements below.
-    assertTrue("Bounded prompt including generic device contract", prompt.length() < 10500);
+    assertTrue("Bounded prompt including generic device contract", prompt.length() < 22000);
     assertTrue(prompt.contains("TÊN ĐỊA ĐIỂM:"));
     assertTrue(prompt.contains("Hành lang có góc khuất"));
     assertTrue(prompt.contains("Phòng có dây điện hở"));
