@@ -37,8 +37,11 @@ public final class SnapshotSceneProgress {
     boolean locationChanged = !before.optString("location", "").equals(next.optString("location", ""));
     String oldArea = oldFlags == null ? "" : oldFlags.optString("visualAreaKey", "");
     boolean areaChanged = !oldArea.equals(flags.optString("visualAreaKey", ""));
-    boolean sceneFacing = "EXECUTE".equalsIgnoreCase(actionKind == null ? "" : actionKind.trim())
-        && PhysicalActionDetector.isSceneFacing(actionText == null ? "" : actionText);
+    // A Core-confirmed room MOVE is scene-facing even when its short label
+    // ("Kho hồ sơ", etc.) contains no movement verb.
+    boolean sceneFacing = "MOVE".equalsIgnoreCase(actionKind == null ? "" : actionKind.trim())
+        || ("EXECUTE".equalsIgnoreCase(actionKind == null ? "" : actionKind.trim())
+            && PhysicalActionDetector.isSceneFacing(actionText == null ? "" : actionText));
     boolean failed = HiddenExitStreak.failedThisTurn(rolls);
 
     // Discovering an Exit is independent from exploring the surroundings.
