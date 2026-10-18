@@ -30,7 +30,6 @@
     try{
       if(scene.pendingActionId)Android.submitSceneAction(JSON.stringify(state),'RETRY');
       else if(scene.generationNeeded){writerPending();Android.prepareScene(JSON.stringify(state));}
-      else if(retryPlayer&&draft.trim())sendPlayerAction(draft);
       else{busy=false;refresh();}
     }catch(e){global.backroomError('Không gửi được yêu cầu thử lại tới Core.');}
   };
@@ -56,7 +55,7 @@
   const actionHead=document.createElement('div');actionHead.className='explorer-dialog-header';
   actionHead.append(actionTitle,actionClose);actionDialog.append(actionHead,actionInput,actionSend);
   document.body.appendChild(actionDialog);
-  let preparing=false,failed=false,batchBusy=false,retryPlayer=false,draft='',activeMechanismId=null;
+  let preparing=false,failed=false,batchBusy=false,draft='',activeMechanismId=null;
   actionInput.oninput=()=>{draft=actionInput.value;actionSend.disabled=!draft.trim();};
   actionSend.onclick=()=>{
     if(locked()||!actionInput.value.trim())return;
@@ -102,11 +101,11 @@
   }
   function sendPlayerAction(value){
     if(!value.trim()||!state.scene||state.scene.generationNeeded)return;
-    batchBusy=true;retryPlayer=false;failed=false;busy=true;refresh();
+    batchBusy=true;failed=false;busy=true;refresh();
     try{
       if(!Android.submitPlayerAction)throw Error('Player Action chưa được Core hỗ trợ.');
       Android.submitPlayerAction(JSON.stringify(state),value.trim());
-    }catch(e){batchBusy=false;busy=false;retryPlayer=true;global.backroomError('Không gửi được Player Action tới Core.');}
+    }catch(e){batchBusy=false;busy=false;global.backroomError('Không gửi được Player Action tới Core.');}
   }
   function submitChoice(a,keepPopup){
     if(locked())return;
@@ -219,8 +218,8 @@
     buttons.MAP.disabled=!scene.map;
     buttons.AREA_LOG.disabled=!scene.map;
     buttons.TALK.disabled=locked()||!(scene.availableActions||[]).some(a=>a.kind==='TALK');
-    const showRetry=!!scene.pendingActionId||
-      failed&&(!!scene.generationNeeded||retryPlayer);
+    // Invalid input/planner failures leave Player Action editable.
+    const showRetry=!!scene.pendingActionId||(failed&&!!scene.generationNeeded);
     playerAction.hidden=showRetry;retry.hidden=!showRetry;
     playerAction.disabled=locked()||!!scene.generationNeeded;
     retry.disabled=busy||batchBusy||coreUnavailable;
@@ -264,7 +263,7 @@
   }
   global.backroomPlayerActionFinished=function(raw){
     const result=JSON.parse(raw);batchBusy=false;busy=false;
-    failed=false;retryPlayer=false;
+    failed=false;
     if(result.completed){draft='';actionInput.value='';actionSend.disabled=true;}
     else{
       const s=document.getElementById('status');
@@ -276,12 +275,11 @@
     const result=JSON.parse(raw);
     batchBusy=false;busy=false;
     // Saved Core pending always has priority over replanning the original text.
-    retryPlayer=result.committed===0&&!state.scene?.pendingActionId;
     const stopped=playerActionStopText(result,result.committed);
     global.backroomError(stopped);
     const s=document.getElementById('status');if(s)s.textContent=stopped;
     // A partially committed plan must never be replayed from its first step.
-    if(result.committed>0){failed=false;retryPlayer=false;refresh();}
+    if(result.committed>0){failed=false;refresh();}
   };
   global.backroomSyncExplorer=refresh;
   refresh();
