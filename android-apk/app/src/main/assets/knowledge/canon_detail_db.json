@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "sourceAuthority": "AUTHOR_CONFIRMED_DRIVE_ASSET",
-  "coverage": "R2 trial index, not a complete transcript of /Novel/Asset",
+  "sourceAuthority": "AUTHOR_CONFIRMED_DRIVE_ASSET_AND_DIRECT_USER_APPROVAL",
+  "coverage": "R2 authored detail index: source-traced Drive assets and author-approved Level 0 zones/subzones; not a complete Novel transcript",
   "records": [
     {
       "id": "CHAR.CAO_MINH.DETAIL.PROFILE.001.01",
