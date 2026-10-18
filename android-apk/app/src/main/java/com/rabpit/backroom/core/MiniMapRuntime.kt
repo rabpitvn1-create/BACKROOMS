@@ -16,7 +16,7 @@ object MiniMapRuntime {
     return JSONObject().put("runId", runId).put("nodeId", nodeId).put("parent", node.parent)
       .put("index", 1).put("version", 1).put("roomId", "")
       .put("accepted", JSONArray()).put("attempted", JSONArray()).put("records", JSONArray())
-      .put("completed", JSONArray())
+      .put("completed", JSONArray()).put("visitedRooms", JSONArray()).put("areaEvents", JSONArray())
   }
   fun progress(state: GameState): JSONObject = state.world[STATE]?.let(::JSONObject)
     ?: freshProgress(state.metadata["story.runId"] ?: UUID.randomUUID().toString(), node(state).id)
@@ -173,6 +173,28 @@ object MiniMapRuntime {
       .put("nodeExitUnlocked", p.getInt("index") == 10 && complete(state) &&
         LevelRouteRegistry.exits(p.getString("nodeId")).isNotEmpty())
     if (s != null) {
+      // Only explored room names are revealed. Edges beyond the discovered
+      // frontier stay hidden and no interaction/fact/solution enters MAP.
+      val visited = strings(p.optJSONArray("visitedRooms") ?: JSONArray()).toSet() + p.getString("roomId")
+      val rooms = MiniMapScenario.objects(s.getJSONArray("rooms"))
+      out.put("map", JSONObject().put("currentRoomId", p.getString("roomId"))
+        .put("rooms", JSONArray().apply {
+          rooms.forEach { room ->
+            val roomId = room.getString("id")
+            val known = roomId in visited
+            val frontier = known || rooms.any { adjacent -> adjacent.getString("id") in visited &&
+              roomId in strings(adjacent.getJSONArray("adjacentRoomIds")) }
+            if (frontier) put(JSONObject().put("id", roomId)
+              .put("name", if (known) room.getString("name") else "Chưa khám phá")
+              .put("visited", known)
+              .put("adjacentRoomIds", JSONArray(
+                if (known) strings(room.getJSONArray("adjacentRoomIds")).filter {
+                  it in visited || rooms.any { adjacent -> adjacent.getString("id") in visited &&
+                    it in strings(adjacent.getJSONArray("adjacentRoomIds")) }
+                } else emptyList<String>())))
+          }
+        }))
+      out.put("areaLog", p.optJSONArray("areaEvents") ?: JSONArray())
       out.put("objective", s.getString("objective"))
       // Re-project saved receipts from script data; never expose internal fact enum IDs.
       out.put("records", publicRecords(s, p))
@@ -213,7 +235,12 @@ object MiniMapRuntime {
     }
     if (script(state) != null) return state // A frozen script is never replaced.
     val script = MiniMapScenario.validate(data, p.getString("nodeId"), p.getInt("index"))
-    p.put("roomId", script.getString("entryRoomId")).put("accepted", JSONArray()).put("attempted", JSONArray()).put("records", JSONArray())
+    p.put("roomId", script.getString("entryRoomId"))
+      .put("accepted", JSONArray()).put("attempted", JSONArray()).put("records", JSONArray())
+      .put("visitedRooms", JSONArray().put(script.getString("entryRoomId")))
+      .put("areaEvents", JSONArray().put(JSONObject().put("type", "AREA")
+        .put("text", "Đã bước vào " + MiniMapScenario.objects(script.getJSONArray("rooms"))
+          .first { it.getString("id") == script.getString("entryRoomId") }.getString("name") + ".")))
     return state.copy(world = state.world + mapOf(scriptKey(p) to script.toString(), STATE to p.toString()))
   }
   data class Staged(val progress: JSONObject, val nodeId: String, val event: JSONObject, val label: String, val discardKeys: Set<String>)
@@ -233,12 +260,31 @@ object MiniMapRuntime {
     var authoredSpeaker: JSONObject? = null
     if (kind == "MOVE") {
       when {
-        target.startsWith("room:") -> p.put("roomId", target.removePrefix("room:"))
+        target.startsWith("room:") -> {
+          val destination = target.removePrefix("room:")
+          p.put("roomId", destination)
+          val visited = p.optJSONArray("visitedRooms") ?: JSONArray()
+          if (destination !in strings(visited)) {
+            visited.put(destination)
+            p.put("visitedRooms", visited)
+            val destinationName = room(s, p).getString("name")
+            val events = p.optJSONArray("areaEvents") ?: JSONArray()
+            events.put(JSONObject().put("type", "AREA").put("text", "Đã khám phá " + destinationName + "."))
+            // Observing a person exists is an event; their testimony is not.
+            authoredNpcs(s, destination).let { people ->
+              for (i in 0 until people.length())
+                events.put(JSONObject().put("type", "ENCOUNTER")
+                  .put("text", "Đã gặp " + people.getJSONObject(i).getString("name") + "."))
+            }
+            p.put("areaEvents", events)
+          }
+        }
         target == "next" -> {
           discardKeys += scriptKey(p)
           p.getJSONArray("completed").put(p.getInt("index"))
           p.put("index", p.getInt("index") + 1).put("roomId", "")
             .put("accepted", JSONArray()).put("attempted", JSONArray()).put("records", JSONArray())
+            .put("visitedRooms", JSONArray()).put("areaEvents", JSONArray())
           p.remove("mechanismPositions")
         }
         target.startsWith("node:") -> {
@@ -282,6 +328,9 @@ object MiniMapRuntime {
           line = "Cơ cấu khóa vang lên tiếng bật chốt. Cánh cửa đã được mở khóa."
           p.getJSONArray("records").put(JSONObject().put("id", mechanismId)
             .put("kind", "MECHANISM").put("text", line))
+          val events = p.optJSONArray("areaEvents") ?: JSONArray()
+          events.put(JSONObject().put("type", "UNLOCK").put("text", "Một cơ cấu khóa đã mở."))
+          p.put("areaEvents", events)
         } else {
           positions.put(mechanismId, next)
           line = if (next == 0) "Cơ cấu trở lại trạng thái ban đầu; chốt cửa vẫn khóa."
