@@ -401,11 +401,11 @@ public class MainActivity extends Activity {
     return body.toString();
   }
 
-  private String postJsonFast(String endpoint, String key, String authHeader, JSONObject payload) throws Exception {
+  private String postJsonFast(String endpoint, String key, String authHeader, JSONObject payload, int timeBudgetMs) throws Exception {
     HttpURLConnection connection = (HttpURLConnection) new URL(endpoint).openConnection();
     connection.setRequestMethod("POST");
-    connection.setConnectTimeout(5000);
-    connection.setReadTimeout(18000);
+    connection.setConnectTimeout(Math.min(5000, Math.max(500, timeBudgetMs)));
+    connection.setReadTimeout(Math.min(18000, Math.max(500, timeBudgetMs)));
     connection.setDoOutput(true);
     connection.setRequestProperty("Content-Type", "application/json");
     connection.setRequestProperty(authHeader, authHeader.equals("Authorization") ? "Bearer " + key : key);
@@ -489,6 +489,7 @@ public class MainActivity extends Activity {
   private String geminiTextPolicy(String prompt, int excludedIndex, double temperature, int maxOutputTokens, boolean rememberWorker) throws Exception {
     String[] keys = geminiKeys();
     Exception last = null;
+    final long plannerDeadlineMs = System.currentTimeMillis() + 30_000L;
     if (rememberWorker) lastGeminiWorker = -1;
     synchronized (geminiHealthLock) {
       geminiRotation = (geminiRotation + 1) % 5;
@@ -497,7 +498,8 @@ public class MainActivity extends Activity {
     for (int phase = 0; phase < (excludedIndex >= 0 ? 2 : 1); phase++) {
       int activeExclude = phase == 0 ? excludedIndex : -1;
       boolean[] attempted = new boolean[Math.min(5, keys.length)];
-      for (int workerAttempt = 0; workerAttempt < attempted.length; workerAttempt++) {
+      for (int workerAttempt = 0; workerAttempt < Math.min(2, attempted.length); workerAttempt++) {
+        if (System.currentTimeMillis() >= plannerDeadlineMs) break;
         int index = chooseGeminiWorker(keys, attempted, activeExclude);
         if (index < 0) break;
         attempted[index] = true;
@@ -517,7 +519,8 @@ public class MainActivity extends Activity {
                 "https://generativelanguage.googleapis.com/v1beta/models/" + GEMINI_MODEL + ":generateContent",
                 key,
                 "x-goog-api-key",
-                body
+                body,
+                (int)Math.max(500L, plannerDeadlineMs - System.currentTimeMillis())
               ));
               JSONArray candidates = result.optJSONArray("candidates");
               StringBuilder responseText = new StringBuilder();
