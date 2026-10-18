@@ -12,7 +12,7 @@ public class ScenarioGeneratorTest {
   }
   private String outline() throws Exception {
     JSONArray entries = new JSONArray();
-    for (int i=1;i<=10;i++) entries.put(new JSONObject().put("index",i)
+    for (int i=1;i<=8;i++) entries.put(new JSONObject().put("index",i)
       .put("nodeAnchor","0").put("beat","Quan sát và đối chiếu")
       .put("objective","Giải mục tiêu").put("dependencyRefs",new JSONArray()));
     return new JSONObject().put("schemaVersion",4).put("levelNumber",0).put("nodeAnchor","0").put("entries",entries).toString();
@@ -20,9 +20,9 @@ public class ScenarioGeneratorTest {
   @Test public void validOutlineUsesScenarioContractAndExactlyOneTransportCall() throws Exception {
     AtomicInteger calls=new AtomicInteger();
     String out=new ScenarioGenerator().generate(new String[]{"test-key"},request(),(key,prompt)->{
-      calls.incrementAndGet(); assertTrue(prompt.contains("10 beat"));return outline();
+      calls.incrementAndGet(); assertTrue(prompt.contains("8 beat"));return outline();
     });
-    assertEquals(10,new JSONObject(out).getJSONArray("entries").length());assertEquals(1,calls.get());
+    assertEquals(8,new JSONObject(out).getJSONArray("entries").length());assertEquals(1,calls.get());
   }
   @Test public void scriptPromptAllowsNoNpcMultipleNpcAndNoForcedLies() throws Exception {
     String prompt = ScenarioGenerator.prompt(request().put("kind", "script"));
@@ -68,7 +68,7 @@ public class ScenarioGeneratorTest {
     }
     String outlinePrompt = ScenarioGenerator.prompt(request());
     assertTrue(outlinePrompt.length() < 3000);
-    assertTrue(outlinePrompt.contains("10 beat"));
+    assertTrue(outlinePrompt.contains("8 beat"));
     assertTrue(outlinePrompt.contains("dependencyRefs"));
     assertTrue(outlinePrompt.contains("INPUT.nodeAnchor"));
     assertFalse(outlinePrompt.contains("nodeAnchor theo thứ tự:"));
@@ -94,7 +94,7 @@ public class ScenarioGeneratorTest {
     String result = generator.generate(new String[]{"key-a", "key-b"}, request(),
       (key, prompt) -> { geminiCalls.incrementAndGet(); throw new Exception("http_429"); },
       prompt -> { gehihiCalls.incrementAndGet(); return outline(); });
-    assertEquals(10, new JSONObject(result).getJSONArray("entries").length());
+    assertEquals(8, new JSONObject(result).getJSONArray("entries").length());
     assertEquals(2, geminiCalls.get());
     assertEquals(1, gehihiCalls.get());
     // Gemini lanes in cooldown: fallback should still work without another Gemini call.
@@ -119,7 +119,7 @@ public class ScenarioGeneratorTest {
     assertEquals(2, calls.get());
     assertEquals(2, issues.size());
     assertEquals("gemini:transport:http_503", issues.get(0));
-    assertEquals(10, new JSONObject(generator.generate(new String[]{"valid-key"}, request(),
+    assertEquals(8, new JSONObject(generator.generate(new String[]{"valid-key"}, request(),
       (key, prompt) -> { calls.incrementAndGet(); return outline(); })).getJSONArray("entries").length());
     assertEquals(3, calls.get());
 
@@ -152,12 +152,12 @@ public class ScenarioGeneratorTest {
   @Test public void malformedGeminiScenarioUsesFallbackButValidGeminiDoesNot() throws Exception {
     AtomicInteger fallbackCalls = new AtomicInteger();
     ScenarioGenerator generator = new ScenarioGenerator();
-    assertEquals(10, new JSONObject(generator.generate(new String[]{"a"}, request(),
+    assertEquals(8, new JSONObject(generator.generate(new String[]{"a"}, request(),
       (key, prompt) -> "{\"schemaVersion\":3}", prompt -> {
         fallbackCalls.incrementAndGet(); return outline();
       })).getJSONArray("entries").length());
     assertEquals(1, fallbackCalls.get());
-    assertEquals(10, new JSONObject(new ScenarioGenerator().generate(new String[]{"a"}, request(),
+    assertEquals(8, new JSONObject(new ScenarioGenerator().generate(new String[]{"a"}, request(),
       (key, prompt) -> outline(), prompt -> {
         fallbackCalls.incrementAndGet(); throw new Exception("Must never fall back after success");
       })).getJSONArray("entries").length());
@@ -166,7 +166,7 @@ public class ScenarioGeneratorTest {
 
   @Test public void fallbackWithoutGeminiKeysStillEnforcesCoreSchemaAndSafeFailure() throws Exception {
     AtomicInteger gehihiCalls = new AtomicInteger();
-    assertEquals(10, new JSONObject(new ScenarioGenerator().generate(new String[0], request(),
+    assertEquals(8, new JSONObject(new ScenarioGenerator().generate(new String[0], request(),
       (key, prompt) -> { throw new AssertionError("Gemini must not run"); },
       prompt -> { gehihiCalls.incrementAndGet(); return outline(); })).getJSONArray("entries").length());
     assertEquals(1, gehihiCalls.get());
@@ -196,7 +196,7 @@ public class ScenarioGeneratorTest {
     assertEquals(2, calls.get());
     assertEquals("gemini:validation:scenario_json", issues.get(0));
     assertEquals(1, issues.size());
-    assertEquals(10, new JSONObject(out).getJSONArray("entries").length());
+    assertEquals(8, new JSONObject(out).getJSONArray("entries").length());
   }
 
   @Test public void validationFailuresReportOnlySafeCodesAndForwardRepairHintToGehihi() throws Exception {
@@ -209,7 +209,7 @@ public class ScenarioGeneratorTest {
         return outline();
       },
       (provider, category, code) -> issues.add(provider + ":" + category + ":" + code));
-    assertEquals(10, new JSONObject(result).getJSONArray("entries").length());
+    assertEquals(8, new JSONObject(result).getJSONArray("entries").length());
     assertEquals(2, issues.size());
     assertEquals("gemini:validation:scenario_fields", issues.get(0));
     assertFalse(String.join("|", issues).contains("user-token"));
@@ -222,7 +222,7 @@ public class ScenarioGeneratorTest {
       (key, prompt) -> { throw new Exception("429 private bearer secret"); },
       prompt -> outline(),
       (provider, category, code) -> issues.add(provider + ":" + category + ":" + code));
-    assertEquals(10, new JSONObject(result).getJSONArray("entries").length());
+    assertEquals(8, new JSONObject(result).getJSONArray("entries").length());
     // Unclassified exceptions must not poison the key lane. Both bounded
     // attempts may run, and neither diagnostic may expose a provider payload.
     assertEquals(2, issues.size());
