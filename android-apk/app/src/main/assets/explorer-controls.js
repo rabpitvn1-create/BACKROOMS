@@ -143,8 +143,25 @@
     if(!choices.children.length){const p=document.createElement('p');p.textContent='Không có ai để giao tiếp tại đây.';choices.appendChild(p);}
   }
   let hintTier=0;
+  function openAvailableCoreActions(){
+    activeMechanismId=null;showPopup('Hành động Core khả dụng');
+    const actions=Array.isArray(state.scene?.availableActions)?state.scene.availableActions:[];
+    if(!actions.length){
+      const p=document.createElement('p');p.textContent='Hiện không thể hành động tại đây.';
+      choices.appendChild(p);return;
+    }
+    actions.forEach(action=>{
+      const b=document.createElement('button');b.type='button';
+      b.textContent=action.label;b.onclick=()=>submitChoice(action,false);
+      choices.appendChild(b);
+    });
+  }
   function openCasebook(){
     activeMechanismId=null;hintTier=0;showPopup('Sổ tay điều tra');
+    const shortcuts=document.createElement('button');shortcuts.type='button';
+    shortcuts.textContent='Xem hành động Core đang khả dụng';
+    shortcuts.onclick=()=>openAvailableCoreActions();
+    choices.appendChild(shortcuts);
     const notes=Array.isArray(state.scene?.records)?state.scene.records:[];
     if(!notes.length){
       const empty=document.createElement('p');empty.textContent='Chưa có ghi chép nào được xác nhận.';
