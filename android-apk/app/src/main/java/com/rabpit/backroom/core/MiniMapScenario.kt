@@ -47,9 +47,11 @@ object MiniMapScenario {
   // Scene-local prose must not describe a later level before Core moves to that node.
   fun canonBoundary(nodeId: String, prose: String) {
     if (nodeId != "0") return
-    val restricted = listOf("level 1", "level-1", "level one", "vùng bê tông",
-      "khu bê tông", "giao thoa kiến trúc", "dầm thép lộ thiên",
-      "hành lang công nghiệp", "rời khỏi level 0", "thoát khỏi level 0")
+    // Level 0 is the current destination, not a ban on imaginative objects,
+    // hand-built mechanisms or unusual individual rooms inside that Level.
+    // Only early explicit transition/spoiler claims remain forbidden.
+    val restricted = listOf("level 1", "level-1", "level one",
+      "rời khỏi level 0", "thoát khỏi level 0")
     require(restricted.none { prose.lowercase().contains(it) }) { "scene_canon_boundary" }
   }
   fun objects(a: JSONArray): List<JSONObject> = (0 until a.length()).map { a.getJSONObject(it) }
@@ -102,7 +104,8 @@ object MiniMapScenario {
   }
   fun validate(raw: JSONObject, nodeId: String, index: Int): JSONObject {
     require(raw.toString().length <= MAX_CHARS)
-    fields(raw, setOf("schemaVersion", "id", "levelNumber", "index", "nodeAnchor", "objective", "entryRoomId", "exitRoomId", "rooms", "npcs", "facts", "interactions", "goal"))
+    fields(raw, setOf("schemaVersion", "id", "levelNumber", "index", "nodeAnchor", "objective", "entryRoomId", "exitRoomId", "rooms", "npcs", "facts", "interactions", "goal"),
+      setOf("mechanisms"))
     val node = requireNotNull(LevelRouteRegistry.node(nodeId)) { "scenario_node" }
     require(index in 1..10 && int(raw, "schemaVersion") == SCHEMA && int(raw, "levelNumber") == node.parent && int(raw, "index") == index)
     id(raw); canonBoundary(nodeId, text(raw, "objective", 400))
@@ -142,7 +145,11 @@ object MiniMapScenario {
     // With multiple scripted characters, at least two origins must be distinct.
     // This compares era labels, not historical truth or a time-travel mechanic.
     require(npcs.size < 2 || npcs.map { it.getString("originPeriod").trim().lowercase() }.distinct().size >= 2) { "npc_period_diversity" }
-    val facts = list(raw, "facts", 2, 12); val factIds = facts.map { it.getString("id") }.toSet()
+    // Mechanics are optional: scripted deductions and stateful devices can coexist.
+    val mechanisms = if (raw.has("mechanisms")) list(raw, "mechanisms", 1, 3) else emptyList()
+    val mechanismIds = mechanisms.map { it.getString("id") }.toSet()
+    val facts = list(raw, "facts", if (mechanisms.isEmpty()) 2 else 0, 12)
+    val factIds = facts.map { it.getString("id") }.toSet()
     facts.forEach { f ->
       fields(f, setOf("id", "label", "value", "values"))
       canonBoundary(nodeId, text(f, "label", 90)); text(f, "value", 90)
@@ -155,6 +162,7 @@ object MiniMapScenario {
       require(values.none { it.any { c -> c < ' ' || c == '\u007f' } }) { "fact_human_value" }
     }
     val interactions = list(raw, "interactions", 4, 36); val actionIds = interactions.map { it.getString("id") }.toSet()
+    require(mechanismIds.intersect(actionIds).isEmpty() && mechanismIds.intersect(factIds).isEmpty()) { "mechanism_id_collision" }
     interactions.forEach { a ->
       fields(a, setOf("id", "kind", "roomId", "label", "requires", "effect"),
         setOf("npcId", "observation"))
@@ -177,8 +185,14 @@ object MiniMapScenario {
       }
       predicate(a.getJSONObject("requires"), actionIds)
       val effect = a.getJSONObject("effect")
+      val type = effect.getString("type")
+      require(type in setOf("CLUE", "EVIDENCE", "CLAIM", "ANSWER", "STEP")) { "scene_effect_type" }
+      if (type == "STEP") {
+        fields(effect, setOf("type", "mechanismId"))
+        require(kind == "SEARCH" && id(effect, "mechanismId") in mechanismIds &&
+          !a.has("observation") && holds(a.getJSONObject("requires"), emptySet())) { "mechanism_control" }
+      } else {
       fields(effect, setOf("type", "factId"), setOf("value", "policy"))
-      val type = effect.getString("type"); require(type in setOf("CLUE", "EVIDENCE", "CLAIM", "ANSWER"))
       require(id(effect, "factId") in factIds)
       val fact = facts.first { it.getString("id") == effect.getString("factId") }
       if (type in setOf("CLAIM", "ANSWER")) {
@@ -190,6 +204,23 @@ object MiniMapScenario {
         }
       } else require(a.getString("kind") == "SEARCH")
       require(effect.has("value") == (type in setOf("CLAIM", "ANSWER")) && effect.has("policy") == (type == "CLAIM"))
+      }
+    }
+    // Each device exposes all controls throughout play. The solution is a private
+    // ordered sequence of control interaction IDs, never published in the UI.
+    mechanisms.forEach { m ->
+      fields(m, setOf("id", "clueId", "steps"))
+      val clueId = id(m, "clueId")
+      val clue = interactions.firstOrNull { it.getString("id") == clueId }
+      require(clue != null && clue.getString("kind") == "SEARCH" &&
+        clue.getJSONObject("effect").getString("type") in setOf("CLUE", "EVIDENCE")) { "mechanism_missing_clue" }
+      val controls = interactions.filter { it.getJSONObject("effect").getString("type") == "STEP" &&
+        it.getJSONObject("effect").getString("mechanismId") == m.getString("id") }
+      require(controls.size in 4..10 && controls.map { it.getString("roomId") }.distinct().size == 1) { "mechanism_controls" }
+      val ids = controls.map { it.getString("id") }.toSet()
+      val steps = strings(m.getJSONArray("steps"))
+      require(steps.size in 5..12 && steps.all { it in ids } && steps.toSet().size >= 3 &&
+        (ids - steps.toSet()).isNotEmpty()) { "mechanism_sequence" }
     }
     val observations = interactions.filter { it.has("observation") }
       .map { it.getString("observation").trim().lowercase() }
@@ -199,17 +230,27 @@ object MiniMapScenario {
       require(interactions.any { it.getString("kind") == "TALK" &&
         it.getString("npcId") == npc.getString("id") }) { "npc_without_interaction" }
     }
-    predicate(raw.getJSONObject("goal"), actionIds)
+    val predicateIds = actionIds + mechanismIds
+    predicate(raw.getJSONObject("goal"), predicateIds)
     // Forward chaining is complete for this finite monotone language: acquiring facts
     // never removes actions; wrong answers consume only that option, never the correct one.
     fun reachable(excluded: Set<String> = emptySet()): Set<String> {
       val visited = mutableSetOf<String>()
-      repeat(interactions.size + 1) {
-        interactions.filter { it.getString("id") !in excluded && holds(it.getJSONObject("requires"), visited) }.forEach { action ->
+      repeat(interactions.size + mechanisms.size + 1) {
+        interactions.filter { it.getString("id") !in excluded &&
+          holds(it.getJSONObject("requires"), visited) }.forEach { action ->
           val effect = action.getJSONObject("effect")
-          if (effect.getString("type") != "ANSWER" ||
-            facts.first { it.getString("id") == effect.getString("factId") }.getString("value") == effect.getString("value"))
+          if (effect.getString("type") != "STEP" &&
+            (effect.getString("type") != "ANSWER" ||
+              facts.first { it.getString("id") == effect.getString("factId") }.getString("value") == effect.getString("value")))
             visited.add(action.getString("id"))
+        }
+        mechanisms.filter { it.getString("id") !in excluded }.forEach { device ->
+          val steps = strings(device.getJSONArray("steps"))
+          if (device.getString("clueId") in visited && steps.all { stepId ->
+              stepId !in excluded && interactions.any { it.getString("id") == stepId &&
+                holds(it.getJSONObject("requires"), visited) }
+            }) visited.add(device.getString("id"))
         }
       }
       return visited
@@ -232,9 +273,17 @@ object MiniMapScenario {
     }
     val answerGroups = interactions.filter { it.getJSONObject("effect").getString("type") == "ANSWER" }
       .groupBy { it.getJSONObject("effect").getString("factId") }
-    require(answerGroups.count { (_, options) ->
+    val essentialAnswers = answerGroups.count { (_, options) ->
       !holds(raw.getJSONObject("goal"), solved - options.map { it.getString("id") }.toSet())
-    } >= 2) { "puzzle_requires_two_inferences" }
+    }
+    val essentialDevices = mechanisms.count { device ->
+      !holds(raw.getJSONObject("goal"), solved - device.getString("id"))
+    }
+    // A 5+ input mechanism with decoy controls is itself a meaningful deduction.
+    require(essentialAnswers + essentialDevices >= 2 ||
+      (essentialDevices >= 1 && mechanisms.any { device ->
+        device.getString("id") in solved && strings(device.getJSONArray("steps")).size >= 5
+      })) { "puzzle_requires_two_inferences" }
     return copy(raw)
   }
   private fun predicate(p: JSONObject, ids: Set<String>, depth: Int = 0) {
@@ -254,8 +303,10 @@ object MiniMapScenario {
     else -> false
   }
   fun effectText(script: JSONObject, a: JSONObject): Pair<String, Boolean> {
-    val e = a.getJSONObject("effect"); val fact = objects(script.getJSONArray("facts")).first { it.getString("id") == e.getString("factId") }
+    val e = a.getJSONObject("effect")
     val type = e.getString("type")
+    if (type == "STEP") return "Cơ cấu vẫn chưa mở khóa; cần thử đúng chuỗi thao tác." to true
+    val fact = objects(script.getJSONArray("facts")).first { it.getString("id") == e.getString("factId") }
     val correct = type != "ANSWER" || fact.getString("value") == e.getString("value")
     val observation = a.optString("observation").trim()
     val speaker = if (type == "CLAIM") objects(script.getJSONArray("npcs"))
