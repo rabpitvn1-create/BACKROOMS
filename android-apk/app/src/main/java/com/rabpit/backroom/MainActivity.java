@@ -1105,6 +1105,30 @@ public class MainActivity extends Activity {
       + "\nPUBLIC_EVENT=" + packet;
   }
 
+  /** Shared narrator for direct scene choices and each authorized Player Action step.
+   * Only the returned prose enters the Core receipt; state and encounters remain Core-owned. */
+  private String narrateStagedSceneAction(JSONObject stagedEvent) throws Exception {
+    JSONObject reply = new JSONObject(generateText(sceneWriterPrompt()));
+    ProviderResponseContract.requireWriter(reply);
+    // Validate against the staged destination, never the pre-MOVE location.
+    // Existing scripts may contain invalid authored names; do not trap those
+    // in an endless retry loop. Newly generated scripts are validated at creation.
+    boolean stagedLocationAlreadyInvalid = false;
+    String sceneNode = stagedEvent.getString("node");
+    JSONObject sceneRoom = stagedEvent.optJSONObject("room");
+    try {
+      if (sceneRoom != null) com.rabpit.backroom.core.MiniMapScenario.INSTANCE.canonBoundary(
+        sceneNode, sceneRoom.optString("name") + " " + sceneRoom.optString("description"));
+      com.rabpit.backroom.core.MiniMapScenario.INSTANCE.canonBoundary(
+        sceneNode, stagedEvent.optString("interaction"));
+    } catch (IllegalArgumentException existingSceneError) {
+      stagedLocationAlreadyInvalid = true;
+    }
+    if (!stagedLocationAlreadyInvalid)
+      com.rabpit.backroom.core.MiniMapScenario.INSTANCE.canonBoundary(sceneNode, reply.getString("reply"));
+    return reply.getString("reply");
+  }
+
   private JSONObject parseModelJson(String raw) throws Exception {
     if (raw == null) throw new Exception("AI không trả dữ liệu.");
     String text = raw.trim();
@@ -1552,6 +1576,7 @@ public class MainActivity extends Activity {
     @JavascriptInterface public void submitPlayerAction(String clientJson, String rawAction) {
       io.execute(() -> {
         int committed = 0;
+        String projection = clientJson;
         try {
           if (rawAction == null || rawAction.trim().isEmpty() || rawAction.length() > 900)
             throw new IllegalArgumentException("player_action_size");
@@ -1577,7 +1602,6 @@ public class MainActivity extends Activity {
           int initialIndex = context.getInt("miniIndex");
           // Presentation log belongs to the WebView. Carry each confirmed
           // projection into the next step instead of reusing a stale client log.
-          String projection = clientJson;
           for (int i = 0; i < plan.length(); i++) {
             JSONObject planned = plan.getJSONObject(i);
             if (planned.length() != 2 || !planned.has("kind") || !planned.has("targetId"))
@@ -1616,12 +1640,12 @@ public class MainActivity extends Activity {
             if (!started.optBoolean("committed")) {
               JSONObject staged = new JSONObject(requireGameCore().sceneNarrationContext());
               deviceStep = staged.optBoolean("mechanismStep", false);
-              // The plan is not the narrator. Commit only the Core-authored
-              // physical result; puzzles remain validated by Core.
-              String result = staged.optString("result", "");
-              if (result.isEmpty()) result = action.getString("label");
+              // Only physical STEP controls bypass the remote GM.
+              // MOVE/SEARCH prose is narrated from the already staged Core event;
+              // the planner and writer never choose outcomes or mutate game state.
+              String narration = deviceStep ? staged.getString("result") : narrateStagedSceneAction(staged);
               projection = requireGameCore().commitSceneAction(
-                action.getString("actionId"), result, projection);
+                action.getString("actionId"), narration, projection);
             }
             committed++;
             JSONObject updated = new JSONObject(requireGameCore().currentClientState(projection));
@@ -1640,6 +1664,14 @@ public class MainActivity extends Activity {
           // The exact failed Core step is already persisted for retry.
           DiagnosticLog.record("player.action.failed", error.getClass().getSimpleName() +
             "; committed=" + committed);
+          // A failed Gehihi reply leaves the exact Core command pending.
+          // Refresh that persisted state before offering Retry: never replan
+          // and replay any earlier committed steps.
+          try {
+            emit("backroomTurn", requireGameCore().currentClientState(projection));
+          } catch (Exception syncError) {
+            DiagnosticLog.record("player.action.sync.failed", syncError.getClass().getSimpleName());
+          }
           String message = committed > 0
             ? "Chuỗi hành động dừng sau " + committed + " bước. Tiến trình đã lưu; xem trạng thái và thử lại bước đang chờ."
             : "Không phân tích hoặc thực hiện được lệnh. Không có bước nào được xác nhận.";
@@ -1664,27 +1696,8 @@ public class MainActivity extends Activity {
               requireGameCore().commitSceneAction(
                 new JSONObject(command).getString("actionId"), stagedEvent.getString("result"), stateJson);
             } else {
-            JSONObject reply = new JSONObject(generateText(sceneWriterPrompt()));
-            ProviderResponseContract.requireWriter(reply);
-            // Validate narration against the staged destination, not the old level.
-            // Failed prose must never be committed to Core or consume reserved rolls.
-            // Already running scene scripts can contain bad location names produced before
-            // this rule existed. Do not strand an active encounter in an endless retry loop;
-            // all newly generated scripts are checked strictly at creation time.
-            boolean stagedLocationAlreadyInvalid = false;
-            String sceneNode = stagedEvent.getString("node");
-            JSONObject sceneRoom = stagedEvent.optJSONObject("room");
-            try {
-              if (sceneRoom != null) com.rabpit.backroom.core.MiniMapScenario.INSTANCE.canonBoundary(
-                sceneNode, sceneRoom.optString("name") + " " + sceneRoom.optString("description"));
-              com.rabpit.backroom.core.MiniMapScenario.INSTANCE.canonBoundary(
-                sceneNode, stagedEvent.optString("interaction"));
-            } catch (IllegalArgumentException existingSceneError) {
-              stagedLocationAlreadyInvalid = true;
-            }
-            if (!stagedLocationAlreadyInvalid) com.rabpit.backroom.core.MiniMapScenario.INSTANCE.canonBoundary(
-              sceneNode, reply.getString("reply"));
-            requireGameCore().commitSceneAction(new JSONObject(command).getString("actionId"), reply.getString("reply"), stateJson);
+            requireGameCore().commitSceneAction(new JSONObject(command).getString("actionId"),
+              narrateStagedSceneAction(stagedEvent), stateJson);
             }
           }
           String committedView = requireGameCore().currentClientState(stateJson);
