@@ -186,11 +186,14 @@ object MiniMapScenario {
       predicate(a.getJSONObject("requires"), actionIds)
       val effect = a.getJSONObject("effect")
       val type = effect.getString("type")
-      require(type in setOf("CLUE", "EVIDENCE", "CLAIM", "ANSWER", "STEP")) { "scene_effect_type" }
+      require(type in setOf("CLUE", "EVIDENCE", "CLAIM", "ANSWER", "HINT", "STEP")) { "scene_effect_type" }
       if (type == "STEP") {
         fields(effect, setOf("type", "mechanismId"))
         require(kind == "SEARCH" && id(effect, "mechanismId") in mechanismIds &&
           !a.has("observation") && holds(a.getJSONObject("requires"), emptySet())) { "mechanism_control" }
+      } else if (type == "HINT") {
+        fields(effect, setOf("type"))
+        require(kind == "SEARCH" && a.has("observation")) { "mechanism_missing_clue" }
       } else {
       fields(effect, setOf("type", "factId"), setOf("value", "policy"))
       require(id(effect, "factId") in factIds)
@@ -213,7 +216,7 @@ object MiniMapScenario {
       val clueId = id(m, "clueId")
       val clue = interactions.firstOrNull { it.getString("id") == clueId }
       require(clue != null && clue.getString("kind") == "SEARCH" &&
-        clue.getJSONObject("effect").getString("type") in setOf("CLUE", "EVIDENCE")) { "mechanism_missing_clue" }
+        clue.getJSONObject("effect").getString("type") in setOf("CLUE", "EVIDENCE", "HINT")) { "mechanism_missing_clue" }
       val controls = interactions.filter { it.getJSONObject("effect").getString("type") == "STEP" &&
         it.getJSONObject("effect").getString("mechanismId") == m.getString("id") }
       require(controls.size in 4..10 && controls.map { it.getString("roomId") }.distinct().size == 1) { "mechanism_controls" }
@@ -306,6 +309,7 @@ object MiniMapScenario {
     val e = a.getJSONObject("effect")
     val type = e.getString("type")
     if (type == "STEP") return "Cơ cấu vẫn chưa mở khóa; cần thử đúng chuỗi thao tác." to true
+    if (type == "HINT") return "Manh mối: ${a.getString("observation")}" to true
     val fact = objects(script.getJSONArray("facts")).first { it.getString("id") == e.getString("factId") }
     val correct = type != "ANSWER" || fact.getString("value") == e.getString("value")
     val observation = a.optString("observation").trim()
