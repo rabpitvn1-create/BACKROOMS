@@ -100,10 +100,19 @@ object EntitySpawnPool {
     error("Unreachable Entity selection")
   }
 
-  /** One d10000 roll per eligible turn: exactly 35%, including roaming fallback. */
-  fun rollEntity(levelId: String, nextInt: (Int) -> Int): String? {
-    val roll = nextInt(10000) + 1
-    return if (roll <= TOTAL_BP) pickForSuccessfulRoll(levelId, roll) else null
+  /** Baseline policy for non-world actions and Levels retaining their existing rate. */
+  fun rollEntity(levelId: String, nextInt: (Int) -> Int): String? =
+    rollEntityWithChance(levelId, TOTAL_BP, nextInt)
+
+  /** Reuse a single d10000 ticket; rescale only successful tickets into the
+   * existing weighted species pool. No second RNG roll or Entity roster change. */
+  fun rollEntityWithChance(levelId: String, chanceBp: Int, nextInt: (Int) -> Int): String? {
+    require(chanceBp in 0..TOTAL_BP) { "entity_encounter_chance" }
+    if (chanceBp == 0) return null
+    val ticket = nextInt(10000) + 1
+    return if (ticket <= chanceBp)
+      pickForSuccessfulRoll(levelId, (ticket - 1) * TOTAL_BP / chanceBp + 1)
+    else null
   }
 }
 
@@ -360,13 +369,18 @@ object SpawnMechanism {
   }
 
   /** Called only AFTER Core validates a typed scene target. No text classification. */
-  fun rollSceneSpawns(state: GameState, kind: String, nextInt: (Int) -> Int): SpawnResult {
+  fun rollSceneSpawns(state: GameState, kind: String, nextInt: (Int) -> Int): SpawnResult =
+    rollSceneSpawns(state, kind, EntitySpawnPool.TOTAL_BP, nextInt)
+
+  fun rollSceneSpawns(state: GameState, kind: String, entityChanceBp: Int,
+    nextInt: (Int) -> Int): SpawnResult {
+    require(entityChanceBp in 0..EntitySpawnPool.TOTAL_BP) { "entity_encounter_chance" }
     if (kind != "MOVE" && kind != "SEARCH") return SpawnResult(null, emptyList())
     if (CombatRuntime.active(state) != null || CombatRuntime.pending(state) != null)
       return SpawnResult(null, emptyList())
     val flags = JSONObject(state.world["flagsJson"] ?: "{}")
     val entity = if (flags.optBoolean("entityEncountersAllowed", true))
-      EntitySpawnPool.rollEntity(currentLevelId(state), nextInt) else null
+      EntitySpawnPool.rollEntityWithChance(currentLevelId(state), entityChanceBp, nextInt) else null
     val npcs = NpcSpawnTable.rollNpcsWithPhysical(state, ActionKind.EXECUTE, "", currentLevelNumber(state), nextInt, true)
     // Explorer NPCs are scripted, local and interactable, never random passersby.
     return SpawnResult(entity, npcs)

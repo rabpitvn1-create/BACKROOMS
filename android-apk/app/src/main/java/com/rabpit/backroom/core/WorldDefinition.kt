@@ -41,6 +41,10 @@ interface WorldDefinition {
   val passageConditions: Set<String> get() = emptySet()
   val evidenceLaws: List<WorldEvidenceLaw> get() = emptyList()
   val fieldStudies: List<WorldFieldStudy> get() = emptyList()
+  /** Probability of an Entity encounter for an authorized traversal.
+   * Default retains existing non-Level-0 policy; NPC probabilities are separate. */
+  fun movementEncounterChanceBp(environmentId: String, revisiting: Boolean): Int =
+    EntitySpawnPool.TOTAL_BP
   fun generate(seed: Long): JSONObject
   fun validateLayout(graph: JSONObject)
 }

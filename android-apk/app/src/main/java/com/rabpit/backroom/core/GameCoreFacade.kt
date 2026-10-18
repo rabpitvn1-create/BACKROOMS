@@ -117,9 +117,13 @@ class GameCoreFacade private constructor(
       "levelJson" to target.asJson().toString(), "location" to target.location(), "title" to target.title()))
     // One device sequence can require many taps; these control inputs must not
     // reroll an encounter on every switch flip. Other SEARCH/MOVE rolls stay intact.
-    val worldObservation = WorldGraphRuntime.active(MiniMapRuntime.progress(state)) && command.getString("kind") == "SEARCH"
+    val progressBefore = MiniMapRuntime.progress(state)
+    val worldObservation = WorldGraphRuntime.active(progressBefore) && command.getString("kind") == "SEARCH"
+    val entityChanceBp = if (WorldGraphRuntime.active(progressBefore) && command.getString("kind") == "MOVE")
+      WorldGraphRuntime.movementEncounterChanceBp(progressBefore, staged.progress)
+      else EntitySpawnPool.TOTAL_BP
     val roll = if (deviceControl || worldObservation) SpawnResult(null, emptyList())
-      else SpawnMechanism.rollSceneSpawns(atTarget, command.getString("kind")) { spawnRng.nextInt(it) }
+      else SpawnMechanism.rollSceneSpawns(atTarget, command.getString("kind"), entityChanceBp) { spawnRng.nextInt(it) }
     var reserved = SpawnMechanism.prepareSpawns(atTarget, roll)
     if (roll.entityKey != null) {
       reserved = CombatRuntime.prepareEncounter(reserved, roll.entityKey, "scene:$actionId:${roll.entityKey}")
