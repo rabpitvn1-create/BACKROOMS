@@ -51,6 +51,39 @@ test('selection sends exactly one captured versioned target and no label/client 
   const r=runtime();r.buttons[0].onclick();const select=r.dialog.children[1].children[0];select.onclick();select.onclick();
   assert.equal(r.calls.length,1);assert.deepEqual(JSON.parse(r.calls[0][1]),{actionId:'run:1:MOVE:room:x',sceneVersion:1,roomId:'hall',kind:'MOVE',targetId:'room:x'});
 });
+test('device controls use one popup, preserve Core commands and stay open across inputs',()=>{
+  const lever=(id,version)=>({actionId:'run:0:'+version+':SEARCH:'+id,sceneVersion:version,
+    roomId:'panel',kind:'SEARCH',targetId:id,label:id==='up'?'Gạt cần lên':'Gạt cần xuống',mechanismId:'door_lock'});
+  const r=runtime({availableActions:[lever('up',3),lever('down',3)]});
+  r.buttons[1].onclick();
+  assert.equal(r.dialog.open,true);
+  assert.equal(r.dialog.children[1].children.length,1,'controls should be grouped in one puzzle entry');
+  r.dialog.children[1].children[0].onclick();
+  assert.equal(r.dialog.children[0].children[0].textContent,'Bảng điều khiển');
+  assert.equal(r.dialog.children[1].children.length,3,'back button and two physical controls');
+  r.dialog.children[1].children[1].onclick();
+  assert.equal(r.calls.length,1);
+  assert.equal(r.dialog.open,true,'popup remains open for multi-step puzzle');
+  assert.deepEqual(JSON.parse(r.calls[0][1]),{
+    actionId:'run:0:3:SEARCH:up',sceneVersion:3,roomId:'panel',kind:'SEARCH',targetId:'up'
+  });
+  const next={...r.ctx.state,scene:{...r.ctx.state.scene,availableActions:[lever('up',4),lever('down',4)]}};
+  r.ctx.backroomTurn(JSON.stringify(next));
+  assert.equal(r.dialog.open,true);
+  r.dialog.children[1].children[2].onclick();
+  assert.equal(r.calls.length,2);
+  assert.equal(JSON.parse(r.calls[1][1]).sceneVersion,4,'the popup must use refreshed Core choices');
+  r.ctx.backroomTurn(JSON.stringify({...next,scene:{...next.scene,availableActions:[],completed:true}}));
+  assert.equal(r.dialog.open,false,'Core completion automatically closes the device popup');
+});
+test('mechanism button presses use local Core narration, not a remote GM call',()=>{
+  const runtimeSource=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/core/MiniMapRuntime.kt'),'utf8');
+  const java=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/MainActivity.java'),'utf8');
+  assert.match(runtimeSource,/put\\("mechanismId", effect\\.getString\\("mechanismId"\\)\\)/);
+  assert.match(runtimeSource,/event\\.put\\("mechanismStep", true\\)/);
+  assert.match(java,/stagedEvent\\.optBoolean\\("mechanismStep", false\\)/);
+  assert.match(java,/stagedEvent\\.getString\\("result"\\)/);
+});
 test('completed mini-map uses a distinct dark-green next-area choice with Core-authored label',()=>{
   const normal={actionId:'r:0:9:MOVE:room:lab',sceneVersion:9,roomId:'hall',kind:'MOVE',targetId:'room:lab',label:'Kho hồ sơ'};
   const transition={actionId:'r:0:9:MOVE:next',sceneVersion:9,roomId:'hall',kind:'MOVE',targetId:'next',label:'Tiến vào khu vực kế tiếp.'};
