@@ -1,142 +1,61 @@
-# Level 0 V2 — foundation milestone
+# Level 0 V2 — trạng thái triển khai hiện hành
 
-Scope: phase 1 and the first runnable portion of phase 2. This is **not** completion of the six-phase redesign, puzzle content, or a validated ten-hour experience.
+**Phạm vi:** PR [#654](https://github.com/rabpitvn1-create/BACKROOMS/pull/654), nhánh `feat/653-mini-map-explorer`, tiếp tục giữ **Draft**. Đây là tài liệu **hợp đồng đang chạy**, không phải bản đồ Canon, tuyên bố hoàn thành 10 giờ hoặc hồi ký các mốc cũ. Lịch sử chi tiết nằm trong commit/PR. Đối chiếu code trước khi sửa.
 
-## Sources and authority
+## Nguồn và ranh giới
 
-Inspected PR #654 at `d31af6e9693aa643c90c349f64fc208753e890f9`, branch `feat/653-mini-map-explorer`, Draft. Read `MUST-READ-ME.md` before implementation.
+- Đã đọc `MUST-READ-ME.md`; mô tả Canon được xác nhận nằm ở `LEVEL_0_EIGHT_ZONES_CANON.md`, `LEVEL_0_TWENTY_NINE_SUBZONES_CANON.md`, `Level0Environments.kt` và ba knowledge database của APK.
+- **8 khu chính + 29 khu nhỏ = 37 định danh môi trường thuộc Level 0**, không phải 29 Sublevel. Môi trường Canon không xác định thứ tự đi, Entity/NPC thật, vị trí chìa khóa, kết cấu puzzle hay lối thoát.
+- Bố cục gameplay, hai puzzle và lối nối tùy chọn là thiết kế tương tác theo yêu cầu triển khai, **không thay Canon vũ trụ**. Không chỉnh Google Drive. Không tự cho Rạn Nứt, Khe Tối hoặc Phòng Giao Thoa là lối thoát.
+- Registry có quan hệ route `0 → 0.1` nhưng **exit readiness luôn khóa** vì chưa có quyết định Canon về vị trí/hiện tượng/điều kiện. Không thêm lối sang Level 1 và không ending bằng lời GM.
 
-- Confirmed environment Canon: `LEVEL_0_EIGHT_ZONES_CANON.md`, `LEVEL_0_TWENTY_NINE_SUBZONES_CANON.md`, `Level0Environments.kt` and the three packaged knowledge databases. Eight parent environments and 29 child environments all belong to exact node `0`. The author approved their use in a persistent two-layer world in the implementation request of 18 October 2026.
-- Drive read: `/Novel/Asset/02_Level/BACKROOMS_WORLD.md` (modified 28 September 2026) and `/Novel/wolrd/wolrd.md` (modified 22 September 2026). These establish environmental/knowledge boundaries and the existing exact-node route; they do not specify the new eight-zone topology. Drive was not modified.
-- Supplied Seth document returned connector `404 NOT_FOUND`. Its contents have **not** been verified.
-- The world graph is an explicitly designed gameplay layout, **not a new Canon geographical claim**. Numbered Canon references are not traversal order.
-- No evidence establishes a specific Level 0 exit room. Registry currently authorizes `0 -> 0.1`, not `0 -> 1`. No exit readiness, ending, level transition, or Fracture exit is added here.
+## Kiến trúc Core
 
-## Actual runtime trace before this change
+- `WorldGraphRuntime.kt` là runtime chung cho graph, đi lại, khám phá, authorizing actions, MAP công khai, evidence, quy luật, thử nghiệm và xác minh save. Không tạo một Runtime cho mỗi Level.
+- `WorldDefinition.kt` định nghĩa content/policy; `WorldDefinitions` chỉ đăng ký định nghĩa được phép; `Level0WorldDefinition.kt` cung cấp nội dung, bộ sinh seeded, các puzzle và chính sách Level 0. Đăng ký definition không mở Level route.
+- **Graph version 3; Level 0 definition version 4; save schema 12; checkpoint `manual_checkpoint_v12`.** Save cũ không được hỗ trợ, không migration/adapter/fallback. Phiên bản hiện hành phải giữ đủ `worldGraph`, seed, phòng, khám phá, chứng cứ, dấu mốc, luật, pending/receipt, RNG đã reserve và toàn bộ combat/NPC/Party/Inventory.
+- Seed 64-bit có thể tái hiện, tạo **45 phòng gameplay** trên đúng 37 môi trường (mỗi khu chính 2 phòng, mỗi khu nhỏ 1). Gameplay room ID khác environmentId; cùng môi trường vẫn dùng snapshot Canon giống nhau, phòng chỉ có nhãn vị trí sau khi được khám phá.
+- Cấu trúc hành lang thường hai chiều với đường thay thế; validator kiểm connectivity và vẫn tới được tất cả phòng sau khi bỏ mỗi cạnh thường. Hai lối nối ẩn tùy chọn được lưu độc lập trạng thái phát hiện/mở khóa, gồm một chiều và hai chiều, không bắt buộc để trở về. Topology được so với bộ sinh từ seed khi load để từ chối chỉnh sửa graph.
+- MAP hiển thị phòng đã đến và biên đã xác nhận; không công khai seed, danh tính phòng chưa đến, điều kiện, vị trí passage bí mật hoặc câu trả lời. Lối đã khảo sát nhưng chưa thể mở được giải thích bằng thông báo chung. ◆ là dấu MAP cá nhân, ✚ là vết khắc vật lý.
+- `GameCoreFacade.beginSceneAction` xác minh version/node/room/actionId/target, stage Core, reserve encounter, ghi pending; `commitSceneAction` commit một lần sau GM. Retry dùng đúng lệnh pending đã lưu; không chạy lại hành động đã commit. Provider lỗi không giả mạo tiến độ và không reroll RNG. GameStateCodec kiểm progress và pending cùng graph, các record ghi chép phải khớp Core-authored evidence.
 
-| Boundary | Runtime contract and dependency |
-| --- | --- |
-| New run / save | `GameCoreFacade.newStoryRun` initializes `CoreClientProjection`, then scene progress. `GameStateCodec` serializes `world`, metadata, actors, inventories, Party, turn and combat state. `SaveRepository` commits synchronously. |
-| Old scenario generation | `MainActivity.prepareScene` calls `sceneGenerationRequest`; `ScenarioGenerator` calls bounded Gemini lanes and Gehihi fallback. `MiniMapScenario` validates schema 5, rooms, predicates, mechanisms and proof. |
-| Old navigation | `MiniMapRuntime.actions/stage` uses one frozen script and an eight-entry Level 0 outline. `next` discards the script, accepted/attempted evidence, room visits and events. This cannot support persistent cross-area exploration. |
-| Transaction / GM | `beginSceneAction` validates exact command fields, action ID, version and location; stages progress, starts `ActionRuntime`, reserves spawn results, persists `scene.pending`. `MainActivity.sceneWriterPrompt` sends public event and Canon to Gehihi. `commitSceneAction` commits time, staged progress, spawn and narration receipt atomically. Retry reuses pending; GM prose does not supply state deltas. |
-| Player Action / UI | `explorer-controls.js` shows MAP, Area Log, communication and free text. Android planner currently maps free text to at most 12 current MOVE/SEARCH targets and rechecks each against Core. This remains a phase-4 limitation, not the intended final action model. |
-| Canon / snapshot | `KnowledgeContextEngine` reads three APK JSON databases, selects exact `scene.zoneId/subzoneId`; it does not fetch Drive during play. Snapshot resolver uses exact `scene.environment.id` and fixed local assets. |
-| RPG / encounter | `SpawnMechanism.rollSceneSpawns` only rolls eligible MOVE/SEARCH, reserves combat/NPCs through Core. `CombatRuntime`, Poker Dice, `EntityExpRewards`, `OfflineEntityLoot`, Party and inventories use the same GameState. |
-| Level routes | `LevelRouteRegistry` owns exact Level/sublevel transitions. Its acyclic mandatory route is separate from reversible navigation **inside** Level 0. |
+## Nội dung khám phá và puzzle
 
-Previously packaged environmental identities were active in generated rooms and snapshot retrieval, but there was no persistent world layout connecting all 37 environments. An indexed Canon entry is not a runtime puzzle or event. The old temporary-inference function also offered automatic next-SEARCH hints; the new world projection does not call it.
+- Có **29 hoạt động field-study tùy chọn**, mỗi khu nhỏ một hướng khảo sát đã neo vào mô tả Canon. SEARCH `study` tạo đúng một FIELD_NOTE/phòng; ghi chép lặp không nhân đôi. Hai field note trong cùng khu chính có thể dùng INTERACT compare để tạo ghi chép đối chiếu đã xác minh. Đây không phải 29 puzzle bắt buộc, không tự tạo lore.
+- Hai họ quy luật có Core state machine và bằng chứng thực tế: `PHYSICAL_CORRELATION` (Phòng Ngập/Thảm Sũng ↔ Khoang Kỹ Thuật/Trần Rỗng) và `SPATIAL_ANCHOR` (Hành Lang Lặp/Phòng Đảo, rồi lối bổ sung tới Hồi Ảnh). Có quan sát cụ thể, thử sai, vết khắc bền vững, điều kiện kiểm chứng và mở lối tùy chọn sau khi đủ proof.
+- `lawInstances` đóng băng cùng graph, `evidenceState` lưu proof, `ruleFlags` chỉ Core được xác nhận, `environmentChanges` lưu dấu và phép thử sai, `records` là sổ tay. Việc combat/EXP/loot không được xóa các trường này. Các bằng chứng lưu phải có text/kind/site khớp nội dung Core cho phép, không chấp nhận thêm câu xác nhận giả trong save.
+- `currentObjective` là mục tiêu ngắn hạn suy từ tiến độ đã xác minh: đánh dấu, quan sát, đối chiếu, thực nghiệm rồi khám phá phần chưa biết; không tiết lộ lối bí mật hay giả vờ Level đã kết thúc.
+- **Sổ tay** trong Explorer hiển thị ghi chép Core qua `textContent` (không chèn HTML), có lối sang **danh sách action Core đang khả dụng** để chơi không cần Gemini planner. **Gợi ý ba cấp** chỉ xuất hiện sau khi người chơi chủ động yêu cầu, đọc trạng thái Core, không tốn turn/RNG/AI và chỉ tham chiếu bằng chứng hoặc môi trường đã biết. Phản hồi hint stale bị WebView loại bằng roomId + sceneVersion; không đưa hint vào scene/GM mặc định.
+- Player Action ngôn ngữ tự nhiên vẫn do Gemini lập danh sách typed `MOVE/SEARCH/INTERACT/TALK`, tối đa **12 bước, 4 lượt lập kế hoạch**, revalidate từng bước với Core. Gehihi chỉ kể public event đã stage, đúng phòng/Canon đích; không tự cấp bằng chứng, NPC/Entity, level route hay thưởng. Một số hành vi sáng tạo ngoài schema Core vẫn **chưa được hiện thực** và phải báo đúng là chưa hỗ trợ.
 
-RPG balance inspected at the source HEAD: total Entity gate `3500/10000` per eligible physical scene turn; NPC first-meeting table separate. Normal Entity HP is scaled after base +30 then multiplied by 2; Diệp Minh keeps base 2999 and its special profile. Normal defeat reward is 2 times rank EXP (4 at Level 0); Diệp Minh is 24 times (48 at Level 0). Reward marker is per Entity instance, loot uses persistent encounter identity/seed, escape has its own progress. These profiles, loot tables, escape rules, NPC rates and Cao Minh abilities are not changed in this milestone.
+## RPG và hình ảnh
 
-## Implemented end-to-end slice
+- **Tuyệt đối không đổi Entity:** tỷ lệ Entity cơ sở **3500/10000 = 35%** cho scene action đủ điều kiện theo implementation hiện hành; danh sách, rarity, điều kiện spawn, RNG/roll order đều giữ nguyên. Bản thử cân bằng theo khu `cdba82ae` đã được **hoàn tác bằng `4ae47c84`**, không có chính sách per-zone/revisit còn hoạt động.
+- Giữ Cao Minh, Poker Dice/combat, retreat, HP, EXP/loot, Inventory/equipment, NPC/Party/followers trong Core. Quan sát thụ động và ghi dấu không roll encounter. Không bắt farm EXP hoặc gặp NPC ngẫu nhiên để được vào phòng/giải hai puzzle.
+- 37 ảnh snapshot Level 0 có trong `app/src/main/assets/level_snapshots/` và được định tuyến theo environmentId thật; không xoay theo lượt, hash, đường đi hoặc fallback ảnh từ khu khác. Điều này cần kiểm tra UI thực tế ngoài kiểm thử ánh xạ asset.
 
-`WorldGraphRuntime` is the shared exploration engine; `WorldDefinition` supplies content/layout policy, `WorldDefinitions` registers supported nodes, and `Level0WorldDefinition` supplies only the Level 0 catalog adapter/generator/validation. The runtime owns a versioned graph inside `scene.progress.worldGraph`. This reuses the proven pending transaction rather than introducing a parallel persistence or narration engine.
+## Bằng chứng nghiệm thu
 
-- Persist decimal-string 64-bit seed, exact node ID, definition version, actual adjacency, stable opaque gameplay-room IDs, Canon environment and parent-zone IDs. Stored graph is loaded as saved, never regenerated from a provider response.
-- Initial allocation: one gameplay room per Canon environment, 37 total. The schema separates room identity from environment identity; additional rooms per environment and conditional edges are later work.
-- Generation uses a seeded permutation of a cyclic zone backbone, a local cycle for each zone's child rooms, and cross-zone chords. Before acceptance, validate environment membership, unique IDs, bidirectional edges, full reachability and reachability after **every single edge removal**. Every area has alternative approaches and return routes. This proof covers the ungated foundation only, not future conditional puzzle edges.
-- New production runs at exact node `0` use this world immediately. No outline/script provider request is needed; generation request returns `ready`, public `generationNeeded=false`, and scenario replacement is rejected.
-- Movement changes exact room within Level 0, increments scene version and preserves discoveries, observations, markers and Area Log. There is no NEXT and no level transition.
-- Observation records the current environment's approved sensory description once. It is an observation, not a verified Entity sighting, explanation of an anomaly or newly established puzzle rule. Repeating it neither duplicates evidence nor invents new information.
-- Personal map markers persist and are rendered with a diamond on MAP. These are **map annotations**, not physical chalk or wall damage; no imaginary inventory item is consumed.
-- MAP shows only visited rooms and immediate visible frontier. Frontier names/environments and edges between unvisited rooms are withheld. Room IDs do not contain environment names. Seed/private graph do not enter planner or GM packets.
-- Ordinary MOVE keeps the existing physical encounter gate and Canon first-meeting rates. Passive observation and personal map annotation use **zero spawn rolls**, avoiding 35% encounter spam while reading or annotating; regression asserts zero RNG calls. Full environmental/action risk tuning remains phase 5.
-- Core-confirmed non-Party NPCs bind to the room of their first world encounter; leaving the room removes TALK, public presence, active GM memory and recruitment eligibility. Party members remain available under existing presence rules. No authored NPC is created by the world generator.
-- Staged events carry destination `zoneId/subzoneId`; Android Canon retrieval now uses the destination instead of stale pre-MOVE scene data. GM prompt follows the environment Canon, including Fracture architecture, without treating it as a transition.
-- Save schema is now **9**, manual slot `manual_checkpoint_v9`; no migration/old-save adapter. Codec checks graph/position/visited markers/observations and rejects a pending graph replacement. Autosave contains pending progress and already reserved encounters; manual checkpoints retain their existing no-active-action restriction.
+- Các commit `df75d42a` (29 field studies) và `4ae47c84` (khôi phục Entity) đều đã PASS Verify Core Without Emulator + Build Backroom APK.
+- `825a3735`: sổ tay, gợi ý, palette hành động qua Core, giới hạn planner; Verify Core và Build APK PASS.
+- `4f570713`: mục tiêu điều tra động trên tiến độ thật; Verify Core và Build APK PASS.
+- Các nhóm test hiện hành: `WorldGraphRuntimeTest`, `Level0WorldExplorationTest`, `Level0PuzzleSolverTest`, `Level0FieldStudyTest`, `WorldHintTest`, `Level0ObjectiveTest`, `WorldCasebookIntegrityTest`, `EntitySpawnPoolTest`, `GameStateCodecTest`, `GameCheckpointCodecTest`, `explorer-controls.test.cjs`, `level-snapshot-routing.test.cjs`. CI của commit mới nhất xem tab Checks của PR; không tự gán PASS trước khi có kết quả.
+- Solver offline và 128-seed topology test chứng minh khả thi trong mô hình máy. Random explorer đo mức giải ngẫu nhiên trong phạm vi hành động được phát; đây **không phải playtest người thật**. CI build chứng minh APK được build, không chứng minh WebView chạy trơn tru trên thiết bị.
 
-## Validation and limits
+## Các phần chưa thể tuyên bố hoàn tất
 
-Regression targets: `Level0WorldExplorationTest`, existing `MiniMapRuntimeTest`, `GameStateCodecTest`, `GameCheckpointCodecTest`, `EntityCombatExpTest`, `EntitySpawnPoolTest`, `CharacterMemoryBagsTest`; Node `explorer-controls.test.cjs`, `level-snapshot-routing.test.cjs`.
+- **Exit Level 0 → 0.1 khóa theo chỉ đạo người dùng.** Thiếu Canon/duyệt thì không xây điều kiện thoát hay mở Route.
+- Playtest người thật, cân độ khó/độ dài gần 10 giờ, trải nghiệm combat/escape/HP cạn qua toàn bộ vòng đời, UX thực tế trên Android, live provider latency/tokens/network failures chưa có biên bản nghiệm thu.
+- Hai puzzle kiểm chứng liên khu và các field study hiện tạo được gameplay độc lập nhưng chưa tương đương chiều sâu của một Level 0 mười giờ. Không tăng grind hoặc thay Entity để kéo dài thời gian.
+- Pipeline mini-map cũ vẫn còn cho các node chưa chuyển sang WorldGraphRuntime; **không xóa khi vẫn còn caller**. Sau khi chuyển hết mới được dỡ bỏ. Không thêm framework/compatibility cho save cũ.
 
-The new tests exercise 128 seeded layouts, single-edge-removal reachability, an independent BFS traversal visiting every location and returning, a deterministic random explorer, backtracking and record survival, exact environment projection, private/frontier data boundaries, forged/stale commands, pending save/reload/retry, RNG idempotency, repeated commits, passive-action RNG exclusion, encounter blocking, NPC locality, manual checkpoint and provider-independent production initialization. Random exploration cannot unlock an unimplemented exit. These are architectural checks; they do not establish puzzle difficulty or play duration.
+## Kiểm tra có mục tiêu
 
-Validation results are recorded in the milestone commit/PR report. The local JVM harness uses the project's Kotlin 2.3.0 compiler and JUnit 4.13.2 with real org.json; it is not an Android Gradle build or emulator. Node DOM tests are not Android WebView acceptance.
-
-## Outstanding work / next dependencies
-
-1. Finish phase 2: richer room allocations, conditional/one-way/hidden passage model, persistent environmental changes and shortcut discovery, UI review at full map size. Do not call all visible chords “discovered shortcuts”; discovery/gate state is not implemented yet.
-2. Phase 3: implement at least two independently verified cross-zone law families, immutable parameters, observation/action/consequence transitions, proof, deliberate wrong experiments, solver and random-guess tests. No puzzle has been invented merely from a room name here.
-3. Phase 4: replace limited MOVE/SEARCH planning with typed Core affordances (inspect/compare/manipulate/ability/return/TALK) and progressive hints only on request. Current passive observation/mark targets are an initial adapter, not the final creative-action system. Plan and narration still have provider latency.
-4. Phase 5: per-environment/action risk model with explicit balance tests, local NPC lifecycle beyond first binding, gameplay roles for all 29 child areas. Existing combat/loot integration needs scenario tests for death, defeat, retreat and rewards while experimenting, not just encounter reservation.
-5. Exit decision: determine the exact authored access and verification rule for registry destination `0.1`. Keep transition locked until the author confirms the location/phenomenon and acceptable alternate approaches; never assign it to Fracture by default.
-6. Remove remaining old mini-map scenario pipeline/UI assumptions after new puzzle/action contracts replace their uses. Legacy source remains available for its existing tests; there is no old-save compatibility path or production toggle offered to the player.
-7. Build APK and inspect Android WebView plus live providers at the integration gate. Measure API tokens/latency, real-device save interruption and human exploration/puzzle duration. Ten-hour balancing is **unverified**.
-
-Reproduce targeted checks in an Android SDK/Gradle environment:
+Chạy từ `android-apk/` trong môi trường đã có Android SDK/Gradle:
 
 ```sh
-node --test android-apk/tests/explorer-controls.test.cjs android-apk/tests/level-snapshot-routing.test.cjs
-cd android-apk
-gradle :app:testDebugUnitTest --tests 'com.rabpit.backroom.core.WorldGraphRuntimeTest' --tests 'com.rabpit.backroom.core.Level0WorldExplorationTest' --tests 'com.rabpit.backroom.core.MiniMapRuntimeTest' --tests 'com.rabpit.backroom.core.GameStateCodecTest' --tests 'com.rabpit.backroom.core.GameCheckpointCodecTest' --tests 'com.rabpit.backroom.core.EntityCombatExpTest' --tests 'com.rabpit.backroom.core.EntitySpawnPoolTest' --tests 'com.rabpit.backroom.core.CharacterMemoryBagsTest' --no-daemon
+./gradlew :app:testDebugUnitTest --tests 'com.rabpit.backroom.core.Level0FieldStudyTest' --tests 'com.rabpit.backroom.core.Level0PuzzleSolverTest' --tests 'com.rabpit.backroom.core.WorldHintTest' --tests 'com.rabpit.backroom.core.Level0ObjectiveTest' --tests 'com.rabpit.backroom.core.WorldCasebookIntegrityTest' --no-daemon
+node --test tests/explorer-controls.test.cjs tests/level-snapshot-routing.test.cjs
 ```
 
-### Verified milestone results — 18 October 2026
-
-- Kotlin 2.3.0 compilation of Core production sources and new world tests: PASS. Java Core compilation using ECJ 3.39.0 targeting Java 17: PASS. Existing unrelated `CombatRuntime.kt:511` unnecessary-`!!` compiler warning remains.
-- JUnit: **104 tests PASS**, zero failures, across the seven target classes above. Eleven new world tests include 128 seeded graph layouts and corruption/retry/locality checks. JUnit run reported 13.106 seconds; this is test execution time, not gameplay or API latency.
-- Node: **34 tests PASS**, zero failures, in the two target files above, including the new marker UI test and all 37 snapshot identities.
-- `git diff --check`: PASS.
-- The host has no Gradle/Android SDK or javac executable. A partial-source incremental compiler attempt was rejected because of missing Java class outputs and Kotlin cross-module smart casts; no repository workaround was applied. Rebuilt the complete Core Kotlin source module with Java sources, compiled Java outputs with ECJ, then executed the above JUnit targets successfully.
-- APK build, Android WebView/device playtest, live Gemini/Gehihi, CI for this new commit, human puzzle difficulty and ten-hour pacing: **not verified in this local milestone**.
-
-
-## Architecture correction — shared world engine
-
-The first milestone coupled reusable exploration to Level 0. That coupling has been removed rather than replicated for future Levels:
-
-- `WorldGraphRuntime.kt`: shared initialization, graph acceptance, actions, observation/markers, exploration history, MAP, public events, save validation and node-scoped NPC presence. No Level 0 environment, room prefix, fixed room count, reference-number parsing or generator is referenced here.
-- `WorldDefinition.kt`: small content contract and immutable supported-definition registry. Adding a supported Level requires a definition/registration, not another movement/save runtime. Registration does not add an edge to `LevelRouteRegistry` or enable a transition.
-- `Level0WorldDefinition.kt`: existing seed algorithm, Canon catalog adapter, objective, scene zone/subzone tags, exact 37-location constraint and Level 0 room-ID/entry policy. This is a content definition, not an independent runtime.
-- Generic validation allows multiple gameplay rooms to share an environment and makes single-edge-removal redundancy a definition policy. Current shared edge implementation remains bidirectional/ungated; conditional/one-way mechanics remain explicitly outstanding.
-- Graph version 2 binds `nodeId` and `definitionVersion`; save schema 9 and checkpoint slot v9 reject earlier schemas without migration. NPC location keys are `world.nodeId` + `world.roomId`, so identical room IDs in different Levels cannot imply presence.
-- Core initialization chooses a registered definition without a Level 0 branch. Codec, projections, Party recruitment and GM memory refer only to the shared runtime. Android staged Canon context uses the actual event node.
-- `WorldGraphRuntimeTest` supplies an unregistered, test-only definition at node 1 with three differently named rooms, two environments and a tree layout. The same runtime explores, backtracks, observes, marks and round-trips its state payload. Tests also cover policy-specific redundancy, unknown environment, disconnection, node/version/seed mismatch, NPC node isolation and refusal to load an unregistered definition in production. This fixture is not Level 1 content or Canon.
-
-The 104-JUnit result above belongs to the first milestone. Refactor validation is recorded separately in the follow-up commit/PR; do not treat the earlier result as validation of new code.
-
-
-Refactor verification: Core Kotlin 2.3.0 and Java 17 compilation PASS; **108 JUnit tests PASS** across the eight targeted classes (including four new generic-world tests); **34 Node tests PASS** for Explorer and snapshot routing; diff check PASS. JUnit execution reported 8.789 seconds. No APK/device/live-provider acceptance is claimed. The existing unrelated CombatRuntime unnecessary-`!!` warning remains.
-
-
-## Phase 2 — conditional graph follow-up (implementation commit)
-
-- Graph schema 3, definition version 2, save version 10, checkpoint slot v10; old save formats are intentionally unsupported.
-- Level 0 generator uses seeded, opaque room IDs and 45 physical rooms across exactly 37 Canon environment identities (two rooms per parent zone, one per subzone). All 45 rooms remain reachable through ordinary bidirectional corridors even if any one corridor fails.
-- Optional concealed passages are frozen in the persisted graph: Wetfloor ↔ Hollow Ceiling and a one-way Loop → Afterimage approach. Each passage has an independently persisted discovery/unlock state and authored condition identifier; these are gameplay shortcuts, **not** new Canon or exits.
-- Public map/planner show neither the secret endpoint nor unavailable movement. Inspection discovers a structural seam but does not unlock it. A verified gameplay rule fact will be needed to expose a Core-validated opening interaction. At this checkpoint rule facts have not yet been awarded by a puzzle.
-- Target tests cover hidden passage discovery, forged traversal rejection, condition opening and save/load; outcomes require CI verification against this commit.
-
-
-## Follow-up integration checkpoint — provider, UI and current save
-
-- Current save schema 11, manual slot `manual_checkpoint_v11`; previous saves are deliberately unsupported. World graph version 3 and Level 0 definition version 3 stay frozen with 45 rooms.
-- Free-text intent planning now uses Gemini's bounded JSON response (max 850 output tokens per invocation), **not Gehihi**. A proposed step is never trusted: the current Core list, room, actionId, version and target still authorize it immediately before staging. Gehihi remains solely the storyteller of confirmed public events.
-- Physical traces and personal map annotations have distinct symbols on MAP. Repeat physical marking is idempotent, repeated incorrect verification counts are bounded without dropping existing evidence.
-- Offline, provider-independent seeded puzzle solver and a public-action random walker are regression aids, not a human difficulty or 10-hour timing study. APK CI proves compilation/build only, not WebView layout or live-provider behavior.
-
-
-## Verified-access and RPG regression follow-up
-
-- Once inspected, a blocked optional passage can expose a generic explanation of missing evidence or need for physical manipulation; public map contains no passage ID, hidden endpoint or condition identifier.
-- An interrupted Core puzzle probe persists its reserved pending action; retry neither grants facts twice nor rerolls RNG. GM narration cannot award puzzle flags or change the Level route. Pending combat blocks exploration, while Core EXP and loot updates leave prior evidence and markers intact. Offline tests exercise these boundaries; live combat retreat and real-device interruptions remain outside this proof.
-
-
-## Multi-room visual distinction
-
-- Rooms sharing an authored environment retain the same Canon environmentId and snapshot. Once visited, MAP and the room header distinguish them using stable position numbers derived from the saved graph; unvisited rooms remain anonymous. These numbers are gameplay display labels, not Canon geography or traversal order.
-
-
-## Independent exploration extension — 29 optional environmental field studies
-
-- Level 0 now declares **29 authored field-study foci**, exactly one for each approved subzone. An optional, location-validated `SEARCH study` action captures the unchanged Canon description as a persistent `FIELD_NOTE`. This gives each subzone an authored investigative affordance without inventing an Entity, NPC, item, puzzle answer, or Level route.
-- After studying two subzones from the same parent zone, the player can `INTERACT compare:<knownRoom>` to keep a persistent, idempotent `COMPARISON` record. It states explicitly that co-occurrence does not establish causality. Unvisited-room targets and cross-zone comparisons are never listed or authorized.
-- Save schema **12**, Level 0 definition **4**; prior saves deliberately unsupported. In addition to existing validation, the Level 0 definition now compares the stored structural graph with `generate(savedSeed)`: a connected but rewritten topology is rejected on load. Stored field-note observations must correspond to their authored environment; comparisons must reference two actually visited/studied rooms in the same zone.
-- The player can review the full casebook, while each GM stage now includes only current-room observations (maximum six), preventing a 29-zone study from flooding the Gehihi prompt with distant notes.
-- These field studies are optional thematic gameplay, **not 29 separate puzzles and not a claim that 10 hours have been achieved**. Exit `0 → 0.1` remains locked pending owner decision.
-
-
-## Directed but non-spoiling exploration objectives
-- For Level 0 only, the visible objective now advances from initial landmark marking to first field study, independent observations, optional comparison, evidence testing and continued exploration. It derives entirely from Core-persisted progress and never grants evidence, authorizes Level routes or exposes puzzle target IDs.
-- The generic WorldDefinition contract defaults to its existing fixed objective, so this does not change unregistered test definitions or non-Level-0 content. No save schema change, no new Canon, no mandatory NPC/EXP/combat grind. These are near-term navigation goals, **not** a fabricated exit or a completion ending.
+Không tự chạy lại toàn suite/build mỗi commit; xem CI bắt buộc theo mốc quyết định. Không force-push/merge/release/đóng Issue.
