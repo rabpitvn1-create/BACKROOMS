@@ -63,8 +63,6 @@ public class SnapshotSceneProgressTest {
     assertEquals("panel_area", next.getJSONObject("flags").getString("visualAreaKey"));
     assertEquals(7, step(before));
     // A later normal scene-facing action must still advance as before.
-    SnapshotSceneProgress.apply(next, new JSONObject(next.toString()), new JSONObject(),
-      "EXECUTE", "khảo sát hành lang");
     JSONObject moved = new JSONObject(next.toString());
     SnapshotSceneProgress.apply(next, moved, new JSONObject(), "EXECUTE", "khảo sát hành lang");
     assertEquals(8, step(moved));
