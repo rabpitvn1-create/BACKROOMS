@@ -1858,8 +1858,37 @@ public class MainActivity extends Activity {
               narrateStagedSceneAction(stagedEvent), stateJson);
             }
           }
-          String committedView = requireGameCore().currentClientState(stateJson);
-          emit("backroomTurn", committedView);
+          JSONObject committedView = new JSONObject(requireGameCore().currentClientState(stateJson));
+          // Retrying an interrupted multi-action utterance must join its new
+          // receipt to the existing paragraph, not create a second player turn.
+          if ("RETRY".equals(commandJson)) {
+            String completedId = new JSONObject(command).getString("actionId");
+            JSONArray currentLog = committedView.optJSONArray("log");
+            String resumedPlayerText = null;
+            if (currentLog != null) for (int i = currentLog.length() - 1; i >= 0; i--) {
+              JSONObject item = currentLog.optJSONObject(i);
+              if (item != null && "player".equals(item.optString("role")) &&
+                  completedId.equals(item.optString("sceneActionId"))) {
+                resumedPlayerText = item.optString("text");
+                break;
+              }
+            }
+            if (resumedPlayerText != null) {
+              JSONArray oldLog = new JSONObject(stateJson).optJSONArray("log");
+              if (oldLog != null) for (int i = oldLog.length() - 1; i >= 0; i--) {
+                JSONObject item = oldLog.optJSONObject(i);
+                if (item == null || !"player".equals(item.optString("role")) ||
+                    !resumedPlayerText.equals(item.optString("text"))) continue;
+                JSONArray batch = item.optJSONArray("sceneBatchActions");
+                if (batch != null && batch.length() > 0) {
+                  PlayerActionPresentation.fold(committedView, batch.getString(0),
+                    completedId, resumedPlayerText);
+                  break;
+                }
+              }
+            }
+          }
+          emit("backroomTurn", committedView.toString());
           // The former temporary passerby feature is archived. Scene NPCs are script-owned.
           DiagnosticLog.timing(MainActivity.this, "scene.action", java.util.concurrent.TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started), 0);
         } catch (Exception error) {
