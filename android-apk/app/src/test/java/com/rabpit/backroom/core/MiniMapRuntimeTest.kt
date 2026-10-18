@@ -131,6 +131,32 @@ class MiniMapRuntimeTest {
     assertFalse(MiniMapRuntime.publicView(repo.state).toString().contains("lever_1_down"))
   }
 
+  @Test fun factFreeMechanicalPuzzleCanUseObservationalHint() {
+    val scene = leverPuzzle()
+    val originalActions = MiniMapScenario.objects(scene.getJSONArray("interactions"))
+    val clue = MiniMapScenario.copy(originalActions.first { it.getString("id") == "paper" })
+      .put("label", "Đọc sơ đồ cần gạt")
+      .put("observation", "Trên giấy có vệt đỏ thành chuỗi 1–1–2–2–3; nét vẽ mô tả gạt lên rồi xuống.")
+      .put("effect", JSONObject().put("type", "HINT"))
+    scene.put("npcs", JSONArray()).put("facts", JSONArray())
+      .put("interactions", JSONArray().put(clue).apply {
+        originalActions.filter { it.getJSONObject("effect").getString("type") == "STEP" }
+          .forEach { put(it) }
+      })
+    assertEquals("investigation", MiniMapScenario.validate(scene, "0", 1).getString("id"))
+    val base = state()
+    val p = MiniMapRuntime.progress(base)
+    val repo = MemorySave(base.copy(world = base.world +
+      (MiniMapRuntime.scriptKey(p) to scene.toString())))
+    val core = facade(repo)
+    apply(core, repo, "room:lab")
+    apply(core, repo, "paper")
+    val projection = MiniMapRuntime.publicView(repo.state)
+    assertTrue(projection.getJSONArray("records").getJSONObject(0).getString("text").contains("1–1–2–2–3"))
+    assertTrue(projection.getString("temporaryInference").contains("dấu vết"))
+    assertFalse(projection.toString().contains("mechanismPositions"))
+  }
+
   @Test fun invalidDeviceScriptsCannotCreateUnsolvableSequence() {
     val missing = leverPuzzle().put("mechanisms", JSONArray().put(JSONObject()
       .put("id", "door_lock").put("clueId", "unknown_evidence")
