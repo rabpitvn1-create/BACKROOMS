@@ -91,8 +91,14 @@ class GameCoreFacade private constructor(
   }
 
   /** Validate -> stage -> reserve once -> persist. Gehihi failure leaves this intact. */
-  @Synchronized fun beginSceneAction(raw: String): String {
+  /** The optional verbatim player utterance is presentation-only. It must never
+   * modify the Core command, target, narration event or gameplay consequences. */
+  @JvmOverloads
+  @Synchronized fun beginSceneAction(raw: String, playerText: String? = null): String {
     require(raw.length <= 1200) { "scene_command_too_large" }
+    require(playerText == null || (playerText.isNotBlank() && playerText.length <= 900)) {
+      "scene_player_text_invalid"
+    }
     val command = JSONObject(raw)
     var state = loadCurrentState()
     val actionId = command.getString("actionId")
@@ -143,7 +149,9 @@ class GameCoreFacade private constructor(
     val pending = JSONObject().put("actionId", actionId).put("command", command)
       .put("progress", staged.progress).put("discardKeys", JSONArray(staged.discardKeys.toList()))
       .put("nodeId", staged.nodeId).put("label", staged.label)
-      .put("public", public)
+      .put("public", public).apply {
+        if (playerText != null) put("playerText", playerText)
+      }
     repository.save(reserved.copy(world = reserved.world + (MiniMapRuntime.PENDING to pending.toString())))
     return JSONObject().put("committed", false).toString()
   }
@@ -176,7 +184,11 @@ class GameCoreFacade private constructor(
       remove("exploration"); remove("hiddenExitStreak"); remove("exitReady"); remove("lastRolls")
       put("currentLevel", node.asJson())
     }
-    val receipt = JSONObject().put("actionId", actionId).put("label", pending.getString("label")).put("reply", reply)
+    val receipt = JSONObject().put("actionId", actionId).put("label", pending.getString("label")).put("reply", reply).apply {
+      // Persist exactly what the player submitted, including punctuation/case.
+      // A retry uses the original saved utterance, never an AI paraphrase.
+      if (pending.has("playerText")) put("playerText", pending.getString("playerText"))
+    }
     // Finish a mini-map by atomically dropping its puzzle script and evidence.
     // A pending narration failure leaves the old state untouched for retry.
     val discarded = MiniMapScenario.strings(pending.getJSONArray("discardKeys")).toSet()
