@@ -175,7 +175,7 @@ object MiniMapRuntime {
     if (s != null) {
       // Only explored room names are revealed. Edges beyond the discovered
       // frontier stay hidden and no interaction/fact/solution enters MAP.
-      val visited = strings(p.optJSONArray("visitedRooms") ?: JSONArray()).toSet() + p.getString("roomId")
+      val visited = MiniMapScenario.strings(p.optJSONArray("visitedRooms") ?: JSONArray()).toSet() + p.getString("roomId")
       val rooms = MiniMapScenario.objects(s.getJSONArray("rooms"))
       out.put("map", JSONObject().put("currentRoomId", p.getString("roomId"))
         .put("entryRoomId", s.getString("entryRoomId"))
@@ -184,14 +184,14 @@ object MiniMapRuntime {
             val roomId = room.getString("id")
             val known = roomId in visited
             val frontier = known || rooms.any { adjacent -> adjacent.getString("id") in visited &&
-              roomId in strings(adjacent.getJSONArray("adjacentRoomIds")) }
+              roomId in MiniMapScenario.strings(adjacent.getJSONArray("adjacentRoomIds")) }
             if (frontier) put(JSONObject().put("id", roomId)
               .put("name", if (known) room.getString("name") else "Chưa khám phá")
               .put("visited", known)
               .put("adjacentRoomIds", JSONArray(
-                if (known) strings(room.getJSONArray("adjacentRoomIds")).filter {
+                if (known) MiniMapScenario.strings(room.getJSONArray("adjacentRoomIds")).filter {
                   it in visited || rooms.any { adjacent -> adjacent.getString("id") in visited &&
-                    it in strings(adjacent.getJSONArray("adjacentRoomIds")) }
+                    it in MiniMapScenario.strings(adjacent.getJSONArray("adjacentRoomIds")) }
                 } else emptyList<String>())))
           }
         }))
@@ -265,7 +265,7 @@ object MiniMapRuntime {
           val destination = target.removePrefix("room:")
           p.put("roomId", destination)
           val visited = p.optJSONArray("visitedRooms") ?: JSONArray()
-          if (destination !in strings(visited)) {
+          if (destination !in MiniMapScenario.strings(visited)) {
             visited.put(destination)
             p.put("visitedRooms", visited)
             val destinationName = room(s, p).getString("name")
