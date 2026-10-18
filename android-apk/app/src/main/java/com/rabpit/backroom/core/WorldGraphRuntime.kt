@@ -61,6 +61,12 @@ object WorldGraphRuntime {
     if (duplicates.size == 1) return e.name
     return e.name + " · vị trí " + (duplicates.indexOfFirst { it.getString("id") == roomId } + 1)
   }
+  private fun comparisonText(g: JSONObject, here: String, other: String,
+    definition: WorldDefinition): String =
+    "Đã đối chiếu ghi chép tại " + displayName(g, here, definition) +
+      " với " + displayName(g, other, definition) +
+      ". Hai quan sát chưa đủ chứng minh chúng có cùng nguyên nhân."
+
   private fun definition(p: JSONObject) = WorldDefinitions.require(p.getString("nodeId"))
   private fun locationTags(out: JSONObject, e: WorldEnvironment): JSONObject = out.apply {
     e.sceneZoneId?.let { put("zoneId", it) }
@@ -203,6 +209,32 @@ object WorldGraphRuntime {
         objects(p.getJSONArray("records")).any { it.optString("kind") == "EVIDENCE" && it.optString("text") == source.clue }
     }) { "world_saved_evidence" }
     require(definition.evidenceLaws.all { !facts.optBoolean(it.id) || lawFulfilled(p, g, it) }) { "world_law_unverified" }
+    // Saved casebook strings are never an authority for gameplay or GM prompts.
+    // Each record must match the exact Core-authored text for its visited room.
+    require(savedRecords.all { record ->
+      val id = record.getString("id")
+      val content = record.optString("text")
+      when (record.optString("kind")) {
+        "OBSERVATION" -> content == environment(room(g, id), definition).canon
+        "FIELD_NOTE" -> definition.fieldStudies.any {
+          it.environmentId == room(g, id).getString("environmentId") && it.observation == content
+        }
+        "EVIDENCE" -> definition.evidenceLaws.flatMap { it.probes }.any {
+          it.environmentId == room(g, id).getString("environmentId") &&
+            it.clue == content && proof.optBoolean(it.id)
+        }
+        "VERIFICATION" -> definition.evidenceLaws.any {
+          it.verifyEnvironmentId == room(g, id).getString("environmentId") &&
+            it.successText == content && facts.optBoolean(it.id)
+        }
+        "COMPARISON" -> {
+          val other = record.optString("otherRoomId")
+          other in visited && id != other &&
+            content == comparisonText(g, id, other, definition)
+        }
+        else -> false
+      }
+    }) { "world_saved_record_integrity" }
   }
 
   /** Explicit-only read-only hints; never injected into normal scene or GM packets. */
@@ -438,9 +470,7 @@ object WorldGraphRuntime {
         if (target.startsWith("compare:")) {
           val otherId = target.removePrefix("compare:")
           val here = p.getString("roomId")
-          result = "Đã đối chiếu ghi chép tại " + displayName(g, here, definition) +
-            " với " + displayName(g, otherId, definition) +
-            ". Hai quan sát chưa đủ chứng minh chúng có cùng nguyên nhân."
+          result = comparisonText(g, here, otherId, definition)
           if (objects(p.getJSONArray("records")).none {
             it.optString("kind") == "COMPARISON" && it.optString("id") == here &&
               it.optString("otherRoomId") == otherId
