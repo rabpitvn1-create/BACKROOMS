@@ -1593,7 +1593,7 @@ public class MainActivity extends Activity {
           emit("backroomWorldHint", requireGameCore().sceneHint(tier));
         } catch (Exception failure) {
           DiagnosticLog.record("world.hint.failed", failure.getClass().getSimpleName());
-          emit("backroomWorldHint", "{\\"error\\":\\"hint_unavailable\\"}");
+          emit("backroomWorldHint", new JSONObject().put("error", "hint_unavailable").toString());
         }
       });
     }
