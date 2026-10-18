@@ -34,20 +34,34 @@ function runtime(scene={}){
     appendActionPending(){},backroomTurn(json){ctx.state=JSON.parse(json);ctx.busy=false;},backroomError(){ctx.busy=false;}};
   ctx.window=ctx;vm.runInNewContext(source,ctx);
   const panel=elements.playerActionBar.children[0],dialog=document.body.children[0];
-  return {ctx,calls,panel,dialog,actionDialog:document.body.children[1],buttons:panel.children[0].children.map(slot=>slot.children[0]),player:panel.children[1].children[0],retry:panel.children[1].children[1],journal:elements.sceneJournal,room:elements.sceneJournalRoom,objective:elements.sceneJournalObjective,records:elements.sceneJournalRecords,log:elements.log};
+  return {ctx,calls,panel,dialog,actionDialog:document.body.children[1],buttons:panel.children[0].children.map(slot=>slot.children[0]),objectivePanel:panel.children[1],objectiveText:panel.children[1].children[1],player:panel.children[2].children[0],retry:panel.children[2].children[1],journal:elements.sceneJournal,room:elements.sceneJournalRoom,objective:elements.sceneJournalObjective,records:elements.sceneJournalRecords,log:elements.log};
 }
 test('MAP, Area Log, Giao tiếp occupy the top row; Player Action and Retry share the bottom slot',()=>{
   const r=runtime();
   assert.deepEqual(r.buttons.map(b=>b.textContent),['MAP','Area Log','Giao tiếp']);
   assert.equal(r.buttons[2].disabled,true);
   assert.equal(r.panel.children[0].children.length,3);
-  assert.equal(r.panel.children[1].children.length,2);
+  assert.equal(r.panel.children[2].children.length,2);
   assert.equal(r.player.textContent,'Player Action');
   assert.equal(r.player.hidden,false);assert.equal(r.retry.hidden,true);
   assert.equal(r.retry.className,'explorer-retry-danger');
   r.buttons[0].onclick();r.dialog.children[0].children[1].onclick();
   r.buttons[1].onclick();r.dialog.children[0].children[1].onclick();
   assert.equal(r.calls.length,0,'MAP and Area Log do not submit gameplay actions');
+});
+test('mini-map objective remains visible and updates without exposing hidden clues',()=>{
+  const r=runtime({objective:'Tìm lối sang phòng kế tiếp.',records:[{text:'MẬT MÃ 213546'}],
+    temporaryInference:'Gợi ý 213546'});
+  assert.equal(r.objectivePanel.hidden,false);
+  assert.equal(r.objectiveText.textContent,'Tìm lối sang phòng kế tiếp.');
+  assert.equal(r.journal.hidden,true);
+  assert.doesNotMatch(r.objectiveText.textContent,/213546|Gợi ý/);
+  const changed={...r.ctx.state,scene:{...r.ctx.state.scene,objective:'Kiểm tra cửa thoát.'}};
+  r.ctx.backroomTurn(JSON.stringify(changed));
+  assert.equal(r.objectiveText.textContent,'Kiểm tra cửa thoát.');
+  r.ctx.backroomTurn(JSON.stringify({...changed,scene:{...changed.scene,objective:''}}));
+  assert.equal(r.objectivePanel.hidden,true);
+  assert.equal(r.objectiveText.textContent,'');
 });
 test('Player Action submits original natural text to the Core interpreter without forging choices',()=>{
   const r=runtime();r.player.onclick();assert.equal(r.actionDialog.open,true);
