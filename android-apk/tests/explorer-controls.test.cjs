@@ -232,21 +232,38 @@ test('Area Log shows committed events but does not render puzzle clues, password
   assert.doesNotMatch(text,/213546|MẬT MÃ|Gợi ý/);
   assert.equal(r.journal.hidden,true);
 });
-test('Player Action error preserves text and Retry replaces the bottom button without replaying committed steps',()=>{
+test('planner error leaves the original Player Action editable; committed steps are never retried',()=>{
   const r=runtime();r.player.onclick();
   const input=r.actionDialog.children[1];input.value='Đi tới góc ẩm';input.oninput();
   r.actionDialog.children[2].onclick();
-  r.ctx.backroomPlayerActionError(JSON.stringify({committed:0,message:'Mạng lỗi'}));
-  assert.equal(r.player.hidden,true);assert.equal(r.retry.hidden,false);
-  assert.equal(input.value,'Đi tới góc ẩm');
-  r.retry.onclick();assert.equal(r.calls.length,2);
-  assert.equal(r.calls[1][0],'player');
+  r.ctx.backroomPlayerActionError(JSON.stringify({committed:0,stoppedStep:1,
+    stopCode:'invalid_plan',message:'Không phân tích được yêu cầu'}));
+  assert.equal(r.player.hidden,false);
+  assert.equal(r.retry.hidden,true,'planner failure has no Core pending command to retry');
+  assert.equal(input.value,'Đi tới góc ẩm','draft remains editable');
+  r.player.onclick();input.value='Đi vào hành lang';input.oninput();
+  r.actionDialog.children[2].onclick();
+  assert.deepEqual(r.calls.map(x=>x[0]),['player','player']);
+  assert.equal(r.calls[1][1],'Đi vào hành lang');
   const partial=runtime();partial.player.onclick();
   partial.actionDialog.children[1].value='Đi qua hai phòng';
   partial.actionDialog.children[1].oninput();partial.actionDialog.children[2].onclick();
   partial.ctx.backroomPlayerActionError(JSON.stringify({committed:1,message:'Đã dừng'}));
   assert.equal(partial.player.hidden,false,'partial commits must not expose replay-from-start Retry');
+  assert.equal(partial.retry.hidden,true);
   assert.equal(partial.calls.length,1);
+});
+test('long Player Action replans from fresh public state with committed history and bounded steps',()=>{
+  const java=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/MainActivity.java'),'utf8');
+  const worker=java.slice(java.indexOf('@JavascriptInterface public void submitPlayerAction('),
+    java.indexOf('@JavascriptInterface public void submitSceneAction('));
+  assert.match(worker,/while \(committed < 12\)/);
+  assert.match(worker,/CONFIRMED_STEPS=/);
+  assert.match(worker,/new JSONObject\(requireGameCore\(\)\.scenePlayerActionContext\(\)\)/);
+  assert.match(worker,/confirmedSteps\.put\(new JSONObject\(\)/);
+  assert.ok(worker.indexOf('commitSceneAction(')<worker.indexOf('confirmedSteps.put('));
+  assert.match(worker,/if \(plan\.length\(\) == 0\)/);
+  assert.match(worker,/stopCode = "step_limit"/);
 });
 test('Player Action reports one-based stopped step and Vietnamese reason without offering replay',()=>{
   const r=runtime();r.player.onclick();
