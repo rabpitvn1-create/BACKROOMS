@@ -1622,6 +1622,13 @@ public class MainActivity extends Activity {
           // MOVE -> SEARCH in a new room without sending hidden interactions
           // to the planner before the player actually reaches that room.
           while (committed < 12) {
+            // Never advance beyond one Core-confirmed action on one player submit.
+            if (committed > 0) {
+              stoppedStep = committed + 1;
+              stopCode = "reading_pause";
+              stopMessage = "Đã xong một bước. Đọc lời kể rồi nhập lệnh tiếp theo.";
+              break;
+            }
             stoppedStep = committed + 1;
             if (plannerCalls >= 4) {
               stopCode = "planner_budget";
@@ -1648,7 +1655,7 @@ public class MainActivity extends Activity {
             JSONObject context = new JSONObject(requireGameCore().scenePlayerActionContext());
             String plannerPrompt = "Chỉ ánh xạ MOVE/SEARCH/INTERACT/TALK từ hành động Core, không kể chuyện hoặc quyết định kết quả. "
               + "Chỉ trả JSON {\"steps\":[{\"kind\":\"MOVE|SEARCH|INTERACT|TALK\",\"targetId\":\"id\"}],\"unresolved\":false}. "
-              + "Tổng tối đa 12 bước; lượt này được phép trả tối đa " + (12 - committed) + " bước. "
+              + "Chỉ lập bước HIỆN HỢP LỆ ĐẦU TIÊN. Nếu còn bước khác trả unresolved=true; không tự tiếp tục. "
               + "CONTEXT là bản đồ và hành động công khai TẠI THỜI ĐIỂM NÀY; không đoán phòng, đường hay SEARCH chưa quan sát. "
               + "MOVE chỉ đi bằng lối room: hoặc passage: Core đã xác minh trong availableActions. "
               + "SEARCH/INTERACT/TALK chỉ dùng targetId đã có; không đoán vật, NPC, bí mật hay điều kiện. "
@@ -1678,6 +1685,13 @@ public class MainActivity extends Activity {
               break;
             }
             for (int i = 0; i < plan.length(); i++) {
+              // Even a malformed multi-step plan cannot start an automatic chain.
+              if (committed > 0) {
+                stoppedStep = committed + 1;
+                stopCode = "reading_pause";
+                stopMessage = "Đã xong một bước. Đọc lời kể rồi nhập lệnh tiếp theo.";
+                break;
+              }
               stoppedStep = committed + 1;
               JSONObject planned = plan.optJSONObject(i);
               if (planned == null || planned.length() != 2 ||
@@ -1763,6 +1777,12 @@ public class MainActivity extends Activity {
                 stoppedStep = committed + 1;
                 stopCode = "encounter";
                 stopMessage = "Đã gặp chạm trán; các bước còn lại chưa thực hiện.";
+                break;
+              }
+              if (i + 1 < plan.length() || unresolved) {
+                stoppedStep = committed + 1;
+                stopCode = "reading_pause";
+                stopMessage = "Đã xong một bước. Đọc lời kể rồi nhập lệnh tiếp theo.";
                 break;
               }
             }
