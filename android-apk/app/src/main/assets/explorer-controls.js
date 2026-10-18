@@ -197,12 +197,12 @@
       label.setAttribute('x',String(pos.x));label.setAttribute('y',String(pos.y+5));
       label.setAttribute('text-anchor','middle');label.setAttribute('font-size','12');
       label.setAttribute('fill',current?'#ecfff1':'#e3d4af');
-      label.textContent=(current?'● ':'')+(r.marked?'◆ ':'')+(r.name||'Chưa khám phá').slice(0,24);
+      label.textContent=(current?'● ':'')+(r.marked?'◆ ':'')+(r.traced?'✚ ':'')+(r.name||'Chưa khám phá').slice(0,24);
       g.append(rect,label);svg.appendChild(g);
     });
     sc.appendChild(svg);choices.appendChild(sc);
     const legend=document.createElement('p');legend.className='explorer-map-legend';
-    legend.textContent='● Cao Minh đang ở đây · MAP chỉ để xem, di chuyển bằng Player Action.';
+    legend.textContent='● Cao Minh · ◆ dấu bản đồ cá nhân · ✚ vết khắc thực tế · MAP chỉ để xem, di chuyển bằng Player Action.';
     choices.appendChild(legend);
   }
   function refresh(){

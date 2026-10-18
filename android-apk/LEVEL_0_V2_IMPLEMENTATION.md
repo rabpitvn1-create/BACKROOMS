@@ -107,3 +107,11 @@ Refactor verification: Core Kotlin 2.3.0 and Java 17 compilation PASS; **108 JUn
 - Optional concealed passages are frozen in the persisted graph: Wetfloor ↔ Hollow Ceiling and a one-way Loop → Afterimage approach. Each passage has an independently persisted discovery/unlock state and authored condition identifier; these are gameplay shortcuts, **not** new Canon or exits.
 - Public map/planner show neither the secret endpoint nor unavailable movement. Inspection discovers a structural seam but does not unlock it. A verified gameplay rule fact will be needed to expose a Core-validated opening interaction. At this checkpoint rule facts have not yet been awarded by a puzzle.
 - Target tests cover hidden passage discovery, forged traversal rejection, condition opening and save/load; outcomes require CI verification against this commit.
+
+
+## Follow-up integration checkpoint — provider, UI and current save
+
+- Current save schema 11, manual slot `manual_checkpoint_v11`; previous saves are deliberately unsupported. World graph version 3 and Level 0 definition version 3 stay frozen with 45 rooms.
+- Free-text intent planning now uses Gemini's bounded JSON response (max 850 output tokens per invocation), **not Gehihi**. A proposed step is never trusted: the current Core list, room, actionId, version and target still authorize it immediately before staging. Gehihi remains solely the storyteller of confirmed public events.
+- Physical traces and personal map annotations have distinct symbols on MAP. Repeat physical marking is idempotent, repeated incorrect verification counts are bounded without dropping existing evidence.
+- Offline, provider-independent seeded puzzle solver and a public-action random walker are regression aids, not a human difficulty or 10-hour timing study. APK CI proves compilation/build only, not WebView layout or live-provider behavior.

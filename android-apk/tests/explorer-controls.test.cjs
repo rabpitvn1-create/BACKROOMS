@@ -85,6 +85,18 @@ test('MAP renders a highlighted current node and hides undiscovered room names',
   assert.ok(texts.some(t=>t.includes('Chưa khám phá')));
   assert.equal(r.calls.length,0);
 });
+test('MAP distinguishes physical marks from personal annotations without showing undiscovered changes',()=>{
+  const r=runtime({map:{currentRoomId:'hall',entryRoomId:'hall',rooms:[
+    {id:'hall',name:'Hành lang vàng',visited:true,marked:true,traced:true,adjacentRoomIds:['x']},
+    {id:'x',name:'Chưa khám phá',visited:false,marked:false,traced:false,adjacentRoomIds:[]}
+  ]}});
+  r.buttons[0].onclick();
+  const svg=r.dialog.children[1].children[0].children[0];
+  const labels=svg.children.flatMap(n=>n.children||[]).map(n=>n.textContent||'');
+  assert.ok(labels.some(n=>n.includes('◆ ✚ Hành lang vàng')));
+  assert.ok(labels.some(n=>n==='Chưa khám phá'));
+  assert.equal(r.calls.length,0);
+});
 test('device controls use one popup, preserve Core commands and stay open across inputs',()=>{
   const lever=(id,version)=>({actionId:'run:0:'+version+':SEARCH:'+id,sceneVersion:version,
     roomId:'panel',kind:'SEARCH',targetId:id,label:id==='up'?'Gạt cần lên':'Gạt cần xuống',mechanismId:'door_lock'});

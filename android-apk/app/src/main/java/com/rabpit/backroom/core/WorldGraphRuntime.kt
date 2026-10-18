@@ -314,9 +314,13 @@ object WorldGraphRuntime {
         if (target == "trace") {
           val id = p.getString("roomId")
           val changed = trace(p, id)
-          changed.put("trace", true)
-          result = "Đã tạo vết khắc nhỏ để kiểm tra tính bền vững của dấu trên bề mặt."
-          p.getJSONArray("areaEvents").put(JSONObject().put("type", "TRACE").put("text", result))
+          if (changed.optBoolean("trace")) {
+            result = "Vết khắc đã có sẵn; không cần tạo thêm dấu trùng lặp."
+          } else {
+            changed.put("trace", true)
+            result = "Đã tạo vết khắc nhỏ để kiểm tra tính bền vững của dấu trên bề mặt."
+            p.getJSONArray("areaEvents").put(JSONObject().put("type", "TRACE").put("text", result))
+          }
         } else if (target == "verify") {
           val id = p.getString("roomId")
           val at = environment(room(g, id), definition).id
@@ -331,7 +335,7 @@ object WorldGraphRuntime {
             p.getJSONArray("areaEvents").put(JSONObject().put("type", "VERIFIED").put("text", result))
           } else {
             val changed = trace(p, id)
-            changed.put("failedTests", changed.optInt("failedTests", 0) + 1)
+            changed.put("failedTests", (changed.optInt("failedTests", 0) + 1).coerceAtMost(10000))
             result = law.failedText
             p.getJSONArray("areaEvents").put(JSONObject().put("type", "TEST_FAILED").put("text", result))
           }
