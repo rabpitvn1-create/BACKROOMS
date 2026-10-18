@@ -157,7 +157,7 @@ public final class ScenarioGenerator {
         + "Không lặp chu kỳ đi kiểm tra, nhặt hai manh mối rồi chọn câu trả lời. "
         + "Chỉ thêm NPC vào beat nếu hữu ích. Có thể gặp người lạc từ XIX, 1940, 1990, XXI; không bắt buộc NPC mỗi beat, không xác nhận du hành thời gian. "
         + "Schema {schemaVersion:4,levelNumber:int,nodeAnchor:string,entries:[{index:1..8,nodeAnchor:string,beat:string<=220,objective:string<=220,dependencyRefs:[index trước]}]}. "
-        + "Cả 8 mini-map thuộc nodeAnchor=0, levelNumber=0; không có nội dung Level khác. INPUT=" + request;
+        + "Cả 8 mini-map dùng INPUT.nodeAnchor=0 và INPUT.levelNumber=0; không có nội dung Level khác. INPUT=" + request;
     }
     return intro
       + "SCRIPT: Sinh duy nhất mini-map INPUT.index, không sinh outline hay lời GM. "
