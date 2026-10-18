@@ -80,15 +80,19 @@ class GameCoreFacade private constructor(
     }
     check(!MiniMapRuntime.blocked(state)) { "scene_busy" }
     val staged = MiniMapRuntime.stage(state, command) // no RNG before this point
+    val deviceControl = MiniMapRuntime.isMechanismControl(state, command.getString("targetId"))
     val turnId = nextTurnId(state)
     val input = "${command.getString("kind")}:$actionId"
     val started = ActionRuntime.start(state, actionId, turnId, CAO_MINH_ID, ActionKind.EXECUTE,
-      input, staged.nodeId, if (command.getString("kind") == "SEARCH") 5 else 1)
+      input, staged.nodeId, if (command.getString("kind") == "SEARCH" && !deviceControl) 5 else 1)
     check(started.applied) { "scene_session_failed" }
     val target = LevelRouteRegistry.node(staged.nodeId)
     val atTarget = started.state.copy(world = started.state.world + mapOf(
       "levelJson" to target.asJson().toString(), "location" to target.location(), "title" to target.title()))
-    val roll = SpawnMechanism.rollSceneSpawns(atTarget, command.getString("kind")) { spawnRng.nextInt(it) }
+    // One device sequence can require many taps; these control inputs must not
+    // reroll an encounter on every switch flip. Other SEARCH/MOVE rolls stay intact.
+    val roll = if (deviceControl) SpawnResult(null, emptyList())
+      else SpawnMechanism.rollSceneSpawns(atTarget, command.getString("kind")) { spawnRng.nextInt(it) }
     var reserved = SpawnMechanism.prepareSpawns(atTarget, roll)
     if (roll.entityKey != null) {
       reserved = CombatRuntime.prepareEncounter(reserved, roll.entityKey, "scene:$actionId:${roll.entityKey}")
