@@ -27,14 +27,15 @@ function runtime(scene={}){
   }
   elements.playerActionBar=element();elements.form=element();elements.log=element();elements.status=element();
   for(const id of ['sceneJournal','sceneJournalRoom','sceneJournalObjective','sceneJournalRecords'])elements[id]=element();
-  const calls=[];
+  const calls=[],stored=[];
   const document={getElementById:id=>elements[id],createElement:element,createElementNS:element,body:element()};
   const ctx={document,state:{scene:{miniIndex:1,generationNeeded:false,map:{currentRoomId:'hall',entryRoomId:'hall',rooms:[{id:'hall',name:'Hành lang',visited:true,adjacentRoomIds:['x']},{id:'x',name:'Chưa khám phá',visited:false,adjacentRoomIds:[]}]},areaLog:[],availableActions:[{actionId:'run:1:MOVE:room:x',sceneVersion:1,roomId:'hall',kind:'MOVE',targetId:'room:x',label:'Phòng X'}],...scene}},busy:false,coreUnavailable:false,
     Android:{prepareScene:json=>calls.push(['prepare',json]),submitSceneAction:(json,c)=>calls.push(['action',c]),submitPlayerAction:(json,text)=>calls.push(['player',text]),requestWorldHint:tier=>calls.push(['hint',tier])},
+    localStorage:{setItem:(key,value)=>stored.push([key,value])},
     appendActionPending(){},backroomTurn(json){ctx.state=JSON.parse(json);ctx.busy=false;},backroomError(){ctx.busy=false;}};
   ctx.window=ctx;vm.runInNewContext(source,ctx);
   const panel=elements.playerActionBar.children[0],dialog=document.body.children[0];
-  return {ctx,calls,panel,dialog,actionDialog:document.body.children[1],buttons:panel.children[0].children.map(slot=>slot.children[0]),objectivePanel:panel.children[1],objectiveText:panel.children[1].children[1],player:panel.children[2].children[0],retry:panel.children[2].children[1],journal:elements.sceneJournal,room:elements.sceneJournalRoom,objective:elements.sceneJournalObjective,records:elements.sceneJournalRecords,log:elements.log,status:elements.status};
+  return {ctx,calls,stored,panel,dialog,actionDialog:document.body.children[1],buttons:panel.children[0].children.map(slot=>slot.children[0]),objectivePanel:panel.children[1],objectiveText:panel.children[1].children[1],player:panel.children[2].children[0],retry:panel.children[2].children[1],journal:elements.sceneJournal,room:elements.sceneJournalRoom,objective:elements.sceneJournalObjective,records:elements.sceneJournalRecords,log:elements.log,status:elements.status};
 }
 test('MAP, Area Log, Giao tiếp occupy the top row; Player Action and Retry share the bottom slot',()=>{
   const r=runtime();
@@ -182,7 +183,7 @@ test('Player Action runs Gehihi narration only after Core validates each MOVE/SE
   assert.match(helper,/ProviderResponseContract\.requireWriter\(reply\)/);
   assert.match(helper,/canonBoundary\(sceneNode, reply\.getString\("reply"\)\)/);
   assert.match(player,/deviceStep \? staged\.getString\("result"\) : narrateStagedSceneAction\(staged\)/);
-  assert.ok(player.indexOf('beginSceneAction(command.toString())') <
+  assert.ok(player.indexOf('beginSceneAction(command.toString(), rawAction)') <
     player.indexOf('narrateStagedSceneAction(staged)'));
   assert.ok(player.indexOf('narrateStagedSceneAction(staged)') <
     player.indexOf('commitSceneAction('));
@@ -321,20 +322,28 @@ test('Gemini planning has an explicit network budget and never falls back to GM 
   assert.match(action,/geminiTextPolicy\(plannerPrompt, -1, 0\.0, 850, false\)/);
   assert.doesNotMatch(action,/gehihiText\(plannerPrompt/);
 });
-test('Player Action preserves exact input and pauses after one Core confirmation',()=>{
-  const r=runtime();
-  r.player.onclick();
-  const raw='  Tôi nói: \"Đừng tiến thêm!\"  ';
+test('One player utterance stays whole until the full requested action count is finished',()=>{
+  const r=runtime();r.player.onclick();
+  const raw='  Tôi nói: "Đừng tiến thêm!"  ';
   const input=r.actionDialog.children[1];
   input.value=raw;input.oninput();r.actionDialog.children[2].onclick();
   assert.deepEqual(r.calls.map(x=>x[0]),['player']);
-  assert.equal(r.calls[0][1],raw,'the user authored string must not be trimmed or paraphrased');
-  r.ctx.backroomPlayerActionFinished(JSON.stringify({
-    executed:1,requested:3,completed:false,stoppedStep:2,
-    stopCode:'reading_pause',message:'Đọc lời kể rồi nhập lệnh tiếp theo.'
-  }));
-  assert.equal(input.value,'','committed input must not be resubmitted');
-  assert.equal(r.calls.length,1,'one submit must never start another turn by itself');
+  assert.equal(r.calls[0][1],raw,'submit preserves exact player wording');
+  const intermediate={...r.ctx.state,turn:2};
+  r.ctx.backroomPlayerActionProgress(JSON.stringify({state:intermediate,executed:1,requested:3}));
+  assert.notEqual(r.ctx.state.turn,2,'intermediate Core commits must not redraw or scroll the log');
+  assert.equal(r.stored.length,1,'intermediate presentation is persisted for crash recovery');
+  assert.equal(r.stored[0][0],'backroom-apk-state');
+  assert.equal(JSON.parse(r.stored[0][1]).turn,2);
+  assert.match(r.status.textContent,/1\/3/);
+  assert.equal(input.value,raw,'the original is preserved while the group is running');
+  r.ctx.backroomPlayerActionProgress(JSON.stringify({state:{...intermediate,turn:3},executed:2,requested:3}));
+  assert.equal(r.ctx.state.turn,undefined);
+  assert.equal(r.stored.length,2);
+  r.ctx.backroomTurn(JSON.stringify({...intermediate,turn:4}));
+  r.ctx.backroomPlayerActionFinished(JSON.stringify({executed:3,requested:3,completed:true}));
+  assert.equal(input.value,'','the already executed utterance may not be sent again');
+  assert.equal(r.calls.length,1,'multiple actions still originate from a single explicit submit');
   assert.equal(r.retry.hidden,true);
 });
 test('Core receipts own exact player wording, not autogenerated action labels',()=>{
@@ -346,8 +355,9 @@ test('Core receipts own exact player wording, not autogenerated action labels',(
   assert.match(core,/if \(pending\.has\("playerText"\)\) put\("playerText", pending\.getString\("playerText"\)\)/);
   assert.match(view,/r\.optString\("playerText", r\.getString\("label"\)\)/);
   assert.match(java,/beginSceneAction\(command\.toString\(\), rawAction\)/);
-  assert.match(java,/if \(committed > 0\)/);
-  assert.match(java,/stopCode = "reading_pause"/);
+  assert.match(java,/totalActions = -1/);
+  assert.match(java,/PlayerActionPresentation\.fold\(/);
+  assert.doesNotMatch(java,/stopCode = "reading_pause"/);
 });
 test('World graph narration preserves scroll position instead of jumping down',()=>{
   const html=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/index.html'),'utf8');
@@ -360,7 +370,11 @@ test('long Player Action replans from fresh public state with committed history 
   const java=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/MainActivity.java'),'utf8');
   const worker=java.slice(java.indexOf('@JavascriptInterface public void submitPlayerAction('),
     java.indexOf('@JavascriptInterface public void submitSceneAction('));
-  assert.match(worker,/while \(committed < 12\)/);
+  assert.match(worker,/while \(committed < 12 && \(totalActions < 0 \|\| committed < totalActions\)\)/);
+  assert.match(worker,/proposedCount < 1 \|\| proposedCount > 12/);
+  assert.match(worker,/totalActions != proposedCount/);
+  assert.match(worker,/plan\.length\(\) > totalActions - committed/);
+  assert.match(worker,/if \(stopCode != null \|\| committed == totalActions\) break/);
   assert.match(worker,/plannerCalls >= 4/);
   assert.match(worker,/CONFIRMED_STEPS=/);
   assert.match(worker,/new JSONObject\(requireGameCore\(\)\.scenePlayerActionContext\(\)\)/);
