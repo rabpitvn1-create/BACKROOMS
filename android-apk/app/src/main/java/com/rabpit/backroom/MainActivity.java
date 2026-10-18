@@ -1640,11 +1640,11 @@ public class MainActivity extends Activity {
           // The exact failed Core step is already persisted for retry.
           DiagnosticLog.record("player.action.failed", error.getClass().getSimpleName() +
             "; committed=" + committed);
-          emit("backroomPlayerActionError", new JSONObject()
-            .put("committed", committed)
-            .put("message", committed > 0
-              ? "Chuỗi hành động dừng sau " + committed + " bước. Tiến trình đã lưu; xem trạng thái và thử lại bước đang chờ."
-              : "Không phân tích hoặc thực hiện được lệnh. Không có bước nào được xác nhận.").toString());
+          String message = committed > 0
+            ? "Chuỗi hành động dừng sau " + committed + " bước. Tiến trình đã lưu; xem trạng thái và thử lại bước đang chờ."
+            : "Không phân tích hoặc thực hiện được lệnh. Không có bước nào được xác nhận.";
+          emit("backroomPlayerActionError", "{\"committed\":" + committed +
+            ",\"message\":" + JSONObject.quote(message) + "}");
         }
       });
     }
