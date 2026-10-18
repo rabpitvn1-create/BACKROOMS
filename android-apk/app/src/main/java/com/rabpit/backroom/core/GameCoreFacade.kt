@@ -55,6 +55,33 @@ class GameCoreFacade private constructor(
     return clientSnapshot(JSONObject(), next).toString()
   }
 
+  /** A read-only vocabulary for Player Action interpretation, never a source
+   * of authority. The real command must still be in actions(state) at each step.
+   * Exclude puzzle solutions, facts, requires, private NPC purpose and effects. */
+  @Synchronized fun scenePlayerActionContext(): String {
+    val state = loadCurrentState()
+    val script = requireNotNull(MiniMapRuntime.script(state)) { "scene_not_ready" }
+    val progress = MiniMapRuntime.progress(state)
+    return JSONObject().put("currentRoomId", progress.getString("roomId"))
+      .put("nodeId", progress.getString("nodeId"))
+      .put("miniIndex", progress.getInt("index"))
+      .put("rooms", JSONArray().apply {
+        MiniMapScenario.objects(script.getJSONArray("rooms")).forEach { room ->
+          put(JSONObject().put("id", room.getString("id"))
+            .put("name", room.getString("name"))
+            .put("adjacentRoomIds", room.getJSONArray("adjacentRoomIds")))
+        }
+      })
+      .put("interactions", JSONArray().apply {
+        MiniMapScenario.objects(script.getJSONArray("interactions")).forEach { action ->
+          if (action.getString("kind") == "SEARCH") put(JSONObject()
+            .put("targetId", action.getString("id"))
+            .put("roomId", action.getString("roomId"))
+            .put("label", action.getString("label")))
+        }
+      }).toString()
+  }
+
   @Synchronized fun sceneNarrationContext(): String {
     val state = loadCurrentState()
     return JSONObject(state.world[MiniMapRuntime.PENDING] ?: error("scene_pending_missing")).getJSONObject("public").toString()
