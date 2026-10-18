@@ -178,6 +178,7 @@ object MiniMapRuntime {
       val visited = strings(p.optJSONArray("visitedRooms") ?: JSONArray()).toSet() + p.getString("roomId")
       val rooms = MiniMapScenario.objects(s.getJSONArray("rooms"))
       out.put("map", JSONObject().put("currentRoomId", p.getString("roomId"))
+        .put("entryRoomId", s.getString("entryRoomId"))
         .put("rooms", JSONArray().apply {
           rooms.forEach { room ->
             val roomId = room.getString("id")
