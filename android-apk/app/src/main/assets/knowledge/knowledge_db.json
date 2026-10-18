@@ -1943,6 +1943,25 @@
       ],
       "references": [],
       "affordances": []
+    },
+    {
+      "id": "LEVEL.00.ZONES.OVERVIEW",
+      "domain": "LEVEL",
+      "kind": "level-zone-index",
+      "text": "[Level 0 – The Lobby · Canon môi trường] Có 8 khu chính thuộc cùng Level 0 và 29 khu nhỏ: 1 Vàng Úa (4), 2 Đèn Chết (3), 3 Thảm Sũng (4), 4 Lối Câm (3), 5 Trần Rỗng (4), 6 Hồi Ảnh (3), 7 Vòng Lặp (4), 8 Rạn Nứt (4). Tên khu là địa danh, số thứ tự chỉ để tham chiếu; chưa xác nhận vị trí hiện tại, đường nối hay thứ tự di chuyển. Mô tả bóng người và âm thanh không xác nhận Entity/NPC; Rạn Nứt không mặc nhiên mở Level khác.",
+      "source": {
+        "document": "android-apk/LEVEL_0_EIGHT_ZONES_CANON.md",
+        "anchor": "THE EIGHT ZONES · THIẾT KẾ MÔI TRƯỜNG; Tổng thể 8 khu vực"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 53,
+      "tags": [
+        "level 0",
+        "level0:zone-index"
+      ],
+      "references": [],
+      "affordances": []
     }
   ]
 }
