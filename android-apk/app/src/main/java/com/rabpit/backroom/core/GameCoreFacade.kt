@@ -55,30 +55,28 @@ class GameCoreFacade private constructor(
     return clientSnapshot(JSONObject(), next).toString()
   }
 
-  /** A read-only vocabulary for Player Action interpretation, never a source
-   * of authority. The real command must still be in actions(state) at each step.
-   * Exclude puzzle solutions, facts, requires, private NPC purpose and effects. */
+  /** The planner sees only the same explored map and Core-offered action labels
+   * that the player can see. Never serialize private scenario rooms or SEARCH
+   * interactions in rooms the player has not reached. */
   @Synchronized fun scenePlayerActionContext(): String {
     val state = loadCurrentState()
-    val script = requireNotNull(MiniMapRuntime.script(state)) { "scene_not_ready" }
-    val progress = MiniMapRuntime.progress(state)
-    return JSONObject().put("currentRoomId", progress.getString("roomId"))
-      .put("nodeId", progress.getString("nodeId"))
-      .put("miniIndex", progress.getInt("index"))
-      .put("availableActions", MiniMapRuntime.actions(state))
-      .put("rooms", JSONArray().apply {
-        MiniMapScenario.objects(script.getJSONArray("rooms")).forEach { room ->
-          put(JSONObject().put("id", room.getString("id"))
-            .put("name", room.getString("name"))
-            .put("adjacentRoomIds", room.getJSONArray("adjacentRoomIds")))
-        }
-      })
-      .put("interactions", JSONArray().apply {
-        MiniMapScenario.objects(script.getJSONArray("interactions")).forEach { action ->
-          if (action.getString("kind") == "SEARCH") put(JSONObject()
-            .put("targetId", action.getString("id"))
-            .put("roomId", action.getString("roomId"))
-            .put("label", action.getString("label")))
+    val public = MiniMapRuntime.publicView(state)
+    val map = public.optJSONObject("map") ?: error("scene_not_ready")
+    val rooms = MiniMapScenario.objects(map.getJSONArray("rooms"))
+    val discovered = rooms.filter { it.optBoolean("visited", false) }.map { it.getString("id") }.toSet()
+    return JSONObject().put("currentRoomId", map.getString("currentRoomId"))
+      .put("nodeId", public.getString("nodeId"))
+      .put("miniIndex", public.getInt("miniIndex"))
+      .put("rooms", map.getJSONArray("rooms"))
+      .put("availableActions", JSONArray().apply {
+        MiniMapScenario.objects(public.getJSONArray("availableActions")).forEach { action ->
+          if (action.getString("kind") !in setOf("MOVE", "SEARCH")) return@forEach
+          val targetId = action.getString("targetId")
+          val label = if (action.getString("kind") == "MOVE" && targetId.startsWith("room:") &&
+            targetId.removePrefix("room:") !in discovered) "Lối sang khu vực chưa khám phá"
+            else action.getString("label")
+          put(JSONObject().put("kind", action.getString("kind"))
+            .put("targetId", targetId).put("label", label))
         }
       }).toString()
   }
