@@ -87,7 +87,7 @@ test('mechanism button presses use local Core narration, not a remote GM call',(
   assert.ok(runtimeSource.includes('event.put("mechanismStep", true)'));
   assert.ok(java.includes('stagedEvent.optBoolean("mechanismStep", false)'));
   assert.ok(java.includes('stagedEvent.getString("result")'));
-  assert.ok(java.includes('renderSnapshot=function(){if(window.backroomFreezeSnapshot)return;'));
+  assert.ok(java.includes("renderSnapshot=function(){if(typeof window!=='undefined'&&window.backroomFreezeSnapshot)return;"));
   assert.ok(java.includes('if(!window.backroomFreezeSnapshot&&cinema&&previousScene)cinema.play'));
   assert.ok(java.includes('if(should&&!window.backroomFreezeSnapshot)requestSnapshot()'));
   assert.ok(runtimeSource.includes('if (deviceControl) "DEVICE"') === false,
