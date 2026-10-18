@@ -115,7 +115,13 @@ object CoreClientProjection {
       if (!endingComplete) state.world[MiniMapRuntime.RECEIPT]?.let { receipt ->
         val r = JSONObject(receipt)
         val log = out.optJSONArray("log") ?: JSONArray().also { out.put("log", it) }
-        if ((0 until log.length()).none { log.optJSONObject(it)?.optString("sceneActionId") == r.getString("actionId") }) {
+        if ((0 until log.length()).none { index ->
+          val entry = log.optJSONObject(index)
+          entry?.optString("sceneActionId") == r.getString("actionId") ||
+            entry?.optJSONArray("sceneBatchActions")?.let { ids ->
+              (0 until ids.length()).any { ids.optString(it) == r.getString("actionId") }
+            } == true
+        }) {
           log.put(JSONObject().put("role", "player").put("text", r.optString("playerText", r.getString("label")))
             .put("sceneMap", currentMap).put("sceneActionId", r.getString("actionId")))
           if (CombatRuntime.pending(state) == null) log.put(JSONObject().put("role", "gm")
