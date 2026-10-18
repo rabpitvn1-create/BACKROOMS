@@ -28,39 +28,59 @@ function runtime(scene={}){
   elements.playerActionBar=element();elements.form=element();elements.log=element();
   for(const id of ['sceneJournal','sceneJournalRoom','sceneJournalObjective','sceneJournalRecords'])elements[id]=element();
   const calls=[];
-  const document={getElementById:id=>elements[id],createElement:element,body:element()};
-  const ctx={document,state:{scene:{miniIndex:1,generationNeeded:false,availableActions:[{actionId:'run:1:MOVE:room:x',sceneVersion:1,roomId:'hall',kind:'MOVE',targetId:'room:x',label:'Phòng X'}],...scene}},busy:false,coreUnavailable:false,
-    Android:{prepareScene:json=>calls.push(['prepare',json]),submitSceneAction:(json,c)=>calls.push(['action',c])},
+  const document={getElementById:id=>elements[id],createElement:element,createElementNS:element,body:element()};
+  const ctx={document,state:{scene:{miniIndex:1,generationNeeded:false,map:{currentRoomId:'hall',entryRoomId:'hall',rooms:[{id:'hall',name:'Hành lang',visited:true,adjacentRoomIds:['x']},{id:'x',name:'Chưa khám phá',visited:false,adjacentRoomIds:[]}]},areaLog:[],availableActions:[{actionId:'run:1:MOVE:room:x',sceneVersion:1,roomId:'hall',kind:'MOVE',targetId:'room:x',label:'Phòng X'}],...scene}},busy:false,coreUnavailable:false,
+    Android:{prepareScene:json=>calls.push(['prepare',json]),submitSceneAction:(json,c)=>calls.push(['action',c]),submitPlayerAction:(json,text)=>calls.push(['player',text])},
     appendActionPending(){},backroomTurn(json){ctx.state=JSON.parse(json);ctx.busy=false;},backroomError(){ctx.busy=false;}};
   ctx.window=ctx;vm.runInNewContext(source,ctx);
   const panel=elements.playerActionBar.children[0],dialog=document.body.children[0];
-  return {ctx,calls,panel,dialog,buttons:panel.children[0].children.map(slot=>slot.children[0]),retry:panel.children[1],journal:elements.sceneJournal,room:elements.sceneJournalRoom,objective:elements.sceneJournalObjective,records:elements.sceneJournalRecords,log:elements.log};
+  return {ctx,calls,panel,dialog,actionDialog:document.body.children[1],buttons:panel.children[0].children.map(slot=>slot.children[0]),player:panel.children[1].children[0],retry:panel.children[1].children[1],journal:elements.sceneJournal,room:elements.sceneJournalRoom,objective:elements.sceneJournalObjective,records:elements.sceneJournalRecords,log:elements.log};
 }
-test('three controls enable only Core-provided actions; popups do not submit or roll',()=>{
-  const r=runtime();assert.deepEqual(r.buttons.map(b=>b.textContent),['Di chuyển','Tìm kiếm','Giao tiếp']);
-  assert.equal(r.buttons[1].disabled,true);assert.equal(r.buttons[2].disabled,true);
+test('MAP, Area Log, Giao tiếp occupy the top row; Player Action and Retry share the bottom slot',()=>{
+  const r=runtime();
+  assert.deepEqual(r.buttons.map(b=>b.textContent),['MAP','Area Log','Giao tiếp']);
+  assert.equal(r.buttons[2].disabled,true);
   assert.equal(r.panel.children[0].children.length,3);
-  assert.ok(r.panel.children[0].children.every(slot=>slot.className==='explorer-control-slot'&&slot.children.length===1));
-  for(let i=0;i<4;i++){r.buttons[0].onclick();r.dialog.children[0].children[1].onclick();}
-  assert.equal(r.calls.length,0);
-  assert.equal(r.dialog.children[0].children[1].textContent,'×');
-  assert.equal(r.dialog.children[0].children[1].open,undefined);
+  assert.equal(r.panel.children[1].children.length,2);
+  assert.equal(r.player.textContent,'Player Action');
+  assert.equal(r.player.hidden,false);assert.equal(r.retry.hidden,true);
+  assert.equal(r.retry.className,'explorer-retry-danger');
+  r.buttons[0].onclick();r.dialog.children[0].children[1].onclick();
+  r.buttons[1].onclick();r.dialog.children[0].children[1].onclick();
+  assert.equal(r.calls.length,0,'MAP and Area Log do not submit gameplay actions');
 });
-
-test('selection sends exactly one captured versioned target and no label/client state delta',()=>{
-  const r=runtime();r.buttons[0].onclick();const select=r.dialog.children[1].children[0];select.onclick();select.onclick();
-  assert.equal(r.calls.length,1);assert.deepEqual(JSON.parse(r.calls[0][1]),{actionId:'run:1:MOVE:room:x',sceneVersion:1,roomId:'hall',kind:'MOVE',targetId:'room:x'});
+test('Player Action submits original natural text to the Core interpreter without forging choices',()=>{
+  const r=runtime();r.player.onclick();assert.equal(r.actionDialog.open,true);
+  const input=r.actionDialog.children[1],send=r.actionDialog.children[2];
+  input.value='Cao Minh đi qua hành lang tới góc ẩm rồi gạt cầu dao 2-1-3-5-4-6';
+  input.oninput();send.onclick();
+  assert.equal(r.calls.length,1);assert.equal(r.calls[0][0],'player');
+  assert.equal(r.calls[0][1],input.value);
+  assert.equal(r.actionDialog.open,false);
+});
+test('MAP renders a highlighted current node and hides undiscovered room names',()=>{
+  const r=runtime({map:{currentRoomId:'hall',entryRoomId:'hall',rooms:[
+    {id:'hall',name:'Hành lang vàng',visited:true,adjacentRoomIds:['wet']},
+    {id:'wet',name:'Chưa khám phá',visited:false,adjacentRoomIds:[]}
+  ]}});r.buttons[0].onclick();
+  const svg=r.dialog.children[1].children[0].children[0];
+  assert.equal(svg.attributes.role,'img');
+  assert.equal(svg.children.filter(n=>n.attributes&&n.attributes.stroke==='#b3ffc6').length,0);
+  const texts=svg.children.flatMap(g=>g.children||[]).map(el=>el.textContent||'');
+  assert.ok(texts.some(t=>t.includes('● Hành lang vàng')));
+  assert.ok(texts.some(t=>t.includes('Chưa khám phá')));
+  assert.equal(r.calls.length,0);
 });
 test('device controls use one popup, preserve Core commands and stay open across inputs',()=>{
   const lever=(id,version)=>({actionId:'run:0:'+version+':SEARCH:'+id,sceneVersion:version,
     roomId:'panel',kind:'SEARCH',targetId:id,label:id==='up'?'Gạt cần lên':'Gạt cần xuống',mechanismId:'door_lock'});
   const r=runtime({availableActions:[lever('up',3),lever('down',3)]});
-  r.buttons[1].onclick();
+  r.player.onclick();
+  const field=r.actionDialog.children[1];field.value='Mở bảng điều khiển';field.oninput();
+  r.actionDialog.children[2].onclick();
   assert.equal(r.dialog.open,true);
-  assert.equal(r.dialog.children[1].children.length,1,'controls should be grouped in one puzzle entry');
-  r.dialog.children[1].children[0].onclick();
   assert.equal(r.dialog.children[0].children[0].textContent,'Bảng điều khiển');
-  assert.equal(r.dialog.children[1].children.length,3,'back button and two physical controls');
+  assert.equal(r.dialog.children[1].children.length,3,'close button and two physical controls');
   r.dialog.children[1].children[1].onclick();
   assert.equal(r.calls.length,1);
   assert.equal(r.ctx.backroomFreezeSnapshot,true,'stationary controls freeze Snapshot while Core processes input');
@@ -95,42 +115,22 @@ test('mechanism button presses use local Core narration, not a remote GM call',(
   const facade=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt'),'utf8');
   assert.ok(facade.includes('if (deviceControl) "DEVICE" else "EXECUTE"'));
 });
-test('completed mini-map uses a distinct dark-green next-area choice with Core-authored label',()=>{
-  const normal={actionId:'r:0:9:MOVE:room:lab',sceneVersion:9,roomId:'hall',kind:'MOVE',targetId:'room:lab',label:'Kho hồ sơ'};
-  const transition={actionId:'r:0:9:MOVE:next',sceneVersion:9,roomId:'hall',kind:'MOVE',targetId:'next',label:'Tiến vào khu vực kế tiếp.'};
-  const r=runtime({completed:true,availableActions:[normal,transition]});
+test('MAP is read-only even when a Core-authorized next area is available',()=>{
+  const r=runtime({completed:true,availableActions:[
+    {actionId:'r:0:9:MOVE:next',sceneVersion:9,roomId:'hall',kind:'MOVE',targetId:'next',label:'Tiến vào khu vực kế tiếp.'}
+  ]});
   r.buttons[0].onclick();
-  const choices=r.dialog.children[1],nextPanel=r.dialog.children[2];
-  assert.equal(choices.children.length,1);
-  assert.equal(choices.children[0].textContent,'Kho hồ sơ');
-  assert.equal(nextPanel.hidden,false);
-  assert.equal(nextPanel.children.length,1);
-  const green=nextPanel.children[0];
-  assert.equal(green.className,'explorer-next-area-option');
-  assert.equal(green.textContent,'Tiến vào khu vực kế tiếp.');
-  assert.doesNotMatch(green.textContent,/mini-map|10/);
-  green.onclick();
-  assert.deepEqual(JSON.parse(r.calls[0][1]),{
-    actionId:transition.actionId,sceneVersion:9,roomId:'hall',kind:'MOVE',targetId:'next'
-  });
+  assert.equal(r.calls.length,0);
+  assert.doesNotMatch(r.dialog.children[1].textContent||'',/Tiến vào khu vực kế tiếp/);
   const css=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/explorer-controls.css'),'utf8');
-  assert.ok(css.includes('#explorerChoices .explorer-next-area-panel{'));
-  assert.ok(css.includes('background:linear-gradient(150deg,#173d2b,#0a261b)'));
-  assert.ok(css.includes('#explorerChoices .explorer-next-area-panel .explorer-next-area-option{'));
-});
-test('completion styling cannot create an unauthorized transition',()=>{
-  const r=runtime({completed:true,availableActions:[{
-    actionId:'r:0:9:MOVE:room:hall',sceneVersion:9,roomId:'lab',kind:'MOVE',targetId:'room:hall',label:'Hành lang'
-  }]});
-  r.buttons[0].onclick();
-  assert.equal(r.dialog.children[2].hidden,true);
-  assert.equal(r.dialog.children[2].children.length,0);
-  assert.equal(r.dialog.children[1].children.length,1);
+  assert.match(css,/explorer-action-slot/);
+  assert.match(css,/explorer-retry-danger/);
 });
 test('generation failure stops automatic requests and leaves explicit retry available',()=>{
   const r=runtime({generationNeeded:true,availableActions:[]});assert.equal(r.calls.length,1);
   r.ctx.backroomError('429');r.ctx.backroomSyncExplorer();assert.equal(r.calls.length,1);
-  assert.equal(r.retry.hidden,false);r.retry.onclick();assert.equal(r.calls.length,2);
+  assert.equal(r.retry.hidden,false);assert.equal(r.player.hidden,true);
+  r.retry.onclick();assert.equal(r.calls.length,2);
 });
 test('current mini-map generation keeps Gemini 4.0 Argon icon and message during Gehihi fallback',()=>{
   const r=runtime({generationNeeded:true,availableActions:[]});
@@ -166,35 +166,41 @@ test('Android scene worker stays within one mini-map and never emits provider-na
   assert.doesNotMatch(worker,/emit\("backroomSceneWriterProvider"/);
 });
 test('pending narration retries the saved command and combat hides Explorer',()=>{
-  const r=runtime({pendingActionId:'p',availableActions:[]});r.retry.onclick();assert.equal(r.calls[0][1],'RETRY');
+  const r=runtime({pendingActionId:'p',availableActions:[]});
+  assert.equal(r.player.hidden,true);assert.equal(r.retry.hidden,false);
+  r.retry.onclick();assert.equal(r.calls[0][1],'RETRY');
   r.ctx.state.combat={active:true};r.ctx.busy=false;r.ctx.backroomSyncExplorer();assert.equal(r.panel.hidden,true);
 });
 test('untrusted labels and observations use textContent and no HTML insertion',()=>{
   assert.doesNotMatch(source,/innerHTML|insertAdjacentHTML|eval\(/);
 });
 
-test('room objective and observations live only in a separate Game Menu journal',()=>{
-  const html=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/index.html'),'utf8');
-  const start=html.indexOf('id="gameMenuModal"');
-  const end=html.indexOf('<script',start);
-  const menu=html.slice(start,end);
-  for(const id of ['sceneJournal','sceneJournalRoom','sceneJournalObjective','sceneJournalRecords'])assert.ok(menu.includes(`id="${id}"`),id);
-  const r=runtime({room:{name:'Phòng X',description:'Dấu vết'},objective:'Giải khóa',records:[{text:'Vật chứng đã xác nhận'}]});
-  assert.equal(r.panel.children.length,2);
-  assert.ok(r.room.textContent.includes('Phòng X'));assert.ok(r.objective.textContent.includes('Giải khóa'));
-  assert.equal(r.records.children[0].textContent,'Vật chứng đã xác nhận');
-  assert.equal(r.journal.hidden,false);assert.equal(r.calls.length,0);
+test('Area Log shows committed events but does not render puzzle clues, passwords or hints',()=>{
+  const r=runtime({areaLog:[{type:'AREA',text:'Đã khám phá hành lang vàng.'},
+    {type:'UNLOCK',text:'Một cơ cấu khóa đã mở.'}],
+    records:[{text:'MẬT MÃ: 213546'}],temporaryInference:'Gợi ý: 213546'});
+  r.buttons[1].onclick();
+  const text=r.dialog.children[1].children.map(x=>x.textContent||'').join(' ');
+  assert.match(text,/Đã khám phá/);assert.match(text,/khóa đã mở/);
+  assert.doesNotMatch(text,/213546|MẬT MÃ|Gợi ý/);
+  assert.equal(r.journal.hidden,true);
 });
-test('unresolved puzzle offers an in-menu evidence hint without revealing an answer',()=>{
-  const r=runtime({room:{name:'Góc Thảm',description:'Thảm ẩm'},records:[],completed:false});
-  assert.match(r.records.children[0].textContent,/Chưa có chứng cứ/);
-  assert.match(r.records.children[0].textContent,/tìm kiếm/i);
-  assert.doesNotMatch(r.records.children[0].textContent,/answer|factId|policy/);
-  r.ctx.state.scene={...r.ctx.state.scene,completed:true,records:[{text:'Đối chiếu xong'}]};
-  r.ctx.backroomSyncExplorer();
-  assert.match(r.records.children[1].textContent,/Đã giải xong nhiệm vụ/);
+test('Player Action error preserves text and Retry replaces the bottom button without replaying committed steps',()=>{
+  const r=runtime();r.player.onclick();
+  const input=r.actionDialog.children[1];input.value='Đi tới góc ẩm';input.oninput();
+  r.actionDialog.children[2].onclick();
+  r.ctx.backroomPlayerActionError(JSON.stringify({committed:0,message:'Mạng lỗi'}));
+  assert.equal(r.player.hidden,true);assert.equal(r.retry.hidden,false);
+  assert.equal(input.value,'Đi tới góc ẩm');
+  r.retry.onclick();assert.equal(r.calls.length,2);
+  assert.equal(r.calls[1][0],'player');
+  const partial=runtime();partial.player.onclick();
+  partial.actionDialog.children[1].value='Đi qua hai phòng';
+  partial.actionDialog.children[1].oninput();partial.actionDialog.children[2].onclick();
+  partial.ctx.backroomPlayerActionError(JSON.stringify({committed:1,message:'Đã dừng'}));
+  assert.equal(partial.player.hidden,false,'partial commits must not expose replay-from-start Retry');
+  assert.equal(partial.calls.length,1);
 });
-
 test('existing ornate frames and Gemini logo are used in Explorer controls',()=>{
   const css=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/explorer-controls.css'),'utf8');
   assert.match(css,/--ornate-frame/);
