@@ -205,6 +205,62 @@ object WorldGraphRuntime {
     require(definition.evidenceLaws.all { !facts.optBoolean(it.id) || lawFulfilled(p, g, it) }) { "world_law_unverified" }
   }
 
+  /** Explicit-only read-only hints; never injected into normal scene or GM packets. */
+  fun hint(state: GameState, tier: Int, definition: WorldDefinition =
+    WorldDefinitions.require(MiniMapRuntime.node(state).id)): JSONObject {
+    require(tier in 1..3) { "world_hint_tier" }
+    val p = MiniMapRuntime.progress(state)
+    require(active(p) && p.getString("nodeId") == definition.nodeId) { "world_hint_scope" }
+    val g = p.getJSONObject(GRAPH)
+    val visited = strings(p.getJSONArray("visitedRooms")).toSet()
+    val familiar = rooms(g).filter { it.getString("id") in visited }
+      .map { it.getString("environmentId") }.toSet()
+    val evidence = p.getJSONObject("evidenceState")
+    val currentEnvironment = room(g, p.getString("roomId")).getString("environmentId")
+    val law = definition.evidenceLaws.firstOrNull {
+      !flags(p).optBoolean(it.id) && (it.verifyEnvironmentId == currentEnvironment ||
+        it.probes.any { probe -> evidence.optBoolean(probe.id) })
+    }
+    val message = when {
+      law == null && tier == 1 ->
+        "Những phòng giống nhau chưa chắc cùng vị trí. Hãy kiểm tra và ghi lại các dấu vật lý."
+      law == null && tier == 2 ->
+        "Dùng Sổ tay để đối chiếu quan sát cùng khu; kiểm tra nền, trần và dấu mốc."
+      law == null ->
+        "Đánh dấu những vị trí đã ghé, quay lại đối chiếu. Không cần chiến đấu hay vật phẩm."
+      tier == 1 ->
+        "Cần nhiều vật chứng độc lập; cảm giác, bóng dáng và ký ức chưa chứng minh được quy luật."
+      tier == 2 -> {
+        val known = law.probes.filter { evidence.optBoolean(it.id) && it.environmentId in familiar }
+        if (known.isEmpty()) "Khảo sát thật kỹ các cấu trúc đã biết trước khi thử kiểm chứng."
+        else "Đã có chứng cứ tại " + known.map { probe ->
+          definition.environments.first { it.id == probe.environmentId }.name
+        }.distinct().joinToString(", ") + ". Hãy tìm chứng cứ độc lập để so sánh."
+      }
+      else -> {
+        val missing = law.probes.firstOrNull {
+          !evidence.optBoolean(it.id) && it.environmentId in familiar
+        }
+        when {
+          missing != null -> "Quay lại " +
+            definition.environments.first { it.id == missing.environmentId }.name +
+            " và kiểm tra " + when (missing.method) {
+              "floor" -> "nền thảm"
+              "ceiling" -> "trần và đường ống"
+              "markings" -> "dấu vật lý"
+              "reflection" -> "bố cục đảo chiều"
+              else -> "cấu trúc"
+            } + "."
+          law.family == WorldLawFamily.SPATIAL_ANCHOR ->
+            "Dấu có sẵn có thể lặp. Hãy tự tạo dấu ở những vị trí đã ghé rồi đối chiếu."
+          else -> "Còn thiếu vật chứng tại địa điểm chưa khảo sát. Trở lại thử kiểm chứng sau khi tìm thêm bằng chứng."
+        }
+      }
+    }
+    return JSONObject().put("tier", tier).put("roomId", p.getString("roomId"))
+      .put("sceneVersion", p.getInt("version")).put("text", message)
+  }
+
   fun characterPresent(state: GameState, actor: CharacterState, roomId: String = MiniMapRuntime.progress(state).getString("roomId")): Boolean =
     actor.presence == CharacterPresence.ACTIVE && (actor.id in state.party.memberIds ||
       actor.metadata["encountered"] == "true" && actor.metadata["world.nodeId"] == MiniMapRuntime.progress(state).getString("nodeId") && actor.metadata["world.roomId"] == roomId)
