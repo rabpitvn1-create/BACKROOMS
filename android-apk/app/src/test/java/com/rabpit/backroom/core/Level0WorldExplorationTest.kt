@@ -195,6 +195,50 @@ class Level0WorldExplorationTest {
     assertEquals(progress.let { JSONObject(it).getJSONArray("records").toString() }, p(state).getJSONArray("records").toString())
   }
 
+  @Test fun physicalAndSpatialLawFamiliesRequireIndependentEvidenceAndPersistFailures() {
+    var state = world(73)
+    val g = p(state).getJSONObject("worldGraph")
+    val graphRooms = MiniMapScenario.objects(g.getJSONArray("rooms"))
+    val adjacency = graphRooms.associate { it.getString("id") to MiniMapScenario.strings(it.getJSONArray("adjacentRoomIds")) }
+    fun reach(environmentId: String) {
+      val destination = graphRooms.first { it.getString("environmentId") == environmentId }.getString("id")
+      val start = p(state).getString("roomId")
+      val paths = mutableMapOf(start to emptyList<String>())
+      val queue = java.util.ArrayDeque<String>(); queue.add(start)
+      while (destination !in paths && queue.isNotEmpty()) {
+        val from = queue.removeFirst()
+        adjacency.getValue(from).forEach { to -> if (to !in paths) {
+          paths[to] = paths.getValue(from) + to; queue.add(to)
+        } }
+      }
+      paths.getValue(destination).forEach { state = move(state, "room:$it") }
+    }
+    reach("khoang_ky_thuat")
+    state = move(state, "verify")
+    assertEquals(1, p(state).getJSONObject("environmentChanges")
+      .getJSONObject(p(state).getString("roomId")).getInt("failedTests"))
+    assertFalse(p(state).getJSONObject("ruleFlags").optBoolean("wet-ceiling"))
+    reach("phong_ngap"); state = move(state, "probe:floor")
+    reach("khoang_ky_thuat"); state = move(state, "probe:ceiling")
+    state = move(state, "verify")
+    assertTrue(p(state).getJSONObject("ruleFlags").getBoolean("wet-ceiling"))
+    reach("hanh_lang_lap")
+    state = move(move(state, "probe:markings"), "verify")
+    assertFalse(p(state).getJSONObject("ruleFlags").optBoolean("loop-reflection"))
+    state = move(state, "trace")
+    reach("phong_dao")
+    state = move(move(state, "probe:reflection"), "trace")
+    reach("hanh_lang_lap")
+    state = move(state, "verify")
+    assertTrue(p(state).getJSONObject("ruleFlags").getBoolean("loop-reflection"))
+    val loaded = GameStateCodec.decode(GameStateCodec.encode(state))
+    assertEquals(p(state).toString(), p(loaded).toString())
+    assertEquals(2, p(loaded).getJSONObject("ruleFlags").length())
+    val public = MiniMapRuntime.publicView(loaded).toString()
+    assertFalse(public.contains("wet-ceiling"))
+    assertFalse(public.contains("loop-reflection"))
+  }
+
   @Test fun corruptedWorldOrPendingGraphCannotLoadAsAnAcceptedWorld() {
     val root = JSONObject(GameStateCodec.encode(world()))
     val worldJson = root.getJSONObject("world")

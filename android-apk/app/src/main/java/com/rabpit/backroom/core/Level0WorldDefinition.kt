@@ -7,10 +7,29 @@ import java.util.Random
 /** Level 0 content and generator only. Environmental Canon remains in Level0Environments. */
 object Level0WorldDefinition : WorldDefinition {
   override val nodeId = "0"
-  override val version = 2
+  override val version = 3
   override val objective = "Khám phá Level 0 và ghi nhận những gì có thể kiểm chứng."
   override val requireAlternateRoutes = true
   override val passageConditions = setOf("wet-ceiling", "loop-reflection")
+  override val evidenceLaws = listOf(
+    WorldEvidenceLaw("wet-ceiling", WorldLawFamily.PHYSICAL_CORRELATION, listOf(
+      WorldLawProbe("wet:floor", "phong_ngap", "floor",
+        "Ở mép thảm ngập, vệt ẩm leo lên đường ghép tường chứ không tiếp tục theo vết kéo lê trên sàn."),
+      WorldLawProbe("wet:ceiling", "khoang_ky_thuat", "ceiling",
+        "Đầu một đường ống kỹ thuật ướt bất thường; hơi ẩm đọng quanh mối ghép với vách.")
+    ), "khoang_ky_thuat",
+      "Đối chiếu vệt nước với đầu ống đã xác nhận một mối nối vật lý có thể thử mở.",
+      "Thử đối chiếu đường ống chưa đủ căn cứ; mối nối không dịch chuyển."),
+    WorldEvidenceLaw("loop-reflection", WorldLawFamily.SPATIAL_ANCHOR, listOf(
+      WorldLawProbe("loop:mark", "hanh_lang_lap", "markings",
+        "Hai vết xước cũ giống nhau nhưng hướng kéo lệch khác nhau; dấu có sẵn không xác định được lối đi."),
+      WorldLawProbe("loop:mirror", "phong_dao", "reflection",
+        "Bố cục đảo chiều nhưng một đường nứt vẫn giữ cùng phía với vết xước đã quan sát.")
+    ), "hanh_lang_lap",
+      "Hai dấu do người chơi tạo giúp phân biệt vị trí với bản sao; nhận diện được đường nối mới.",
+      "Dấu có sẵn chưa chứng minh được vị trí; thử nghiệm không tạo ra đường nối.",
+      setOf("hanh_lang_lap", "phong_dao"))
+  )
   override val environments = Level0Environments.all.map {
     WorldEnvironment(it.id, it.name, it.parent ?: it.id, it.canon,
       it.reference.substringBefore('.'), if (it.parent != null) it.reference else null)
@@ -55,6 +74,7 @@ object Level0WorldDefinition : WorldDefinition {
     return JSONObject().put("version", WorldGraphRuntime.GRAPH_VERSION).put("seed", seed.toString())
       .put("nodeId", nodeId).put("definitionVersion", version)
       .put("entryRoomId", roomIds.getValue("yellow_rot")).put("passages", passages)
+      .put("lawInstances", JSONArray().apply { evidenceLaws.forEach { put(it.freeze()) } })
       .put("rooms", JSONArray().apply {
         keys.forEach { key ->
           val identity = key.removePrefix("annex:")

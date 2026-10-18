@@ -17,6 +17,25 @@ object WorldGraphRuntime {
   private fun passages(g: JSONObject): List<JSONObject> = g.optJSONArray("passages")?.let(::objects) ?: emptyList()
   private fun passageStates(p: JSONObject) = p.getJSONObject("passageStates")
   private fun flags(p: JSONObject) = p.getJSONObject("ruleFlags")
+  private val probeLabels = linkedMapOf(
+    "floor" to "Kiểm tra chi tiết nền và thảm",
+    "ceiling" to "Kiểm tra trần và đường kỹ thuật",
+    "markings" to "Đọc dấu vết vật lý",
+    "reflection" to "Kiểm tra chi tiết đối xứng"
+  )
+  private fun trace(p: JSONObject, roomId: String): JSONObject {
+    val changes = p.getJSONObject("environmentChanges")
+    return changes.optJSONObject(roomId) ?: JSONObject().also { changes.put(roomId, it) }
+  }
+  private fun lawFulfilled(p: JSONObject, g: JSONObject, law: WorldEvidenceLaw): Boolean {
+    val evidence = p.getJSONObject("evidenceState")
+    if (!law.probes.all { evidence.optBoolean(it.id) }) return false
+    if (law.family == WorldLawFamily.PHYSICAL_CORRELATION) return true
+    val traced = rooms(g).filter { p.getJSONObject("environmentChanges")
+      .optJSONObject(it.getString("id"))?.optBoolean("trace") == true }
+      .map { it.getString("environmentId") }.toSet()
+    return law.physicalAnchors.all { it in traced }
+  }
   private fun passable(p: JSONObject, passage: JSONObject) =
     passageStates(p).getJSONObject(passage.getString("id")).let { it.getBoolean("discovered") && it.getBoolean("unlocked") }
   private fun departure(passage: JSONObject, current: String): String? = when (current) {
@@ -51,6 +70,7 @@ object WorldGraphRuntime {
       .put(GRAPH, g).put("visitedRooms", JSONArray().put(start))
       .put("records", JSONArray()).put("markers", JSONObject())
       .put("ruleFlags", JSONObject()).put("environmentChanges", JSONObject())
+      .put("evidenceState", JSONObject())
       .put("passageStates", JSONObject().apply {
         passages(g).forEach { passage ->
           put(passage.getString("id"), JSONObject()
@@ -91,6 +111,15 @@ object WorldGraphRuntime {
       require(!edge.has("oneWay") || edge.get("oneWay") is Boolean) { "world_passage_direction" }
       require(!edge.has("hidden") || edge.get("hidden") is Boolean) { "world_passage_visibility" }
     }
+    val laws = definition.evidenceLaws
+    val catalog = definition.environments.map { it.id }.toSet()
+    require(laws.map { it.id }.distinct().size == laws.size &&
+      laws.all { law -> law.id in definition.passageConditions &&
+        law.probes.size >= 2 && law.probes.map { it.id }.distinct().size == law.probes.size &&
+        law.probes.all { it.method in probeLabels && it.environmentId in catalog } &&
+        law.verifyEnvironmentId in catalog && law.physicalAnchors.all { it in catalog } }) { "world_law_definition" }
+    val frozen = g.optJSONArray("lawInstances") ?: JSONArray()
+    require(frozen.toString() == JSONArray().apply { laws.forEach { put(it.freeze()) } }.toString()) { "world_law_parameters" }
     // Open corridors alone must remain viable with all optional gates closed. This
     // proves no collectible, NPC, fight or secret route is mandatory for backtracking.
     val entry = g.getString("entryRoomId")
@@ -132,8 +161,20 @@ object WorldGraphRuntime {
     }
     require(facts.keys().asSequence().all { it in definition.passageConditions && facts.get(it) is Boolean }) { "world_saved_facts" }
     val changes = p.getJSONObject("environmentChanges")
-    require(changes.keys().asSequence().all { it in ids && it in visited &&
-      changes.getJSONObject(it).keys().asSequence().all { key -> key.matches(Regex("[a-zA-Z0-9:_-]{1,64}")) } }) { "world_saved_changes" }
+    require(changes.keys().asSequence().all { id -> id in ids && id in visited &&
+      changes.getJSONObject(id).keys().asSequence().all { key ->
+        if (key == "trace") changes.getJSONObject(id).get(key) is Boolean
+        else key == "failedTests" && changes.getJSONObject(id).getInt(key) in 0..10000
+      } }) { "world_saved_changes" }
+    val proof = p.getJSONObject("evidenceState")
+    val probes = definition.evidenceLaws.flatMap { it.probes }
+    require(proof.keys().asSequence().all { id ->
+      val source = probes.firstOrNull { it.id == id }
+      source != null && proof.get(id) is Boolean && proof.getBoolean(id) &&
+        rooms(g).any { it.getString("id") in visited && it.getString("environmentId") == source.environmentId } &&
+        objects(p.getJSONArray("records")).any { it.optString("kind") == "EVIDENCE" && it.optString("text") == source.clue }
+    }) { "world_saved_evidence" }
+    require(definition.evidenceLaws.all { !facts.optBoolean(it.id) || lawFulfilled(p, g, it) }) { "world_law_unverified" }
   }
 
   fun characterPresent(state: GameState, actor: CharacterState, roomId: String = MiniMapRuntime.progress(state).getString("roomId")): Boolean =
@@ -169,6 +210,9 @@ object WorldGraphRuntime {
     }
     add("SEARCH", "observe", "Quan sát môi trường hiện tại")
     add("SEARCH", "inspect", "Khảo sát cấu trúc hiện tại")
+    probeLabels.forEach { (id, label) -> add("SEARCH", "probe:" + id, label) }
+    add("INTERACT", "trace", "Tạo dấu kiểm chứng trên bề mặt")
+    add("INTERACT", "verify", "Thử kiểm chứng nhận định tại chỗ")
     if (!p.getJSONObject("markers").has(current)) add("SEARCH", "mark", "Ghi dấu mốc vị trí vào bản đồ")
     presentCharacters(state).forEach { add("TALK", "character:${it.id}", "${it.name} · Trò chuyện") }
     return out
@@ -189,7 +233,8 @@ object WorldGraphRuntime {
       .put("objective", definition.objective)
       .apply { locationTags(this, e) }
       .put("environment", JSONObject().put("id", e.id).put("name", e.name).put("zoneId", e.zoneId).put("canon", e.canon))
-      .put("room", JSONObject().put("id", current).put("name", e.name).put("description", e.canon))
+      .put("room", JSONObject().put("id", current).put("name", e.name).put("description", e.canon)
+        .put("physicalTrace", p.getJSONObject("environmentChanges").optJSONObject(current)?.optBoolean("trace") == true))
       .put("npcs", JSONArray())
       .put("map", JSONObject().put("currentRoomId", current).put("entryRoomId", g.getString("entryRoomId"))
         .put("rooms", JSONArray().apply {
@@ -198,6 +243,7 @@ object WorldGraphRuntime {
             put(JSONObject().put("id", id).put("visited", known)
               .put("name", if (known) environment(r, definition).name else "Chưa khám phá")
               .put("marked", p.getJSONObject("markers").has(id))
+              .put("traced", if (known) p.getJSONObject("environmentChanges").optJSONObject(id)?.optBoolean("trace") == true else false)
               .put("adjacentRoomIds", JSONArray(if (known) knownNeighbors(g, p, id) else emptyList<String>())))
           }
         }))
@@ -240,6 +286,20 @@ object WorldGraphRuntime {
           result = if (found.isEmpty()) "Đã khảo sát cấu trúc, không xác nhận được lối nối mới."
             else "Phát hiện khe ghép cấu trúc. Chưa rõ có thể vượt qua hay không."
           p.getJSONArray("areaEvents").put(JSONObject().put("type", "INSPECT").put("text", result))
+        } else if (target.startsWith("probe:")) {
+          val method = target.removePrefix("probe:")
+          val source = definition.evidenceLaws.flatMap { it.probes }.firstOrNull {
+            it.environmentId == environment(room(g, id), definition).id && it.method == method
+          }
+          if (source == null) result = "Không tìm thấy dấu vết có thể xác nhận thêm bằng cách kiểm tra này."
+          else {
+            result = source.clue
+            if (!p.getJSONObject("evidenceState").optBoolean(source.id)) {
+              p.getJSONObject("evidenceState").put(source.id, true)
+              p.getJSONArray("records").put(JSONObject().put("id", id).put("kind", "EVIDENCE").put("text", result))
+              p.getJSONArray("areaEvents").put(JSONObject().put("type", "EVIDENCE").put("text", result))
+            }
+          }
         } else if (target == "mark") {
           result = "Đã ghi vị trí ${environment(room(g, id), definition).name} làm dấu mốc trên bản đồ cá nhân."
           p.getJSONObject("markers").put(id, true)
@@ -251,6 +311,31 @@ object WorldGraphRuntime {
         }
       }
       "INTERACT" -> {
+        if (target == "trace") {
+          val id = p.getString("roomId")
+          val changed = trace(p, id)
+          changed.put("trace", true)
+          result = "Đã tạo vết khắc nhỏ để kiểm tra tính bền vững của dấu trên bề mặt."
+          p.getJSONArray("areaEvents").put(JSONObject().put("type", "TRACE").put("text", result))
+        } else if (target == "verify") {
+          val id = p.getString("roomId")
+          val at = environment(room(g, id), definition).id
+          val law = definition.evidenceLaws.firstOrNull {
+            it.verifyEnvironmentId == at && !flags(p).optBoolean(it.id)
+          }
+          if (law == null) result = "Tại đây chưa có kết cấu hoặc dữ liệu mới để kiểm chứng."
+          else if (lawFulfilled(p, g, law)) {
+            flags(p).put(law.id, true)
+            result = law.successText
+            p.getJSONArray("records").put(JSONObject().put("id", id).put("kind", "VERIFICATION").put("text", result))
+            p.getJSONArray("areaEvents").put(JSONObject().put("type", "VERIFIED").put("text", result))
+          } else {
+            val changed = trace(p, id)
+            changed.put("failedTests", changed.optInt("failedTests", 0) + 1)
+            result = law.failedText
+            p.getJSONArray("areaEvents").put(JSONObject().put("type", "TEST_FAILED").put("text", result))
+          }
+        } else {
         val passage = passages(g).first { "passage:" + it.getString("id") == target }
         require(departure(passage, p.getString("roomId")) != null) { "world_passage_direction" }
         val status = passageStates(p).getJSONObject(passage.getString("id"))
@@ -259,6 +344,7 @@ object WorldGraphRuntime {
         status.put("unlocked", true)
         result = "Lối nối cấu trúc đã mở và có thể quay lại kiểm tra."
         p.getJSONArray("areaEvents").put(JSONObject().put("type", "ROUTE").put("text", result))
+        }
       }
       "TALK" -> {
         val character = presentCharacters(state).first { "character:${it.id}" == target }

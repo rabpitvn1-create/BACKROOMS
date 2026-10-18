@@ -70,7 +70,7 @@ class GameCoreFacade private constructor(
       .put("rooms", map.getJSONArray("rooms"))
       .put("availableActions", JSONArray().apply {
         MiniMapScenario.objects(view.getJSONArray("availableActions")).forEach { action ->
-          if (action.getString("kind") !in setOf("MOVE", "SEARCH")) return@forEach
+          if (action.getString("kind") !in setOf("MOVE", "SEARCH", "INTERACT", "TALK")) return@forEach
           val targetId = action.getString("targetId")
           val label = if (action.getString("kind") == "MOVE" && targetId.startsWith("room:") &&
             targetId.removePrefix("room:") !in discovered) "Lối sang khu vực chưa khám phá"
@@ -199,7 +199,7 @@ class GameCoreFacade private constructor(
     val afterView = clientSnapshot(JSONObject(), next)
     val sceneKind = pending.getJSONObject("command").getString("kind")
     val deviceControl = pending.getJSONObject("public").optBoolean("mechanismStep", false)
-    val actionText = (if (sceneKind == "MOVE") "Di chuyển: " else if (sceneKind == "SEARCH") "Tìm kiếm: " else "Giao tiếp: ") + pending.getString("label")
+    val actionText = (when (sceneKind) { "MOVE" -> "Di chuyển: "; "SEARCH" -> "Tìm kiếm: "; "INTERACT" -> "Thao tác: "; else -> "Giao tiếp: " }) + pending.getString("label")
     val continued = JSONObject(com.rabpit.backroom.core.knowledge.StoryContinuityReducer.apply(beforeView.toString(), afterView.toString(), actionText))
     val visualRolls = JSONObject()
     if (CombatRuntime.pending(next) != null) visualRolls.put("entityEncounter", JSONObject().put("eligible", true).put("success", true))
