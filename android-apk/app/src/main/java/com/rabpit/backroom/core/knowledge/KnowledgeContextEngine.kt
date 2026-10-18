@@ -215,9 +215,18 @@ object KnowledgeContextEngine {
       // Keep the compact provenance classification for the GM's Canon boundary.
       append("<").append(record.id).append("> ")
         .append(record.text.replace('\n', ' ')).append('\n')
+      // Direct author-confirmed sources are traceable to the checked-in zone
+      // documents. Do not promote unrelated legacy records by their authority.
+      val approvedLevelZeroSource =
+        (record.id == "LEVEL.00.ZONES.OVERVIEW" &&
+          record.source.document == "android-apk/LEVEL_0_EIGHT_ZONES_CANON.md") ||
+        (record.id.startsWith("LEVEL.00.ZONE.") &&
+          record.source.document in setOf(
+            "android-apk/LEVEL_0_EIGHT_ZONES_CANON.md",
+            "android-apk/LEVEL_0_TWENTY_NINE_SUBZONES_CANON.md"))
       append("  provenance=").append(
         if (record.source.document.startsWith("Google Drive /Novel/Asset/") ||
-          record.source.document.startsWith("https://")) "TRACEABLE"
+          record.source.document.startsWith("https://") || approvedLevelZeroSource) "TRACEABLE"
         else "LEGACY_UNVERIFIED")
         .append("; authority=").append(record.authority)
         .append("; mutability=").append(record.mutability).append('\n')
