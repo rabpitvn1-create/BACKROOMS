@@ -131,8 +131,9 @@ class MiniMapRuntimeTest {
     val atLab = JSONObject(core.scenePlayerActionContext())
     assertTrue(MiniMapScenario.objects(atLab.getJSONArray("availableActions"))
       .any { it.getString("kind") == "SEARCH" && it.getString("targetId") == "paper" })
-    assertFalse(MiniMapScenario.objects(atLab.getJSONArray("availableActions"))
-      .any { it.getString("targetId") == "mark" }, "Locked interactions stay private")
+    assertFalse("Locked interactions stay private",
+      MiniMapScenario.objects(atLab.getJSONArray("availableActions"))
+        .any { it.getString("targetId") == "mark" })
     val explored = MiniMapRuntime.publicView(repo.state)
     val map = explored.getJSONObject("map")
     assertEquals("lab", map.getString("currentRoomId"))
