@@ -55,6 +55,21 @@ public class SnapshotSceneProgressTest {
     assertEquals(8, step(safe));
   }
 
+  @Test public void deviceInputsPreserveCurrentSnapshotEvenIfActionLooksLikeExploration() throws Exception {
+    JSONObject before = state("0", "Level 0 / Hall", "panel_area", 7);
+    JSONObject next = state("0", "Level 0 / Hall", "different_area", 99);
+    SnapshotSceneProgress.apply(before, next, new JSONObject(), "DEVICE", "Khảo sát bảng điều khiển");
+    assertEquals(7, step(next));
+    assertEquals("panel_area", next.getJSONObject("flags").getString("visualAreaKey"));
+    assertEquals(7, step(before));
+    // A later normal scene-facing action must still advance as before.
+    SnapshotSceneProgress.apply(next, new JSONObject(next.toString()), new JSONObject(),
+      "EXECUTE", "khảo sát hành lang");
+    JSONObject moved = new JSONObject(next.toString());
+    SnapshotSceneProgress.apply(next, moved, new JSONObject(), "EXECUTE", "khảo sát hành lang");
+    assertEquals(8, step(moved));
+  }
+
   @Test public void searchDoesNotAdvanceButGameplayExecuteDoes() throws Exception {
     JSONObject before = state("1", "Level 1 / Parking", "", 4);
     JSONObject next = state("1", "Level 1 / Parking", "", 999);
