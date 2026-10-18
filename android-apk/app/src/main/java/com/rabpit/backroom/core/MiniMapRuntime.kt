@@ -122,7 +122,7 @@ object MiniMapRuntime {
     val current = p.getString("roomId")
     val remaining = MiniMapScenario.objects(s.getJSONArray("interactions")).filter {
       it.getString("id") !in done && it.getString("kind") == "SEARCH" &&
-        it.getJSONObject("effect").getString("type") != "ANSWER" &&
+        it.getJSONObject("effect").getString("type") !in setOf("ANSWER", "STEP") &&
         MiniMapScenario.holds(it.getJSONObject("requires"), accepted(p))
     }
     val here = remaining.firstOrNull { it.getString("roomId") == current }
