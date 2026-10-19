@@ -10,7 +10,7 @@ const verifier=path.join(__dirname,'../verify-explorer-controls.mjs');
 function fixture(t){
   const assets=fs.mkdtempSync(path.join(os.tmpdir(),'packaged-composer-'));
   t.after(()=>fs.rmSync(assets,{recursive:true,force:true}));
-  for(const file of ['index.html','explorer-controls.js','explorer-controls.css','ui/ornate-frame-v1.css','ui/backrooms-reference-frame-v2.png','ui/industrial-crt-v1.css',
+  for(const file of ['index.html','explorer-controls.js','explorer-controls.css','ui/ornate-frame-v1.css','ui/backrooms-reference-frame-v2.png','ui/industrial-crt-v1.css','ui/snapshot-tv.js',
     'ui/industrial-crt-v1/panel-frame.webp','ui/industrial-crt-v1/button-steel.webp',
     'ui/industrial-crt-v1/button-hazard.webp','ui/industrial-crt-v1/surface-crt.webp','ui/industrial-crt-v1/paper-dossier.webp']){
     fs.mkdirSync(path.dirname(path.join(assets,file)),{recursive:true});
@@ -72,4 +72,29 @@ test('menu mirrors Core action confirmation/errors without changing menu or acti
   assert.equal(nodes.gameMenuFeedback.textContent,nodes.status.textContent);
   nodes.gameMenuClose.listeners.click();assert.equal(nodes.gameMenuModal.hidden,true);
   nodes.status.textContent='';update();assert.equal(nodes.gameMenuFeedback.hidden,true);
+});
+
+test('TV HUD survives native snapshot replacement once without touching state, Core or callbacks',()=>{
+  const vm=require('node:vm'),script=fs.readFileSync(path.join(source,'ui/snapshot-tv.js'),'utf8');
+  let changed,observed;
+  const box={children:[],querySelector(){return this.children.find(n=>n.className==='snapshot-tv-hud')||null;},appendChild(node){this.children.push(node);}};
+  const state={turn:12,log:[{role:'player',text:'Quan sát hành lang.'}],scene:{room:{id:'current'}}};
+  const turn=()=>{};
+  const ctx={state,backroomTurn:turn,Android:new Proxy({},{get(){throw Error('decorative HUD must not use Core bridge');}}),
+    document:{getElementById:id=>id==='snapshot'?box:null,body:{classList:{contains:()=>true}},createElement:()=>({setAttribute(k,v){this[k]=v;}})},
+    MutationObserver:class {constructor(fn){changed=fn;}observe(node,opts){observed=node;assert.deepEqual(Object.keys(opts),['childList']);}}};
+  const before=JSON.stringify(state);vm.runInNewContext(script,ctx);
+  assert.equal(observed,box);assert.equal(box.children.length,1);assert.equal(box.children[0]['aria-hidden'],'true');
+  assert.match(box.children[0].innerHTML,/PLAY|REC/);
+  changed();assert.equal(box.children.length,1,'observer sees its own HUD append but must not duplicate');
+  for(let i=0;i<3;i++){
+    box.children=[{className:'snapshot-bg'},{className:'snapshot-character'}];changed();changed();
+    assert.equal(box.children.length,3);assert.equal(box.children.filter(n=>n.className==='snapshot-tv-hud').length,1);
+  }
+  assert.equal(JSON.stringify(state),before);assert.equal(ctx.backroomTurn,turn);
+});
+
+test('APK contract rejects missing TV controller',t=>{
+  const assets=fixture(t);fs.unlinkSync(path.join(assets,'ui/snapshot-tv.js'));
+  const result=verify(assets);assert.notEqual(result.status,0);assert.match(result.stderr,/snapshot-tv.js/);
 });

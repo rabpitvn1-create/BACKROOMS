@@ -201,7 +201,7 @@ body.game-menu-open{overflow:hidden}
 <body class="industrial-ui">
 <main class="shell">
 <section class="game">
-<header class="topbar"><div><div class="eyebrow">BACKROOM TEXT GAME</div><h1 id="title"></h1><span class="turn-runtime">TURN <strong id="turn"></strong></span></div><button class="game-menu-trigger" id="gameMenuOpen" type="button" aria-label="Mở menu game" aria-haspopup="dialog" aria-controls="gameMenuModal" aria-expanded="false">☰</button></header>
+<header class="topbar"><div><div class="eyebrow">BACKROOM TEXT GAME</div><h1 id="title"></h1><span class="turn-runtime">TURN <strong id="turn"></strong></span></div><div class="header-tools"><div class="crt-header-status" aria-hidden="true"><span class="camera-label">CAM 01</span><svg width="16" height="16" viewBox="0 0 20 20"><path d="M2 3h8L6 8v8M6 8v8M10 16v-3M13 16v-6M16 16V7"/></svg><svg width="21" height="13" viewBox="0 0 26 16"><path d="M1 2h21v12H1zM23 6h2v4h-2"/><path d="M4 4v8M7 4v8M10 4v8M13 4v8M16 4v8"/></svg></div><button class="game-menu-trigger" id="gameMenuOpen" type="button" aria-label="Mở menu game" aria-haspopup="dialog" aria-controls="gameMenuModal" aria-expanded="false">☰</button></div></header>
 <div id="prologuePrompt" aria-label="Đọc hoặc bỏ qua mở đầu" hidden>
   <button type="button" id="prologueOpenButton" aria-haspopup="dialog" aria-controls="prologueReader">PROLOGUE</button>
   <button type="button" id="prologueDismissButton" aria-label="Bỏ qua Prologue">×</button>
@@ -2481,6 +2481,7 @@ body.poker-dice-open .game>.log{display:none!important}
 <script src="combat-feedback-1193a.js"></script>
 <script src="battle-start.js"></script>
 <script src="exploration-transition.js"></script>
+<script src="ui/snapshot-tv.js"></script>
 </body>
 </html>
 
