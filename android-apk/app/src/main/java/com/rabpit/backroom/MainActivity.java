@@ -1619,6 +1619,10 @@ public class MainActivity extends Activity {
           if (rawAction == null || rawAction.trim().isEmpty() || rawAction.length() > 900)
             throw new IllegalArgumentException("player_action_size");
           JSONObject initial = new JSONObject(requireGameCore().scenePlayerActionContext());
+          JSONObject initialView = new JSONObject(requireGameCore().currentClientState(projection));
+          if (initialView.optJSONObject("scene") != null &&
+              initialView.getJSONObject("scene").has("pendingActionId"))
+            throw new IllegalStateException("scene_pending_retry_required");
           String initialNode = initial.getString("nodeId");
           int initialIndex = initial.getInt("miniIndex");
           JSONArray confirmedSteps = new JSONArray();
@@ -1653,12 +1657,18 @@ public class MainActivity extends Activity {
               stopMessage = "Đã chuyển khu vực. Hãy ra lệnh mới tại khu vực hiện tại.";
               break;
             }
+            if (scene.has("pendingActionId")) {
+              stopCode = "scene_pending";
+              stopMessage = "Có hành động Core đang chờ; hãy dùng Thử lại trước khi tiếp tục.";
+              break;
+            }
             failureCode = "planner_failure";
             JSONObject context = new JSONObject(requireGameCore().scenePlayerActionContext());
             String plannerPrompt = "Phân tích PLAYER thành các ý định tường minh theo đúng thứ tự, không bịa thêm. "
               + "Chỉ JSON {\"totalActions\":N,\"steps\":[{\"kind\":\"FREE\",\"text\":\"hành động tưởng tượng\"},{\"kind\":\"MOVE|SEARCH|INTERACT|TALK\",\"targetId\":\"id\"}],\"unresolved\":false}. "
               + "N là số ý định độc lập (1..12), KHÔNG phải số lệnh Core; giữ N sau khi xác nhận. "
               + "FREE gồm cử chỉ, đối thoại, đạo cụ tưởng tượng, người qua đường, điều tra chi tiết không thuộc câu đố. "
+              + "Dù Core luôn có SEARCH observe/inspect, ĐỪNG ép việc kiểm tra bóng đen, cho quà hay đối thoại ngẫu hứng thành SEARCH chung. "
               + "FREE chỉ có hiệu lực lời kể: không đổi HP, Inventory, Party, Entity, combat, phòng, cửa khóa, chứng cứ, trí nhớ Canon. "
               + "Dù gọi đúng tên Almond Water hay vật phẩm có Game ID, việc dùng qua PLAYER vẫn là đạo cụ FREE, không trừ Inventory. "
               + "Nếu hành động liên quan mục tiêu câu đố trong availableActions, PHẢI chọn CORE và targetId tương ứng, không lách bằng FREE. "
