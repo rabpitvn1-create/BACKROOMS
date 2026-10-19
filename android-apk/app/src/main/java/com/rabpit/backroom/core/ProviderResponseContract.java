@@ -61,8 +61,21 @@ public final class ProviderResponseContract {
   public static JSONObject parseSceneWriter(String raw) throws Exception {
     if (raw == null || raw.trim().isEmpty()) throw new Failure("writer_empty", true);
     if (raw.length() > 16000) throw new Failure("writer_size", false);
+    String text = raw.trim();
+    // Some compatible providers wrap their single JSON object in a Markdown
+    // json fence. Accept only an exact envelope; never fall back to free prose.
+    if (text.startsWith("```")) {
+      int newline = text.indexOf('\n');
+      int closing = text.lastIndexOf("```");
+      String language = newline < 0 ? "" : text.substring(3, newline).trim();
+      if (newline < 0 || closing <= newline ||
+          !(language.isEmpty() || "json".equalsIgnoreCase(language)) ||
+          !text.substring(closing + 3).trim().isEmpty())
+        throw new Failure("writer_json_invalid", false);
+      text = text.substring(newline + 1, closing).trim();
+    }
     final JSONObject packet;
-    try { packet = MiniMapScenario.INSTANCE.parse(raw); }
+    try { packet = MiniMapScenario.INSTANCE.parse(text); }
     catch (Exception error) { throw new Failure("writer_json_invalid", false); }
     Object reply = packet.opt("reply");
     if (!(reply instanceof String) || ((String) reply).trim().isEmpty())

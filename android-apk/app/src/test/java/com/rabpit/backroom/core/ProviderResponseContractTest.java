@@ -74,6 +74,20 @@ public class ProviderResponseContractTest {
         "{\"reply\":\"chưa khép", "{\"reply\":\"Mở cửa\",\"ops\":[]}"})
       assertThrows(ProviderResponseContract.Failure.class, () -> ProviderResponseContract.parseSceneWriter(raw));
   }
+  @Test public void sceneWriterAcceptsOnlyExactlyFencedJsonWithoutAdditionalFields() throws Exception {
+    String fence = "```";
+    assertEquals("Cửa khép lại.",
+      ProviderResponseContract.parseSceneWriter(fence + "json\n{\"reply\":\"Cửa khép lại.\"}\n" + fence)
+        .getString("reply"));
+    for (String invalid : new String[] {
+      fence + "json\n{\"reply\":\"OK\"}\n" + fence + " extra",
+      fence + "python\n{\"reply\":\"OK\"}\n" + fence,
+      fence + "json\n{\"reply\":\"OK\",\"ops\":[]}\n" + fence,
+      fence + "json\n{\"reply\":\"unterminated\n" + fence
+    }) assertThrows(ProviderResponseContract.Failure.class,
+      () -> ProviderResponseContract.parseSceneWriter(invalid));
+  }
+
   @Test public void envelopeSeparatesTruncationFilterMalformedAndEmptyFromValidShortReply() throws Exception {
     assertEquals("Gọn nhưng hợp lệ.", ProviderResponseContract.completedText(envelope("stop", "Gọn nhưng hợp lệ.")));
     ProviderResponseContract.Failure cut = assertThrows(ProviderResponseContract.Failure.class,

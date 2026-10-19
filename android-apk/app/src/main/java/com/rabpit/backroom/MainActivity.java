@@ -1039,6 +1039,9 @@ public class MainActivity extends Activity {
 
   private String writerFailureCode(Exception error) {
     if (error instanceof HttpError) return "writer_http_" + ((HttpError) error).status;
+    String detail = error == null ? "" : error.getMessage();
+    if (detail != null && detail.startsWith("GEHIHI_"))
+      return detail.contains("chưa được cấu hình") ? "writer_config_missing" : "writer_config_invalid";
     return ProviderResponseContract.failureCode(error);
   }
   private boolean writerRetryable(Exception error) {
@@ -1970,10 +1973,13 @@ public class MainActivity extends Activity {
         try {
           JSONObject batch = new JSONObject(requireGameCore().playerPresentationContext());
           requireGameCore().finishPlayerPresentation(batch.optInt("requested"), batch.optBoolean("interrupted", true),
-            "GM chưa hoàn tất lời kể. Kết quả Core được giữ nguyên; có thể thử lại lời kể.", "", reason, writerRetryable(error));
+            "GM chưa hoàn tất lời kể (mã " + reason + "). Kết quả Core được giữ nguyên; Retry chỉ tạo lại lời kể.",
+            "", reason, writerRetryable(error));
           emit("backroomTurn", requireGameCore().currentClientState(clientJson));
-        } catch (Exception ignored) { }
-        emit("backroomError", "Chưa phục hồi được lời kể GM; các bước Core không bị chạy lại.");
+        } catch (Exception syncError) {
+          DiagnosticLog.record("player.action.writer.sync_failed", syncError.getClass().getSimpleName());
+        }
+        emit("backroomError", "GM chưa phục hồi được lời kể (mã " + reason + "). Kết quả Core được giữ nguyên; Retry không chạy lại hành động.");
       }
     }
 

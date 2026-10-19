@@ -1845,7 +1845,9 @@ window.backroomError=message=>{
   row.className="message gm warning";
   const role=document.createElement("div");role.className="role";role.textContent="GAME MASTER · LỖI";
   const body=document.createElement("div");body.className="text";
-  body.textContent=reason+"\nLượt này chưa được xác nhận. Anh có thể thử lại.";
+  body.textContent=state.playerAction?.recoverable
+    ? reason
+    : reason+"\nLượt này chưa được xác nhận. Anh có thể thử lại.";
   row.appendChild(role);row.appendChild(body);logEl.appendChild(row);
   statusEl.textContent="Lỗi xử lý lượt: "+reason;
   syncPrimaryActions();focusLatestGmStart();
