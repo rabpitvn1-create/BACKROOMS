@@ -337,14 +337,26 @@
         fill:'none',stroke:current?'#6ec9ff':visited?'#c5ad71':'#89704a',
         'stroke-width':current?3.5:2}));
       if(current){
-        // Google-Maps-like blue navigation disc with white direction arrow.
-        const cx=pos.x+cardWidth/2-10,cy=top+8;
-        const pin=svgEl('g',{'data-map-location':'cao-minh'});
-        pin.appendChild(svgEl('circle',{cx,cy,r:25,fill:'#1a73e8',opacity:'.23'}));
-        pin.appendChild(svgEl('circle',{cx,cy,r:18,fill:'#1a73e8',stroke:'#ffffff',
-          'stroke-width':3.2}));
-        pin.appendChild(svgEl('path',{d:'M'+cx+' '+(cy-11)+' L'+(cx-8)+' '+(cy+9)+
-          ' L'+cx+' '+(cy+5)+' L'+(cx+8)+' '+(cy+9)+' Z',fill:'#ffffff'}));
+        // Gold teardrop location pin based on the reference supplied for Cao Minh.
+        // Keep the marker within the node, including on the topmost graph row.
+        const pinGradient=svgEl('linearGradient',{id:'explorer-map-location-gold',
+          x1:'0%',y1:'0%',x2:'85%',y2:'100%'});
+        [['0%','#fff4a5'],['37%','#f1c75e'],['72%','#bd8429'],['100%','#704517']]
+          .forEach(([offset,color])=>pinGradient.appendChild(
+            svgEl('stop',{offset,'stop-color':color})));
+        defs.appendChild(pinGradient);
+        const pin=svgEl('g',{'data-map-location':'cao-minh',
+          transform:'translate('+(pos.x+cardWidth/2-53)+' '+(top+4)+')'});
+        pin.appendChild(svgEl('path',{d:'M21 54 C15 44 2 32 2 20 C2 9 10 2 21 2 C32 2 40 9 40 20 C40 32 27 44 21 54 Z',
+          fill:'url(#explorer-map-location-gold)',stroke:'#603d17','stroke-width':2.2}));
+        pin.appendChild(svgEl('circle',{cx:21,cy:20,r:13.5,
+          fill:'#f8f4df',stroke:'#96641c','stroke-width':2}));
+        const roads=svgEl('g',{fill:'none',stroke:'#c99936','stroke-width':1.55,
+          'stroke-linecap':'round','stroke-linejoin':'round'});
+        roads.appendChild(svgEl('path',{d:'M9 23 L16 20 L26 12 L33 17 M11 13 L21 20 L18 33 M26 9 L27 28 L34 26'}));
+        roads.appendChild(svgEl('circle',{cx:17,cy:20,r:2.2,
+          fill:'#c99936',stroke:'none'}));
+        pin.appendChild(roads);
         g.appendChild(pin);
       }
       svg.appendChild(g);

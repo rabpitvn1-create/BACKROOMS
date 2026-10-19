@@ -129,7 +129,7 @@ test('Player Action submits original natural text to the Core interpreter withou
   assert.equal(r.calls[0][1],input.value);
   assert.equal(r.actionDialog.open,false);
 });
-test('MAP is fullscreen with Level 0, current zone and a blue direction marker',()=>{
+test('MAP is fullscreen with Level 0, current zone and a gold location pin',()=>{
   const r=runtime({environment:{id:'yellow_rot',name:'Vàng Úa'},map:{
     currentRoomId:'hall',entryRoomId:'hall',
     snapshots:{hall:'yellow_rot',wet:'deadlight'},
@@ -148,8 +148,11 @@ test('MAP is fullscreen with Level 0, current zone and a blue direction marker',
   const pins=svg.children.flatMap(g=>g.children||[])
     .filter(el=>el.attributes?.['data-map-location']==='cao-minh');
   assert.equal(pins.length,1);
-  assert.ok(pins[0].children.some(el=>el.attributes?.fill==='#1a73e8'));
-  assert.ok(pins[0].children.some(el=>el.attributes?.fill==='#ffffff'));
+  assert.ok(pins[0].children.some(el=>String(el.attributes?.d||'').includes('M21 54')),'gold teardrop silhouette');
+  assert.ok(pins[0].children.some(el=>el.attributes?.fill==='url(#explorer-map-location-gold)'));
+  assert.ok(pins[0].children.some(el=>el.attributes?.fill==='#f8f4df'),'inset map medallion');
+  assert.equal(svg.children.filter(el=>el.attributes?.['data-map-node']==='explored').length,1);
+  assert.equal(svg.children.some(el=>el.attributes?.fill==='#1a73e8'),false);
   const visited=svg.children.find(el=>el.attributes?.['data-map-node']==='explored');
   const labels=visited.children.filter(el=>el.attributes?.class==='explorer-map-room-label');
   assert.equal(labels.length,1);
