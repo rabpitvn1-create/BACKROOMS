@@ -395,7 +395,8 @@ jobs:
     if: github.event_name == 'pull_request'
     needs: build-apk
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    # GitHub job hard cap includes checkout, artifact downloads, boot and play.
+    timeout-minutes: 20
     permissions:
       contents: read
       actions: read
@@ -427,9 +428,13 @@ jobs:
           target: google_apis
           arch: x86_64
           profile: pixel_5
+          # Android system boot must complete within 5 minutes.
+          emulator-boot-timeout: 300
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none
           disable-animations: true
-          script: bash android-apk/scripts/emulator-play-artifact.sh
+          # Install + instrumentation + screenshots: at most 15 minutes.
+          # timeout returns 124 on expiry, failing this gate instead of hanging.
+          script: timeout --signal=TERM --kill-after=15s 15m bash android-apk/scripts/emulator-play-artifact.sh
 
       - name: Upload emulator screenshots, log and playthrough report
         if: always()
