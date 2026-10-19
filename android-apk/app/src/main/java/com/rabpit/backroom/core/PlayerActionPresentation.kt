@@ -8,6 +8,42 @@ import org.json.JSONObject
  * commands. This never changes a pending command, reward, encounter, or receipt.
  */
 object PlayerActionPresentation {
+  /** One user utterance + one GM paragraph. No authoritative gameplay writes. */
+  @JvmStatic fun complete(view: JSONObject, firstActionId: String?, rawPlayerText: String,
+                          reply: String): JSONObject {
+    require(reply.isNotBlank()) { "narrative_empty" }
+    val log = view.optJSONArray("log") ?: JSONArray().also { view.put("log", it) }
+    val scene = view.optJSONObject("scene")
+    val sceneMap = if (scene == null) "" else scene.optString("nodeId") + ":" + scene.optInt("miniIndex", 1)
+    val first = if (firstActionId == null) -1 else
+      (0 until log.length()).firstOrNull {
+        val e = log.optJSONObject(it)
+        e?.optString("role") == "player" && e.optString("sceneActionId") == firstActionId
+      } ?: -1
+    if (first < 0) {
+      require(firstActionId == null) { "narrative_first_action_missing" }
+      log.put(JSONObject().put("role", "player").put("text", rawPlayerText).put("sceneMap", sceneMap))
+      log.put(JSONObject().put("role", "gm").put("text", paragraph(reply)).put("sceneMap", sceneMap))
+      return view
+    }
+    val firstPlayer = log.getJSONObject(first)
+    firstPlayer.put("text", rawPlayerText)
+    val next = log.optJSONObject(first + 1)
+    if (next?.optString("role") == "gm" && next.optString("sceneMap") == firstPlayer.optString("sceneMap") &&
+        !next.has("sceneActionId")) {
+      next.put("text", paragraph(reply))
+      return view
+    }
+    val combined = JSONArray()
+    for (i in 0 until log.length()) {
+      combined.put(log.get(i))
+      if (i == first) combined.put(JSONObject().put("role", "gm")
+        .put("text", paragraph(reply)).put("sceneMap", firstPlayer.optString("sceneMap")))
+    }
+    view.put("log", combined)
+    return view
+  }
+
   private fun paragraph(text: String) = text.replace(Regex("\\s+"), " ").trim()
 
   @JvmStatic fun fold(view: JSONObject, firstActionId: String, currentActionId: String,
