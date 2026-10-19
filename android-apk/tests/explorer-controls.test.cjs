@@ -380,15 +380,16 @@ test('long Player Action replans from fresh public state with committed history 
   const worker=java.slice(java.indexOf('@JavascriptInterface public void submitPlayerAction('),
     java.indexOf('@JavascriptInterface public void submitSceneAction('));
   assert.match(worker,/while \(committed < 12 && \(totalActions < 0 \|\| committed < totalActions\)\)/);
-  assert.match(worker,/proposedCount < 1 \|\| proposedCount > 12/);
-  assert.match(worker,/totalActions != proposedCount/);
-  assert.match(worker,/plan\.length\(\) > totalActions - committed/);
+  assert.match(worker,/PlayerActionPlan\.parse\(text, totalActions, committed\)/);
+  assert.match(worker,/if \("FREE"\.equals\(kind\)\)/);
+  assert.match(worker,/narrativeEvents\.put\(new JSONObject\(\)\.put\("kind", "FREE"\)/);
+  assert.match(worker,/narrativeEvents\.put\(new JSONObject\(\)\.put\("kind", "CORE"\)/);
   assert.match(worker,/if \(stopCode != null \|\| committed == totalActions\) break/);
   assert.match(worker,/plannerCalls >= \(totalActions > 0 \? totalActions : 12\)/);
   assert.match(worker,/CONFIRMED_STEPS=/);
   assert.match(worker,/new JSONObject\(requireGameCore\(\)\.scenePlayerActionContext\(\)\)/);
   assert.match(worker,/confirmedSteps\.put\(new JSONObject\(\)/);
-  assert.ok(worker.indexOf('commitSceneAction(')<worker.indexOf('confirmedSteps.put('));
+  assert.ok(worker.indexOf('commitSceneAction(')<worker.lastIndexOf('confirmedSteps.put('));
   assert.match(worker,/if \(plan\.length\(\) == 0\)/);
   assert.match(worker,/stopCode = "step_limit"/);
 });
@@ -468,4 +469,19 @@ test('world MAP displays Core-confirmed personal markers without triggering gene
   assert.ok(texts.some(t=>t.includes('● ◆ Vàng Úa')));
   assert.ok(texts.some(t=>t==='Chưa khám phá'));
   assert.equal(r.calls.length,0);
+});
+
+
+test('FREE narrative steps never route through Core Item or scene actions',()=>{
+  const java=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/MainActivity.java'),'utf8');
+  const worker=java.slice(java.indexOf('@JavascriptInterface public void submitPlayerAction('),
+    java.indexOf('@JavascriptInterface public void submitSceneAction('));
+  const free=worker.slice(worker.indexOf('if ("FREE".equals(kind))'),worker.indexOf('String targetId = planned.getString("targetId")'));
+  assert.match(free,/narrativeEvents\.put/);
+  assert.match(free,/continue;/);
+  assert.doesNotMatch(free,/beginSceneAction|commitSceneAction|processItemAction|processCombat/);
+  assert.match(worker,/narrateMixedPlayerAction/);
+  assert.match(worker,/PlayerActionPresentation\.complete/);
+  assert.match(java,/Kể MỘT đoạn văn liên tục đúng trình tự RESOLVED_EVENTS/);
+  assert.match(java,/Almond Water/);
 });

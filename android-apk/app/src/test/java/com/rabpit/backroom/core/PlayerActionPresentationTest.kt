@@ -85,4 +85,34 @@ class PlayerActionPresentationTest {
     assertEquals(raw, state.getJSONArray("log").getJSONObject(0).getString("text"))
     assertEquals("Một câu trả lời. Khác.", state.getJSONArray("log").getJSONObject(1).getString("text"))
   }
+
+  @Test fun freeOnlyTurnKeepsVerbatimPlayerTextAndOneGmParagraph() {
+    val raw = "  Tôi đưa người lạ một chai Almond Water.  "
+    val state = view()
+      .put("scene", JSONObject().put("nodeId", "0").put("miniIndex", 1))
+    PlayerActionPresentation.complete(state, null, raw, "Ông ta đón lấy chai nước.\\nÔng khẽ cảm ơn.")
+    val log = state.getJSONArray("log")
+    assertEquals(2, log.length())
+    assertEquals(raw, log.getJSONObject(0).getString("text"))
+    assertEquals("Ông ta đón lấy chai nước. Ông khẽ cảm ơn.", log.getJSONObject(1).getString("text"))
+    assertEquals("0:1", log.getJSONObject(0).getString("sceneMap"))
+    assertFalse(log.getJSONObject(0).has("sceneActionId"))
+  }
+
+  @Test fun mixedTurnReplacesFactualReceiptsWithOneUnifiedGmParagraph() {
+    val raw = "Kiểm tra bóng đen, rồi đi vào phòng và xem xét."
+    val state = view(player("move", raw), gm("Đã tới căn phòng."))
+    val once = "Bóng đen hóa ra là đường ống. Cao Minh bước vào căn phòng và quan sát."
+    PlayerActionPresentation.complete(state, "move", raw, once)
+    assertEquals(2, state.getJSONArray("log").length())
+    assertEquals(once, state.getJSONArray("log").getJSONObject(1).getString("text"))
+    assertEquals("move", state.getJSONArray("log").getJSONObject(0).getString("sceneActionId"))
+  }
+
+  @Test fun interruptedEncounterWithoutGmReceiptCanReceiveOneParagraph() {
+    val state = view(player("search", "Quan sát"))
+    PlayerActionPresentation.complete(state, "search", "Quan sát", "Một tiếng động vang lên.")
+    assertEquals(2, state.getJSONArray("log").length())
+    assertEquals("Một tiếng động vang lên.", state.getJSONArray("log").getJSONObject(1).getString("text"))
+  }
 }
