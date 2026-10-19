@@ -196,10 +196,10 @@ test('explored connected rooms use solid lines while all true Core loops remain'
 test('fullscreen map scroll respects the CSS frame without forcing SVG scaling',()=>{
   const css=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/explorer-controls.css'),'utf8');
   assert.ok(css.includes('#explorerChoices.explorer-map-mode'));
-  assert.match(css,/height:var\\(--app-height,100dvh\\)!important/);
-  assert.match(css,/max-height:none!important/);
-  assert.match(css,/touch-action:pan-x pan-y/);
-  assert.match(css,/\.explorer-map-scroll svg\\{/);
+  assert.ok(css.includes('height:var(--app-height,100dvh)!important'));
+  assert.ok(css.includes('max-height:none!important'));
+  assert.ok(css.includes('touch-action:pan-x pan-y'));
+  assert.ok(css.includes('.explorer-map-scroll svg{'));
 });
 test('MAP shows only inspected blocked seams with generic reason and no hidden endpoint',()=>{
   const r=runtime({map:{currentRoomId:'hall',entryRoomId:'hall',rooms:[
