@@ -217,3 +217,9 @@
   background:#131b1e
 }
 #explorerChoices.explorer-map-mode .explorer-next-area-panel{display:none!important}
+
+#explorerChoices.explorer-map-mode .explorer-map-obstruction{
+  flex:0 0 auto;margin:0;padding:6px 10px;font-size:11px;line-height:1.35;
+  background:#151e22;color:#b6c1b9;max-height:45px;overflow:auto;
+  border-top:1px solid #39433f
+}

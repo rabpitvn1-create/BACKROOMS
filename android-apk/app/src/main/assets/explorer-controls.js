@@ -354,6 +354,11 @@
     const legend=document.createElement('p');legend.className='explorer-map-legend';
     legend.textContent='Kéo để xem bản đồ · Nét đứt: chưa khám phá · ◆ Dấu cá nhân · ✚ Vết khắc';
     choices.appendChild(legend);
+    // Keep Core-approved obstruction notes outside the graph, never on a node.
+    (Array.isArray(map.knownObstructions)?map.knownObstructions:[]).forEach(reason=>{
+      const p=document.createElement('p');p.className='explorer-map-obstruction';
+      p.textContent=String(reason);choices.appendChild(p);
+    });
     const here=positions.get(map.currentRoomId);
     if(here){
       sc.scrollLeft=Math.max(0,here.x-(sc.clientWidth||350)/2);

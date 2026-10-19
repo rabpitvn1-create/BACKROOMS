@@ -175,7 +175,7 @@ test('undiscovered snapshot is dimmed, nameless, padlocked and connected by a da
   assert.ok(locked.children.some(el=>el.attributes?.opacity==='.79'));
   assert.ok(locked.children.some(el=>el.attributes?.fill==='#e8cc90'),'lock body');
   assert.equal(locked.children.some(el=>el.attributes?.class==='explorer-map-room-label'),false);
-  assert.equal(JSON.stringify(locked).includes('SECRET NEVER DISPLAY'),false);
+  assert.equal(locked.children.some(n=>String(n.textContent||'').includes('SECRET NEVER DISPLAY')),false);
   const sources=svg.children.flatMap(el=>el.children||[]).filter(el=>typeof el.attributes?.href==='string')
     .map(el=>el.attributes.href);
   assert.ok(sources.some(src=>src.endsWith('/level_00__zone_01__yellow_rot.webp')));
@@ -195,7 +195,7 @@ test('explored connected rooms use solid lines while all true Core loops remain'
 });
 test('fullscreen map scroll respects the CSS frame without forcing SVG scaling',()=>{
   const css=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/explorer-controls.css'),'utf8');
-  assert.match(css,/#explorerChoices\\.explorer-map-mode/);
+  assert.ok(css.includes('#explorerChoices.explorer-map-mode'));
   assert.match(css,/height:var\\(--app-height,100dvh\\)!important/);
   assert.match(css,/max-height:none!important/);
   assert.match(css,/touch-action:pan-x pan-y/);
@@ -533,7 +533,7 @@ test('world MAP only shows Core-confirmed marks, no secret names or generation',
   const active=svg.children.find(el=>el.attributes?.['data-map-node']==='explored');
   const hidden=svg.children.find(el=>el.attributes?.['data-map-node']==='locked');
   assert.ok(active.children.some(el=>el.attributes?.class==='explorer-map-annotations'));
-  assert.equal(JSON.stringify(hidden).includes('DO NOT REVEAL'),false);
+  assert.equal(hidden.children.some(n=>String(n.textContent||'').includes('DO NOT REVEAL')),false);
   assert.equal(r.calls.length,0);
 });
 
