@@ -26,7 +26,9 @@ function runtime(scene={}){
     };
   }
   elements.playerActionBar=element();elements.form=element();elements.log=element();elements.status=element();
-  for(const id of ['sceneJournal','sceneJournalRoom','sceneJournalObjective','sceneJournalRecords'])elements[id]=element();
+  for(const id of ['sceneJournal','sceneJournalRoom','sceneJournalObjective','sceneJournalRecords',
+    'explorerMenuTools','explorerMenuObjective','explorerCurrentObjective','explorerCasebook','gameMenuClose'])elements[id]=element();
+  elements.gameMenuClose.click=()=>{elements.gameMenuClose.clicked=true;};
   const calls=[],stored=[];
   const document={getElementById:id=>elements[id],createElement:element,createElementNS:element,body:element()};
   const ctx={document,state:{scene:{miniIndex:1,generationNeeded:false,map:{currentRoomId:'hall',entryRoomId:'hall',rooms:[{id:'hall',name:'Hành lang',visited:true,adjacentRoomIds:['x']},{id:'x',name:'Chưa khám phá',visited:false,adjacentRoomIds:[]}]},areaLog:[],availableActions:[{actionId:'run:1:MOVE:room:x',sceneVersion:1,roomId:'hall',kind:'MOVE',targetId:'room:x',label:'Phòng X'}],...scene}},busy:false,coreUnavailable:false,
@@ -35,14 +37,16 @@ function runtime(scene={}){
     appendActionPending(){},backroomTurn(json){ctx.state=JSON.parse(json);ctx.busy=false;},backroomError(){ctx.busy=false;}};
   ctx.window=ctx;vm.runInNewContext(source,ctx);
   const panel=elements.playerActionBar.children[0],dialog=document.body.children[0];
-  return {ctx,calls,stored,panel,dialog,actionDialog:document.body.children[1],buttons:panel.children[0].children.map(slot=>slot.children[0]),objectivePanel:panel.children[1],objectiveText:panel.children[1].children[1],player:panel.children[2].children[0],retry:panel.children[2].children[1],journal:elements.sceneJournal,room:elements.sceneJournalRoom,objective:elements.sceneJournalObjective,records:elements.sceneJournalRecords,log:elements.log,status:elements.status};
+  return {ctx,calls,stored,panel,dialog,actionDialog:document.body.children[1],buttons:panel.children[0].children.map(slot=>slot.children[0]),menuTools:elements.explorerMenuTools,objectivePanel:elements.explorerMenuObjective,objectiveText:elements.explorerCurrentObjective,casebook:elements.explorerCasebook,menuClose:elements.gameMenuClose,player:panel.children[1].children[0],retry:panel.children[1].children[1],journal:elements.sceneJournal,room:elements.sceneJournalRoom,objective:elements.sceneJournalObjective,records:elements.sceneJournalRecords,log:elements.log,status:elements.status};
 }
 test('MAP, Area Log, Giao tiếp occupy the top row; Player Action and Retry share the bottom slot',()=>{
   const r=runtime();
   assert.deepEqual(r.buttons.map(b=>b.textContent),['MAP','Area Log','Giao tiếp']);
   assert.equal(r.buttons[2].disabled,true);
   assert.equal(r.panel.children[0].children.length,3);
-  assert.equal(r.panel.children[2].children.length,3);
+  assert.equal(r.panel.children[1].children.length,2);
+  assert.equal(r.panel.children.some(x=>x===r.objectivePanel||x===r.casebook),false);
+  assert.equal(r.menuTools.hidden,false);
   assert.equal(r.player.textContent,'Player Action');
   assert.equal(r.player.hidden,false);assert.equal(r.retry.hidden,true);
   assert.equal(r.retry.className,'explorer-retry-danger');
@@ -53,9 +57,10 @@ test('MAP, Area Log, Giao tiếp occupy the top row; Player Action and Retry sha
 test('Casebook is read-only and three hint tiers require explicit request',()=>{
   const r=runtime({runtime:'world-graph-v3',sceneVersion:9,room:{id:'hall'},
     records:[{id:'hall',kind:'FIELD_NOTE',text:'Ghi nhận vết ố trên tường.'}]});
-  const casebook=r.panel.children[2].children[2];
+  const casebook=r.casebook;
   assert.equal(r.calls.length,0);
   casebook.onclick();
+  assert.equal(r.menuClose.clicked,true,'close GAME MENU before opening casebook dialog');
   const notes=r.dialog.querySelectorAll('.explorer-casebook-record');
   assert.equal(notes.length,1);
   assert.equal(notes[0].textContent,'Ghi nhận vết ố trên tường.');
@@ -71,7 +76,7 @@ test('Core action palette bypasses Gemini planning but still sends only an offer
   const r=runtime({runtime:'world-graph-v3',room:{id:'hall'},records:[],
     availableActions:[{actionId:'world:3:SEARCH:inspect',sceneVersion:3,
       roomId:'hall',kind:'SEARCH',targetId:'inspect',label:'Khảo sát cấu trúc hiện tại'}]});
-  r.panel.children[2].children[2].onclick();
+  r.casebook.onclick();
   assert.equal(r.calls.length,0);
   r.dialog.children[1].children[0].onclick();
   assert.equal(r.dialog.children[1].children[0].textContent,'Khảo sát cấu trúc hiện tại');
@@ -83,7 +88,21 @@ test('Core action palette bypasses Gemini planning but still sends only an offer
   });
   assert.equal(r.calls.some(([type])=>type==='player'||type==='hint'),false);
 });
-test('mini-map objective remains visible and updates without exposing hidden clues',()=>{
+test('objective and casebook live inside GAME MENU and disappear without a scene',()=>{
+  const html=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/index.html'),'utf8');
+  const menu=html.slice(html.indexOf('id="gameMenuModal" hidden'),html.indexOf('id="sceneJournal"'));
+  assert.match(menu,/id="explorerMenuTools"/);
+  assert.match(menu,/id="explorerMenuObjective"/);
+  assert.match(menu,/id="explorerCurrentObjective"/);
+  assert.match(menu,/id="explorerCasebook"/);
+  const r=runtime();
+  assert.equal(r.menuTools.hidden,false);
+  assert.equal(r.objectivePanel.hidden,true);
+  assert.equal(r.casebook.disabled,false);
+  r.ctx.backroomTurn(JSON.stringify({...r.ctx.state,scene:null}));
+  assert.equal(r.menuTools.hidden,true);
+});
+test('mini-map objective updates in GAME MENU without exposing hidden clues',()=>{
   const r=runtime({objective:'Tìm lối sang phòng kế tiếp.',records:[{text:'MẬT MÃ 213546'}],
     temporaryInference:'Gợi ý 213546'});
   assert.equal(r.objectivePanel.hidden,false);

@@ -198,6 +198,14 @@ body.game-menu-open{overflow:hidden}
   <section class="game-menu-sheet" role="dialog" aria-modal="true" aria-labelledby="gameMenuTitle">
     <div class="game-menu-head"><h2 id="gameMenuTitle">GAME MENU</h2><button class="game-menu-close" id="gameMenuClose" type="button" aria-label="Đóng">×</button></div>
     <aside class="side">
+<section class="card" id="explorerMenuTools" hidden aria-labelledby="explorerMenuToolsTitle">
+  <h2 id="explorerMenuToolsTitle">Khám phá</h2>
+  <section class="explorer-current-objective" id="explorerMenuObjective" hidden aria-label="Mục tiêu hiện tại">
+    <strong>Mục tiêu hiện tại</strong>
+    <p id="explorerCurrentObjective" aria-live="polite"></p>
+  </section>
+  <button type="button" id="explorerCasebook">Sổ tay</button>
+</section>
 <section class="card" id="sceneJournal" hidden aria-labelledby="sceneJournalTitle">
   <h2 id="sceneJournalTitle">Nhật ký khám phá</h2>
   <p id="sceneJournalRoom"></p>
