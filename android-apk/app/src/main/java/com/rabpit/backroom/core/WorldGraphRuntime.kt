@@ -353,20 +353,25 @@ object WorldGraphRuntime {
     val rs = rooms(g); val e = environment(room(g, current), definition)
     val visited = strings(p.getJSONArray("visitedRooms")).toSet()
     val snapshotIds = JSONObject() // Visuals only; never exported to the AI planner.
-    // The fullscreen atlas shows the complete standard graph as locked,
-    // nameless snapshot cards; hidden puzzle passages remain excluded.
+    // Atlas ids are presentation-only. Never leak undiscovered Core room ids
+    // (in particular concealed-passage endpoints) through the graph.
+    val atlasIds = rs.mapIndexed { index, room ->
+      room.getString("id") to "atlas:" + index.toString().padStart(3, '0')
+    }.toMap()
     val overviewRooms = JSONArray().apply {
       rs.forEach { r ->
-        val id = r.getString("id"); val known = id in visited
-        snapshotIds.put(id, r.getString("environmentId"))
-        put(JSONObject().put("id", id).put("visited", known)
+        val id = r.getString("id"); val atlasId = atlasIds.getValue(id)
+        val known = id in visited
+        snapshotIds.put(atlasId, r.getString("environmentId"))
+        put(JSONObject().put("id", atlasId).put("visited", known)
           .put("name", if (known) displayName(g, id, definition) else "")
           .put("marked", known && p.getJSONObject("markers").has(id))
           .put("traced", known && p.getJSONObject("environmentChanges")
             .optJSONObject(id)?.optBoolean("trace") == true)
           .put("adjacentRoomIds", JSONArray(
-            if (known) knownNeighbors(g, p, id)
-            else strings(r.getJSONArray("adjacentRoomIds")))))
+            (if (known) knownNeighbors(g, p, id)
+              else strings(r.getJSONArray("adjacentRoomIds")))
+              .map { atlasIds.getValue(it) })))
       }
     }
     val frontier = visited + rs.filter { it.getString("id") in visited }
@@ -407,7 +412,9 @@ object WorldGraphRuntime {
               .put("traced", if (known) p.getJSONObject("environmentChanges").optJSONObject(id)?.optBoolean("trace") == true else false)
               .put("adjacentRoomIds", JSONArray(if (known) knownNeighbors(g, p, id) else emptyList<String>())))
           }
-        }).put("snapshots", snapshotIds).put("overviewRooms", overviewRooms))
+        }).put("snapshots", snapshotIds).put("overviewRooms", overviewRooms)
+        .put("overviewCurrentRoomId", atlasIds.getValue(current))
+        .put("overviewEntryRoomId", atlasIds.getValue(g.getString("entryRoomId"))))
       .apply { state.world[MiniMapRuntime.PENDING]?.let { put("pendingActionId", JSONObject(it).getString("actionId")) } }
   }
 

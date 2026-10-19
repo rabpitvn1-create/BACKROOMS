@@ -66,9 +66,10 @@ class WorldGraphRuntimeTest {
       .getString(view.getJSONObject("map").getString("currentRoomId")))
     val atlas = view.getJSONObject("map").getJSONArray("overviewRooms")
     assertEquals(3, atlas.length()) // Full standard topology, no hidden passages.
-    assertTrue((0 until atlas.length()).any {
+    assertTrue((0 until atlas.length()).all {
       val room = atlas.getJSONObject(it)
-      !room.getBoolean("visited") && room.getString("name").isEmpty()
+      room.getString("id").startsWith("atlas:") &&
+        room.getBoolean("visited") && room.getString("name").isNotEmpty()
     })
 
     state = act(act(state, "room:test:b"), "room:test:a")

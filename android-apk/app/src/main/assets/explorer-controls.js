@@ -217,9 +217,11 @@
     activeMechanismId=null;showPopup('MAP');
     heading.textContent='LEVEL 0';
     const map=state.scene?.map;
-    const rooms=Array.isArray(map?.overviewRooms)&&map.overviewRooms.length?
-      map.overviewRooms:(Array.isArray(map?.rooms)?map.rooms:[]);
-    const currentRoom=rooms.find(r=>r.id===map?.currentRoomId);
+    const atlas=Array.isArray(map?.overviewRooms)&&map.overviewRooms.length;
+    const rooms=atlas?map.overviewRooms:(Array.isArray(map?.rooms)?map.rooms:[]);
+    const currentId=atlas&&map.overviewCurrentRoomId||map?.currentRoomId;
+    const entryId=atlas&&map.overviewEntryRoomId||map?.entryRoomId;
+    const currentRoom=rooms.find(r=>r.id===currentId);
     // Canon zone name is already public at the player's current location.
     mapSubtitle.textContent=state.scene?.environment?.name||
       state.scene?.room?.name||(currentRoom?.visited?currentRoom.name:'')||'';
@@ -229,7 +231,7 @@
       choices.appendChild(p);return;
     }
     const byId=new Map(rooms.map(r=>[r.id,r]));
-    const root=byId.has(map.entryRoomId)?map.entryRoomId:rooms[0].id;
+    const root=byId.has(entryId)?entryId:rooms[0].id;
     const layers=[],depth=new Map([[root,0]]),queue=[root];
     while(queue.length){
       const id=queue.shift(),level=depth.get(id);
@@ -286,7 +288,7 @@
       }));
     }));
     rooms.forEach((r,index)=>{
-      const pos=positions.get(r.id),current=r.id===map.currentRoomId;
+      const pos=positions.get(r.id),current=r.id===currentId;
       const left=pos.x-cardWidth/2,top=pos.y-cardHeight/2,visited=!!r.visited;
       const clipId='explorer-map-node-clip-'+index;
       const clip=svgEl('clipPath',{id:clipId});
@@ -360,7 +362,7 @@
       const p=document.createElement('p');p.className='explorer-map-obstruction';
       p.textContent=String(reason);choices.appendChild(p);
     });
-    const here=positions.get(map.currentRoomId);
+    const here=positions.get(currentId);
     if(here){
       sc.scrollLeft=Math.max(0,here.x-(sc.clientWidth||350)/2);
       sc.scrollTop=Math.max(0,here.y-(sc.clientHeight||400)/2);
