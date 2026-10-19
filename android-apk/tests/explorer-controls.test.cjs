@@ -384,7 +384,7 @@ test('long Player Action replans from fresh public state with committed history 
   assert.match(worker,/totalActions != proposedCount/);
   assert.match(worker,/plan\.length\(\) > totalActions - committed/);
   assert.match(worker,/if \(stopCode != null \|\| committed == totalActions\) break/);
-  assert.match(worker,/plannerCalls >= 4/);
+  assert.match(worker,/plannerCalls >= \(totalActions > 0 \? totalActions : 12\)/);
   assert.match(worker,/CONFIRMED_STEPS=/);
   assert.match(worker,/new JSONObject\(requireGameCore\(\)\.scenePlayerActionContext\(\)\)/);
   assert.match(worker,/confirmedSteps\.put\(new JSONObject\(\)/);
