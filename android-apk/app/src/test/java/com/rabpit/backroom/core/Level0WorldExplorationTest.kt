@@ -49,6 +49,25 @@ class Level0WorldExplorationTest {
     assertThrows(IllegalArgumentException::class.java) { WorldGraphRuntime.validate(bad) }
   }
 
+  @Test fun atlasClustersMatchCoreCanonAndNeverExportUndiscoveredNamesOrPrivateIds() {
+    val state = world(71L); val graph = p(state).getJSONObject("worldGraph")
+    val map = MiniMapRuntime.publicView(state).getJSONObject("map")
+    val coreRooms = MiniMapScenario.objects(graph.getJSONArray("rooms"))
+    val atlas = MiniMapScenario.objects(map.getJSONArray("overviewRooms"))
+    assertEquals(45, atlas.size); assertEquals(8, atlas.map { it.getString("atlasGroup") }.toSet().size)
+    val identity = coreRooms.mapIndexed { i, r -> r.getString("id") to atlas[i].getString("id") }.toMap()
+    coreRooms.forEachIndexed { i, room ->
+      val a = atlas[i]
+      assertEquals(room.getString("environmentId"), map.getJSONObject("snapshots").getString(a.getString("id")))
+      assertEquals(MiniMapScenario.strings(room.getJSONArray("adjacentRoomIds")).map { identity.getValue(it) }.toSet(),
+        MiniMapScenario.strings(a.getJSONArray("adjacentRoomIds")).toSet())
+      assertFalse(a.has("zoneId")); assertFalse(a.has("environmentId"))
+      if (!a.getBoolean("visited")) { assertEquals("", a.getString("name")); assertEquals("", a.getString("atlasGroupName")) }
+    }
+    val planner = facade(MemorySave(state), CountingRng()).scenePlayerActionContext()
+    assertFalse(planner.contains("atlasGroup")); assertFalse(planner.contains("snapshots"))
+  }
+
   @Test fun backtrackingPreservesObservationsMarkersAndExactSnapshotIdentity() {
     var state = world()
     val start = p(state).getString("roomId")

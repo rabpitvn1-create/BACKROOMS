@@ -924,7 +924,16 @@ public class MainActivity extends Activity {
       envelope = new JSONObject(providerJson);
     } catch (org.json.JSONException error) {
       if (scenario) throw new IllegalArgumentException("scenario_gehihi_envelope");
-      throw error;
+      throw new ProviderResponseContract.Failure("writer_envelope_invalid", true);
+    }
+    if (!scenario) {
+      JSONObject choice = envelope.optJSONArray("choices") == null ? null : envelope.getJSONArray("choices").optJSONObject(0);
+      String reason = choice == null ? "missing" : choice.optString("finish_reason");
+      String safeFinish = java.util.Arrays.asList("stop", "length", "content_filter", "tool_calls").contains(reason) ? reason : "invalid";
+      JSONObject usage = envelope.optJSONObject("usage");
+      DiagnosticLog.record("gm.response", "finish=" + safeFinish + "; budget=" + maxTokens +
+        "; outputTokens=" + (usage == null ? -1 : usage.optInt("completion_tokens", -1)));
+      return ProviderResponseContract.completedText(providerJson);
     }
     JSONArray choices = envelope.optJSONArray("choices");
     JSONObject choice = choices != null && choices.length() > 0 ? choices.optJSONObject(0) : null;
@@ -1028,11 +1037,27 @@ public class MainActivity extends Activity {
     return "Lỗi mạng/DNS: không thể kết nối tới máy chủ AI. Kiểm tra Wi-Fi/4G, Private DNS hoặc VPN.";
   }
 
+  private String writerFailureCode(Exception error) {
+    if (error instanceof HttpError) return "writer_http_" + ((HttpError) error).status;
+    return ProviderResponseContract.failureCode(error);
+  }
+  private boolean writerRetryable(Exception error) {
+    if (error instanceof HttpError) { int status = ((HttpError) error).status;
+      return status == 408 || status == 429 || status >= 500; }
+    return ProviderResponseContract.retryable(error);
+  }
+
   /** Gehihi owns narration. A failure never routes to Gemini or changes providers. */
   private String generateText(String prompt) throws Exception {
     DiagnosticLog.timing(MainActivity.this, "gm.prompt", 0L, prompt.length());
     emit("backroomProvider", "Gehihi");
-    JSONObject packet = ProviderResponseContract.parseSceneWriter(gehihiText(prompt));
+    JSONObject packet;
+    try {
+      packet = ProviderResponseContract.parseSceneWriter(gehihiText(prompt, 4096, "gm.http"));
+    } catch (Exception failure) {
+      DiagnosticLog.record("gm.response.failed", writerFailureCode(failure) + "; retryable=" + writerRetryable(failure));
+      throw failure;
+    }
     return new JSONObject().put("reply", packet.getString("reply")).toString();
   }
 
@@ -1083,12 +1108,9 @@ public class MainActivity extends Activity {
   private JSONObject sceneViewForGm(JSONObject rawView) throws Exception {
     JSONObject view = new JSONObject(rawView.toString());
     JSONObject scene = view.optJSONObject("scene");
+    view.remove("playerAction");
     if (scene != null) {
-      JSONObject map = scene.optJSONObject("map");
-      if (map != null) {
-        map.remove("overviewRooms");
-        map.remove("snapshots");
-      }
+      scene.remove("map");
     }
     return view;
   }
@@ -1626,7 +1648,7 @@ public class MainActivity extends Activity {
         int requested = 0;
         int plannerCalls = 0;
         int totalActions = -1;
-        String firstActionId = null;
+        boolean presentationStarted = false;
         int stoppedStep = 1; // One-based, including an attempted but uncommitted step.
         String failureCode = "invalid_input";
         String projection = clientJson;
@@ -1639,6 +1661,10 @@ public class MainActivity extends Activity {
           if (initialView.optJSONObject("scene") != null &&
               initialView.getJSONObject("scene").has("pendingActionId"))
             throw new IllegalStateException("scene_pending_retry_required");
+          projection = requireGameCore().beginPlayerPresentation(java.util.UUID.randomUUID().toString(), rawAction, projection);
+          presentationStarted = true;
+          emit("backroomPlayerActionProgress", new JSONObject().put("state", new JSONObject(projection))
+            .put("executed", 0).put("requested", 0).toString());
           String initialNode = initial.getString("nodeId");
           int initialIndex = initial.getInt("miniIndex");
           JSONArray confirmedSteps = new JSONArray();
@@ -1703,6 +1729,7 @@ public class MainActivity extends Activity {
             failureCode = "invalid_plan";
             JSONObject parsed = PlayerActionPlan.parse(text, totalActions, committed);
             totalActions = parsed.getInt("totalActions");
+            requireGameCore().setPlayerRequestCount(totalActions);
             JSONArray plan = parsed.getJSONArray("steps");
             boolean unresolved = parsed.getBoolean("unresolved");
             requested = totalActions;
@@ -1720,10 +1747,11 @@ public class MainActivity extends Activity {
               String kind = planned.getString("kind");
               if ("FREE".equals(kind)) {
                 String detail = planned.getString("text");
+                requireGameCore().recordFreePlayerStep(detail);
                 narrativeEvents.put(new JSONObject().put("kind", "FREE").put("text", detail));
                 confirmedSteps.put(new JSONObject().put("kind", "FREE").put("text", detail));
                 committed++;
-                continue; // Story-only: NO Core action, inventory, RNG or save.
+                continue; // Presentation saved; no Core action, inventory, time or RNG.
               }
               String targetId = planned.getString("targetId");
               if ("MOVE".equals(kind) && !targetId.startsWith("room:") &&
@@ -1779,14 +1807,13 @@ public class MainActivity extends Activity {
                 narrativeEvents.put(new JSONObject().put("kind", "CORE").put("event", staged));
               }
               committed++;
-              if (firstActionId == null) firstActionId = action.getString("actionId");
               confirmedSteps.put(new JSONObject().put("kind", kind)
                 .put("targetId", targetId).put("fromRoomId", action.getString("roomId"))
                 .put("label", action.getString("label")));
               JSONObject updated = new JSONObject(requireGameCore().currentClientState(projection));
               // Collapse all receipts from this single utterance into ONE player
               // line and ONE GM paragraph; do not change authoritative receipts.
-              PlayerActionPresentation.fold(updated, firstActionId, action.getString("actionId"), rawAction);
+              // Native presentation journal already groups receipts atomically by utterance.
               projection = updated.toString();
               // Persist intermediate steps for interruption recovery, but do not
               // redraw the log until the batch ends. Readers get one complete turn.
@@ -1818,28 +1845,26 @@ public class MainActivity extends Activity {
             }
             // The next iteration will get the newly confirmed public context.
           }
-          // One GM pass for the entire resolved sequence. Its prose is UI-only.
+          // Store interruption detail before HTTP, so process death/retry knows
+          // exactly which events were resolved. Never replay the original plan.
+          requireGameCore().finishPlayerPresentation(requested, stopCode != null,
+            stopMessage == null ? "GM chưa hoàn tất lời kể; nhấn Retry để chỉ tạo lại lời kể." : stopMessage,
+            "", "narration_pending", true);
           if (narrativeEvents.length() > 0) {
             try {
               failureCode = "narration_failed";
               String reply = narrateMixedPlayerAction(rawAction, narrativeEvents, projection, stopCode != null);
-              JSONObject view = new JSONObject(requireGameCore().currentClientState(projection));
-              PlayerActionPresentation.complete(view, firstActionId, rawAction, reply);
-              projection = view.toString();
+              requireGameCore().finishPlayerPresentation(requested, stopCode != null,
+                stopMessage == null ? "" : stopMessage, reply, "", false);
             } catch (Exception writerError) {
-              DiagnosticLog.record("player.action.writer.failed", writerError.getClass().getSimpleName());
-              if (firstActionId == null) {
-                // FREE-only turns have no Core effects: do not erase the player's
-                // draft or claim they were executed when the narrator failed.
-                committed = 0;
-                stopCode = "narration_unavailable";
-                stoppedStep = 1;
-                stopMessage = "GM chưa tạo được lời kể. Câu nhập được giữ nguyên để thử lại.";
-              } else if (stopCode == null) {
-                stopCode = "narration_unavailable";
-                stoppedStep = committed + 1;
-                stopMessage = "Core đã lưu các bước đã xác nhận; GM chưa hoàn tất lời kể. Không nhập lại câu cũ.";
-              }
+              String reason = writerFailureCode(writerError);
+              DiagnosticLog.record("player.action.writer.failed", reason + "; retryable=" + writerRetryable(writerError));
+              requireGameCore().finishPlayerPresentation(requested, stopCode != null,
+                (writerRetryable(writerError) ? "Lỗi tạm thời khi nhận lời GM. " : "Lời GM chưa đạt hợp đồng nội dung. ") +
+                "Retry chỉ tạo lại lời kể. " + (stopMessage == null ? "" : stopMessage),
+                "", reason, writerRetryable(writerError));
+              if (stopCode == null) stopCode = "narration_unavailable";
+              stopMessage = "Đã giữ câu nhập và kết quả Core. GM chưa hoàn tất; Retry chỉ tạo lại lời kể.";
             }
           }
           emit("backroomTurn", requireGameCore().currentClientState(projection));
@@ -1854,6 +1879,9 @@ public class MainActivity extends Activity {
           DiagnosticLog.record("player.action.failed", error.getClass().getSimpleName() +
             "; code=" + failureCode + "; committed=" + committed);
           try {
+            if (presentationStarted) requireGameCore().finishPlayerPresentation(requested, true,
+              "Dừng tại bước " + stoppedStep + ". Các bước còn lại chưa thực hiện; kết quả Core đã lưu được giữ nguyên.",
+              "", failureCode, false);
             // Includes the exact persisted pending command, if narration failed.
             emit("backroomTurn", requireGameCore().currentClientState(projection));
           } catch (Exception syncError) {
@@ -1878,13 +1906,13 @@ public class MainActivity extends Activity {
     /** A single GM pass for resolved FREE and Core actions. Never persists GM deltas. */
     private String narrateMixedPlayerAction(String rawAction, JSONArray resolved,
                                            String projection, boolean interrupted) throws Exception {
-      JSONObject view = sceneViewForGm(
+      JSONObject view = PlayerActionPresentation.writerView(
         new JSONObject(requireGameCore().currentClientState(projection)));
       JSONObject scene = view.optJSONObject("scene");
       String canon = com.rabpit.backroom.core.knowledge.KnowledgeContextEngine.build(
         MainActivity.this, view.toString(), rawAction, "{}");
-      String prompt = "Bạn là GM Gehihi, kể văn xuôi tiếng Việt. Chỉ trả JSON chứa đúng trường reply là một đoạn văn không rỗng. "
-        + "Kể MỘT đoạn văn liên tục đúng trình tự RESOLVED_EVENTS, không chia lượt. "
+      String prompt = "Bạn là GM Gehihi, kể văn xuôi tiếng Việt. Chỉ trả JSON chứa đúng trường reply là lời kể không rỗng. "
+        + "Kể một lượt theo đúng trình tự RESOLVED_EVENTS; được xuống đoạn để giữ nhịp kể và lời thoại. "
         + "FREE là diễn biến tưởng tượng tức thời: có thể sáng tạo bóng đổ, vật dụng, món ăn, thuốc, "
         + "vũ khí, người qua đường và phản ứng hợp lý không liên quan nhiệm vụ. "
         + "Vật phẩm nhắc trong FREE, kể cả trùng tên Game ID như Almond Water, chỉ là đạo cụ, KHÔNG lấy từ Inventory. "
@@ -1911,6 +1939,42 @@ public class MainActivity extends Activity {
       return prose;
     }
 
+    /** Retry stored public events only. No planner, command, RNG or Core commit. */
+    @JavascriptInterface public void retryPlayerActionNarration(String clientJson) {
+      io.execute(() -> recoverPlayerNarration(clientJson));
+    }
+    private void recoverPlayerNarration(String clientJson) {
+      try {
+        JSONObject batch = new JSONObject(requireGameCore().playerPresentationContext());
+        if (!batch.optString("reply").isEmpty()) {
+          emit("backroomTurn", requireGameCore().currentClientState(clientJson));return;
+        }
+        JSONObject view = new JSONObject(requireGameCore().currentClientState(clientJson));
+        JSONObject caller = new JSONObject(clientJson).optJSONObject("playerAction");
+        if (caller != null && !caller.optString("id").equals(batch.getString("id")))
+          throw new IllegalStateException("player_narration_stale");
+        if (view.getJSONObject("scene").has("pendingActionId"))
+          throw new IllegalStateException("scene_pending_retry_required");
+        JSONArray events = batch.getJSONArray("events");
+        if (events.length() == 0) throw new IllegalStateException("player_narration_no_events");
+        String reply = narrateMixedPlayerAction(batch.getString("playerText"), events, clientJson,
+          batch.optBoolean("interrupted", true));
+        requireGameCore().finishPlayerPresentation(batch.optInt("requested"), batch.optBoolean("interrupted", true),
+          batch.optBoolean("interrupted", true) ? "Chuỗi dừng sớm; các bước còn lại chưa thực hiện." : "", reply, "", false);
+        emit("backroomTurn", requireGameCore().currentClientState(clientJson));
+      } catch (Exception error) {
+        String reason = writerFailureCode(error);
+        DiagnosticLog.record("player.action.writer.failed", reason + "; retryable=" + writerRetryable(error));
+        try {
+          JSONObject batch = new JSONObject(requireGameCore().playerPresentationContext());
+          requireGameCore().finishPlayerPresentation(batch.optInt("requested"), batch.optBoolean("interrupted", true),
+            "GM chưa hoàn tất lời kể. Kết quả Core được giữ nguyên; có thể thử lại lời kể.", "", reason, writerRetryable(error));
+          emit("backroomTurn", requireGameCore().currentClientState(clientJson));
+        } catch (Exception ignored) { }
+        emit("backroomError", "Chưa phục hồi được lời kể GM; các bước Core không bị chạy lại.");
+      }
+    }
+
     @JavascriptInterface public void submitSceneAction(String stateJson, String commandJson) {
       io.execute(() -> {
         long started = System.nanoTime();
@@ -1920,6 +1984,13 @@ public class MainActivity extends Activity {
           JSONObject start = new JSONObject(requireGameCore().beginSceneAction(command));
           if (!start.optBoolean("committed")) {
             JSONObject stagedEvent = new JSONObject(requireGameCore().sceneNarrationContext());
+            JSONObject batch = null;
+            try { batch = new JSONObject(requireGameCore().playerPresentationContext()); } catch (Exception ignored) { }
+            if ("RETRY".equals(commandJson) && batch != null &&
+                batch.optString("pendingActionId").equals(new JSONObject(command).getString("actionId"))) {
+              requireGameCore().commitSceneAction(new JSONObject(command).getString("actionId"), stagedEvent.getString("result"), stateJson);
+              recoverPlayerNarration(stateJson);return;
+            }
             if (stagedEvent.optBoolean("mechanismStep", false)) {
               // Device buttons already have a Core-authored result: do not call
               // a remote narrator or make players wait for each switch press.
@@ -1931,35 +2002,6 @@ public class MainActivity extends Activity {
             }
           }
           JSONObject committedView = new JSONObject(requireGameCore().currentClientState(stateJson));
-          // Retrying an interrupted multi-action utterance must join its new
-          // receipt to the existing paragraph, not create a second player turn.
-          if ("RETRY".equals(commandJson)) {
-            String completedId = new JSONObject(command).getString("actionId");
-            JSONArray currentLog = committedView.optJSONArray("log");
-            String resumedPlayerText = null;
-            if (currentLog != null) for (int i = currentLog.length() - 1; i >= 0; i--) {
-              JSONObject item = currentLog.optJSONObject(i);
-              if (item != null && "player".equals(item.optString("role")) &&
-                  completedId.equals(item.optString("sceneActionId"))) {
-                resumedPlayerText = item.optString("text");
-                break;
-              }
-            }
-            if (resumedPlayerText != null) {
-              JSONArray oldLog = new JSONObject(stateJson).optJSONArray("log");
-              if (oldLog != null) for (int i = oldLog.length() - 1; i >= 0; i--) {
-                JSONObject item = oldLog.optJSONObject(i);
-                if (item == null || !"player".equals(item.optString("role")) ||
-                    !resumedPlayerText.equals(item.optString("text"))) continue;
-                JSONArray batch = item.optJSONArray("sceneBatchActions");
-                if (batch != null && batch.length() > 0) {
-                  PlayerActionPresentation.fold(committedView, batch.getString(0),
-                    completedId, resumedPlayerText);
-                  break;
-                }
-              }
-            }
-          }
           emit("backroomTurn", committedView.toString());
           // The former temporary passerby feature is archived. Scene NPCs are script-owned.
           DiagnosticLog.timing(MainActivity.this, "scene.action", java.util.concurrent.TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started), 0);

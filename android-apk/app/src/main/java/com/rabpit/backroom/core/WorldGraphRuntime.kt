@@ -358,12 +358,22 @@ object WorldGraphRuntime {
     val atlasIds = rs.mapIndexed { index, room ->
       room.getString("id") to "atlas:" + index.toString().padStart(3, '0')
     }.toMap()
+    val atlasGroups = rs.map { it.getString("zoneId") }.distinct().withIndex().associate { it.value to "cluster:${it.index}" }
     val overviewRooms = JSONArray().apply {
       rs.forEach { r ->
         val id = r.getString("id"); val atlasId = atlasIds.getValue(id)
         val known = id in visited
         snapshotIds.put(atlasId, r.getString("environmentId"))
         put(JSONObject().put("id", atlasId).put("visited", known)
+          .put("atlasGroup", atlasGroups.getValue(r.getString("zoneId")))
+          .put("atlasHub", r.getString("environmentId") == r.getString("zoneId"))
+          .put("oneWayRoomIds", JSONArray(passages(g).filter { passage ->
+            passage.optBoolean("oneWay") && passage.getString("from") == id &&
+              passageStates(p).getJSONObject(passage.getString("id")).let {
+                it.getBoolean("discovered") && it.getBoolean("unlocked")
+              }
+          }.map { atlasIds.getValue(it.getString("to")) }))
+          .put("atlasGroupName", if (known) (definition.environments.firstOrNull { it.id == r.getString("zoneId") }?.name ?: "") else "")
           .put("name", if (known) displayName(g, id, definition) else "")
           .put("marked", known && p.getJSONObject("markers").has(id))
           .put("traced", known && p.getJSONObject("environmentChanges")

@@ -224,3 +224,12 @@
   background:#151e22;color:#b6c1b9;max-height:45px;overflow:auto;
   border-top:1px solid #39433f
 }
+
+/* Factual receipts are explicit while the separate GM narration is unavailable. */
+.message.core{border-left-color:#bd9b53;background:#201c13}
+.message.core .role{color:#dfc78f}
+.message .action-status{margin-top:8px;color:#e2bd76;font-size:12px;line-height:1.5;white-space:pre-wrap}
+.explorer-map-scroll svg [data-map-node]{cursor:pointer;outline:none}
+.explorer-map-scroll svg [data-map-node]:focus>rect:last-of-type{stroke:#fff1bd;stroke-width:4}
+#explorerChoices.explorer-map-mode .explorer-map-scroll{cursor:grab}
+#explorerChoices.explorer-map-mode .explorer-map-scroll:active{cursor:grabbing}

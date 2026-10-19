@@ -62,4 +62,35 @@ public class ProviderResponseContractTest {
       assertThrows(IllegalArgumentException.class, () -> ProviderResponseContract.requireAudit(payload));
     }
   }
+  private String envelope(String finish, Object content) throws Exception {
+    return new JSONObject().put("choices", new JSONArray().put(new JSONObject().put("finish_reason", finish)
+      .put("message", new JSONObject().put("content", content)))).toString();
+  }
+  @Test public void sceneWriterAcceptsShortOrMultilineValidJsonButRejectsBrokenEmptyOrGameplayFields() throws Exception {
+    assertEquals("Đèn tắt.", ProviderResponseContract.parseSceneWriter("{\"reply\":\"Đèn tắt.\"}").getString("reply"));
+    String prose = "Tiếng gọi vang xa.\n\nKhông có lời đáp.";
+    assertEquals(prose, ProviderResponseContract.parseSceneWriter(new JSONObject().put("reply", prose).toString()).getString("reply"));
+    for (String raw : new String[]{"", "{}", "{\"reply\":42}", "{\"reply\":\" \"}",
+        "{\"reply\":\"chưa khép", "{\"reply\":\"Mở cửa\",\"ops\":[]}"})
+      assertThrows(ProviderResponseContract.Failure.class, () -> ProviderResponseContract.parseSceneWriter(raw));
+  }
+  @Test public void envelopeSeparatesTruncationFilterMalformedAndEmptyFromValidShortReply() throws Exception {
+    assertEquals("Gọn nhưng hợp lệ.", ProviderResponseContract.completedText(envelope("stop", "Gọn nhưng hợp lệ.")));
+    ProviderResponseContract.Failure cut = assertThrows(ProviderResponseContract.Failure.class,
+      () -> ProviderResponseContract.completedText(envelope("length", "{\"reply\":\"dở")));
+    assertEquals("writer_truncated", cut.code); assertTrue(cut.retryable);
+    ProviderResponseContract.Failure filtered = assertThrows(ProviderResponseContract.Failure.class,
+      () -> ProviderResponseContract.completedText(envelope("content_filter", "")));
+    assertFalse(filtered.retryable);
+    for (String raw : new String[]{"not JSON", "{}", envelope("stop", ""), envelope("tool_calls", "text")})
+      assertThrows(ProviderResponseContract.Failure.class, () -> ProviderResponseContract.completedText(raw));
+  }
+  @Test public void transportAndContractFailuresAreDistinctWithoutExposingProviderMessages() {
+    Exception socket = new java.net.SocketException("private endpoint / key must not leak");
+    assertEquals("writer_connection", ProviderResponseContract.failureCode(socket));
+    assertTrue(ProviderResponseContract.retryable(socket));
+    assertEquals("writer_timeout", ProviderResponseContract.failureCode(new java.net.SocketTimeoutException()));
+    assertEquals("writer_content_invalid", ProviderResponseContract.failureCode(new IllegalArgumentException("sensitive text")));
+    assertFalse(ProviderResponseContract.retryable(new IllegalArgumentException("sensitive text")));
+  }
 }

@@ -47,6 +47,51 @@ class GameCoreFacade private constructor(
     )
   }
 
+  /** Native-owned presentation checkpoint; no gameplay/RNG/time changes. */
+  @Synchronized fun beginPlayerPresentation(id: String, text: String, clientJson: String): String {
+    val core = loadCurrentState()
+    require(MiniMapRuntime.PENDING !in core.world && !MiniMapRuntime.blocked(core)) { "scene_busy" }
+    val active = PlayerActionPresentation.journal(core)
+    require(active == null || active.optString("status") == "complete" ||
+      active.optString("status") == "stopped" || active.getJSONArray("events").length() == 0) { "player_narration_retry_required" }
+    val next = PlayerActionPresentation.begin(core, id, text)
+    repository.save(next)
+    return clientSnapshot(JSONObject(clientJson), next).toString()
+  }
+  @Synchronized fun playerPresentationContext(): String {
+    val state = loadCurrentState()
+    val batch = PlayerActionPresentation.journal(state) ?: error("player_action_missing")
+    state.world[MiniMapRuntime.PENDING]?.let { raw ->
+      val pending = JSONObject(raw)
+      if (pending.optString("playerActionId") == batch.getString("id"))
+        batch.put("pendingActionId", pending.getString("actionId"))
+    }
+    return batch.toString()
+  }
+
+  @Synchronized fun setPlayerRequestCount(requested: Int) {
+    require(requested in 1..12) { "player_action_count" }
+    repository.save(PlayerActionPresentation.update(loadCurrentState()) { it.put("requested", requested) })
+  }
+  @Synchronized fun recordFreePlayerStep(text: String) {
+    require(text.isNotBlank() && text.length <= 900) { "player_free_invalid" }
+    val next = PlayerActionPresentation.update(loadCurrentState()) {
+      require(it.optString("status") == "running") { "player_action_not_running" }
+      it.getJSONArray("events").put(JSONObject().put("kind", "FREE").put("text", text))
+    }
+    repository.save(next)
+  }
+  @Synchronized fun finishPlayerPresentation(requested: Int, interrupted: Boolean, message: String,
+                                            reply: String, failure: String, retryable: Boolean) {
+    val next = PlayerActionPresentation.update(loadCurrentState()) {
+      it.put("requested", requested).put("interrupted", interrupted).put("message", message)
+      it.put("failure", failure).put("retryable", retryable)
+      it.put("status", if (reply.isNotBlank()) (if (interrupted) "stopped" else "complete") else "failed")
+      if (reply.isNotBlank()) it.put("reply", reply.replace("\r\n", "\n").trim())
+    }
+    repository.save(next)
+  }
+
   /** A hint request never starts an action, consumes RNG or modifies a save. */
   @Synchronized fun sceneHint(tier: Int): String =
     WorldGraphRuntime.hint(loadCurrentState(), tier).toString()
@@ -150,7 +195,12 @@ class GameCoreFacade private constructor(
       .put("progress", staged.progress).put("discardKeys", JSONArray(staged.discardKeys.toList()))
       .put("nodeId", staged.nodeId).put("label", staged.label)
       .put("public", public).apply {
-        if (playerText != null) put("playerText", playerText)
+        if (playerText != null) {
+          put("playerText", playerText)
+          PlayerActionPresentation.journal(state)?.takeIf {
+            it.optString("status") == "running" && it.optString("playerText") == playerText
+          }?.let { put("playerActionId", it.getString("id")) }
+        }
       }
     repository.save(reserved.copy(world = reserved.world + (MiniMapRuntime.PENDING to pending.toString())))
     return JSONObject().put("committed", false).toString()
@@ -226,6 +276,7 @@ class GameCoreFacade private constructor(
       if (deviceControl) "" else actionText)
     next = next.copy(world = next.world + ("flagsJson" to continued.getJSONObject("flags").toString()))
     next = CoreClientProjection.advance(CharacterMemoryBags.recordCommitted(core, next))
+    next = PlayerActionPresentation.receipt(next, pending)
     repository.save(next)
     return clientSnapshot(JSONObject(clientJson), next).toString()
   }

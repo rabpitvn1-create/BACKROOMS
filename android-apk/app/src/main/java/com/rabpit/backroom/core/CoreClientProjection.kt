@@ -112,9 +112,25 @@ object CoreClientProjection {
         out.put("log", kept)
       }
       out.put("scene", MiniMapRuntime.publicView(state))
+      PlayerActionPresentation.project(out, state)
       if (!endingComplete) state.world[MiniMapRuntime.RECEIPT]?.let { receipt ->
         val r = JSONObject(receipt)
         val log = out.optJSONArray("log") ?: JSONArray().also { out.put("log", it) }
+        val pendingLine = (0 until log.length()).firstOrNull { index ->
+          log.optJSONObject(index)?.let { it.optString("sceneActionId") == r.getString("actionId") &&
+            it.optBoolean("pendingSceneAction") } == true
+        }
+        if (pendingLine != null) {
+          val entry = log.getJSONObject(pendingLine)
+          entry.remove("pendingSceneAction"); entry.remove("actionStatus")
+          val updated = JSONArray()
+          for (i in 0 until log.length()) {
+            updated.put(log.get(i))
+            if (i == pendingLine && CombatRuntime.pending(state) == null) updated.put(JSONObject().put("role", "gm")
+              .put("text", r.getString("reply")).put("sceneMap", currentMap))
+          }
+          out.put("log", updated)
+        }
         if ((0 until log.length()).none { index ->
           val entry = log.optJSONObject(index)
           entry?.optString("sceneActionId") == r.getString("actionId") ||
@@ -126,6 +142,22 @@ object CoreClientProjection {
             .put("sceneMap", currentMap).put("sceneActionId", r.getString("actionId")))
           if (CombatRuntime.pending(state) == null) log.put(JSONObject().put("role", "gm")
             .put("text", r.getString("reply")).put("sceneMap", currentMap))
+        }
+      }
+    }
+    // A staged direct choice remains visible even if the writer/network fails.
+    // Batch-owned pending commands are already represented by their utterance.
+    state.world[MiniMapRuntime.PENDING]?.let { raw ->
+      val pending = JSONObject(raw)
+      if (!pending.has("playerActionId")) {
+        val log = out.optJSONArray("log") ?: JSONArray().also { out.put("log", it) }
+        val id = pending.getString("actionId")
+        if ((0 until log.length()).none { log.optJSONObject(it)?.optString("sceneActionId") == id }) {
+          val scene = out.getJSONObject("scene")
+          log.put(JSONObject().put("role", "player").put("text", pending.optString("playerText", pending.getString("label")))
+            .put("sceneMap", scene.getString("nodeId") + ":" + scene.getInt("miniIndex"))
+            .put("sceneActionId", id).put("pendingSceneAction", true)
+            .put("actionStatus", "Core đang giữ bước chờ; GM chưa hoàn tất. Nhấn Retry để tiếp tục bước này."))
         }
       }
     }

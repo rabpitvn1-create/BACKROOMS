@@ -4,115 +4,161 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Assert.*
 import org.junit.Test
+import java.security.SecureRandom
 
 class PlayerActionPresentationTest {
-  private fun player(id: String, text: String) = JSONObject()
-    .put("role", "player").put("sceneMap", "0:1")
-    .put("sceneActionId", id).put("text", text)
-  private fun gm(text: String) = JSONObject()
-    .put("role", "gm").put("sceneMap", "0:1").put("text", text)
-  private fun view(vararg items: JSONObject) = JSONObject().put("log", JSONArray().apply {
-    items.forEach { put(it) }
-  })
-  private fun snapshot(x: JSONObject) = JSONArray(x.getJSONArray("log").toString())
-
-  @Test fun threeAuthorizedActionsBecomeOneVerbatimPlayerEntryAndOneGmParagraph() {
-    val raw = "  Tôi đi vào phòng, nhìn nền rồi đánh dấu.  "
-    val unrelated = JSONObject().put("role", "gm").put("text", "Lời kể trước.")
-    val first = view(unrelated, player("step1", "Nhãn Core 1"), gm("Cao Minh bước vào.\nPhòng tối."))
-    PlayerActionPresentation.fold(first, "step1", "step1", raw)
-    val second = view(*(0 until first.getJSONArray("log").length()).map {
-      first.getJSONArray("log").getJSONObject(it)
-    }.toTypedArray(), player("step2", "Nhãn Core 2"), gm("Cậu nhìn xuống sàn."))
-    PlayerActionPresentation.fold(second, "step1", "step2", raw)
-    val third = view(*(0 until second.getJSONArray("log").length()).map {
-      second.getJSONArray("log").getJSONObject(it)
-    }.toTypedArray(), player("step3", "Nhãn Core 3"), gm("Một dấu mốc được ghi."))
-    PlayerActionPresentation.fold(third, "step1", "step3", raw)
-    val log = snapshot(third)
-    assertEquals(3, log.length()) // Prior narration, player, one GM.
-    assertEquals("Lời kể trước.", log.getJSONObject(0).getString("text"))
-    assertEquals(raw, log.getJSONObject(1).getString("text"))
-    assertEquals("Cao Minh bước vào. Phòng tối. Cậu nhìn xuống sàn. Một dấu mốc được ghi.",
-      log.getJSONObject(2).getString("text"))
-    assertEquals("player", log.getJSONObject(1).getString("role"))
-    assertEquals(3, log.getJSONObject(1).getJSONArray("sceneBatchActions").length())
-    assertFalse(log.getJSONObject(2).getString("text").contains("\n"))
+  private class MemorySave(var state: GameState) : SaveRepository {
+    var slot: String? = null
+    override fun save(state: GameState) { this.state = GameStateCodec.decode(GameStateCodec.encode(state)) }
+    override fun load() = state
+    override fun exists() = true
+    override fun clear() = Unit
+    override fun saveCheckpoint(state: GameState, presentation: JSONObject) { slot = GameCheckpointCodec.encode(state, presentation) }
+    override fun loadCheckpoint() = slot?.let(GameCheckpointCodec::decode)
+  }
+  private class CountingRng : SecureRandom() {
+    var calls = 0
+    override fun nextInt(bound: Int): Int { calls++; return bound - 1 }
+  }
+  private val rng = CountingRng()
+  private fun fixture(): Pair<MemorySave, GameCoreFacade> {
+    val repo = MemorySave(WorldGraphRuntime.initialize(CoreClientProjection.initialize(GameState.initial()), 41L))
+    val ctor = GameCoreFacade::class.java.getDeclaredConstructor(SaveRepository::class.java, GamePipelineLogger::class.java)
+    ctor.isAccessible = true
+    val core = ctor.newInstance(repo, NoOpGamePipelineLogger)
+    GameCoreFacade::class.java.getDeclaredField("spawnRng").apply { isAccessible = true }.set(core, rng)
+    return repo to core
+  }
+  private fun view(core: GameCoreFacade, previous: JSONObject = JSONObject()) = JSONObject(core.currentClientState(previous.toString()))
+  private fun lines(view: JSONObject, role: String) = MiniMapScenario.objects(view.getJSONArray("log")).filter { it.optString("role") == role }
+  private fun commit(core: GameCoreFacade, text: String, target: String, previous: JSONObject): JSONObject {
+    val action = MiniMapScenario.objects(view(core).getJSONObject("scene").getJSONArray("availableActions"))
+      .first { it.getString("targetId") == target }
+    val cmd = JSONObject(action.toString()).apply { remove("label") }
+    core.beginSceneAction(cmd.toString(), text)
+    val event = JSONObject(core.sceneNarrationContext())
+    return JSONObject(core.commitSceneAction(cmd.getString("actionId"), event.getString("result"), previous.toString()))
+  }
+  @Test fun validInputIsRecordedBeforePlannerOrWriterAndFailureDoesNotEraseIt() {
+    val (repo, core) = fixture(); val raw = "  Tôi xem xung quanh.\n  "
+    val before = repo.state
+    core.beginPlayerPresentation("request", raw, "{}")
+    assertEquals(raw, lines(view(core), "player").single().getString("text"))
+    core.finishPlayerPresentation(0, true, "Planner lỗi; chưa thực hiện bước nào.", "", "planner_failure", true)
+    assertEquals(raw, lines(view(core), "player").single().getString("text"))
+    assertTrue(lines(view(core), "gm").isEmpty())
+    assertEquals(before.copy(world = before.world + (PlayerActionPresentation.JOURNAL to repo.state.world.getValue(PlayerActionPresentation.JOURNAL))), repo.state)
+  }
+  @Test fun freeOnlyFailureAndSuccessfulRetryKeepOnePlayerAndOneMultilineGmWithoutGameplayChanges() {
+    val (repo, core) = fixture(); val original = repo.state
+    core.beginPlayerPresentation("free", "  Tôi gọi vào bóng tối.  ", "{}")
+    core.setPlayerRequestCount(1); core.recordFreePlayerStep("Gọi vào bóng tối")
+    core.finishPlayerPresentation(1, false, "GM chưa hoàn tất.", "", "writer_connection", true)
+    var display = view(core)
+    assertEquals(1, lines(display, "player").size); assertEquals(0, lines(display, "gm").size)
+    assertTrue(display.getJSONObject("playerAction").getBoolean("recoverable"))
+    assertThrows(IllegalArgumentException::class.java) { core.beginPlayerPresentation("duplicate", "Không được chạy lại.", display.toString()) }
+    val retry = JSONObject(core.playerPresentationContext())
+    assertEquals("Gọi vào bóng tối", retry.getJSONArray("events").getJSONObject(0).getString("text"))
+    val prose = "Tiếng gọi lịm trong hành lang.\n\nKhông có lời đáp."
+    core.finishPlayerPresentation(1, false, "", prose, "", false)
+    display = view(core, display); display = view(core, display)
+    assertEquals(1, lines(display, "player").size); assertEquals(prose, lines(display, "gm").single().getString("text"))
+    assertEquals(original, repo.state.copy(world = repo.state.world - PlayerActionPresentation.JOURNAL))
+    assertEquals(0, rng.calls)
+  }
+  @Test fun coreOnlyFactsAreNeverReportedAsSuccessfulGmAndRetryCannotReplayCommittedSteps() {
+    val (repo, core) = fixture(); val raw = "Quan sát rồi đánh dấu."
+    var display = JSONObject(core.beginPlayerPresentation("core", raw, "{}"))
+    core.setPlayerRequestCount(2)
+    display = commit(core, raw, "observe", display); display = commit(core, raw, "mark", display)
+    val afterCommit = repo.state; val calls = rng.calls
+    core.finishPlayerPresentation(2, false, "GM chưa kể.", "", "writer_json_invalid", false)
+    display = view(core, display)
+    assertEquals(1, lines(display, "player").size); assertEquals(0, lines(display, "gm").size)
+    assertEquals(1, lines(display, "core").size)
+    assertEquals(2, lines(display, "player").single().getJSONArray("sceneBatchActions").length())
+    core.finishPlayerPresentation(2, false, "", "Hắn quan sát rồi ghi dấu.\n\nDấu mốc đã lưu.", "", false)
+    repeat(3) { display = view(core, display) }
+    assertEquals(1, lines(display, "gm").size); assertEquals(0, lines(display, "core").size)
+    assertEquals(afterCommit.copy(world = afterCommit.world + (PlayerActionPresentation.JOURNAL to repo.state.world.getValue(PlayerActionPresentation.JOURNAL))), repo.state)
+    assertEquals(calls, rng.calls)
+    assertEquals("0", MiniMapRuntime.progress(repo.state).getString("nodeId"))
+  }
+  @Test fun mixedPartialFailureSurvivesProcessRestartAndManualSaveLoad() {
+    val (repo, core) = fixture(); val raw = "Gọi vào bóng tối, đánh dấu, rồi đi tiếp."
+    var display = JSONObject(core.beginPlayerPresentation("mixed", raw, "{}"))
+    core.setPlayerRequestCount(3); core.recordFreePlayerStep("Gọi vào bóng tối")
+    display = commit(core, raw, "mark", display)
+    core.finishPlayerPresentation(3, true, "Dừng tại bước 3; chưa di chuyển.", "", "planner_failure", true)
+    repo.state = GameStateCodec.decode(GameStateCodec.encode(repo.state))
+    display = view(core, display)
+    assertEquals(raw, lines(display, "player").single().getString("text"))
+    assertTrue(lines(display, "player").single().getString("actionStatus").contains("1 bước chưa thực hiện"))
+    assertEquals(2, JSONObject(core.playerPresentationContext()).getJSONArray("events").length())
+    assertTrue(JSONObject(core.saveManualCheckpoint(display.toString())).getBoolean("ok"))
+    core.finishPlayerPresentation(3, true, "", "Lời kể tạm.", "", false)
+    val restored = JSONObject(core.loadManualCheckpoint()).getJSONObject("state")
+    assertEquals(display.getJSONArray("log").toString(), restored.getJSONArray("log").toString())
+    assertTrue(restored.getJSONObject("playerAction").getBoolean("recoverable"))
+  }
+  @Test fun pendingCoreRetryJoinsSameUtteranceAndReservesRngOnce() {
+    val (repo, core) = fixture(); val raw = "Đánh dấu rồi di chuyển."
+    var display = JSONObject(core.beginPlayerPresentation("pending", raw, "{}")); core.setPlayerRequestCount(2)
+    display = commit(core, raw, "mark", display)
+    val action = MiniMapScenario.objects(view(core).getJSONObject("scene").getJSONArray("availableActions")).first { it.getString("kind") == "MOVE" }
+    val command = JSONObject(action.toString()).apply { remove("label") }
+    core.beginSceneAction(command.toString(), raw); val calls = rng.calls
+    core.finishPlayerPresentation(2, true, "Core chưa commit bước 2.", "", "core_failure", false)
+    repo.state = GameStateCodec.decode(GameStateCodec.encode(repo.state))
+    core.beginSceneAction(core.retrySceneAction())
+    val event = JSONObject(core.sceneNarrationContext())
+    core.commitSceneAction(command.getString("actionId"), event.getString("result"), display.toString())
+    val after = repo.state
+    core.commitSceneAction(command.getString("actionId"), "Không được ghi đè.", display.toString())
+    assertEquals(after, repo.state); assertEquals(calls, rng.calls)
+    display = view(core, display)
+    assertEquals(1, lines(display, "player").size)
+    assertEquals(2, JSONObject(core.playerPresentationContext()).getJSONArray("events").length())
+    assertEquals(2, lines(display, "player").single().getJSONArray("sceneBatchActions").length())
+  }
+  @Test fun rejectedCoreCommandLeavesPlayerAndConfirmedStepsIntact() {
+    val (_, core) = fixture(); val raw = "Đi qua lối chưa biết."
+    val display = JSONObject(core.beginPlayerPresentation("reject", raw, "{}"))
+    assertThrows(Exception::class.java) { core.beginSceneAction("{}", raw) }
+    core.finishPlayerPresentation(1, true, "Không có lối hợp lệ; chưa di chuyển.", "", "core_failure", false)
+    val after = view(core, display)
+    assertEquals(raw, lines(after, "player").single().getString("text"))
+    assertEquals(0, lines(after, "core").size); assertEquals(0, lines(after, "gm").size)
+  }
+  @Test fun directPendingChoiceKeepsPlayerDuringWriterFailureAndAddsExactlyOneGmOnRetry() {
+    val (_, core) = fixture()
+    val raw = "  Nhìn kỹ căn phòng.  "
+    val action = MiniMapScenario.objects(view(core).getJSONObject("scene").getJSONArray("availableActions"))
+      .first { it.getString("targetId") == "observe" }
+    val command = JSONObject(action.toString()).apply { remove("label") }
+    core.beginSceneAction(command.toString(), raw)
+    var display = view(core)
+    assertEquals(raw, lines(display, "player").single().getString("text"))
+    assertEquals(0, lines(display, "gm").size)
+    display = view(core, display)
+    assertEquals(1, lines(display, "player").size)
+    core.beginSceneAction(core.retrySceneAction())
+    core.commitSceneAction(command.getString("actionId"), "Hắn nhìn căn phòng.\n\nKhông có gì mới.", display.toString())
+    repeat(3) { display = view(core, display) }
+    assertEquals(1, lines(display, "player").size); assertEquals(1, lines(display, "gm").size)
+    assertFalse(lines(display, "player").single().has("pendingSceneAction"))
   }
 
-  @Test fun encounterWithoutNarrationDoesNotInsertPhantomGmReply() {
-    val raw = "Quan sát rồi rời khỏi phòng"
-    val first = view(player("one", raw), gm("Quan sát xong."))
-    PlayerActionPresentation.fold(first, "one", "one", raw)
-    val second = view(
-      first.getJSONArray("log").getJSONObject(0),
-      first.getJSONArray("log").getJSONObject(1),
-      player("two", "Core fallback"))
-    PlayerActionPresentation.fold(second, "one", "two", raw)
-    assertEquals(2, second.getJSONArray("log").length())
-    assertEquals("Quan sát xong.", second.getJSONArray("log").getJSONObject(1).getString("text"))
-    val seen = second.getJSONArray("log").getJSONObject(0).getJSONArray("sceneBatchActions")
-    assertEquals("two", seen.getString(1))
-    assertEquals(2, JSONObject(second.toString()).getJSONArray("log").length())
-  }
-
-  @Test fun projectorRecognizesFoldedReceiptAfterReloadWithoutDuplicatingLastAction() {
-    val core = WorldGraphRuntime.initialize(CoreClientProjection.initialize(GameState.initial()), 418L)
-    val old = view(player("one", "Nhãn"), gm("Câu đầu."))
-    PlayerActionPresentation.fold(old, "one", "one", "Tôi quan sát rồi ghi dấu.")
-    old.getJSONArray("log").put(player("two", "Nhãn thứ hai"))
-    old.getJSONArray("log").put(gm("Câu cuối."))
-    PlayerActionPresentation.fold(old, "one", "two", "Tôi quan sát rồi ghi dấu.")
-    val receipt = JSONObject().put("actionId", "two").put("label", "Ghi dấu")
-      .put("reply", "Câu cuối.").put("playerText", "Tôi quan sát rồi ghi dấu.")
-    val saved = core.copy(world = core.world +
-      (MiniMapRuntime.RECEIPT to receipt.toString()))
-    val displayed = CoreClientProjection.project(JSONObject(old.toString()), saved)
-    val records = displayed.getJSONArray("log")
-    assertEquals(2, records.length())
-    assertEquals("Tôi quan sát rồi ghi dấu.", records.getJSONObject(0).getString("text"))
-    assertEquals("Câu đầu. Câu cuối.", records.getJSONObject(1).getString("text"))
-    assertEquals(2, records.getJSONObject(0).getJSONArray("sceneBatchActions").length())
-  }
-
-  @Test fun singleActionIsIdempotentAndKeepsWhitespaceInPlayerText() {
-    val raw = "  Tôi hỏi: \"Đây là đâu?\"  "
-    val state = view(player("one", "Trò chuyện: nhân vật"), gm("Một câu trả lời.\n\nKhác."))
-    PlayerActionPresentation.fold(state, "one", "one", raw)
-    val once = state.toString()
-    PlayerActionPresentation.fold(state, "one", "one", raw)
-    assertEquals(once, state.toString())
-    assertEquals(raw, state.getJSONArray("log").getJSONObject(0).getString("text"))
-    assertEquals("Một câu trả lời. Khác.", state.getJSONArray("log").getJSONObject(1).getString("text"))
-  }
-
-  @Test fun freeOnlyTurnKeepsVerbatimPlayerTextAndOneGmParagraph() {
-    val raw = "  Tôi đưa người lạ một chai Almond Water.  "
-    val state = view()
-      .put("scene", JSONObject().put("nodeId", "0").put("miniIndex", 1))
-    PlayerActionPresentation.complete(state, null, raw, "Ông ta đón lấy chai nước.\nÔng khẽ cảm ơn.")
-    val log = state.getJSONArray("log")
-    assertEquals(2, log.length())
-    assertEquals(raw, log.getJSONObject(0).getString("text"))
-    assertEquals("Ông ta đón lấy chai nước. Ông khẽ cảm ơn.", log.getJSONObject(1).getString("text"))
-    assertEquals("0:1", log.getJSONObject(0).getString("sceneMap"))
-    assertFalse(log.getJSONObject(0).has("sceneActionId"))
-  }
-
-  @Test fun mixedTurnReplacesFactualReceiptsWithOneUnifiedGmParagraph() {
-    val raw = "Kiểm tra bóng đen, rồi đi vào phòng và xem xét."
-    val state = view(player("move", raw), gm("Đã tới căn phòng."))
-    val once = "Bóng đen hóa ra là đường ống. Cao Minh bước vào căn phòng và quan sát."
-    PlayerActionPresentation.complete(state, "move", raw, once)
-    assertEquals(2, state.getJSONArray("log").length())
-    assertEquals(once, state.getJSONArray("log").getJSONObject(1).getString("text"))
-    assertEquals("move", state.getJSONArray("log").getJSONObject(0).getString("sceneActionId"))
-  }
-
-  @Test fun interruptedEncounterWithoutGmReceiptCanReceiveOneParagraph() {
-    val state = view(player("search", "Quan sát"))
-    PlayerActionPresentation.complete(state, "search", "Quan sát", "Một tiếng động vang lên.")
-    assertEquals(2, state.getJSONArray("log").length())
-    assertEquals("Một tiếng động vang lên.", state.getJSONArray("log").getJSONObject(1).getString("text"))
+  @Test fun writerContextOmitsAtlasControlsAndPrologueButRetainsBoundedChronologicalContext() {
+    val source = JSONObject().put("log", JSONArray().put(JSONObject().put("text", "x".repeat(33700))))
+      .put("scene", JSONObject().put("map", JSONObject().put("overviewRooms", "SECRET"))
+        .put("records", "ANSWER").put("availableActions", "UNLOCK").put("room", JSONObject().put("name", "Vàng Úa")))
+    for (i in 1..8) source.getJSONArray("log").put(JSONObject().put("role", "gm").put("text", "Cảnh $i"))
+    val packet = PlayerActionPresentation.writerView(source)
+    assertFalse(packet.toString().contains("SECRET")); assertFalse(packet.toString().contains("ANSWER")); assertFalse(packet.toString().contains("UNLOCK"))
+    assertTrue(packet.toString().length < 1000)
+    assertEquals("Cảnh 5", packet.getJSONArray("recentContext").getJSONObject(0).getString("text"))
+    assertEquals("Cảnh 8", packet.getJSONArray("recentContext").getJSONObject(3).getString("text"))
   }
 }

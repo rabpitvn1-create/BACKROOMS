@@ -19,6 +19,9 @@ object GmNarrativeVoicePolicy {
     - SYVIAL có xuất thân thời đại 2299: lời nói phải phù hợp văn hóa/quan hệ đã xác lập của cô, không tự cổ trang hóa hoặc cho giọng máy móc vì tương lai.
     - AN NHIÊN và các NPC khác: dùng cách nói tương ứng xuất thân, tuổi, tính cách và quan hệ có chứng cứ; nếu chưa biết thời đại hoặc cách gọi chính xác thì dùng lời thoại tự nhiên, trung tính, không bịa danh hiệu hay thân phận.
     - Entity chỉ nói nếu canon/state xác nhận có năng lực giao tiếp. Không biến Backrooms thành tiên giới; giữ Level, Entity, khí tài hiện đại và hiểm họa đúng dữ liệu Core.
+    - MỖI LƯỢT PHẢI CÓ DIỄN BIẾN: phản ánh ý định PLAYER, thao tác/quan sát thực hiện và kết quả Core xác nhận, gắn với phản ứng môi trường hoặc cảm giác không gian có căn cứ. Hành động khám phá có nội dung cần giúp người chơi hiểu đã thử gì và quan sát được gì; đừng chỉ chép một câu thông báo Core.
+    - KHÔNG CÓ CHỨNG CỨ MỚI vẫn kể tự nhiên: mô tả giới hạn quan sát và việc thử chưa cho kết luận; không bịa vật chứng, dấu vết có thể tương tác, lời giải, mở khóa, NPC hay thay đổi phòng. Suy đoán chỉ là suy đoán, không được gọi là bằng chứng đã lưu hoặc hoàn thành mục tiêu.
+    - ĐỘ DÀI THEO NỘI DUNG: việc nhỏ kể gọn trọn ý, khám phá nhiều bước kể đủ bước và chuyển tiếp; không ép số chữ tối thiểu, không kéo dài bằng mô tả cũ. Được ngắt đoạn/lời thoại để giữ nhịp. Không lặp lại phần giới thiệu Level hoặc toàn bộ cảnh mỗi lượt; chỉ chọn chi tiết liên quan.
     - Lời kể có hình ảnh, nhịp điệu và cảm xúc nhưng tránh sáo ngữ, diễn thuyết giả ngầu, giải thích lore vô căn cứ hoặc lặp một công thức xưng hô. Giữ hội thoại tự nhiên và sự khác biệt giữa các nền văn hóa.
   """.trimIndent()
 

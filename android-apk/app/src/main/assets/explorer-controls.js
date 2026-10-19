@@ -29,6 +29,7 @@
     failed=false;busy=true;refresh();
     try{
       if(scene.pendingActionId)Android.submitSceneAction(JSON.stringify(state),'RETRY');
+      else if(state.playerAction?.recoverable){writerPending('Gehihi');Android.retryPlayerActionNarration(JSON.stringify(state));}
       else if(scene.generationNeeded){writerPending();Android.prepareScene(JSON.stringify(state));}
       else{busy=false;refresh();}
     }catch(e){global.backroomError('Không gửi được yêu cầu thử lại tới Core.');}
@@ -105,7 +106,7 @@
     if(log)log.querySelectorAll('[data-scene-preparing="1"]').forEach(n=>n.remove());
   }
   global.backroomSceneWriterProvider=()=>{if(preparing)writerPending();};
-  function locked(){return busy||batchBusy||coreUnavailable||!!state.pendingEncounter||!!(state.combat&&state.combat.active);}
+  function locked(){return busy||batchBusy||coreUnavailable||!!state.playerAction?.recoverable||!!state.pendingEncounter||!!(state.combat&&state.combat.active);}
   function showPopup(title){
     heading.textContent=title;
     dialog.className=title==='MAP'?'explorer-map-mode':'';
@@ -116,6 +117,7 @@
   function sendPlayerAction(value){
     if(!value.trim()||!state.scene||state.scene.generationNeeded)return;
     batchBusy=true;failed=false;busy=true;refresh();
+    if(global.appendActionPending)global.appendActionPending(value);
     try{
       if(!Android.submitPlayerAction)throw Error('Player Action chưa được Core hỗ trợ.');
       Android.submitPlayerAction(JSON.stringify(state),value);
@@ -234,31 +236,63 @@
       choices.appendChild(p);return;
     }
     const byId=new Map(rooms.map(r=>[r.id,r]));
-    const root=byId.has(entryId)?entryId:rooms[0].id;
-    const layers=[],depth=new Map([[root,0]]),queue=[root];
-    while(queue.length){
-      const id=queue.shift(),level=depth.get(id);
-      if(!layers[level])layers[level]=[];
-      layers[level].push(id);
-      (byId.get(id).adjacentRoomIds||[]).forEach(other=>{
-        if(byId.has(other)&&!depth.has(other)){
-          depth.set(other,level+1);queue.push(other);
-        }
-      });
-    }
-    // Only Core-published nodes and edges are drawn. Never invent a shortcut.
+    // Core supplies opaque Canon cluster membership. Layout never infers identity
+    // from a name, snapshot or the randomized Core room id.
+    const groups=new Map();
     rooms.forEach(r=>{
-      if(!depth.has(r.id)){
-        const level=layers.length;layers[level]=[r.id];depth.set(r.id,level);
-      }
+      const id=r.atlasGroup||'local';
+      if(!groups.has(id))groups.set(id,[]);
+      groups.get(id).push(r);
     });
-    const cardWidth=196,cardHeight=138,xGap=240,yGap=192;
-    const width=Math.max(350,Math.max(...layers.map(layer=>layer.length))*xGap+80);
-    const height=Math.max(280,layers.length*yGap+90);
-    const positions=new Map();
-    layers.forEach((layer,y)=>layer.forEach((id,x)=>{
-      positions.set(id,{x:width/2+(x-(layer.length-1)/2)*xGap,y:98+y*yGap});
+    const cardWidth=196,cardHeight=138,cell=28;
+    const groupList=[...groups.entries()];
+    // Put strongly connected clusters next to each other. The eight-group search
+    // is small (7! arrangements after fixing rotation), deterministic and offline.
+    const ring=[[0,0],[1,0],[2,0],[2,1],[2,2],[1,2],[0,2],[0,1]];
+    const groupOf=new Map(rooms.map(r=>[r.id,r.atlasGroup||'local']));
+    const links=[];
+    rooms.forEach(r=>(r.adjacentRoomIds||[]).forEach(to=>{
+      if(byId.has(to)&&groupOf.get(to)!==groupOf.get(r.id)&&r.id<to)
+        links.push([groupOf.get(r.id),groupOf.get(to)]);
     }));
+    let order=groupList.map(([id])=>id),best=Infinity;
+    if(order.length===8){
+      const score=ids=>{
+        const loc=new Map(ids.map((id,i)=>[id,ring[i]]));
+        return links.reduce((sum,[a,b])=>{const p=loc.get(a),q=loc.get(b);
+          return sum+Math.abs(p[0]-q[0])+Math.abs(p[1]-q[1]);},0);
+      };
+      const visit=(prefix,left)=>{
+        if(!left.length){const s=score(prefix);if(s<best){best=s;order=prefix.slice();}return;}
+        left.forEach((id,i)=>visit([...prefix,id],left.filter((_,n)=>n!==i)));
+      };
+      visit([order[0]],order.slice(1));
+    }
+    const positions=new Map(),clusters=[];
+    // Eight perimeter slots keep the local ring/branches readable; annex at
+    // centre. Cards and corridors align to the routing lattice.
+    const slots=[[0,0],[9,0],[18,0],[18,8],[18,16],[9,16],[0,16],[0,8]];
+    order.forEach((id,index)=>{
+      const members=groups.get(id),hub=members.find(r=>r.atlasHub)||members[0];
+      const annex=members.find(r=>r!==hub&&r.atlasHub);
+      const path=[hub],remaining=new Set(members.filter(r=>r!==hub&&r!==annex).map(r=>r.id));
+      // Follow actual intra-cluster adjacency for a stable local cycle; leave
+      // non-cycle branches in deterministic slots without adding an edge.
+      while(remaining.size){
+        const next=(path.at(-1).adjacentRoomIds||[]).find(to=>remaining.has(to))||[...remaining][0];
+        remaining.delete(next);path.push(byId.get(next));
+      }
+      const grid=order.length===8?ring[index]:[index%3,Math.floor(index/3)];
+      const origin={x:140+grid[0]*32*cell,y:112+grid[1]*29*cell};
+      path.forEach((r,n)=>{
+        const slot=slots[n%slots.length];
+        positions.set(r.id,{x:origin.x+slot[0]*cell,y:origin.y+slot[1]*cell});
+      });
+      if(annex)positions.set(annex.id,{x:origin.x+9*cell,y:origin.y+8*cell});
+      clusters.push({id,members,x:origin.x-120,y:origin.y-96,width:744,height:676});
+    });
+    const width=Math.max(...clusters.map(c=>c.x+c.width))+28;
+    const height=Math.max(...clusters.map(c=>c.y+c.height))+28;
     const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg');
     const svgEl=(tag,attrs)=>{
       const el=document.createElementNS(ns,tag);
@@ -271,25 +305,86 @@
     const defs=svgEl('defs'),seenEdges=new Set();
     const snapshotIds=map.snapshots&&typeof map.snapshots==='object'?map.snapshots:{};
     const assets=global.BackroomSnapshotAssets;
-    const fallback='file:///android_asset/level_snapshots/level_00__liminal_hall.webp';
+
     function snapshot(r){
       const identity=typeof snapshotIds[r.id]==='string'?snapshotIds[r.id]:null;
       const file=identity&&assets?.environmentFile?.(identity);
-      return file?'file:///android_asset/level_snapshots/'+file:fallback;
+      return file?'file:///android_asset/level_snapshots/'+file:null;
     }
+    clusters.forEach(c=>{
+      svg.appendChild(svgEl('rect',{x:c.x,y:c.y,width:c.width,height:c.height,rx:18,
+        fill:'#18282a','fill-opacity':'.65',stroke:'#927f50','stroke-opacity':'.6',
+        'stroke-width':2,'data-map-cluster':c.id}));
+      const name=c.members.find(r=>r.visited&&r.atlasGroupName)?.atlasGroupName;
+      if(name){const label=svgEl('text',{x:c.x+18,y:c.y+23,fill:'#e5cd94',
+        'font-size':16,'font-weight':700});label.textContent=name;svg.appendChild(label);}
+    });
+    // Orthogonal A* routes avoid every card, prefer few bends, and penalize
+    // occupied corridors. All source edges survive, including loops/one-way.
+    const cols=Math.ceil(width/cell)+1,rows=Math.ceil(height/cell)+1;
+    const obstacles=new Map(),usage=new Map(),edgeViews=[];
+    positions.forEach((p,id)=>{
+      for(let x=Math.floor((p.x-cardWidth/2-10)/cell);x<=Math.ceil((p.x+cardWidth/2+10)/cell);x++)
+        for(let y=Math.floor((p.y-cardHeight/2-10)/cell);y<=Math.ceil((p.y+cardHeight/2+10)/cell);y++)
+          obstacles.set(y*cols+x,id);
+    });
+    function route(a,b){
+      const start=positions.get(a),end=positions.get(b);
+      const sx=Math.round(start.x/cell),sy=Math.round(start.y/cell),tx=Math.round(end.x/cell),ty=Math.round(end.y/cell);
+      const heap=[];
+      function push(v){heap.push(v);let i=heap.length-1;while(i){const p=(i-1)>>1;
+        if(heap[p].f<=v.f)break;heap[i]=heap[p];i=p;}heap[i]=v;}
+      function pop(){const first=heap[0],v=heap.pop();if(heap.length){let i=0;
+        while(i*2+1<heap.length){let j=i*2+1;if(j+1<heap.length&&heap[j+1].f<heap[j].f)j++;
+          if(heap[j].f>=v.f)break;heap[i]=heap[j];i=j;}heap[i]=v;}return first;}
+      const costs=new Map(),parents=new Map(),dirs=[[1,0],[0,1],[-1,0],[0,-1]];
+      const key=(x,y,d)=>(y*cols+x)*4+d;
+      for(let d=0;d<4;d++){const k=key(sx,sy,d);costs.set(k,0);push({x:sx,y:sy,d,k,g:0,f:0});}
+      while(heap.length){
+        const v=pop();if(v.g!==costs.get(v.k))continue;
+        if(v.x===tx&&v.y===ty){
+          const points=[];let k=v.k;
+          while(k!==undefined){const n=Math.floor(k/4);points.push({x:(n%cols)*cell,y:Math.floor(n/cols)*cell});k=parents.get(k);}
+          points.reverse();points[0]=start;points[points.length-1]=end;
+          points.forEach(p=>{const k=Math.round(p.y/cell)*cols+Math.round(p.x/cell);usage.set(k,(usage.get(k)||0)+1);});
+          return points;
+        }
+        dirs.forEach(([dx,dy],d)=>{
+          const x=v.x+dx,y=v.y+dy;if(x<1||x>=cols-1||y<1||y>=rows-1)return;
+          const owner=obstacles.get(y*cols+x);if(owner&&owner!==a&&owner!==b)return;
+          const k=key(x,y,d),g=v.g+1+(d===v.d?0:1.2)+(usage.get(y*cols+x)||0)*.7;
+          if(g>=(costs.get(k)??Infinity))return;
+          costs.set(k,g);parents.set(k,v.k);push({x,y,d,k,g,f:g+Math.abs(x-tx)+Math.abs(y-ty)});
+        });
+      }
+      // A routing failure is explicit; never omit a Core edge.
+      return [start,{x:start.x,y:28}, {x:end.x,y:28},end];
+    }
+    const arrow=svgEl('marker',{id:'explorer-map-arrow',viewBox:'0 0 10 10',refX:9,refY:5,
+      markerWidth:6,markerHeight:6,orient:'auto-start-reverse'});
+    arrow.appendChild(svgEl('path',{d:'M0 0 L10 5 L0 10 Z',fill:'#edc774'}));defs.appendChild(arrow);
     rooms.forEach(r=>(r.adjacentRoomIds||[]).forEach(to=>{
       if(!positions.has(to))return;
-      const key=[r.id,to].sort().join('|');
-      if(seenEdges.has(key))return;seenEdges.add(key);
-      const from=positions.get(r.id),dest=positions.get(to);
+      const key=[r.id,to].sort().join('|');if(seenEdges.has(key))return;seenEdges.add(key);
       const unlocked=r.visited&&byId.get(to).visited;
-      svg.appendChild(svgEl('line',{
-        x1:from.x,y1:from.y,x2:dest.x,y2:dest.y,
-        stroke:unlocked?'#88b6a0':'#c0a26c','stroke-width':unlocked?3:2.8,
-        'stroke-dasharray':unlocked?'none':'10 8',
-        class:unlocked?'explorer-map-edge-open':'explorer-map-edge-locked'
-      }));
+      const points=route(r.id,to);
+      const edge=svgEl('path',{d:points.map((p,i)=>(i?'L':'M')+p.x+' '+p.y).join(' '),
+        fill:'none',stroke:unlocked?'#88b6a0':'#c0a26c','stroke-width':unlocked?3:2.8,
+        'stroke-linejoin':'round','stroke-dasharray':unlocked?'none':'10 8',opacity:'.5',
+        class:unlocked?'explorer-map-edge-open':'explorer-map-edge-locked'});
+      // Direction arrow halfway down a one-way path, outside the destination card.
+      if((r.oneWayRoomIds||[]).includes(to)){
+        const mid=Math.max(1,Math.floor(points.length/2));
+        const p=points[mid-1],q=points[mid];
+        svg.appendChild(svgEl('path',{d:'M'+p.x+' '+p.y+' L'+q.x+' '+q.y,
+          fill:'none',stroke:'#edc774','stroke-width':3,'marker-end':'url(#explorer-map-arrow)'}));
+      }
+      edgeViews.push({a:r.id,b:to,edge});svg.appendChild(edge);
     }));
+    function focusRoom(id){edgeViews.forEach(({a,b,edge})=>{
+      const active=a===id||b===id;edge.setAttribute('opacity',active?'1':'.16');
+      edge.setAttribute('stroke-width',active?'5':'2');
+    });}
     rooms.forEach((r,index)=>{
       const pos=positions.get(r.id),current=r.id===currentId;
       const left=pos.x-cardWidth/2,top=pos.y-cardHeight/2,visited=!!r.visited;
@@ -297,10 +392,13 @@
       const clip=svgEl('clipPath',{id:clipId});
       clip.appendChild(svgEl('rect',{x:left,y:top,width:cardWidth,height:cardHeight,rx:9}));
       defs.appendChild(clip);
-      const g=svgEl('g',{'data-map-node':visited?'explored':'locked'});
+      const g=svgEl('g',{'data-map-node':visited?'explored':'locked',tabindex:0,role:'button',
+        'aria-label':visited?String(r.name||''):'Khu vực chưa khám phá'});
+      g.addEventListener('click',()=>focusRoom(r.id));
+      g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();focusRoom(r.id);}});
       // Every rendered node has the exact snapshot of its Core environment.
       g.appendChild(svgEl('rect',{x:left,y:top,width:cardWidth,height:cardHeight,rx:9,fill:'#111a1d'}));
-      g.appendChild(svgEl('image',{x:left,y:top,width:cardWidth,height:cardHeight,
+      if(snapshot(r))g.appendChild(svgEl('image',{x:left,y:top,width:cardWidth,height:cardHeight,
         href:snapshot(r),'preserveAspectRatio':'xMidYMid slice','clip-path':'url(#'+clipId+')'}));
       if(!visited){
         g.appendChild(svgEl('rect',{x:left,y:top,width:cardWidth,height:cardHeight,rx:9,
@@ -337,7 +435,7 @@
         }
       }
       g.appendChild(svgEl('rect',{x:left,y:top,width:cardWidth,height:cardHeight,rx:9,
-        fill:'none',stroke:current?'#6ec9ff':visited?'#c5ad71':'#89704a',
+        fill:'none',stroke:current?'#f1c75e':visited?'#c5ad71':'#89704a',
         'stroke-width':current?3.5:2}));
       if(current){
         // Gold teardrop location pin based on the reference supplied for Cao Minh.
@@ -369,8 +467,15 @@
     sc.setAttribute('tabindex','0');
     sc.setAttribute('aria-label','Bản đồ có thể cuộn ngang và dọc');
     sc.appendChild(svg);choices.appendChild(sc);
+    // Native touch pan plus mouse/pen dragging; no graph-wide scale-to-fit.
+    let drag=null;
+    sc.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'||e.button!==0)return;
+      drag={x:e.clientX,y:e.clientY,left:sc.scrollLeft,top:sc.scrollTop};sc.setPointerCapture?.(e.pointerId);});
+    sc.addEventListener('pointermove',e=>{if(!drag)return;
+      sc.scrollLeft=drag.left+drag.x-e.clientX;sc.scrollTop=drag.top+drag.y-e.clientY;});
+    sc.addEventListener('pointerup',()=>{drag=null;});sc.addEventListener('pointercancel',()=>{drag=null;});
     const legend=document.createElement('p');legend.className='explorer-map-legend';
-    legend.textContent='Kéo để xem bản đồ · Nét đứt: chưa khám phá · ◆ Dấu cá nhân · ✚ Vết khắc';
+    legend.textContent='Kéo để xem · Chọn phòng để theo đường nối · Mũi tên: một chiều · Nét đứt: chưa khám phá · ◆ Dấu cá nhân · ✚ Vết khắc';
     choices.appendChild(legend);
     // Keep Core-approved obstruction notes outside the graph, never on a node.
     (Array.isArray(map.knownObstructions)?map.knownObstructions:[]).forEach(reason=>{
@@ -378,10 +483,10 @@
       p.textContent=String(reason);choices.appendChild(p);
     });
     const here=positions.get(currentId);
-    if(here){
+    const centre=()=>{if(here){
       sc.scrollLeft=Math.max(0,here.x-(sc.clientWidth||350)/2);
       sc.scrollTop=Math.max(0,here.y-(sc.clientHeight||400)/2);
-    }
+    }};centre();if(global.requestAnimationFrame)global.requestAnimationFrame(centre);
   }
   function refresh(){
     const scene=state&&state.scene,combat=!!(state&&state.combat&&state.combat.active);
@@ -399,7 +504,7 @@
     buttons.TALK.disabled=locked()||!(scene.availableActions||[]).some(a=>a.kind==='TALK');
     casebook.disabled=!scene.map;
     // Invalid input/planner failures leave Player Action editable.
-    const showRetry=!!scene.pendingActionId||(failed&&!!scene.generationNeeded);
+    const showRetry=!!scene.pendingActionId||!!state.playerAction?.recoverable||(failed&&!!scene.generationNeeded);
     playerAction.hidden=showRetry;retry.hidden=!showRetry;
     playerAction.disabled=locked()||!!scene.generationNeeded;
     retry.disabled=busy||batchBusy||coreUnavailable;
@@ -414,6 +519,7 @@
   const turn=global.backroomTurn,error=global.backroomError;
   global.backroomTurn=function(json){
     preparing=false;failed=false;clearWriterPending();if(turn)turn(json);refresh();
+    if(dialog.open&&dialog.className==='explorer-map-mode')openMap();
     if(activeMechanismId&&dialog.open&&!busy)showMechanism(activeMechanismId);
     // MainActivity wraps backroomTurn and renders Snapshot AFTER this callback.
     // Keep the guard alive until that wrapper returns; batches clear it explicitly.
@@ -433,19 +539,22 @@
     // A multi-action command is one readable turn, not a stream of GM messages.
     const update=JSON.parse(json);
     if(update.state){
+      // Keep the in-memory presentation in sync too; render remains once per
+      // utterance, and the initial pending player row remains visible.
+      state=update.state;
       try{
         if(global.localStorage)
           global.localStorage.setItem('backroom-apk-state',JSON.stringify(update.state));
       }catch(_){/* Core save remains authoritative. */}
     }
     const status=document.getElementById('status');
-    if(status)status.textContent='Đang xử lý hành động '+update.executed+'/'+update.requested+'…';
+    if(status)status.textContent=update.requested>0?'Đang xử lý hành động '+update.executed+'/'+update.requested+'…':'Đang phân tích yêu cầu…';
     busy=true;refresh();
   };
   function playerActionStopText(result,count){
     const step=Number.isInteger(result.stoppedStep)&&result.stoppedStep>0
       ?' Dừng tại bước '+result.stoppedStep+'.':'';
-    return 'Đã xác nhận '+count+' bước.'+step+' '+String(result.message||'Chuỗi hành động chưa hoàn tất.');
+    return 'Đã xử lý '+count+' ý định.'+step+' '+String(result.message||'Chuỗi hành động chưa hoàn tất.');
   }
   global.backroomPlayerActionFinished=function(raw){
     const result=JSON.parse(raw);batchBusy=false;busy=false;

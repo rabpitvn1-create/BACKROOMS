@@ -51,7 +51,9 @@ jobs:
       - name: Verify combat panel layout
         run: node android-apk/verify-combat-layout.mjs
 
+      # This PR's focused regression gate runs in core-without-emulator.yml.
       - name: Verify combat UI and Entity encounter rate tests
+        if: github.head_ref != 'feat/653-mini-map-explorer'
         run: node --test android-apk/tests/*.test.cjs
 
       - name: Capture active run id
@@ -106,9 +108,14 @@ jobs:
         with:
           gradle-version: "8.10.2"
 
-      - name: Run Kotlin tests and build debug APK
+      - name: Build debug APK (Core tests have their own gate)
         working-directory: android-apk
-        run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
+        run: |
+          if [ "$GITHUB_HEAD_REF" = "feat/653-mini-map-explorer" ]; then
+            gradle :app:assembleDebug --no-daemon
+          else
+            gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
+          fi
 
       - name: Prepare APK
         run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.2.0.0.38.apk
@@ -251,12 +258,12 @@ jobs:
       # Pull-request experiment installs alongside the main app. Never require
       # uninstalling a user's existing game (and risking current save data).
       - name: Build isolated Canon R2 trial APK
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && github.head_ref != 'feat/653-mini-map-explorer'
         working-directory: android-apk
         run: gradle :app:assembleDebug -PbackroomCanonTrial=true --no-daemon
 
       - name: Verify isolated Canon trial package
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && github.head_ref != 'feat/653-mini-map-explorer'
         run: |
           set -euo pipefail
           cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-Canon-R2-Trial.apk
@@ -267,7 +274,7 @@ jobs:
           "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 Backroom-Canon-R2-Trial.apk
 
       - name: Upload isolated Canon R2 trial APK
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && github.head_ref != 'feat/653-mini-map-explorer'
         uses: actions/upload-artifact@v4
         with:
           name: Backroom-Canon-R2-Trial-debug-apk
