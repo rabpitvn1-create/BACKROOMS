@@ -45,6 +45,6 @@ grep -q 'OK (2 tests)' emulator-evidence/instrumentation.log
 adb pull /sdcard/Android/data/com.rabpit.backroom/files/emulator-smoke emulator-evidence/playthrough
 test -s emulator-evidence/playthrough/gameplay-report.json
 test -s emulator-evidence/playthrough/02-fullscreen-map.png
-test -s emulator-evidence/playthrough/07-map-after-move.png
+test -s emulator-evidence/playthrough/07-map-after-move.png || test -s emulator-evidence/playthrough/07-encounter-after-move.png
 test -s emulator-evidence/playthrough/09-real-gm-narration.png
 echo 'EMULATOR ARTIFACT PLAYTHROUGH: PASS'

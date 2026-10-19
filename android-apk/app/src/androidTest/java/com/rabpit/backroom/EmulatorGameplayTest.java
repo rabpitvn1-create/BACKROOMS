@@ -285,35 +285,6 @@ public final class EmulatorGameplayTest {
     assertEquals(startingInventory.toString(), afterMark.getJSONArray("inventory").toString());
     assertFalse("Mark should only be available once", hasAction(afterMark.getJSONObject("scene"), "mark"));
     screenshot("05-marked-room");
-
-    JSONObject afterMove = performCoreAction(core, availableAction(afterMark.getJSONObject("scene"), "room:"), "Cao Minh đi sang phòng kề.");
-    String destination = afterMove.getJSONObject("scene").getJSONObject("room").getString("id");
-    assertNotEquals(initialRoom, destination);
-    assertEquals(startingInventory.toString(), afterMove.getJSONArray("inventory").toString());
-    assertFalse("One move cannot complete Level 0", afterMove.getJSONObject("scene").optBoolean("completed"));
-    report.put("movement", "PASS").put("destinationDifferent", true);
-    screenshot("06-after-move");
-    click("Array.from(document.querySelectorAll('#explorerControls button')).find(b=>b.textContent.trim()==='MAP')");
-    until("document.querySelector('#explorerChoices')?.open && document.querySelector('#explorerChoices svg')", 6);
-    JSONObject explored = inspect("(()=>{const s=document.querySelector('#explorerChoices svg');return {visited:s.querySelectorAll('[data-map-node=explored]').length,locked:s.querySelectorAll('[data-map-node=locked]').length,marker:s.querySelectorAll('[data-map-location=cao-minh]').length};})()");
-    assertEquals(2, explored.getInt("visited"));
-    assertEquals(43, explored.getInt("locked"));
-    assertEquals(1, explored.getInt("marker"));
-    screenshot("07-map-after-move");
-    assertFalse("MAP picture must differ from gameplay picture; a system overlay may be blocking both",
-      java.util.Arrays.equals(
-        Files.readAllBytes(new File(evidence,"06-after-move.png").toPath()),
-        Files.readAllBytes(new File(evidence,"07-map-after-move.png").toPath())));
-    report.put("afterMoveMap", explored);
-    click("document.querySelector('#explorerChoices button[aria-label=\"Đóng lựa chọn\"]')");
-
-    JSONObject saved = inspect("({saved:save(),status:document.getElementById('status').textContent})");
-    assertTrue("UI Save failed: " + saved.optString("status"), saved.getBoolean("saved"));
-    JSONObject loaded = inspect("({loaded:load(),status:document.getElementById('status').textContent})");
-    assertTrue("UI Load failed: " + loaded.optString("status"), loaded.getBoolean("loaded"));
-    assertEquals(destination, coreState(core).getJSONObject("scene").getJSONObject("room").getString("id"));
-    screenshot("08-restored-save");
-    report.put("saveLoad", "PASS");
     // Genuine Gehihi reply through the SHIPPED Android bridge, not a text stub.
     assertFalse("Real GM test requires GEHIHI_API_KEY configured in APK",
       BuildConfig.GEHIHI_API_KEY.trim().isEmpty());
@@ -356,6 +327,45 @@ public final class EmulatorGameplayTest {
     report.put("realGm",new JSONObject().put("status","PASS").put("provider","Gehihi")
       .put("sample",narrative.substring(0,Math.min(800,narrative.length())))
       .put("length",narrative.length()).put("coreUnchanged",true));
+
+
+    JSONObject afterMove = performCoreAction(core, availableAction(coreState(core).getJSONObject("scene"), "room:"), "Cao Minh đi sang phòng kề.");
+    String destination = afterMove.getJSONObject("scene").getJSONObject("room").getString("id");
+    assertNotEquals(initialRoom, destination);
+    assertEquals(startingInventory.toString(), afterMove.getJSONArray("inventory").toString());
+    assertFalse("One move cannot complete Level 0", afterMove.getJSONObject("scene").optBoolean("completed"));
+    report.put("movement", "PASS").put("destinationDifferent", true);
+    screenshot("06-after-move");
+    if(afterMove.has("pendingEncounter")){
+      // A legal MOVE may lead to an Entity encounter. Do not treat this as an idle scene.
+      until("document.getElementById('log')?.textContent.includes('Battle Start')",8);
+      JSONObject encounter=inspect("({visible:document.getElementById('log').textContent.includes('Battle Start')})");
+      assertTrue("Pending encounter must display Battle Start",encounter.getBoolean("visible"));
+      report.put("encounterAfterMove","VISIBLE").put("afterMoveMap","NOT_TESTED_DURING_ENCOUNTER");
+      screenshot("07-encounter-after-move");
+    } else {
+      click("Array.from(document.querySelectorAll('#explorerControls button')).find(b=>b.textContent.trim()==='MAP')");
+      until("document.querySelector('#explorerChoices')?.open && document.querySelector('#explorerChoices svg')",6);
+      JSONObject explored=inspect("(()=>{const s=document.querySelector('#explorerChoices svg');return {visited:s.querySelectorAll('[data-map-node=explored]').length,locked:s.querySelectorAll('[data-map-node=locked]').length,marker:s.querySelectorAll('[data-map-location=cao-minh]').length};})()");
+      assertEquals(2,explored.getInt("visited"));
+      assertEquals(43,explored.getInt("locked"));
+      assertEquals(1,explored.getInt("marker"));
+      screenshot("07-map-after-move");
+      assertFalse("MAP picture must differ from gameplay screen",
+        java.util.Arrays.equals(
+          Files.readAllBytes(new File(evidence,"06-after-move.png").toPath()),
+          Files.readAllBytes(new File(evidence,"07-map-after-move.png").toPath())));
+      report.put("afterMoveMap",explored);
+      click("Array.from(document.querySelectorAll('#explorerChoices button')).find(b=>b.getAttribute('aria-label')==='Đóng lựa chọn')");
+    }
+
+    JSONObject saved = inspect("({saved:save(),status:document.getElementById('status').textContent})");
+    assertTrue("UI Save failed: " + saved.optString("status"), saved.getBoolean("saved"));
+    JSONObject loaded = inspect("({loaded:load(),status:document.getElementById('status').textContent})");
+    assertTrue("UI Load failed: " + loaded.optString("status"), loaded.getBoolean("loaded"));
+    assertEquals(destination, coreState(core).getJSONObject("scene").getJSONObject("room").getString("id"));
+    screenshot("08-restored-save");
+    report.put("saveLoad", "PASS");
     report.put("result", "PASS");
 
     File reportFile = new File(evidence, "gameplay-report.json");
