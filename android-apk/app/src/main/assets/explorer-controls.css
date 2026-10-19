@@ -170,6 +170,7 @@
 
 /* Fullscreen Explorer MAP: the scrollable graph is flush with the ornate frame.
    No SVG max-height scaling; users pan both directions without shrinking nodes. */
+#explorerChoices.explorer-map-mode:not([open]){display:none!important}
 #explorerChoices.explorer-map-mode{
   position:fixed!important;inset:0!important;margin:0!important;
   width:100vw!important;height:var(--app-height,100dvh)!important;

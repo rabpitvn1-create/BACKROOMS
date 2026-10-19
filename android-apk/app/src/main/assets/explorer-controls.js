@@ -43,7 +43,10 @@
   const header=document.createElement('div');header.className='explorer-dialog-header';
   const heading=document.createElement('strong');heading.textContent='Chọn tương tác';
   const close=document.createElement('button');close.type='button';close.className='explorer-dialog-close';
-  close.textContent='×';close.setAttribute('aria-label','Đóng lựa chọn');close.onclick=()=>dialog.close();
+  close.textContent='×';close.setAttribute('aria-label','Đóng lựa chọn');
+  close.onclick=()=>{dialog.close();dialog.className='';};
+  // Closing through Escape/back must also clear the fullscreen presentation mode.
+  dialog.addEventListener('close',()=>{dialog.className='';});
   const mapSubtitle=document.createElement('span');
   mapSubtitle.className='explorer-map-subtitle';mapSubtitle.hidden=true;
   header.append(heading,close,mapSubtitle);

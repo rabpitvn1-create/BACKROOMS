@@ -159,6 +159,7 @@ test('MAP is fullscreen with Level 0, current zone and a gold location pin',()=>
   assert.equal(labels[0].children.map(el=>el.textContent).join(' '),'Hành lang vàng');
   assert.equal(r.calls.length,0,'map is read-only');
   r.dialog.children[0].children[1].onclick();assert.equal(r.dialog.open,false);
+  assert.equal(r.dialog.className,'','closing MAP clears fullscreen mode');
   r.buttons[1].onclick();assert.equal(r.dialog.className,'','other popups restore normal size');
 });
 test('undiscovered snapshot is dimmed, nameless, padlocked and connected by a dashed edge',()=>{
@@ -217,6 +218,7 @@ test('explored connected rooms use solid lines while all true Core loops remain'
 test('fullscreen map scroll respects the CSS frame without forcing SVG scaling',()=>{
   const css=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/explorer-controls.css'),'utf8');
   assert.ok(css.includes('#explorerChoices.explorer-map-mode'));
+  assert.ok(css.includes('#explorerChoices.explorer-map-mode:not([open]){display:none!important}'),'closed fullscreen dialog cannot stay visible');
   assert.ok(css.includes('height:var(--app-height,100dvh)!important'));
   assert.ok(css.includes('max-height:none!important'));
   assert.ok(css.includes('touch-action:pan-x pan-y'));
