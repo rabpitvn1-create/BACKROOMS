@@ -18,6 +18,9 @@ echo "Actual artifact SHA256:"
 sha256sum "$app_path"
 adb wait-for-device
 adb shell getprop sys.boot_completed | grep -q 1
+# Remove Android's one-time immersive-fullscreen instruction before launching
+# the game; the test itself also rejects any remaining system-level overlays.
+adb shell settings put secure immersive_mode_confirmations confirmed
 adb shell settings put global window_animation_scale 0
 adb shell settings put global transition_animation_scale 0
 adb shell settings put global animator_duration_scale 0
