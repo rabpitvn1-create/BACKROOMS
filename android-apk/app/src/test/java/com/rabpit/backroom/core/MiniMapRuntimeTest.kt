@@ -139,7 +139,13 @@ class MiniMapRuntimeTest {
     assertTrue(offered.any { it.getString("kind") == "MOVE" &&
       it.getString("targetId") == "room:lab" &&
       it.getString("label") == "Lối sang khu vực chưa khám phá" })
+    // Environment-specific snapshots are visual-only. The planning contract
+    // remains unchanged and does not contain the hidden frontier visual key.
+    assertFalse(planner.has("snapshots"))
+    assertFalse(planner.toString().contains("phong_moc"))
     val initialMap = initial.getJSONObject("map")
+    assertEquals("phong_moc", initialMap.getJSONObject("snapshots").getString("lab"))
+    assertEquals("phong_moc", initialMap.getJSONObject("snapshots").getString("hall"))
     assertEquals("hall", initialMap.getString("currentRoomId"))
     assertEquals("hall", initialMap.getString("entryRoomId"))
     val initialRooms = MiniMapScenario.objects(initialMap.getJSONArray("rooms"))

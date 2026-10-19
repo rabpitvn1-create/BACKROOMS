@@ -33,6 +33,10 @@ function runtime(scene={}){
   const document={getElementById:id=>elements[id],createElement:element,createElementNS:element,body:element()};
   const ctx={document,state:{scene:{miniIndex:1,generationNeeded:false,map:{currentRoomId:'hall',entryRoomId:'hall',rooms:[{id:'hall',name:'Hành lang',visited:true,adjacentRoomIds:['x']},{id:'x',name:'Chưa khám phá',visited:false,adjacentRoomIds:[]}]},areaLog:[],availableActions:[{actionId:'run:1:MOVE:room:x',sceneVersion:1,roomId:'hall',kind:'MOVE',targetId:'room:x',label:'Phòng X'}],...scene}},busy:false,coreUnavailable:false,
     Android:{prepareScene:json=>calls.push(['prepare',json]),submitSceneAction:(json,c)=>calls.push(['action',c]),submitPlayerAction:(json,text)=>calls.push(['player',text]),requestWorldHint:tier=>calls.push(['hint',tier])},
+    BackroomSnapshotAssets:{environmentFile:id=>({
+      yellow_rot:'level_00__zone_01__yellow_rot.webp',
+      deadlight:'level_00__zone_02__deadlight.webp'
+    })[id]||null},
     localStorage:{setItem:(key,value)=>stored.push([key,value])},
     appendActionPending(){},backroomTurn(json){ctx.state=JSON.parse(json);ctx.busy=false;},backroomError(){ctx.busy=false;}};
   ctx.window=ctx;vm.runInNewContext(source,ctx);
@@ -125,30 +129,77 @@ test('Player Action submits original natural text to the Core interpreter withou
   assert.equal(r.calls[0][1],input.value);
   assert.equal(r.actionDialog.open,false);
 });
-test('MAP renders a highlighted current node and hides undiscovered room names',()=>{
-  const r=runtime({map:{currentRoomId:'hall',entryRoomId:'hall',rooms:[
-    {id:'hall',name:'Hành lang vàng',visited:true,adjacentRoomIds:['wet']},
-    {id:'wet',name:'Chưa khám phá',visited:false,adjacentRoomIds:[]}
-  ]}});r.buttons[0].onclick();
-  const svg=r.dialog.children[1].children[0].children[0];
+test('MAP is fullscreen with Level 0, current zone and a blue direction marker',()=>{
+  const r=runtime({environment:{id:'yellow_rot',name:'Vàng Úa'},map:{
+    currentRoomId:'hall',entryRoomId:'hall',
+    snapshots:{hall:'yellow_rot',wet:'deadlight'},
+    rooms:[{id:'hall',name:'Hành lang vàng',visited:true,adjacentRoomIds:['wet']},
+      {id:'wet',name:'Chưa khám phá',visited:false,adjacentRoomIds:[]}]
+  }});
+  r.buttons[0].onclick();
+  assert.equal(r.dialog.className,'explorer-map-mode');
+  assert.equal(r.dialog.children[0].children[0].textContent,'LEVEL 0');
+  assert.equal(r.dialog.children[0].children[2].textContent,'Vàng Úa');
+  assert.equal(r.dialog.children[0].children[2].hidden,false);
+  const sc=r.dialog.children[1].children[0],svg=sc.children[0];
   assert.equal(svg.attributes.role,'img');
-  assert.equal(svg.children.filter(n=>n.attributes&&n.attributes.stroke==='#b3ffc6').length,0);
-  const texts=svg.children.flatMap(g=>g.children||[]).map(el=>el.textContent||'');
-  assert.ok(texts.some(t=>t.includes('● Hành lang vàng')));
-  assert.ok(texts.some(t=>t.includes('Chưa khám phá')));
-  assert.equal(r.calls.length,0);
+  assert.equal(sc.attributes.tabindex,'0');
+  assert.ok(Number(svg.attributes.height)>240,'large map keeps its native graph size');
+  const pins=svg.children.flatMap(g=>g.children||[])
+    .filter(el=>el.attributes?.['data-map-location']==='cao-minh');
+  assert.equal(pins.length,1);
+  assert.ok(pins[0].children.some(el=>el.attributes?.fill==='#1a73e8'));
+  assert.ok(pins[0].children.some(el=>el.attributes?.fill==='#ffffff'));
+  const visited=svg.children.find(el=>el.attributes?.['data-map-node']==='explored');
+  const labels=visited.children.filter(el=>el.attributes?.class==='explorer-map-room-label');
+  assert.equal(labels.length,1);
+  assert.equal(labels[0].children.map(el=>el.textContent).join(' '),'Hành lang vàng');
+  assert.equal(r.calls.length,0,'map is read-only');
+  r.dialog.children[0].children[1].onclick();assert.equal(r.dialog.open,false);
+  r.buttons[1].onclick();assert.equal(r.dialog.className,'','other popups restore normal size');
 });
-test('MAP distinguishes physical marks from personal annotations without showing undiscovered changes',()=>{
-  const r=runtime({map:{currentRoomId:'hall',entryRoomId:'hall',rooms:[
-    {id:'hall',name:'Hành lang vàng',visited:true,marked:true,traced:true,adjacentRoomIds:['x']},
-    {id:'x',name:'Chưa khám phá',visited:false,marked:false,traced:false,adjacentRoomIds:[]}
-  ]}});
+test('undiscovered snapshot is dimmed, nameless, padlocked and connected by a dashed edge',()=>{
+  const r=runtime({map:{currentRoomId:'hall',entryRoomId:'hall',
+    snapshots:{hall:'yellow_rot',wet:'deadlight'},
+    rooms:[{id:'hall',name:'Hành lang vàng',visited:true,marked:true,traced:true,adjacentRoomIds:['wet']},
+      {id:'wet',name:'SECRET NEVER DISPLAY',visited:false,adjacentRoomIds:[]}]
+  }});
   r.buttons[0].onclick();
   const svg=r.dialog.children[1].children[0].children[0];
-  const labels=svg.children.flatMap(n=>n.children||[]).map(n=>n.textContent||'');
-  assert.ok(labels.some(n=>n.includes('◆ ✚ Hành lang vàng')));
-  assert.ok(labels.some(n=>n==='Chưa khám phá'));
-  assert.equal(r.calls.length,0);
+  const edges=svg.children.filter(el=>el.attributes?.class==='explorer-map-edge-locked');
+  assert.equal(edges.length,1);
+  assert.equal(edges[0].attributes['stroke-dasharray'],'10 8');
+  const locked=svg.children.find(el=>el.attributes?.['data-map-node']==='locked');
+  const opened=svg.children.find(el=>el.attributes?.['data-map-node']==='explored');
+  assert.ok(locked);
+  assert.ok(locked.children.some(el=>el.attributes?.opacity==='.79'));
+  assert.ok(locked.children.some(el=>el.attributes?.fill==='#e8cc90'),'lock body');
+  assert.equal(locked.children.some(el=>el.attributes?.class==='explorer-map-room-label'),false);
+  assert.equal(JSON.stringify(locked).includes('SECRET NEVER DISPLAY'),false);
+  const sources=svg.children.flatMap(el=>el.children||[]).filter(el=>typeof el.attributes?.href==='string')
+    .map(el=>el.attributes.href);
+  assert.ok(sources.some(src=>src.endsWith('/level_00__zone_01__yellow_rot.webp')));
+  assert.ok(sources.some(src=>src.endsWith('/level_00__zone_02__deadlight.webp')));
+  assert.equal(opened.children.some(el=>el.attributes?.class==='explorer-map-annotations'),true);
+});
+test('explored connected rooms use solid lines while all true Core loops remain',()=>{
+  const r=runtime({map:{currentRoomId:'a',entryRoomId:'a',
+    rooms:[{id:'a',name:'Khu A',visited:true,adjacentRoomIds:['b','c']},
+      {id:'b',name:'Khu B',visited:true,adjacentRoomIds:['a','c']},
+      {id:'c',name:'Khu C',visited:true,adjacentRoomIds:['a','b']}] }});
+  r.buttons[0].onclick();
+  const svg=r.dialog.children[1].children[0].children[0];
+  const edges=svg.children.filter(el=>el.attributes?.class==='explorer-map-edge-open');
+  assert.equal(edges.length,3,'triangle loop must not be reduced to a linear path');
+  assert.ok(edges.every(el=>el.attributes['stroke-dasharray']==='none'));
+});
+test('fullscreen map scroll respects the CSS frame without forcing SVG scaling',()=>{
+  const css=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/explorer-controls.css'),'utf8');
+  assert.match(css,/#explorerChoices\\.explorer-map-mode/);
+  assert.match(css,/height:var\\(--app-height,100dvh\\)!important/);
+  assert.match(css,/max-height:none!important/);
+  assert.match(css,/touch-action:pan-x pan-y/);
+  assert.match(css,/\.explorer-map-scroll svg\\{/);
 });
 test('MAP shows only inspected blocked seams with generic reason and no hidden endpoint',()=>{
   const r=runtime({map:{currentRoomId:'hall',entryRoomId:'hall',rooms:[
@@ -471,20 +522,20 @@ test('Core-confirmed Lucia enables communication even without a scenario NPC top
   const command=JSON.parse(r.calls[0][1]);assert.equal(command.kind,'TALK');assert.equal(command.targetId,'character:lucia:introduce');
 });
 
-test('world MAP displays Core-confirmed personal markers without triggering generation',()=>{
-  const r=runtime({runtime:'world-graph-v2',generationNeeded:false,map:{
+test('world MAP only shows Core-confirmed marks, no secret names or generation',()=>{
+  const r=runtime({runtime:'world-graph-v3',generationNeeded:false,map:{
     currentRoomId:'l0:r000',entryRoomId:'l0:r000',rooms:[
       {id:'l0:r000',name:'Vàng Úa',visited:true,marked:true,adjacentRoomIds:['l0:r009']},
-      {id:'l0:r009',name:'Chưa khám phá',visited:false,marked:false,adjacentRoomIds:[]}
+      {id:'l0:r009',name:'DO NOT REVEAL',visited:false,marked:false,adjacentRoomIds:[]}
     ]}});
   r.buttons[0].onclick();
   const svg=r.dialog.children[1].children[0].children[0];
-  const texts=svg.children.flatMap(g=>g.children||[]).map(el=>el.textContent||'');
-  assert.ok(texts.some(t=>t.includes('● ◆ Vàng Úa')));
-  assert.ok(texts.some(t=>t==='Chưa khám phá'));
+  const active=svg.children.find(el=>el.attributes?.['data-map-node']==='explored');
+  const hidden=svg.children.find(el=>el.attributes?.['data-map-node']==='locked');
+  assert.ok(active.children.some(el=>el.attributes?.class==='explorer-map-annotations'));
+  assert.equal(JSON.stringify(hidden).includes('DO NOT REVEAL'),false);
   assert.equal(r.calls.length,0);
 });
-
 
 test('FREE narrative steps never route through Core Item or scene actions',()=>{
   const java=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/MainActivity.java'),'utf8');
