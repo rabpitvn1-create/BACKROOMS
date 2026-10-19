@@ -54,7 +54,13 @@ class GameCoreFacade private constructor(
     val active = PlayerActionPresentation.journal(core)
     require(active == null || active.optString("status") == "complete" ||
       active.optString("status") == "stopped" || active.getJSONArray("events").length() == 0) { "player_narration_retry_required" }
-    val next = PlayerActionPresentation.begin(core, id, text)
+    // An unchanged draft after a zero-step planner failure is a retry of the
+    // same utterance. A completed turn or edited draft is a new deliberate turn.
+    val retryId = active?.takeIf {
+      it.getJSONArray("events").length() == 0 && it.optString("status") in setOf("failed", "running") &&
+        it.optString("playerText") == text
+    }?.getString("id") ?: id
+    val next = PlayerActionPresentation.begin(core, retryId, text)
     repository.save(next)
     return clientSnapshot(JSONObject(clientJson), next).toString()
   }

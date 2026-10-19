@@ -49,6 +49,20 @@ class PlayerActionPresentationTest {
     assertTrue(lines(view(core), "gm").isEmpty())
     assertEquals(before.copy(world = before.world + (PlayerActionPresentation.JOURNAL to repo.state.world.getValue(PlayerActionPresentation.JOURNAL))), repo.state)
   }
+  @Test fun unchangedDraftAfterZeroStepPlannerFailureIsOnePlayerTurnButEditedDraftIsNew() {
+    val (_, core) = fixture(); val raw = "  Quan sát quanh mình.  "
+    var display = JSONObject(core.beginPlayerPresentation("first", raw, "{}"))
+    core.finishPlayerPresentation(0, true, "Planner lỗi; chưa có bước thực hiện.", "", "planner_failure", true)
+    display = view(core, display)
+    display = JSONObject(core.beginPlayerPresentation("retry", raw, display.toString()))
+    assertEquals("first", display.getJSONObject("playerAction").getString("id"))
+    assertEquals(1, lines(display, "player").size)
+    core.finishPlayerPresentation(0, true, "Không xác định được hành động.", "", "planner_failure", false)
+    display = JSONObject(core.beginPlayerPresentation("edited", "Đánh dấu vị trí.", display.toString()))
+    assertEquals(2, lines(display, "player").size)
+    assertEquals("edited", display.getJSONObject("playerAction").getString("id"))
+  }
+
   @Test fun freeOnlyFailureAndSuccessfulRetryKeepOnePlayerAndOneMultilineGmWithoutGameplayChanges() {
     val (repo, core) = fixture(); val original = repo.state
     core.beginPlayerPresentation("free", "  Tôi gọi vào bóng tối.  ", "{}")
