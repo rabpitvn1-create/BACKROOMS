@@ -12,7 +12,8 @@ function fixture(t){
   t.after(()=>fs.rmSync(assets,{recursive:true,force:true}));
   for(const file of ['index.html','explorer-controls.js','explorer-controls.css','ui/ornate-frame-v1.css','ui/backrooms-reference-frame-v2.png','ui/industrial-crt-v1.css','ui/snapshot-tv.js',
     'ui/industrial-crt-v1/panel-frame.webp','ui/industrial-crt-v1/button-steel.webp',
-    'ui/industrial-crt-v1/button-hazard.webp','ui/industrial-crt-v1/surface-crt.webp','ui/industrial-crt-v1/paper-dossier.webp']){
+    'ui/industrial-crt-v1/button-hazard.webp','ui/industrial-crt-v1/surface-crt.webp','ui/industrial-crt-v1/paper-dossier.webp',
+    'ui/industrial-crt-v1/crt-glass-v3.webp','ui/industrial-crt-v1/tracking-v3.webp']){
     fs.mkdirSync(path.dirname(path.join(assets,file)),{recursive:true});
     fs.copyFileSync(path.join(source,file),path.join(assets,file));
   }
@@ -76,12 +77,13 @@ test('menu mirrors Core action confirmation/errors without changing menu or acti
 
 test('TV HUD survives native snapshot replacement once without touching state, Core or callbacks',()=>{
   const vm=require('node:vm'),script=fs.readFileSync(path.join(source,'ui/snapshot-tv.js'),'utf8');
-  let changed,observed;
+  let changed,observed,now=0;const intervals=[];
   const box={children:[],querySelector(){return this.children.find(n=>n.className==='snapshot-tv-hud')||null;},appendChild(node){this.children.push(node);}};
   const state={turn:12,log:[{role:'player',text:'Quan sát hành lang.'}],scene:{room:{id:'current'}}};
   const turn=()=>{};
   const ctx={state,backroomTurn:turn,Android:new Proxy({},{get(){throw Error('decorative HUD must not use Core bridge');}}),
-    document:{getElementById:id=>id==='snapshot'?box:null,body:{classList:{contains:()=>true}},createElement:()=>({setAttribute(k,v){this[k]=v;}})},
+    document:{getElementById:id=>id==='snapshot'?box:null,body:{classList:{contains:()=>true}},createElement:()=>({slots:{},setAttribute(k,v){this[k]=v;},querySelector(k){return this.slots[k]||(this.slots[k]={textContent:''});}})},
+    performance:{now:()=>now},setInterval:(fn,delay)=>intervals.push({fn,delay}),
     MutationObserver:class {constructor(fn){changed=fn;}observe(node,opts){observed=node;assert.deepEqual(Object.keys(opts),['childList']);}}};
   const before=JSON.stringify(state);vm.runInNewContext(script,ctx);
   assert.equal(observed,box);assert.equal(box.children.length,1);assert.equal(box.children[0]['aria-hidden'],'true');
@@ -91,10 +93,19 @@ test('TV HUD survives native snapshot replacement once without touching state, C
     box.children=[{className:'snapshot-bg'},{className:'snapshot-character'}];changed();changed();
     assert.equal(box.children.length,3);assert.equal(box.children.filter(n=>n.className==='snapshot-tv-hud').length,1);
   }
+  assert.equal(intervals.length,1,'one display clock per page, not per native redraw');
+  assert.equal(intervals[0].delay,1000);now=3661000;intervals[0].fn();
+  assert.equal(box.children[2].slots['[data-tv-tape-time]'].textContent,'61:01');
+  assert.equal(box.children[2].slots['[data-tv-view-time]'].textContent,'01:01:01');
   assert.equal(JSON.stringify(state),before);assert.equal(ctx.backroomTurn,turn);
 });
 
 test('APK contract rejects missing TV controller',t=>{
   const assets=fixture(t);fs.unlinkSync(path.join(assets,'ui/snapshot-tv.js'));
   const result=verify(assets);assert.notEqual(result.status,0);assert.match(result.stderr,/snapshot-tv.js/);
+});
+
+test('APK contract rejects missing CRT tracking texture',t=>{
+  const assets=fixture(t);fs.unlinkSync(path.join(assets,'ui/industrial-crt-v1/tracking-v3.webp'));
+  const result=verify(assets);assert.notEqual(result.status,0);assert.match(result.stderr,/tracking-v3.webp/);
 });

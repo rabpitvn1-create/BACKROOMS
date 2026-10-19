@@ -28,35 +28,45 @@ body.industrial-ui{
 }
 /* Keep #snapshot directly in the game grid: combat inserts Dice after it. */
 .industrial-ui .snapshot{
-  position:relative;isolation:isolate;height:clamp(190px,34svh,360px);
-  margin:8px 10px 6px;border:5px solid #030506;border-radius:18px!important;
+  position:relative;isolation:isolate;width:min(calc(100% - 20px),calc(42svh * 1.38));
+  height:auto;aspect-ratio:1.38;justify-self:center;
+  margin:8px 10px 6px;border:5px solid #030506;border-radius:12px!important;
   background:#080d0d;overflow:hidden;
   box-shadow:0 0 0 1px #34403f,inset 0 0 0 2px #000,0 5px 12px #0009
 }
 /* Glass reflection sits over scenery/characters, without scaling either image. */
 .industrial-ui .snapshot::before{
   content:'';position:absolute;inset:0;z-index:6;pointer-events:none;
-  border-radius:12px;background:linear-gradient(110deg,#d8e9d309,transparent 22%,transparent 80%,#0b130c19);
-  box-shadow:inset 0 0 12px 5px #0009,inset 0 0 2px 1px #73817344
+  border-radius:7px;
+  background:radial-gradient(ellipse at center,transparent 53%,#060b064d 83%,#000c 100%),
+    repeating-linear-gradient(0deg,#02070223 0 .5px,transparent .5px 2px);
+  box-shadow:inset 0 0 16px 5px #000b,inset 0 0 3px 1px #7c8a7155
 }
 /* A single low-opacity tracking band. No flashing, timers or gameplay updates. */
 .industrial-ui .snapshot::after{
   content:'';position:absolute;inset:0;z-index:7;pointer-events:none;border:0;
-  background:linear-gradient(transparent 48.8%,#dfe6d50a 49.3%,#e7f0df4d 49.8%,#f1f5e975 50%,transparent 50.5%);
-  opacity:.36;animation:tv-tracking-sweep 8s linear infinite;will-change:transform
+  background:url('industrial-crt-v1/tracking-v3.webp') center/100% auto no-repeat;
+  opacity:.82;animation:tv-tracking-sweep 7s linear infinite;animation-delay:-4.5s;will-change:transform
 }
 @keyframes tv-tracking-sweep{from{transform:translateY(-60%)}to{transform:translateY(60%)}}
 .industrial-ui .snapshot-tv-hud{
   position:absolute;inset:12px;z-index:8;pointer-events:none;color:#d8e2cc;
-  font:12px/1.1 monospace;text-shadow:1px 1px 2px #000,-1px 0 1px #0008;opacity:.82
+  font:12px/1.1 monospace;text-shadow:-.5px 0 #6dbdc555,.6px 0 #d37a7a55,0 1px 2px #000;opacity:.88
 }
 .industrial-ui .tv-play{position:absolute;left:0;top:0;letter-spacing:.04em}
 .industrial-ui .tv-rec{position:absolute;right:0;top:0;display:flex;align-items:center;gap:5px}
 .industrial-ui .tv-rec i{width:6px;height:6px;border-radius:50%;background:#b93032;box-shadow:0 0 4px #b9303266}
-.industrial-ui .tv-format{position:absolute;left:0;bottom:0;display:flex;align-items:center;gap:5px;font-size:10px}
-.industrial-ui .tv-channel{position:absolute;right:0;bottom:0;font-size:10px;letter-spacing:.05em}
-.industrial-ui .tv-tape{display:inline-block;width:17px;height:9px;border:1px solid currentColor;border-radius:2px;
-  background:radial-gradient(circle at 4px 4px,currentColor 1px,transparent 2px),radial-gradient(circle at 12px 4px,currentColor 1px,transparent 2px)}
+/* Mask the generated glass to its left reflection; the source center/right
+   stays outside the composite and cannot wash out scenery or characters. */
+.industrial-ui .tv-glass{
+  position:absolute;inset:-12px;z-index:-1;pointer-events:none;
+  background:url('industrial-crt-v1/crt-glass-v3.webp') center/100% 100% no-repeat;
+  opacity:.72;mask-image:linear-gradient(90deg,transparent 0%,#0009 5%,#000d 10%,#0005 19%,transparent 28%);
+  -webkit-mask-image:linear-gradient(90deg,transparent 0%,#0009 5%,#000d 10%,#0005 19%,transparent 28%)
+}
+.industrial-ui .tv-format{position:absolute;left:0;bottom:0;display:flex;align-items:center;gap:5px;font-size:11px}
+.industrial-ui .tv-channel{position:absolute;right:0;bottom:0;font-size:11px;letter-spacing:.05em}
+.industrial-ui .tv-rec-label{color:#ba4741}
 .industrial-ui .header-tools{display:flex;align-items:center;gap:9px;flex:none}
 .industrial-ui .crt-header-status{display:flex;align-items:center;gap:5px;color:#d8c491;font:10px/1 monospace;white-space:nowrap}
 .industrial-ui .crt-header-status svg{display:block;flex:none;fill:none;stroke:currentColor;stroke-width:1.3}
@@ -162,7 +172,7 @@ body.industrial-ui{
   .industrial-ui .game-menu-sheet .card{padding:20px 16px}
   .industrial-ui .log .text{font-size:15px}
 }
-@media(max-height:600px){.industrial-ui .snapshot{height:clamp(100px,28svh,160px)}}
+@media(max-height:600px){.industrial-ui .snapshot{width:min(calc(100% - 20px),calc(28svh * 1.38));height:auto}}
 
 /* Non-stretching rails also cover inherited frame consumers outside Explorer.
    Repeat preserves each source screw/tape segment's aspect ratio on both axes. */
