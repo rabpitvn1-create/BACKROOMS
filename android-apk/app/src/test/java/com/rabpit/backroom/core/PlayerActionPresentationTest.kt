@@ -90,7 +90,7 @@ class PlayerActionPresentationTest {
     val raw = "  Tôi đưa người lạ một chai Almond Water.  "
     val state = view()
       .put("scene", JSONObject().put("nodeId", "0").put("miniIndex", 1))
-    PlayerActionPresentation.complete(state, null, raw, "Ông ta đón lấy chai nước.\\nÔng khẽ cảm ơn.")
+    PlayerActionPresentation.complete(state, null, raw, "Ông ta đón lấy chai nước.\nÔng khẽ cảm ơn.")
     val log = state.getJSONArray("log")
     assertEquals(2, log.length())
     assertEquals(raw, log.getJSONObject(0).getString("text"))

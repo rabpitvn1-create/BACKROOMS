@@ -171,25 +171,20 @@ test('device controls use one popup, preserve Core commands and stay open across
   assert.equal(r.dialog.open,false,'Core completion automatically closes the device popup');
   assert.equal(r.ctx.backroomFreezeSnapshot,false,'completed mechanism resumes normal snapshot rendering');
 });
-test('Player Action runs Gehihi narration only after Core validates each MOVE/SEARCH step',()=>{
+test('Player Action commits Core facts before one Gehihi pass for the whole utterance',()=>{
   const java=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/MainActivity.java'),'utf8');
-  const helper=java.slice(java.indexOf('private String narrateStagedSceneAction('),
-    java.indexOf('private JSONObject parseModelJson(',java.indexOf('private String narrateStagedSceneAction(')));
   const player=java.slice(java.indexOf('@JavascriptInterface public void submitPlayerAction('),
     java.indexOf('@JavascriptInterface public void submitSceneAction('));
   const direct=java.slice(java.indexOf('@JavascriptInterface public void submitSceneAction('),
     java.indexOf('@JavascriptInterface public void submitTurn('));
-  assert.match(helper,/generateText\(sceneWriterPrompt\(\)\)/);
-  assert.match(helper,/ProviderResponseContract\.requireWriter\(reply\)/);
-  assert.match(helper,/canonBoundary\(sceneNode, reply\.getString\("reply"\)\)/);
-  assert.match(player,/deviceStep \? staged\.getString\("result"\) : narrateStagedSceneAction\(staged\)/);
-  assert.ok(player.indexOf('beginSceneAction(command.toString(), rawAction)') <
-    player.indexOf('narrateStagedSceneAction(staged)'));
-  assert.ok(player.indexOf('narrateStagedSceneAction(staged)') <
-    player.indexOf('commitSceneAction('));
+  assert.match(player,/PlayerActionPlan\.parse/);
+  assert.match(player,/staged\.getString\("result"\)/);
+  assert.match(player,/if \("FREE"\.equals\(kind\)\)/);
+  assert.match(player,/narrateMixedPlayerAction/);
+  assert.ok(player.indexOf('commitSceneAction(')<player.indexOf('String reply = narrateMixedPlayerAction('));
+  assert.match(player,/PlayerActionPresentation\.complete/);
   assert.match(player,/emit\("backroomTurn", requireGameCore\(\)\.currentClientState\(projection\)\)/);
   assert.match(direct,/narrateStagedSceneAction\(stagedEvent\)/);
-  assert.doesNotMatch(player,/if \(result\.isEmpty\(\)\) result = action\.getString\("label"\)/);
 });
 test('failed GM narration retries the persisted pending step, never the prior Player Action plan',()=>{
   const r=runtime();r.player.onclick();
