@@ -336,8 +336,10 @@ public final class EmulatorGameplayTest {
     assertEquals(originalItems.toString(),afterGm.getJSONArray("inventory").toString());
     assertFalse("GM action must commit once, without pending state",
       afterGm.getJSONObject("scene").has("pendingActionId"));
-    JSONArray log = afterGm.getJSONArray("log");
-    assertTrue("GM response was not added to Core log",log.length()>=logCount+2);
+    // The Core projection with {} contains only the latest receipt. The
+    // WebView presentation carries the whole visible journal across turns.
+    JSONArray log = new JSONObject(js("JSON.stringify(state)")).getJSONArray("log");
+    assertTrue("GM response was not added to the visible journal",log.length()>=logCount+2);
     String narrative = "";
     for(int i=log.length()-1;i>=logCount;i--){
       JSONObject item=log.optJSONObject(i);
