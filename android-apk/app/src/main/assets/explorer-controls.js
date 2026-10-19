@@ -44,7 +44,9 @@
   const heading=document.createElement('strong');heading.textContent='Chọn tương tác';
   const close=document.createElement('button');close.type='button';close.className='explorer-dialog-close';
   close.textContent='×';close.setAttribute('aria-label','Đóng lựa chọn');close.onclick=()=>dialog.close();
-  header.append(heading,close);
+  const mapSubtitle=document.createElement('span');
+  mapSubtitle.className='explorer-map-subtitle';mapSubtitle.hidden=true;
+  header.append(heading,close,mapSubtitle);
   const choices=document.createElement('div');choices.className='explorer-choice-list';
   const nextArea=document.createElement('section');nextArea.className='explorer-next-area-panel';nextArea.hidden=true;
   dialog.append(header,choices,nextArea);document.body.appendChild(dialog);
@@ -102,7 +104,10 @@
   global.backroomSceneWriterProvider=()=>{if(preparing)writerPending();};
   function locked(){return busy||batchBusy||coreUnavailable||!!state.pendingEncounter||!!(state.combat&&state.combat.active);}
   function showPopup(title){
-    heading.textContent=title;choices.replaceChildren();nextArea.replaceChildren();nextArea.hidden=true;
+    heading.textContent=title;
+    dialog.className=title==='MAP'?'explorer-map-mode':'';
+    mapSubtitle.hidden=true;mapSubtitle.textContent='';
+    choices.replaceChildren();nextArea.replaceChildren();nextArea.hidden=true;
     if(!dialog.open)dialog.showModal();
   }
   function sendPlayerAction(value){
@@ -210,64 +215,150 @@
   }
   function openMap(){
     activeMechanismId=null;showPopup('MAP');
+    heading.textContent='LEVEL 0';
     const map=state.scene?.map;
-    if(!map||!Array.isArray(map.rooms)||!map.rooms.length){
-      const p=document.createElement('p');p.textContent='Bản đồ đang được chuẩn bị.';choices.appendChild(p);return;
+    const rooms=Array.isArray(map?.rooms)?map.rooms:[];
+    const currentRoom=rooms.find(r=>r.id===map?.currentRoomId);
+    // Canon zone name is already public at the player's current location.
+    mapSubtitle.textContent=state.scene?.environment?.name||
+      state.scene?.room?.name||(currentRoom?.visited?currentRoom.name:'')||'';
+    mapSubtitle.hidden=!mapSubtitle.textContent;
+    if(!rooms.length){
+      const p=document.createElement('p');p.textContent='Bản đồ đang được chuẩn bị.';
+      choices.appendChild(p);return;
     }
-    const rooms=map.rooms,byId=new Map(rooms.map(r=>[r.id,r]));
+    const byId=new Map(rooms.map(r=>[r.id,r]));
     const root=byId.has(map.entryRoomId)?map.entryRoomId:rooms[0].id;
     const layers=[],depth=new Map([[root,0]]),queue=[root];
     while(queue.length){
       const id=queue.shift(),level=depth.get(id);
       if(!layers[level])layers[level]=[];
       layers[level].push(id);
-      (byId.get(id).adjacentRoomIds||[]).forEach(next=>{
-        if(byId.has(next)&&!depth.has(next)){depth.set(next,level+1);queue.push(next);}
+      (byId.get(id).adjacentRoomIds||[]).forEach(other=>{
+        if(byId.has(other)&&!depth.has(other)){
+          depth.set(other,level+1);queue.push(other);
+        }
       });
     }
-    // Disconnected frontier nodes are still represented; never fabricate edges.
-    rooms.forEach(r=>{if(!depth.has(r.id)){const level=layers.length;layers[level]=[r.id];depth.set(r.id,level);}});
-    const widest=Math.max(1,...layers.map(layer=>layer.length));
-    const width=Math.max(360,widest*190+40),height=layers.length*112+55;
+    // Only Core-published nodes and edges are drawn. Never invent a shortcut.
+    rooms.forEach(r=>{
+      if(!depth.has(r.id)){
+        const level=layers.length;layers[level]=[r.id];depth.set(r.id,level);
+      }
+    });
+    const cardWidth=196,cardHeight=138,xGap=240,yGap=192;
+    const width=Math.max(350,Math.max(...layers.map(layer=>layer.length))*xGap+80);
+    const height=Math.max(280,layers.length*yGap+90);
     const positions=new Map();
     layers.forEach((layer,y)=>layer.forEach((id,x)=>{
-      positions.set(id,{x:width/2+(x-(layer.length-1)/2)*190,y:60+y*112});
+      positions.set(id,{x:width/2+(x-(layer.length-1)/2)*xGap,y:98+y*yGap});
     }));
-    const sc=document.createElement('div');sc.className='explorer-map-scroll';
     const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg');
+    const svgEl=(tag,attrs)=>{
+      const el=document.createElementNS(ns,tag);
+      Object.entries(attrs||{}).forEach(([k,v])=>el.setAttribute(k,String(v)));
+      return el;
+    };
     svg.setAttribute('viewBox','0 0 '+width+' '+height);
     svg.setAttribute('width',String(width));svg.setAttribute('height',String(height));
-    svg.setAttribute('role','img');svg.setAttribute('aria-label','Sơ đồ nhánh các phòng đã phát hiện');
-    const edges=new Set();
-    rooms.forEach(r=>(r.adjacentRoomIds||[]).forEach(other=>{
-      if(!positions.has(other))return;
-      const key=[r.id,other].sort().join('|');if(edges.has(key))return;edges.add(key);
-      const a=positions.get(r.id),b=positions.get(other),line=document.createElementNS(ns,'line');
-      [['x1',a.x],['y1',a.y],['x2',b.x],['y2',b.y],['stroke','#ad9663'],['stroke-width','2']].forEach(([k,v])=>line.setAttribute(k,String(v)));
-      svg.appendChild(line);
+    svg.setAttribute('role','img');svg.setAttribute('aria-label','Đồ thị các phòng đã phát hiện và các lối chưa khám phá');
+    const defs=svgEl('defs'),seenEdges=new Set();
+    const snapshotIds=map.snapshots&&typeof map.snapshots==='object'?map.snapshots:{};
+    const assets=global.BackroomSnapshotAssets;
+    const fallback='file:///android_asset/level_snapshots/level_00__liminal_hall.webp';
+    function snapshot(r){
+      const identity=typeof snapshotIds[r.id]==='string'?snapshotIds[r.id]:null;
+      const file=identity&&assets?.environmentFile?.(identity);
+      return file?'file:///android_asset/level_snapshots/'+file:fallback;
+    }
+    rooms.forEach(r=>(r.adjacentRoomIds||[]).forEach(to=>{
+      if(!positions.has(to))return;
+      const key=[r.id,to].sort().join('|');
+      if(seenEdges.has(key))return;seenEdges.add(key);
+      const from=positions.get(r.id),dest=positions.get(to);
+      const unlocked=r.visited&&byId.get(to).visited;
+      svg.appendChild(svgEl('line',{
+        x1:from.x,y1:from.y,x2:dest.x,y2:dest.y,
+        stroke:unlocked?'#88b6a0':'#c0a26c','stroke-width':unlocked?3:2.8,
+        'stroke-dasharray':unlocked?'none':'10 8',
+        class:unlocked?'explorer-map-edge-open':'explorer-map-edge-locked'
+      }));
     }));
-    rooms.forEach(r=>{
+    rooms.forEach((r,index)=>{
       const pos=positions.get(r.id),current=r.id===map.currentRoomId;
-      const g=document.createElementNS(ns,'g');
-      const rect=document.createElementNS(ns,'rect');
-      [['x',pos.x-83],['y',pos.y-23],['width',166],['height',46],['rx',8],
-       ['fill',current?'#205e3d':r.visited?'#293334':'#20252a'],
-       ['stroke',current?'#b3ffc6':'#9d885a'],['stroke-width',current?3:1.5]].forEach(([k,v])=>rect.setAttribute(k,String(v)));
-      const label=document.createElementNS(ns,'text');
-      label.setAttribute('x',String(pos.x));label.setAttribute('y',String(pos.y+5));
-      label.setAttribute('text-anchor','middle');label.setAttribute('font-size','12');
-      label.setAttribute('fill',current?'#ecfff1':'#e3d4af');
-      label.textContent=(current?'● ':'')+(r.marked?'◆ ':'')+(r.traced?'✚ ':'')+(r.name||'Chưa khám phá').slice(0,24);
-      g.append(rect,label);svg.appendChild(g);
+      const left=pos.x-cardWidth/2,top=pos.y-cardHeight/2,visited=!!r.visited;
+      const clipId='explorer-map-node-clip-'+index;
+      const clip=svgEl('clipPath',{id:clipId});
+      clip.appendChild(svgEl('rect',{x:left,y:top,width:cardWidth,height:cardHeight,rx:9}));
+      defs.appendChild(clip);
+      const g=svgEl('g',{'data-map-node':visited?'explored':'locked'});
+      // Every rendered node has the exact snapshot of its Core environment.
+      g.appendChild(svgEl('rect',{x:left,y:top,width:cardWidth,height:cardHeight,rx:9,fill:'#111a1d'}));
+      g.appendChild(svgEl('image',{x:left,y:top,width:cardWidth,height:cardHeight,
+        href:snapshot(r),'preserveAspectRatio':'xMidYMid slice','clip-path':'url(#'+clipId+')'}));
+      if(!visited){
+        g.appendChild(svgEl('rect',{x:left,y:top,width:cardWidth,height:cardHeight,rx:9,
+          fill:'#03070a',opacity:'.79'}));
+        const lockX=pos.x,lockY=pos.y+2;
+        g.appendChild(svgEl('circle',{cx:lockX,cy:lockY,r:25,
+          fill:'#111920',stroke:'#b99b65','stroke-width':1.5}));
+        g.appendChild(svgEl('path',{d:'M'+(lockX-10)+' '+(lockY-3)+' v-8 a10 10 0 0 1 20 0 v8',
+          fill:'none',stroke:'#e8cc90','stroke-width':3,'stroke-linecap':'round'}));
+        g.appendChild(svgEl('rect',{x:lockX-13,y:lockY-4,width:26,height:21,rx:4,
+          fill:'#e8cc90'}));
+        g.appendChild(svgEl('circle',{cx:lockX,cy:lockY+5,r:2.6,fill:'#293037'}));
+      }else{
+        g.appendChild(svgEl('rect',{x:left,y:top+96,width:cardWidth,height:42,rx:0,
+          fill:'#081216',opacity:'.92'}));
+        const words=String(r.name||'').split(/\s+/),lines=[''];
+        words.forEach(word=>{
+          const previous=lines[lines.length-1];
+          if(previous&&previous.length+word.length+1>27&&lines.length<2)lines.push(word);
+          else lines[lines.length-1]=(previous?previous+' ':'')+word;
+        });
+        const label=svgEl('text',{x:pos.x,y:top+(lines.length>1?111:119),
+          'text-anchor':'middle','font-size':'12.5','font-weight':'700',
+          fill:'#f5e2b4',class:'explorer-map-room-label'});
+        lines.forEach((line,n)=>{
+          const t=svgEl('tspan',{x:pos.x,dy:n===0?0:15});t.textContent=line;label.appendChild(t);
+        });
+        g.appendChild(label);
+        if(r.marked||r.traced){
+          const marker=svgEl('text',{x:left+9,y:top+18,'font-size':'15',
+            fill:'#f4cf8d',class:'explorer-map-annotations'});
+          marker.textContent=(r.marked?'◆ ':'')+(r.traced?'✚':'');
+          g.appendChild(marker);
+        }
+      }
+      g.appendChild(svgEl('rect',{x:left,y:top,width:cardWidth,height:cardHeight,rx:9,
+        fill:'none',stroke:current?'#6ec9ff':visited?'#c5ad71':'#89704a',
+        'stroke-width':current?3.5:2}));
+      if(current){
+        // Google-Maps-like blue navigation disc with white direction arrow.
+        const cx=pos.x+cardWidth/2-10,cy=top+8;
+        const pin=svgEl('g',{'data-map-location':'cao-minh'});
+        pin.appendChild(svgEl('circle',{cx,cy,r:25,fill:'#1a73e8',opacity:'.23'}));
+        pin.appendChild(svgEl('circle',{cx,cy,r:18,fill:'#1a73e8',stroke:'#ffffff',
+          'stroke-width':3.2}));
+        pin.appendChild(svgEl('path',{d:'M'+cx+' '+(cy-11)+' L'+(cx-8)+' '+(cy+9)+
+          ' L'+cx+' '+(cy+5)+' L'+(cx+8)+' '+(cy+9)+' Z',fill:'#ffffff'}));
+        g.appendChild(pin);
+      }
+      svg.appendChild(g);
     });
+    svg.appendChild(defs);
+    const sc=document.createElement('div');sc.className='explorer-map-scroll';
+    sc.setAttribute('tabindex','0');
+    sc.setAttribute('aria-label','Bản đồ có thể cuộn ngang và dọc');
     sc.appendChild(svg);choices.appendChild(sc);
-    (Array.isArray(map.knownObstructions)?map.knownObstructions:[]).forEach(reason=>{
-      const p=document.createElement('p');p.className='explorer-map-obstruction';
-      p.textContent=String(reason);choices.appendChild(p);
-    });
     const legend=document.createElement('p');legend.className='explorer-map-legend';
-    legend.textContent='● Cao Minh · ◆ dấu bản đồ cá nhân · ✚ vết khắc thực tế · MAP chỉ để xem, di chuyển bằng Player Action.';
+    legend.textContent='Kéo để xem bản đồ · Nét đứt: chưa khám phá · ◆ Dấu cá nhân · ✚ Vết khắc';
     choices.appendChild(legend);
+    const here=positions.get(map.currentRoomId);
+    if(here){
+      sc.scrollLeft=Math.max(0,here.x-(sc.clientWidth||350)/2);
+      sc.scrollTop=Math.max(0,here.y-(sc.clientHeight||400)/2);
+    }
   }
   function refresh(){
     const scene=state&&state.scene,combat=!!(state&&state.combat&&state.combat.active);

@@ -166,3 +166,54 @@
   padding:10px 12px;margin:0 0 8px;
   border-left:2px solid #b59b65;background:#202829;color:#e5e1d5;line-height:1.5
 }
+
+
+/* Fullscreen Explorer MAP: the scrollable graph is flush with the ornate frame.
+   No SVG max-height scaling; users pan both directions without shrinking nodes. */
+#explorerChoices.explorer-map-mode{
+  position:fixed!important;inset:0!important;margin:0!important;
+  width:100vw!important;height:var(--app-height,100dvh)!important;
+  max-width:none!important;max-height:none!important;
+  padding:calc(8px + env(safe-area-inset-top)) 8px
+    calc(8px + env(safe-area-inset-bottom))!important;
+  border:12px solid transparent;
+  border-image:var(--ornate-frame) var(--ornate-slice) / 12px / 0 stretch;
+  display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box
+}
+#explorerChoices.explorer-map-mode .explorer-dialog-header{
+  flex:0 0 auto;display:grid;grid-template-columns:minmax(0,1fr) 44px;
+  grid-template-rows:auto auto;column-gap:10px;align-items:center;
+  margin:0 0 8px;padding:9px 10px 12px
+}
+#explorerChoices.explorer-map-mode .explorer-dialog-header>strong{
+  grid-column:1;grid-row:1;font-size:27px;line-height:1.15;
+  letter-spacing:.08em;color:#f1d59c
+}
+#explorerChoices.explorer-map-mode .explorer-dialog-close{
+  grid-column:2;grid-row:1/span 2;justify-self:end
+}
+#explorerChoices.explorer-map-mode .explorer-map-subtitle{
+  grid-column:1;grid-row:2;margin-top:5px;font-size:15px;
+  line-height:1.4;color:#d0d8d1;overflow-wrap:anywhere
+}
+#explorerChoices.explorer-map-mode .explorer-map-subtitle[hidden]{display:none}
+#explorerChoices.explorer-map-mode .explorer-choice-list{
+  display:flex;flex-direction:column;flex:1 1 auto;min-width:0;min-height:0;
+  max-height:none!important;padding:0;margin:0;overflow:hidden
+}
+#explorerChoices.explorer-map-mode .explorer-map-scroll{
+  display:block;flex:1 1 auto;min-width:0;min-height:0;width:100%;height:100%;
+  max-width:none;margin:0;padding:0;overflow:auto;
+  overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+  touch-action:pan-x pan-y;background:#0e171b
+}
+#explorerChoices.explorer-map-mode .explorer-map-scroll svg{
+  display:block;max-height:none!important;max-width:none!important;
+  flex:none
+}
+#explorerChoices.explorer-map-mode .explorer-map-legend{
+  flex:0 0 auto;margin:0;padding:8px 10px 4px;font-size:11px;
+  line-height:1.4;color:#ccb888;border-top:1px solid #5a5139;
+  background:#131b1e
+}
+#explorerChoices.explorer-map-mode .explorer-next-area-panel{display:none!important}

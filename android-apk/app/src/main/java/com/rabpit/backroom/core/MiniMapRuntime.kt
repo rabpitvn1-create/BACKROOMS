@@ -190,6 +190,7 @@ object MiniMapRuntime {
       // frontier stay hidden and no interaction/fact/solution enters MAP.
       val visited = MiniMapScenario.strings(p.optJSONArray("visitedRooms") ?: JSONArray()).toSet() + p.getString("roomId")
       val rooms = MiniMapScenario.objects(s.getJSONArray("rooms"))
+      val snapshotIds = JSONObject() // No hidden room names enter the map or planner.
       out.put("map", JSONObject().put("currentRoomId", p.getString("roomId"))
         .put("entryRoomId", s.getString("entryRoomId"))
         .put("rooms", JSONArray().apply {
@@ -198,7 +199,9 @@ object MiniMapRuntime {
             val known = roomId in visited
             val frontier = known || rooms.any { adjacent -> adjacent.getString("id") in visited &&
               roomId in MiniMapScenario.strings(adjacent.getJSONArray("adjacentRoomIds")) }
-            if (frontier) put(JSONObject().put("id", roomId)
+            if (frontier) {
+              snapshotIds.put(roomId, room.getString("environmentId"))
+              put(JSONObject().put("id", roomId)
               .put("name", if (known) room.getString("name") else "Chưa khám phá")
               .put("visited", known)
               .put("adjacentRoomIds", JSONArray(
@@ -206,8 +209,9 @@ object MiniMapRuntime {
                   it in visited || rooms.any { adjacent -> adjacent.getString("id") in visited &&
                     it in MiniMapScenario.strings(adjacent.getJSONArray("adjacentRoomIds")) }
                 } else emptyList<String>())))
+            }
           }
-        }))
+        }).put("snapshots", snapshotIds))
       // Internal sourceId exists only for deduplication and never enters WebView or AI context.
       out.put("areaLog", JSONArray().apply {
         MiniMapScenario.objects(p.optJSONArray("areaEvents") ?: JSONArray()).forEach { event ->

@@ -352,6 +352,7 @@ object WorldGraphRuntime {
     val g = p.getJSONObject(GRAPH); val current = p.getString("roomId")
     val rs = rooms(g); val e = environment(room(g, current), definition)
     val visited = strings(p.getJSONArray("visitedRooms")).toSet()
+    val snapshotIds = JSONObject() // Visuals only; never exported to the AI planner.
     val frontier = visited + rs.filter { it.getString("id") in visited }
       .flatMap { knownNeighbors(g, p, it.getString("id")) }
     // Inaccessible seams become visible only after inspection. Never include
@@ -383,13 +384,14 @@ object WorldGraphRuntime {
         .put("rooms", JSONArray().apply {
           rs.filter { it.getString("id") in frontier }.forEach { r ->
             val id = r.getString("id"); val known = id in visited
+            snapshotIds.put(id, r.getString("environmentId"))
             put(JSONObject().put("id", id).put("visited", known)
               .put("name", if (known) displayName(g, id, definition) else "Chưa khám phá")
               .put("marked", p.getJSONObject("markers").has(id))
               .put("traced", if (known) p.getJSONObject("environmentChanges").optJSONObject(id)?.optBoolean("trace") == true else false)
               .put("adjacentRoomIds", JSONArray(if (known) knownNeighbors(g, p, id) else emptyList<String>())))
           }
-        }))
+        }).put("snapshots", snapshotIds))
       .apply { state.world[MiniMapRuntime.PENDING]?.let { put("pendingActionId", JSONObject(it).getString("actionId")) } }
   }
 
