@@ -174,24 +174,42 @@ body.game-menu-open{overflow:hidden}
 <link rel="stylesheet" href="item-presentation.css">
 <link rel="stylesheet" href="explorer-controls.css">
 <style>
-.prologue-panel{margin:8px 10px;border:1px solid #8e7c50;background:#121a1d;color:#e6d9af}
-.prologue-panel>summary{padding:12px 16px;min-height:44px;box-sizing:border-box;cursor:pointer;font-weight:700;list-style:none}
-.prologue-panel>summary::-webkit-details-marker{display:none}
-.prologue-panel>summary::before{content:'＋';margin-right:10px;color:#e4c886}
-.prologue-panel[open]>summary::before{content:'−'}
-.prologue-panel>summary:focus-visible{outline:2px solid #e4c886;outline-offset:2px}
-.prologue-panel:not([open])>.prologue-body{display:none}
-.prologue-body{max-height:65vh;overflow:auto;padding:4px 16px 18px;white-space:pre-wrap;line-height:1.65;color:#d8ded8;overscroll-behavior:contain}
+/* The one-time offer overlays the snapshot and never adds a game-grid row. */
+#prologuePrompt{position:absolute;top:clamp(90px,22%,180px);left:18px;right:18px;z-index:35;
+  border:1px solid #d7b56f;border-radius:999px;background:linear-gradient(135deg,#c59a51,#8b642e 65%,#67451f);
+  box-shadow:0 8px 24px #0008,inset 0 1px 0 #f5dba266;color:#fff2ce}
+#prologuePrompt[hidden]{display:none!important}
+#prologueOpenButton{display:block;width:100%;min-height:64px;padding:16px 64px;border:0;
+  border-radius:999px!important;background:transparent;color:inherit;text-align:center;font-size:18px;font-weight:900;letter-spacing:.14em;touch-action:manipulation}
+#prologueDismissButton{position:absolute;right:7px;top:7px;width:50px;height:50px;min-height:44px;padding:0;
+  border:1px solid #f4d39066;border-radius:50%!important;background:#4b301d55;color:inherit;font-size:28px;line-height:1;touch-action:manipulation}
+#prologueOpenButton:focus-visible,#prologueDismissButton:focus-visible{outline:2px solid #fff2c1;outline-offset:3px}
+#prologueReader:not([open]){display:none!important}
+#prologueReader[open]{display:flex;flex-direction:column}
+#prologueReader{position:fixed;inset:12px;margin:auto;width:min(calc(100vw - 24px),760px);
+  height:min(calc(var(--app-height,100dvh) - 24px),900px);max-width:none;max-height:none;padding:0;
+  border:1px solid #b18a49;border-radius:18px!important;background:#141a1c;color:#e9e1cc;overflow:hidden}
+#prologueReader::backdrop{background:#000c}
+.prologue-reader-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid #8b6a3d}
+.prologue-reader-head h2{margin:0;font-size:18px;letter-spacing:.12em}
+#prologueReaderClose{width:44px;height:44px;padding:0;border-radius:50%!important;font-size:27px;background:#6b4c29;color:#fff0ca;border:1px solid #b18a49}
+#prologueReader .prologue-body{flex:1;min-height:0;overflow:auto;padding:18px;white-space:pre-wrap;line-height:1.7;overscroll-behavior:contain}
+#prologueReaderDone{flex:none;min-height:50px;margin:12px 16px 16px;border-radius:999px!important;border:1px solid #c9a45e;background:#8b642e;color:#fff0ca}
 </style>
 </head>
 <body>
 <main class="shell">
 <section class="game">
 <header class="topbar"><div><div class="eyebrow">BACKROOM TEXT GAME</div><h1 id="title"></h1><span class="turn-runtime">TURN <strong id="turn"></strong></span></div><button class="game-menu-trigger" id="gameMenuOpen" type="button" aria-label="Mở menu game" aria-haspopup="dialog" aria-controls="gameMenuModal" aria-expanded="false">☰</button></header>
-<details class="prologue-panel" id="prologuePanel">
-  <summary><span id="prologueToggleLabel">Đọc mở đầu</span></summary>
+<div id="prologuePrompt" aria-label="Đọc hoặc bỏ qua mở đầu" hidden>
+  <button type="button" id="prologueOpenButton" aria-haspopup="dialog" aria-controls="prologueReader">PROLOGUE</button>
+  <button type="button" id="prologueDismissButton" aria-label="Bỏ qua Prologue">×</button>
+</div>
+<dialog id="prologueReader" aria-labelledby="prologueReaderTitle">
+  <header class="prologue-reader-head"><h2 id="prologueReaderTitle">PROLOGUE</h2><button type="button" id="prologueReaderClose" aria-label="Đóng Prologue">×</button></header>
   <div class="prologue-body text" id="prologueBody" tabindex="0" aria-label="Nội dung mở đầu"></div>
-</details>
+  <button type="button" id="prologueReaderDone">Vào game</button>
+</dialog>
 <div class="snapshot" id="snapshot">SNAPSHOT — Android bản đầu chưa tạo ảnh tự động</div>
 <div class="log" id="log"></div>
 <div class="player-action-bar" id="playerActionBar" aria-label="Hành động của Cao Minh">
@@ -1590,17 +1608,46 @@ Và hắn sẽ đi tìm.`;
 
 // Optional reader content stays outside state/log, save and all provider payloads.
 function setupPrologue(){
-  const panel=document.getElementById('prologuePanel');
+  const prompt=document.getElementById('prologuePrompt');
+  const open=document.getElementById('prologueOpenButton');
+  const skip=document.getElementById('prologueDismissButton');
+  const reader=document.getElementById('prologueReader');
   const body=document.getElementById('prologueBody');
-  const label=document.getElementById('prologueToggleLabel');
-  if(!panel||!body||!label)return;
-  let loaded=false;
-  panel.addEventListener('toggle',()=>{
-    if(panel.open&&!loaded){body.textContent=prologue;loaded=true;}
-    label.textContent=panel.open?'Thu gọn mở đầu':'Đọc mở đầu';
+  const close=document.getElementById('prologueReaderClose');
+  const done=document.getElementById('prologueReaderDone');
+  if(!prompt||!open||!skip||!reader||!body||!close||!done)return null;
+  const key='backroom-prologue-offer';
+  let initialized=false,offered=false,dismissed=false,loaded=false;
+  function remember(value){try{localStorage.setItem(key,value);}catch(_){/* Keep the current-session choice if storage is unavailable. */}}
+  function dismiss(){offered=false;dismissed=true;prompt.hidden=true;remember('dismissed');}
+  function refresh(current){
+    if(!initialized){
+      let saved=null;try{saved=localStorage.getItem(key);}catch(_){}
+      dismissed=saved==='dismissed';
+      offered=!dismissed&&(saved==='pending'||(!saved&&current?.turn===1));
+      initialized=true;if(offered)remember('pending');
+    }
+    prompt.hidden=!offered||dismissed;
+  }
+  function reset(){
+    if(reader.open)reader.close();
+    initialized=true;offered=true;dismissed=false;prompt.hidden=false;remember('pending');
+  }
+  open.onclick=()=>{
+    if(prompt.hidden)return;
+    if(!loaded){body.textContent=prologue;loaded=true;}
+    if(!reader.open)reader.showModal();
+    dismiss(); // Choosing to read consumes the offer; closing never restores it.
+  };
+  skip.onclick=dismiss;
+  close.onclick=()=>reader.close();done.onclick=()=>reader.close();
+  reader.addEventListener('close',()=>{
+    const target=document.getElementById('explorerPlayerButton')||document.getElementById('gameMenuOpen');
+    if(target&&!target.disabled&&!target.hidden)target.focus?.();
   });
+  return {refresh,reset};
 }
-setupPrologue();
+const prologueControls=setupPrologue();
 
 const initial={canonVersion:"KNOWLEDGE-DB-SCHEMA-1",title:"Level 0 – The Lobby",level:{number:0,name:"The Lobby"},turn:1,
   mode:"Single Player: Hard Mode",
@@ -1661,7 +1708,7 @@ function semanticPrepareNextState(before,json){const next=JSON.parse(json),oldLe
 function normalizedSemanticSpans(entry){if(!entry||entry.role==="player")return [];if(entry.semanticVersion!==3||!Array.isArray(entry.semanticSpans)){entry.semanticSpans=semanticResolve(entry.text,state,state);entry.semanticVersion=3}const source=String(entry.text||""),spans=[];let cursor=0;entry.semanticSpans.forEach(raw=>{const start=Number(raw&&raw.start),end=Number(raw&&raw.end),kind=semanticKind(raw&&raw.kind);if(!kind||!Number.isInteger(start)||!Number.isInteger(end)||start<cursor||end<=start||end>source.length)return;spans.push({start,end,kind});cursor=end});return spans}
 function renderSemanticText(entry){const source=String(entry&&entry.text||"");if(!entry||entry.role==="player")return esc(source);const spans=normalizedSemanticSpans(entry);if(!spans.length)return esc(source);let out="",cursor=0;spans.forEach(span=>{if(span.start>cursor)out+=esc(source.slice(cursor,span.start));out+="<span class='gm-semantic gm-semantic-"+span.kind+"' data-semantic-kind='"+span.kind+"'>"+esc(source.slice(span.start,span.end))+"</span>";cursor=span.end});if(cursor<source.length)out+=esc(source.slice(cursor));return out}
 
-function levelHeader(s){if(s&&s.level&&s.level.name){const id=s.level.id!=null?s.level.id:s.level.number;if(s.level.kind==="AREA"||s.level.kind==="SPECIAL"||s.level.name==="Level "+id)return s.level.name;return "Level "+id+" – "+s.level.name;}const where=String(s&&s.location||"")+" "+String(s&&s.title||"");const m=where.match(/Level\s*([^\s\/—–-]+)\s*(?:\/|—|–|-)\s*([^—–\n]+?)(?:\s+[—–]\s+|$)/i);if(m)return "Level "+m[1]+" – "+m[2].trim();return s&&s.title||"Backrooms"}function render(){const readingOffset=logEl.scrollTop;titleEl.textContent=levelHeader(state);turnEl.textContent=state.turn;locationEl.textContent=state.location;modeEl.textContent=state.mode;playerEl.textContent=state.player?.name||"Cao Minh";partyEl.innerHTML=chips(state.party);if(inventoryEl)inventoryEl.innerHTML=chips(state.inventory);logEl.innerHTML=(state.log||[]).map(x=>{const w=x.role!=="player"&&String(x.text||"").trim().startsWith("[Warning]");return "<article class='message "+(x.role==="player"?"player":x.role==="core"?"core":"gm")+(w?" warning":"")+"'><div class='role'>"+(x.role==="player"?"BẠN":x.role==="core"?"CORE · KẾT QUẢ ĐÃ XÁC NHẬN":"GAME MASTER")+"</div><div class='text'>"+renderSemanticText(x)+"</div>"+(x.actionStatus?"<div class='action-status'>"+esc(x.actionStatus)+"</div>":"")+"</article>"}).join("");if(state.scene&&state.scene.runtime==='world-graph-v3')logEl.scrollTop=Math.min(readingOffset,logEl.scrollHeight);else logEl.scrollTop=logEl.scrollHeight;if(window.backroomRenderBattleStart)window.backroomRenderBattleStart();if(window.backroomRenderEncounteredCharacters)window.backroomRenderEncounteredCharacters()}
+function levelHeader(s){if(s&&s.level&&s.level.name){const id=s.level.id!=null?s.level.id:s.level.number;if(s.level.kind==="AREA"||s.level.kind==="SPECIAL"||s.level.name==="Level "+id)return s.level.name;return "Level "+id+" – "+s.level.name;}const where=String(s&&s.location||"")+" "+String(s&&s.title||"");const m=where.match(/Level\s*([^\s\/—–-]+)\s*(?:\/|—|–|-)\s*([^—–\n]+?)(?:\s+[—–]\s+|$)/i);if(m)return "Level "+m[1]+" – "+m[2].trim();return s&&s.title||"Backrooms"}function render(){prologueControls?.refresh(state);const readingOffset=logEl.scrollTop;titleEl.textContent=levelHeader(state);turnEl.textContent=state.turn;locationEl.textContent=state.location;modeEl.textContent=state.mode;playerEl.textContent=state.player?.name||"Cao Minh";partyEl.innerHTML=chips(state.party);if(inventoryEl)inventoryEl.innerHTML=chips(state.inventory);logEl.innerHTML=(state.log||[]).map(x=>{const w=x.role!=="player"&&String(x.text||"").trim().startsWith("[Warning]");return "<article class='message "+(x.role==="player"?"player":x.role==="core"?"core":"gm")+(w?" warning":"")+"'><div class='role'>"+(x.role==="player"?"BẠN":x.role==="core"?"CORE · KẾT QUẢ ĐÃ XÁC NHẬN":"GAME MASTER")+"</div><div class='text'>"+renderSemanticText(x)+"</div>"+(x.actionStatus?"<div class='action-status'>"+esc(x.actionStatus)+"</div>":"")+"</article>"}).join("");if(state.scene&&state.scene.runtime==='world-graph-v3')logEl.scrollTop=Math.min(readingOffset,logEl.scrollHeight);else logEl.scrollTop=logEl.scrollHeight;if(window.backroomRenderBattleStart)window.backroomRenderBattleStart();if(window.backroomRenderEncounteredCharacters)window.backroomRenderEncounteredCharacters()}
 const SAVE_KEY="backroom-apk-state";
 const SNAPSHOT_KEY="backroom-apk-snapshot";
 let destructiveAction="";
@@ -1731,8 +1778,10 @@ function resetGame(){
       if(response&&response.ok===true&&response.data)fresh.partyDetails=response.data;
       else throw new Error((response&&response.message)||'Core reset failed');
       state=fresh;
+      prologueControls?.reset();
       localStorage.removeItem(SNAPSHOT_KEY);
     }catch(e){statusEl.textContent="NEW GAME Core lỗi: "+(e&&e.message?e.message:"bridge error");return}
+    document.getElementById('gameMenuClose')?.click();
     render();
     if(persistPresentation())statusEl.textContent="NEW GAME đã tạo ở Turn 1. Nhấn Lưu để tạo điểm lưu thủ công.";
   });
@@ -1741,6 +1790,7 @@ function clearSave(){
   armDestructive("delete-save","Xóa save trên máy",()=>{
     if(!clearAuthoritativeCore())return;
     state=freshInitial();
+    prologueControls?.reset();
     try{localStorage.removeItem(SAVE_KEY);localStorage.removeItem(SNAPSHOT_KEY)}
     catch(e){statusEl.textContent="Core đã xóa; xóa bộ đệm giao diện thất bại: "+(e&&e.message?e.message:"storage error");render();return}
     render();

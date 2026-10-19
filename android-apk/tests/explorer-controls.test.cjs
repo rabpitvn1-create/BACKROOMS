@@ -5,7 +5,8 @@ const source=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/explore
 function runtime(scene={}){
   const elements={};
   function element(){
-    return {children:[],listeners:{},attributes:{},disabled:false,hidden:false,
+    return {children:[],listeners:{},attributes:{},disabled:false,hidden:false,scrollLeft:0,scrollTop:0,clientWidth:360,clientHeight:480,
+      getBoundingClientRect(){return {left:10,top:20};},
       append(...nodes){nodes.forEach(node=>{node.parent=this;this.children.push(node);});},
       appendChild(node){node.parent=this;this.children.push(node);},
       replaceChildren(...nodes){this.children=[];this.append(...nodes);},
@@ -221,7 +222,7 @@ test('fullscreen map scroll respects the CSS frame without forcing SVG scaling',
   assert.ok(css.includes('#explorerChoices.explorer-map-mode:not([open]){display:none!important}'),'closed fullscreen dialog cannot stay visible');
   assert.ok(css.includes('height:var(--app-height,100dvh)!important'));
   assert.ok(css.includes('max-height:none!important'));
-  assert.ok(css.includes('touch-action:pan-x pan-y'));
+  assert.ok(css.includes('touch-action:none'));
   assert.ok(css.includes('.explorer-map-scroll svg{'));
 });
 test('MAP shows only inspected blocked seams with generic reason and no hidden endpoint',()=>{
@@ -635,4 +636,65 @@ test('writer recovery uses stored utterance endpoint and never resubmits a commi
   assert.equal(r.calls.some(([type])=>type==='player'||type==='action'),false);
   const html=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/index.html'),'utf8');
   assert.match(html,/CORE · KẾT QUẢ ĐÃ XÁC NHẬN/);assert.match(html,/esc\(x.actionStatus\)/);
+});
+
+function mapZoomRuntime(){
+  const r=runtime({map:{currentRoomId:'a',entryRoomId:'a',rooms:[
+    {id:'a',name:'A',visited:true,adjacentRoomIds:['b','c']},
+    {id:'b',name:'B',visited:true,adjacentRoomIds:['a','c']},
+    {id:'c',name:'',visited:false,adjacentRoomIds:['a','b']}]}});
+  r.buttons[0].onclick();
+  const sc=r.dialog.children[1].children[0],svg=sc.children[0];
+  const [out,label,into,locate]=r.dialog.querySelectorAll('.explorer-map-zoom')[0].children;
+  const pointer=(kind,id,x,y,type='touch')=>sc.listeners[kind]({pointerId:id,clientX:x+10,clientY:y+20,pointerType:type,button:0});
+  return {...r,sc,svg,out,label,into,locate,pointer};
+}
+test('MAP buttons zoom about viewport center, clamp scale, recenter and preserve graph/state',()=>{
+  const r=mapZoomRuntime(),{sc,svg}=r,baseWidth=+svg.attributes.width,baseHeight=+svg.attributes.height;
+  const before=JSON.stringify(r.ctx.state),topology=JSON.stringify(svg.children,(k,v)=>k==='parent'?undefined:v),viewBox=svg.attributes.viewBox;
+  sc.scrollLeft=200;sc.scrollTop=300;r.into.onclick();
+  assert.equal(r.label.textContent,'125%');assert.equal(+svg.attributes.width,baseWidth*1.25);
+  assert.equal(+svg.attributes.height,baseHeight*1.25);
+  assert.equal(sc.scrollLeft,295);assert.equal(sc.scrollTop,435);
+  r.out.onclick();assert.equal(r.label.textContent,'100%');assert.equal(sc.scrollLeft,200);assert.equal(sc.scrollTop,300);
+  for(let i=0;i<30;i++)r.out.onclick();assert.equal(r.label.textContent,'10%');assert.equal(r.out.disabled,true);
+  for(let i=0;i<40;i++)r.into.onclick();assert.equal(r.label.textContent,'250%');assert.equal(r.into.disabled,true);
+  sc.scrollLeft=999;sc.scrollTop=999;r.locate.onclick();
+  const atMax={x:sc.scrollLeft,y:sc.scrollTop};r.out.onclick();r.locate.onclick();
+  assert.ok(sc.scrollLeft<atMax.x||sc.scrollTop<atMax.y,'Cao Minh recenter follows current zoom');
+  assert.equal(svg.attributes.viewBox,viewBox);assert.equal(JSON.stringify(svg.children,(k,v)=>k==='parent'?undefined:v),topology);
+  assert.equal(JSON.stringify(r.ctx.state),before);assert.equal(r.calls.length,0);
+});
+test('MAP wheel zoom anchors under cursor and one-finger/mouse drag still pans',()=>{
+  const r=mapZoomRuntime(),{sc,svg}=r,base=+svg.attributes.width;
+  sc.scrollLeft=200;sc.scrollTop=300;let prevented=0;
+  sc.listeners.wheel({clientX:110,clientY:140,deltaY:-100,deltaMode:0,preventDefault(){prevented++;}});
+  const scale=+svg.attributes.width/base;
+  assert.equal(prevented,1);assert.ok(scale>1);
+  assert.ok(Math.abs((sc.scrollLeft+100)/scale-300)<.001);
+  assert.ok(Math.abs((sc.scrollTop+120)/scale-420)<.001);
+  for(const type of ['touch','mouse']){
+    const left=sc.scrollLeft,top=sc.scrollTop;
+    r.pointer('pointerdown',1,200,200,type);r.pointer('pointermove',1,160,180,type);
+    assert.equal(sc.scrollLeft,left+40);assert.equal(sc.scrollTop,top+20);
+    r.pointer('pointerup',1,160,180,type);
+  }
+  assert.equal(r.calls.length,0);
+});
+test('MAP pinch zoom preserves midpoint, allows continued single-finger pan and suppresses drag click',()=>{
+  const r=mapZoomRuntime(),{sc,svg}=r,base=+svg.attributes.width;
+  sc.scrollLeft=200;sc.scrollTop=300;
+  r.pointer('pointerdown',1,100,100);r.pointer('pointerdown',2,200,100);
+  r.pointer('pointermove',2,300,100);
+  assert.equal(+svg.attributes.width/base,2);assert.equal(r.label.textContent,'200%');
+  assert.equal(sc.scrollLeft,500);assert.equal(sc.scrollTop,700); // world midpoint (350,400), new midpoint (200,100)
+  r.pointer('pointerup',2,300,100);r.pointer('pointermove',1,80,90);
+  assert.equal(sc.scrollLeft,520);assert.equal(sc.scrollTop,710,'no jump on two-to-one finger transition');
+  r.pointer('pointercancel',1,80,90);r.pointer('pointermove',1,10,10);
+  assert.equal(sc.scrollLeft,520,'canceled finger cannot continue a stale drag');
+  let prevented=0,stopped=0;
+  const click={detail:1,preventDefault(){prevented++;},stopPropagation(){stopped++;}};
+  sc.listeners.click(click);assert.equal(prevented,1);assert.equal(stopped,1);
+  r.pointer('pointerdown',3,80,90);r.pointer('pointerup',3,80,90);sc.listeners.click(click);
+  assert.equal(prevented,1,'an ordinary node tap is still delivered');assert.equal(r.calls.length,0);
 });

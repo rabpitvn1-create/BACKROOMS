@@ -465,17 +465,77 @@
     svg.appendChild(defs);
     const sc=document.createElement('div');sc.className='explorer-map-scroll';
     sc.setAttribute('tabindex','0');
-    sc.setAttribute('aria-label','Bản đồ có thể cuộn ngang và dọc');
+    sc.setAttribute('aria-label','Bản đồ có thể kéo và thu phóng');
     sc.appendChild(svg);choices.appendChild(sc);
-    // Native touch pan plus mouse/pen dragging; no graph-wide scale-to-fit.
-    let drag=null;
-    sc.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'||e.button!==0)return;
-      drag={x:e.clientX,y:e.clientY,left:sc.scrollLeft,top:sc.scrollTop};sc.setPointerCapture?.(e.pointerId);});
-    sc.addEventListener('pointermove',e=>{if(!drag)return;
-      sc.scrollLeft=drag.left+drag.x-e.clientX;sc.scrollTop=drag.top+drag.y-e.clientY;});
-    sc.addEventListener('pointerup',()=>{drag=null;});sc.addEventListener('pointercancel',()=>{drag=null;});
+    const toolbar=document.createElement('div');toolbar.className='explorer-map-zoom';
+    toolbar.setAttribute('role','group');toolbar.setAttribute('aria-label','Thu phóng bản đồ');
+    const zoomOut=document.createElement('button'),zoomIn=document.createElement('button');
+    const zoomLabel=document.createElement('output'),locate=document.createElement('button');
+    zoomOut.type=zoomIn.type=locate.type='button';
+    zoomOut.textContent='−';zoomOut.setAttribute('aria-label','Thu nhỏ bản đồ');
+    zoomIn.textContent='+';zoomIn.setAttribute('aria-label','Phóng to bản đồ');
+    zoomLabel.setAttribute('aria-live','polite');zoomLabel.setAttribute('aria-label','Mức thu phóng');
+    locate.textContent='Cao Minh';locate.setAttribute('aria-label','Căn vào vị trí Cao Minh');
+    toolbar.append(zoomOut,zoomLabel,zoomIn,locate);choices.appendChild(toolbar);
+    let zoom=1;
+    const minZoom=.1,maxZoom=2.5;
+    const viewport=()=>({x:sc.clientWidth/2,y:sc.clientHeight/2});
+    function setZoom(value,anchor=viewport(),world){
+      const next=Math.max(minZoom,Math.min(maxZoom,value));
+      const point=world||{x:(sc.scrollLeft+anchor.x)/zoom,y:(sc.scrollTop+anchor.y)/zoom};
+      zoom=next;
+      // Resize the SVG itself so scroll extents and all edges/pins follow its viewBox.
+      svg.setAttribute('width',width*zoom);svg.setAttribute('height',height*zoom);
+      sc.scrollLeft=Math.max(0,point.x*zoom-anchor.x);
+      sc.scrollTop=Math.max(0,point.y*zoom-anchor.y);
+      zoomLabel.textContent=Math.round(zoom*100)+'%';
+      zoomOut.disabled=zoom<=minZoom;zoomIn.disabled=zoom>=maxZoom;
+    }
+    zoomLabel.textContent='100%';
+    zoomOut.onclick=()=>setZoom(zoom/1.25);zoomIn.onclick=()=>setZoom(zoom*1.25);
+    const localPoint=e=>{const rect=sc.getBoundingClientRect();return {x:e.clientX-rect.left,y:e.clientY-rect.top};};
+    sc.addEventListener('wheel',e=>{
+      e.preventDefault();
+      const delta=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?sc.clientHeight:1);
+      setZoom(zoom*Math.exp(-Math.max(-100,Math.min(100,delta))*.002),localPoint(e));
+    },{passive:false});
+    // Own both one-finger pan and two-finger pinch; browser page zoom stays outside MAP.
+    const pointers=new Map();let gesture=null,moved=false;
+    function startGesture(){
+      const points=[...pointers.values()];
+      if(points.length>=2){
+        const [a,b]=points,mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2};
+        gesture={distance:Math.max(1,Math.hypot(a.x-b.x,a.y-b.y)),zoom,
+          world:{x:(sc.scrollLeft+mid.x)/zoom,y:(sc.scrollTop+mid.y)/zoom}};
+        moved=true;
+      }else gesture=points.length?{point:points[0],left:sc.scrollLeft,top:sc.scrollTop}:null;
+    }
+    sc.addEventListener('pointerdown',e=>{
+      if(e.pointerType!=='touch'&&e.button!==0)return;
+      if(!pointers.size)moved=false;
+      pointers.set(e.pointerId,localPoint(e));sc.setPointerCapture?.(e.pointerId);startGesture();
+    });
+    sc.addEventListener('pointermove',e=>{
+      if(!pointers.has(e.pointerId)||!gesture)return;
+      pointers.set(e.pointerId,localPoint(e));
+      const points=[...pointers.values()];
+      if(points.length>=2){
+        const [a,b]=points,mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2};
+        setZoom(gesture.zoom*Math.hypot(a.x-b.x,a.y-b.y)/gesture.distance,mid,gesture.world);
+      }else{
+        const dx=gesture.point.x-points[0].x,dy=gesture.point.y-points[0].y;
+        if(Math.hypot(dx,dy)>5)moved=true;
+        sc.scrollLeft=gesture.left+dx;sc.scrollTop=gesture.top+dy;
+      }
+    });
+    const endPointer=e=>{pointers.delete(e.pointerId);startGesture();};
+    sc.addEventListener('pointerup',endPointer);sc.addEventListener('pointercancel',endPointer);
+    sc.addEventListener('lostpointercapture',endPointer);
+    sc.addEventListener('click',e=>{
+      if(moved&&e.detail!==0){e.preventDefault();e.stopPropagation();moved=false;}
+    },true);
     const legend=document.createElement('p');legend.className='explorer-map-legend';
-    legend.textContent='Kéo để xem · Chọn phòng để theo đường nối · Mũi tên: một chiều · Nét đứt: chưa khám phá · ◆ Dấu cá nhân · ✚ Vết khắc';
+    legend.textContent='Kéo để xem · Hai ngón/con lăn để zoom · Chọn phòng để theo đường nối · Mũi tên: một chiều · Nét đứt: chưa khám phá · ◆ Dấu cá nhân · ✚ Vết khắc';
     choices.appendChild(legend);
     // Keep Core-approved obstruction notes outside the graph, never on a node.
     (Array.isArray(map.knownObstructions)?map.knownObstructions:[]).forEach(reason=>{
@@ -484,9 +544,9 @@
     });
     const here=positions.get(currentId);
     const centre=()=>{if(here){
-      sc.scrollLeft=Math.max(0,here.x-(sc.clientWidth||350)/2);
-      sc.scrollTop=Math.max(0,here.y-(sc.clientHeight||400)/2);
-    }};centre();if(global.requestAnimationFrame)global.requestAnimationFrame(centre);
+      sc.scrollLeft=Math.max(0,here.x*zoom-(sc.clientWidth||350)/2);
+      sc.scrollTop=Math.max(0,here.y*zoom-(sc.clientHeight||400)/2);
+    }};locate.onclick=centre;centre();if(global.requestAnimationFrame)global.requestAnimationFrame(centre);
   }
   function refresh(){
     const scene=state&&state.scene,combat=!!(state&&state.combat&&state.combat.active);
