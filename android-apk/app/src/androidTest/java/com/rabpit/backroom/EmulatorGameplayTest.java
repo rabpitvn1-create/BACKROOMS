@@ -196,6 +196,23 @@ public final class EmulatorGameplayTest {
     assertTrue("Empty screenshot: " + name, file.length() > 10000);
   }
 
+  /** Wait for Android's screenshot compositor, not merely a DOM-open flag.
+   * Old CI reported PASS while 01-game-start and 02-fullscreen-map were
+   * byte-identical despite the map being logically open. */
+  private void screenshotChangedFrom(String previous, String current) throws Exception {
+    File baseline = new File(evidence, previous + ".png");
+    assertTrue("Missing baseline screenshot: " + previous, baseline.isFile());
+    byte[] original = Files.readAllBytes(baseline.toPath());
+    for (int retry = 0; retry < 7; retry++) {
+      screenshot(current);
+      byte[] actual = Files.readAllBytes(new File(evidence, current + ".png").toPath());
+      if (!java.util.Arrays.equals(original, actual)) return;
+      Thread.sleep(450);
+    }
+    fail("Screen did not visually change from " + previous + " to " + current +
+      "; WebView DOM assertions alone are insufficient");
+  }
+
   private JSONObject coreState(GameCoreFacade core) throws Exception {
     return new JSONObject(core.currentClientState("{}"));
   }
@@ -260,7 +277,7 @@ public final class EmulatorGameplayTest {
     assertEquals(1, map.getInt("position"));
     assertTrue(map.getInt("dashed") > 0);
     assertTrue(map.getBoolean("scrollable"));
-    screenshot("02-fullscreen-map");
+    screenshotChangedFrom("01-game-start", "02-fullscreen-map");
     report.put("map", map);
 
     click("document.querySelector('#explorerChoices button[aria-label=\"Đóng lựa chọn\"]')");
