@@ -196,8 +196,9 @@ body.game-menu-open{overflow:hidden}
 #prologueReader .prologue-body{flex:1;min-height:0;overflow:auto;padding:18px;white-space:pre-wrap;line-height:1.7;overscroll-behavior:contain}
 #prologueReaderDone{flex:none;min-height:50px;margin:12px 16px 16px;border-radius:999px!important;border:1px solid #c9a45e;background:#8b642e;color:#fff0ca}
 </style>
+<link rel="stylesheet" href="ui/industrial-crt-v1.css">
 </head>
-<body>
+<body class="industrial-ui">
 <main class="shell">
 <section class="game">
 <header class="topbar"><div><div class="eyebrow">BACKROOM TEXT GAME</div><h1 id="title"></h1><span class="turn-runtime">TURN <strong id="turn"></strong></span></div><button class="game-menu-trigger" id="gameMenuOpen" type="button" aria-label="Mở menu game" aria-haspopup="dialog" aria-controls="gameMenuModal" aria-expanded="false">☰</button></header>
@@ -228,7 +229,7 @@ body.game-menu-open{overflow:hidden}
 <div class="game-menu-modal" id="gameMenuModal" hidden aria-hidden="true">
   <div class="game-menu-backdrop" id="gameMenuBackdrop"></div>
   <section class="game-menu-sheet" role="dialog" aria-modal="true" aria-labelledby="gameMenuTitle">
-    <div class="game-menu-head"><h2 id="gameMenuTitle">GAME MENU</h2><button class="game-menu-close" id="gameMenuClose" type="button" aria-label="Đóng">×</button></div>
+    <div class="game-menu-head"><div><h2 id="gameMenuTitle">GAME MENU</h2><p class="menu-kicker">HỒ SƠ SINH TỒN</p></div><button class="game-menu-close" id="gameMenuClose" type="button" aria-label="Đóng">×</button></div>
     <aside class="side">
 <section class="card" id="explorerMenuTools" hidden aria-labelledby="explorerMenuToolsTitle">
   <h2 id="explorerMenuToolsTitle">Khám phá</h2>
@@ -245,7 +246,7 @@ body.game-menu-open{overflow:hidden}
   <details open><summary>Manh mối và lời khai</summary><div id="sceneJournalRecords"></div></details>
   <div class="scene-inference"><strong>Suy luận tạm thời</strong><p id="sceneJournalInference" aria-live="polite"></p></div>
 </section>
-<div class="card"><h2>Trạng thái</h2><div class="row"><b>Vị trí</b><span id="location"></span></div><div class="row"><b>Chế độ</b><span id="mode"></span></div><div class="row"><b>Nhân vật</b><span id="player"></span></div></div>
+<div class="card menu-dossier"><h2>Hồ sơ sinh tồn</h2><div class="row"><b>Nhân vật</b><span id="player"></span></div><div class="row"><b>Vị trí</b><span id="location"></span></div><div class="row"><b>Chế độ</b><span id="mode"></span></div></div>
 <div class="card"><h2>Save / Load</h2><div class="actions"><button type="button" id="saveButton" onclick="save()">Lưu</button><button type="button" id="loadButton" onclick="load()">Tải</button><button type="button" id="newGameButton" class="wide" onclick="resetGame()">Bắt đầu lại từ đầu</button><button type="button" id="deleteSaveButton" class="wide danger" onclick="clearSave()">Xóa save trên máy</button></div></div>
 <div class="card"><h2>Chẩn đoán lỗi</h2>
   <p class="diagnostic-note">Xuất trạng thái Game Core, Combat, lịch sử lượt, lỗi JavaScript và timeline API thành file JSON cho AI phân tích. File chỉ lưu vào vị trí anh chọn.</p>
@@ -274,6 +275,7 @@ body.game-menu-open{overflow:hidden}
   <div class="character-section"><h3>Kho vật phẩm</h3><div class="inventory-capacity" id="characterInventoryCapacity">0 / 9 loại vật phẩm</div><div class="inventory-limit">Số loại vật phẩm đang mang, không tính trang bị</div><div class="chips" id="characterInventoryItems"></div></div>
 </div>
 </aside>
+    <p id="gameMenuFeedback" class="menu-feedback" role="status" aria-live="polite" hidden></p>
   </section>
 </div>
 </main>
@@ -2262,6 +2264,11 @@ function selected(){const id=view&&view.dataset.characterId||'cao_minh';return m
 (function(){
   "use strict";
   var menu=document.getElementById("gameMenuModal"),open=document.getElementById("gameMenuOpen");
+  // Surface the existing confirmation/error text inside the menu that owns these actions.
+  var feedback=document.getElementById("gameMenuFeedback"),status=document.getElementById("status");
+  function syncMenuFeedback(){feedback.textContent=status.textContent;feedback.hidden=!feedback.textContent.trim();}
+  new MutationObserver(syncMenuFeedback).observe(status,{childList:true,subtree:true,characterData:true});
+  syncMenuFeedback();
   function closeMenu(){
     menu.hidden=true;menu.setAttribute("aria-hidden","true");open.setAttribute("aria-expanded","false");document.body.classList.remove("game-menu-open");
   }

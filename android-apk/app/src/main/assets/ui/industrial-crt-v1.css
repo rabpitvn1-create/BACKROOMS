@@ -1,0 +1,150 @@
+/* Generated raster surfaces, live HTML labels and state. No gameplay data here.
+   Asset URLs resolve relative to this stylesheet, including custom properties. */
+body.industrial-ui{
+  --industrial-frame:url('industrial-crt-v1/panel-frame.webp');
+  --industrial-steel:url('industrial-crt-v1/button-steel.webp');
+  --industrial-hazard:url('industrial-crt-v1/button-hazard.webp');
+  --industrial-crt:url('industrial-crt-v1/surface-crt.webp');
+  --industrial-paper:url('industrial-crt-v1/paper-dossier.webp');
+  --ornate-frame:var(--industrial-frame);--ornate-slice:80;
+  background:#0c100f;color:#eeddb5
+}
+.industrial-ui #explorerControls,.industrial-ui #explorerChoices{
+  --ornate-frame:var(--industrial-frame);--ornate-slice:80
+}
+.industrial-ui .game,.industrial-ui .shell{background:#0c100f}
+.industrial-ui .topbar{
+  padding:10px max(14px,env(safe-area-inset-right)) 10px max(14px,env(safe-area-inset-left));
+  align-items:center;background-image:linear-gradient(90deg,#080c0dd9,#080c0d66),var(--industrial-crt);
+  background-size:auto,512px 512px;border-bottom:1px solid #786a43
+}
+.industrial-ui .topbar .eyebrow{font-size:10px;color:#c9bea0;letter-spacing:.05em}
+.industrial-ui .topbar h1{font-size:clamp(18px,4.8vw,24px);color:#f4cf77;text-shadow:0 0 12px #bf8b293d}
+.industrial-ui .game-menu-trigger,.industrial-ui .game-menu-close{
+  width:48px;height:48px;min-width:48px;flex-basis:48px;padding:0;
+  border:10px solid transparent;border-image:var(--industrial-steel) 70 fill / 12px / 0 stretch;
+  border-radius:8px!important;background:transparent;color:#f8e4ae;font-size:25px;
+  box-shadow:0 3px 7px #0008
+}
+.industrial-ui .snapshot{
+  position:relative;isolation:isolate;height:clamp(190px,34svh,360px);
+  margin:8px 10px 6px;border:0;border-radius:10px!important;background:#111711;
+  box-shadow:0 5px 12px #0009
+}
+.industrial-ui .snapshot::after{
+  content:'';position:absolute;inset:0;z-index:6;
+  border:14px solid transparent;border-image:var(--industrial-frame) 80 / 14px / 0 stretch;
+  pointer-events:none
+}
+/* A neutral viewfinder, without fictional recording/battery/time telemetry. */
+.industrial-ui .snapshot::before{
+  content:'';position:absolute;inset:23px;z-index:5;pointer-events:none;
+  background:linear-gradient(#dac483,#dac483) left top/23px 1px no-repeat,
+    linear-gradient(#dac483,#dac483) left top/1px 23px no-repeat,
+    linear-gradient(#dac483,#dac483) right top/23px 1px no-repeat,
+    linear-gradient(#dac483,#dac483) right top/1px 23px no-repeat,
+    linear-gradient(#dac483,#dac483) left bottom/23px 1px no-repeat,
+    linear-gradient(#dac483,#dac483) left bottom/1px 23px no-repeat,
+    linear-gradient(#dac483,#dac483) right bottom/23px 1px no-repeat,
+    linear-gradient(#dac483,#dac483) right bottom/1px 23px no-repeat;opacity:.65
+}
+.industrial-ui .log{padding:6px 10px 10px;gap:12px;scrollbar-color:#75674a #101512}
+.industrial-ui .log .message.gm,.industrial-ui .log .message.player,.industrial-ui .log .message.core{
+  position:relative;isolation:isolate;border:0;padding:21px 22px 24px;
+  background-color:#101611;background-image:linear-gradient(#09100a55,#09100a55),var(--industrial-crt);
+  background-size:auto,512px 512px;color:#f0dfbb;box-shadow:0 5px 10px #0006
+}
+.industrial-ui .log .message.player{background-image:linear-gradient(#29313bdd,#1b242ddd),var(--industrial-crt)}
+.industrial-ui .log .message.core{background-image:linear-gradient(#2c230bba,#231d0caa),var(--industrial-crt)}
+.industrial-ui .log .message::after,.industrial-ui .game-menu-sheet .card::after,
+.industrial-ui .character-section::after{
+  content:'';position:absolute;inset:0;z-index:3;
+  border:12px solid transparent;border-image:var(--industrial-frame) 80 / 12px / 0 stretch;
+  pointer-events:none
+}
+.industrial-ui .log .message .role{color:#f3be66;font-size:13px;letter-spacing:.025em;margin:0 0 9px}
+.industrial-ui .log .message.player .role{color:#c6d6dc}
+.industrial-ui .log .message.core .role{color:#dfc88c}
+.industrial-ui .log .text{font-size:16px;line-height:1.65;overflow-wrap:anywhere}
+.industrial-ui .log .message.warning{background:#281d0d;color:#ffe0a6}
+.industrial-ui #playerActionBar{background:#0e1414}
+.industrial-ui #explorerControls{padding:8px 10px 10px;border:0;background:linear-gradient(#0c1112c9,#0c1112c9),var(--industrial-crt);box-shadow:0 -6px 16px #0006}
+.industrial-ui #explorerControls .explorer-buttons{gap:8px}
+.industrial-ui #explorerControls .explorer-control-slot::after,
+.industrial-ui #explorerControls .explorer-action-slot::after{content:none}
+.industrial-ui #explorerControls .explorer-buttons button{
+  min-height:56px;padding:4px 2px;border:10px solid transparent;
+  border-image:var(--industrial-steel) 70 fill / 13px / 0 stretch;
+  border-radius:8px!important;background:transparent;text-align:center;color:#ffedb3;
+  font-size:clamp(12px,3.6vw,17px);font-weight:800;text-shadow:0 1px 3px #000
+}
+.industrial-ui #explorerControls .explorer-action-slot{margin-top:8px}
+.industrial-ui #explorerControls #explorerPlayerButton{
+  min-height:64px;padding:5px 12px;border:11px solid transparent;
+  border-image:var(--industrial-hazard) 70 fill / 15px / 0 stretch;
+  border-radius:9px!important;background:transparent;color:#211607;font-size:20px;
+  font-weight:900;text-shadow:0 1px 0 #ffdf7d88
+}
+.industrial-ui #explorerControls button:disabled{opacity:.45}
+.industrial-ui #explorerControls .explorer-retry-danger,
+.industrial-ui #newGameButton,.industrial-ui #deleteSaveButton{
+  border:10px solid transparent!important;
+  border-image:var(--industrial-hazard) 70 / 11px / 0 stretch!important;
+  background:linear-gradient(#843631,#481b1b)!important;color:#fff0d4!important;
+  min-height:56px;text-shadow:0 1px 2px #1f0707
+}
+.industrial-ui .game-menu-modal{align-items:center;padding:6px}
+.industrial-ui .game-menu-modal .game-menu-sheet{
+  width:min(100%,680px);max-height:calc(var(--app-height,100dvh) - 12px);
+  padding:10px 8px max(12px,env(safe-area-inset-bottom));
+  border:12px solid transparent;border-image:var(--industrial-frame) 80 / 12px / 0 stretch;
+  border-radius:10px!important;background-color:#10150f;background-image:var(--industrial-crt);
+  background-size:512px 512px;background-origin:border-box;scrollbar-color:#75674a #101512
+}
+.industrial-ui .game-menu-sheet .game-menu-head{
+  top:-10px;margin:-10px -8px 12px;padding:12px 10px;z-index:5;
+  background:#11150f var(--industrial-crt) center/512px 512px;border-bottom:1px solid #726343
+}
+.industrial-ui .game-menu-head h2{font-size:clamp(23px,6vw,30px);letter-spacing:.04em;color:#ffd477;text-shadow:0 0 10px #cf9f3955}
+.industrial-ui .menu-kicker{margin:4px 0 0;font-size:10px;color:#bcaf86;letter-spacing:.06em}
+.industrial-ui .game-menu-sheet .side{gap:12px}
+.industrial-ui .game-menu-sheet .card,.industrial-ui .character-section{
+  position:relative;isolation:isolate;min-width:0;padding:20px 18px 22px;
+  border:0;background:#10150e var(--industrial-crt) center/512px 512px;color:#e7d9b8
+}
+.industrial-ui .game-menu-sheet .card h2{color:#f3c576;font-size:16px;letter-spacing:.015em;margin:0 0 12px}
+.industrial-ui .game-menu-sheet .card.menu-dossier{
+  order:-1;background:#d5bd8c var(--industrial-paper) center/cover;color:#30251b
+}
+.industrial-ui .game-menu-sheet .menu-dossier h2{color:#48311c}
+.industrial-ui .menu-dossier .row{grid-template-columns:76px minmax(0,1fr);border-bottom:1px solid #6a503a40;color:#30251b}
+.industrial-ui .menu-dossier .row b{color:#604b32}
+.industrial-ui .menu-dossier #player{font-size:17px;font-weight:800}
+.industrial-ui .game-menu-sheet .actions button,.industrial-ui #explorerCasebook{
+  min-height:52px;padding:5px 8px;border:10px solid transparent;
+  border-image:var(--industrial-steel) 70 fill / 12px / 0 stretch;
+  background:transparent;color:#fff0bf;text-align:center;text-shadow:0 1px 3px #000
+}
+.industrial-ui .game-menu-sheet .diagnostic-note{font-size:13px;line-height:1.6;color:#d1c3a3}
+.industrial-ui .diagnostic-consent{color:#d3c19a;line-height:1.5}
+.industrial-ui .diagnostic-consent input{accent-color:#d9b75b;min-width:22px;min-height:22px}
+.industrial-ui .menu-feedback{position:sticky;bottom:-12px;z-index:4;margin:10px 0 0;padding:10px 12px;background:#282012;border:1px solid #8b7142;color:#ffe0a0;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+.industrial-ui .menu-feedback[hidden]{display:none}
+.industrial-ui .party-member{border-color:#99825b70;background:#25291f;color:#f1dfb4}
+.industrial-ui .party-member img{border-color:#8d7753}
+.industrial-ui .party-member.empty{opacity:.62}
+.industrial-ui .party-member.empty .party-avatar-placeholder{background:#171c17 var(--industrial-crt) center/cover;color:#c5b99c}
+.industrial-ui .party-member .party-state{color:#a9c18f}
+.industrial-ui #explorerChoices{border-image:var(--industrial-frame) 80 / 16px / 0 stretch;background-image:var(--industrial-crt);background-size:512px 512px}
+.industrial-ui #explorerChoices .explorer-choice-list button::after{border-image-source:var(--industrial-frame);border-image-slice:80;border-image-outset:0}
+.industrial-ui #explorerChoices.explorer-map-mode{border-width:14px;padding:6px}
+.industrial-ui #explorerChoices.explorer-map-mode .explorer-map-zoom button::after{content:none}
+.industrial-ui #explorerChoices.explorer-map-mode .explorer-map-zoom button{border:8px solid transparent;border-image:var(--industrial-steel) 70 fill / 10px / 0 stretch;padding:2px 7px}
+.industrial-ui #prologueReader{background:#10150f var(--industrial-crt) center/512px 512px}
+.industrial-ui button:focus-visible{outline:2px solid #ffdf8c!important;outline-offset:2px}
+@media(max-width:360px){
+  .industrial-ui .log .message.gm,.industrial-ui .log .message.player,.industrial-ui .log .message.core{padding:20px 18px}
+  .industrial-ui .game-menu-sheet .card{padding:20px 16px}
+  .industrial-ui .log .text{font-size:15px}
+}
+@media(max-height:600px){.industrial-ui .snapshot{height:clamp(100px,28svh,160px)}}
