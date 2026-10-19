@@ -1690,19 +1690,16 @@ public class MainActivity extends Activity {
             for (int i = 0; i < plan.length(); i++) {
               stoppedStep = committed + 1;
               JSONObject planned = plan.optJSONObject(i);
-              if (planned == null || planned.length() != 2 ||
-                  !(planned.opt("kind") instanceof String) || !(planned.opt("targetId") instanceof String)) {
-                stopCode = "invalid_plan";
-                stopMessage = "Bước do bộ tách lệnh trả về không đúng định dạng.";
-                break;
+              // Kotlin already validated exact fields and supported kinds.
+              String kind = planned.getString("kind");
+              if ("FREE".equals(kind)) {
+                String detail = planned.getString("text");
+                narrativeEvents.put(new JSONObject().put("kind", "FREE").put("text", detail));
+                confirmedSteps.put(new JSONObject().put("kind", "FREE").put("text", detail));
+                committed++;
+                continue; // Story-only: NO Core action, inventory, RNG or save.
               }
-              String kind = planned.getString("kind"), targetId = planned.getString("targetId");
-              if (!"MOVE".equals(kind) && !"SEARCH".equals(kind) &&
-                  !"INTERACT".equals(kind) && !"TALK".equals(kind)) {
-                stopCode = "invalid_plan";
-                stopMessage = "Hành động không thuộc danh sách Core hỗ trợ.";
-                break;
-              }
+              String targetId = planned.getString("targetId");
               if ("MOVE".equals(kind) && !targetId.startsWith("room:") &&
                   !targetId.startsWith("passage:") && !"next".equals(targetId) && !targetId.startsWith("node:")) {
                 stopCode = "invalid_route";
@@ -1748,15 +1745,12 @@ public class MainActivity extends Activity {
                 .put("kind", kind).put("targetId", targetId);
               failureCode = "core_failure";
               JSONObject started = new JSONObject(requireGameCore().beginSceneAction(command.toString(), rawAction));
-              boolean deviceStep = false;
               if (!started.optBoolean("committed")) {
                 JSONObject staged = new JSONObject(requireGameCore().sceneNarrationContext());
-                deviceStep = staged.optBoolean("mechanismStep", false);
-                failureCode = "narration_failed";
-                String narration = deviceStep ? staged.getString("result") : narrateStagedSceneAction(staged);
-                failureCode = "core_failure";
+                // Commit the Core-owned factual event; defer GM prose until the end.
                 projection = requireGameCore().commitSceneAction(
-                  action.getString("actionId"), narration, projection);
+                  action.getString("actionId"), staged.getString("result"), projection);
+                narrativeEvents.put(new JSONObject().put("kind", "CORE").put("event", staged));
               }
               committed++;
               if (firstActionId == null) firstActionId = action.getString("actionId");
@@ -1798,8 +1792,23 @@ public class MainActivity extends Activity {
             }
             // The next iteration will get the newly confirmed public context.
           }
-          // Show a single final screen update, not one new paragraph per Core
-          // action. If combat interrupted, the completed subset remains saved.
+          // One GM pass for the entire resolved sequence. Its prose is UI-only.
+          if (narrativeEvents.length() > 0) {
+            try {
+              failureCode = "narration_failed";
+              String reply = narrateMixedPlayerAction(rawAction, narrativeEvents, projection, stopCode != null);
+              JSONObject view = new JSONObject(requireGameCore().currentClientState(projection));
+              PlayerActionPresentation.complete(view, firstActionId, rawAction, reply);
+              projection = view.toString();
+            } catch (Exception writerError) {
+              DiagnosticLog.record("player.action.writer.failed", writerError.getClass().getSimpleName());
+              if (stopCode == null) {
+                stopCode = "narration_unavailable";
+                stoppedStep = committed + 1;
+                stopMessage = "Core đã lưu các bước đã xác nhận; GM chưa hoàn tất lời kể. Không nhập lại câu cũ.";
+              }
+            }
+          }
           emit("backroomTurn", requireGameCore().currentClientState(projection));
           JSONObject outcome = new JSONObject().put("executed", committed)
             .put("requested", requested).put("completed", stopCode == null)
