@@ -1,83 +1,95 @@
 /* Generated raster surfaces, live HTML labels and state. No gameplay data here.
    Asset URLs resolve relative to this stylesheet, including custom properties. */
+@font-face{font-family:VT323;src:url('../fonts/VT323-Regular.ttf');font-weight:400;font-display:swap}
 body.industrial-ui{
   --industrial-frame:url('industrial-crt-v1/panel-frame.webp');
   --industrial-steel:url('industrial-crt-v1/button-steel.webp');
   --industrial-hazard:url('industrial-crt-v1/button-hazard.webp');
   --industrial-crt:url('industrial-crt-v1/surface-crt.webp');
   --industrial-paper:url('industrial-crt-v1/paper-dossier.webp');
+  --reference-gm-frame:url('industrial-crt-v1/gm-frame-v4.webp');
+  --reference-steel:url('industrial-crt-v1/button-steel-v4.webp');
+  --reference-hazard:url('industrial-crt-v1/button-hazard-v4.webp');
   --ornate-frame:var(--industrial-frame);--ornate-slice:80;
-  background:#0c100f;color:#eeddb5
+  background:#070c10;color:#c2b88f
 }
 .industrial-ui #explorerControls,.industrial-ui #explorerChoices{
   --ornate-frame:var(--industrial-frame);--ornate-slice:80
 }
-.industrial-ui .game,.industrial-ui .shell{background:#0c100f}
+.industrial-ui .game,.industrial-ui .shell{background:#070c10}
+/* Reference 566: compact terminal header, plain dark menu button. */
 .industrial-ui .topbar{
-  padding:10px max(14px,env(safe-area-inset-right)) 10px max(14px,env(safe-area-inset-left));
-  align-items:center;background-image:linear-gradient(90deg,#080c0dd9,#080c0d66),var(--industrial-crt);
-  background-size:auto,512px 512px;border-bottom:1px solid #786a43
+  min-height:53px;padding:6px max(8px,env(safe-area-inset-right)) 4px max(8px,env(safe-area-inset-left));
+  align-items:center;background-image:linear-gradient(90deg,#080b0cde 0 41%,#332f20b3 41% 61%,#080b0cdb 61%),url('../level_snapshots/level_0.webp');
+  background-size:auto,cover;background-position:center 45%;border-bottom:1px solid #303838
 }
-.industrial-ui .topbar .eyebrow{font-size:10px;color:#c9bea0;letter-spacing:.05em}
-.industrial-ui .topbar h1{font-size:clamp(18px,4.8vw,24px);color:#f4cf77;text-shadow:0 0 12px #bf8b293d}
-.industrial-ui .game-menu-trigger,.industrial-ui .game-menu-close{
-  width:48px;height:48px;min-width:48px;flex-basis:48px;padding:0;
+.industrial-ui .topbar .eyebrow{font:400 16px/1 VT323,monospace;color:#c4b78d;letter-spacing:.025em}
+.industrial-ui .topbar h1{font:400 21px/1.05 VT323,monospace;letter-spacing:.035em;color:#d4bb74;text-shadow:0 1px #000;margin:2px 0 0}
+.industrial-ui .game-menu-trigger{
+  width:38px;height:38px;min-width:38px;flex-basis:38px;padding:0;
+  border:1px solid #303838;border-image:none;border-radius:7px!important;
+  background:#080e11;color:#a6aaa6;font-size:24px;box-shadow:0 2px 5px #0008,inset 0 0 2px #7e8a8733
+}
+.industrial-ui .game-menu-close{
+  width:44px;height:44px;min-width:44px;flex-basis:44px;padding:0;
   border:10px solid transparent;border-image:var(--industrial-steel) 70 fill / 12px / 0 stretch;
-  border-radius:8px!important;background:transparent;color:#f8e4ae;font-size:25px;
-  box-shadow:0 3px 7px #0008
+  background:transparent;color:#f8e4ae;font-size:25px
 }
 /* Keep #snapshot directly in the game grid: combat inserts Dice after it. */
 .industrial-ui .snapshot{
-  position:relative;isolation:isolate;width:min(calc(100% - 20px),calc(42svh * 1.38));
+  position:relative;isolation:isolate;width:min(calc(100% - 8px),calc(44svh * 1.38));
   height:auto;aspect-ratio:1.38;justify-self:center;
-  margin:8px 10px 6px;border:5px solid #030506;border-radius:12px!important;
+  margin:8px 4px 6px;border:4px solid #030506;border-radius:8px!important;
   background:#080d0d;overflow:hidden;
-  box-shadow:0 0 0 1px #34403f,inset 0 0 0 2px #000,0 5px 12px #0009
+  box-shadow:0 0 0 1px #2b3437,inset 0 0 0 2px #000,0 4px 10px #0009
 }
-/* Glass reflection sits over scenery/characters, without scaling either image. */
+/* One optical layer for both scenery and actors. No gameplay image is swapped. */
+.industrial-ui .snapshot .snapshot-bg{filter:saturate(.82) contrast(.92) brightness(1.08) blur(.22px)}
+.industrial-ui .snapshot .snapshot-character{right:2%;filter:saturate(.8) contrast(.91) blur(.2px)}
 .industrial-ui .snapshot::before{
-  content:'';position:absolute;inset:0;z-index:6;pointer-events:none;
-  border-radius:7px;
-  background:radial-gradient(ellipse at center,transparent 53%,#060b064d 83%,#000c 100%),
-    repeating-linear-gradient(0deg,#02070223 0 .5px,transparent .5px 2px);
-  box-shadow:inset 0 0 16px 5px #000b,inset 0 0 3px 1px #7c8a7155
+  content:'';position:absolute;inset:0;z-index:6;pointer-events:none;border-radius:6px;
+  background:radial-gradient(ellipse at center,transparent 54%,#060c1033 83%,#000d 100%),
+    repeating-linear-gradient(0deg,#111b201a 0 .5px,transparent .5px 1.5px);
+  box-shadow:inset 0 0 12px 4px #000c,inset 0 0 3px 1px #87939844
 }
-/* A single low-opacity tracking band. No flashing, timers or gameplay updates. */
+/* Keep the broken tracking trace inside the picture. A slow narrow drift keeps
+   it visible, rather than sweeping it offscreen and clipping it on the bezel. */
 .industrial-ui .snapshot::after{
-  content:'';position:absolute;inset:0;z-index:7;pointer-events:none;border:0;
+  content:'';position:absolute;inset:0;z-index:9;pointer-events:none;border:0;
   background:url('industrial-crt-v1/tracking-v3.webp') center/100% auto no-repeat;
-  opacity:.82;animation:tv-tracking-sweep 7s linear infinite;animation-delay:-4.5s;will-change:transform
+  opacity:.93;animation:tv-tracking-sweep 9s ease-in-out infinite alternate;will-change:transform
 }
-@keyframes tv-tracking-sweep{from{transform:translateY(-60%)}to{transform:translateY(60%)}}
+@keyframes tv-tracking-sweep{from{transform:translateY(20%)}to{transform:translateY(23%)}}
 .industrial-ui .snapshot-tv-hud{
-  position:absolute;inset:12px;z-index:8;pointer-events:none;color:#d8e2cc;
-  font:12px/1.1 monospace;text-shadow:-.5px 0 #6dbdc555,.6px 0 #d37a7a55,0 1px 2px #000;opacity:.88
+  position:absolute;inset:12px;z-index:8;pointer-events:none;color:#d9d8c8;
+  font:400 19px/1 VT323,monospace;text-shadow:-.65px 0 #408dbb99,.7px 0 #c6757c99,0 0 2px #e3e0bb55;opacity:.86
 }
 .industrial-ui .tv-play{position:absolute;left:0;top:0;letter-spacing:.04em}
 .industrial-ui .tv-rec{position:absolute;right:0;top:0;display:flex;align-items:center;gap:5px}
-.industrial-ui .tv-rec i{width:6px;height:6px;border-radius:50%;background:#b93032;box-shadow:0 0 4px #b9303266}
-/* Mask the generated glass to its left reflection; the source center/right
-   stays outside the composite and cannot wash out scenery or characters. */
+.industrial-ui .tv-rec i{width:7px;height:7px;border-radius:50%;background:#b93032;box-shadow:0 0 4px #b9303266}
+/* The reference has a broad reflected window at upper-left, not a milky
+   vertical stripe spanning the whole left side. Preserve the clear center. */
 .industrial-ui .tv-glass{
   position:absolute;inset:-12px;z-index:-1;pointer-events:none;
-  background:url('industrial-crt-v1/crt-glass-v3.webp') center/100% 100% no-repeat;
-  opacity:.72;mask-image:linear-gradient(90deg,transparent 0%,#0009 5%,#000d 10%,#0005 19%,transparent 28%);
-  -webkit-mask-image:linear-gradient(90deg,transparent 0%,#0009 5%,#000d 10%,#0005 19%,transparent 28%)
+  background:radial-gradient(ellipse 26% 36% at 5% 12%,#f2f5ec70 0%,#b7cacc48 36%,#c9d5ca1f 58%,transparent 76%),
+    linear-gradient(93deg,transparent 1%,#cbd7cc0f 4%,transparent 10%);
+  filter:blur(1px)
 }
-.industrial-ui .tv-format{position:absolute;left:0;bottom:0;display:flex;align-items:center;gap:5px;font-size:11px}
-.industrial-ui .tv-channel{position:absolute;right:0;bottom:0;font-size:11px;letter-spacing:.05em}
+.industrial-ui .tv-format{position:absolute;left:0;bottom:0;display:flex;align-items:center;gap:3px;font-size:16px}
+.industrial-ui .tv-channel{position:absolute;right:0;bottom:0;font-size:16px;letter-spacing:.035em}
 .industrial-ui .tv-rec-label{color:#ba4741}
-.industrial-ui .header-tools{display:flex;align-items:center;gap:9px;flex:none}
-.industrial-ui .crt-header-status{display:flex;align-items:center;gap:5px;color:#d8c491;font:10px/1 monospace;white-space:nowrap}
+.industrial-ui .header-tools{display:flex;align-items:center;gap:10px;flex:none;align-self:flex-start}
+.industrial-ui .crt-header-status{display:flex;align-items:center;gap:4px;color:#ccb67e;font:400 18px/1 VT323,monospace;white-space:nowrap}
+.industrial-ui .crt-header-status{padding-top:1px}
 .industrial-ui .crt-header-status svg{display:block;flex:none;fill:none;stroke:currentColor;stroke-width:1.3}
 .industrial-ui .topbar>div:first-child{min-width:0}
 @media(max-width:360px){.industrial-ui .camera-label{display:none}.industrial-ui .header-tools{gap:6px}}
-@media(prefers-reduced-motion:reduce){.industrial-ui .snapshot::after{animation:none;transform:none;opacity:.12;will-change:auto}}
-.industrial-ui .log{padding:6px 10px 10px;gap:12px;scrollbar-color:#75674a #101512}
+@media(prefers-reduced-motion:reduce){.industrial-ui .snapshot::after{animation:none;transform:translateY(20%);opacity:.7;will-change:auto}}
+.industrial-ui .log{padding:8px 4px 8px;gap:8px;align-content:safe end;scrollbar-color:#75674a #101512}
 .industrial-ui .log .message.gm,.industrial-ui .log .message.player,.industrial-ui .log .message.core{
-  position:relative;isolation:isolate;border:0;padding:21px 22px 24px;
-  background-color:#101611;background-image:linear-gradient(#09100a55,#09100a55),var(--industrial-crt);
-  background-size:auto,512px 512px;color:#f0dfbb;box-shadow:0 5px 10px #0006
+  position:relative;isolation:isolate;border:0;padding:20px 22px 15px;
+  border-radius:9px!important;background:#091417;
+  color:#b7b08a;box-shadow:0 3px 8px #0008,inset 0 0 10px #0009
 }
 .industrial-ui .log .message.player{background-image:linear-gradient(#29313bdd,#1b242ddd),var(--industrial-crt)}
 .industrial-ui .log .message.core{background-image:linear-gradient(#2c230bba,#231d0caa),var(--industrial-crt)}
@@ -87,30 +99,35 @@ body.industrial-ui{
   border:12px solid transparent;border-image:var(--industrial-frame) 80 / 12px / 0 repeat;
   pointer-events:none
 }
-.industrial-ui .log .message .role{color:#f3be66;font-size:13px;letter-spacing:.025em;margin:0 0 9px}
+.industrial-ui .log .message::after{border-image:var(--reference-gm-frame) 30 / 10px / 0 repeat;border-radius:9px}
+.industrial-ui .log .message .role{color:#77774d;font-size:12px;letter-spacing:.08em;margin:0 0 6px}
+.industrial-ui .log .gm-turn-break{display:none}
+.industrial-ui .log .gm-turn-label{display:block;margin-bottom:25px;font:400 17px/1 VT323,monospace;color:#67d8d6;text-shadow:0 0 3px #2fc7cb,0 0 8px #2fc7cb80}
+.industrial-ui .log .gm-turn-label:last-child{margin-bottom:0}
 .industrial-ui .log .message.player .role{color:#c6d6dc}
 .industrial-ui .log .message.core .role{color:#dfc88c}
-.industrial-ui .log .text{font-size:16px;line-height:1.65;overflow-wrap:anywhere}
+.industrial-ui .log .text{font-size:14px;line-height:1.55;overflow-wrap:anywhere}
 .industrial-ui .log .message.warning{background:#281d0d;color:#ffe0a6}
-.industrial-ui #playerActionBar{background:#0e1414}
-.industrial-ui #explorerControls{padding:8px 10px 10px;border:0;background:linear-gradient(#0c1112c9,#0c1112c9),var(--industrial-crt);box-shadow:0 -6px 16px #0006}
-.industrial-ui #explorerControls .explorer-buttons{gap:8px}
+.industrial-ui #playerActionBar{background:#0b1317}
+.industrial-ui #explorerControls{padding:8px 7px 3px;border:0;border-top:1px solid #303c3e;background:#0b1317;box-shadow:0 -3px 10px #0008}
+.industrial-ui #explorerControls .explorer-buttons{gap:7px}
 .industrial-ui #explorerControls .explorer-control-slot::after,
 .industrial-ui #explorerControls .explorer-action-slot::after{content:none}
+/* Only the Explorer buttons use reference skins; menu remains functional. */
 .industrial-ui #explorerControls .explorer-buttons button{
-  min-height:56px;padding:4px 2px;border:10px solid transparent;
-  border-image:var(--industrial-steel) 70 fill / 13px / 0 stretch;
-  border-radius:8px!important;background:transparent;text-align:center;color:#ffedb3;
-  font-size:clamp(12px,3.6vw,17px);font-weight:800;text-shadow:0 1px 3px #000
+  min-height:52px;padding:6px 4px;border:0;border-image:none;
+  border-radius:5px!important;background:var(--reference-steel) center/100% 100% no-repeat;
+  text-align:center;color:#c8b875;font-size:clamp(12px,3.4vw,15px);font-weight:800;
+  text-shadow:0 1px 3px #000;box-shadow:0 3px 5px #000a
 }
 .industrial-ui #explorerControls .explorer-action-slot{margin-top:8px}
 .industrial-ui #explorerControls #explorerPlayerButton{
-  min-height:64px;padding:5px 12px;border:11px solid transparent;
-  border-image:var(--industrial-hazard) 70 fill / 15px / 0 stretch;
-  border-radius:9px!important;background:transparent;color:#211607;font-size:20px;
-  font-weight:900;text-shadow:0 1px 0 #ffdf7d88
+  min-height:52px;padding:8px 14px;border:0;border-image:none;
+  border-radius:8px!important;background:var(--reference-hazard) center/100% 100% no-repeat;
+  color:#e0ce8a;font-size:16px;font-weight:800;text-shadow:0 1px 3px #000;
+  box-shadow:0 3px 5px #000a
 }
-.industrial-ui #explorerControls button:disabled{opacity:.45}
+.industrial-ui #explorerControls button:disabled{opacity:.65}
 .industrial-ui #explorerControls .explorer-retry-danger,
 .industrial-ui #newGameButton,.industrial-ui #deleteSaveButton{
   border:10px solid transparent!important;
@@ -170,9 +187,9 @@ body.industrial-ui{
 @media(max-width:360px){
   .industrial-ui .log .message.gm,.industrial-ui .log .message.player,.industrial-ui .log .message.core{padding:20px 18px}
   .industrial-ui .game-menu-sheet .card{padding:20px 16px}
-  .industrial-ui .log .text{font-size:15px}
+  .industrial-ui .log .text{font-size:14px}
 }
-@media(max-height:600px){.industrial-ui .snapshot{width:min(calc(100% - 20px),calc(28svh * 1.38));height:auto}}
+@media(max-height:600px){.industrial-ui .snapshot{width:min(calc(100% - 8px),calc(28svh * 1.38));height:auto}}
 
 /* Non-stretching rails also cover inherited frame consumers outside Explorer.
    Repeat preserves each source screw/tape segment's aspect ratio on both axes. */

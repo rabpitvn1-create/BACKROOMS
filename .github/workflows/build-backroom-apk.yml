@@ -131,7 +131,7 @@ jobs:
           "$BUILD_TOOLS/aapt" dump badging Backroom-1.2.0.0.38.apk | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
           "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 Backroom-1.2.0.0.38.apk
           rm -rf apk-check && mkdir apk-check
-          unzip -q Backroom-1.2.0.0.38.apk 'assets/index.html' 'assets/explorer-controls.*' 'assets/ui/ornate-frame-v1.css' 'assets/ui/backrooms-reference-frame-v2.png' 'assets/ui/industrial-crt-v1.css' 'assets/ui/snapshot-tv.js' 'assets/ui/industrial-crt-v1/*.webp' 'assets/diagnostic-export.js' 'assets/item-icons.js' 'assets/item-icons/*' 'assets/provider-logos/*' 'assets/combat-feedback-1193a.*' 'assets/entity/*' 'assets/fx/*' 'assets/CaoMinh_MadGod_snapshot_overlay.png' 'assets/CAO_MINH_OVERLAY_EXPLORER_IDLE.png' 'assets/CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png' 'assets/avatars/MadGod.jpg' 'assets/avatars/CAO_MINH_AVATAR.jpg' 'assets/hud/player_action_backrooms.png' 'assets/dice/*' 'assets/fonts/Play-Bold.ttf' 'assets/level_snapshots/*' -d apk-check
+          unzip -q Backroom-1.2.0.0.38.apk 'assets/index.html' 'assets/explorer-controls.*' 'assets/ui/ornate-frame-v1.css' 'assets/ui/backrooms-reference-frame-v2.png' 'assets/ui/industrial-crt-v1.css' 'assets/ui/snapshot-tv.js' 'assets/ui/industrial-crt-v1/*.webp' 'assets/diagnostic-export.js' 'assets/item-icons.js' 'assets/item-icons/*' 'assets/provider-logos/*' 'assets/combat-feedback-1193a.*' 'assets/entity/*' 'assets/fx/*' 'assets/CaoMinh_MadGod_snapshot_overlay.png' 'assets/CAO_MINH_OVERLAY_EXPLORER_IDLE.png' 'assets/CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png' 'assets/avatars/MadGod.jpg' 'assets/avatars/CAO_MINH_AVATAR.jpg' 'assets/hud/player_action_backrooms.png' 'assets/dice/*' 'assets/fonts/Play-Bold.ttf' 'assets/fonts/VT323-Regular.ttf' 'assets/fonts/OFL-VT323.txt' 'assets/level_snapshots/*' -d apk-check
           ! grep -q 'id="searchActionButton"' apk-check/assets/index.html
           grep -q 'id="submit"' apk-check/assets/index.html
           node android-apk/verify-explorer-controls.mjs apk-check/assets
@@ -330,7 +330,7 @@ jobs:
           unzip -p Backroom-1.2.0.0.38-verified.apk assets/index.html | grep -q 'function semanticTerms(before,after)'
           unzip -p Backroom-1.2.0.0.38-verified.apk assets/index.html | grep -q 'UI_119_BACKPORT_R01'
           rm -rf verified-composer && mkdir verified-composer
-          unzip -q Backroom-1.2.0.0.38-verified.apk 'assets/index.html' 'assets/explorer-controls.*' 'assets/ui/ornate-frame-v1.css' 'assets/ui/backrooms-reference-frame-v2.png' 'assets/ui/industrial-crt-v1.css' 'assets/ui/snapshot-tv.js' 'assets/ui/industrial-crt-v1/*.webp' -d verified-composer
+          unzip -q Backroom-1.2.0.0.38-verified.apk 'assets/index.html' 'assets/explorer-controls.*' 'assets/ui/ornate-frame-v1.css' 'assets/ui/backrooms-reference-frame-v2.png' 'assets/ui/industrial-crt-v1.css' 'assets/ui/snapshot-tv.js' 'assets/ui/industrial-crt-v1/*.webp' 'assets/fonts/VT323-Regular.ttf' 'assets/fonts/OFL-VT323.txt' -d verified-composer
           node android-apk/verify-explorer-controls.mjs verified-composer/assets
           unzip -p Backroom-1.2.0.0.38-verified.apk assets/index.html | grep -q 'POKER_DICE_CORE_BACKPORT_R01'
           unzip -p Backroom-1.2.0.0.38-verified.apk assets/index.html | grep -q 'pokerDiceModal'

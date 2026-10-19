@@ -13,7 +13,9 @@ function fixture(t){
   for(const file of ['index.html','explorer-controls.js','explorer-controls.css','ui/ornate-frame-v1.css','ui/backrooms-reference-frame-v2.png','ui/industrial-crt-v1.css','ui/snapshot-tv.js',
     'ui/industrial-crt-v1/panel-frame.webp','ui/industrial-crt-v1/button-steel.webp',
     'ui/industrial-crt-v1/button-hazard.webp','ui/industrial-crt-v1/surface-crt.webp','ui/industrial-crt-v1/paper-dossier.webp',
-    'ui/industrial-crt-v1/crt-glass-v3.webp','ui/industrial-crt-v1/tracking-v3.webp']){
+    'ui/industrial-crt-v1/crt-glass-v3.webp','ui/industrial-crt-v1/tracking-v3.webp',
+    'ui/industrial-crt-v1/gm-frame-v4.webp','ui/industrial-crt-v1/button-steel-v4.webp',
+    'ui/industrial-crt-v1/button-hazard-v4.webp','fonts/VT323-Regular.ttf','fonts/OFL-VT323.txt']){
     fs.mkdirSync(path.dirname(path.join(assets,file)),{recursive:true});
     fs.copyFileSync(path.join(source,file),path.join(assets,file));
   }
@@ -108,4 +110,24 @@ test('APK contract rejects missing TV controller',t=>{
 test('APK contract rejects missing CRT tracking texture',t=>{
   const assets=fixture(t);fs.unlinkSync(path.join(assets,'ui/industrial-crt-v1/tracking-v3.webp'));
   const result=verify(assets);assert.notEqual(result.status,0);assert.match(result.stderr,/tracking-v3.webp/);
+});
+
+test('APK contract rejects missing terminal font',t=>{
+  const assets=fixture(t);fs.unlinkSync(path.join(assets,'fonts/VT323-Regular.ttf'));
+  const result=verify(assets);assert.notEqual(result.status,0);assert.match(result.stderr,/VT323-Regular.ttf/);
+});
+
+test('GM turn styling preserves every character and semantic range without changing stored entries',()=>{
+  const vm=require('node:vm'),html=fs.readFileSync(path.join(source,'index.html'),'utf8');
+  const start=html.indexOf('function renderSemanticText(entry){'),end=html.indexOf('\n',start);
+  const ctx={normalizedSemanticSpans:e=>e.semanticSpans||[],esc:s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')};
+  vm.runInNewContext(html.slice(start,end),ctx);
+  const text='LƯỢT 12\r\n\r\nCao Minh nhìn <cửa>.',offset=text.indexOf('Cao Minh');
+  const entry={role:'gm',text,semanticSpans:[{start:offset,end:offset+8,kind:'character'}]},before=JSON.stringify(entry);
+  const rendered=ctx.renderSemanticText(entry);
+  assert.match(rendered,/class='gm-turn-label'>LƯỢT 12<\/span>/);
+  assert.match(rendered,/data-semantic-kind='character'>Cao Minh<\/span>/);
+  assert.equal(rendered.replace(/<[^>]*>/g,''),ctx.esc(text));assert.equal(JSON.stringify(entry),before);
+  assert.equal(ctx.renderSemanticText({role:'player',text}),ctx.esc(text),'never interpret or restyle player input');
+  assert.equal(ctx.renderSemanticText({role:'gm',text:'Một kết quả khác.'}),'Một kết quả khác.');
 });
