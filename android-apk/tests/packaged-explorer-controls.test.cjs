@@ -10,7 +10,7 @@ const verifier=path.join(__dirname,'../verify-explorer-controls.mjs');
 function fixture(t){
   const assets=fs.mkdtempSync(path.join(os.tmpdir(),'packaged-composer-'));
   t.after(()=>fs.rmSync(assets,{recursive:true,force:true}));
-  for(const file of ['index.html','explorer-controls.js','explorer-controls.css','ui/ornate-frame-v1.css','ui/backrooms-reference-frame-v2.png','ui/industrial-crt-v1.css','ui/snapshot-tv.js','ui/snapshot-crt.css','ui/crt-glass-v5.svg',
+  for(const file of ['index.html','explorer-controls.js','explorer-controls.css','ui/ornate-frame-v1.css','ui/backrooms-reference-frame-v2.png','ui/industrial-crt-v1.css','ui/snapshot-tv.js','ui/snapshot-crt.css','ui/crt-glass-v5.svg','ui/crt-optics.svg',
     'ui/industrial-crt-v1/panel-frame.webp','ui/industrial-crt-v1/button-steel.webp',
     'ui/industrial-crt-v1/button-hazard.webp','ui/industrial-crt-v1/surface-crt.webp','ui/industrial-crt-v1/paper-dossier.webp',
     'ui/industrial-crt-v1/crt-glass-v3.webp','ui/industrial-crt-v1/tracking-v3.webp']){
@@ -134,4 +134,23 @@ test('CRT correction stays scoped to snapshot and uses a bowed transparent apert
 test('APK contract rejects a missing curved CRT aperture',t=>{
   const assets=fixture(t);fs.unlinkSync(path.join(assets,'ui/crt-glass-v5.svg'));
   const result=verify(assets);assert.notEqual(result.status,0);assert.match(result.stderr,/crt-glass-v5.svg/);
+});
+
+test('CRT optics samples the native composite with a centered bounded radial field',()=>{
+  const svg=fs.readFileSync(path.join(source,'ui/crt-optics.svg'),'utf8');
+  assert.match(svg,/<feDisplacementMap in="SourceGraphic" in2="field" xChannelSelector="R" yChannelSelector="G" scale="\.024"/);
+  const png=Buffer.from(svg.match(/href="data:image\/png;base64,([^"]+)"/)[1],'base64');
+  const width=png.readUInt32BE(16),height=png.readUInt32BE(20),parts=[];
+  assert.equal(width,height);assert.ok(width%2===1);
+  for(let at=8;at<png.length;){const size=png.readUInt32BE(at),kind=png.toString('ascii',at+4,at+8);if(kind==='IDAT')parts.push(png.subarray(at+8,at+8+size));at+=12+size;}
+  const data=require('node:zlib').inflateSync(Buffer.concat(parts)),row=width*4+1;
+  const pixel=(x,y)=>{assert.equal(data[y*row],0);return [...data.subarray(y*row+1+x*4,y*row+1+x*4+4)];};
+  const center=pixel((width-1)/2,(height-1)/2);assert.ok(Math.abs(center[0]-128)<=1&&Math.abs(center[1]-128)<=1);
+  assert.deepEqual(pixel(0,0),[0,0,128,255]);assert.deepEqual(pixel(width-1,height-1),[255,255,128,255]);
+  for(let y=0;y<height;y++)for(let x=0;x<width;x++)assert.equal(pixel(x,y)[3],255,'displacement data must never erase native pixels through alpha');
+});
+
+test('APK contract rejects missing CRT optics',t=>{
+  const assets=fixture(t);fs.unlinkSync(path.join(assets,'ui/crt-optics.svg'));
+  const result=verify(assets);assert.notEqual(result.status,0);assert.match(result.stderr,/crt-optics.svg/);
 });

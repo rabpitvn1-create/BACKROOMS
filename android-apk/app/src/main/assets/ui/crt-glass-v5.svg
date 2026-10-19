@@ -5,15 +5,15 @@
     <path id="aperture" d="M70 36 C275 8 725 8 930 36 C953 39 964 54 967 79 C988 220 988 504 967 645 C964 670 953 685 930 688 C725 716 275 716 70 688 C47 685 36 670 33 645 C12 504 12 220 33 79 C36 54 47 39 70 36Z"/>
     <clipPath id="glass"><use href="#aperture"/></clipPath>
     <linearGradient id="bezel" x2=".15" y2="1">
-      <stop stop-color="#141c1f"/><stop offset=".28" stop-color="#030506"/>
-      <stop offset=".72" stop-color="#050809"/><stop offset="1" stop-color="#242c2e"/>
+      <stop stop-color="#05090a"/><stop offset=".28" stop-color="#030506"/>
+      <stop offset=".72" stop-color="#050809"/><stop offset="1" stop-color="#080c0d"/>
     </linearGradient>
     <linearGradient id="edge" x2=".65" y2="1">
       <stop stop-color="#a4b1ad" stop-opacity=".3"/><stop offset=".35" stop-color="#071011" stop-opacity=".15"/>
       <stop offset="1" stop-color="#9cafa9" stop-opacity=".2"/>
     </linearGradient>
     <linearGradient id="window" x2=".7" y2="1">
-      <stop stop-color="#f4f5e9" stop-opacity=".35"/><stop offset=".55" stop-color="#e1ece2" stop-opacity=".23"/>
+      <stop stop-color="#f4f5e9" stop-opacity=".55"/><stop offset=".55" stop-color="#e1ece2" stop-opacity=".34"/>
       <stop offset="1" stop-color="#d1dbd3" stop-opacity="0"/>
     </linearGradient>
     <filter id="soft"><feGaussianBlur stdDeviation="10"/></filter>

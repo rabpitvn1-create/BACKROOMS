@@ -3,6 +3,7 @@
    native room/actor composite without wrapping or replacing either image. */
 .industrial-ui #snapshot{
   border:3px solid #030506;border-radius:10px!important;
+  filter:url('crt-optics.svg#barrel') blur(.12px);
   background:#020405;box-shadow:0 0 0 1px #303a3c,0 4px 10px #0008
 }
 .industrial-ui #snapshot::before{
