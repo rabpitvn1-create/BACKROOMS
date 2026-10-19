@@ -5,6 +5,12 @@ package com.rabpit.backroom.core.knowledge
  * own canon and relationship. This is a writing policy, not an actor/agency override.
  */
 object GmNarrativeVoicePolicy {
+  /** Minimal historical anchor; never infer current actors, stats or progress from it. */
+  @JvmStatic fun openingContext(): String =
+    "Sau trận Lôi Thiên Vực, Cao Minh mất phần lớn đạo hạnh khi cố cứu Lục Trầm. " +
+    "Hắn tỉnh một mình ở Level 0 cùng Huyết Ma Kiếm, chưa biết nàng ở đâu và muốn tìm nàng. " +
+    "Đây là quá khứ; hiện diện NPC, năng lực và tiến triển hiện tại chỉ theo Core."
+
   @JvmStatic
   fun prompt(): String = """
     GM NARRATIVE VOICE HARD LOCK:

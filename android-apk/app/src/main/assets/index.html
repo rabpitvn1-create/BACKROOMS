@@ -173,11 +173,25 @@ body.game-menu-open{overflow:hidden}
 </style>
 <link rel="stylesheet" href="item-presentation.css">
 <link rel="stylesheet" href="explorer-controls.css">
+<style>
+.prologue-panel{margin:8px 10px;border:1px solid #8e7c50;background:#121a1d;color:#e6d9af}
+.prologue-panel>summary{padding:12px 16px;min-height:44px;box-sizing:border-box;cursor:pointer;font-weight:700;list-style:none}
+.prologue-panel>summary::-webkit-details-marker{display:none}
+.prologue-panel>summary::before{content:'＋';margin-right:10px;color:#e4c886}
+.prologue-panel[open]>summary::before{content:'−'}
+.prologue-panel>summary:focus-visible{outline:2px solid #e4c886;outline-offset:2px}
+.prologue-panel:not([open])>.prologue-body{display:none}
+.prologue-body{max-height:65vh;overflow:auto;padding:4px 16px 18px;white-space:pre-wrap;line-height:1.65;color:#d8ded8;overscroll-behavior:contain}
+</style>
 </head>
 <body>
 <main class="shell">
 <section class="game">
 <header class="topbar"><div><div class="eyebrow">BACKROOM TEXT GAME</div><h1 id="title"></h1><span class="turn-runtime">TURN <strong id="turn"></strong></span></div><button class="game-menu-trigger" id="gameMenuOpen" type="button" aria-label="Mở menu game" aria-haspopup="dialog" aria-controls="gameMenuModal" aria-expanded="false">☰</button></header>
+<details class="prologue-panel" id="prologuePanel">
+  <summary><span id="prologueToggleLabel">Đọc mở đầu</span></summary>
+  <div class="prologue-body text" id="prologueBody" tabindex="0" aria-label="Nội dung mở đầu"></div>
+</details>
 <div class="snapshot" id="snapshot">SNAPSHOT — Android bản đầu chưa tạo ảnh tự động</div>
 <div class="log" id="log"></div>
 <div class="player-action-bar" id="playerActionBar" aria-label="Hành động của Cao Minh">
@@ -1574,6 +1588,20 @@ Chừng nào hắn còn chưa tận mắt tìm thấy câu trả lời khác, h�
 
 Và hắn sẽ đi tìm.`;
 
+// Optional reader content stays outside state/log, save and all provider payloads.
+function setupPrologue(){
+  const panel=document.getElementById('prologuePanel');
+  const body=document.getElementById('prologueBody');
+  const label=document.getElementById('prologueToggleLabel');
+  if(!panel||!body||!label)return;
+  let loaded=false;
+  panel.addEventListener('toggle',()=>{
+    if(panel.open&&!loaded){body.textContent=prologue;loaded=true;}
+    label.textContent=panel.open?'Thu gọn mở đầu':'Đọc mở đầu';
+  });
+}
+setupPrologue();
+
 const initial={canonVersion:"KNOWLEDGE-DB-SCHEMA-1",title:"Level 0 – The Lobby",level:{number:0,name:"The Lobby"},turn:1,
   mode:"Single Player: Hard Mode",
   location:"Level 0 / The Lobby — khu phòng vàng ban đầu",
@@ -1582,7 +1610,6 @@ const initial={canonVersion:"KNOWLEDGE-DB-SCHEMA-1",title:"Level 0 – The Lobby
   inventory:[],
   flags:{communication:{},iris:{exists:true,continuity:"UNKNOWN",reunionEligible:true},syvial:{exists:true,continuity:"UNKNOWN",reunionEligible:true},madGod:{spawned:false,acquired:false}},
   log:[
-    {role:"gm",text:"MỞ ĐẦU\n\n"+prologue},
     {role:"gm",text:"LƯỢT 1\n\nCao Minh tỉnh lại một mình tại Level 0. Không có dấu vết của Lục Trầm. Kể từ đây, mọi quyết định chủ ý của Cao Minh thuộc về người chơi."}
   ]
 };
@@ -1591,7 +1618,14 @@ const byId=id=>document.getElementById(id);
 const titleEl=byId("title"),turnEl=byId("turn"),locationEl=byId("location"),modeEl=byId("mode"),playerEl=byId("player"),partyEl=byId("party"),inventoryEl=byId("inventory"),logEl=byId("log"),statusEl=byId("status"),formEl=byId("form"),actionEl=byId("action"),submitEl=byId("submit");
 let state=(()=>{try{const raw=localStorage.getItem("backroom-apk-state");if(!raw)return JSON.parse(JSON.stringify(initial));const parsed=JSON.parse(raw);return parsed&&typeof parsed==="object"&&!Array.isArray(parsed)?parsed:JSON.parse(JSON.stringify(initial));}catch(e){try{localStorage.removeItem("backroom-apk-state");}catch(ignore){}return JSON.parse(JSON.stringify(initial));}})();state.mode="Single Player: Hard Mode";state.canonVersion="KNOWLEDGE-DB-SCHEMA-1";state.flags=state.flags||{};state.flags.iris=state.flags.iris||{exists:true,continuity:"UNKNOWN",reunionEligible:true};state.flags.syvial=state.flags.syvial||{exists:true,continuity:"UNKNOWN",reunionEligible:true};state.flags.madGod=state.flags.madGod||{spawned:false,acquired:false};
 // Core is the only source of gameplay state; localStorage supplies only UI presentation.
+// Reader-only content never travels through the Core bridge or checkpoint log.
+function compactReaderContent(presentation){
+  if(Array.isArray(presentation.log))presentation.log=presentation.log.filter(entry=>
+    !(entry&&entry.role==='gm'&&entry.text==='MỞ ĐẦU\n\n'+prologue));
+  return presentation;
+}
 function syncClientFromCore(presentation) {
+  compactReaderContent(presentation);
   if(!window.Android||typeof Android.currentClientState!=="function")return presentation;
   const core=JSON.parse(Android.currentClientState(JSON.stringify(presentation)));
   if(!core||core.error||!core.partyDetails||!core.coreSystem)throw new Error("Core snapshot unavailable");

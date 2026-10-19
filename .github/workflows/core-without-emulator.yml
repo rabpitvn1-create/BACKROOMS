@@ -23,7 +23,7 @@ jobs:
       - name: Run JavaScript regression tests
         run: |
           if [ "$GITHUB_HEAD_REF" = "feat/653-mini-map-explorer" ]; then
-            node --test android-apk/tests/explorer-controls.test.cjs android-apk/tests/level-snapshot-routing.test.cjs android-apk/tests/diagnostic-export.test.cjs android-apk/tests/primary-action-buttons.test.cjs android-apk/tests/packaged-explorer-controls.test.cjs
+            node --test android-apk/tests/prologue-reader.test.cjs android-apk/tests/explorer-controls.test.cjs android-apk/tests/level-snapshot-routing.test.cjs android-apk/tests/diagnostic-export.test.cjs android-apk/tests/primary-action-buttons.test.cjs android-apk/tests/packaged-explorer-controls.test.cjs
           else
             node --test android-apk/tests/*.test.cjs
           fi

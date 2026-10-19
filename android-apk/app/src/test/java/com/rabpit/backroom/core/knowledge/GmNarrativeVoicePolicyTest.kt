@@ -4,6 +4,15 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class GmNarrativeVoicePolicyTest {
+  @Test fun openingContextIsMinimalHistoryAndCannotAuthorizeCurrentGameplay() {
+    val summary = GmNarrativeVoicePolicy.openingContext()
+    assertTrue(summary.length <= 300)
+    assertTrue(summary.contains("Lục Trầm")); assertTrue(summary.contains("muốn tìm nàng"))
+    assertTrue(summary.contains("chưa biết nàng ở đâu"))
+    assertTrue(summary.contains("hiện tại chỉ theo Core"))
+    assertFalse(summary.contains("đã hồi sinh")); assertFalse(summary.contains("mở khóa"))
+  }
+
   @Test fun narratorRejectsOneHundredDistinctSecondPersonCases() {
     val verbs = listOf("nhìn", "nghe", "thấy", "bước", "chạy", "đứng", "quay",
       "rút", "nhận ra", "cảm thấy")
