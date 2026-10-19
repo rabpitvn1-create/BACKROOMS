@@ -1812,7 +1812,14 @@ public class MainActivity extends Activity {
               projection = view.toString();
             } catch (Exception writerError) {
               DiagnosticLog.record("player.action.writer.failed", writerError.getClass().getSimpleName());
-              if (stopCode == null) {
+              if (firstActionId == null) {
+                // FREE-only turns have no Core effects: do not erase the player's
+                // draft or claim they were executed when the narrator failed.
+                committed = 0;
+                stopCode = "narration_unavailable";
+                stoppedStep = 1;
+                stopMessage = "GM chưa tạo được lời kể. Câu nhập được giữ nguyên để thử lại.";
+              } else if (stopCode == null) {
                 stopCode = "narration_unavailable";
                 stoppedStep = committed + 1;
                 stopMessage = "Core đã lưu các bước đã xác nhận; GM chưa hoàn tất lời kể. Không nhập lại câu cũ.";
