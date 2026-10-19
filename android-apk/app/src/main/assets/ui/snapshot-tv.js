@@ -16,7 +16,7 @@
     if(box.querySelector('.snapshot-tv-hud'))return;
     const hud=document.createElement('div');hud.className='snapshot-tv-hud';
     hud.setAttribute('aria-hidden','true');
-    hud.innerHTML='<i class="tv-glass"></i><span class="tv-play">PLAY ▶</span><span class="tv-rec">REC <i></i></span>'+
+    hud.innerHTML='<i class="tv-glass"></i><span class="tv-play">PLAY ▷</span><span class="tv-rec">REC <i></i></span>'+
       '<span class="tv-format"><span class="tv-rec-label">REC:</span><span data-tv-tape-time>00:00</span></span><span class="tv-channel" data-tv-view-time>00:00:00</span>';
     box.appendChild(hud);clock();
   }

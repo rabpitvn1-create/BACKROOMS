@@ -10,12 +10,10 @@ const verifier=path.join(__dirname,'../verify-explorer-controls.mjs');
 function fixture(t){
   const assets=fs.mkdtempSync(path.join(os.tmpdir(),'packaged-composer-'));
   t.after(()=>fs.rmSync(assets,{recursive:true,force:true}));
-  for(const file of ['index.html','explorer-controls.js','explorer-controls.css','ui/ornate-frame-v1.css','ui/backrooms-reference-frame-v2.png','ui/industrial-crt-v1.css','ui/snapshot-tv.js',
+  for(const file of ['index.html','explorer-controls.js','explorer-controls.css','ui/ornate-frame-v1.css','ui/backrooms-reference-frame-v2.png','ui/industrial-crt-v1.css','ui/snapshot-tv.js','ui/snapshot-crt.css','ui/crt-glass-v5.svg',
     'ui/industrial-crt-v1/panel-frame.webp','ui/industrial-crt-v1/button-steel.webp',
     'ui/industrial-crt-v1/button-hazard.webp','ui/industrial-crt-v1/surface-crt.webp','ui/industrial-crt-v1/paper-dossier.webp',
-    'ui/industrial-crt-v1/crt-glass-v3.webp','ui/industrial-crt-v1/tracking-v3.webp',
-    'ui/industrial-crt-v1/gm-frame-v4.webp','ui/industrial-crt-v1/button-steel-v4.webp',
-    'ui/industrial-crt-v1/button-hazard-v4.webp','fonts/VT323-Regular.ttf','fonts/OFL-VT323.txt']){
+    'ui/industrial-crt-v1/crt-glass-v3.webp','ui/industrial-crt-v1/tracking-v3.webp']){
     fs.mkdirSync(path.dirname(path.join(assets,file)),{recursive:true});
     fs.copyFileSync(path.join(source,file),path.join(assets,file));
   }
@@ -112,22 +110,28 @@ test('APK contract rejects missing CRT tracking texture',t=>{
   const result=verify(assets);assert.notEqual(result.status,0);assert.match(result.stderr,/tracking-v3.webp/);
 });
 
-test('APK contract rejects missing terminal font',t=>{
-  const assets=fixture(t);fs.unlinkSync(path.join(assets,'fonts/VT323-Regular.ttf'));
-  const result=verify(assets);assert.notEqual(result.status,0);assert.match(result.stderr,/VT323-Regular.ttf/);
+test('CRT correction stays scoped to snapshot and uses a bowed transparent aperture',()=>{
+  const css=fs.readFileSync(path.join(source,'ui/snapshot-crt.css'),'utf8');
+  assert.doesNotMatch(css,/@font-face|\.topbar|\.log\b|\.message\b|#explorerControls|#prologue/);
+  const svg=fs.readFileSync(path.join(source,'ui/crt-glass-v5.svg'),'utf8');
+  assert.match(svg,/fill-rule="evenodd"/);
+  const aperture=svg.match(/<path id="aperture" d="([^"]+)"/)[1];
+  const commands=aperture.match(/[MC][^MCZ]+/g).map(c=>c.slice(1).trim().split(/\s+/).map(Number));
+  let start=commands[0];const edges=[];
+  for(const c of commands.slice(1)){
+    assert.equal(c.length,6);const end=c.slice(4);
+    edges.push({start,end,mid:[(start[0]+3*c[0]+3*c[2]+end[0])/8,(start[1]+3*c[1]+3*c[3]+end[1])/8]});start=end;
+  }
+  assert.equal(edges.length,8);
+  assert.ok(edges[0].mid[1]<Math.min(edges[0].start[1],edges[0].end[1])-1,'top bows upward');
+  assert.ok(edges[2].mid[0]>Math.max(edges[2].start[0],edges[2].end[0])+1,'right bows outward');
+  assert.ok(edges[4].mid[1]>Math.max(edges[4].start[1],edges[4].end[1])+1,'bottom bows downward');
+  assert.ok(edges[6].mid[0]<Math.min(edges[6].start[0],edges[6].end[0])-1,'left bows outward');
+  assert.ok(svg.includes('d="M0 0H1000V724H0Z '+aperture+'"'),'opaque matte uses the same aperture');
+  assert.doesNotMatch(svg,/<image\b|<text\b|<script\b|https?:\/\/(?!www\.w3\.org)/);
 });
 
-test('GM turn styling preserves every character and semantic range without changing stored entries',()=>{
-  const vm=require('node:vm'),html=fs.readFileSync(path.join(source,'index.html'),'utf8');
-  const start=html.indexOf('function renderSemanticText(entry){'),end=html.indexOf('\n',start);
-  const ctx={normalizedSemanticSpans:e=>e.semanticSpans||[],esc:s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')};
-  vm.runInNewContext(html.slice(start,end),ctx);
-  const text='LƯỢT 12\r\n\r\nCao Minh nhìn <cửa>.',offset=text.indexOf('Cao Minh');
-  const entry={role:'gm',text,semanticSpans:[{start:offset,end:offset+8,kind:'character'}]},before=JSON.stringify(entry);
-  const rendered=ctx.renderSemanticText(entry);
-  assert.match(rendered,/class='gm-turn-label'>LƯỢT 12<\/span>/);
-  assert.match(rendered,/data-semantic-kind='character'>Cao Minh<\/span>/);
-  assert.equal(rendered.replace(/<[^>]*>/g,''),ctx.esc(text));assert.equal(JSON.stringify(entry),before);
-  assert.equal(ctx.renderSemanticText({role:'player',text}),ctx.esc(text),'never interpret or restyle player input');
-  assert.equal(ctx.renderSemanticText({role:'gm',text:'Một kết quả khác.'}),'Một kết quả khác.');
+test('APK contract rejects a missing curved CRT aperture',t=>{
+  const assets=fixture(t);fs.unlinkSync(path.join(assets,'ui/crt-glass-v5.svg'));
+  const result=verify(assets);assert.notEqual(result.status,0);assert.match(result.stderr,/crt-glass-v5.svg/);
 });

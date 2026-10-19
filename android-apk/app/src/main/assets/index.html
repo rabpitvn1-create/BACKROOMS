@@ -174,15 +174,14 @@ body.game-menu-open{overflow:hidden}
 <link rel="stylesheet" href="item-presentation.css">
 <link rel="stylesheet" href="explorer-controls.css">
 <style>
-/* One-time New Game offer occupies its own row while visible, above the TV. */
-.game:has(>#prologuePrompt:not([hidden])){grid-template-rows:auto auto auto minmax(0,1fr) auto}
-#prologuePrompt{position:relative;margin:8px 8px 4px;z-index:35;
+/* The one-time offer overlays the snapshot and never adds a game-grid row. */
+#prologuePrompt{position:absolute;top:clamp(90px,22%,180px);left:18px;right:18px;z-index:35;
   border:1px solid #d7b56f;border-radius:999px;background:linear-gradient(135deg,#c59a51,#8b642e 65%,#67451f);
   box-shadow:0 8px 24px #0008,inset 0 1px 0 #f5dba266;color:#fff2ce}
 #prologuePrompt[hidden]{display:none!important}
-#prologueOpenButton{display:block;width:100%;min-height:44px;padding:12px 52px;border:0;
-  border-radius:999px!important;background:transparent;color:inherit;text-align:center;font-size:16px;font-weight:900;letter-spacing:.14em;touch-action:manipulation}
-#prologueDismissButton{position:absolute;right:0;top:0;width:44px;height:44px;min-height:44px;padding:0;
+#prologueOpenButton{display:block;width:100%;min-height:64px;padding:16px 64px;border:0;
+  border-radius:999px!important;background:transparent;color:inherit;text-align:center;font-size:18px;font-weight:900;letter-spacing:.14em;touch-action:manipulation}
+#prologueDismissButton{position:absolute;right:7px;top:7px;width:50px;height:50px;min-height:44px;padding:0;
   border:1px solid #f4d39066;border-radius:50%!important;background:#4b301d55;color:inherit;font-size:28px;line-height:1;touch-action:manipulation}
 #prologueOpenButton:focus-visible,#prologueDismissButton:focus-visible{outline:2px solid #fff2c1;outline-offset:3px}
 #prologueReader:not([open]){display:none!important}
@@ -198,6 +197,7 @@ body.game-menu-open{overflow:hidden}
 #prologueReaderDone{flex:none;min-height:50px;margin:12px 16px 16px;border-radius:999px!important;border:1px solid #c9a45e;background:#8b642e;color:#fff0ca}
 </style>
 <link rel="stylesheet" href="ui/industrial-crt-v1.css">
+<link rel="stylesheet" href="ui/snapshot-crt.css">
 </head>
 <body class="industrial-ui">
 <main class="shell">
@@ -1709,7 +1709,7 @@ function semanticSelect(source,hits){hits.sort((a,b)=>a.start-b.start||(b.end-b.
 function semanticResolve(source,before,after){const text=String(source||"");const terms=semanticTerms(before,after),hits=semanticExactCandidates(text,terms).concat(semanticContextCandidates(text,semanticNegative(before,after)));return semanticSelect(text,hits)}
 function semanticPrepareNextState(before,json){const next=JSON.parse(json),oldLength=before&&Array.isArray(before.log)?before.log.length:0;if(Array.isArray(next.log))next.log.forEach((entry,index)=>{if(!entry||entry.role==="player"||entry.semanticVersion===3&&Array.isArray(entry.semanticSpans))return;entry.semanticSpans=semanticResolve(entry.text,index<oldLength?null:before,next);entry.semanticVersion=3});return next}
 function normalizedSemanticSpans(entry){if(!entry||entry.role==="player")return [];if(entry.semanticVersion!==3||!Array.isArray(entry.semanticSpans)){entry.semanticSpans=semanticResolve(entry.text,state,state);entry.semanticVersion=3}const source=String(entry.text||""),spans=[];let cursor=0;entry.semanticSpans.forEach(raw=>{const start=Number(raw&&raw.start),end=Number(raw&&raw.end),kind=semanticKind(raw&&raw.kind);if(!kind||!Number.isInteger(start)||!Number.isInteger(end)||start<cursor||end<=start||end>source.length)return;spans.push({start,end,kind});cursor=end});return spans}
-function renderSemanticText(entry){const source=String(entry&&entry.text||"");if(!entry||entry.role==="player")return esc(source);const spans=normalizedSemanticSpans(entry);const heading=entry.role==="gm"?/^(LƯỢT [0-9]+)(?:(\r?\n(?:\r?\n)?)|$)/u.exec(source):null;let out="",cursor=0;if(heading){out="<span class='gm-turn-label'>"+esc(heading[1])+"</span>"+(heading[2]?"<span class='gm-turn-break'>"+esc(heading[2])+"</span>":"");cursor=heading[0].length}spans.forEach(span=>{if(span.end<=cursor)return;if(span.start>cursor)out+=esc(source.slice(cursor,span.start));out+="<span class='gm-semantic gm-semantic-"+span.kind+"' data-semantic-kind='"+span.kind+"'>"+esc(source.slice(Math.max(cursor,span.start),span.end))+"</span>";cursor=span.end});if(cursor<source.length)out+=esc(source.slice(cursor));return out}
+function renderSemanticText(entry){const source=String(entry&&entry.text||"");if(!entry||entry.role==="player")return esc(source);const spans=normalizedSemanticSpans(entry);if(!spans.length)return esc(source);let out="",cursor=0;spans.forEach(span=>{if(span.start>cursor)out+=esc(source.slice(cursor,span.start));out+="<span class='gm-semantic gm-semantic-"+span.kind+"' data-semantic-kind='"+span.kind+"'>"+esc(source.slice(span.start,span.end))+"</span>";cursor=span.end});if(cursor<source.length)out+=esc(source.slice(cursor));return out}
 
 function levelHeader(s){if(s&&s.level&&s.level.name){const id=s.level.id!=null?s.level.id:s.level.number;if(s.level.kind==="AREA"||s.level.kind==="SPECIAL"||s.level.name==="Level "+id)return s.level.name;return "Level "+id+" – "+s.level.name;}const where=String(s&&s.location||"")+" "+String(s&&s.title||"");const m=where.match(/Level\s*([^\s\/—–-]+)\s*(?:\/|—|–|-)\s*([^—–\n]+?)(?:\s+[—–]\s+|$)/i);if(m)return "Level "+m[1]+" – "+m[2].trim();return s&&s.title||"Backrooms"}function render(){prologueControls?.refresh(state);const readingOffset=logEl.scrollTop;titleEl.textContent=levelHeader(state);turnEl.textContent=state.turn;locationEl.textContent=state.location;modeEl.textContent=state.mode;playerEl.textContent=state.player?.name||"Cao Minh";partyEl.innerHTML=chips(state.party);if(inventoryEl)inventoryEl.innerHTML=chips(state.inventory);logEl.innerHTML=(state.log||[]).map(x=>{const w=x.role!=="player"&&String(x.text||"").trim().startsWith("[Warning]");return "<article class='message "+(x.role==="player"?"player":x.role==="core"?"core":"gm")+(w?" warning":"")+"'><div class='role'>"+(x.role==="player"?"BẠN":x.role==="core"?"CORE · KẾT QUẢ ĐÃ XÁC NHẬN":"GAME MASTER")+"</div><div class='text'>"+renderSemanticText(x)+"</div>"+(x.actionStatus?"<div class='action-status'>"+esc(x.actionStatus)+"</div>":"")+"</article>"}).join("");if(state.scene&&state.scene.runtime==='world-graph-v3')logEl.scrollTop=Math.min(readingOffset,logEl.scrollHeight);else logEl.scrollTop=logEl.scrollHeight;if(window.backroomRenderBattleStart)window.backroomRenderBattleStart();if(window.backroomRenderEncounteredCharacters)window.backroomRenderEncounteredCharacters()}
 const SAVE_KEY="backroom-apk-state";

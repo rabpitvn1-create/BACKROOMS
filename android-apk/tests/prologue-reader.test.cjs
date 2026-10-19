@@ -27,8 +27,8 @@ test('one-time PROLOGUE is a centered rounded gold button with an independent X 
   assert.doesNotMatch(html,/<details\b[^>]*id="prologuePanel"/);
   assert.match(html,/<div id="prologuePrompt"[^>]* hidden>/);
   assert.match(html,/<button[^>]*id="prologueOpenButton"[^>]*>PROLOGUE<\/button>\s*<button[^>]*id="prologueDismissButton"/);
-  assert.match(html,/#prologuePrompt\{[^}]*position:relative;[^}]*border-radius:999px;[^}]*background:linear-gradient/);
-  assert.match(html,/#prologueOpenButton\{[^}]*width:100%;[^}]*min-height:44px;[^}]*text-align:center/);
+  assert.match(html,/#prologuePrompt\{[^}]*position:absolute;[^}]*border-radius:999px;[^}]*background:linear-gradient/);
+  assert.match(html,/#prologueOpenButton\{[^}]*width:100%;[^}]*min-height:64px;[^}]*text-align:center/);
   assert.match(html,/#prologuePrompt\[hidden\]\{display:none!important\}/);
   assert.match(html,/#prologueReader:not\(\[open\]\)\{display:none!important\}/);
   assert.match(html,/<dialog id="prologueReader"[^>]*aria-labelledby="prologueReaderTitle">/);
