@@ -3,6 +3,7 @@ package com.rabpit.backroom;
 import android.app.Activity;
 import android.app.Instrumentation;
 import android.app.UiAutomation;
+import android.accessibilityservice.AccessibilityServiceInfo;
 import android.os.SystemClock;
 import android.view.InputDevice;
 import android.view.MotionEvent;
@@ -93,7 +94,12 @@ public final class EmulatorGameplayTest {
   }
 
   private boolean dismissAndroidDialog(String title, String button) {
-    UiAutomation ui = instrumentation.getUiAutomation(UiAutomation.FLAG_RETRIEVE_INTERACTIVE_WINDOWS);
+    UiAutomation ui = instrumentation.getUiAutomation();
+    AccessibilityServiceInfo service = ui.getServiceInfo();
+    if (service != null && (service.flags & AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS) == 0) {
+      service.flags |= AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS;
+      ui.setServiceInfo(service);
+    }
     for (AccessibilityWindowInfo window : ui.getWindows()) {
       AccessibilityNodeInfo root = window.getRoot();
       if (root == null || findText(root, title) == null) continue;
@@ -307,7 +313,48 @@ public final class EmulatorGameplayTest {
     assertTrue("UI Load failed: " + loaded.optString("status"), loaded.getBoolean("loaded"));
     assertEquals(destination, coreState(core).getJSONObject("scene").getJSONObject("room").getString("id"));
     screenshot("08-restored-save");
-    report.put("saveLoad", "PASS").put("result", "PASS");
+    report.put("saveLoad", "PASS");
+    // Genuine Gehihi reply through the SHIPPED Android bridge, not a text stub.
+    assertFalse("Real GM test requires GEHIHI_API_KEY configured in APK",
+      BuildConfig.GEHIHI_API_KEY.trim().isEmpty());
+    JSONObject beforeGm = coreState(core);
+    JSONObject gmAction = availableAction(beforeGm.getJSONObject("scene"), "observe");
+    int version = beforeGm.getJSONObject("scene").getInt("sceneVersion");
+    int logCount = beforeGm.getJSONArray("log").length();
+    String beforeRoom = beforeGm.getJSONObject("scene").getJSONObject("room").getString("id");
+    JSONObject originalPlayer = beforeGm.getJSONObject("player");
+    JSONArray originalItems = beforeGm.getJSONArray("inventory");
+    JSONObject command = new JSONObject(gmAction.toString());command.remove("label");
+    js("JSON.stringify((()=>{Android.submitSceneAction(" +
+      JSONObject.quote(beforeGm.toString()) + "," + JSONObject.quote(command.toString()) +
+      ");return {requested:true};})())");
+    until("state.scene && state.scene.sceneVersion>" + version, 140);
+    JSONObject afterGm = coreState(core);
+    assertEquals(version+1,afterGm.getJSONObject("scene").getInt("sceneVersion"));
+    assertEquals(beforeRoom,afterGm.getJSONObject("scene").getJSONObject("room").getString("id"));
+    assertEquals(originalPlayer.toString(),afterGm.getJSONObject("player").toString());
+    assertEquals(originalItems.toString(),afterGm.getJSONArray("inventory").toString());
+    assertFalse("GM action must commit once, without pending state",
+      afterGm.getJSONObject("scene").has("pendingActionId"));
+    JSONArray log = afterGm.getJSONArray("log");
+    assertTrue("GM response was not added to Core log",log.length()>=logCount+2);
+    String narrative = "";
+    for(int i=log.length()-1;i>=logCount;i--){
+      JSONObject item=log.optJSONObject(i);
+      if(item!=null && "gm".equals(item.optString("role"))){
+        narrative=item.optString("text","");break;
+      }
+    }
+    assertTrue("GM must produce substantive prose",narrative.trim().length()>=45);
+    assertFalse("GM must not narrate a new Level 1 transition",
+      java.util.regex.Pattern.compile("(?i)level\\s*1").matcher(narrative).find());
+    assertFalse("GM must not use backend mini-map vocabulary",
+      narrative.toLowerCase(java.util.Locale.ROOT).contains("mini-map"));
+    screenshot("09-real-gm-narration");
+    report.put("realGm",new JSONObject().put("status","PASS").put("provider","Gehihi")
+      .put("sample",narrative.substring(0,Math.min(800,narrative.length())))
+      .put("length",narrative.length()).put("coreUnchanged",true));
+    report.put("result", "PASS");
 
     File reportFile = new File(evidence, "gameplay-report.json");
     try (FileOutputStream stream = new FileOutputStream(reportFile)) {

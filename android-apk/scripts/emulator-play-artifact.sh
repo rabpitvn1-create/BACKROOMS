@@ -32,7 +32,7 @@ adb shell pm path com.rabpit.backroom | grep -q package:
 adb shell pm path com.rabpit.backroom.test | grep -q package:
 
 set +e
-adb shell am instrument -w -r -e class com.rabpit.backroom.EmulatorGameplayTest \
+adb shell am instrument -w -r -e class com.rabpit.backroom.EmulatorGameplayTest,com.rabpit.backroom.Level0RiddleGameplayTest \
   com.rabpit.backroom.test/androidx.test.runner.AndroidJUnitRunner \
   2>&1 | tee emulator-evidence/instrumentation.log
 test_result=${PIPESTATUS[0]}
@@ -40,10 +40,11 @@ set -e
 
 # am instrument may exit 0 even after assertion failures: inspect JUnit result.
 test "$test_result" -eq 0
-grep -q 'OK (1 test)' emulator-evidence/instrumentation.log
+grep -q 'OK (2 tests)' emulator-evidence/instrumentation.log
 ! grep -q 'FAILURES!!!' emulator-evidence/instrumentation.log
 adb pull /sdcard/Android/data/com.rabpit.backroom/files/emulator-smoke emulator-evidence/playthrough
 test -s emulator-evidence/playthrough/gameplay-report.json
 test -s emulator-evidence/playthrough/02-fullscreen-map.png
 test -s emulator-evidence/playthrough/07-map-after-move.png
+test -s emulator-evidence/playthrough/09-real-gm-narration.png
 echo 'EMULATOR ARTIFACT PLAYTHROUGH: PASS'
