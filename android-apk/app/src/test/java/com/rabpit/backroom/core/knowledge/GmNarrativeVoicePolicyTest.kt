@@ -4,13 +4,34 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class GmNarrativeVoicePolicyTest {
-  @Test fun openingContextIsMinimalHistoryAndCannotAuthorizeCurrentGameplay() {
-    val summary = GmNarrativeVoicePolicy.openingContext()
-    assertTrue(summary.length <= 300)
-    assertTrue(summary.contains("Lục Trầm")); assertTrue(summary.contains("muốn tìm nàng"))
-    assertTrue(summary.contains("chưa biết nàng ở đâu"))
-    assertTrue(summary.contains("hiện tại chỉ theo Core"))
-    assertFalse(summary.contains("đã hồi sinh")); assertFalse(summary.contains("mở khóa"))
+  @Test fun openingHistoryRetainsTheApprovedContextBudgetAndCompleteFinalBoundary() {
+    val history = GmNarrativeVoicePolicy.openingContext()
+    assertTrue("Expected a substantive 6,000–7,000-character summary, got ${history.length}", history.length in 6000..7000)
+    assertTrue(history.startsWith("LỊCH SỬ MỞ ĐẦU"))
+    assertTrue(history.endsWith("KẾT THÚC LỊCH SỬ MỞ ĐẦU."))
+    assertTrue(history.split("\n\n").size >= 10)
+  }
+
+  @Test fun openingHistoryPreservesCausalEventsRelationshipsAndTheCostOfTheEscape() {
+    val history = GmNarrativeVoicePolicy.openingContext()
+    listOf("Thiên Kiếm Môn", "Tịch Quang", "Thiên Cơ Bạch Kim Kiếm Khải", "Cao Minh",
+      "Vô Lượng Đại Tôn Giả", "Diệp Minh", "Sinh Mệnh Đạo", "ba nghìn hiệp",
+      "Huyết Ma Nhị Thập Tứ Trảm", "Cửu Giới Huyền Giám", "con tin",
+      "sợ chết", "còn muốn sống", "không có tọa độ", "không có mạch",
+      "không có bản nguyên", "tổn hại căn cơ", "suy yếu", "Huyết Ma Kiếm").forEach {
+      assertTrue("Missing essential opening fact: $it", history.contains(it))
+    }
+  }
+
+  @Test fun openingHistoryDoesNotAuthorizeCurrentActorsPowersOrInventTheMissingAnswers() {
+    val history = GmNarrativeVoicePolicy.openingContext()
+    listOf("không xác lập danh phận vợ chồng hay đạo lữ", "nguyên nhân chi tiết không được giải thích",
+      "không được tự cấp lại", "không được kể thành hồi sinh thành công",
+      "không xác nhận nàng đang sống tại một phòng cụ thể",
+      "Tri thức của người kể không tự trở thành tri thức NPC", "không lấy sự thân thiết quá khứ ghi đè mất ký ức",
+      "tiến triển hiện tại chỉ theo Core").forEach {
+      assertTrue("Missing continuity/authority guard: $it", history.contains(it))
+    }
   }
 
   @Test fun narratorRejectsOneHundredDistinctSecondPersonCases() {

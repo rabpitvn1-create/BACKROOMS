@@ -49,4 +49,11 @@ test('both writer paths receive the compact historical anchor, never the reader 
   assert.equal((java.match(/OPENING_CONTEXT=/g)||[]).length,2);
   assert.equal((java.match(/GmNarrativeVoicePolicy\.openingContext\(\)/g)||[]).length,2);
   assert.doesNotMatch(java,/getString\("prologue"\)|BackroomPrologueText/);
+  const staged=java.slice(java.indexOf('private String sceneWriterPrompt()'),java.indexOf('private String narrateStagedSceneAction('));
+  const mixed=java.slice(java.indexOf('private String narrateMixedPlayerAction('),java.indexOf('/** Retry stored public events only.'));
+  for(const writer of [staged,mixed]){
+    assert.match(writer,/OPENING_CONTEXT=" \+ com\.rabpit\.backroom\.core\.knowledge\.GmNarrativeVoicePolicy\.openingContext\(\)\s*\+ "\\nCANON=/,
+      'each narration request appends the full native context outside the clipped recent-history view');
+    assert.doesNotMatch(writer,/openingContext\(\)\.(?:substring|take|slice)/);
+  }
 });
