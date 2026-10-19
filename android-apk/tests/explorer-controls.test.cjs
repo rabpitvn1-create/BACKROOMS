@@ -182,6 +182,24 @@ test('undiscovered snapshot is dimmed, nameless, padlocked and connected by a da
   assert.ok(sources.some(src=>src.endsWith('/level_00__zone_02__deadlight.webp')));
   assert.equal(opened.children.some(el=>el.attributes?.class==='explorer-map-annotations'),true);
 });
+test('fullscreen graph can show every locked region while planner map stays limited',()=>{
+  const r=runtime({map:{currentRoomId:'a',entryRoomId:'a',
+    snapshots:{a:'yellow_rot',b:'deadlight',c:'yellow_rot'},
+    rooms:[{id:'a',name:'Khu A',visited:true,adjacentRoomIds:['b']}],
+    overviewRooms:[
+      {id:'a',name:'Khu A',visited:true,adjacentRoomIds:['b']},
+      {id:'b',name:'',visited:false,adjacentRoomIds:['a','c']},
+      {id:'c',name:'SECRET ZONE',visited:false,adjacentRoomIds:['b']}
+    ]
+  }});
+  r.buttons[0].onclick();
+  const svg=r.dialog.children[1].children[0].children[0];
+  const nodes=svg.children.filter(el=>el.attributes?.['data-map-node']);
+  assert.equal(nodes.length,3,'use the complete Core atlas, not just frontier');
+  assert.equal(nodes.filter(el=>el.attributes['data-map-node']==='locked').length,2);
+  assert.equal(svg.children.filter(el=>el.attributes?.class==='explorer-map-edge-locked').length,2);
+  assert.equal(nodes.some(n=>n.children.some(el=>String(el.textContent||'').includes('SECRET ZONE'))),false);
+});
 test('explored connected rooms use solid lines while all true Core loops remain',()=>{
   const r=runtime({map:{currentRoomId:'a',entryRoomId:'a',
     rooms:[{id:'a',name:'Khu A',visited:true,adjacentRoomIds:['b','c']},

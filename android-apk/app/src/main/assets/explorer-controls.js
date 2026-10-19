@@ -217,7 +217,8 @@
     activeMechanismId=null;showPopup('MAP');
     heading.textContent='LEVEL 0';
     const map=state.scene?.map;
-    const rooms=Array.isArray(map?.rooms)?map.rooms:[];
+    const rooms=Array.isArray(map?.overviewRooms)&&map.overviewRooms.length?
+      map.overviewRooms:(Array.isArray(map?.rooms)?map.rooms:[]);
     const currentRoom=rooms.find(r=>r.id===map?.currentRoomId);
     // Canon zone name is already public at the player's current location.
     mapSubtitle.textContent=state.scene?.environment?.name||
