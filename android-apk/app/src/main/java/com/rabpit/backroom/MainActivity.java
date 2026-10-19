@@ -1078,9 +1078,25 @@ public class MainActivity extends Activity {
     }
   }
 
+  /** The fullscreen atlas is visual-only. Never feed unrevealed room
+   * identities or graph topology to Gehihi's language prompts. */
+  private JSONObject sceneViewForGm(JSONObject rawView) throws Exception {
+    JSONObject view = new JSONObject(rawView.toString());
+    JSONObject scene = view.optJSONObject("scene");
+    if (scene != null) {
+      JSONObject map = scene.optJSONObject("map");
+      if (map != null) {
+        map.remove("overviewRooms");
+        map.remove("snapshots");
+      }
+    }
+    return view;
+  }
+
   private String sceneWriterPrompt() throws Exception {
     JSONObject packet = new JSONObject(requireGameCore().sceneNarrationContext());
-    JSONObject view = new JSONObject(requireGameCore().currentClientState("{}"));
+    JSONObject view = sceneViewForGm(
+      new JSONObject(requireGameCore().currentClientState("{}")));
     LevelRouteRegistry.Node target = LevelRouteRegistry.node(packet.getString("node"));
     view.put("level", target.asJson()).put("location", target.location());
     view.put("pendingNpcEncounters", packet.getJSONArray("npcEncounters"));
@@ -1862,7 +1878,8 @@ public class MainActivity extends Activity {
     /** A single GM pass for resolved FREE and Core actions. Never persists GM deltas. */
     private String narrateMixedPlayerAction(String rawAction, JSONArray resolved,
                                            String projection, boolean interrupted) throws Exception {
-      JSONObject view = new JSONObject(requireGameCore().currentClientState(projection));
+      JSONObject view = sceneViewForGm(
+        new JSONObject(requireGameCore().currentClientState(projection)));
       JSONObject scene = view.optJSONObject("scene");
       String canon = com.rabpit.backroom.core.knowledge.KnowledgeContextEngine.build(
         MainActivity.this, view.toString(), rawAction, "{}");
