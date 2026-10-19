@@ -2,6 +2,12 @@ package com.rabpit.backroom;
 
 import android.app.Activity;
 import android.app.Instrumentation;
+import android.app.UiAutomation;
+import android.os.SystemClock;
+import android.view.InputDevice;
+import android.view.MotionEvent;
+import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.accessibility.AccessibilityWindowInfo;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -40,6 +46,7 @@ public final class EmulatorGameplayTest {
   private final Context context = instrumentation.getTargetContext();
   private final JSONObject report = new JSONObject();
   private WebView webView;
+  private Activity activity;
   private File evidence;
 
   private static WebView findWebView(View root) {
@@ -72,10 +79,88 @@ public final class EmulatorGameplayTest {
     return new JSONObject(js("JSON.stringify(" + objectExpression + ")"));
   }
 
+  private AccessibilityNodeInfo findText(AccessibilityNodeInfo node, String needle) {
+    if (node == null) return null;
+    CharSequence text = node.getText();
+    if (text != null && text.toString().contains(needle)) return node;
+    CharSequence description = node.getContentDescription();
+    if (description != null && description.toString().contains(needle)) return node;
+    for (int i = 0; i < node.getChildCount(); i++) {
+      AccessibilityNodeInfo found = findText(node.getChild(i), needle);
+      if (found != null) return found;
+    }
+    return null;
+  }
+
+  private boolean dismissAndroidDialog(String title, String button) {
+    UiAutomation ui = instrumentation.getUiAutomation(UiAutomation.FLAG_RETRIEVE_INTERACTIVE_WINDOWS);
+    for (AccessibilityWindowInfo window : ui.getWindows()) {
+      AccessibilityNodeInfo root = window.getRoot();
+      if (root == null || findText(root, title) == null) continue;
+      AccessibilityNodeInfo control = findText(root, button);
+      while (control != null && !control.isClickable()) control = control.getParent();
+      if (control == null || !control.performAction(AccessibilityNodeInfo.ACTION_CLICK))
+        fail("Android dialog blocks game and cannot be dismissed: " + title);
+      return true;
+    }
+    return false;
+  }
+
+  /** The old test passed behind 'Viewing full screen' and launcher ANR dialogs.
+   * Screenshots and real taps must NEVER run beneath another Android window. */
+  private void requireInteractiveForeground() throws Exception {
+    for (int attempt = 0; attempt < 25; attempt++) {
+      boolean dismissed = dismissAndroidDialog("Viewing full screen", "Got it");
+      dismissed |= dismissAndroidDialog("Pixel Launcher isn't responding", "Close app");
+      dismissed |= dismissAndroidDialog("Launcher isn't responding", "Close app");
+      if (dismissed) {
+        Thread.sleep(400);
+        continue;
+      }
+      AtomicReference<Boolean> focused = new AtomicReference<>(false);
+      instrumentation.runOnMainSync(() -> focused.set(activity.hasWindowFocus()));
+      AccessibilityNodeInfo active = instrumentation.getUiAutomation().getRootInActiveWindow();
+      String owner = active == null || active.getPackageName() == null
+        ? "" : active.getPackageName().toString();
+      if (focused.get() && context.getPackageName().equals(owner)) return;
+      Thread.sleep(400);
+    }
+    fail("Android emulator has a blocking system window or the game is not foreground");
+  }
+
+  /** Injects a real Android touchscreen event, never JavaScript element.click().
+   * This makes an inaccessible/covered/disabled game button fail the smoke test. */
   private void click(String expression) throws Exception {
-    JSONObject result = inspect("(()=>{const button=" + expression +
-      ";if(!button)return {clicked:false};button.click();return {clicked:true};})()");
-    assertTrue("Expected user control was not found: " + expression, result.getBoolean("clicked"));
+    requireInteractiveForeground();
+    JSONObject target = inspect("(()=>{const e=" + expression +
+      ";if(!e)return {found:false};e.scrollIntoView({block:'center',inline:'nearest'});" +
+      "const r=e.getBoundingClientRect(),x=(r.left+r.right)/2,y=(r.top+r.bottom)/2;" +
+      "const top=document.elementFromPoint(x,y);" +
+      "return {found:true,enabled:!e.disabled,visible:r.width>0&&r.height>0," +
+      "uncovered:top===e||e.contains(top),x,y,w:window.innerWidth,h:window.innerHeight};})()");
+    assertTrue("Button missing: " + expression, target.getBoolean("found"));
+    assertTrue("Button disabled: " + expression, target.getBoolean("enabled"));
+    assertTrue("Button hidden: " + expression, target.getBoolean("visible"));
+    assertTrue("Button covered inside WebView: " + expression, target.getBoolean("uncovered"));
+    float[] location = new float[2];
+    instrumentation.runOnMainSync(() -> {
+      int[] xy = new int[2];
+      webView.getLocationOnScreen(xy);
+      location[0] = xy[0] + (float) (target.optDouble("x") * webView.getWidth() / target.optDouble("w"));
+      location[1] = xy[1] + (float) (target.optDouble("y") * webView.getHeight() / target.optDouble("h"));
+    });
+    long downTime = SystemClock.uptimeMillis();
+    UiAutomation ui = instrumentation.getUiAutomation();
+    MotionEvent down = MotionEvent.obtain(downTime, downTime, MotionEvent.ACTION_DOWN,
+      location[0], location[1], 0);
+    down.setSource(InputDevice.SOURCE_TOUCHSCREEN);
+    assertTrue("Touch-down event rejected", ui.injectInputEvent(down, true));
+    down.recycle();
+    MotionEvent up = MotionEvent.obtain(downTime, downTime + 85, MotionEvent.ACTION_UP,
+      location[0], location[1], 0);
+    up.setSource(InputDevice.SOURCE_TOUCHSCREEN);
+    assertTrue("Touch-up event rejected", ui.injectInputEvent(up, true));
+    up.recycle();
     instrumentation.waitForIdleSync();
   }
 
@@ -91,6 +176,7 @@ public final class EmulatorGameplayTest {
   }
 
   private void screenshot(String name) throws Exception {
+    requireInteractiveForeground();
     instrumentation.waitForIdleSync();
     Thread.sleep(350);
     Bitmap bitmap = instrumentation.getUiAutomation().takeScreenshot();
@@ -139,12 +225,13 @@ public final class EmulatorGameplayTest {
     Intent intent = new Intent(Intent.ACTION_MAIN);
     intent.setClassName(context.getPackageName(), "com.rabpit.backroom.MainActivity");
     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-    Activity activity = instrumentation.startActivitySync(intent);
+    activity = instrumentation.startActivitySync(intent);
     assertNotNull(activity);
     webView = findWebView(activity.getWindow().getDecorView());
     assertNotNull("MainActivity must render its real WebView", webView);
 
     until("document.querySelector('#explorerControls button') && typeof Android !== 'undefined' && typeof state !== 'undefined' && state.scene && state.scene.map", 30);
+    requireInteractiveForeground();
     GameCoreFacade core = GameCoreFacade.create(context, false);
     JSONObject initial = coreState(core);
     assertEquals("world-graph-v3", initial.getJSONObject("scene").getString("runtime"));
@@ -156,9 +243,11 @@ public final class EmulatorGameplayTest {
 
     click("Array.from(document.querySelectorAll('#explorerControls button')).find(b=>b.textContent.trim()==='MAP')");
     until("document.querySelector('#explorerChoices')?.open && document.querySelector('#explorerChoices .explorer-map-scroll svg')", 12);
-    JSONObject map = inspect("(()=>{const d=document.querySelector('#explorerChoices'),s=d.querySelector('svg');return {open:d.open,full:d.classList.contains('explorer-map-mode'),title:d.querySelector('h2')?.textContent||d.querySelector('header')?.textContent||'',nodes:s.querySelectorAll('[data-map-node]').length,locked:s.querySelectorAll('[data-map-node=locked]').length,unnamedLocked:s.querySelectorAll('[data-map-node=locked] text').length,position:s.querySelectorAll('[data-map-location=cao-minh]').length,dashed:s.querySelectorAll('.explorer-map-edge-locked').length,scrollable:!!d.querySelector('.explorer-map-scroll')};})()");
+    JSONObject map = inspect("(()=>{const d=document.querySelector('#explorerChoices'),s=d.querySelector('svg');return {open:d.open,full:d.classList.contains('explorer-map-mode'),title:d.querySelector('.explorer-dialog-header strong')?.textContent||'',zone:d.querySelector('.explorer-map-subtitle')?.textContent||'',nodes:s.querySelectorAll('[data-map-node]').length,locked:s.querySelectorAll('[data-map-node=locked]').length,unnamedLocked:s.querySelectorAll('[data-map-node=locked] text').length,position:s.querySelectorAll('[data-map-location=cao-minh]').length,dashed:s.querySelectorAll('.explorer-map-edge-locked').length,scrollable:!!d.querySelector('.explorer-map-scroll')};})()");
     assertTrue(map.getBoolean("open"));
     assertTrue(map.getBoolean("full"));
+    assertEquals("LEVEL 0",map.getString("title"));
+    assertFalse("Current Canon zone must be shown",map.getString("zone").trim().isEmpty());
     assertEquals(45, map.getInt("nodes"));
     assertEquals(44, map.getInt("locked"));
     assertEquals(0, map.getInt("unnamedLocked"));
@@ -205,6 +294,10 @@ public final class EmulatorGameplayTest {
     assertEquals(43, explored.getInt("locked"));
     assertEquals(1, explored.getInt("marker"));
     screenshot("07-map-after-move");
+    assertFalse("MAP picture must differ from gameplay picture; a system overlay may be blocking both",
+      java.util.Arrays.equals(
+        Files.readAllBytes(new File(evidence,"06-after-move.png").toPath()),
+        Files.readAllBytes(new File(evidence,"07-map-after-move.png").toPath())));
     report.put("afterMoveMap", explored);
     click("document.querySelector('#explorerChoices button[aria-label=\"Đóng lựa chọn\"]')");
 
