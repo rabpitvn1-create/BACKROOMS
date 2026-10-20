@@ -212,7 +212,7 @@ object Level0SatelliteEnvironments {
  * Never modifies LevelRouteRegistry's mandatory one-way cross-level progression.
  */
 class Level0SatelliteWorldDefinition(override val nodeId: String) : WorldDefinition {
-  override val version = 1
+  override val version = 2
   override val objective = "Khảo sát những khu vực của " +
     (LevelRouteRegistry.node(nodeId)?.name ?: nodeId) + " và ghi nhận bằng chứng có thể kiểm chứng."
   override val requireAlternateRoutes = true
@@ -220,6 +220,8 @@ class Level0SatelliteWorldDefinition(override val nodeId: String) : WorldDefinit
   override val fieldStudies = environments.filter { it.id != it.zoneId }.map {
     WorldFieldStudy(it.id, "Khảo sát " + it.name, it.canon)
   }
+  override val evidenceLaws = Level0RouteRiddles.forNode(nodeId, environments)
+  override val passageConditions = evidenceLaws.map { it.id }.toSet()
   override fun generate(seed: Long): JSONObject {
     val rng = Random(seed)
     val hubs = environments.filter { it.id == it.zoneId }.map { it.id }.toMutableList()
@@ -242,7 +244,8 @@ class Level0SatelliteWorldDefinition(override val nodeId: String) : WorldDefinit
     return JSONObject().put("version", WorldGraphRuntime.GRAPH_VERSION)
       .put("seed", seed.toString()).put("nodeId", nodeId)
       .put("definitionVersion", version).put("entryRoomId", ids.getValue(hubs.first()))
-      .put("passages", JSONArray()).put("lawInstances", JSONArray())
+      .put("passages", JSONArray())
+      .put("lawInstances", JSONArray().apply { evidenceLaws.forEach { put(it.freeze()) } })
       .put("rooms", JSONArray().apply {
         keys.forEach { key ->
           val e = environments.first { it.id == key }
