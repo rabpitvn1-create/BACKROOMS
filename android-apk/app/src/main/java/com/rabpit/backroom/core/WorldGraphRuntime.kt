@@ -84,7 +84,9 @@ object WorldGraphRuntime {
   }
 
   private fun nextWorldNode(p: JSONObject, definition: WorldDefinition): String? {
-    if (!exitUnlocked(p, definition)) return null
+    // Phase 1 ships only the Level 0 gate. Satellite exits remain closed
+    // until their puzzle laws and AREA definitions are implemented in phase 3.
+    if (p.optString("nodeId") != "0" || !exitUnlocked(p, definition)) return null
     return LevelRouteRegistry.exits(p.getString("nodeId")).singleOrNull()
       ?.takeIf { WorldDefinitions.forNode(it) != null }
   }
