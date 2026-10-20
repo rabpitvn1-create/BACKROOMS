@@ -44,6 +44,8 @@ class Level0ObjectiveTest {
     assertFalse(next.contains("passage:"))
     assertFalse(next.contains("wet-ceiling"))
     assertFalse(next.contains("loop-reflection"))
+    assertFalse(next.contains("signal-distortion"))
+    assertFalse(next.contains("fracture-boundary"))
     assertFalse(MiniMapRuntime.complete(state))
     val saved = GameStateCodec.decode(GameStateCodec.encode(state))
     assertEquals(next, MiniMapRuntime.publicView(saved).getString("objective"))
