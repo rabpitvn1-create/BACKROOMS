@@ -45,55 +45,68 @@ class Level0RiddleGameplayTest {
   private fun unlocked(s: GameState, rule: String) =
     p(s).getJSONObject("ruleFlags").optBoolean(rule)
 
-  @Test fun incompleteGuessesNeverUnlockAndBothRiddlesSurviveSaveReload() {
-    for (seed in listOf(41L,73L)) {
+  private fun prepared(s: GameState, law: WorldEvidenceLaw): GameState {
+    var state = s
+    for (probe in law.probes) {
+      state = travel(state, probe.environmentId)
+      state = act(state, "probe:${probe.method}")
+    }
+    for ((first, second) in law.comparisonPairs) {
+      state = travel(state, first)
+      state = act(state, "study")
+      val firstRoom = p(state).getString("roomId")
+      state = travel(state, second)
+      state = act(state, "study")
+      state = act(state, "compare:$firstRoom")
+    }
+    for (anchor in law.physicalAnchors) {
+      state = travel(state, anchor)
+      state = act(state, "trace")
+    }
+    return travel(state, law.verifyEnvironmentId)
+  }
+
+  @Test fun wrongHypothesesDoNotUnlockAndAllFourChainsSurviveReload() {
+    for (seed in listOf(41L, 73L)) {
       var state = WorldGraphRuntime.initialize(
-        CoreClientProjection.initialize(GameState.initial()),seed)
+        CoreClientProjection.initialize(GameState.initial()), seed)
       val initialItems = state.inventories
       val initialParty = state.party.memberIds
-      assertFalse(public(state).toString().contains("wet-ceiling"))
-      assertFalse(public(state).toString().contains("loop-reflection"))
-      // Wrong physical inference: no independent evidence yet.
-      state = travel(state,"khoang_ky_thuat")
-      state = act(state,"verify")
-      assertFalse(unlocked(state,"wet-ceiling"))
-      assertEquals(1,p(state).getJSONObject("environmentChanges")
-        .getJSONObject(p(state).getString("roomId")).getInt("failedTests"))
-      state = travel(state,"phong_ngap")
-      state = act(state,"probe:floor")
-      state = travel(state,"khoang_ky_thuat")
-      state = act(state,"verify")
-      assertFalse("One clue cannot unlock the physical shortcut",unlocked(state,"wet-ceiling"))
-      state = act(state,"probe:ceiling")
-      state = act(state,"verify")
-      assertTrue(unlocked(state,"wet-ceiling"))
-      // The reflection puzzle also requires user-made physical anchors.
-      state = travel(state,"hanh_lang_lap")
-      state = act(state,"probe:markings")
-      state = travel(state,"phong_dao")
-      state = act(state,"probe:reflection")
-      state = travel(state,"hanh_lang_lap")
-      state = act(state,"verify")
-      assertFalse(unlocked(state,"loop-reflection"))
-      state = act(state,"trace")
-      state = act(state,"verify")
-      assertFalse("One physical marker is insufficient",unlocked(state,"loop-reflection"))
-      state = travel(state,"phong_dao")
-      state = act(state,"trace")
-      state = travel(state,"hanh_lang_lap")
-      state = act(state,"verify")
-      assertTrue(unlocked(state,"loop-reflection"))
-      assertEquals(initialItems,state.inventories)
-      assertEquals(initialParty,state.party.memberIds)
+      val laws = Level0WorldDefinition.evidenceLaws
+      assertEquals(4, laws.size)
+      // Premature verification is rejected even at the correct verification site.
+      state = travel(state, laws.first().verifyEnvironmentId)
+      state = act(state, "verify")
+      assertFalse(unlocked(state, laws.first().id))
+
+      for ((lawIndex, law) in laws.withIndex()) {
+        state = prepared(state, law)
+        assertFalse(unlocked(state, law.id))
+        for ((stepIndex, step) in law.inferenceSteps.withIndex()) {
+          if (lawIndex == 0 && stepIndex == 0) {
+            val wrong = step.options.first { it.id != step.answerId }
+            state = act(state, "deduce:${step.id}:${wrong.id}")
+            assertFalse(unlocked(state, law.id))
+            assertFalse(p(state).getJSONObject("inferenceDecisions").has(step.id))
+          }
+          state = act(state, "deduce:${step.id}:${step.answerId}")
+        }
+        state = act(state, "verify")
+        assertTrue("unsolved:${law.id}", unlocked(state, law.id))
+      }
+      assertEquals(initialItems, state.inventories)
+      assertEquals(initialParty, state.party.memberIds)
+      assertEquals(8, p(state).getJSONObject("inferenceDecisions").length())
+      assertEquals(4, MiniMapScenario.objects(p(state).getJSONArray("records"))
+        .count { it.optString("kind") == "VERIFICATION" })
       assertFalse(MiniMapRuntime.complete(state))
       val restored = GameStateCodec.decode(GameStateCodec.encode(state))
-      assertEquals(p(state).toString(),p(restored).toString())
-      assertTrue(unlocked(restored,"wet-ceiling"))
-      assertTrue(unlocked(restored,"loop-reflection"))
-      assertEquals(2,MiniMapScenario.objects(p(restored).getJSONArray("records"))
-        .count { it.optString("kind")=="VERIFICATION" })
-      assertFalse(public(restored).toString().contains("wet-ceiling"))
-      assertFalse(public(restored).toString().contains("loop-reflection"))
+      assertEquals(p(state).toString(), p(restored).toString())
+      for (law in laws) {
+        assertTrue(unlocked(restored, law.id))
+        assertFalse(public(restored).toString().contains(law.id))
+      }
     }
   }
+
 }
