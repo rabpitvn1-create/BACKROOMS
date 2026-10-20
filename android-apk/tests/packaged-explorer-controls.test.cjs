@@ -159,3 +159,13 @@ test('APK contract rejects a missing generated observation-monitor frame',t=>{
   const assets=fixture(t);fs.unlinkSync(path.join(assets,'ui/black-observation-monitor-v1.webp'));
   const result=verify(assets);assert.notEqual(result.status,0);assert.match(result.stderr,/black-observation-monitor-v1.webp/);
 });
+
+
+test('CCTV raster remains stationary without tracking textures in either stylesheet',()=>{
+  const theme=fs.readFileSync(path.join(source,'ui/industrial-crt-v1.css'),'utf8');
+  const correction=fs.readFileSync(path.join(source,'ui/snapshot-crt.css'),'utf8');
+  for(const css of [theme,correction])assert.doesNotMatch(css,/tracking-v3|tracking-sweep|crt-glass-tracking/);
+  const raster=theme.match(/\.industrial-ui \.snapshot::after\{([^}]+)\}/)[1];
+  assert.match(raster,/repeating-linear-gradient/);assert.match(raster,/animation:none/);
+  assert.match(raster,/pointer-events:none/);assert.match(raster,/transform:none/);
+});

@@ -121,6 +121,17 @@ test('mini-map objective updates in GAME MENU without exposing hidden clues',()=
   assert.equal(r.objectivePanel.hidden,true);
   assert.equal(r.objectiveText.textContent,'');
 });
+test('Player Action empty submit is disabled and closing retains the editable draft',()=>{
+  const r=runtime();r.player.onclick();
+  const [head,input,send]=r.actionDialog.children;
+  assert.equal(send.disabled,true);assert.equal(r.actionDialog.open,true);
+  input.value='   ';input.oninput();assert.equal(send.disabled,true);
+  input.value='Quan sát hành lang.\nLắng nghe tiếng đèn.';input.oninput();assert.equal(send.disabled,false);
+  head.children[1].onclick();assert.equal(r.actionDialog.open,false);
+  r.player.onclick();assert.equal(r.actionDialog.open,true);
+  assert.equal(input.value,'Quan sát hành lang.\nLắng nghe tiếng đèn.');
+  assert.equal(r.calls.length,0,'opening and closing the composer must not submit an action');
+});
 test('Player Action submits original natural text to the Core interpreter without forging choices',()=>{
   const r=runtime();r.player.onclick();assert.equal(r.actionDialog.open,true);
   const input=r.actionDialog.children[1],send=r.actionDialog.children[2];

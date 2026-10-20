@@ -62,7 +62,7 @@
   const actionInput=document.createElement('textarea');actionInput.id='explorerActionText';
   actionInput.maxLength=900;actionInput.rows=5;
   actionInput.placeholder='Cao Minh đi qua hành lang vàng tới góc ẩm, kiểm tra bảng điện rồi gạt cầu dao 2-1-3-5-4-6.';
-  const actionSend=document.createElement('button');actionSend.type='button';actionSend.textContent='Thực hiện';
+  const actionSend=document.createElement('button');actionSend.type='button';actionSend.textContent='Thực hiện';actionSend.disabled=true;
   const actionHead=document.createElement('div');actionHead.className='explorer-dialog-header';
   actionHead.append(actionTitle,actionClose);actionDialog.append(actionHead,actionInput,actionSend);
   document.body.appendChild(actionDialog);

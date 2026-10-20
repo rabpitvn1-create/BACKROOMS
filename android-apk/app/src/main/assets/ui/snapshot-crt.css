@@ -11,18 +11,8 @@
   content:'';position:absolute;inset:0;z-index:10;pointer-events:none;
   border-radius:0;background:url('crt-glass-v5.svg') center/100% 100% no-repeat;box-shadow:none
 }
-.industrial-ui #snapshot::after{
-  z-index:7;background:url('industrial-crt-v1/tracking-v3.webp') center/100% auto no-repeat;
-  opacity:.85;animation:crt-glass-tracking 9s ease-in-out infinite alternate;
-  animation-delay:0s;will-change:transform
-}
-@keyframes crt-glass-tracking{from{transform:translateY(17%)}to{transform:translateY(22%)}}
 .industrial-ui #snapshot .snapshot-tv-hud{inset:7% 6%;z-index:8}
 .industrial-ui #snapshot .tv-glass{
-  inset:-8% -7%;background:radial-gradient(ellipse at center,transparent 47%,#0003 78%,#000a 100%),
-    repeating-linear-gradient(0deg,#0510121a 0 .5px,transparent .5px 1.6px);
+  inset:-8% -7%;background:radial-gradient(ellipse at center,transparent 47%,#0003 78%,#000a 100%);
   opacity:1;mask-image:none;-webkit-mask-image:none
-}
-@media(prefers-reduced-motion:reduce){
-  .industrial-ui #snapshot::after{animation:none;transform:translateY(20%);opacity:.7;will-change:auto}
 }

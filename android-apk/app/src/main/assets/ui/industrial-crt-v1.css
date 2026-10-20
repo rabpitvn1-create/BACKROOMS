@@ -38,17 +38,15 @@ body.industrial-ui{
 .industrial-ui .snapshot::before{
   content:'';position:absolute;inset:0;z-index:6;pointer-events:none;
   border-radius:7px;
-  background:radial-gradient(ellipse at center,transparent 53%,#060b064d 83%,#000c 100%),
-    repeating-linear-gradient(0deg,#02070223 0 .5px,transparent .5px 2px);
+  background:radial-gradient(ellipse at center,transparent 53%,#060b064d 83%,#000c 100%);
   box-shadow:inset 0 0 16px 5px #000b,inset 0 0 3px 1px #7c8a7155
 }
-/* A single low-opacity tracking band. No flashing, timers or gameplay updates. */
+/* Fine stationary raster lines, with no tracking band or animated glare. */
 .industrial-ui .snapshot::after{
   content:'';position:absolute;inset:0;z-index:7;pointer-events:none;border:0;
-  background:url('industrial-crt-v1/tracking-v3.webp') center/100% auto no-repeat;
-  opacity:.82;animation:tv-tracking-sweep 7s linear infinite;animation-delay:-4.5s;will-change:transform
+  background:repeating-linear-gradient(to bottom,#02060540 0 1px,transparent 1px 3px);
+  opacity:1;animation:none;transform:none;will-change:auto
 }
-@keyframes tv-tracking-sweep{from{transform:translateY(-60%)}to{transform:translateY(60%)}}
 .industrial-ui .snapshot-tv-hud{
   position:absolute;inset:12px;z-index:8;pointer-events:none;color:#d8e2cc;
   font:12px/1.1 monospace;text-shadow:-.5px 0 #6dbdc555,.6px 0 #d37a7a55,0 1px 2px #000;opacity:.88
@@ -72,7 +70,6 @@ body.industrial-ui{
 .industrial-ui .crt-header-status svg{display:block;flex:none;fill:none;stroke:currentColor;stroke-width:1.3}
 .industrial-ui .topbar>div:first-child{min-width:0}
 @media(max-width:360px){.industrial-ui .camera-label{display:none}.industrial-ui .header-tools{gap:6px}}
-@media(prefers-reduced-motion:reduce){.industrial-ui .snapshot::after{animation:none;transform:none;opacity:.12;will-change:auto}}
 .industrial-ui .log{padding:6px 10px 10px;gap:12px;scrollbar-color:#75674a #101512}
 .industrial-ui .log .message.gm,.industrial-ui .log .message.player,.industrial-ui .log .message.core{
   position:relative;isolation:isolate;border:0;padding:21px 22px 24px;
@@ -165,7 +162,52 @@ body.industrial-ui{
 .industrial-ui #explorerChoices.explorer-map-mode{border-width:14px;padding:6px}
 .industrial-ui #explorerChoices.explorer-map-mode .explorer-map-zoom button::after{content:none}
 .industrial-ui #explorerChoices.explorer-map-mode .explorer-map-zoom button{border:8px solid transparent;border-image:var(--industrial-steel) 70 fill / 10px / 0 stretch;padding:2px 7px}
-.industrial-ui #prologueReader{background:#10150f var(--industrial-crt) center/512px 512px}
+/* The reader and action composer share the menu's tiled industrial rails.
+   Keep the one-time Prologue offer gold, rounded and independently dismissible. */
+.industrial-ui #prologuePrompt{
+  background-color:#8b642e;
+  background-image:linear-gradient(135deg,#c59a51dd,#8b642ecc 65%,#67451fe6),var(--industrial-crt);
+  background-size:auto,512px 512px
+}
+.industrial-ui #prologueReader,.industrial-ui #explorerPlayerAction{
+  border:12px solid transparent;border-image:var(--industrial-frame) 80 / 12px / 0 repeat;
+  border-radius:10px!important;background:#10150f var(--industrial-crt) center/512px 512px;
+  color:#eeddb5;box-shadow:0 8px 30px #000b;scrollbar-color:#75674a #101512
+}
+.industrial-ui #prologueReader{overflow:hidden}
+.industrial-ui #prologueReader .prologue-reader-head,
+.industrial-ui #explorerPlayerAction .explorer-dialog-header{
+  flex:none;min-width:0;padding:10px 12px;margin:0;border-bottom:1px solid #726343;
+  background:#11150f var(--industrial-crt) center/512px 512px;color:#f3c576
+}
+.industrial-ui #prologueReaderClose,
+.industrial-ui #explorerPlayerAction .explorer-dialog-header button{
+  flex:none;width:44px;height:44px;min-height:44px;padding:0;
+  border:8px solid transparent;border-image:var(--industrial-steel) 70 fill / 9px / 0 stretch;
+  border-radius:8px!important;background:transparent;color:#ffedb3;font-size:25px;line-height:1
+}
+.industrial-ui #prologueReader .prologue-body{padding:16px;overflow-wrap:anywhere}
+.industrial-ui #prologueReaderDone,.industrial-ui #explorerPlayerAction #explorerActionText+button{
+  min-height:52px;padding:6px 12px;border:10px solid transparent;
+  border-image:var(--industrial-hazard) 70 fill / 12px / 0 stretch;
+  border-radius:8px!important;background:transparent;color:#211607;text-shadow:0 1px 0 #ffdf7d88
+}
+.industrial-ui #prologueReaderDone{margin:10px 12px 12px}
+.industrial-ui #explorerPlayerAction{
+  padding:0;max-height:calc(var(--app-height,100dvh) - 24px);overflow:auto;
+  width:min(calc(100vw - 24px),480px);overscroll-behavior:contain
+}
+.industrial-ui #explorerActionText{
+  width:calc(100% - 24px);margin:12px 12px 0;padding:12px;
+  min-height:130px;max-height:40dvh;resize:vertical;
+  border:1px solid #87724f;border-radius:6px!important;
+  background:linear-gradient(#080e0de6,#080e0de6),var(--industrial-crt);
+  background-size:auto,512px 512px;color:#f2e8d4;caret-color:#ffdf8c
+}
+.industrial-ui #explorerActionText::placeholder{color:#b4aa8e;opacity:1}
+.industrial-ui #explorerActionText:focus-visible{outline:2px solid #ffdf8c;outline-offset:2px}
+.industrial-ui #explorerPlayerAction #explorerActionText+button{width:calc(100% - 24px);margin:12px}
+.industrial-ui #explorerPlayerAction #explorerActionText+button:disabled{opacity:.4}
 .industrial-ui button:focus-visible{outline:2px solid #ffdf8c!important;outline-offset:2px}
 @media(max-width:360px){
   .industrial-ui .log .message.gm,.industrial-ui .log .message.player,.industrial-ui .log .message.core{padding:20px 18px}
