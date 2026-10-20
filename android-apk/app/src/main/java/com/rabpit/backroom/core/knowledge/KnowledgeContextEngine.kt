@@ -224,9 +224,13 @@ object KnowledgeContextEngine {
           record.source.document in setOf(
             "android-apk/LEVEL_0_EIGHT_ZONES_CANON.md",
             "android-apk/LEVEL_0_TWENTY_NINE_SUBZONES_CANON.md"))
+      val approvedLs2Source =
+        record.id == "LEVEL.NODE.ls_2" &&
+          record.source.document == "android-apk/LS2_PROJECT_CANON_20261021.md"
       append("  provenance=").append(
         if (record.source.document.startsWith("Google Drive /Novel/Asset/") ||
-          record.source.document.startsWith("https://") || approvedLevelZeroSource) "TRACEABLE"
+          record.source.document.startsWith("https://") || approvedLevelZeroSource ||
+          approvedLs2Source) "TRACEABLE"
         else "LEGACY_UNVERIFIED")
         .append("; authority=").append(record.authority)
         .append("; mutability=").append(record.mutability).append('\n')
