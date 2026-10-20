@@ -55,14 +55,14 @@ public final class GmQuestItems {
   private static String field(JSONObject object, String key, int maxLength) {
     String value = object.getString(key).trim();
     if (value.isEmpty() || value.length() > maxLength || value.indexOf('<') >= 0 ||
-      value.indexOf('>') >= 0 || value.indexOf('\\u0000') >= 0)
+      value.indexOf('>') >= 0 || value.indexOf((char) 0) >= 0)
       throw new IllegalArgumentException("gm_item_field_invalid");
     return value;
   }
 
   private static JSONObject validateSnapshot(JSONObject value) {
     if (value == null || value.getInt("version") != 1 ||
-      !keys(value).equals(Set.of("version", "items", "appliedActions")))
+      !keys(value).equals(set("version", "items", "appliedActions")))
       throw new IllegalArgumentException("gm_items_snapshot_schema");
     JSONArray items = value.getJSONArray("items"), applied = value.getJSONArray("appliedActions");
     if (items.length() > MAX_ITEMS || applied.length() > MAX_HISTORY)
@@ -70,9 +70,9 @@ public final class GmQuestItems {
     Set<String> ids = new HashSet<>();
     for (int i = 0; i < items.length(); i++) {
       JSONObject item = items.getJSONObject(i);
-      if (!keys(item).equals(Set.of("id", "name", "description", "nodeId", "status")) ||
+      if (!keys(item).equals(set("id", "name", "description", "nodeId", "status")) ||
         !validId(item.getString("id")) || !ids.add(item.getString("id")) ||
-        !Set.of("held", "consumed").contains(item.getString("status")))
+        !set("held", "consumed").contains(item.getString("status")))
         throw new IllegalArgumentException("gm_items_snapshot_item");
       field(item, "name", 90); field(item, "description", 500); field(item, "nodeId", 64);
     }
@@ -83,6 +83,10 @@ public final class GmQuestItems {
         throw new IllegalArgumentException("gm_items_snapshot_action");
     }
     return new JSONObject(value.toString());
+  }
+
+  private static Set<String> set(String... fields) {
+    return new HashSet<>(java.util.Arrays.asList(fields));
   }
 
   private static Set<String> keys(JSONObject value) {
@@ -103,13 +107,13 @@ public final class GmQuestItems {
     if (text.startsWith("```")) {
       int nl = text.indexOf('\n'), end = text.lastIndexOf("```");
       if (nl < 0 || end <= nl || !text.substring(end + 3).trim().isEmpty() ||
-        !Set.of("", "json").contains(text.substring(3, nl).trim().toLowerCase(java.util.Locale.ROOT)))
+        !set("", "json").contains(text.substring(3, nl).trim().toLowerCase(java.util.Locale.ROOT)))
         throw new IllegalArgumentException("gm_writer_envelope");
       text = text.substring(nl + 1, end).trim();
     }
     JSONObject outer = new JSONObject(text);
-    if (!keys(outer).equals(Set.of("reply")) &&
-        !keys(outer).equals(Set.of("reply", "questItems")))
+    if (!keys(outer).equals(set("reply")) &&
+        !keys(outer).equals(set("reply", "questItems")))
       throw new IllegalArgumentException("gm_writer_fields");
     String reply = outer.getString("reply");
     ProviderResponseContract.parseSceneWriter(new JSONObject().put("reply", reply).toString());
@@ -132,11 +136,11 @@ public final class GmQuestItems {
         throw new IllegalArgumentException("gm_item_op_id");
       switch (type) {
         case "create":
-          if (!keys(op).equals(Set.of("type", "id", "name", "description")))
+          if (!keys(op).equals(set("type", "id", "name", "description")))
             throw new IllegalArgumentException("gm_item_create_fields");
           field(op, "name", 90); field(op, "description", 500); break;
         case "consume":
-          if (!keys(op).equals(Set.of("type", "id")))
+          if (!keys(op).equals(set("type", "id")))
             throw new IllegalArgumentException("gm_item_consume_fields");
           break;
         default: throw new IllegalArgumentException("gm_item_op_type");
