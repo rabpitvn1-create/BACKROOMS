@@ -428,17 +428,35 @@ object WorldGraphRuntime {
       .apply { state.world[MiniMapRuntime.PENDING]?.let { put("pendingActionId", JSONObject(it).getString("actionId")) } }
   }
 
+  /** Core-generated physical footstep. It does not expose a new map action. */
+  fun footstepCommand(p: JSONObject): JSONObject {
+    require(active(p)) { "world_footstep_scope" }
+    return JSONObject().put("actionId", "${p.getString("runId")}:world:${p.getInt("version")}:STEP:footstep")
+      .put("sceneVersion", p.getInt("version")).put("roomId", p.getString("roomId"))
+      .put("kind", "STEP").put("targetId", "footstep")
+  }
+
   fun stage(state: GameState, command: JSONObject, p: JSONObject, definition: WorldDefinition = definition(p)): MiniMapRuntime.Staged {
     require(command.keys().asSequence().toSet() == setOf("actionId", "sceneVersion", "roomId", "kind", "targetId")) { "command_fields" }
     require(command.get("sceneVersion") is Int && command.getInt("sceneVersion") == p.getInt("version") &&
       command.getString("roomId") == p.getString("roomId")) { "scene_stale" }
-    val choice = objects(actions(state, p, definition)).firstOrNull { a ->
+    val footstep = if (command.optString("kind") == "STEP" && command.optString("targetId") == "footstep")
+      footstepCommand(p) else null
+    val choice = if (footstep != null &&
+      listOf("actionId", "sceneVersion", "roomId", "kind", "targetId").all {
+        footstep.get(it) == command.get(it)
+      }) footstep.put("label", "Tiến thêm một bước chân")
+    else objects(actions(state, p, definition)).firstOrNull { a ->
       listOf("actionId", "kind", "targetId", "roomId").all { a.getString(it) == command.getString(it) }
     } ?: error("scene_choice_unavailable")
     val g = p.getJSONObject(GRAPH); val kind = command.getString("kind"); val target = command.getString("targetId")
     var result: String
     var dialogue: JSONObject? = null
     when (kind) {
+      "STEP" -> {
+        // Spend a physical action without inventing a new room or exit.
+        result = "Đã tiến thêm một bước chân trong phòng hiện tại."
+      }
       "MOVE" -> {
         val from = p.getString("roomId")
         val to = if (target.startsWith("passage:")) {

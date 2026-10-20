@@ -212,6 +212,36 @@ class GameCoreFacade private constructor(
     return JSONObject().put("committed", false).toString()
   }
 
+  /** Core owns counted footsteps. Each step saves a distinct receipt and roll.
+   * No AI planner call; halt before another step if an Entity is pending. */
+  @Synchronized fun executePlayerFootsteps(playerText: String, count: Int, clientJson: String): String {
+    require(count in 1..12) { "player_footstep_count" }
+    val batch = PlayerActionPresentation.journal(loadCurrentState()) ?: error("player_action_missing")
+    require(batch.optString("status") == "running" && batch.optString("playerText") == playerText &&
+      batch.getJSONArray("events").length() == 0) { "player_footstep_batch_invalid" }
+    require(WorldGraphRuntime.active(MiniMapRuntime.progress(loadCurrentState()))) { "player_footstep_world_only" }
+    setPlayerRequestCount(count)
+    var presentation = clientJson
+    var executed = 0
+    val events = JSONArray()
+    while (executed < count) {
+      val state = loadCurrentState()
+      if (MiniMapRuntime.blocked(state)) break
+      val command = WorldGraphRuntime.footstepCommand(MiniMapRuntime.progress(state))
+      check(!JSONObject(beginSceneAction(command.toString(), playerText)).optBoolean("committed")) {
+        "player_footstep_duplicate"
+      }
+      val event = JSONObject(sceneNarrationContext())
+      presentation = commitSceneAction(command.getString("actionId"), event.getString("result"), presentation)
+      events.put(JSONObject().put("kind", "CORE").put("event", event))
+      executed++
+      if (CombatRuntime.pending(loadCurrentState()) != null) break
+    }
+    return JSONObject().put("executed", executed).put("requested", count)
+      .put("interrupted", executed < count).put("events", events)
+      .put("state", JSONObject(currentClientState(presentation))).toString()
+  }
+
   @Synchronized fun retrySceneAction(): String = JSONObject(loadCurrentState().world[MiniMapRuntime.PENDING]
     ?: error("scene_pending_missing")).getJSONObject("command").toString()
 
@@ -271,14 +301,14 @@ class GameCoreFacade private constructor(
     val afterView = clientSnapshot(JSONObject(), next)
     val sceneKind = pending.getJSONObject("command").getString("kind")
     val deviceControl = pending.getJSONObject("public").optBoolean("mechanismStep", false)
-    val actionText = (when (sceneKind) { "MOVE" -> "Di chuyển: "; "SEARCH" -> "Tìm kiếm: "; "INTERACT" -> "Thao tác: "; else -> "Giao tiếp: " }) + pending.getString("label")
+    val actionText = (when (sceneKind) { "MOVE", "STEP" -> "Di chuyển: "; "SEARCH" -> "Tìm kiếm: "; "INTERACT" -> "Thao tác: "; else -> "Giao tiếp: " }) + pending.getString("label")
     val continued = JSONObject(com.rabpit.backroom.core.knowledge.StoryContinuityReducer.apply(beforeView.toString(), afterView.toString(), actionText))
     val visualRolls = JSONObject()
     if (CombatRuntime.pending(next) != null) visualRolls.put("entityEncounter", JSONObject().put("eligible", true).put("success", true))
     // Core has already checked the MOVE command against the actual scene graph.
     // Do not infer room transitions from text like "Di chuyển: Kho hồ sơ".
     SnapshotSceneProgress.apply(beforeView, continued, visualRolls,
-      if (deviceControl) "DEVICE" else if (sceneKind == "MOVE") "SCENE_MOVE" else "EXECUTE",
+      if (deviceControl) "DEVICE" else if (sceneKind == "MOVE" || sceneKind == "STEP") "SCENE_MOVE" else "EXECUTE",
       if (deviceControl) "" else actionText)
     next = next.copy(world = next.world + ("flagsJson" to continued.getJSONObject("flags").toString()))
     next = CoreClientProjection.advance(CharacterMemoryBags.recordCommitted(core, next))

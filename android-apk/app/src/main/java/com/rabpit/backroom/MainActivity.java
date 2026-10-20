@@ -21,6 +21,7 @@ import com.rabpit.backroom.core.GameCoreFacade;
 import com.rabpit.backroom.core.LevelRouteRegistry;
 import com.rabpit.backroom.core.PlayerActionPresentation;
 import com.rabpit.backroom.core.PlayerActionPlan;
+import com.rabpit.backroom.core.PlayerFootstepIntent;
 import com.rabpit.backroom.core.ProviderResponseContract;
 import com.rabpit.backroom.core.ScenarioGenerator;
 import org.json.JSONArray;
@@ -1660,7 +1661,8 @@ public class MainActivity extends Activity {
         try {
           if (rawAction == null || rawAction.trim().isEmpty() || rawAction.length() > 900)
             throw new IllegalArgumentException("player_action_size");
-          JSONObject initial = new JSONObject(requireGameCore().scenePlayerActionContext());
+          int footstepCount = PlayerFootstepIntent.count(rawAction);
+          JSONObject initial = footstepCount == 0 ? new JSONObject(requireGameCore().scenePlayerActionContext()) : null;
           JSONObject initialView = new JSONObject(requireGameCore().currentClientState(projection));
           if (initialView.optJSONObject("scene") != null &&
               initialView.getJSONObject("scene").has("pendingActionId"))
@@ -1678,7 +1680,24 @@ public class MainActivity extends Activity {
           // MOVE -> SEARCH in a new room without sending hidden interactions
           // to the planner before the player actually reaches that room.
           // A single utterance authorizes only its explicitly identified actions.
-          while (committed < 12 && (totalActions < 0 || committed < totalActions)) {
+          // Literal counted footsteps never become Gemini FREE prose.
+          if (footstepCount > 0) {
+            failureCode = "core_failure";
+            JSONObject walked = new JSONObject(requireGameCore().executePlayerFootsteps(rawAction, footstepCount, projection));
+            committed = walked.getInt("executed");
+            requested = totalActions = walked.getInt("requested");
+            projection = walked.getJSONObject("state").toString();
+            JSONArray events = walked.getJSONArray("events");
+            for (int n = 0; n < events.length(); n++) narrativeEvents.put(events.getJSONObject(n));
+            emit("backroomPlayerActionProgress", new JSONObject()
+              .put("state", new JSONObject(projection)).put("executed", committed)
+              .put("requested", requested).toString());
+            if (walked.getBoolean("interrupted")) {
+              stopCode = "encounter";
+              stoppedStep = committed + 1;
+              stopMessage = "Đã gặp Entity ở bước " + committed + "; các bước còn lại chưa thực hiện.";
+            }
+          } else while (committed < 12 && (totalActions < 0 || committed < totalActions)) {
             stoppedStep = committed + 1;
             // Up to one planner pass per explicitly counted action: no
             // premature cut-off for a legitimate five-action utterance.

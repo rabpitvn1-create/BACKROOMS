@@ -43,6 +43,7 @@ jobs:
           if [ "$GITHUB_HEAD_REF" = "feat/653-mini-map-explorer" ]; then
             gradle :app:testDebugUnitTest --no-daemon \
               --tests '*PlayerActionPresentationTest' --tests '*PlayerActionPlanTest' \
+              --tests '*PlayerFootstepIntentTest' --tests '*PlayerFootstepRuntimeTest' \
               --tests '*ProviderResponseContractTest' --tests '*Level0WorldExplorationTest' \
               --tests '*WorldGraphRuntimeTest' --tests '*Level0PuzzleSolverTest' \
               --tests '*WorldCasebookIntegrityTest' --tests '*CoreClientProjectionTest' \
