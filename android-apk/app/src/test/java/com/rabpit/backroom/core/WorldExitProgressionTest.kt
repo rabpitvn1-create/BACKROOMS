@@ -65,7 +65,9 @@ class WorldExitProgressionTest {
     assertFalse(WorldGraphRuntime.exitUnlocked(unproven))
     val unvisited = JSONObject(completedProgress.toString())
     val arr = unvisited.getJSONArray("visitedRooms")
-    val missed = unvisited.getJSONObject("worldGraph").getJSONArray("rooms").getJSONObject(0).getString("id")
+    val graphRooms = unvisited.getJSONObject("worldGraph").getJSONArray("rooms")
+    val missed = (0 until graphRooms.length()).map { graphRooms.getJSONObject(it) }
+      .first { it.getString("environmentId") == "phong_moc" }.getString("id")
     val kept = JSONArray()
     for (i in 0 until arr.length()) if (arr.getString(i) != missed) kept.put(arr.getString(i))
     unvisited.put("visitedRooms", kept)
