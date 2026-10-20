@@ -1662,7 +1662,7 @@ public class MainActivity extends Activity {
           if (rawAction == null || rawAction.trim().isEmpty() || rawAction.length() > 900)
             throw new IllegalArgumentException("player_action_size");
           int footstepCount = PlayerFootstepIntent.count(rawAction);
-          JSONObject initial = footstepCount == 0 ? new JSONObject(requireGameCore().scenePlayerActionContext()) : null;
+          JSONObject initial = new JSONObject(requireGameCore().scenePlayerActionContext());
           JSONObject initialView = new JSONObject(requireGameCore().currentClientState(projection));
           if (initialView.optJSONObject("scene") != null &&
               initialView.getJSONObject("scene").has("pendingActionId"))

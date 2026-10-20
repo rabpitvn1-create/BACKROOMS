@@ -299,6 +299,7 @@ test('counted footsteps bypass the Gemini planner, save per-step Core receipts a
   const graph=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/core/WorldGraphRuntime.kt'),'utf8');
   const spawn=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/core/EntitySpawnPool.kt'),'utf8');
   assert.match(native,/PlayerFootstepIntent\.count\(rawAction\)/);
+  assert.match(native,/JSONObject initial = new JSONObject\(requireGameCore\(\)\.scenePlayerActionContext\(\)\)/);
   assert.match(native,/executePlayerFootsteps\(rawAction, footstepCount, projection\)/);
   assert.match(facade,/while \(executed < count\)/);
   assert.match(facade,/if \(CombatRuntime\.pending\(loadCurrentState\(\)\) != null\) break/);
