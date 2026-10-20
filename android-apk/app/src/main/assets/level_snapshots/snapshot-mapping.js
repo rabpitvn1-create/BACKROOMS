@@ -326,10 +326,28 @@ function nodeId(state){
   if(level&&level.number!=null&&owns(images,String(level.number).trim()))return String(level.number).trim();
   return "0";
 }
+const satelliteCodes=Object.freeze({
+  "0.1":"01","0.2":"02","0.5":"05","0.7":"07",
+  "manila_room":"MN","the_torment":"TM","red_rooms":"RR"
+});
 function environment(state){
-  if(nodeId(state)!=="0" || !state || !state.scene || state.scene.nodeId!=="0")return null;
-  const id=state.scene.environment&&state.scene.environment.id;
-  return typeof id==="string"&&owns(environments,id)?{id:id,...environments[id]}:null;
+  const node=nodeId(state);
+  if(!state||!state.scene||state.scene.nodeId!==node)return null;
+  const e=state.scene.environment;
+  const id=e&&e.id;
+  if(typeof id!=="string")return null;
+  if(node==="0")return owns(environments,id)?{id:id,...environments[id]}:null;
+  if(!owns(satelliteCodes,node))return null;
+  const prefix="sat_"+satelliteCodes[node]+"_z";
+  const match=id.startsWith(prefix) && id.slice(prefix.length).match(/^([1-4])(?:_s([1-4]))?$/);
+  if(!match)return null;
+  // Fixed identity-to-image mapping. Reuse only frames belonging to this exact
+  // Canon node; never rotate by turn, location, counter or random choice.
+  const z=Number(match[1]),sub=match[2]?Number(match[2]):0;
+  const variants=images[node];
+  const file=variants[(z+sub-1)%variants.length];
+  return {id:id,name:typeof e.name==="string"?e.name:"",
+    zoneId:prefix+z,file:file};
 }
 function sceneKey(state){
   const current=environment(state);
