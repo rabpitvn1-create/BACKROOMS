@@ -24,11 +24,19 @@ class Level0SatelliteWorldDefinitionTest {
       assertEquals(16, definition.fieldStudies.size)
       assertTrue(definition.fieldStudies.all { it.observation.isNotBlank() })
       assertTrue(definition.requireAlternateRoutes)
-      assertTrue(definition.evidenceLaws.isEmpty())
-      assertTrue(definition.passageConditions.isEmpty())
+      assertEquals(2, definition.evidenceLaws.size)
+      assertEquals(definition.evidenceLaws.map { it.id }.toSet(), definition.passageConditions)
+      assertEquals(4, definition.evidenceLaws.sumOf { it.inferenceSteps.size })
+      assertEquals(8, definition.evidenceLaws.sumOf { it.probes.size })
     }
     assertSame(Level0WorldDefinition, WorldDefinitions.require("0"))
-    assertNull(WorldDefinitions.forNode("epsilon"))
+    for (area in listOf("dullness", "epsilon", "ls_2")) {
+      val definition = WorldDefinitions.require(area)
+      assertEquals(20, definition.environments.size)
+      assertEquals(2, definition.evidenceLaws.size)
+      assertEquals(4, definition.environments.count { it.id == it.zoneId })
+    }
+    assertNotNull(WorldDefinitions.forNode("1"))
   }
 
   @Test fun allGeneratedLayoutsAreDeterministicAndHaveNoSoftlockingBridge() {
