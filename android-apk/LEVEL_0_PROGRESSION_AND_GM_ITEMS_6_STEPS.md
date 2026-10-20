@@ -15,12 +15,16 @@ Yêu cầu đã chốt:
 - Chưa mở lối ra của `0.7` sang AREA `dullness` vì chưa có world definition cho các AREA, phải giải quyết trước khi gọi tuyến Level 0 là chơi xuyên suốt được.
 - Test: `WorldExitProgressionTest.kt`; cần chạy test có mục tiêu trên Android/CI.
 
-## 2. Thiết kế lại riddles Level 0 [chưa triển khai]
+## 2. Thiết kế lại riddles Level 0 [đã viết code, CHƯA chạy Android/Kotlin tests]
 
-- Đánh giá hai `WorldEvidenceLaw` `wet-ceiling`, `loop-reflection` hiện tại.
-- Thêm câu đố đa khu có phân biệt *quan sát*, *giả thuyết* và *xác minh*. Đáp án duy nhất suy ra từ clue, không thêm Canon cứng chưa được duyệt.
-- Nếu bổ sung trạng thái xác minh mới, validate trong `WorldGraphRuntime.validateSavedProgress`.
-- Test trường hợp thiếu một manh mối, suy luận sai, đưa lời GM giả, tải lại và giải đúng.
+- Nâng từ 2 luật một bước thành 4 chuỗi điều tra: `wet-ceiling`, `loop-reflection`, `signal-distortion`, `fracture-boundary`.
+- Mỗi chuỗi có 4 chứng cứ ở những khu phụ khác nhau, 1 phép đối chiếu hai ghi chép cùng khu và 2 bước chọn giả thuyết có thứ tự; tổng cộng 16 chứng cứ, 4 phép đối chiếu, 8 quyết định.
+- Hai chuỗi cần các dấu vật lý tự tạo. Chuỗi tín hiệu cần giải xong vòng lặp; chuỗi Rạn Nứt cần các kết quả từ nước và tín hiệu, nhưng KHÔNG kết luận Rạn Nứt là cửa sang Level khác.
+- `WorldGraphRuntime` chỉ cho chọn giả thuyết sau khi đủ chứng cứ, đối chiếu, dấu neo và kết quả tiên quyết. Chọn sai không ghi kết luận, không khóa game; mỗi lựa chọn tiêu thụ lượt Core bình thường. Sổ tay ghi các suy luận đã được xác nhận.
+- `inferenceDecisions` được lưu theo world progress và kiểm tra tại `validateSavedProgress`; không tin lời GM, không tạo vật phẩm, NPC, route hay sự kiện Canon mới.
+- `Level0WorldDefinition.version` lên 5; không thêm lớp chuyển đổi save cũ.
+- Đã thêm `Level0RiddleTestSupport.kt`, `Level0InferenceGuardTest.kt`, cập nhật `Level0PuzzleSolverTest.kt`, `WorldExitProgressionTest.kt` và Android `Level0RiddleGameplayTest.kt`.
+- Đây là thử thách suy luận nhiều tầng, **không thể khẳng định độ khó thực tế tương ứng IQ nào** khi chưa có người chơi thử.
 
 ## 3. Riddles + lối ra cho toàn tuyến Level 0 [chưa triển khai]
 
