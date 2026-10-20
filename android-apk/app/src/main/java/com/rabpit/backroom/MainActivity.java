@@ -2034,7 +2034,7 @@ public class MainActivity extends Activity {
               requireGameCore().commitSceneAction(new JSONObject(command).getString("actionId"), stagedEvent.getString("result"), stateJson);
               recoverPlayerNarration(stateJson);return;
             }
-            if (stagedEvent.optBoolean("mechanismStep", false)) {
+            if (stagedEvent.optBoolean("mechanismStep", false) || stagedEvent.optBoolean("transition", false)) {
               // Device buttons already have a Core-authored result: do not call
               // a remote narrator or make players wait for each switch press.
               requireGameCore().commitSceneAction(
