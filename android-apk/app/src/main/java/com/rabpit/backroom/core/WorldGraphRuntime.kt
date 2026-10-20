@@ -21,21 +21,47 @@ object WorldGraphRuntime {
     "floor" to "Kiểm tra chi tiết nền và thảm",
     "ceiling" to "Kiểm tra trần và đường kỹ thuật",
     "markings" to "Đọc dấu vết vật lý",
-    "reflection" to "Kiểm tra chi tiết đối xứng"
+    "reflection" to "Kiểm tra chi tiết đối xứng",
+    "geometry" to "Đối chiếu hình học và bố cục",
+    "sound" to "Đối chiếu âm thanh với vị trí phát",
+    "light" to "Kiểm tra biến đổi dưới nhịp đèn",
+    "surface" to "Phân biệt các lớp bề mặt",
+    "depth" to "Kiểm tra giới hạn đo chiều sâu"
   )
   private fun trace(p: JSONObject, roomId: String): JSONObject {
     val changes = p.getJSONObject("environmentChanges")
     return changes.optJSONObject(roomId) ?: JSONObject().also { changes.put(roomId, it) }
   }
-  private fun lawFulfilled(p: JSONObject, g: JSONObject, law: WorldEvidenceLaw): Boolean {
-    val evidence = p.getJSONObject("evidenceState")
-    if (!law.probes.all { evidence.optBoolean(it.id) }) return false
-    if (law.family == WorldLawFamily.PHYSICAL_CORRELATION) return true
+  private fun compared(p: JSONObject, g: JSONObject, pair: Pair<String, String>): Boolean =
+    objects(p.getJSONArray("records")).any { record ->
+      if (record.optString("kind") != "COMPARISON") false
+      else {
+        val from = rooms(g).firstOrNull { it.getString("id") == record.optString("id") }
+          ?.optString("environmentId")
+        val to = rooms(g).firstOrNull { it.getString("id") == record.optString("otherRoomId") }
+          ?.optString("environmentId")
+        (from == pair.first && to == pair.second) || (from == pair.second && to == pair.first)
+      }
+    }
+
+  private fun deductions(p: JSONObject) = p.getJSONObject("inferenceDecisions")
+
+  /** Raw clues alone do not solve a riddle: compare, anchor, weigh evidence,
+   * and choose each independently justified inference in order. */
+  private fun investigationReady(p: JSONObject, g: JSONObject, law: WorldEvidenceLaw): Boolean {
+    if (!law.probes.all { p.getJSONObject("evidenceState").optBoolean(it.id) }) return false
+    if (!law.prerequisites.all { flags(p).optBoolean(it) }) return false
+    if (!law.comparisonPairs.all { compared(p, g, it) }) return false
     val traced = rooms(g).filter { p.getJSONObject("environmentChanges")
       .optJSONObject(it.getString("id"))?.optBoolean("trace") == true }
       .map { it.getString("environmentId") }.toSet()
     return law.physicalAnchors.all { it in traced }
   }
+
+  private fun lawFulfilled(p: JSONObject, g: JSONObject, law: WorldEvidenceLaw): Boolean =
+    investigationReady(p, g, law) &&
+      law.inferenceSteps.all { deductions(p).optString(it.id) == it.answerId }
+
   private fun passable(p: JSONObject, passage: JSONObject) =
     passageStates(p).getJSONObject(passage.getString("id")).let { it.getBoolean("discovered") && it.getBoolean("unlocked") }
   private fun departure(passage: JSONObject, current: String): String? = when (current) {
@@ -109,7 +135,7 @@ object WorldGraphRuntime {
       .put(GRAPH, g).put("visitedRooms", JSONArray().put(start))
       .put("records", JSONArray()).put("markers", JSONObject())
       .put("ruleFlags", JSONObject()).put("environmentChanges", JSONObject())
-      .put("evidenceState", JSONObject())
+      .put("evidenceState", JSONObject()).put("inferenceDecisions", JSONObject())
       .put("passageStates", JSONObject().apply {
         passages(g).forEach { passage ->
           put(passage.getString("id"), JSONObject()
@@ -157,6 +183,25 @@ object WorldGraphRuntime {
         law.probes.size >= 2 && law.probes.map { it.id }.distinct().size == law.probes.size &&
         law.probes.all { it.method in probeLabels && it.environmentId in catalog } &&
         law.verifyEnvironmentId in catalog && law.physicalAnchors.all { it in catalog } }) { "world_law_definition" }
+    val seenLaws = mutableSetOf<String>()
+    val seenSteps = mutableSetOf<String>()
+    laws.forEach { law ->
+      require(law.prerequisites.all { it in seenLaws } &&
+        law.comparisonPairs.all { (from, to) ->
+          from != to && from in catalog && to in catalog &&
+            definition.environments.first { it.id == from }.zoneId ==
+              definition.environments.first { it.id == to }.zoneId
+        } &&
+        law.inferenceSteps.isNotEmpty() &&
+        law.inferenceSteps.all { step ->
+          step.id.matches(Regex("[a-z0-9-]{3,64}")) && seenSteps.add(step.id) &&
+            step.question.isNotBlank() && step.conclusion.isNotBlank() &&
+            step.options.size >= 3 && step.options.map { it.id }.distinct().size == step.options.size &&
+            step.options.any { it.id == step.answerId } &&
+            step.options.all { it.id.matches(Regex("[a-z0-9-]{2,64}")) && it.text.isNotBlank() }
+        }) { "world_law_inference_definition" }
+      seenLaws.add(law.id)
+    }
     val studies = definition.fieldStudies
     require(studies.map { it.environmentId }.distinct().size == studies.size &&
       studies.all { it.environmentId in catalog && it.focus.isNotBlank() &&
@@ -231,6 +276,18 @@ object WorldGraphRuntime {
         rooms(g).any { it.getString("id") in visited && it.getString("environmentId") == source.environmentId } &&
         objects(p.getJSONArray("records")).any { it.optString("kind") == "EVIDENCE" && it.optString("text") == source.clue }
     }) { "world_saved_evidence" }
+    val selected = deductions(p)
+    val allSteps = definition.evidenceLaws.flatMap { law -> law.inferenceSteps.map { law to it } }
+    require(selected.keys().asSequence().all { id ->
+      val match = allSteps.firstOrNull { it.second.id == id }
+      match != null && selected.optString(id) == match.second.answerId &&
+        investigationReady(p, g, match.first) &&
+        objects(p.getJSONArray("records")).any { record ->
+          record.optString("kind") == "DEDUCTION" &&
+            record.optString("text") == match.second.conclusion &&
+            room(g, record.getString("id")).getString("environmentId") == match.first.verifyEnvironmentId
+        }
+    }) { "world_saved_inference" }
     require(definition.evidenceLaws.all { !facts.optBoolean(it.id) || lawFulfilled(p, g, it) }) { "world_law_unverified" }
     // Saved casebook strings are never an authority for gameplay or GM prompts.
     // Each record must match the exact Core-authored text for its visited room.
@@ -245,6 +302,10 @@ object WorldGraphRuntime {
         "EVIDENCE" -> definition.evidenceLaws.flatMap { it.probes }.any {
           it.environmentId == room(g, id).getString("environmentId") &&
             it.clue == content && proof.optBoolean(it.id)
+        }
+        "DEDUCTION" -> allSteps.any { (law, step) ->
+          law.verifyEnvironmentId == room(g, id).getString("environmentId") &&
+            step.conclusion == content && selected.optString(step.id) == step.answerId
         }
         "VERIFICATION" -> definition.evidenceLaws.any {
           it.verifyEnvironmentId == room(g, id).getString("environmentId") &&
@@ -364,6 +425,14 @@ object WorldGraphRuntime {
       }
     }
     probeLabels.forEach { (id, label) -> add("SEARCH", "probe:" + id, label) }
+    val hereEnvironment = environment(room(g, current), definition).id
+    definition.evidenceLaws.filter { it.verifyEnvironmentId == hereEnvironment &&
+      !flags(p).optBoolean(it.id) && investigationReady(p, g, it) }.forEach { law ->
+      law.inferenceSteps.firstOrNull { deductions(p).optString(it.id) != it.answerId }
+        ?.let { step -> step.options.forEach { option ->
+          add("INTERACT", "deduce:${step.id}:${option.id}", step.question + " · " + option.text)
+        } }
+    }
     add("INTERACT", "trace", "Tạo dấu kiểm chứng trên bề mặt")
     add("INTERACT", "verify", "Thử kiểm chứng nhận định tại chỗ")
     if (!p.getJSONObject("markers").has(current)) add("SEARCH", "mark", "Ghi dấu mốc vị trí vào bản đồ")
@@ -583,6 +652,30 @@ object WorldGraphRuntime {
             changed.put("trace", true)
             result = "Đã tạo vết khắc nhỏ để kiểm tra tính bền vững của dấu trên bề mặt."
             p.getJSONArray("areaEvents").put(JSONObject().put("type", "TRACE").put("text", result))
+          }
+        } else if (target.startsWith("deduce:")) {
+          val id = p.getString("roomId")
+          val match = definition.evidenceLaws.firstNotNullOfOrNull { law ->
+            law.inferenceSteps.firstOrNull { step ->
+              step.options.any { target == "deduce:${step.id}:${it.id}" }
+            }?.let { law to it }
+          } ?: error("world_inference_unknown")
+          val (law, step) = match
+          val selection = target.removePrefix("deduce:${step.id}:")
+          require(environment(room(g, id), definition).id == law.verifyEnvironmentId &&
+            investigationReady(p, g, law) &&
+            law.inferenceSteps.firstOrNull { deductions(p).optString(it.id) != it.answerId }?.id == step.id
+          ) { "world_inference_unavailable" }
+          if (selection == step.answerId) {
+            deductions(p).put(step.id, selection)
+            result = step.conclusion
+            p.getJSONArray("records").put(JSONObject().put("id", id).put("kind", "DEDUCTION").put("text", result))
+            p.getJSONArray("areaEvents").put(JSONObject().put("type", "DEDUCTION").put("text", result))
+          } else {
+            val changed = trace(p, id)
+            changed.put("failedTests", (changed.optInt("failedTests", 0) + 1).coerceAtMost(10000))
+            result = "Giả thuyết chưa khớp toàn bộ dữ liệu đã đối chiếu; cần phân biệt chứng cứ quan sát với kết luận suy diễn."
+            p.getJSONArray("areaEvents").put(JSONObject().put("type", "TEST_FAILED").put("text", result))
           }
         } else if (target == "verify") {
           val id = p.getString("roomId")
