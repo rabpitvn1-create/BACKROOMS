@@ -200,11 +200,13 @@ class GameCoreFacade private constructor(
     val target = LevelRouteRegistry.node(staged.nodeId)
     val atTarget = started.state.copy(world = started.state.world + mapOf(
       "levelJson" to target.asJson().toString(), "location" to target.location(), "title" to target.title()))
-    // Every submitted gameplay action, including FREE, TALK, SEARCH and
-    // device controls, is eligible for a Core-owned spawn roll.
-    val roll = SpawnMechanism.rollSceneSpawns(atTarget, command.getString("kind")) { spawnRng.nextInt(it) }
-    var reserved = SpawnMechanism.prepareSpawns(atTarget, roll)
-    if (roll.entityKey != null) {
+    // A confirmed cross-Level departure is not a room encounter or a spawn roll.
+    // Other gameplay actions retain the existing Core encounter policy.
+    val isWorldExit = staged.event.optBoolean("transition", false)
+    val roll = if (isWorldExit) null
+      else SpawnMechanism.rollSceneSpawns(atTarget, command.getString("kind")) { spawnRng.nextInt(it) }
+    var reserved = if (roll != null) SpawnMechanism.prepareSpawns(atTarget, roll) else atTarget
+    if (roll?.entityKey != null) {
       reserved = CombatRuntime.prepareEncounter(reserved, roll.entityKey, "scene:$actionId:${roll.entityKey}")
       reserved = SpawnMechanism.discardPendingNpcEncounters(reserved)
     }
@@ -306,6 +308,18 @@ class GameCoreFacade private constructor(
       MiniMapRuntime.RECEIPT to receipt.toString(),
       "levelJson" to node.asJson().toString(), "title" to node.title(), "location" to node.location(), "flagsJson" to flags.toString()),
       metadata = finished.state.metadata - SPAWN_ENCOUNTER_OWNER)
+    // Persist the source progress in pending until the receipt commits, then
+    // create the target graph within that same Core transaction. Pending save
+    // validation still sees the original graph and cannot be forged into a teleport.
+    if (pending.getJSONObject("public").optBoolean("transition", false)) {
+      val previous = MiniMapRuntime.progress(core)
+      val targetId = node.id
+      require(LevelRouteRegistry.canMove(previous.getString("nodeId"), targetId) &&
+        WorldGraphRuntime.exitUnlocked(previous)) { "world_exit_locked" }
+      val definition = WorldDefinitions.require(targetId)
+      val prepared = next.copy(world = next.world - MiniMapRuntime.STATE)
+      next = WorldGraphRuntime.initialize(prepared, definition = definition)
+    }
     next = SpawnMechanism.commitPendingNpcEncounters(next)
     if (WorldGraphRuntime.active(MiniMapRuntime.progress(next))) {
       val location = MiniMapRuntime.progress(next).getString("roomId")
