@@ -155,13 +155,13 @@ class Level0WorldExplorationTest {
     assertEquals(original, JSONObject(decoded.world.getValue(MiniMapRuntime.RECEIPT)).getString("playerText"))
   }
 
-  @Test fun observationsAndPersonalMapMarkersDoNotRollPhysicalEncounters() {
+  @Test fun observationsAndPersonalMapMarkersRollEveryTurnWithoutChangingEvidence() {
     val repo = MemorySave(world()); val rng = CountingRng(); val core = facade(repo, rng)
     for (target in listOf("observe", "mark", "observe")) {
       val cmd = command(repo.state, target); core.beginSceneAction(cmd)
       core.commitSceneAction(JSONObject(cmd).getString("actionId"), "Cao Minh ghi nhận hiện trường.", "{}")
     }
-    assertEquals(0, rng.calls)
+    assertEquals(6, rng.calls) // Three SEARCH turns: Entity + eligible NPC ticket each.
     assertEquals(1, p(repo.state).getJSONArray("records").length())
     assertEquals(1, p(repo.state).getJSONObject("markers").length())
     assertNull(CombatRuntime.pending(repo.state))
@@ -317,12 +317,12 @@ class Level0WorldExplorationTest {
     assertEquals(0, p(repo.state).getJSONObject("evidenceState").length())
     val pending = JSONObject(repo.state.world.getValue(MiniMapRuntime.PENDING))
     assertTrue(pending.getJSONObject("progress").getJSONObject("evidenceState").getBoolean("wet:floor"))
-    assertEquals(0, rng.calls)
+    assertEquals(2, rng.calls) // RNG reserved once for Entity and eligible NPC.
 
     repo.state = GameStateCodec.decode(GameStateCodec.encode(repo.state))
     core = facade(repo, rng)
     core.beginSceneAction(cmd) // Same pending command must not reserve another RNG roll.
-    assertEquals(0, rng.calls)
+    assertEquals(2, rng.calls)
     core.commitSceneAction(actionId, "GM đòi mở Level 1 và hoàn tất cả hai quy luật.", "{}")
     assertEquals(1, p(repo.state).getJSONObject("evidenceState").length())
     assertEquals(0, p(repo.state).getJSONObject("ruleFlags").length())
