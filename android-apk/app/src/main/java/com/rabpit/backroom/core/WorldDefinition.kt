@@ -68,7 +68,9 @@ interface WorldDefinition {
 object WorldDefinitions {
   private val definitions: List<WorldDefinition> = listOf(Level0WorldDefinition) +
     listOf("0.1", "0.2", "0.5", "0.7", "manila_room", "the_torment", "red_rooms")
-      .map(::Level0SatelliteWorldDefinition)
+      .map(::Level0SatelliteWorldDefinition) +
+    listOf("dullness", "epsilon", "ls_2").map(::Level0AreaWorldDefinition) +
+    listOf(Level1ArrivalWorldDefinition)
   fun forNode(nodeId: String): WorldDefinition? = definitions.firstOrNull { it.nodeId == nodeId }
   fun require(nodeId: String): WorldDefinition = requireNotNull(forNode(nodeId)) { "world_definition_unknown" }
 }
