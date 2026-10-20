@@ -75,9 +75,10 @@ internal object Level0RiddleTestSupport {
     return state
   }
 
-  fun solveAll(input: GameState): GameState {
+  fun solveAll(input: GameState, definition: WorldDefinition =
+    WorldDefinitions.require(MiniMapRuntime.node(input).id)): GameState {
     var state = input
-    for (law in Level0WorldDefinition.evidenceLaws) state = solveLaw(state, law)
+    for (law in definition.evidenceLaws) state = solveLaw(state, law)
     return state
   }
 
