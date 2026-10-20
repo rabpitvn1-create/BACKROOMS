@@ -17,7 +17,13 @@ object Level0WorldDefinition : WorldDefinition {
     val comparisons = noteKinds.count { it == "COMPARISON" }
     val proofs = progress.getJSONObject("evidenceState").length()
     val verified = progress.getJSONObject("ruleFlags").length()
-    val visited = progress.getJSONArray("visitedRooms").length()
+    val graphRooms = progress.getJSONObject("worldGraph").getJSONArray("rooms")
+    val visitedRoomIds = (0 until progress.getJSONArray("visitedRooms").length())
+      .map { progress.getJSONArray("visitedRooms").getString(it) }.toSet()
+    val visitedEnvironments = (0 until graphRooms.length())
+      .map { graphRooms.getJSONObject(it) }
+      .filter { it.getString("id") in visitedRoomIds }
+      .map { it.getString("environmentId") }.toSet().size
     return when {
       marked == 0 -> "Ghi dấu vị trí đầu tiên vào MAP để có điểm mốc khi quay lại."
       notes == 0 -> "Khám phá một khu nhỏ, kiểm tra hiện trường và lưu ghi chép đầu tiên vào Sổ tay."
@@ -27,7 +33,8 @@ object Level0WorldDefinition : WorldDefinition {
       proofs < 4 -> "Thu thập chứng cứ phân biệt được dấu vết thật với phản chiếu, âm thanh và cảm giác."
       verified < evidenceLaws.size ->
         "Đã kiểm chứng ${verified}/${evidenceLaws.size} chuỗi suy luận. Đối chiếu ghi chép cùng khu, tìm điểm neo và chọn giả thuyết tại hiện trường."
-      visited < 45 -> "Tiếp tục khám phá các phòng chưa ghé; kết luận đúng chưa đồng nghĩa đã khảo sát toàn bộ Level 0."
+      visitedEnvironments < environments.size ->
+        "Đã khảo sát ${visitedEnvironments}/${environments.size} khu vực. Tiếp tục khám phá những khu còn thiếu."
       else -> "Đã có đủ ghi chép và suy luận. Kiểm tra lối rời Level 0 bằng hành động do Core cung cấp."
     }
   }
