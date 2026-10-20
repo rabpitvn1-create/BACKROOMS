@@ -63,7 +63,7 @@ object Level0SatelliteEnvironments {
         "Đường Phào Ngắt" to "Các đường phào trắng kết thúc giữa chừng rồi xuất hiện ở cao độ khác trên vách đối diện.",
         "Hành Lang Hai Lớp" to "Tại một góc cua, lớp sơn mới bị khoét, lộ mặt giấy vàng cũ nằm sâu phía trong.",
         "Phòng Nối Sai Góc" to "Hai cửa đối diện nhau nhưng bước qua lại dẫn tới không gian lệch trục, không thể đối chiếu bằng mắt.",
-        "Đoạn Vách Rỗng" to "Dãy tường gõ lên phát tiếng rỗng, vài chỗ lộ xương thép đã cong."
+        "Đoạn Vách Rỗng" to "Dãy tường gõ lên phát tiếng rỗng, vài chỗ lộ xương thép đã cong và vữa vụn bám dưới chân."
       )),
       group("0.2", "02", 4, "Vùng Sập Gãy", "Khu kết thúc bằng sàn nứt, trần vỡ và những khoảng trống nơi vật liệu xây dựng rơi xuống; không bề mặt nào mặc nhiên an toàn.", listOf(
         "Hố Sàn Nứt" to "Một khe nứt mở ngang thảm đỏ, mép bê tông vụn và thiếu điểm tựa chắc chắn.",
@@ -138,7 +138,7 @@ object Level0SatelliteEnvironments {
         "Góc Ánh Sáng Dịu" to "Ánh vàng nhẹ trải trên nền mà không có bóng đèn nhìn thấy từ vị trí đứng."
       )),
       group("manila_room", "MN", 3, "Vùng Giấy Tờ Bỏ Lại", "Các dấu mực, giấy mục và sổ rời gợi những người từng dừng chân. Không suy ra mật mã, vật phẩm hay chỉ dẫn thoát hiểm chỉ từ cách bày chúng.", listOf(
-        "Ngăn Kéo Cũ" to "Ngăn bàn gỗ kẹt cứng, mặt trước mòn ở điểm thường nắm kéo.",
+        "Ngăn Kéo Cũ" to "Ngăn bàn gỗ kẹt cứng, mặt trước mòn ở điểm thường nắm kéo; bụi nằm nguyên dọc đường ghép.",
         "Tờ Giấy Mờ" to "Giấy cũ cong mép trên mặt gỗ, nét viết nhòe không đủ để xác nhận một lộ trình.",
         "Vệt Mực Trên Ván" to "Một vệt mực dài bám theo thớ gỗ cạnh bàn, không có dấu hiệu mới khô.",
         "Giá Tài Liệu Rỗng" to "Một giá nhỏ áp tường chỉ còn nẹp gỗ và bụi phủ thành hình chữ nhật."
@@ -165,13 +165,13 @@ object Level0SatelliteEnvironments {
       )),
       group("the_torment", "TM", 3, "Rừng Cây Chết", "Những cây khẳng khiu chen giữa các ngôi mộ. Tán lá biến mất từ lâu, cành khô quệt vào nhau trong khoảng lặng.", listOf(
         "Lối Cành Đan" to "Cành khô giao nhau phía trên đầu, một vài đoạn gãy nằm trên nền đất trắng xám.",
-        "Bãi Rễ Lộ" to "Rễ cây trồi quanh chân bia, đất mỏng bám trên mặt gỗ xám mục.",
+        "Bãi Rễ Lộ" to "Rễ cây trồi quanh chân bia, đất mỏng bám trên mặt gỗ xám mục và len vào khe đá nứt.",
         "Khoảng Trống Không Gió" to "Một khoảng rừng cây yên tuyệt đối, không có tiếng lá để giúp xác định phương hướng.",
         "Bóng Thân Chồng" to "Nhiều bóng cây chồng lên cùng vị trí trong ánh trăng cố định, che khuất mép những nấm mộ."
       )),
       group("the_torment", "TM", 4, "Quảng Trường Tượng Vỡ", "Trung tâm nghĩa địa có bức tượng choàng mũ trùm bị hư hại. Nguồn gốc tượng, người được tưởng niệm và mọi hiện tượng chưa được xác định.", listOf(
-        "Bệ Tượng Nứt" to "Bệ đá thấp vỡ một góc, bụi mịn đọng trong các đường khắc đã mờ.",
-        "Vạt Áo Đá" to "Mảnh tượng mô phỏng tà áo choàng nằm dưới chân bệ, rìa gãy sắc.",
+        "Bệ Tượng Nứt" to "Bệ đá thấp vỡ một góc, bụi mịn đọng trong các đường khắc đã mờ và dưới vạt tượng rơi.",
+        "Vạt Áo Đá" to "Mảnh tượng mô phỏng tà áo choàng nằm dưới chân bệ, rìa gãy sắc phủ một lớp bụi xám dày.",
         "Mặt Trăng Sau Tượng" to "Ánh trăng bất động tạo quầng bạc phía sau dáng tượng, khiến gương mặt nằm trong bóng.",
         "Bậc Đá Câm" to "Các bậc đá dẫn tới bệ tượng hấp thu tiếng vọng; quanh chân là những mẩu đá vụn."
       ))
@@ -185,20 +185,20 @@ object Level0SatelliteEnvironments {
       )),
       group("red_rooms", "RR", 2, "Thảm Dính Mục", "Thảm sẫm có những đoạn dính và ráp bất thường, mùi mốc trộn với bụi cũ. Các vệt kéo không chứng minh có sinh vật ở gần.", listOf(
         "Lối Thảm Bết" to "Dải thảm có bề mặt bết giữ dấu chà kéo dài, bước chân phát âm khô khó chịu.",
-        "Phòng Sợi Mốc" to "Những sợi mốc mảnh bám thành vệt dọc mép thảm và ván chân tường.",
-        "Mép Thảm Bong" to "Thảm đỏ bật mép, lộ nền sẫm đầy bụi và các mối ghép không thẳng.",
+        "Phòng Sợi Mốc" to "Những sợi mốc mảnh bám thành vệt dọc mép thảm và ván chân tường, đọng nhiều ở góc tối.",
+        "Mép Thảm Bong" to "Thảm đỏ bật mép, lộ nền sẫm đầy bụi và các mối ghép không thẳng dưới lớp sợi rách.",
         "Vùng Sàn Nhám" to "Mặt sàn đổi từ dính sang ráp trong vài bước, những mảnh vụn nhỏ mắc vào giày."
       )),
       group("red_rooms", "RR", 3, "Vùng Nấm Tường", "Mốc xám đen ăn lan trên nền đỏ, khiến một số mảng tường như có chiều sâu. Không diễn giải vết ố thành thực thể thật.", listOf(
         "Mảng Mốc Hình Vòm" to "Một vết mốc cong trên tường đỏ giống cửa vòm, nhưng bề mặt vẫn kín.",
         "Phòng Mùi Chua" to "Không khí mang mùi ẩm chua mạnh, các mảng mốc tụ ở đường nối trần.",
-        "Tường Chấm Đen" to "Những đốm tối rất nhỏ lặp lại thành cụm dọc giấy tường sẫm.",
+        "Tường Chấm Đen" to "Những đốm tối rất nhỏ lặp lại thành cụm dọc giấy tường sẫm, kéo tới sát đường viền trần.",
         "Góc Ẩm Xám" to "Một đoạn góc tường mất sắc đỏ vì lớp mốc nhạt phủ lên, nền thảm vẫn tối."
       )),
       group("red_rooms", "RR", 4, "Hành Lang Mất Sóng", "Tín hiệu liên lạc suy yếu giữa các hành lang đỏ đậm. Sự ngắt quãng không tự chứng minh có nguồn gây nhiễu hay ai đang gọi.", listOf(
         "Buồng Tiếng Rè" to "Một phòng hẹp nơi âm thanh máy liên lạc biến thành tiếng rè không đều.",
         "Đoạn Đèn Mỏi" to "Đèn đỏ yếu đến mức các góc sàn chỉ hiện thành mảng đen, không phân biệt vật nhỏ.",
-        "Cửa Không Biển" to "Một cánh cửa đỏ gần trùng với vách, mép dưới phủ bụi sẫm.",
+        "Cửa Không Biển" to "Một cánh cửa đỏ gần trùng với vách, mép dưới phủ bụi sẫm; bản lề chìm vào lớp giấy tường nhăn.",
         "Ngõ Mất Vọng" to "Hành lang ngắn khiến tiếng gọi gần như không dội lại, dù vách cứng bao quanh."
       ))
     ).flatten()
