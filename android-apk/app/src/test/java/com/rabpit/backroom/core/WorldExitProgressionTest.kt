@@ -74,6 +74,47 @@ class WorldExitProgressionTest {
     assertFalse(WorldGraphRuntime.exitUnlocked(unvisited))
   }
 
+  private class MemorySave(var state: GameState) : SaveRepository {
+    override fun save(state: GameState) { this.state = state }
+    override fun load(): GameState = state
+    override fun exists(): Boolean = true
+    override fun clear() {}
+    override fun saveCheckpoint(state: GameState, presentation: JSONObject) {}
+    override fun loadCheckpoint(): GameCheckpoint? = null
+  }
+
+  @Test fun fullCoreTransactionCommitsExactTransitionAndNewGraph() {
+    val previous = allVisitedWithProofs()
+    val source = MiniMapRuntime.progress(previous)
+    val choice = MiniMapScenario.objects(WorldGraphRuntime.actions(previous, source))
+      .first { it.getString("targetId") == "exit:0.1" }
+    val command = JSONObject().put("actionId", choice.getString("actionId"))
+      .put("sceneVersion", choice.getInt("sceneVersion"))
+      .put("roomId", choice.getString("roomId"))
+      .put("kind", choice.getString("kind")).put("targetId", choice.getString("targetId"))
+    val save = MemorySave(previous)
+    val ctor = GameCoreFacade::class.java.getDeclaredConstructor(
+      SaveRepository::class.java, GamePipelineLogger::class.java)
+    ctor.isAccessible = true
+    val core = ctor.newInstance(save, NoOpGamePipelineLogger)
+    assertFalse(JSONObject(core.beginSceneAction(command.toString())).getBoolean("committed"))
+    val staged = MiniMapRuntime.progress(save.state)
+    assertEquals("0", staged.getString("nodeId"))
+    assertEquals("0", JSONObject(save.state.world.getValue("levelJson")).getString("id"))
+    assertEquals("0", JSONObject(save.state.world.getValue(MiniMapRuntime.PENDING))
+      .getJSONObject("progress").getString("nodeId"))
+    val client = CoreClientProjection.project(JSONObject(), previous).toString()
+    core.commitSceneAction(command.getString("actionId"), "Đã rời Level 0.", client)
+    val destination = MiniMapRuntime.progress(save.state)
+    assertEquals("0.1", JSONObject(save.state.world.getValue("levelJson")).getString("id"))
+    assertEquals("0.1", destination.getString("nodeId"))
+    assertEquals("0.1", destination.getJSONObject("worldGraph").getString("nodeId"))
+    assertFalse(MiniMapRuntime.PENDING in save.state.world)
+    WorldGraphRuntime.validateSavedProgress(destination, WorldDefinitions.require("0.1"))
+    assertEquals("0.1", JSONObject(GameStateCodec.encode(save.state))
+      .getJSONObject("world").getString("levelJson").let(::JSONObject).getString("id"))
+  }
+
   @Test fun authorizedExitStagesPreviousGraphThenCreatesNextGraphOnCommit() {
     val completed = allVisitedWithProofs()
     val p = MiniMapRuntime.progress(completed)
