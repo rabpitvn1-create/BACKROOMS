@@ -1963,5 +1963,26 @@
       "references": [],
       "affordances": []
     }
+,
+    {
+      "id": "LEVEL.NODE.ls_2",
+      "domain": "LEVEL",
+      "kind": "level-node-card",
+      "text": "LS-2 (Canon mới do tác giả phê duyệt 2026-10-21): vùng chuyển tiếp gồm Thư Viện Mép Trống với kệ thiếu nhãn, Xưởng Đồng Hồ Rỗng với cấu kiện bánh răng không kim, Hành Lang Sai Số với dấu nền và thước đếm lệch, và Nút Chốt Không Tên với khung chốt vật lý. Nhãn khuyết không tự tạo mật mã; tiếng tích tắc không xác nhận du hành thời gian; không có lối sang Manila Room trừ khi Core xác minh.",
+      "source": {
+        "document": "android-apk/LS2_PROJECT_CANON_20261021.md",
+        "anchor": "Identity and boundaries"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 45,
+      "tags": [
+        "ls_2",
+        "ls-2",
+        "level 0 area"
+      ],
+      "references": [],
+      "affordances": []
+    }
   ]
 }
