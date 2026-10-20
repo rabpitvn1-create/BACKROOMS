@@ -424,8 +424,11 @@ object WorldGraphRuntime {
           "Đối chiếu ghi chép: " + displayName(g, it.getString("id"), definition))
       }
     }
-    probeLabels.forEach { (id, label) -> add("SEARCH", "probe:" + id, label) }
     val hereEnvironment = environment(room(g, current), definition).id
+    definition.evidenceLaws.flatMap { it.probes }.filter { it.environmentId == hereEnvironment }
+      .map { it.method }.distinct().forEach { method ->
+        add("SEARCH", "probe:$method", probeLabels.getValue(method))
+      }
     definition.evidenceLaws.filter { it.verifyEnvironmentId == hereEnvironment &&
       !flags(p).optBoolean(it.id) && investigationReady(p, g, it) }.forEach { law ->
       law.inferenceSteps.firstOrNull { deductions(p).optString(it.id) != it.answerId }
@@ -497,7 +500,7 @@ object WorldGraphRuntime {
       .put("nodeId", p.getString("nodeId")).put("parentLevel", p.getInt("parent")).put("nodeTitle", MiniMapRuntime.node(state).title())
       .put("sceneVersion", p.getInt("version")).put("generationNeeded", false)
       .put("awaitingEnding", false).put("nodeExitUnlocked", nextWorldNode(p, definition) != null)
-      .put("completed", exitUnlocked(p, definition))
+      .put("completed", nextWorldNode(p, definition) != null)
       .put("availableActions", actions(state, p, definition)).put("records", p.getJSONArray("records"))
       .put("areaLog", p.getJSONArray("areaEvents")).put("temporaryInference", "")
       .put("objective", definition.currentObjective(p))
