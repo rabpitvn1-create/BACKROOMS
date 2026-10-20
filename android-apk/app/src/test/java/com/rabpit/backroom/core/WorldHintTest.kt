@@ -33,6 +33,8 @@ class WorldHintTest {
       assertFalse(result.toString().contains("passage:p:"))
       assertFalse(result.toString().contains("wet-ceiling"))
       assertFalse(result.toString().contains("loop-reflection"))
+      assertFalse(result.toString().contains("signal-distortion"))
+      assertFalse(result.toString().contains("fracture-boundary"))
       assertEquals(before, GameStateCodec.encode(state))
     }
     for (badTier in listOf(0, -1, 4)) {
