@@ -10,7 +10,7 @@ const verifier=path.join(__dirname,'../verify-explorer-controls.mjs');
 function fixture(t){
   const assets=fs.mkdtempSync(path.join(os.tmpdir(),'packaged-composer-'));
   t.after(()=>fs.rmSync(assets,{recursive:true,force:true}));
-  for(const file of ['index.html','explorer-controls.js','explorer-controls.css','ui/ornate-frame-v1.css','ui/backrooms-reference-frame-v2.png','ui/industrial-crt-v1.css','ui/snapshot-tv.js','ui/snapshot-crt.css','ui/crt-glass-v5.svg','ui/crt-optics.svg',
+  for(const file of ['index.html','explorer-controls.js','explorer-controls.css','ui/ornate-frame-v1.css','ui/backrooms-reference-frame-v2.png','ui/industrial-crt-v1.css','ui/snapshot-tv.js','ui/snapshot-crt.css','ui/crt-glass-v5.svg','ui/crt-optics.svg','ui/black-observation-monitor-v1.webp',
     'ui/industrial-crt-v1/panel-frame.webp','ui/industrial-crt-v1/button-steel.webp',
     'ui/industrial-crt-v1/button-hazard.webp','ui/industrial-crt-v1/surface-crt.webp','ui/industrial-crt-v1/paper-dossier.webp',
     'ui/industrial-crt-v1/crt-glass-v3.webp','ui/industrial-crt-v1/tracking-v3.webp']){
@@ -153,4 +153,9 @@ test('CRT optics samples the native composite with a centered bounded radial fie
 test('APK contract rejects missing CRT optics',t=>{
   const assets=fixture(t);fs.unlinkSync(path.join(assets,'ui/crt-optics.svg'));
   const result=verify(assets);assert.notEqual(result.status,0);assert.match(result.stderr,/crt-optics.svg/);
+});
+
+test('APK contract rejects a missing generated observation-monitor frame',t=>{
+  const assets=fixture(t);fs.unlinkSync(path.join(assets,'ui/black-observation-monitor-v1.webp'));
+  const result=verify(assets);assert.notEqual(result.status,0);assert.match(result.stderr,/black-observation-monitor-v1.webp/);
 });

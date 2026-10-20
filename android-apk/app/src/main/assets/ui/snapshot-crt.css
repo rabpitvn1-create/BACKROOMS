@@ -2,7 +2,8 @@
    The SVG aperture bows along all four sides; its opaque surround masks the
    native room/actor composite without wrapping or replacing either image. */
 .industrial-ui #snapshot{
-  border:3px solid #030506;border-radius:10px!important;
+  border:16px solid transparent;border-radius:10px!important;
+  border-image:url('black-observation-monitor-v1.webp') 96 fill / 16px / 0 stretch;
   filter:url('crt-optics.svg#barrel') blur(.12px);
   background:#020405;box-shadow:0 0 0 1px #303a3c,0 4px 10px #0008
 }
