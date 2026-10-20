@@ -122,7 +122,7 @@ class WorldGraphRuntimeTest {
       metadata = mapOf("encountered" to "true", "world.nodeId" to "0", "world.roomId" to "test:a"))
     assertFalse(WorldGraphRuntime.characterPresent(state, npc))
     assertTrue(WorldGraphRuntime.characterPresent(state, npc.copy(metadata = npc.metadata + ("world.nodeId" to "1"))))
-    assertNull(WorldDefinitions.forNode("1"))
+    assertSame(Level1ArrivalWorldDefinition, WorldDefinitions.forNode("1"))
     assertNotNull(WorldDefinitions.forNode("0"))
     assertThrows(IllegalArgumentException::class.java) { GameStateCodec.decode(GameStateCodec.encode(state)) }
     assertFalse(LevelRouteRegistry.canMove("0", "1"))
