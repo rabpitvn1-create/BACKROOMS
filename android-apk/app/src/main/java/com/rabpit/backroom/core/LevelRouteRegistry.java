@@ -208,6 +208,9 @@ public final class LevelRouteRegistry {
       case "manila_room": return "Manila Room is a relatively stable, quiet beige room with wooden flooring, a central table and survivor notes, not a busy safe hub";
       case "the_torment": return "The Torment is an eerie grayscale graveyard of concentric tomb rings, dead trees, fog, a fixed moon and a damaged hooded statue; its origin is unknown";
       case "red_rooms": return "Red Rooms have dark-red wallpaper, reddish darkroom lighting, sticky carpet, mold and poor communications";
+      case "dullness": return "Dullness changes apparent room sizes and merges spatial forms; an ordinary map is not reliable evidence of adjacency";
+      case "epsilon": return "Level Epsilon has high yellow halls, beige carpet and fluorescent hum, with bridges, tunnels, platforms, and surprising vertical connections";
+      case "ls_2": return "LS-2 PROJECT-AUTHORED EXTENSION (approved 2026-10-21): abandoned numbered shelving, silent gear housings, discrepant markings and a nameless latch. Missing labels are not confirmed numeric codes, and time travel is not established";
       default:
         return "Use documented parent-Level conditions. Exact physical traits, inhabitants and supplies of this extra named node are not yet independently established; do not invent confirmed lore or guaranteed exits";
     }
