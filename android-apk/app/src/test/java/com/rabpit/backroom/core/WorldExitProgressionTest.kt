@@ -83,6 +83,22 @@ class WorldExitProgressionTest {
     override fun loadCheckpoint(): GameCheckpoint? = null
   }
 
+  @Test fun satelliteDepartureStaysLockedUntilHigherDifficultyRiddlesAreAuthored() {
+    val initial = WorldGraphRuntime.initialize(initial("0.1"), 55L, WorldDefinitions.require("0.1"))
+    val p = MiniMapRuntime.progress(initial)
+    val graphRooms = p.getJSONObject("worldGraph").getJSONArray("rooms")
+    val visited = p.getJSONArray("visitedRooms")
+    for (i in 0 until graphRooms.length()) {
+      val id = graphRooms.getJSONObject(i).getString("id")
+      if ((0 until visited.length()).none { visited.getString(it) == id }) visited.put(id)
+    }
+    assertTrue(WorldGraphRuntime.exitUnlocked(p))
+    val completed = initial.copy(world = initial.world + (MiniMapRuntime.STATE to p.toString()))
+    assertFalse(WorldGraphRuntime.publicView(completed, p).getBoolean("nodeExitUnlocked"))
+    assertFalse(MiniMapScenario.objects(WorldGraphRuntime.actions(completed, p))
+      .any { it.getString("targetId").startsWith("exit:") })
+  }
+
   @Test fun fullCoreTransactionCommitsExactTransitionAndNewGraph() {
     val previous = allVisitedWithProofs()
     val source = MiniMapRuntime.progress(previous)
