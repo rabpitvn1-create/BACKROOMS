@@ -68,6 +68,27 @@ object WorldGraphRuntime {
       ". Hai quan sát chưa đủ chứng minh chúng có cùng nguyên nhân."
 
   private fun definition(p: JSONObject) = WorldDefinitions.require(p.getString("nodeId"))
+
+  /** An exit is Core-owned progression, never an inference from GM narration.
+   * The full authored environment catalog must be visited, and every current
+   * Core-verifiable law must be proven before an explicit exit is offered. */
+  fun exitUnlocked(p: JSONObject, definition: WorldDefinition = definition(p)): Boolean {
+    if (!active(p) || p.optString("nodeId") != definition.nodeId) return false
+    val graph = p.getJSONObject(GRAPH)
+    val visited = strings(p.getJSONArray("visitedRooms")).toSet()
+    val observed = rooms(graph).filter { it.getString("id") in visited }
+      .map { it.getString("environmentId") }.toSet()
+    if (!definition.environments.all { it.id in observed }) return false
+    val proofs = flags(p)
+    return definition.evidenceLaws.all { proofs.optBoolean(it.id) && lawFulfilled(p, graph, it) }
+  }
+
+  private fun nextWorldNode(p: JSONObject, definition: WorldDefinition): String? {
+    if (!exitUnlocked(p, definition)) return null
+    return LevelRouteRegistry.exits(p.getString("nodeId")).singleOrNull()
+      ?.takeIf { WorldDefinitions.forNode(it) != null }
+  }
+
   private fun locationTags(out: JSONObject, e: WorldEnvironment): JSONObject = out.apply {
     e.sceneZoneId?.let { put("zoneId", it) }
     e.sceneSubzoneId?.let { put("subzoneId", it) }
@@ -345,6 +366,9 @@ object WorldGraphRuntime {
     add("INTERACT", "verify", "Thử kiểm chứng nhận định tại chỗ")
     if (!p.getJSONObject("markers").has(current)) add("SEARCH", "mark", "Ghi dấu mốc vị trí vào bản đồ")
     presentCharacters(state).forEach { add("TALK", "character:${it.id}", "${it.name} · Trò chuyện") }
+    nextWorldNode(p, definition)?.let { dest ->
+      add("INTERACT", "exit:$dest", "Rời khu vực để đến ${LevelRouteRegistry.node(dest).title()}")
+    }
     return out
   }
 
@@ -401,7 +425,8 @@ object WorldGraphRuntime {
     return JSONObject().put("runtime", "world-graph-v3").put("miniIndex", 1)
       .put("nodeId", p.getString("nodeId")).put("parentLevel", p.getInt("parent")).put("nodeTitle", MiniMapRuntime.node(state).title())
       .put("sceneVersion", p.getInt("version")).put("generationNeeded", false)
-      .put("awaitingEnding", false).put("nodeExitUnlocked", false).put("completed", false)
+      .put("awaitingEnding", false).put("nodeExitUnlocked", nextWorldNode(p, definition) != null)
+      .put("completed", exitUnlocked(p, definition))
       .put("availableActions", actions(state, p, definition)).put("records", p.getJSONArray("records"))
       .put("areaLog", p.getJSONArray("areaEvents")).put("temporaryInference", "")
       .put("objective", definition.currentObjective(p))
@@ -450,6 +475,21 @@ object WorldGraphRuntime {
       listOf("actionId", "kind", "targetId", "roomId").all { a.getString(it) == command.getString(it) }
     } ?: error("scene_choice_unavailable")
     val g = p.getJSONObject(GRAPH); val kind = command.getString("kind"); val target = command.getString("targetId")
+    if (kind == "INTERACT" && target.startsWith("exit:")) {
+      val dest = target.removePrefix("exit:")
+      require(dest == nextWorldNode(p, definition) &&
+        LevelRouteRegistry.canMove(p.getString("nodeId"), dest)) { "world_exit_locked" }
+      val node = requireNotNull(LevelRouteRegistry.node(dest))
+      p.put("version", p.getInt("version") + 1)
+      val result = "Đã hoàn tất khám phá và chủ động rời ${definition.nodeId} để đến ${node.title()}."
+      val event = JSONObject().put("kind", kind).put("transition", true)
+        .put("interaction", choice.getString("label")).put("result", result)
+        .put("node", dest).put("miniIndex", 1)
+        .put("room", JSONObject().put("name", node.title())
+          .put("description", "Điểm chuyển Level đã được Core xác nhận."))
+        .put("observations", JSONArray()).put("npcs", JSONArray())
+      return MiniMapRuntime.Staged(p, dest, event, choice.getString("label"), emptySet())
+    }
     var result: String
     var dialogue: JSONObject? = null
     when (kind) {
