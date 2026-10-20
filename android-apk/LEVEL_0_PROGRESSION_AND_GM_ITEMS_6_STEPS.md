@@ -26,12 +26,23 @@ Yêu cầu đã chốt:
 - Đã thêm `Level0RiddleTestSupport.kt`, `Level0InferenceGuardTest.kt`, cập nhật `Level0PuzzleSolverTest.kt`, `WorldExitProgressionTest.kt` và Android `Level0RiddleGameplayTest.kt`.
 - Đây là thử thách suy luận nhiều tầng, **không thể khẳng định độ khó thực tế tương ứng IQ nào** khi chưa có người chơi thử.
 
-## 3. Riddles + lối ra cho toàn tuyến Level 0 [chưa triển khai]
+## 3. Riddles + lối ra cho toàn tuyến Level 0 [đã triển khai code, chờ CI tại HEAD]
 
-- Áp dụng puzzle chuyên biệt cho 7 node có world definition, không dùng một câu đố giống nhau đổi tên.
-- Phải có WorldDefinitions/đường khám phá được kiểm chứng cho các AREA `dullness`, `epsilon`, `ls_2`, hoặc thiết kế cơ chế AREA rõ ràng; giữ phân loại AREA.
-- Rời một node bằng action Core xác thực sau tiến độ hợp lệ; không teleport và không tự chuyển sau khi giải riddle.
-- Test từng chặng, không bỏ qua node bắt buộc.
+- Đã thêm `Level0RouteRiddles.kt` với **20 chuỗi riddle khác nhau**: mỗi node trong 10 node tiếp theo có hai chuỗi điều tra, mỗi chuỗi có bốn chứng cứ môi trường, một đối chiếu cùng khu, dấu kiểm chứng, hai quyết định suy luận và xác minh cuối. Chuỗi hai phụ thuộc kết quả chuỗi một.
+- Bảy node đặc biệt/sub-level hiện có đã nâng `Level0SatelliteWorldDefinition.version` lên 2, đóng băng lawInstances và yêu cầu giải đố thật.
+- Ba AREA bắt buộc `dullness`, `epsilon`, `ls_2` có `Level0AreaWorldDefinition.kt`: mỗi AREA có **4 khu chính × 4 khu phụ**, sơ đồ seed ổn định và đường đi không cần unlock passage phụ.
+- **LS-2** là Canon gốc của dự án được người dùng trực tiếp cho phép thiết kế ngày 2026-10-21. Căn cứ: `LS2_PROJECT_CANON_20261021.md`; có thẻ `LEVEL.NODE.ls_2` trong `knowledge_db.json` để GM truy xuất chính xác. Không coi đây là Canon ngoại bộ có sẵn.
+- Tuyến 12 node bắt buộc: `0→0.1→0.2→0.5→0.7→dullness→epsilon→ls_2→manila_room→the_torment→red_rooms→1`. Core chỉ cấp hành động rời node sau khi toàn bộ khu và cả hai chuỗi riddle (Level 0 là bốn chuỗi) được xác minh. Chọn sai không tự mở khóa; không tự động chuyển node khi giải xong.
+- Có `Level1ArrivalWorldDefinition.kt` làm **bản đồ tiếp nhận tối thiểu** từ Red Rooms đến bãi đỗ xe Level 1, dựa trên Canon sẵn có. Không mặc nhận đây là bản triển khai đầy đủ Level 1; không mở sẵn Level 1→1.2.
+- `MandatoryLevel0RouteTest.kt` kiểm tra tiến độ từng node, chặn nhảy cóc, round-trip và toàn bộ 11 lần chuyển node qua giao dịch Core. `Level0SatelliteWorldDefinitionTest.kt`, `WorldExitProgressionTest.kt`, `WorldGraphRuntimeTest.kt` được cập nhật phù hợp.
+- Đã đọc log CI: mốc `8874900` biên dịch Kotlin thành công nhưng test `WorldGraphRuntimeTest` còn kỳ vọng cũ rằng Level 1 chưa đăng ký; đã sửa kỳ vọng ở commit `f5feaf8`. **Chưa có kết quả test trên commit sau bản sửa**.
+
+### Giới hạn thiết kế còn lại
+
+- Chỉ xác thực độ khó logic và công bằng của riddle bằng test máy, chưa có playtest người thật nên không thể khẳng định tương quan IQ.
+- Các khu AREA và riddle mới là nội dung do dự án sáng tạo; dữ liệu môi trường cũ của bảy node được giữ nguyên.
+- Các bước 4–5 mới triển khai giao diện và kho vật phẩm do GM quản lý độc lập; riddle Core hiện không phụ thuộc vật phẩm của GM.
+
 
 ## 4. UI Vật phẩm nhiệm vụ [chưa triển khai]
 
