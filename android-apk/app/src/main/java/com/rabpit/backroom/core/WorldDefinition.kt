@@ -49,7 +49,9 @@ interface WorldDefinition {
 
 /** Explicit supported definitions; registration never creates an authorized Level route. */
 object WorldDefinitions {
-  private val definitions: List<WorldDefinition> = listOf(Level0WorldDefinition)
+  private val definitions: List<WorldDefinition> = listOf(Level0WorldDefinition) +
+    listOf("0.1", "0.2", "0.5", "0.7", "manila_room", "the_torment", "red_rooms")
+      .map(::Level0SatelliteWorldDefinition)
   fun forNode(nodeId: String): WorldDefinition? = definitions.firstOrNull { it.nodeId == nodeId }
   fun require(nodeId: String): WorldDefinition = requireNotNull(forNode(nodeId)) { "world_definition_unknown" }
 }
