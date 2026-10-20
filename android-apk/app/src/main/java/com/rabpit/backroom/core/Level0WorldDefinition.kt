@@ -7,7 +7,7 @@ import java.util.Random
 /** Level 0 content and generator only. Environmental Canon remains in Level0Environments. */
 object Level0WorldDefinition : WorldDefinition {
   override val nodeId = "0"
-  override val version = 4
+  override val version = 5
   override val objective = "Khám phá Level 0 và ghi nhận những gì có thể kiểm chứng."
   override fun currentObjective(progress: JSONObject): String {
     val marked = progress.getJSONObject("markers").length()
@@ -24,32 +24,143 @@ object Level0WorldDefinition : WorldDefinition {
       notes < 2 -> "Tiếp tục khảo sát một môi trường khác; ghi nhận vật chứng trước khi kết luận."
       comparisons == 0 ->
         "Đối chiếu ghi chép ở hai phòng thuộc cùng một khu chính, hoặc tìm thêm chi tiết vật lý có thể kiểm chứng."
-      proofs < 2 -> "Quan sát kỹ hiện tượng vật lý tại các khu đã gặp; thử cách kiểm tra khác khi quay lại."
-      verified == 0 -> "Đối chiếu chứng cứ độc lập và thử kiểm chứng tại hiện trường; thất bại không xóa dấu vết."
-      visited < 45 -> "Tiếp tục khám phá những lối chưa biết và quay lại các địa điểm cần kiểm chứng."
-      else -> "Tổng hợp ghi chép, kiểm chứng các giả thuyết còn mở. Lối thoát Level 0 chưa được xác nhận."
+      proofs < 4 -> "Thu thập chứng cứ phân biệt được dấu vết thật với phản chiếu, âm thanh và cảm giác."
+      verified < evidenceLaws.size ->
+        "Đã kiểm chứng ${verified}/${evidenceLaws.size} chuỗi suy luận. Đối chiếu ghi chép cùng khu, tìm điểm neo và chọn giả thuyết tại hiện trường."
+      visited < 45 -> "Tiếp tục khám phá các phòng chưa ghé; kết luận đúng chưa đồng nghĩa đã khảo sát toàn bộ Level 0."
+      else -> "Đã có đủ ghi chép và suy luận. Kiểm tra lối rời Level 0 bằng hành động do Core cung cấp."
     }
   }
   override val requireAlternateRoutes = true
-  override val passageConditions = setOf("wet-ceiling", "loop-reflection")
+  override val passageConditions = setOf("wet-ceiling", "loop-reflection", "signal-distortion", "fracture-boundary")
   override val evidenceLaws = listOf(
+    // Distinguish an actual structural connection from deceptive black reflections.
     WorldEvidenceLaw("wet-ceiling", WorldLawFamily.PHYSICAL_CORRELATION, listOf(
       WorldLawProbe("wet:floor", "phong_ngap", "floor",
-        "Ở mép thảm ngập, vệt ẩm leo lên đường ghép tường chứ không tiếp tục theo vết kéo lê trên sàn."),
-      WorldLawProbe("wet:ceiling", "khoang_ky_thuat", "ceiling",
-        "Đầu một đường ống kỹ thuật ướt bất thường; hơi ẩm đọng quanh mối ghép với vách.")
+        "Vết kéo lê dưới mặt nước chỉ chứng minh sự xáo trộn trên sàn; mép thảm ẩm tiếp giáp vách chưa xác định hướng nước."),
+      WorldLawProbe("wet:mirror", "vung_den", "reflection",
+        "Bóng trong vũng đen không trùng với phòng thật. Hình phản chiếu không thể dùng làm bằng chứng về hướng dòng nước."),
+      WorldLawProbe("wet:drip", "goc_thoi", "ceiling",
+        "Những giọt nước rơi từ trần xuống; vệt sàn và vị trí nhỏ giọt là hai quan sát khác nhau, chưa xác nhận cùng nguồn."),
+      WorldLawProbe("wet:pipe", "khoang_ky_thuat", "ceiling",
+        "Đường ống lộ thiên và mối ghép sát vách tạo một vị trí kiểm tra cấu trúc cụ thể, khác hình phản chiếu trong vũng.")
     ), "khoang_ky_thuat",
-      "Đối chiếu vệt nước với đầu ống đã xác nhận một mối nối vật lý có thể thử mở.",
-      "Thử đối chiếu đường ống chưa đủ căn cứ; mối nối không dịch chuyển."),
+      "Đã loại trừ hình phản chiếu và dấu kéo lê làm chỉ dấu dòng chảy. Mối ghép cấu trúc trở thành vị trí có thể thử mở.",
+      "Chưa đủ chứng cứ độc lập hoặc chưa bảo vệ được cách phân biệt nguồn nước và hình ảnh.",
+      comparisonPairs = setOf("phong_ngap" to "vung_den"),
+      inferenceSteps = listOf(
+        WorldInferenceStep("wet-source",
+          "Trong bốn kiểu dấu, cặp nào có giá trị kiểm chứng kết cấu thay vì chỉ là ảnh hoặc dấu xáo trộn?",
+          listOf(
+            WorldInferenceOption("reflection", "Bóng hình trong vũng và vết kéo lê dưới nước."),
+            WorldInferenceOption("physical", "Điểm nhỏ giọt trên trần và mối ghép ống-vách có thể tiếp cận."),
+            WorldInferenceOption("memory", "Mùi phân hủy và cảm giác chiều sâu của vũng đen.")
+          ), "physical", "Đã phân biệt dấu nguồn trên kết cấu với dấu phản chiếu và dấu chuyển động không rõ nguyên nhân."),
+        WorldInferenceStep("wet-test",
+          "Muốn thử lối ghép mà không đánh đồng tương quan với nguyên nhân, phép thử nào hợp lý?",
+          listOf(
+            WorldInferenceOption("force", "Cạy mọi vũng đen vì chúng phản chiếu hình khác thường."),
+            WorldInferenceOption("ignore", "Giả định tất cả vùng ướt đều do một nguồn và bỏ qua vị trí trần."),
+            WorldInferenceOption("seam", "Dùng ghi chép vùng ngập đối chiếu ảnh phản chiếu rồi kiểm tra đúng mối ống-vách.")
+          ), "seam", "Đã chọn phép kiểm tra tại mối nối vật lý thay vì suy đoán từ ảnh trong nước.")
+      )),
+    // Replicated scenery and orientation are different: deliberate player-created
+    // marks are required to disambiguate identical rooms.
     WorldEvidenceLaw("loop-reflection", WorldLawFamily.SPATIAL_ANCHOR, listOf(
       WorldLawProbe("loop:mark", "hanh_lang_lap", "markings",
-        "Hai vết xước cũ giống nhau nhưng hướng kéo lệch khác nhau; dấu có sẵn không xác định được lối đi."),
+        "Ký hiệu có sẵn lặp tại nhiều đoạn hành lang; tự nó không xác định căn phòng đã đi qua."),
+      WorldLawProbe("loop:copy", "phong_ban_sao", "geometry",
+        "Ghế gãy, vết nứt và dấu chân có bản sao giống nhau. Nhận diện theo một đồ vật là không đủ."),
+      WorldLawProbe("loop:cross", "nga_tu_vo_tan", "geometry",
+        "Những hướng khác nhau có lúc dẫn về điểm trông giống ban đầu; hướng di chuyển không đủ xác nhận địa điểm."),
       WorldLawProbe("loop:mirror", "phong_dao", "reflection",
-        "Bố cục đảo chiều nhưng một đường nứt vẫn giữ cùng phía với vết xước đã quan sát.")
+        "Bố cục đổi phía như ảnh gương; chỉ có dấu tự tạo được đối chiếu theo vị trí mới phân biệt việc đảo với bản sao.")
     ), "hanh_lang_lap",
-      "Hai dấu do người chơi tạo giúp phân biệt vị trí với bản sao; nhận diện được đường nối mới.",
-      "Dấu có sẵn chưa chứng minh được vị trí; thử nghiệm không tạo ra đường nối.",
-      setOf("hanh_lang_lap", "phong_dao"))
+      "Hai điểm neo do người chơi tạo đã phân biệt ký hiệu lặp với vị trí thực để nhận diện đường nối.",
+      "Dấu cũ, hình dạng giống nhau hoặc một điểm neo đơn độc chưa chứng minh được lộ trình.",
+      setOf("hanh_lang_lap", "phong_dao"),
+      comparisonPairs = setOf("hanh_lang_lap" to "phong_dao"),
+      inferenceSteps = listOf(
+        WorldInferenceStep("loop-identity",
+          "Điều gì có thể phân biệt hai phòng trùng mọi đồ vật và có bố cục đảo chiều?",
+          listOf(
+            WorldInferenceOption("chair", "Nhận diện theo chiếc ghế gãy giống hệt."),
+            WorldInferenceOption("owned", "Đối chiếu dấu do chính người chơi tạo tại hai vị trí."),
+            WorldInferenceOption("direction", "Tin rằng đi cùng một hướng luôn đến cùng căn phòng.")
+          ), "owned", "Đã xác định dấu do người chơi tạo là nguồn đối chứng độc lập với bản sao sẵn có."),
+        WorldInferenceStep("loop-route",
+          "Trong ngã tư lặp và phòng đảo, kết luận nào đủ căn cứ để phân biệt phép đảo với việc quay về?",
+          listOf(
+            WorldInferenceOption("orientation", "So vị trí tương đối của cả hai dấu mới với bố cục đảo và ghi chép đã đối chiếu."),
+            WorldInferenceOption("icon", "Chọn hành lang có chiếc ghế gãy quen thuộc."),
+            WorldInferenceOption("turncount", "Đếm số lần rẽ mà không đối chiếu điểm neo.")
+          ), "orientation", "Đã xác minh lộ trình bằng hai điểm neo độc lập và quan hệ trái-phải.")
+      )),
+    // Four auditory/visual phenomena can resemble one moving source; the
+    // valid inference is *insufficient evidence*, not a new supernatural law.
+    WorldEvidenceLaw("signal-distortion", WorldLawFamily.PHYSICAL_CORRELATION, listOf(
+      WorldLawProbe("signal:blink", "phong_chop", "light",
+        "Đồ vật dường như đổi hình trong khoảng đèn tắt; không có bằng chứng chúng thực sự di chuyển."),
+      WorldLawProbe("signal:lag", "hanh_lang_cam", "sound",
+        "Tiếng bước chân đôi khi đến muộn so với bước chân, nên âm thanh không phải thước đo thời điểm tuyệt đối."),
+      WorldLawProbe("signal:wall", "phong_thi_tham", "sound",
+        "Tiếng thì thầm ở sau vách không đủ rõ để nhận ra lời nói hoặc xác định người phát."),
+      WorldLawProbe("signal:call", "phong_tieng_goi", "sound",
+        "Tiếng gọi đổi vị trí khi tiến gần; cảm giác quen thuộc không chứng minh một người có thật đang di chuyển.")
+    ), "hanh_lang_cam",
+      "Đã phân biệt âm trễ, tín hiệu méo và giọng gọi thay đổi: chưa có bằng chứng buộc chúng cùng một nguồn.",
+      "Chưa phân biệt dấu quan sát được với suy đoán về người phát hoặc thời điểm phát.",
+      comparisonPairs = setOf("hanh_lang_cam" to "phong_thi_tham"),
+      prerequisites = setOf("loop-reflection"),
+      inferenceSteps = listOf(
+        WorldInferenceStep("signal-timing",
+          "Từ tiếng bước chậm và vật như đổi hình lúc đèn tắt, mệnh đề nào chắc chắn nhất?",
+          listOf(
+            WorldInferenceOption("clock", "Âm thanh và thị giác ở đây đo thời gian chính xác như nhau."),
+            WorldInferenceOption("limits", "Quan sát có độ trễ hoặc gián đoạn; chưa suy ra vật hay người đã di chuyển."),
+            WorldInferenceOption("entity", "Mọi tiếng nói đều do một thực thể đứng sau tường.")
+          ), "limits", "Đã tách độ trễ của giác quan khỏi khẳng định có chuyển động hay nguồn phát."),
+        WorldInferenceStep("signal-source",
+          "Hai loại giọng sau vách và tiếng gọi di chuyển cho phép kết luận gì?",
+          listOf(
+            WorldInferenceOption("same", "Đều là cùng một người vì giọng nghe quen."),
+            WorldInferenceOption("many", "Chắc chắn có nhiều người nói độc lập."),
+            WorldInferenceOption("unproven", "Chưa định vị được nguồn; không đủ chứng cứ để khẳng định một hay nhiều người.")
+          ), "unproven", "Đã loại bỏ các giả thuyết về danh tính và số nguồn không có chứng cứ.")
+      )),
+    // The final deduction weighs three distinct observations without treating
+    // the Fracture as an authenticated exit to another Level.
+    WorldEvidenceLaw("fracture-boundary", WorldLawFamily.SPATIAL_ANCHOR, listOf(
+      WorldLawProbe("fracture:crack", "tuong_nut", "surface",
+        "Vết nứt và tiếng rung trầm xác nhận bề mặt có dấu biến dạng, không tự xác nhận lối đi ở phía sau."),
+      WorldLawProbe("fracture:floor", "san_lech", "floor",
+        "Những khối sàn lệch cao và hành lang nghiêng là hình học quan sát được; hướng nghiêng chưa chỉ đích đến."),
+      WorldLawProbe("fracture:void", "khe_toi", "depth",
+        "Khe tối không xác định được chiều sâu, tiếng vọng không rõ; không thể lấy độ sâu tưởng tượng làm lối ra."),
+      WorldLawProbe("fracture:layers", "phong_giao_thoa", "surface",
+        "Các lớp tường lộ bê tông xám cho thấy vật liệu khác nhau, nhưng không xác nhận nơi này nối sang Level mới.")
+    ), "phong_giao_thoa",
+      "Đã phân biệt biến dạng cấu trúc, sai lệch cao độ và giới hạn đo sâu. Phòng Giao Thoa chưa được xác nhận là lối thoát.",
+      "Thiếu đối chứng hoặc đang nhầm bề mặt bất thường với bằng chứng tồn tại một cửa chuyển Level.",
+      setOf("tuong_nut", "san_lech"),
+      comparisonPairs = setOf("tuong_nut" to "san_lech"),
+      prerequisites = setOf("wet-ceiling", "signal-distortion"),
+      inferenceSteps = listOf(
+        WorldInferenceStep("fracture-evidence",
+          "Các dấu vết nào thực sự đo được, và điều gì vẫn chưa thể kết luận?",
+          listOf(
+            WorldInferenceOption("depth", "Khe tối chắc chắn dẫn xuống tầng dưới vì không có tiếng vọng."),
+            WorldInferenceOption("layers", "Độ lệch sàn và lớp vật liệu là chứng cứ hình học; chiều sâu khe chưa xác định."),
+            WorldInferenceOption("portal", "Bê tông xám chứng minh tồn tại cổng chuyển Level.")
+          ), "layers", "Đã tách các bề mặt quan sát được khỏi giả thuyết về chiều sâu khe."),
+        WorldInferenceStep("fracture-exit",
+          "Sau khi đối chiếu mối ghép, tín hiệu méo và hai dấu neo, lựa chọn nào không vượt quá chứng cứ?",
+          listOf(
+            WorldInferenceOption("jump", "Đi vào khe vì mọi hiện tượng bất thường đều là lối thoát."),
+            WorldInferenceOption("certainty", "Khẳng định Phòng Giao Thoa đã mở cửa Level mới."),
+            WorldInferenceOption("boundary", "Xác nhận biến đổi cấu trúc; chỉ rời Level qua lối được kiểm chứng riêng.")
+          ), "boundary", "Đã kết luận đúng giới hạn của bằng chứng; không coi Phòng Giao Thoa là lối thoát.")
+      ))
   )
   /** Player investigations explicitly anchored to the approved 29 subzone descriptions.
    * The observation is copied from the same catalog used by the knowledge packet.
