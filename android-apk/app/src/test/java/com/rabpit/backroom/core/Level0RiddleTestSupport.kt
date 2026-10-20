@@ -44,7 +44,7 @@ internal object Level0RiddleTestSupport {
 
   fun visit(state: GameState, environmentId: String) = walk(state, roomId(state, environmentId))
 
-  fun solveLaw(input: GameState, law: WorldEvidenceLaw): GameState {
+  fun prepareLaw(input: GameState, law: WorldEvidenceLaw): GameState {
     var state = input
     for (probe in law.probes) {
       state = visit(state, probe.environmentId)
@@ -62,7 +62,11 @@ internal object Level0RiddleTestSupport {
       state = visit(state, environment)
       state = take(state, "trace")
     }
-    state = visit(state, law.verifyEnvironmentId)
+    return visit(state, law.verifyEnvironmentId)
+  }
+
+  fun solveLaw(input: GameState, law: WorldEvidenceLaw): GameState {
+    var state = prepareLaw(input, law)
     for (step in law.inferenceSteps) {
       state = take(state, "deduce:${step.id}:${step.answerId}")
     }
