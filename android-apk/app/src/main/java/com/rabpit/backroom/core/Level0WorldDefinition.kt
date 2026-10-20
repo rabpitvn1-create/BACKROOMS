@@ -52,15 +52,15 @@ object Level0WorldDefinition : WorldDefinition {
         WorldInferenceStep("wet-source",
           "Trong bốn kiểu dấu, cặp nào có giá trị kiểm chứng kết cấu thay vì chỉ là ảnh hoặc dấu xáo trộn?",
           listOf(
-            WorldInferenceOption("reflection", "Bóng hình trong vũng và vết kéo lê dưới nước."),
+            WorldInferenceOption("reflection", "Ưu tiên phản chiếu và vệt kéo lê vì chúng cùng xuất hiện trong môi trường nước."),
             WorldInferenceOption("physical", "Điểm nhỏ giọt trên trần và mối ghép ống-vách có thể tiếp cận."),
-            WorldInferenceOption("memory", "Mùi phân hủy và cảm giác chiều sâu của vũng đen.")
+            WorldInferenceOption("memory", "Ưu tiên vị trí nhỏ giọt và vết kéo lê; bỏ qua mối ống-vách vì hai dấu đầu đều liên quan đến nước.")
           ), "physical", "Đã phân biệt dấu nguồn trên kết cấu với dấu phản chiếu và dấu chuyển động không rõ nguyên nhân."),
         WorldInferenceStep("wet-test",
           "Muốn thử lối ghép mà không đánh đồng tương quan với nguyên nhân, phép thử nào hợp lý?",
           listOf(
-            WorldInferenceOption("force", "Cạy mọi vũng đen vì chúng phản chiếu hình khác thường."),
-            WorldInferenceOption("ignore", "Giả định tất cả vùng ướt đều do một nguồn và bỏ qua vị trí trần."),
+            WorldInferenceOption("force", "Suy ra vị trí mối nối chỉ bằng hướng vết kéo lê mà không đối chiếu cấu trúc đường ống."),
+            WorldInferenceOption("ignore", "Dùng hình phản chiếu rõ nhất của Vũng Đen làm mốc để tìm chỗ nối, không so lại vệt sàn."),
             WorldInferenceOption("seam", "Dùng ghi chép vùng ngập đối chiếu ảnh phản chiếu rồi kiểm tra đúng mối ống-vách.")
           ), "seam", "Đã chọn phép kiểm tra tại mối nối vật lý thay vì suy đoán từ ảnh trong nước.")
       )),
@@ -84,16 +84,16 @@ object Level0WorldDefinition : WorldDefinition {
         WorldInferenceStep("loop-identity",
           "Điều gì có thể phân biệt hai phòng trùng mọi đồ vật và có bố cục đảo chiều?",
           listOf(
-            WorldInferenceOption("chair", "Nhận diện theo chiếc ghế gãy giống hệt."),
+            WorldInferenceOption("chair", "Kết hợp ghế gãy, vết nứt và dấu chân; ba dấu có sẵn cùng xuất hiện sẽ đủ định danh."),
             WorldInferenceOption("owned", "Đối chiếu dấu do chính người chơi tạo tại hai vị trí."),
-            WorldInferenceOption("direction", "Tin rằng đi cùng một hướng luôn đến cùng căn phòng.")
+            WorldInferenceOption("direction", "Kết hợp số bước ước lượng với hướng rẽ để xác định danh tính phòng khi mọi đồ vật lặp lại.")
           ), "owned", "Đã xác định dấu do người chơi tạo là nguồn đối chứng độc lập với bản sao sẵn có."),
         WorldInferenceStep("loop-route",
           "Trong ngã tư lặp và phòng đảo, kết luận nào đủ căn cứ để phân biệt phép đảo với việc quay về?",
           listOf(
             WorldInferenceOption("orientation", "So vị trí tương đối của cả hai dấu mới với bố cục đảo và ghi chép đã đối chiếu."),
-            WorldInferenceOption("icon", "Chọn hành lang có chiếc ghế gãy quen thuộc."),
-            WorldInferenceOption("turncount", "Đếm số lần rẽ mà không đối chiếu điểm neo.")
+            WorldInferenceOption("icon", "Dùng tỷ lệ vết nứt và vị trí ghế để hiệu chỉnh khi thấy căn phòng đảo chiều."),
+            WorldInferenceOption("turncount", "Lấy chu kỳ quay lại ngã tư làm gốc và gán thứ tự cố định cho bốn nhánh.")
           ), "orientation", "Đã xác minh lộ trình bằng hai điểm neo độc lập và quan hệ trái-phải.")
       )),
     // Four auditory/visual phenomena can resemble one moving source; the
@@ -116,15 +116,15 @@ object Level0WorldDefinition : WorldDefinition {
         WorldInferenceStep("signal-timing",
           "Từ tiếng bước chậm và vật như đổi hình lúc đèn tắt, mệnh đề nào chắc chắn nhất?",
           listOf(
-            WorldInferenceOption("clock", "Âm thanh và thị giác ở đây đo thời gian chính xác như nhau."),
+            WorldInferenceOption("clock", "Dùng chu kỳ đèn chớp làm đồng hồ chung rồi gán mỗi tiếng bước vào một pha sáng."),
             WorldInferenceOption("limits", "Quan sát có độ trễ hoặc gián đoạn; chưa suy ra vật hay người đã di chuyển."),
-            WorldInferenceOption("entity", "Mọi tiếng nói đều do một thực thể đứng sau tường.")
+            WorldInferenceOption("entity", "Suy từ độ trễ tiếng bước ra hướng di chuyển của một nguồn giữa hai lần quan sát.")
           ), "limits", "Đã tách độ trễ của giác quan khỏi khẳng định có chuyển động hay nguồn phát."),
         WorldInferenceStep("signal-source",
           "Hai loại giọng sau vách và tiếng gọi di chuyển cho phép kết luận gì?",
           listOf(
-            WorldInferenceOption("same", "Đều là cùng một người vì giọng nghe quen."),
-            WorldInferenceOption("many", "Chắc chắn có nhiều người nói độc lập."),
+            WorldInferenceOption("same", "Dấu đổi vị trí khi tiến gần phù hợp nhất với một người phát âm đang đi qua các vách."),
+            WorldInferenceOption("many", "Giọng phía sau vách và tiếng gọi đổi vị trí buộc phải đến từ ít nhất hai nguồn độc lập."),
             WorldInferenceOption("unproven", "Chưa định vị được nguồn; không đủ chứng cứ để khẳng định một hay nhiều người.")
           ), "unproven", "Đã loại bỏ các giả thuyết về danh tính và số nguồn không có chứng cứ.")
       )),
@@ -149,15 +149,15 @@ object Level0WorldDefinition : WorldDefinition {
         WorldInferenceStep("fracture-evidence",
           "Các dấu vết nào thực sự đo được, và điều gì vẫn chưa thể kết luận?",
           listOf(
-            WorldInferenceOption("depth", "Khe tối chắc chắn dẫn xuống tầng dưới vì không có tiếng vọng."),
+            WorldInferenceOption("depth", "Tiếng rung từ tường và khe không vọng là hai phép đo đủ để suy ra khe sâu hơn độ lệch sàn."),
             WorldInferenceOption("layers", "Độ lệch sàn và lớp vật liệu là chứng cứ hình học; chiều sâu khe chưa xác định."),
-            WorldInferenceOption("portal", "Bê tông xám chứng minh tồn tại cổng chuyển Level.")
+            WorldInferenceOption("portal", "Độ lệch sàn cùng vật liệu bê tông khác loại đủ để xác định một ranh giới sang Level khác.")
           ), "layers", "Đã tách các bề mặt quan sát được khỏi giả thuyết về chiều sâu khe."),
         WorldInferenceStep("fracture-exit",
           "Sau khi đối chiếu mối ghép, tín hiệu méo và hai dấu neo, lựa chọn nào không vượt quá chứng cứ?",
           listOf(
-            WorldInferenceOption("jump", "Đi vào khe vì mọi hiện tượng bất thường đều là lối thoát."),
-            WorldInferenceOption("certainty", "Khẳng định Phòng Giao Thoa đã mở cửa Level mới."),
+            WorldInferenceOption("jump", "Chọn khe không có tiếng vọng làm phép thử rời Level vì đường nứt nối tiếp nền sàn lệch."),
+            WorldInferenceOption("certainty", "Kết hợp mối ghép ống-vách với lớp bê tông lộ ra để xác nhận Phòng Giao Thoa là cổng."),
             WorldInferenceOption("boundary", "Xác nhận biến đổi cấu trúc; chỉ rời Level qua lối được kiểm chứng riêng.")
           ), "boundary", "Đã kết luận đúng giới hạn của bằng chứng; không coi Phòng Giao Thoa là lối thoát.")
       ))
