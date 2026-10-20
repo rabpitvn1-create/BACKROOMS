@@ -13,37 +13,10 @@ class WorldExitProgressionTest {
       ("levelJson" to LevelRouteRegistry.node(node).asJson().toString()))
   }
 
-  private fun allVisitedWithProofs(): GameState {
-    val state = WorldGraphRuntime.initialize(initial("0"), 777L, Level0WorldDefinition)
-    val p = MiniMapRuntime.progress(state)
-    val rooms = p.getJSONObject("worldGraph").getJSONArray("rooms")
-    val roomList = (0 until rooms.length()).map { rooms.getJSONObject(it) }
-    val visited = p.getJSONArray("visitedRooms")
-    for (r in roomList) if ((0 until visited.length()).none { visited.getString(it) == r.getString("id") })
-      visited.put(r.getString("id"))
-    val proof = p.getJSONObject("evidenceState")
-    val flags = p.getJSONObject("ruleFlags")
-    val records = p.getJSONArray("records")
-    for (law in Level0WorldDefinition.evidenceLaws) {
-      for (probe in law.probes) {
-        val place = roomList.first { it.getString("environmentId") == probe.environmentId }
-        proof.put(probe.id, true)
-        records.put(JSONObject().put("id", place.getString("id"))
-          .put("kind", "EVIDENCE").put("text", probe.clue))
-      }
-      for (anchor in law.physicalAnchors) {
-        val place = roomList.first { it.getString("environmentId") == anchor }
-        p.getJSONObject("environmentChanges")
-          .put(place.getString("id"), JSONObject().put("trace", true))
-      }
-      val verifyAt = roomList.first { it.getString("environmentId") == law.verifyEnvironmentId }
-      flags.put(law.id, true)
-      records.put(JSONObject().put("id", verifyAt.getString("id"))
-        .put("kind", "VERIFICATION").put("text", law.successText))
-    }
-    WorldGraphRuntime.validateSavedProgress(p, Level0WorldDefinition)
-    return state.copy(world = state.world + (MiniMapRuntime.STATE to p.toString()))
-  }
+  private fun allVisitedWithProofs(): GameState =
+    Level0RiddleTestSupport.visitEveryRoom(Level0RiddleTestSupport.solveAll(
+      WorldGraphRuntime.initialize(initial("0"), 777L, Level0WorldDefinition)
+    ))
 
   @Test fun level0ExitRemainsLockedUntilAll37AreasAndBothCoreProofs() {
     val s = WorldGraphRuntime.initialize(initial("0"), 777L, Level0WorldDefinition)
@@ -61,7 +34,7 @@ class WorldExitProgressionTest {
       .any { it.optString("targetId") == "exit:0.1" })
 
     val unproven = JSONObject(completedProgress.toString())
-    unproven.getJSONObject("ruleFlags").remove("wet-ceiling")
+    unproven.getJSONObject("ruleFlags").remove("fracture-boundary")
     assertFalse(WorldGraphRuntime.exitUnlocked(unproven))
     val unvisited = JSONObject(completedProgress.toString())
     val arr = unvisited.getJSONArray("visitedRooms")
