@@ -13,17 +13,34 @@ data class WorldEnvironment(
 data class WorldLawProbe(val id: String, val environmentId: String, val method: String, val clue: String)
 enum class WorldLawFamily { PHYSICAL_CORRELATION, SPATIAL_ANCHOR }
 
+/** Player-facing alternative explanations, never an instruction to the GM. */
+data class WorldInferenceOption(val id: String, val text: String)
+data class WorldInferenceStep(
+  val id: String, val question: String, val options: List<WorldInferenceOption>,
+  val answerId: String, val conclusion: String
+)
+
 /** Reusable rule contracts. PHYSICAL_CORRELATION requires evidence from both sites;
  * SPATIAL_ANCHOR additionally requires marks actually placed by the player. */
 data class WorldEvidenceLaw(
   val id: String, val family: WorldLawFamily, val probes: List<WorldLawProbe>,
   val verifyEnvironmentId: String, val successText: String, val failedText: String,
-  val physicalAnchors: Set<String> = emptySet()
+  val physicalAnchors: Set<String> = emptySet(),
+  val comparisonPairs: Set<Pair<String, String>> = emptySet(),
+  val prerequisites: Set<String> = emptySet(),
+  val inferenceSteps: List<WorldInferenceStep> = emptyList()
 ) {
   fun freeze() = JSONObject().put("id", id).put("family", family.name)
     .put("probes", JSONArray(probes.map { it.id + ":" + it.environmentId + ":" + it.method }))
     .put("verificationSite", verifyEnvironmentId)
     .put("physicalAnchors", JSONArray(physicalAnchors.sorted()))
+    .put("comparisonPairs", JSONArray(comparisonPairs.map { "${it.first}:${it.second}" }.sorted()))
+    .put("prerequisites", JSONArray(prerequisites.sorted()))
+    // The frozen layout records identity and options, not correct answers.
+    .put("inferenceSteps", JSONArray(inferenceSteps.map { step ->
+      JSONObject().put("id", step.id).put("question", step.question)
+        .put("options", JSONArray(step.options.map { it.id + ":" + it.text }))
+    }))
 }
 
 /** Optional authored investigation; it records a player-visible Canon observation
