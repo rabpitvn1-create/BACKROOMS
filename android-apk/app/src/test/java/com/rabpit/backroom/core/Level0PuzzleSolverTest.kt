@@ -49,40 +49,32 @@ class Level0PuzzleSolverTest {
     return state
   }
 
-  @Test fun offlineSolverCompletesBothLawsAndReturnsHomeAcrossSeeds() {
+  @Test fun offlineSolverCompletesFourChainedLawsAcrossSeedsAndReturnsHome() {
     for (seed in listOf(0L, 1L, 41L, 73L, -42L, Long.MAX_VALUE)) {
       var state = fresh(seed)
-      val graph = progress(state).getJSONObject("worldGraph")
-      val home = graph.getString("entryRoomId")
-      fun visit(env: String) { state = corridorWalk(state, environmentRoom(state, env)) }
+      val home = progress(state).getJSONObject("worldGraph").getString("entryRoomId")
+      val lawIds = Level0WorldDefinition.evidenceLaws.map { it.id }
+      assertEquals(4, lawIds.size)
+      state = Level0RiddleTestSupport.solveAll(state)
+      state = GameStateCodec.decode(GameStateCodec.encode(state))
+      assertEquals(lawIds.toSet(), progress(state).getJSONObject("ruleFlags")
+        .keys().asSequence().toSet())
+      assertEquals(16, progress(state).getJSONObject("evidenceState").length())
+      assertEquals(8, progress(state).getJSONObject("inferenceDecisions").length())
 
-      visit("phong_ngap"); state = take(state, "probe:floor")
-      state = GameStateCodec.decode(GameStateCodec.encode(state)) // Interruption during investigation.
-      visit("khoang_ky_thuat"); state = take(state, "probe:ceiling")
-      state = take(state, "verify")
-      assertTrue("wet-ceiling seed=$seed", progress(state).getJSONObject("ruleFlags").getBoolean("wet-ceiling"))
-
-      visit("hanh_lang_lap")
-      state = take(take(state, "probe:markings"), "trace")
-      visit("phong_dao")
-      state = take(take(state, "probe:reflection"), "trace")
-      visit("hanh_lang_lap"); state = take(state, "verify")
-      assertTrue("loop-reflection seed=$seed", progress(state).getJSONObject("ruleFlags").getBoolean("loop-reflection"))
-
-      visit("phong_ngap")
-      state = take(take(state, "inspect"), "passage:p:00") // Discover, then open.
-      state = take(state, "passage:p:00") // Traverse open shortcut.
+      state = Level0RiddleTestSupport.visit(state, "phong_ngap")
+      state = take(take(state, "inspect"), "passage:p:00")
+      state = take(state, "passage:p:00")
       assertEquals(environmentRoom(state, "khoang_ky_thuat"), progress(state).getString("roomId"))
-      visit("hanh_lang_lap")
+
+      state = Level0RiddleTestSupport.visit(state, "hanh_lang_lap")
       state = take(take(state, "inspect"), "passage:p:01")
       state = take(state, "passage:p:01")
       assertEquals(environmentRoom(state, "phong_ky_uc"), progress(state).getString("roomId"))
-      assertFalse(choices(state).any { it.getString("targetId") == "passage:p:01" }) // One-way.
+      assertFalse(choices(state).any { it.getString("targetId") == "passage:p:01" })
       state = corridorWalk(state, home)
       assertEquals(home, progress(state).getString("roomId"))
-      assertEquals(4, progress(state).getJSONObject("evidenceState").length())
-      assertEquals(2, progress(state).getJSONObject("ruleFlags").length())
-      assertFalse(MiniMapRuntime.complete(state)) // Puzzle completion cannot create a Level exit.
+      assertFalse(WorldGraphRuntime.exitUnlocked(progress(state))) // Still requires visiting every zone.
       val checkpoint = GameCheckpointCodec.decode(GameCheckpointCodec.encode(state, JSONObject()))
       assertEquals(progress(state).toString(), progress(checkpoint.core).toString())
     }
@@ -110,6 +102,6 @@ class Level0PuzzleSolverTest {
       GameStateCodec.decode(GameStateCodec.encode(state)) // Random progress still serializes.
     }
     System.out.println("level0_random_agent: runs=$runs turns=$turnsPerRun verified=$verified; NOT a human difficulty estimate")
-    assertTrue(verified in 0..(runs * 2))
+    assertTrue(verified in 0..(runs * 4))
   }
 }
