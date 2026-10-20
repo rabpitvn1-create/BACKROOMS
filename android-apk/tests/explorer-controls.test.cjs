@@ -293,6 +293,20 @@ test('failed GM narration retries the persisted pending step, never the prior Pl
   assert.equal(r.calls[1][0],'action');
   assert.equal(r.calls[1][1],'RETRY');
 });
+test('counted footsteps bypass the Gemini planner, save per-step Core receipts and halt on Entity',()=>{
+  const native=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/MainActivity.java'),'utf8');
+  const facade=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt'),'utf8');
+  const graph=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/core/WorldGraphRuntime.kt'),'utf8');
+  const spawn=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/core/EntitySpawnPool.kt'),'utf8');
+  assert.match(native,/PlayerFootstepIntent\.count\(rawAction\)/);
+  assert.match(native,/executePlayerFootsteps\(rawAction, footstepCount, projection\)/);
+  assert.match(facade,/while \(executed < count\)/);
+  assert.match(facade,/if \(CombatRuntime\.pending\(loadCurrentState\(\)\) != null\) break/);
+  assert.match(facade,/commitSceneAction\(command\.getString\("actionId"\), event\.getString\("result"\), presentation\)/);
+  assert.match(graph,/fun footstepCommand\(p: JSONObject\)/);
+  assert.match(spawn,/kind != "SEARCH" && kind != "STEP"/);
+});
+
 test('mechanism button presses use local Core narration, not a remote GM call',()=>{
   const runtimeSource=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/core/MiniMapRuntime.kt'),'utf8');
   const java=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/MainActivity.java'),'utf8');
@@ -306,7 +320,7 @@ test('mechanism button presses use local Core narration, not a remote GM call',(
   assert.ok(runtimeSource.includes('if (deviceControl) "DEVICE"') === false,
     'device routing belongs to GameCoreFacade, not the scene model');
   const facade=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt'),'utf8');
-  assert.ok(facade.includes('if (deviceControl) "DEVICE" else if (sceneKind == "MOVE") "SCENE_MOVE" else "EXECUTE"'));
+  assert.ok(facade.includes('if (deviceControl) "DEVICE" else if (sceneKind == "MOVE" || sceneKind == "STEP") "SCENE_MOVE" else "EXECUTE"'));
 });
 test('MAP is read-only even when a Core-authorized next area is available',()=>{
   const r=runtime({completed:true,availableActions:[
