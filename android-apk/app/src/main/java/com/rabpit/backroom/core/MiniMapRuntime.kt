@@ -279,8 +279,31 @@ object MiniMapRuntime {
     return state.copy(world = state.world + mapOf(scriptKey(p) to script.toString(), STATE to p.toString()))
   }
   data class Staged(val progress: JSONObject, val nodeId: String, val event: JSONObject, val label: String, val discardKeys: Set<String>)
+
+  /** Internal command for a turn with no puzzle/route side-effects. */
+  fun freeCommand(state: GameState): JSONObject {
+    val p = progress(state)
+    require(p.getString("roomId").isNotBlank()) { "scene_not_ready" }
+    return JSONObject().put("actionId", "${p.getString("runId")}:${p.getString("nodeId")}:${p.getInt("index")}:${p.getInt("version")}:FREE:free")
+      .put("sceneVersion", p.getInt("version")).put("roomId", p.getString("roomId"))
+      .put("kind", "FREE").put("targetId", "free")
+  }
+
   fun stage(state: GameState, command: JSONObject): Staged {
     var p = progress(state)
+    if (command.optString("kind") == "FREE") {
+      val expected = freeCommand(state)
+      require(command.keys().asSequence().toSet() ==
+        setOf("actionId", "sceneVersion", "roomId", "kind", "targetId") &&
+        expected.keys().asSequence().all { expected.get(it) == command.get(it) }) { "scene_free_command_invalid" }
+      val room = publicView(state).optJSONObject("room") ?: JSONObject()
+      p.put("version", p.getInt("version") + 1)
+      val event = JSONObject().put("kind", "FREE").put("interaction", "Hành động tự do")
+        .put("result", "Hành động được ghi nhận.").put("node", p.getString("nodeId"))
+        .put("miniIndex", p.getInt("index")).put("room", room)
+        .put("observations", JSONArray()).put("npcs", JSONArray())
+      return Staged(p, p.getString("nodeId"), event, "Hành động tự do", emptySet())
+    }
     if (WorldGraphRuntime.active(p)) return WorldGraphRuntime.stage(state, command, p)
     val s = requireNotNull(script(state)) { "scene_not_ready" }
     require(command.keys().asSequence().toSet() == setOf("actionId", "sceneVersion", "roomId", "kind", "targetId")) { "command_fields" }

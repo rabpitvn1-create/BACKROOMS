@@ -36,7 +36,11 @@ object PlayerActionPresentation {
       val id = pending.getString("actionId")
       if ((0 until ids.length()).none { n -> ids.optString(n) == id }) {
         ids.put(id)
-        it.getJSONArray("events").put(JSONObject().put("kind", "CORE").put("event", pending.getJSONObject("public")))
+        val public = pending.getJSONObject("public")
+        val isFree = pending.getJSONObject("command").optString("kind") == "FREE"
+        val event = JSONObject().put("kind", if (isFree) "FREE" else "CORE").put("event", public)
+        if (isFree) event.put("text", public.getString("freeText"))
+        it.getJSONArray("events").put(event)
       }
     }
   }
@@ -95,14 +99,16 @@ object PlayerActionPresentation {
     if (insert < 0) insert = kept.length()
     val status = batch.getString("status")
     val events = batch.getJSONArray("events")
-    val coreResults = (0 until events.length()).mapNotNull { n -> events.getJSONObject(n)
-      .takeIf { it.optString("kind") == "CORE" }?.getJSONObject("event")?.optString("result") }
+    val coreResults = (0 until events.length()).mapNotNull { n ->
+      events.getJSONObject(n).optJSONObject("event")?.optString("result")
+    }
+    val freeCount = (0 until events.length()).count { events.getJSONObject(it).optString("kind") == "FREE" }
     val accepted = events.length()
     val requested = batch.optInt("requested")
     val note = when (status) {
       "complete" -> ""
-      "running" -> "Đang xử lý · ${coreResults.size} bước Core đã xác nhận."
-      else -> "${coreResults.size} bước Core đã xác nhận; ${accepted - coreResults.size} bước tự do đã nhận" +
+      "running" -> "Đang xử lý · ${coreResults.size} lượt gameplay đã xác nhận."
+      else -> "${coreResults.size} lượt gameplay đã xác nhận ($freeCount hành động tự do)" +
         (if (requested > 0) "; ${maxOf(0, requested - accepted)} bước chưa thực hiện." else ".") +
         " " + batch.optString("message")
     }

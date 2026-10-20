@@ -63,10 +63,10 @@ class PlayerActionPresentationTest {
     assertEquals("edited", display.getJSONObject("playerAction").getString("id"))
   }
 
-  @Test fun freeOnlyFailureAndSuccessfulRetryKeepOnePlayerAndOneMultilineGmWithoutGameplayChanges() {
+  @Test fun freeOnlyFailureAndSuccessfulRetryPreserveOneRealCoreTurn() {
     val (repo, core) = fixture(); val original = repo.state
     core.beginPlayerPresentation("free", "  Tôi gọi vào bóng tối.  ", "{}")
-    core.setPlayerRequestCount(1); core.recordFreePlayerStep("Gọi vào bóng tối")
+    core.setPlayerRequestCount(1); core.executePlayerFreeStep("Gọi vào bóng tối", "  Tôi gọi vào bóng tối.  ", "{}")
     core.finishPlayerPresentation(1, false, "GM chưa hoàn tất.", "", "writer_connection", true)
     var display = view(core)
     assertEquals(1, lines(display, "player").size); assertEquals(0, lines(display, "gm").size)
@@ -78,8 +78,9 @@ class PlayerActionPresentationTest {
     core.finishPlayerPresentation(1, false, "", prose, "", false)
     display = view(core, display); display = view(core, display)
     assertEquals(1, lines(display, "player").size); assertEquals(prose, lines(display, "gm").single().getString("text"))
-    assertEquals(original, repo.state.copy(world = repo.state.world - PlayerActionPresentation.JOURNAL))
-    assertEquals(0, rng.calls)
+    assertEquals(original.time.elapsedSubjectiveMinutes + 1, repo.state.time.elapsedSubjectiveMinutes)
+    assertEquals(2, rng.calls) // Entity + Level-0 NPC ticket; GM retry never rerolls.
+    assertEquals(1, JSONObject(core.playerPresentationContext()).getJSONArray("receipts").length())
   }
   @Test fun coreOnlyFactsAreNeverReportedAsSuccessfulGmAndRetryCannotReplayCommittedSteps() {
     val (repo, core) = fixture(); val raw = "Quan sát rồi đánh dấu."
@@ -102,7 +103,8 @@ class PlayerActionPresentationTest {
   @Test fun mixedPartialFailureSurvivesProcessRestartAndManualSaveLoad() {
     val (repo, core) = fixture(); val raw = "Gọi vào bóng tối, đánh dấu, rồi đi tiếp."
     var display = JSONObject(core.beginPlayerPresentation("mixed", raw, "{}"))
-    core.setPlayerRequestCount(3); core.recordFreePlayerStep("Gọi vào bóng tối")
+    core.setPlayerRequestCount(3)
+    display = JSONObject(core.executePlayerFreeStep("Gọi vào bóng tối", raw, display.toString())).getJSONObject("state")
     display = commit(core, raw, "mark", display)
     core.finishPlayerPresentation(3, true, "Dừng tại bước 3; chưa di chuyển.", "", "planner_failure", true)
     repo.state = GameStateCodec.decode(GameStateCodec.encode(repo.state))

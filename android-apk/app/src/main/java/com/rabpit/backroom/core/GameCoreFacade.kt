@@ -79,13 +79,25 @@ class GameCoreFacade private constructor(
     require(requested in 1..12) { "player_action_count" }
     repository.save(PlayerActionPresentation.update(loadCurrentState()) { it.put("requested", requested) })
   }
-  @Synchronized fun recordFreePlayerStep(text: String) {
-    require(text.isNotBlank() && text.length <= 900) { "player_free_invalid" }
-    val next = PlayerActionPresentation.update(loadCurrentState()) {
-      require(it.optString("status") == "running") { "player_action_not_running" }
-      it.getJSONArray("events").put(JSONObject().put("kind", "FREE").put("text", text))
+  /** Improvised non-puzzle actions still advance a real turn and reserve Core RNG.
+   * Free text can affect narration but never author gameplay rewards or routes. */
+  @Synchronized fun executePlayerFreeStep(text: String, playerText: String, clientJson: String): String {
+    require(text.isNotBlank() && text.length <= 500 &&
+      text.none { it.code < 32 && it != '\n' }) { "player_free_invalid" }
+    val state = loadCurrentState()
+    val batch = PlayerActionPresentation.journal(state) ?: error("player_action_missing")
+    require(batch.optString("status") == "running" && batch.optString("playerText") == playerText) {
+      "player_action_not_running"
     }
-    repository.save(next)
+    val command = MiniMapRuntime.freeCommand(state)
+    check(!JSONObject(beginSceneAction(command.toString(), playerText, text)).optBoolean("committed")) {
+      "player_free_duplicate"
+    }
+    val event = JSONObject(sceneNarrationContext())
+    val view = JSONObject(commitSceneAction(command.getString("actionId"), event.getString("result"), clientJson))
+    return JSONObject().put("state", view)
+      .put("event", JSONObject().put("kind", "FREE").put("text", text).put("event", event))
+      .put("encounter", view.has("pendingEncounter")).toString()
   }
   @Synchronized fun finishPlayerPresentation(requested: Int, interrupted: Boolean, message: String,
                                             reply: String, failure: String, retryable: Boolean) {
@@ -145,7 +157,7 @@ class GameCoreFacade private constructor(
   /** The optional verbatim player utterance is presentation-only. It must never
    * modify the Core command, target, narration event or gameplay consequences. */
   @JvmOverloads
-  @Synchronized fun beginSceneAction(raw: String, playerText: String? = null): String {
+  @Synchronized fun beginSceneAction(raw: String, playerText: String? = null, freeText: String? = null): String {
     require(raw.length <= 1200) { "scene_command_too_large" }
     require(playerText == null || (playerText.isNotBlank() && playerText.length <= 900)) {
       "scene_player_text_invalid"
@@ -153,6 +165,14 @@ class GameCoreFacade private constructor(
     val command = JSONObject(raw)
     var state = loadCurrentState()
     val actionId = command.getString("actionId")
+    // A persisted FREE pending command must remain retryable after process death.
+    val savedFreeText = state.world[MiniMapRuntime.PENDING]?.let(::JSONObject)?.takeIf {
+      it.optString("actionId") == actionId && it.getJSONObject("command").optString("kind") == "FREE"
+    }?.optJSONObject("public")?.optString("freeText")?.takeIf(String::isNotBlank)
+    val effectiveFreeText = freeText ?: savedFreeText
+    require((command.optString("kind") == "FREE") == (effectiveFreeText != null)) { "scene_free_text_required" }
+    if (effectiveFreeText != null) require(effectiveFreeText.isNotBlank() && effectiveFreeText.length <= 500 &&
+      effectiveFreeText.none { it.code < 32 && it != '\n' }) { "scene_free_text_invalid" }
     state.world[MiniMapRuntime.RECEIPT]?.let { receipt ->
       if (JSONObject(receipt).getString("actionId") == actionId)
         return JSONObject().put("committed", true).toString()
@@ -167,6 +187,10 @@ class GameCoreFacade private constructor(
     }
     check(!MiniMapRuntime.blocked(state)) { "scene_busy" }
     val staged = MiniMapRuntime.stage(state, command) // no RNG before this point
+    if (effectiveFreeText != null) staged.event
+      .put("freeText", effectiveFreeText)
+      .put("interaction", effectiveFreeText)
+      .put("result", "Người chơi thực hiện hành động: " + effectiveFreeText)
     val deviceControl = MiniMapRuntime.isMechanismControl(state, command.getString("targetId"))
     val turnId = nextTurnId(state)
     val input = "${command.getString("kind")}:$actionId"
@@ -176,11 +200,9 @@ class GameCoreFacade private constructor(
     val target = LevelRouteRegistry.node(staged.nodeId)
     val atTarget = started.state.copy(world = started.state.world + mapOf(
       "levelJson" to target.asJson().toString(), "location" to target.location(), "title" to target.title()))
-    // One device sequence can require many taps; these control inputs must not
-    // reroll an encounter on every switch flip. Other SEARCH/MOVE rolls stay intact.
-    val worldObservation = WorldGraphRuntime.active(MiniMapRuntime.progress(state)) && command.getString("kind") == "SEARCH"
-    val roll = if (deviceControl || worldObservation) SpawnResult(null, emptyList())
-      else SpawnMechanism.rollSceneSpawns(atTarget, command.getString("kind")) { spawnRng.nextInt(it) }
+    // Every submitted gameplay action, including FREE, TALK, SEARCH and
+    // device controls, is eligible for a Core-owned spawn roll.
+    val roll = SpawnMechanism.rollSceneSpawns(atTarget, command.getString("kind")) { spawnRng.nextInt(it) }
     var reserved = SpawnMechanism.prepareSpawns(atTarget, roll)
     if (roll.entityKey != null) {
       reserved = CombatRuntime.prepareEncounter(reserved, roll.entityKey, "scene:$actionId:${roll.entityKey}")
@@ -301,7 +323,13 @@ class GameCoreFacade private constructor(
     val afterView = clientSnapshot(JSONObject(), next)
     val sceneKind = pending.getJSONObject("command").getString("kind")
     val deviceControl = pending.getJSONObject("public").optBoolean("mechanismStep", false)
-    val actionText = (when (sceneKind) { "MOVE", "STEP" -> "Di chuyển: "; "SEARCH" -> "Tìm kiếm: "; "INTERACT" -> "Thao tác: "; else -> "Giao tiếp: " }) + pending.getString("label")
+    val actionText = (when (sceneKind) {
+      "MOVE", "STEP" -> "Di chuyển: "
+      "SEARCH" -> "Tìm kiếm: "
+      "FREE" -> "Hành động: "
+      "INTERACT" -> "Thao tác: "
+      else -> "Giao tiếp: "
+    }) + (if (sceneKind == "FREE") pending.getJSONObject("public").optString("freeText") else pending.getString("label"))
     val continued = JSONObject(com.rabpit.backroom.core.knowledge.StoryContinuityReducer.apply(beforeView.toString(), afterView.toString(), actionText))
     val visualRolls = JSONObject()
     if (CombatRuntime.pending(next) != null) visualRolls.put("entityEncounter", JSONObject().put("eligible", true).put("success", true))

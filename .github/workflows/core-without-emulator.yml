@@ -44,6 +44,7 @@ jobs:
             gradle :app:testDebugUnitTest --no-daemon \
               --tests '*PlayerActionPresentationTest' --tests '*PlayerActionPlanTest' \
               --tests '*PlayerFootstepIntentTest' --tests '*PlayerFootstepRuntimeTest' \
+              --tests '*FreeActionTurnTest' \
               --tests '*ProviderResponseContractTest' --tests '*Level0WorldExplorationTest' \
               --tests '*WorldGraphRuntimeTest' --tests '*Level0PuzzleSolverTest' \
               --tests '*WorldCasebookIntegrityTest' --tests '*CoreClientProjectionTest' \

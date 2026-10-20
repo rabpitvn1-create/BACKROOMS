@@ -2,7 +2,7 @@ package com.rabpit.backroom.core
 
 import org.json.JSONObject
 
-/** Validates AI intent plans. FREE steps are prose only, never Core commands. */
+/** Validates AI intent plans. FREE does not author puzzle facts but consumes one real Core turn. */
 object PlayerActionPlan {
   @JvmStatic fun parse(raw: String, expectedTotal: Int, completed: Int): JSONObject {
     require(raw.length <= 12000) { "player_plan_too_large" }

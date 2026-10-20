@@ -587,11 +587,12 @@ test('world MAP only shows Core-confirmed marks, no secret names or generation',
   assert.equal(r.calls.length,0);
 });
 
-test('FREE narrative steps never route through Core Item or scene actions',()=>{
+test('FREE player actions use one real Core turn without invoking item UI or puzzle commands',()=>{
   const java=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/MainActivity.java'),'utf8');
   const worker=java.slice(java.indexOf('@JavascriptInterface public void submitPlayerAction('),
     java.indexOf('@JavascriptInterface public void submitSceneAction('));
   const free=worker.slice(worker.indexOf('if ("FREE".equals(kind))'),worker.indexOf('String targetId = planned.getString("targetId")'));
+  assert.match(free,/executePlayerFreeStep\(detail, rawAction, projection\)/);
   assert.match(free,/narrativeEvents\.put/);
   assert.match(free,/continue;/);
   assert.doesNotMatch(free,/beginSceneAction|commitSceneAction|processItemAction|processCombat/);

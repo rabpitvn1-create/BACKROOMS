@@ -1734,7 +1734,8 @@ public class MainActivity extends Activity {
               + "N là số ý định độc lập (1..12), KHÔNG phải số lệnh Core; giữ N sau khi xác nhận. "
               + "FREE gồm cử chỉ, đối thoại, đạo cụ tưởng tượng, người qua đường, điều tra chi tiết không thuộc câu đố. "
               + "Dù Core luôn có SEARCH observe/inspect, ĐỪNG ép việc kiểm tra bóng đen, cho quà hay đối thoại ngẫu hứng thành SEARCH chung. "
-              + "FREE chỉ có hiệu lực lời kể: không đổi HP, Inventory, Party, Entity, combat, phòng, cửa khóa, chứng cứ, trí nhớ Canon. "
+              + "FREE là lượt gameplay thực: Core xử lý thời gian, roll Entity/NPC và chạm trán. "
+              + "FREE không tự cấp vật phẩm, hồi HP, đổi Inventory, Party, mở phòng, cửa khóa, chứng cứ hoặc trí nhớ Canon. "
               + "Dù gọi đúng tên Almond Water hay vật phẩm có Game ID, việc dùng qua PLAYER vẫn là đạo cụ FREE, không trừ Inventory. "
               + "Nếu hành động liên quan mục tiêu câu đố trong availableActions, PHẢI chọn CORE và targetId tương ứng, không lách bằng FREE. "
               + "Không dùng FREE để mở cửa đã khóa, đi qua phòng chưa tới hay thay đổi sự kiện Canon. "
@@ -1770,11 +1771,24 @@ public class MainActivity extends Activity {
               String kind = planned.getString("kind");
               if ("FREE".equals(kind)) {
                 String detail = planned.getString("text");
-                requireGameCore().recordFreePlayerStep(detail);
-                narrativeEvents.put(new JSONObject().put("kind", "FREE").put("text", detail));
+                failureCode = "core_failure";
+                JSONObject free = new JSONObject(requireGameCore().executePlayerFreeStep(detail, rawAction, projection));
+                projection = free.getJSONObject("state").toString();
+                narrativeEvents.put(free.getJSONObject("event"));
                 confirmedSteps.put(new JSONObject().put("kind", "FREE").put("text", detail));
                 committed++;
-                continue; // Presentation saved; no Core action, inventory, time or RNG.
+                emit("backroomPlayerActionProgress", new JSONObject()
+                  .put("state", new JSONObject(projection)).put("executed", committed)
+                  .put("requested", totalActions).toString());
+                if (free.getBoolean("encounter")) {
+                  if (committed < totalActions) {
+                    stopCode = "encounter";
+                    stoppedStep = committed + 1;
+                    stopMessage = "Đã gặp Entity ở bước " + committed + "; các bước còn lại chưa thực hiện.";
+                  }
+                  break;
+                }
+                continue;
               }
               String targetId = planned.getString("targetId");
               if ("MOVE".equals(kind) && !targetId.startsWith("room:") &&
@@ -1936,10 +1950,12 @@ public class MainActivity extends Activity {
         MainActivity.this, view.toString(), rawAction, "{}");
       String prompt = "Bạn là GM Gehihi, kể văn xuôi tiếng Việt. Chỉ trả JSON chứa đúng trường reply là lời kể không rỗng. "
         + "Kể một lượt theo đúng trình tự RESOLVED_EVENTS; được xuống đoạn để giữ nhịp kể và lời thoại. "
-        + "FREE là diễn biến tưởng tượng tức thời: có thể sáng tạo bóng đổ, vật dụng, món ăn, thuốc, "
+        + "FREE là lượt gameplay thật đã được Core ghi nhận, tốn thời gian và có thể kích hoạt Entity/NPC. "
+        + "Phần tưởng tượng chỉ có thể sáng tạo bóng đổ, vật dụng, món ăn, thuốc, "
         + "vũ khí, người qua đường và phản ứng hợp lý không liên quan nhiệm vụ. "
         + "Vật phẩm nhắc trong FREE, kể cả trùng tên Game ID như Almond Water, chỉ là đạo cụ, KHÔNG lấy từ Inventory. "
-        + "Các đạo cụ FREE không được cấp tài nguyên thật, hồi HP, trang bị, tạo Party, Entity, combat, mở khóa hoặc chứng cứ. "
+        + "Các đạo cụ FREE không được cấp tài nguyên thật, hồi HP, trang bị, tạo Party, mở khóa hoặc chứng cứ. "
+        + "Entity/NPC và combat nếu xảy ra chỉ do kết quả Core trong RESOLVED_EVENTS xác nhận. "
         + "Nhân vật Canon chỉ được có mặt khi STATE xác nhận; họ có thể nhận hoặc từ chối quà tưởng tượng, "
         + "nhưng diễn biến này không được thay đổi HP, quan hệ, trang bị hay ký ức cốt truyện. "
         + "CORE là kết quả được xác nhận: phải kể đúng sự kiện, không tự thay đổi vị trí, điều kiện khóa, câu đố, đường đi. "
