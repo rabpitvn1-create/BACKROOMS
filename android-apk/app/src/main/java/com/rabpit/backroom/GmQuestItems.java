@@ -115,8 +115,11 @@ public final class GmQuestItems {
     if (!keys(outer).equals(set("reply")) &&
         !keys(outer).equals(set("reply", "questItems")))
       throw new IllegalArgumentException("gm_writer_fields");
-    String reply = outer.getString("reply");
-    ProviderResponseContract.parseSceneWriter(new JSONObject().put("reply", reply).toString());
+    Object rawReply = outer.opt("reply");
+    if (!(rawReply instanceof String) || ((String) rawReply).trim().isEmpty() ||
+      ((String) rawReply).length() > 12000)
+      throw new IllegalArgumentException("gm_writer_reply_invalid");
+    String reply = (String) rawReply;
     JSONArray operations = outer.optJSONArray("questItems");
     if (outer.has("questItems") && operations == null)
       throw new IllegalArgumentException("gm_item_ops_type");
