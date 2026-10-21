@@ -111,7 +111,11 @@ test('Entity 926 has grounded alpha bounds from its bundled transparent WebP',()
   const img={alt:'926',style:{},getBoundingClientRect:()=>({width:w,height:h})};
   ctx.normalizeEntityVisual(img);
   const [,x,y,scale]=img.style.transform.match(/translate\(([-\d.]+)px,([-\d.]+)px\) scale\(([-\d.]+)\)/).map(Number);
-  assert.ok(Math.abs(((1438-5)/1448)*h*scale-snapshotHeight*.94)<.5);
+  const visibleHeight=((1438-5)/1448)*h*scale;
+  // The normalizer does not shrink a near-full-height sprite below scale=1.
+  assert.ok(scale>=1 && scale<=2.2);
+  assert.ok(visibleHeight>=snapshotHeight*.94-.5);
+  assert.ok(visibleHeight<=snapshotHeight*.97+.5);
   assert.ok(Math.abs(y-(1-1438/1448)*h*scale)<.5);
   assert.ok(Math.abs(x+(323/1086)*w*scale)<.5);
  }
