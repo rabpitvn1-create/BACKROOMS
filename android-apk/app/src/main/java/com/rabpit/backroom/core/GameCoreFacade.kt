@@ -193,9 +193,11 @@ class GameCoreFacade private constructor(
       .put("result", "Người chơi thực hiện hành động: " + effectiveFreeText)
     val deviceControl = MiniMapRuntime.isMechanismControl(state, command.getString("targetId"))
     val turnId = nextTurnId(state)
-    val input = "${command.getString("kind")}:$actionId"
+    val input = effectiveFreeText ?: "${command.getString("kind")}:$actionId"
+    val plannedMinutes = if (effectiveFreeText != null) TimeCostPolicy.estimateMinutes(effectiveFreeText)
+      else if (command.getString("kind") == "SEARCH" && !deviceControl) 5 else 1
     val started = ActionRuntime.start(state, actionId, turnId, CAO_MINH_ID, ActionKind.EXECUTE,
-      input, staged.nodeId, if (command.getString("kind") == "SEARCH" && !deviceControl) 5 else 1)
+      input, staged.nodeId, plannedMinutes)
     check(started.applied) { "scene_session_failed" }
     val target = LevelRouteRegistry.node(staged.nodeId)
     val atTarget = started.state.copy(world = started.state.world + mapOf(
