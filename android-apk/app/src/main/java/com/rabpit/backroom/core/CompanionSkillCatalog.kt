@@ -154,6 +154,30 @@ object CompanionSkillCatalog {
       "Không cộng Critical hay proc Một Phát Định Đoạt, không tạo đạn vô hạn.")
   )
 
+  /** Canon concepts from Trác Lâm's SRU-03 dossier, with balanced runtime coefficients.
+   * Seven regular abilities: one passive, three active tactics, three RNG procs.
+   */
+  private val tracLam = listOf(
+    s("Kỷ Luật SRU-03", "PASSIVE", "Trác Lâm ACTIVE, tấn công thường",
+      "+8 điểm phần trăm Accuracy từ luyện tập kiểm soát đường bắn.", "Không nhận dạng Entity chưa quan sát."),
+    s("Khóa Mục Tiêu", "ACTIVE", "Party chọn TẤN CÔNG, Trác Lâm ACTIVE",
+      "+10 điểm phần trăm Accuracy cho phát bắn M-92; vẫn có Evasion gate."),
+    s("Hỏa Lực Chế Áp", "ACTIVE", "Party chọn NÉ TRÁNH, Trác Lâm ACTIVE",
+      "Giảm 12 điểm phần trăm Accuracy của Entity trong phản ứng hiện tại.",
+      "Không bảo đảm né đòn, không tạo đạn vô hạn."),
+    s("Đánh Giá Dị Thường", "ACTIVE", "Party chọn QUAN SÁT, Trác Lâm ACTIVE",
+      "+1 Opening trong giới hạn Core; chỉ từ dấu hiệu thực tế, không biết Exit."),
+    s("Song Nòng Tiếp Ứng", "PROC", "30% sau phát súng thường trúng, không ở lượt Ultimate",
+      "Phát bồi gây 120% Weapon DMG sau Armor; không gây proc dây chuyền."),
+    s("Đạn Xuyên Tuyến", "PROC", "25% sau phát thường trúng, không ở lượt Ultimate",
+      "Đạn tập trung 135% Weapon DMG, bỏ qua 25% Armor cho riêng phát bồi."),
+    s("Chặn Đường Tiến", "PROC", "20% sau phát thường trúng, không ở lượt Ultimate",
+      "Chế áp góc tiến khiến Entity -10 điểm phần trăm Accuracy trong phản ứng hiện tại."),
+    s("ECHO-17: Phá Tuyến", "ULTIMATE", "Poker Dice SSF/FSF khi Party TẤN CÔNG và Trác Lâm ACTIVE",
+      "Một loạt Gemini 320% Weapon DMG, trừ Armor một lần, bỏ qua Evasion.",
+      "Không xuyên tường hoặc triệu hồi SRU-03; đạn vẫn hữu hạn trong Canon.")
+  )
+
   fun forCharacter(characterId: String): List<CharacterSkillDefinition> = when (characterId) {
     CAO_MINH_ID -> caoMinh
     IRIS_ID -> iris
@@ -165,6 +189,7 @@ object CompanionSkillCatalog {
     JANET_ID -> janet
     NGUYEN_QUOC_NAM_ID -> nguyenQuocNam
     HUA_TIEU_LAN_ID -> huaTieuLan
+    TRAC_LAM_ID -> tracLam
     else -> emptyList()
   }
 }

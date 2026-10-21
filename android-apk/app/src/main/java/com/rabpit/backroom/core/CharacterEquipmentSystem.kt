@@ -233,6 +233,33 @@ object EquipmentCatalog {
       canonRef = NguyenQuocNamCanon.CANON_REF
     ),
     EquipmentDefinition(
+      id = TRAC_LAM_GEMINI_ID, name = "M-92 Gemini", type = "DUAL-BARREL TACTICAL RIFLE",
+      primarySlot = EquipmentSlot.WEAPON,
+      weapon = WeaponGameplayStats(27, "finite cartridges / no reload simulation", null, listOf("Precision", "Suppressive")),
+      abilities = listOf(ability("Hai nòng độc lập", "Đạn xuyên giáp hoặc chế áp theo cơ chế kỹ năng; không bắn xuyên kết cấu."),
+        ability("Phân loại mục tiêu", "Dùng dữ kiện tác chiến hiện thời; không nhìn xuyên tường hoặc biết trước Entity.")),
+      restrictions = listOf("Đạn hữu hạn theo Canon; combat hiện chưa trừ từng viên."),
+      canonRef = TracLamCanon.CANON_REF
+    ),
+    EquipmentDefinition(
+      id = TRAC_LAM_AEGIS_ID, name = "AEGIS-K4", type = "POWERED TACTICAL ARMOR",
+      primarySlot = EquipmentSlot.ARMOR, bonuses = EquipmentBonuses(defPct = 20, vitPct = 10),
+      restrictions = listOf("Giáp phụ thuộc pin và cảm biến; không chống mọi sát thương."),
+      canonRef = TracLamCanon.CANON_REF
+    ),
+    EquipmentDefinition(
+      id = TRAC_LAM_SCOUT_ID, name = "Bộ Trinh Sát SRU-03", type = "LOCAL SENSOR KIT",
+      primarySlot = EquipmentSlot.SPECIAL, bonuses = EquipmentBonuses(dexPct = 10),
+      restrictions = listOf("Chỉ đo tại chỗ; không cung cấp bản đồ chính xác của Backrooms."),
+      canonRef = TracLamCanon.CANON_REF
+    ),
+    EquipmentDefinition(
+      id = TRAC_LAM_MEDKIT_ID, name = "Bộ Cứu Thương SRU", type = "FIELD MEDKIT",
+      primarySlot = EquipmentSlot.WRIST, bonuses = EquipmentBonuses(),
+      restrictions = listOf("Chỉ sơ cứu thông thường; không tự chữa lành bằng phép."),
+      canonRef = TracLamCanon.CANON_REF
+    ),
+    EquipmentDefinition(
       id = TIEU_LAN_RIFLE_ID, name = "Trường Xuân", type = "ANTIQUE SINGLE-SHOT RIFLE",
       primarySlot = EquipmentSlot.WEAPON,
       weapon = WeaponGameplayStats(25, "1 loaded / finite reserve (Canon)", null, listOf("Single shot")),
@@ -364,6 +391,9 @@ object EquipmentCatalog {
     HUA_TIEU_LAN_ID -> linkedMapOf(EquipmentSlot.WEAPON to TIEU_LAN_RIFLE_ID,
       EquipmentSlot.OUTFIT to TIEU_LAN_AO_DAI_ID, EquipmentSlot.WRIST to TIEU_LAN_JADE_ID,
       EquipmentSlot.FOOTWEAR to TIEU_LAN_SHOES_ID)
+    TRAC_LAM_ID -> linkedMapOf(EquipmentSlot.WEAPON to TRAC_LAM_GEMINI_ID,
+      EquipmentSlot.ARMOR to TRAC_LAM_AEGIS_ID, EquipmentSlot.SPECIAL to TRAC_LAM_SCOUT_ID,
+      EquipmentSlot.WRIST to TRAC_LAM_MEDKIT_ID)
     AN_NHIEN_ID -> linkedMapOf(EquipmentSlot.OUTFIT to AN_NHIEN_OUTFIT_ID, EquipmentSlot.FOOTWEAR to AN_NHIEN_FOOTWEAR_ID)
     LUCIA_ID -> linkedMapOf(
       EquipmentSlot.WEAPON to LUCIA_M4A1_ID,
@@ -540,7 +570,7 @@ object CharacterEquipmentSystem {
   private fun normalizeInternal(source: GameState, seedStarting: Boolean): GameState {
     // Lucia exists in Core state without being forced into Party.
     val balanced = CharacterStatProfiles.rebalanceCurrentFollowers(source)
-    val input = HuaTieuLanCanon.ensure(NguyenQuocNamCanon.ensure(JanetCanon.ensure(CatherineCanon.ensure(LucTramCanon.ensure(LuciaCanon.ensure(balanced))))))
+    val input = TracLamCanon.ensure(HuaTieuLanCanon.ensure(NguyenQuocNamCanon.ensure(JanetCanon.ensure(CatherineCanon.ensure(LucTramCanon.ensure(LuciaCanon.ensure(balanced)))))))
     val inventories = input.inventories.toMutableMap()
     val equipment = input.equipment.toMutableMap()
     input.characters.keys.forEach { characterId ->

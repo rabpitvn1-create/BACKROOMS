@@ -119,6 +119,25 @@ class CanonGmIntegrationTest {
     assertTrue(result.length <= com.rabpit.backroom.core.knowledge.KnowledgeContextEngine.HARD_CONTEXT_CEILING * 4)
   }
 
+  @Test fun `Trac Lam first contact loads 2099 SRU Canon only when Core confirms him`() {
+    val confirmed = JSONObject()
+      .put("level", JSONObject().put("number", 0).put("id", "0.7"))
+      .put("pendingNpcEncounters", JSONArray().put(
+        JSONObject().put("characterId", "trac_lam").put("flagKey", "tracLam")))
+    val first = packet(confirmed.toString(), "khám phá")
+    assertTrue(first.contains("<CHAR.TRAC_LAM.AUTHORED>"))
+    assertTrue(first.contains("M-92 Gemini"))
+    assertTrue(first.contains("AEGIS-K4"))
+    assertTrue(first.contains("trac_lam: PRESENT, inParty=false"))
+    assertFalse(first.contains("trac_lam: IN_PARTY"))
+    assertFalse("Do not conjure Luc Tram into an absent scene",
+      first.contains("<CHAR.LUC_TRAM.AUTHORED>"))
+    val absent = packet(JSONObject()
+      .put("level", JSONObject().put("number", 0).put("id", "0.7"))
+      .toString(), "Trác Lâm có ở đây không?")
+    assertFalse(absent.contains("<CHAR.TRAC_LAM.AUTHORED>"))
+  }
+
   // --- Test 2: Luc Tram Level 4+, not in Party ---
 
   @Test fun `Luc Tram Level 4 present loads runtime core and revival cards`() {

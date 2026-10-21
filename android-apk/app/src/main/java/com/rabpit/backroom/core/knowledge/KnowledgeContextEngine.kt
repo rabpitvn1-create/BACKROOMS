@@ -602,7 +602,7 @@ object KnowledgeContextEngine {
         if (events == null) return
         for (i in 0 until events.length()) {
           val id = events.optJSONObject(i)?.optString("characterId", "").orEmpty()
-          if (id in setOf("catherine", "janet", "nguyen_quoc_nam", "hua_tieu_lan")) ids += id
+          if (id in setOf("catherine", "janet", "nguyen_quoc_nam", "hua_tieu_lan", "trac_lam")) ids += id
         }
       }
       read(state.optJSONArray("pendingNpcEncounters"))

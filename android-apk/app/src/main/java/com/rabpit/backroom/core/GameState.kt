@@ -143,7 +143,8 @@ data class GameState(
         CATHERINE_ID to CatherineCanon.character(),
         JANET_ID to JanetCanon.character(),
         NGUYEN_QUOC_NAM_ID to NguyenQuocNamCanon.character(),
-        HUA_TIEU_LAN_ID to HuaTieuLanCanon.character()
+        HUA_TIEU_LAN_ID to HuaTieuLanCanon.character(),
+        TRAC_LAM_ID to TracLamCanon.character()
       ),
       inventories = mapOf(
         CAO_MINH_ID to InventoryState(CAO_MINH_ID),
@@ -154,7 +155,8 @@ data class GameState(
         CATHERINE_ID to InventoryState(CATHERINE_ID),
         JANET_ID to InventoryState(JANET_ID),
         NGUYEN_QUOC_NAM_ID to InventoryState(NGUYEN_QUOC_NAM_ID),
-        HUA_TIEU_LAN_ID to InventoryState(HUA_TIEU_LAN_ID)
+        HUA_TIEU_LAN_ID to InventoryState(HUA_TIEU_LAN_ID),
+        TRAC_LAM_ID to InventoryState(TRAC_LAM_ID)
       ),
       equipment = mapOf(
         CAO_MINH_ID to EquipmentState(CAO_MINH_ID, CaoMinhStartingEquipment.slots),
@@ -165,7 +167,8 @@ data class GameState(
         CATHERINE_ID to EquipmentState(CATHERINE_ID, CatherineCanon.equipmentSlots),
         JANET_ID to EquipmentState(JANET_ID, JanetCanon.equipmentSlots),
         NGUYEN_QUOC_NAM_ID to EquipmentState(NGUYEN_QUOC_NAM_ID, NguyenQuocNamCanon.equipmentSlots),
-        HUA_TIEU_LAN_ID to EquipmentState(HUA_TIEU_LAN_ID, HuaTieuLanCanon.equipmentSlots)
+        HUA_TIEU_LAN_ID to EquipmentState(HUA_TIEU_LAN_ID, HuaTieuLanCanon.equipmentSlots),
+        TRAC_LAM_ID to EquipmentState(TRAC_LAM_ID, TracLamCanon.equipmentSlots)
       )
     ))
   }

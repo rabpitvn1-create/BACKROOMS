@@ -77,6 +77,7 @@ object CharacterStatProfiles {
     JANET_ID -> "MELEE BRAWLER / BAYOU BATTER / PROTECTIVE FOLLOWER"
     NGUYEN_QUOC_NAM_ID -> "MEDICAL LECTURER / DEFENSIVE MARKSMAN / FIELD FIRST AID"
     HUA_TIEU_LAN_ID -> "SAIGON CHOLON RIFLE MARKSWOMAN / COVER / COUNTERSHOT"
+    TRAC_LAM_ID -> "SRU-03 CAPTAIN / TACTICAL MARKSMAN / ANOMALY RESPONSE"
     "an-nhien", "an_nhien", "annhien" -> "PROTECTED FOLLOWER / NON-COMBAT"
     else -> "UNSPECIFIED"
   }
@@ -99,6 +100,10 @@ object CharacterStatProfiles {
     HUA_TIEU_LAN_ID to CharacterStatProfile(
       baseMaxHp = 25, str = 1, dex = 2, agi = 1, vit = 1, eva = 2,
       combatRole = role(HUA_TIEU_LAN_ID)
+    ),
+    TRAC_LAM_ID to CharacterStatProfile(
+      baseMaxHp = 30, str = 1, dex = 2, agi = 2, vit = 2, eva = 1,
+      combatRole = role(TRAC_LAM_ID)
     )
   )
 

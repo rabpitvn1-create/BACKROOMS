@@ -554,6 +554,7 @@ object CombatRuntime {
     val janetActive = activePartyCharacter(resolvedState, JANET_ID) != null
     val namActive = activePartyCharacter(resolvedState, NGUYEN_QUOC_NAM_ID) != null
     val tieuLanActive = activePartyCharacter(resolvedState, HUA_TIEU_LAN_ID) != null
+    val tracLamActive = activePartyCharacter(resolvedState, TRAC_LAM_ID) != null
 
 
     fun promoteDefeatedWave(): Boolean {
@@ -626,6 +627,10 @@ object CombatRuntime {
           c = c.copy(opening = min(3, c.opening + 1))
           log += "Đánh Giá Nguy Cơ: Quốc Nam kiểm tra góc bắn, +1 Opening trong giới hạn hiện hành."
         }
+        if (tracLamActive && unlocked(TRAC_LAM_ID, "Đánh Giá Dị Thường") && c.entityHp > 0) {
+          c = c.copy(opening = min(3, c.opening + 1))
+          log += "Đánh Giá Dị Thường: Trác Lâm kiểm chứng dấu hiệu hiện trường, +1 Opening."
+        }
         if (tieuLanActive && unlocked(HUA_TIEU_LAN_ID, "Ngắm Qua Hoa Cúc") && c.entityHp > 0) {
           c = c.copy(opening = min(3, c.opening + 1))
           log += "Ngắm Qua Hoa Cúc: Tiểu Lan xác định điểm ngắm, +1 Opening trong giới hạn hiện hành."
@@ -649,6 +654,10 @@ object CombatRuntime {
         if (namActive && unlocked(NGUYEN_QUOC_NAM_ID, "Giữ Khoảng Cách") && c.entityHp > 0) {
           companionEnemyAccuracyPenalty += 12
           log += "Giữ Khoảng Cách: Quốc Nam hướng dẫn tìm vật che, Entity -12 điểm % Accuracy lượt này."
+        }
+        if (tracLamActive && unlocked(TRAC_LAM_ID, "Hỏa Lực Chế Áp") && c.entityHp > 0) {
+          companionEnemyAccuracyPenalty += 12
+          log += "Hỏa Lực Chế Áp: Trác Lâm giữ góc bắn, Entity -12 điểm % Accuracy."
         }
         if (tieuLanActive && unlocked(HUA_TIEU_LAN_ID, "Bộ Pháp Tà Lụa") && c.entityHp > 0) {
           companionEnemyAccuracyPenalty += 12
@@ -1015,6 +1024,60 @@ object CombatRuntime {
                   } else {
                     recordMiss("entity", NGUYEN_QUOC_NAM_ID, skill = "Quan Sát Lâm Sàng")
                     log += "Quốc Nam bắn phòng vệ nhưng Entity né hoặc đòn bắn không trúng."
+                  }
+                }
+              }
+            }
+            TRAC_LAM_ID -> {
+              if (tracLamActive) {
+                val weapon = CharacterStatEngine.skillBaseDamage(resolvedState, TRAC_LAM_ID)
+                if (ultimateReady && unlocked(TRAC_LAM_ID, "ECHO-17: Phá Tuyến")) {
+                  val damage = min(c.entityHp, companionSkillDamage(weapon, 320, profile.armor))
+                  val hp = c.entityHp - damage
+                  recordFeedback("entity", c.entityHp, hp, actorId = TRAC_LAM_ID, skill = "ECHO-17: Phá Tuyến")
+                  c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp),
+                    noise = min(100, c.noise + 28))
+                  log += "ECHO-17: Phá Tuyến [$ultimateHand]: M-92 tập trung hỏa lực 320% Weapon DMG = -$damage HP."
+                } else {
+                  val activeAim = unlocked(TRAC_LAM_ID, "Khóa Mục Tiêu")
+                  val accuracy = (hitChance + 800 + if (activeAim) 1000 else 0).coerceAtMost(9900)
+                  val hit = roll(c.copy(eventCounter = c.eventCounter + 907 + turnIndex * 31), 10000) < accuracy &&
+                    !entityDodges(TRAC_LAM_ID, 911 + turnIndex * 31)
+                  if (hit) {
+                    val critical = actorCritical(TRAC_LAM_ID, 919 + turnIndex * 31)
+                    val base = if (critical) CharacterStatCore.criticalDamage(weapon) else weapon
+                    val damage = min(c.entityHp, companionSkillDamage(base, 100, profile.armor))
+                    val hp = c.entityHp - damage
+                    recordFeedback("entity", c.entityHp, hp, critical = critical, actorId = TRAC_LAM_ID,
+                      skill = if (activeAim) "Khóa Mục Tiêu" else "Kỷ Luật SRU-03")
+                    c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp),
+                      noise = min(100, c.noise + 16))
+                    log += "Trác Lâm bắn M-92 Gemini -$damage HP, giữ đường ngắm chiến thuật."
+                    if (c.entityHp > 0 && unlocked(TRAC_LAM_ID, "Song Nòng Tiếp Ứng") &&
+                      roll(c.copy(eventCounter = c.eventCounter + 929 + turnIndex * 31), 100) < 30) {
+                      val bonus = min(c.entityHp, companionSkillDamage(weapon, 120, profile.armor))
+                      val after = c.entityHp - bonus
+                      recordFeedback("entity", c.entityHp, after, actorId = TRAC_LAM_ID, skill = "Song Nòng Tiếp Ứng")
+                      c = c.copy(entityHp = after, entityCondition = condition(after, c.entityMaxHp))
+                      log += "Song Nòng Tiếp Ứng: phát bồi hai nòng -$bonus HP."
+                    }
+                    if (c.entityHp > 0 && unlocked(TRAC_LAM_ID, "Đạn Xuyên Tuyến") &&
+                      roll(c.copy(eventCounter = c.eventCounter + 937 + turnIndex * 31), 100) < 25) {
+                      val bonus = min(c.entityHp, companionSkillDamage(weapon, 135, armorAfterIgnore(profile.armor, 25)))
+                      val after = c.entityHp - bonus
+                      recordFeedback("entity", c.entityHp, after, actorId = TRAC_LAM_ID,
+                        status = FeedbackStatus.ARMOR, skill = "Đạn Xuyên Tuyến")
+                      c = c.copy(entityHp = after, entityCondition = condition(after, c.entityMaxHp))
+                      log += "Đạn Xuyên Tuyến: bắn điểm yếu, xuyên 25% Armor, -$bonus HP."
+                    }
+                    if (c.entityHp > 0 && unlocked(TRAC_LAM_ID, "Chặn Đường Tiến") &&
+                      roll(c.copy(eventCounter = c.eventCounter + 947 + turnIndex * 31), 100) < 20) {
+                      companionEnemyAccuracyPenalty += 10
+                      log += "Chặn Đường Tiến: Trác Lâm chế áp đường tiến, Entity -10 điểm % Accuracy."
+                    }
+                  } else {
+                    recordMiss("entity", TRAC_LAM_ID, skill = "Khóa Mục Tiêu")
+                    log += "Trác Lâm bắn M-92 nhưng phát súng trượt hoặc bị né."
                   }
                 }
               }

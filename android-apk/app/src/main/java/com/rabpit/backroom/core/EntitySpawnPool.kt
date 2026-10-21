@@ -176,6 +176,7 @@ object NpcSpawnTable {
   const val JANET_THRESHOLD = 500        // 5%: disjoint from Entity and Catherine tickets
   const val NAM_THRESHOLD = 500          // 5%: [5000, 5499] separate from all above
   const val TIEU_LAN_THRESHOLD = 500     // 5%: [4500, 4999] disjoint on shared ticket
+  const val TRAC_LAM_THRESHOLD = 300      // 3%: [5500, 5799] Level 0.7 first contact
   const val IRIS_THRESHOLD = 25         // 0.25%
   const val SYVIAL_THRESHOLD = 25       // 0.25%
   const val AN_NHIEN_THRESHOLD = 25     // 0.25% (baseline value; kept for reference only)
@@ -317,6 +318,21 @@ object NpcSpawnTable {
       }
     }
 
+    // Trác Lâm's first contact is Canon-locked to Level 0.7, rather than
+    // letting a generic ALL-level roll contradict his origin story.
+    // The 300 tickets [5500,5799] are disjoint from all existing 5% windows.
+    if (isPhysical && state.world["levelJson"]?.let { raw ->
+        runCatching { LevelRouteRegistry.requested(JSONObject(raw))?.id }.getOrNull()
+      } == "0.7" && TRAC_LAM_ID !in partyMemberIds &&
+        !flagSpawned(flags, "tracLam") &&
+        state.characters[TRAC_LAM_ID]?.metadata?.get("encountered") != "true") {
+      val ticket = sharedFollowerTicket
+      val begin = EntitySpawnPool.TOTAL_BP + CATHERINE_THRESHOLD +
+        JANET_THRESHOLD + TIEU_LAN_THRESHOLD + NAM_THRESHOLD
+      if (ticket in begin until begin + TRAC_LAM_THRESHOLD)
+        encounters += NpcEncounter(TRAC_LAM_ID, "tracLam")
+    }
+
     // Luc Tram: 0.25% on Level 4+ physical, once-only
     if (isPhysical && level >= 4 && !lucTramAlreadyMet(flags, partyMemberIds)) {
       if (nextInt(10000) + 1 <= LUC_TRAM_THRESHOLD) {
@@ -353,7 +369,7 @@ object NpcSpawnTable {
     // 5% applies to each new Follower's qualifying roll before the shared cooldown.
     val first = encounters.minByOrNull { encounter -> when (encounter.characterId) {
       LUC_TRAM_ID, IRIS_ID, SYVIAL_ID, AN_NHIEN_ID -> 0
-      CATHERINE_ID, JANET_ID, HUA_TIEU_LAN_ID, NGUYEN_QUOC_NAM_ID -> 1
+      CATHERINE_ID, JANET_ID, HUA_TIEU_LAN_ID, NGUYEN_QUOC_NAM_ID, TRAC_LAM_ID -> 1
       else -> 2
     } }
     return first?.let(::listOf).orEmpty()
@@ -577,6 +593,7 @@ object SpawnMechanism {
     JANET_ID -> JanetCanon.NAME
     NGUYEN_QUOC_NAM_ID -> NguyenQuocNamCanon.NAME
     HUA_TIEU_LAN_ID -> HuaTieuLanCanon.NAME
+    TRAC_LAM_ID -> TracLamCanon.NAME
     IRIS_ID -> runCatching { SpecialFollowersCanon.irisCharacter().name }.getOrDefault("Iris")
     SYVIAL_ID -> runCatching { SpecialFollowersCanon.syvialCharacter().name }.getOrDefault("Syvial")
     "survivor" -> "Người sống sót"
@@ -651,6 +668,7 @@ object SpawnMechanism {
       JANET_ID -> JanetCanon.character()
       NGUYEN_QUOC_NAM_ID -> NguyenQuocNamCanon.character()
       HUA_TIEU_LAN_ID -> HuaTieuLanCanon.character()
+      TRAC_LAM_ID -> TracLamCanon.character()
       IRIS_ID -> SpecialFollowersCanon.irisCharacter()
       SYVIAL_ID -> SpecialFollowersCanon.syvialCharacter()
       else -> null
