@@ -68,6 +68,55 @@ object PhysiologyEngine {
     } catch (_: ArithmeticException) { return null }
     var output = state.copy(characters = state.characters + (id to c.copy(physiology = next)))
     val multiplier = c.metadata["survivalMultiplier"]?.toDoubleOrNull() ?: 1.0
+    if (isRest) {
+      val resting = output.characters.getValue(id)
+      val q = resting.physiology
+      val credits = (p.restRecoveryMinutes.toLong() + minutes) / 30L
+      val foodReady = PhysiologyStatusPolicy.hungerBand(q.minutesSinceFood, multiplier) in
+        setOf(PhysiologyBand.NORMAL, PhysiologyBand.MILD)
+      val waterReady = PhysiologyStatusPolicy.thirstBand(q.minutesSinceWater, multiplier) in
+        setOf(PhysiologyBand.NORMAL, PhysiologyBand.MILD)
+      val sleepReady = PhysiologyStatusPolicy.awakeBand(q.minutesAwake, multiplier) in
+        setOf(PhysiologyBand.NORMAL, PhysiologyBand.MILD)
+      val maxHp = CharacterStatCore.effective(output, id).maxHp
+      val hasEligibleDamage = resting.vitalState.currentHp < maxHp &&
+        ((foodReady && q.recoverableFoodHp > 0) ||
+         (waterReady && q.recoverableWaterHp > 0) ||
+         (sleepReady && q.recoverableSleepHp > 0))
+      if (!hasEligibleDamage) {
+        // Ineligible rest must never bank future free recovery.
+        output = output.copy(characters = output.characters + (id to
+          resting.copy(physiology = q.copy(restRecoveryMinutes = 0))))
+      } else {
+        var allowance = minOf(credits, (maxHp - resting.vitalState.currentHp).toLong()).toInt()
+        val foodHeal = if (foodReady) minOf(allowance, q.recoverableFoodHp) else 0
+        allowance -= foodHeal
+        val waterHeal = if (waterReady) minOf(allowance, q.recoverableWaterHp) else 0
+        allowance -= waterHeal
+        val sleepHeal = if (sleepReady) minOf(allowance, q.recoverableSleepHp) else 0
+        val totalHeal = foodHeal + waterHeal + sleepHeal
+        if (totalHeal > 0) {
+          // Resolve earned rest recovery against the pre-interval HP before
+          // applying this interval's independent need damage. Damage first
+          // could mark a one-HP survivor DEAD before an offsetting heal.
+          output = CharacterStatEngine.setCurrentHp(output, id, resting.vitalState.currentHp + totalHeal)
+          val healed = output.characters.getValue(id)
+          val foodRemaining = q.recoverableFoodHp - foodHeal
+          val waterRemaining = q.recoverableWaterHp - waterHeal
+          val sleepRemaining = q.recoverableSleepHp - sleepHeal
+          val stillEligible = (foodReady && foodRemaining > 0) ||
+            (waterReady && waterRemaining > 0) || (sleepReady && sleepRemaining > 0)
+          output = output.copy(characters = output.characters + (id to healed.copy(
+            physiology = q.copy(
+              recoverableFoodHp = foodRemaining,
+              recoverableWaterHp = waterRemaining,
+              recoverableSleepHp = sleepRemaining,
+              restRecoveryMinutes = if (stillEligible) q.restRecoveryMinutes else 0
+            )
+          )))
+        }
+      }
+    }
     val foodLoss = (PhysiologyStatusPolicy.hungerDamage(next.minutesSinceFood, multiplier) -
       PhysiologyStatusPolicy.hungerDamage(p.minutesSinceFood, multiplier)).coerceAtLeast(0L)
     val waterLoss = (PhysiologyStatusPolicy.thirstDamage(next.minutesSinceWater, multiplier) -
@@ -76,53 +125,7 @@ object PhysiologyEngine {
       PhysiologyStatusPolicy.sleepDamage(p.minutesAwake, multiplier)).coerceAtLeast(0L)
     output = CharacterStatEngine.applySurvivalDamage(output, id, foodLoss, "FOOD")
     output = CharacterStatEngine.applySurvivalDamage(output, id, waterLoss, "WATER")
-    output = CharacterStatEngine.applySurvivalDamage(output, id, sleepLoss, "SLEEP")
-    if (!isRest || output.characters.getValue(id).presence == CharacterPresence.DEAD) return output
-
-    val afterDamage = output.characters.getValue(id)
-    val q = afterDamage.physiology
-    val credits = (p.restRecoveryMinutes.toLong() + minutes) / 30L
-    val foodReady = PhysiologyStatusPolicy.hungerBand(q.minutesSinceFood, multiplier) in
-      setOf(PhysiologyBand.NORMAL, PhysiologyBand.MILD)
-    val waterReady = PhysiologyStatusPolicy.thirstBand(q.minutesSinceWater, multiplier) in
-      setOf(PhysiologyBand.NORMAL, PhysiologyBand.MILD)
-    val sleepReady = PhysiologyStatusPolicy.awakeBand(q.minutesAwake, multiplier) in
-      setOf(PhysiologyBand.NORMAL, PhysiologyBand.MILD)
-    val maxHp = CharacterStatCore.effective(output, id).maxHp
-    val hasEligibleDamage = afterDamage.vitalState.currentHp < maxHp &&
-      ((foodReady && q.recoverableFoodHp > 0) ||
-       (waterReady && q.recoverableWaterHp > 0) ||
-       (sleepReady && q.recoverableSleepHp > 0))
-    if (!hasEligibleDamage) {
-      // Healthy or still-deprived rest must never bank future free HP recovery.
-      return output.copy(characters = output.characters + (id to
-        afterDamage.copy(physiology = q.copy(restRecoveryMinutes = 0))))
-    }
-    var allowance = minOf(credits, (maxHp - afterDamage.vitalState.currentHp).toLong()).toInt()
-    val foodHeal = if (foodReady) minOf(allowance, q.recoverableFoodHp) else 0
-    allowance -= foodHeal
-    val waterHeal = if (waterReady) minOf(allowance, q.recoverableWaterHp) else 0
-    allowance -= waterHeal
-    val sleepHeal = if (sleepReady) minOf(allowance, q.recoverableSleepHp) else 0
-    val totalHeal = foodHeal + waterHeal + sleepHeal
-    if (totalHeal <= 0) return output
-    // setCurrentHp applies ordinary-heal accounting; replace it with the exact
-    // eligible source allocation so an unmet need cannot donate recovery credit.
-    output = CharacterStatEngine.setCurrentHp(output, id, afterDamage.vitalState.currentHp + totalHeal)
-    val healed = output.characters.getValue(id)
-    val foodRemaining = q.recoverableFoodHp - foodHeal
-    val waterRemaining = q.recoverableWaterHp - waterHeal
-    val sleepRemaining = q.recoverableSleepHp - sleepHeal
-    val stillEligible = (foodReady && foodRemaining > 0) ||
-      (waterReady && waterRemaining > 0) || (sleepReady && sleepRemaining > 0)
-    return output.copy(characters = output.characters + (id to healed.copy(
-      physiology = q.copy(
-        recoverableFoodHp = foodRemaining,
-        recoverableWaterHp = waterRemaining,
-        recoverableSleepHp = sleepRemaining,
-        restRecoveryMinutes = if (stillEligible) q.restRecoveryMinutes else 0
-      )
-    )))
+    return CharacterStatEngine.applySurvivalDamage(output, id, sleepLoss, "SLEEP")
   }
 
   private fun normalizedCondition(value: String?): String? = value?.trim()?.takeIf { it.isNotEmpty() }

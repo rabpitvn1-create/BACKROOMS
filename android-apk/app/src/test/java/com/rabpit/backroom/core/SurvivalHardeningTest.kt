@@ -146,6 +146,19 @@ class SurvivalHardeningTest {
     assertEquals(0, bandaged.characters.getValue(CAO_MINH_ID).physiology.restRecoveryMinutes)
   }
 
+  @Test fun simultaneousRestHealingOffsetsDamageBeforeFatality() {
+    // A rest tick can earn one HP while an independent deprivation takes one.
+    // The net result must preserve a living one-HP character.
+    val p = PhysiologyState(minutesSinceFood = 1619, minutesSinceWater = 0,
+      minutesAwake = 0, recoverableWaterHp = 1, restRecoveryMinutes = 29)
+    val survived = advance(withPhysiology(p, hp = 1), 1, TimeActivity.REST)
+    val c = survived.characters.getValue(CAO_MINH_ID)
+    assertEquals(1, c.vitalState.currentHp)
+    assertEquals(CharacterPresence.ACTIVE, c.presence)
+    assertEquals(1, c.physiology.recoverableFoodHp)
+    assertEquals(0, c.physiology.recoverableWaterHp)
+  }
+
   @Test fun sleepingRestoresAwakeTimeProportionallyAndRestDoesNot() {
     val p = PhysiologyState(minutesSinceFood = 0, minutesSinceWater = 0, minutesAwake = 1000)
     val slept = advance(withPhysiology(p), 60, TimeActivity.SLEEP)
