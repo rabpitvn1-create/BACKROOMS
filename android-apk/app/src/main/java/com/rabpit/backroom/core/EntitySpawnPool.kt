@@ -15,6 +15,7 @@ import org.json.JSONObject
  * - Lucia: 5000 (50%) — Level 0 EXECUTE, once-only
  * - Catherine: 500 (5%) — all physical actions across every node, once-only
  * - Janet: 500 (5%) — all physical actions across every node, once-only
+ * - Nguyễn Quốc Nam: 500 (5%) — all physical actions across every node, once-only
  * - Luc Tram: 25 (0.25%) — Level 4+ physical, once-only
  * - Iris/Syvial reunion: 25 (0.25%) each — physical, continuity SEPARATED/LOST/UNKNOWN
  * - An Nhien: 25 (0.25%) — physical, once-only
@@ -170,6 +171,7 @@ object NpcSpawnTable {
   const val LUC_TRAM_THRESHOLD = 25     // 0.25%
   const val CATHERINE_THRESHOLD = 500    // 5%: every parent Level, sublevel and AREA
   const val JANET_THRESHOLD = 500        // 5%: disjoint from Entity and Catherine tickets
+  const val NAM_THRESHOLD = 500          // 5%: [5000, 5499] separate from all above
   const val IRIS_THRESHOLD = 25         // 0.25%
   const val SYVIAL_THRESHOLD = 25       // 0.25%
   const val AN_NHIEN_THRESHOLD = 25     // 0.25% (baseline value; kept for reference only)
@@ -281,6 +283,18 @@ object NpcSpawnTable {
       if (ticket in (EntitySpawnPool.TOTAL_BP + CATHERINE_THRESHOLD) until
           (EntitySpawnPool.TOTAL_BP + CATHERINE_THRESHOLD + JANET_THRESHOLD)) {
         encounters += NpcEncounter(JANET_ID, "janet")
+      }
+    }
+
+    // Nguyễn Quốc Nam: [5000, 5499], preserving the 35/5/5/5 windows.
+    // Only the first valid physical encounter is eligible; family is not spawnable.
+    if (isPhysical && NGUYEN_QUOC_NAM_ID !in partyMemberIds &&
+        !flagSpawned(flags, "nguyenQuocNam") &&
+        state.characters[NGUYEN_QUOC_NAM_ID]?.metadata?.get("encountered") != "true") {
+      val ticket = catherineTicket ?: nextInt(10000)
+      if (ticket in (EntitySpawnPool.TOTAL_BP + CATHERINE_THRESHOLD + JANET_THRESHOLD) until
+          (EntitySpawnPool.TOTAL_BP + CATHERINE_THRESHOLD + JANET_THRESHOLD + NAM_THRESHOLD)) {
+        encounters += NpcEncounter(NGUYEN_QUOC_NAM_ID, "nguyenQuocNam")
       }
     }
 
@@ -522,6 +536,7 @@ object SpawnMechanism {
     LUC_TRAM_ID -> runCatching { LucTramCanon.character().name }.getOrDefault("Lục Trầm")
     CATHERINE_ID -> CatherineCanon.NAME
     JANET_ID -> JanetCanon.NAME
+    NGUYEN_QUOC_NAM_ID -> NguyenQuocNamCanon.NAME
     IRIS_ID -> runCatching { SpecialFollowersCanon.irisCharacter().name }.getOrDefault("Iris")
     SYVIAL_ID -> runCatching { SpecialFollowersCanon.syvialCharacter().name }.getOrDefault("Syvial")
     "survivor" -> "Người sống sót"
@@ -590,6 +605,7 @@ object SpawnMechanism {
       LUC_TRAM_ID -> LucTramCanon.character()
       CATHERINE_ID -> CatherineCanon.character()
       JANET_ID -> JanetCanon.character()
+      NGUYEN_QUOC_NAM_ID -> NguyenQuocNamCanon.character()
       IRIS_ID -> SpecialFollowersCanon.irisCharacter()
       SYVIAL_ID -> SpecialFollowersCanon.syvialCharacter()
       else -> null

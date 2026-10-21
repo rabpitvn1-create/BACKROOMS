@@ -120,6 +120,22 @@ object CompanionSkillCatalog {
       "Không đánh xuyên vách, không tự thắng boss hay tạo năng lượng vô hạn.")
   )
 
+  private val nguyenQuocNam = listOf(
+    s("Quan Sát Lâm Sàng", "PASSIVE", "Quốc Nam ACTIVE; Party TẤN CÔNG",
+      "+8 điểm phần trăm Accuracy cho cú bắn thường, vẫn có phép kiểm tra Evasion."),
+    s("Phát Bắn Kiềm Chế", "AUTO", "25% sau phát thường trúng, không dùng trong Ultimate",
+      "Một phát bồi gây 120% Weapon DMG, trừ Armor; không gây proc dây chuyền."),
+    s("Sơ Cứu Tại Chỗ", "UTILITY", "Quốc Nam ACTIVE; Party PHÒNG THỦ; tối đa một lần mỗi encounter",
+      "Hồi tối đa 12% Max HP cho một đồng đội còn sống bị thương nặng nhất theo tỷ lệ; không hồi sinh."),
+    s("Giữ Khoảng Cách", "DEFENSE", "Quốc Nam ACTIVE; Party NÉ TRÁNH",
+      "Entity -12 điểm phần trăm Accuracy trong phản ứng hiện tại."),
+    s("Đánh Giá Nguy Cơ", "UTILITY", "Quốc Nam ACTIVE; Party QUAN SÁT",
+      "Thêm 1 Opening, tuân thủ mức tối đa hiện hành; không tiết lộ Exit."),
+    s("Lời Hứa Trở Về", "ULTIMATE", "Poker Dice SSF hoặc FSF; Quốc Nam ACTIVE và Party TẤN CÔNG",
+      "Một phát bắn chuẩn xác 285% Weapon DMG, trừ Armor một lần và bỏ qua Evasion.",
+      "Không cộng Critical hoặc Phát Bắn Kiềm Chế; không liên lạc với gia đình.")
+  )
+
   fun forCharacter(characterId: String): List<CharacterSkillDefinition> = when (characterId) {
     CAO_MINH_ID -> caoMinh
     IRIS_ID -> iris
@@ -129,6 +145,7 @@ object CompanionSkillCatalog {
     LUC_TRAM_ID -> lucTram
     CATHERINE_ID -> catherine
     JANET_ID -> janet
+    NGUYEN_QUOC_NAM_ID -> nguyenQuocNam
     else -> emptyList()
   }
 }

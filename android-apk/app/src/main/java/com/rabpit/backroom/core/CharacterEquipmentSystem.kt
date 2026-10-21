@@ -185,6 +185,32 @@ object EquipmentCatalog {
       canonRef = JanetCanon.CANON_REF
     ),
     EquipmentDefinition(
+      id = NAM_PISTOL_ID, name = "Hành Lang 01", type = "FOUND SEMIAUTOMATIC PISTOL",
+      primarySlot = EquipmentSlot.WEAPON,
+      weapon = WeaponGameplayStats(19, "8 + reserve (Canon)", null, listOf("Single")),
+      restrictions = listOf("Vũ khí nhặt trong Backrooms, không mang từ trường học.",
+        "Combat hiện chưa mô phỏng tiêu hao đạn; súng và đạn hữu hạn theo Canon.",
+        "Không bắn xuyên tường, không bắn chính xác từ vô hạn khoảng cách."),
+      canonRef = NguyenQuocNamCanon.CANON_REF
+    ),
+    EquipmentDefinition(
+      id = NAM_SHIRT_ID, name = "Áo Sơ Mi Ca Trực", type = "WHITE LECTURER SHIRT",
+      primarySlot = EquipmentSlot.OUTFIT, bonuses = EquipmentBonuses(vitPct = 10),
+      restrictions = listOf("Không phải áo chống đạn hoặc giáp bảo hộ."),
+      canonRef = NguyenQuocNamCanon.CANON_REF
+    ),
+    EquipmentDefinition(
+      id = NAM_WATCH_ID, name = "Đồng Hồ Lời Hứa", type = "ANALOG WRISTWATCH",
+      primarySlot = EquipmentSlot.WRIST, bonuses = EquipmentBonuses(dexPct = 10),
+      restrictions = listOf("Không đo sinh hiệu, không liên lạc với gia đình hoặc chỉ đường Exit."),
+      canonRef = NguyenQuocNamCanon.CANON_REF
+    ),
+    EquipmentDefinition(
+      id = NAM_SHOES_ID, name = "Giày Hành Lang", type = "BLACK LEATHER SHOES",
+      primarySlot = EquipmentSlot.FOOTWEAR, bonuses = EquipmentBonuses(defPct = 10),
+      canonRef = NguyenQuocNamCanon.CANON_REF
+    ),
+    EquipmentDefinition(
       id = LUCIA_M4A1_ID, name = "M4A1 cá nhân hóa", type = "ASSAULT RIFLE", primarySlot = EquipmentSlot.WEAPON,
       bonuses = EquipmentBonuses(strPct = 100, agiPct = 50),
       weapon = WeaponGameplayStats(26, "60 / 90 reserve", 800, listOf("Semi", "Burst", "Auto")),
@@ -250,6 +276,9 @@ object EquipmentCatalog {
     JANET_ID -> linkedMapOf(EquipmentSlot.WEAPON to JANET_BAT_ID,
       EquipmentSlot.OUTFIT to JANET_VEST_ID, EquipmentSlot.GAUNTLETS to JANET_GLOVES_ID,
       EquipmentSlot.FOOTWEAR to JANET_BOOTS_ID)
+    NGUYEN_QUOC_NAM_ID -> linkedMapOf(EquipmentSlot.WEAPON to NAM_PISTOL_ID,
+      EquipmentSlot.OUTFIT to NAM_SHIRT_ID, EquipmentSlot.WRIST to NAM_WATCH_ID,
+      EquipmentSlot.FOOTWEAR to NAM_SHOES_ID)
     AN_NHIEN_ID -> linkedMapOf(EquipmentSlot.OUTFIT to AN_NHIEN_OUTFIT_ID, EquipmentSlot.FOOTWEAR to AN_NHIEN_FOOTWEAR_ID)
     LUCIA_ID -> linkedMapOf(
       EquipmentSlot.WEAPON to LUCIA_M4A1_ID,
@@ -423,7 +452,7 @@ object CharacterEquipmentSystem {
 
   private fun normalizeInternal(source: GameState, seedStarting: Boolean): GameState {
     // Lucia exists in Core state without being forced into Party.
-    val input = JanetCanon.ensure(CatherineCanon.ensure(LucTramCanon.ensure(LuciaCanon.ensure(source))))
+    val input = NguyenQuocNamCanon.ensure(JanetCanon.ensure(CatherineCanon.ensure(LucTramCanon.ensure(LuciaCanon.ensure(source)))))
     val inventories = input.inventories.toMutableMap()
     val equipment = input.equipment.toMutableMap()
     input.characters.keys.forEach { characterId ->

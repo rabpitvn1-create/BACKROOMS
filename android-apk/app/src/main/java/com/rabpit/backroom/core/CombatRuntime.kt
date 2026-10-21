@@ -22,6 +22,7 @@ object CombatRuntime {
   private const val CAO_MINH_ULTIMATE_DAMAGE_PER_SHOT = 10
   private const val DIEP_MINH_KEY = "diep_minh"
   private const val LUC_TRAM_ENEMY_KEY = "luc_tram_hac_hoa"
+  private const val NAM_FIRST_AID_KEY = "combat.nguyenQuocNamFirstAidEncounter"
   private const val LUC_TRAM_ENEMY_FOCUS_KEY = "combat.lucTramEnemyFocus"
   private const val LUC_TRAM_ENEMY_WARD_KEY = "combat.lucTramEnemyWardTurns"
   private const val LUC_TRAM_ENEMY_DOMAIN_KEY = "combat.lucTramEnemyDomainWave"
@@ -549,6 +550,7 @@ object CombatRuntime {
     val lucTramActive = activePartyCharacter(resolvedState, LUC_TRAM_ID) != null
     val catherineActive = activePartyCharacter(resolvedState, CATHERINE_ID) != null
     val janetActive = activePartyCharacter(resolvedState, JANET_ID) != null
+    val namActive = activePartyCharacter(resolvedState, NGUYEN_QUOC_NAM_ID) != null
 
 
     fun promoteDefeatedWave(): Boolean {
@@ -617,6 +619,10 @@ object CombatRuntime {
           c = c.copy(opening = min(3, c.opening + 1))
           log += "Thiên Kiếm Linh Tâm: Lục Trầm nhận biết quỹ đạo, tạo thêm một opening; không suy ra bản chất Entity."
         }
+        if (namActive && c.entityHp > 0) {
+          c = c.copy(opening = min(3, c.opening + 1))
+          log += "Đánh Giá Nguy Cơ: Quốc Nam kiểm tra góc bắn, +1 Opening trong giới hạn hiện hành."
+        }
       }
       Intent.EVADE -> {
         log += "PARTY ACTION NÉ TRÁNH: ${activePartyNames(resolvedState)} cùng thực hiện trong một combat turn."
@@ -632,6 +638,10 @@ object CombatRuntime {
         if (lucTramActive) {
           c = c.copy(cover = Cover.HARD)
           log += "Vạn Kiếm Quy Tâm: Lục Trầm dùng kiếm khí che tuyến rút, Party có HARD cover."
+        }
+        if (namActive && c.entityHp > 0) {
+          companionEnemyAccuracyPenalty += 12
+          log += "Giữ Khoảng Cách: Quốc Nam hướng dẫn tìm vật che, Entity -12 điểm % Accuracy lượt này."
         }
         if (janetActive && c.entityHp > 0) {
           c = c.copy(escapeProgress = min(100, c.escapeProgress + 12))
@@ -664,6 +674,30 @@ object CombatRuntime {
       }
       Intent.GUARD -> {
         c = c.copy(cover = Cover.HARD, momentum = min(3, c.momentum + 1), opening = min(3, c.opening + 1))
+        if (namActive && c.entityHp > 0 && resolvedState.metadata[NAM_FIRST_AID_KEY] != c.encounterId) {
+          // Treat only a living injured member. A single field intervention per encounter
+          // prevents infinite healing by repeatedly choosing GUARD.
+          val target = PartyCombatHealth.actingMembers(resolvedState).filter { id ->
+            val hp = resolvedState.characters.getValue(id).vitalState.currentHp
+            hp < CharacterStatEngine.effective(resolvedState, id).maxHp
+          }.minByOrNull { id ->
+            val hp = resolvedState.characters.getValue(id).vitalState.currentHp
+            val maxHp = CharacterStatEngine.effective(resolvedState, id).maxHp.coerceAtLeast(1)
+            hp.toDouble() / maxHp.toDouble()
+          }
+          if (target != null) {
+            val hp = resolvedState.characters.getValue(target).vitalState.currentHp
+            val maxHp = CharacterStatEngine.effective(resolvedState, target).maxHp
+            val heal = min(maxHp - hp, max(1, maxHp * 12 / 100))
+            if (heal > 0) {
+              resolvedState = CharacterStatEngine.setCurrentHp(resolvedState, target, hp + heal)
+              resolvedState = resolvedState.copy(metadata = resolvedState.metadata +
+                (NAM_FIRST_AID_KEY to c.encounterId))
+              c = c.copy(playerHp = resolvedState.characters[CAO_MINH_ID]?.vitalState?.currentHp ?: c.playerHp)
+              log += "Sơ Cứu Tại Chỗ: Quốc Nam băng ép cho ${resolvedState.characters[target]?.name ?: target}, +$heal HP; chỉ một lần mỗi encounter."
+            }
+          }
+        }
         if (janetActive && c.entityHp > 0) {
           companionEnemyAccuracyPenalty += 15
           log += "Ride or Die: Janet chắn trước đồng đội, Entity -15 điểm % Accuracy trong phản ứng này."
@@ -926,6 +960,45 @@ object CombatRuntime {
                       recordMiss("entity", JANET_ID, skill = "Ragin' Cajun")
                       log += "Janet tung cú gậy cận chiến nhưng trượt hoặc bị Entity né."
                     }
+                  }
+                }
+              }
+            }
+            NGUYEN_QUOC_NAM_ID -> {
+              if (namActive) {
+                val weapon = CharacterStatEngine.skillBaseDamage(resolvedState, NGUYEN_QUOC_NAM_ID)
+                if (ultimateReady) {
+                  val damage = min(c.entityHp, companionSkillDamage(weapon, 285, profile.armor))
+                  val hp = c.entityHp - damage
+                  recordFeedback("entity", c.entityHp, hp, actorId = NGUYEN_QUOC_NAM_ID, skill = "Lời Hứa Trở Về")
+                  c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp),
+                    noise = min(100, c.noise + 21))
+                  log += "Lời Hứa Trở Về [$ultimateHand]: Quốc Nam bắn một phát chuẩn xác 285% Weapon DMG = -$damage HP; bỏ qua Evasion."
+                } else {
+                  val accuracy = (hitChance + 800).coerceAtMost(9900)
+                  val hits = roll(c.copy(eventCounter = c.eventCounter + 701 + turnIndex * 23), 10000) < accuracy &&
+                    !entityDodges(NGUYEN_QUOC_NAM_ID, 719 + turnIndex * 23)
+                  if (hits) {
+                    val critical = actorCritical(NGUYEN_QUOC_NAM_ID, 733 + turnIndex * 23)
+                    val base = if (critical) CharacterStatCore.criticalDamage(weapon) else weapon
+                    val damage = min(c.entityHp, companionSkillDamage(base, 100, profile.armor))
+                    val hp = c.entityHp - damage
+                    recordFeedback("entity", c.entityHp, hp, critical = critical,
+                      actorId = NGUYEN_QUOC_NAM_ID, skill = "Quan Sát Lâm Sàng")
+                    c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp),
+                      noise = min(100, c.noise + 12))
+                    log += "Quan Sát Lâm Sàng: Quốc Nam bắn trúng bằng Hành Lang 01 -$damage HP, Accuracy +8 điểm %."
+                    if (c.entityHp > 0 &&
+                        roll(c.copy(eventCounter = c.eventCounter + 751 + turnIndex * 23), 100) < 25) {
+                      val bonus = min(c.entityHp, companionSkillDamage(weapon, 120, profile.armor))
+                      val after = c.entityHp - bonus
+                      recordFeedback("entity", c.entityHp, after, actorId = NGUYEN_QUOC_NAM_ID, skill = "Phát Bắn Kiềm Chế")
+                      c = c.copy(entityHp = after, entityCondition = condition(after, c.entityMaxHp))
+                      log += "Phát Bắn Kiềm Chế: Quốc Nam bắn bồi 120% Weapon DMG = -$bonus HP."
+                    }
+                  } else {
+                    recordMiss("entity", NGUYEN_QUOC_NAM_ID, skill = "Quan Sát Lâm Sàng")
+                    log += "Quốc Nam bắn phòng vệ nhưng Entity né hoặc đòn bắn không trúng."
                   }
                 }
               }

@@ -137,7 +137,8 @@ data class GameState(
         IRIS_ID to SpecialFollowersCanon.irisCharacter(),
         SYVIAL_ID to SpecialFollowersCanon.syvialCharacter(),
         CATHERINE_ID to CatherineCanon.character(),
-        JANET_ID to JanetCanon.character()
+        JANET_ID to JanetCanon.character(),
+        NGUYEN_QUOC_NAM_ID to NguyenQuocNamCanon.character()
       ),
       inventories = mapOf(
         CAO_MINH_ID to InventoryState(CAO_MINH_ID),
@@ -146,7 +147,8 @@ data class GameState(
         IRIS_ID to InventoryState(IRIS_ID),
         SYVIAL_ID to InventoryState(SYVIAL_ID),
         CATHERINE_ID to InventoryState(CATHERINE_ID),
-        JANET_ID to InventoryState(JANET_ID)
+        JANET_ID to InventoryState(JANET_ID),
+        NGUYEN_QUOC_NAM_ID to InventoryState(NGUYEN_QUOC_NAM_ID)
       ),
       equipment = mapOf(
         CAO_MINH_ID to EquipmentState(CAO_MINH_ID, CaoMinhStartingEquipment.slots),
@@ -155,7 +157,8 @@ data class GameState(
         IRIS_ID to EquipmentState(IRIS_ID, SpecialFollowersCanon.irisEquipmentSlots),
         SYVIAL_ID to EquipmentState(SYVIAL_ID, SpecialFollowersCanon.syvialEquipmentSlots),
         CATHERINE_ID to EquipmentState(CATHERINE_ID, CatherineCanon.equipmentSlots),
-        JANET_ID to EquipmentState(JANET_ID, JanetCanon.equipmentSlots)
+        JANET_ID to EquipmentState(JANET_ID, JanetCanon.equipmentSlots),
+        NGUYEN_QUOC_NAM_ID to EquipmentState(NGUYEN_QUOC_NAM_ID, NguyenQuocNamCanon.equipmentSlots)
       )
     ))
   }

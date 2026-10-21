@@ -1,5 +1,5 @@
 {
-  "version": 8,
+  "version": 9,
   "generator": "built-in imagegen",
   "style": "non-pixel liquid glass; warm gold/orange ordinary items, violet/blue stat book",
   "format": "WEBP",
@@ -491,6 +491,66 @@
       "drive_file_id": "1EPR9xMYOg90dSm7Wjo-rhj2PsRizp4db",
       "drive_url": "https://drive.google.com/file/d/1EPR9xMYOg90dSm7Wjo-rhj2PsRizp4db/view?usp=drivesdk",
       "design_reference": "670.png (Janet source image)"
+    },
+    {
+      "item_id": "nam:corridor-pistol",
+      "key": "nam-pistol",
+      "name": "Hành Lang 01",
+      "file": "nam-pistol.webp",
+      "width": 128,
+      "height": 128,
+      "mime_type": "image/webp",
+      "bytes": 1918,
+      "sha256": "44c6732ed47ad033d42a7aac44f7947f0e035b85b667748c1689eca69a9eb54f",
+      "md5": "7164f3d71a207b3994ce1d101441f921",
+      "drive_file_id": "1uCz6nOaYATFrxOt-CfWr5KEpH95NMF_E",
+      "drive_url": "https://drive.google.com/file/d/1uCz6nOaYATFrxOt-CfWr5KEpH95NMF_E/view?usp=drivesdk",
+      "design_reference": "673.png (Nguyễn Quốc Nam source)"
+    },
+    {
+      "item_id": "nam:lecturer-shirt",
+      "key": "nam-shirt",
+      "name": "Áo Sơ Mi Ca Trực",
+      "file": "nam-shirt.webp",
+      "width": 128,
+      "height": 128,
+      "mime_type": "image/webp",
+      "bytes": 4320,
+      "sha256": "40eaa1f50f34c1866c719d9cef876bbd4171a93a8af35166fc57aab10c9054d3",
+      "md5": "f6401420dfec9ad5dcfbe4cb8ff41216",
+      "drive_file_id": "1aem2LDSIdbofiwF45tS03mp_4dmQYXpX",
+      "drive_url": "https://drive.google.com/file/d/1aem2LDSIdbofiwF45tS03mp_4dmQYXpX/view?usp=drivesdk",
+      "design_reference": "673.png (Nguyễn Quốc Nam source)"
+    },
+    {
+      "item_id": "nam:promise-watch",
+      "key": "nam-watch",
+      "name": "Đồng Hồ Lời Hứa",
+      "file": "nam-watch.webp",
+      "width": 128,
+      "height": 128,
+      "mime_type": "image/webp",
+      "bytes": 2594,
+      "sha256": "69ef83e32c5dda86617ab5511f6455b1c5ca5483a75abebb5deee9e9dba838f0",
+      "md5": "44f3b62cd91d4b249ca282287ca8e3c6",
+      "drive_file_id": "1cm_lfFlogVoEYtwlA6qFA_6EC723Yi90",
+      "drive_url": "https://drive.google.com/file/d/1cm_lfFlogVoEYtwlA6qFA_6EC723Yi90/view?usp=drivesdk",
+      "design_reference": "673.png (Nguyễn Quốc Nam source)"
+    },
+    {
+      "item_id": "nam:corridor-shoes",
+      "key": "nam-shoes",
+      "name": "Giày Hành Lang",
+      "file": "nam-shoes.webp",
+      "width": 128,
+      "height": 128,
+      "mime_type": "image/webp",
+      "bytes": 1406,
+      "sha256": "dc6f8e68dae9520c3d3821441cff6162e09159eb797f6cbaaa4c754497282832",
+      "md5": "f0f4e13357089952c4556f665444b342",
+      "drive_file_id": "1vQXV9SKKAJTw66DJzC2FJW9AL3WIUeZ-",
+      "drive_url": "https://drive.google.com/file/d/1vQXV9SKKAJTw66DJzC2FJW9AL3WIUeZ-/view?usp=drivesdk",
+      "design_reference": "673.png (Nguyễn Quốc Nam source)"
     }
   ]
 }
