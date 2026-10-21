@@ -95,8 +95,11 @@ class GameCoreFacade private constructor(
     }
     val event = JSONObject(sceneNarrationContext())
     val view = JSONObject(commitSceneAction(command.getString("actionId"), event.getString("result"), clientJson))
+    val interrupted = view.optBoolean("actionInterrupted", false)
+    if (interrupted) event.put("result", view.getString("actionInterruptReason")).put("interrupted", true)
     return JSONObject().put("state", view)
       .put("event", JSONObject().put("kind", "FREE").put("text", text).put("event", event))
+      .put("interrupted", interrupted)
       .put("encounter", view.has("pendingEncounter")).toString()
   }
   @Synchronized fun finishPlayerPresentation(requested: Int, interrupted: Boolean, message: String,
@@ -243,6 +246,8 @@ class GameCoreFacade private constructor(
     reserved = reserved.copy(world = started.state.world + ("flagsJson" to (reservedFlags ?: "{}")),
       metadata = reserved.metadata + (SPAWN_ENCOUNTER_OWNER to actionId))
     val public = staged.event
+    if (interruptedAt > 0) public.put("result",
+      "Nghỉ/ngủ bị gián đoạn sau $interruptedAt phút vì có thực thể xuất hiện.")
     CombatRuntime.pending(reserved)?.let {
       public.put("encounter", JSONObject().put("entityKey", it.entityKey).put("entityName", CombatRuntime.entityName(it.entityKey)).put("encounterId", it.encounterId))
     }
@@ -276,6 +281,7 @@ class GameCoreFacade private constructor(
     setPlayerRequestCount(count)
     var presentation = clientJson
     var executed = 0
+    var fatal = false
     val events = JSONArray()
     while (executed < count) {
       val state = loadCurrentState()
@@ -286,12 +292,17 @@ class GameCoreFacade private constructor(
       }
       val event = JSONObject(sceneNarrationContext())
       presentation = commitSceneAction(command.getString("actionId"), event.getString("result"), presentation)
+      val resultView = JSONObject(presentation)
+      fatal = resultView.optBoolean("actionInterrupted", false)
+      if (fatal) event.put("result", resultView.getString("actionInterruptReason")).put("interrupted", true)
       events.put(JSONObject().put("kind", "CORE").put("event", event))
       executed++
-      if (CombatRuntime.pending(loadCurrentState()) != null) break
+      if (fatal || CombatRuntime.pending(loadCurrentState()) != null) break
     }
     return JSONObject().put("executed", executed).put("requested", count)
-      .put("interrupted", executed < count).put("events", events)
+      .put("interrupted", fatal || executed < count)
+      .put("interruptionReason", if (fatal) "survival_death" else "encounter")
+      .put("events", events)
       .put("state", JSONObject(currentClientState(presentation))).toString()
   }
 
@@ -345,7 +356,8 @@ class GameCoreFacade private constructor(
       terminal = CoreClientProjection.advance(terminal)
       terminal = PlayerActionPresentation.receipt(terminal, canceled)
       repository.save(terminal)
-      return clientSnapshot(JSONObject(clientJson), terminal).toString()
+      return clientSnapshot(JSONObject(clientJson), terminal)
+        .put("actionInterrupted", true).put("actionInterruptReason", interrupted).toString()
     }
     val node = LevelRouteRegistry.node(pending.getString("nodeId"))
     val flags = JSONObject(finished.state.world["flagsJson"] ?: "{}").apply {

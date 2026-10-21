@@ -112,7 +112,9 @@ class FreeActionTurnTest {
     val cmd = MiniMapRuntime.freeCommand(repo.state)
     core.beginSceneAction(cmd.toString(), "Tôi bước tiếp", "Tôi bước tiếp")
     val event = JSONObject(core.sceneNarrationContext())
-    core.commitSceneAction(cmd.getString("actionId"), event.getString("result"), "{}")
+    val result = JSONObject(core.commitSceneAction(cmd.getString("actionId"), event.getString("result"), "{}"))
+    assertTrue(result.getBoolean("actionInterrupted"))
+    assertTrue(result.getString("actionInterruptReason").contains("tử vong"))
     val dead = repo.state.characters.getValue(CAO_MINH_ID)
     assertEquals(CharacterPresence.DEAD, dead.presence)
     assertEquals(0, dead.vitalState.currentHp)
@@ -125,6 +127,22 @@ class FreeActionTurnTest {
     val saved = repo.state
     core.commitSceneAction(cmd.getString("actionId"), "Do not replay", "{}")
     assertEquals(saved, repo.state)
+  }
+
+  @Test fun fatalFreeActionReturnsAnInterruptedEventRatherThanAFalseSuccess() {
+    val rng = ScriptedRng(intArrayOf())
+    val (repo, core) = fixture(rng)
+    val c = repo.state.characters.getValue(CAO_MINH_ID)
+    repo.state = repo.state.copy(characters = repo.state.characters + (CAO_MINH_ID to
+      c.copy(physiology = PhysiologyState(minutesSinceFood = 0, minutesSinceWater = 809, minutesAwake = 0),
+        vitalState = c.vitalState.copy(currentHp = 1))))
+    core.beginPlayerPresentation("fatal-free", "Tôi tiếp tục", "{}")
+    val outcome = JSONObject(core.executePlayerFreeStep("Tôi tiếp tục", "Tôi tiếp tục", "{}"))
+    assertTrue(outcome.getBoolean("interrupted"))
+    assertTrue(outcome.getJSONObject("event").getJSONObject("event")
+      .getString("result").contains("tử vong"))
+    assertEquals(0, repo.state.characters.getValue(CAO_MINH_ID).vitalState.currentHp)
+    assertEquals(1, JSONObject(core.playerPresentationContext()).getJSONArray("receipts").length())
   }
 
   @Test fun longSleepChecksEntityThreatDuringTheIntervalAndPersistsFirstInterruption() {

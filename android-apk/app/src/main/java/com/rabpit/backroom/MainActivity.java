@@ -1796,9 +1796,12 @@ public class MainActivity extends Activity {
               .put("state", new JSONObject(projection)).put("executed", committed)
               .put("requested", requested).toString());
             if (walked.getBoolean("interrupted")) {
-              stopCode = "encounter";
+              stopCode = walked.optString("interruptionReason").equals("survival_death")
+                ? "survival_death" : "encounter";
               stoppedStep = committed + 1;
-              stopMessage = "Đã gặp Entity ở bước " + committed + "; các bước còn lại chưa thực hiện.";
+              stopMessage = "survival_death".equals(stopCode)
+                ? "Cao Minh đã tử vong do suy kiệt; các bước còn lại không được thực hiện."
+                : "Đã gặp Entity ở bước " + committed + "; các bước còn lại chưa thực hiện.";
             }
           } else while (committed < 12 && (totalActions < 0 || committed < totalActions)) {
             stoppedStep = committed + 1;
@@ -1904,6 +1907,12 @@ public class MainActivity extends Activity {
                 emit("backroomPlayerActionProgress", new JSONObject()
                   .put("state", new JSONObject(projection)).put("executed", committed)
                   .put("requested", totalActions).toString());
+                if (free.optBoolean("interrupted", false)) {
+                  stopCode = "survival_death";
+                  stoppedStep = committed + 1;
+                  stopMessage = "Cao Minh đã tử vong do suy kiệt; hành động tiếp theo bị hủy.";
+                  break;
+                }
                 if (free.getBoolean("encounter")) {
                   if (committed < totalActions) {
                     stopCode = "encounter";
@@ -1965,8 +1974,13 @@ public class MainActivity extends Activity {
                 // Commit the Core-owned factual event; defer GM prose until the end.
                 projection = requireGameCore().commitSceneAction(
                   action.getString("actionId"), staged.getString("result"), projection);
+                JSONObject commitView = new JSONObject(projection);
+                if (commitView.optBoolean("actionInterrupted", false))
+                  staged.put("result", commitView.getString("actionInterruptReason"))
+                    .put("interrupted", true);
                 narrativeEvents.put(new JSONObject().put("kind", "CORE").put("event", staged));
               }
+              boolean fatalAction = new JSONObject(projection).optBoolean("actionInterrupted", false);
               committed++;
               confirmedSteps.put(new JSONObject().put("kind", kind)
                 .put("targetId", targetId).put("fromRoomId", action.getString("roomId"))
@@ -1981,6 +1995,12 @@ public class MainActivity extends Activity {
               emit("backroomPlayerActionProgress", new JSONObject()
                 .put("state", updated).put("executed", committed)
                 .put("requested", totalActions).toString());
+              if (fatalAction) {
+                stoppedStep = committed + 1;
+                stopCode = "survival_death";
+                stopMessage = "Cao Minh đã tử vong do suy kiệt; các bước còn lại không được thực hiện.";
+                break;
+              }
               if ((i + 1 < plan.length() || unresolved) &&
                   (updated.has("pendingEncounter") ||
                     updated.optJSONObject("combat") != null &&
