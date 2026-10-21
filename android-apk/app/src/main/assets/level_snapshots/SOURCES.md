@@ -70,3 +70,23 @@ three-image coverage for every supported node.
 | `area_00__ls_2__reference_snapshot_003.webp` | [1yRk1AzVH6CAXlwp3Xab1k7x8ysD7K6wd](https://drive.google.com/file/d/1yRk1AzVH6CAXlwp3Xab1k7x8ysD7K6wd/view?usp=drivesdk) | 133814 | `51ae37a6ed4c88e98d0eff293779dc02b2152c2029f79b2b3c283c16f35bc12f` |
 | `level_01p2__snapshot_002.webp` | [1VRvtDp4aqopwQMrjYeL9NwTsMC35JzK3](https://drive.google.com/file/d/1VRvtDp4aqopwQMrjYeL9NwTsMC35JzK3/view?usp=drivesdk) | 299616 | `608dfb85817155df549e224fa518fcf9f21412d732003b6f4ef1efdb48b81f6e` |
 | `level_01p2__snapshot_003.webp` | [1AUWDCWxIl9uNAq8qTJceOzQiVnATUEq1](https://drive.google.com/file/d/1AUWDCWxIl9uNAq8qTJceOzQiVnATUEq1/view?usp=drivesdk) | 246532 | `207995b83a4e978a794920a740ebf52d8d2786ed0d917f656b88867c7589ca79` |
+
+
+## Exact AREA environments (2026-10-21, PR #654)
+
+60 distinct generated backgrounds cover every environment in `dullness`,
+`epsilon`, and `ls_2` (20 each). IDs, names, zones and descriptions come unchanged
+from `Level0AreaEnvironments` in `Level0AreaWorldDefinition.kt`; LS-2 follows
+`LS2_PROJECT_CANON_20261021.md`. These illustrations do not add Canon.
+
+All WebPs were uploaded to [Novel / AREA environment snapshots PR654 20261021](https://drive.google.com/drive/folders/1qszG_s-QUWBRCTVF2nbh55GsgrTBi2y2)
+in three node folders before transfer to GitHub. GitHub blobs use the raw Drive
+contents; their Git object hashes must match the prepared assets before the
+branch changes. `area-environments.json` records each Canon environment, Drive
+source, dimensions, byte size, SHA-256 and Git blob SHA. Files retain their
+generated aspect ratios and stay below 275,000 bytes. Existing images remain
+unchanged.
+
+Routing uses the exact node/environment identity for all 60 authored rooms.
+Node-level frames remain only for input without a valid scene environment.
+The existing Level 0 and seven satellite-node mappings are unchanged.

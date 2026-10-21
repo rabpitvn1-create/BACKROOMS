@@ -306,6 +306,369 @@ const environments={
     "zoneId": "the_fracture"
   }
 };
+// Exact AREA identities from Level0AreaEnvironments; never share a frame across environments.
+const areaEnvironments={
+  "area_DU_z1": {
+    "file": "area_00__dullness__zone_01__area_du_z1.webp",
+    "name": "Dãy Tỷ Lệ Trôi",
+    "zoneId": "area_DU_z1",
+    "nodeId": "dullness"
+  },
+  "area_DU_z1_s1": {
+    "file": "area_00__dullness__zone_01__sub_01__area_du_z1_s1.webp",
+    "name": "Ngách Trần Quá Cao",
+    "zoneId": "area_DU_z1",
+    "nodeId": "dullness"
+  },
+  "area_DU_z1_s2": {
+    "file": "area_00__dullness__zone_01__sub_02__area_du_z1_s2.webp",
+    "name": "Phòng Cửa Ngắn",
+    "zoneId": "area_DU_z1",
+    "nodeId": "dullness"
+  },
+  "area_DU_z1_s3": {
+    "file": "area_00__dullness__zone_01__sub_03__area_du_z1_s3.webp",
+    "name": "Mép Tường Co",
+    "zoneId": "area_DU_z1",
+    "nodeId": "dullness"
+  },
+  "area_DU_z1_s4": {
+    "file": "area_00__dullness__zone_01__sub_04__area_du_z1_s4.webp",
+    "name": "Bậc Sàn Rộng",
+    "zoneId": "area_DU_z1",
+    "nodeId": "dullness"
+  },
+  "area_DU_z2": {
+    "file": "area_00__dullness__zone_02__area_du_z2.webp",
+    "name": "Giao Lộ Nhập Khối",
+    "zoneId": "area_DU_z2",
+    "nodeId": "dullness"
+  },
+  "area_DU_z2_s1": {
+    "file": "area_00__dullness__zone_02__sub_01__area_du_z2_s1.webp",
+    "name": "Hai Cửa Chung Khung",
+    "zoneId": "area_DU_z2",
+    "nodeId": "dullness"
+  },
+  "area_DU_z2_s2": {
+    "file": "area_00__dullness__zone_02__sub_02__area_du_z2_s2.webp",
+    "name": "Góc Vách Dính",
+    "zoneId": "area_DU_z2",
+    "nodeId": "dullness"
+  },
+  "area_DU_z2_s3": {
+    "file": "area_00__dullness__zone_02__sub_03__area_du_z2_s3.webp",
+    "name": "Hành Lang Phân Thân",
+    "zoneId": "area_DU_z2",
+    "nodeId": "dullness"
+  },
+  "area_DU_z2_s4": {
+    "file": "area_00__dullness__zone_02__sub_04__area_du_z2_s4.webp",
+    "name": "Nút Thắt Hình Học",
+    "zoneId": "area_DU_z2",
+    "nodeId": "dullness"
+  },
+  "area_DU_z3": {
+    "file": "area_00__dullness__zone_03__area_du_z3.webp",
+    "name": "Vòng Lặp Méo",
+    "zoneId": "area_DU_z3",
+    "nodeId": "dullness"
+  },
+  "area_DU_z3_s1": {
+    "file": "area_00__dullness__zone_03__sub_01__area_du_z3_s1.webp",
+    "name": "Ngã Rẽ Đồng Mẫu",
+    "zoneId": "area_DU_z3",
+    "nodeId": "dullness"
+  },
+  "area_DU_z3_s2": {
+    "file": "area_00__dullness__zone_03__sub_02__area_du_z3_s2.webp",
+    "name": "Phòng Mẫu Phóng To",
+    "zoneId": "area_DU_z3",
+    "nodeId": "dullness"
+  },
+  "area_DU_z3_s3": {
+    "file": "area_00__dullness__zone_03__sub_03__area_du_z3_s3.webp",
+    "name": "Khung Đèn Nhân Bản",
+    "zoneId": "area_DU_z3",
+    "nodeId": "dullness"
+  },
+  "area_DU_z3_s4": {
+    "file": "area_00__dullness__zone_03__sub_04__area_du_z3_s4.webp",
+    "name": "Dãy Cửa Sai Tầm",
+    "zoneId": "area_DU_z3",
+    "nodeId": "dullness"
+  },
+  "area_DU_z4": {
+    "file": "area_00__dullness__zone_04__area_du_z4.webp",
+    "name": "Đầu Mút Mất Thước",
+    "zoneId": "area_DU_z4",
+    "nodeId": "dullness"
+  },
+  "area_DU_z4_s1": {
+    "file": "area_00__dullness__zone_04__sub_01__area_du_z4_s1.webp",
+    "name": "Vách Chia Bất Chợt",
+    "zoneId": "area_DU_z4",
+    "nodeId": "dullness"
+  },
+  "area_DU_z4_s2": {
+    "file": "area_00__dullness__zone_04__sub_02__area_du_z4_s2.webp",
+    "name": "Điểm Khâu Thảm",
+    "zoneId": "area_DU_z4",
+    "nodeId": "dullness"
+  },
+  "area_DU_z4_s3": {
+    "file": "area_00__dullness__zone_04__sub_03__area_du_z4_s3.webp",
+    "name": "Hộp Đèn Lệch",
+    "zoneId": "area_DU_z4",
+    "nodeId": "dullness"
+  },
+  "area_DU_z4_s4": {
+    "file": "area_00__dullness__zone_04__sub_04__area_du_z4_s4.webp",
+    "name": "Ngõ Hẹp Khó Ước",
+    "zoneId": "area_DU_z4",
+    "nodeId": "dullness"
+  },
+  "area_EP_z1": {
+    "file": "area_00__epsilon__zone_01__area_ep_z1.webp",
+    "name": "Sảnh Cao Vàng",
+    "zoneId": "area_EP_z1",
+    "nodeId": "epsilon"
+  },
+  "area_EP_z1_s1": {
+    "file": "area_00__epsilon__zone_01__sub_01__area_ep_z1_s1.webp",
+    "name": "Vòm Đèn Xa",
+    "zoneId": "area_EP_z1",
+    "nodeId": "epsilon"
+  },
+  "area_EP_z1_s2": {
+    "file": "area_00__epsilon__zone_01__sub_02__area_ep_z1_s2.webp",
+    "name": "Thảm Giữa Sảnh",
+    "zoneId": "area_EP_z1",
+    "nodeId": "epsilon"
+  },
+  "area_EP_z1_s3": {
+    "file": "area_00__epsilon__zone_01__sub_03__area_ep_z1_s3.webp",
+    "name": "Chân Cột Dài",
+    "zoneId": "area_EP_z1",
+    "nodeId": "epsilon"
+  },
+  "area_EP_z1_s4": {
+    "file": "area_00__epsilon__zone_01__sub_04__area_ep_z1_s4.webp",
+    "name": "Góc Sảnh Lùi",
+    "zoneId": "area_EP_z1",
+    "nodeId": "epsilon"
+  },
+  "area_EP_z2": {
+    "file": "area_00__epsilon__zone_02__area_ep_z2.webp",
+    "name": "Hệ Cầu Treo",
+    "zoneId": "area_EP_z2",
+    "nodeId": "epsilon"
+  },
+  "area_EP_z2_s1": {
+    "file": "area_00__epsilon__zone_02__sub_01__area_ep_z2_s1.webp",
+    "name": "Nhịp Cầu Trống",
+    "zoneId": "area_EP_z2",
+    "nodeId": "epsilon"
+  },
+  "area_EP_z2_s2": {
+    "file": "area_00__epsilon__zone_02__sub_02__area_ep_z2_s2.webp",
+    "name": "Sàn Tầng Trung",
+    "zoneId": "area_EP_z2",
+    "nodeId": "epsilon"
+  },
+  "area_EP_z2_s3": {
+    "file": "area_00__epsilon__zone_02__sub_03__area_ep_z2_s3.webp",
+    "name": "Giao Cầu Bất Đối",
+    "zoneId": "area_EP_z2",
+    "nodeId": "epsilon"
+  },
+  "area_EP_z2_s4": {
+    "file": "area_00__epsilon__zone_02__sub_04__area_ep_z2_s4.webp",
+    "name": "Bệ Lan Can Mòn",
+    "zoneId": "area_EP_z2",
+    "nodeId": "epsilon"
+  },
+  "area_EP_z3": {
+    "file": "area_00__epsilon__zone_03__area_ep_z3.webp",
+    "name": "Mạng Đường Hầm",
+    "zoneId": "area_EP_z3",
+    "nodeId": "epsilon"
+  },
+  "area_EP_z3_s1": {
+    "file": "area_00__epsilon__zone_03__sub_01__area_ep_z3_s1.webp",
+    "name": "Hầm Đèn Trùng",
+    "zoneId": "area_EP_z3",
+    "nodeId": "epsilon"
+  },
+  "area_EP_z3_s2": {
+    "file": "area_00__epsilon__zone_03__sub_02__area_ep_z3_s2.webp",
+    "name": "Khúc Hầm Dốc",
+    "zoneId": "area_EP_z3",
+    "nodeId": "epsilon"
+  },
+  "area_EP_z3_s3": {
+    "file": "area_00__epsilon__zone_03__sub_03__area_ep_z3_s3.webp",
+    "name": "Giếng Thông Tầng",
+    "zoneId": "area_EP_z3",
+    "nodeId": "epsilon"
+  },
+  "area_EP_z3_s4": {
+    "file": "area_00__epsilon__zone_03__sub_04__area_ep_z3_s4.webp",
+    "name": "Ngõ Đổi Độ Dài",
+    "zoneId": "area_EP_z3",
+    "nodeId": "epsilon"
+  },
+  "area_EP_z4": {
+    "file": "area_00__epsilon__zone_04__area_ep_z4.webp",
+    "name": "Thang Đa Cao Độ",
+    "zoneId": "area_EP_z4",
+    "nodeId": "epsilon"
+  },
+  "area_EP_z4_s1": {
+    "file": "area_00__epsilon__zone_04__sub_01__area_ep_z4_s1.webp",
+    "name": "Vế Thang Cụt",
+    "zoneId": "area_EP_z4",
+    "nodeId": "epsilon"
+  },
+  "area_EP_z4_s2": {
+    "file": "area_00__epsilon__zone_04__sub_02__area_ep_z4_s2.webp",
+    "name": "Chiếu Nghỉ Treo",
+    "zoneId": "area_EP_z4",
+    "nodeId": "epsilon"
+  },
+  "area_EP_z4_s3": {
+    "file": "area_00__epsilon__zone_04__sub_03__area_ep_z4_s3.webp",
+    "name": "Hành Lang Trên Đầu",
+    "zoneId": "area_EP_z4",
+    "nodeId": "epsilon"
+  },
+  "area_EP_z4_s4": {
+    "file": "area_00__epsilon__zone_04__sub_04__area_ep_z4_s4.webp",
+    "name": "Vị Trí Đèn Ngược",
+    "zoneId": "area_EP_z4",
+    "nodeId": "epsilon"
+  },
+  "area_LS_z1": {
+    "file": "area_00__ls_2__zone_01__area_ls_z1.webp",
+    "name": "Thư Viện Mép Trống",
+    "zoneId": "area_LS_z1",
+    "nodeId": "ls_2"
+  },
+  "area_LS_z1_s1": {
+    "file": "area_00__ls_2__zone_01__sub_01__area_ls_z1_s1.webp",
+    "name": "Kệ Số Bỏ Trống",
+    "zoneId": "area_LS_z1",
+    "nodeId": "ls_2"
+  },
+  "area_LS_z1_s2": {
+    "file": "area_00__ls_2__zone_01__sub_02__area_ls_z1_s2.webp",
+    "name": "Tủ Nhãn Đảo",
+    "zoneId": "area_LS_z1",
+    "nodeId": "ls_2"
+  },
+  "area_LS_z1_s3": {
+    "file": "area_00__ls_2__zone_01__sub_03__area_ls_z1_s3.webp",
+    "name": "Lối Giấy Than",
+    "zoneId": "area_LS_z1",
+    "nodeId": "ls_2"
+  },
+  "area_LS_z1_s4": {
+    "file": "area_00__ls_2__zone_01__sub_04__area_ls_z1_s4.webp",
+    "name": "Phòng Ô Đứt Quãng",
+    "zoneId": "area_LS_z1",
+    "nodeId": "ls_2"
+  },
+  "area_LS_z2": {
+    "file": "area_00__ls_2__zone_02__area_ls_z2.webp",
+    "name": "Xưởng Đồng Hồ Rỗng",
+    "zoneId": "area_LS_z2",
+    "nodeId": "ls_2"
+  },
+  "area_LS_z2_s1": {
+    "file": "area_00__ls_2__zone_02__sub_01__area_ls_z2_s1.webp",
+    "name": "Bàn Bánh Răng",
+    "zoneId": "area_LS_z2",
+    "nodeId": "ls_2"
+  },
+  "area_LS_z2_s2": {
+    "file": "area_00__ls_2__zone_02__sub_02__area_ls_z2_s2.webp",
+    "name": "Trục Không Kim",
+    "zoneId": "area_LS_z2",
+    "nodeId": "ls_2"
+  },
+  "area_LS_z2_s3": {
+    "file": "area_00__ls_2__zone_02__sub_03__area_ls_z2_s3.webp",
+    "name": "Khoang Nhịp Gõ",
+    "zoneId": "area_LS_z2",
+    "nodeId": "ls_2"
+  },
+  "area_LS_z2_s4": {
+    "file": "area_00__ls_2__zone_02__sub_04__area_ls_z2_s4.webp",
+    "name": "Phòng Vành Răng",
+    "zoneId": "area_LS_z2",
+    "nodeId": "ls_2"
+  },
+  "area_LS_z3": {
+    "file": "area_00__ls_2__zone_03__area_ls_z3.webp",
+    "name": "Hành Lang Sai Số",
+    "zoneId": "area_LS_z3",
+    "nodeId": "ls_2"
+  },
+  "area_LS_z3_s1": {
+    "file": "area_00__ls_2__zone_03__sub_01__area_ls_z3_s1.webp",
+    "name": "Sàn Tấm Chẵn",
+    "zoneId": "area_LS_z3",
+    "nodeId": "ls_2"
+  },
+  "area_LS_z3_s2": {
+    "file": "area_00__ls_2__zone_03__sub_02__area_ls_z3_s2.webp",
+    "name": "Góc Đếm Lệch",
+    "zoneId": "area_LS_z3",
+    "nodeId": "ls_2"
+  },
+  "area_LS_z3_s3": {
+    "file": "area_00__ls_2__zone_03__sub_03__area_ls_z3_s3.webp",
+    "name": "Lối Phản Chiếu Chéo",
+    "zoneId": "area_LS_z3",
+    "nodeId": "ls_2"
+  },
+  "area_LS_z3_s4": {
+    "file": "area_00__ls_2__zone_03__sub_04__area_ls_z3_s4.webp",
+    "name": "Bệ Bốn Hướng",
+    "zoneId": "area_LS_z3",
+    "nodeId": "ls_2"
+  },
+  "area_LS_z4": {
+    "file": "area_00__ls_2__zone_04__area_ls_z4.webp",
+    "name": "Nút Chốt Không Tên",
+    "zoneId": "area_LS_z4",
+    "nodeId": "ls_2"
+  },
+  "area_LS_z4_s1": {
+    "file": "area_00__ls_2__zone_04__sub_01__area_ls_z4_s1.webp",
+    "name": "Khung Chốt Đôi",
+    "zoneId": "area_LS_z4",
+    "nodeId": "ls_2"
+  },
+  "area_LS_z4_s2": {
+    "file": "area_00__ls_2__zone_04__sub_02__area_ls_z4_s2.webp",
+    "name": "Nền Mốc Chồng",
+    "zoneId": "area_LS_z4",
+    "nodeId": "ls_2"
+  },
+  "area_LS_z4_s3": {
+    "file": "area_00__ls_2__zone_04__sub_03__area_ls_z4_s3.webp",
+    "name": "Buồng Đối Chiếu",
+    "zoneId": "area_LS_z4",
+    "nodeId": "ls_2"
+  },
+  "area_LS_z4_s4": {
+    "file": "area_00__ls_2__zone_04__sub_04__area_ls_z4_s4.webp",
+    "name": "Ngõ Số Không",
+    "zoneId": "area_LS_z4",
+    "nodeId": "ls_2"
+  }
+};
 const specialParents={
   "manila_room": 0,
   "the_torment": 0,
@@ -336,6 +699,10 @@ function environment(state){
   const e=state.scene.environment;
   const id=e&&e.id;
   if(typeof id!=="string")return null;
+  if(owns(areaEnvironments,id)){
+    const current=areaEnvironments[id];
+    return current.nodeId===node?{id:id,...current}:null;
+  }
   if(node==="0")return owns(environments,id)?{id:id,...environments[id]}:null;
   if(!owns(satelliteCodes,node))return null;
   const prefix="sat_"+satelliteCodes[node]+"_z";
@@ -369,8 +736,14 @@ function resolve(state){
     variantIndex:index,variantCount:1};
 }
 const api=Object.freeze({nodeId:nodeId,sceneKey:sceneKey,resolve:resolve,
-  environmentIds:function(){return Object.keys(environments);},
-  environmentFile:function(id){return owns(environments,id)?environments[id].file:null;},
+  environmentIds:function(node){
+    if(node==null||node==="0")return Object.keys(environments);
+    return Object.keys(areaEnvironments).filter(id=>areaEnvironments[id].nodeId===node);
+  },
+  environmentFile:function(id){
+    if(owns(environments,id))return environments[id].file;
+    return owns(areaEnvironments,id)?areaEnvironments[id].file:null;
+  },
   knownIds:function(){return Object.keys(images);},
   filesFor:function(id){return owns(images,id)?images[id].slice():[];}});
 root.BackroomSnapshotAssets=api;
