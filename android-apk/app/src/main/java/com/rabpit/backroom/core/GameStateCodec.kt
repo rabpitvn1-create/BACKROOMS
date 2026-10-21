@@ -132,7 +132,9 @@ object GameStateCodec {
     if (json == null || json.optString("schema") != CharacterProgressionCore.SCHEMA) return fallback
     val minStat = CharacterStatProfiles.minimumStat(characterId)
     return fallback.copy(
-      baseMaxHp = fallback.baseMaxHp,
+      // Keep the current-run persisted baseline until normalizers can rebase
+      // the four newly balanced Followers without discarding trained points.
+      baseMaxHp = json.optInt("baseMaxHp", fallback.baseMaxHp),
       str = json.optInt("STR", fallback.str).coerceIn(minStat, 999),
       dex = json.optInt("DEX", fallback.dex).coerceIn(minStat, 999),
       agi = json.optInt("AGI", fallback.agi).coerceIn(minStat, 999),

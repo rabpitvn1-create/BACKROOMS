@@ -1,5 +1,6 @@
 package com.rabpit.backroom.core
 
+import org.json.JSONObject
 import org.junit.Assert.*
 import org.junit.Test
 import kotlin.random.Random
@@ -107,5 +108,77 @@ class RecentFollowerStartingBalanceTest {
     assertEquals(1, normalized.statProfile.vit)
     assertEquals(25, normalized.statProfile.baseMaxHp)
     assertEquals(5, state.characters.getValue(CAO_MINH_ID).statProfile.str)
+  }
+
+  @Test fun `current run stored with previous fifty HP profile rebalances all four on load`() {
+    val legacyCurrent = JSONObject(GameStateCodec.encode(GameState.initial()))
+    val characters = legacyCurrent.getJSONObject("characters")
+    for (spec in roster) {
+      val item = characters.getJSONObject(spec.id)
+      val p = item.getJSONObject("statProfile")
+      p.put("baseMaxHp", 50)
+      for (key in listOf("STR", "DEX", "AGI", "VIT", "EVA")) p.put(key, 5)
+      item.getJSONObject("vitalState").put("currentHp", 50)
+    }
+    val restored = GameStateCodec.decode(legacyCurrent.toString())
+    for (spec in roster) {
+      val actor = restored.characters.getValue(spec.id)
+      assertEquals(spec.id, spec.stats, values(actor.statProfile))
+      assertEquals(spec.id, spec.hp, actor.statProfile.baseMaxHp)
+      assertEquals(spec.id, spec.hp, actor.vitalState.currentHp)
+      assertEquals(spec.id, spec.hp, CharacterStatCore.effective(restored, spec.id).maxHp)
+    }
+    assertEquals(50, restored.characters.getValue(CAO_MINH_ID).vitalState.currentHp)
+    // The new baseline is serialized; a second load MUST NOT rebase twice.
+    val second = GameStateCodec.decode(GameStateCodec.encode(restored))
+    for (spec in roster) {
+      assertEquals(spec.id, restored.characters.getValue(spec.id).statProfile,
+        second.characters.getValue(spec.id).statProfile)
+      assertEquals(spec.id, restored.characters.getValue(spec.id).vitalState.currentHp,
+        second.characters.getValue(spec.id).vitalState.currentHp)
+    }
+  }
+
+  @Test fun `current run rebalance preserves training levels experience and relative wounds`() {
+    val snapshot = JSONObject(GameStateCodec.encode(GameState.initial()))
+    val raw = snapshot.getJSONObject("characters").getJSONObject(JANET_ID)
+    val p = raw.getJSONObject("statProfile")
+      .put("baseMaxHp", 50)
+      .put("STR", 7).put("DEX", 6).put("AGI", 7).put("VIT", 8).put("EVA", 6)
+    raw.getJSONObject("vitalState").put("currentHp", 32)
+    raw.getJSONObject("progression").put("level", 2).put("exp", 3)
+    val loaded = GameStateCodec.decode(snapshot.toString())
+    val janet = loaded.characters.getValue(JANET_ID)
+    assertEquals(listOf(4, 2, 4, 5, 2), values(janet.statProfile))
+    assertEquals(CharacterProgression(2, 3), janet.progression)
+    assertEquals(30, janet.statProfile.baseMaxHp)
+    assertEquals(45, CharacterStatCore.effective(loaded, JANET_ID).maxHp)
+    // Old effective Max HP 65, current 32, so ceil(32/65 * 45) = 23.
+    assertEquals(23, janet.vitalState.currentHp)
+    assertEquals(23, GameStateCodec.decode(GameStateCodec.encode(loaded))
+      .characters.getValue(JANET_ID).vitalState.currentHp)
+    // Current-run normalization invoked directly must enforce the same policy.
+    val directOld = GameState.initial()
+    val actor = directOld.characters.getValue(JANET_ID)
+    val direct = directOld.copy(characters = directOld.characters + (JANET_ID to actor.copy(
+      statProfile = actor.statProfile.copy(baseMaxHp = 50, str = 5, dex = 5, agi = 5, vit = 5, eva = 5),
+      vitalState = actor.vitalState.copy(currentHp = 50)
+    )))
+    val rebalanced = CharacterEquipmentSystem.normalize(direct)
+    assertEquals(30, rebalanced.characters.getValue(JANET_ID).vitalState.currentHp)
+    assertEquals(listOf(2, 1, 2, 2, 1), values(rebalanced.characters.getValue(JANET_ID).statProfile))
+  }
+
+  @Test fun `rebalance never resurrects a defeated Follower`() {
+    val snapshot = JSONObject(GameStateCodec.encode(GameState.initial()))
+    val raw = snapshot.getJSONObject("characters").getJSONObject(HUA_TIEU_LAN_ID)
+    raw.getJSONObject("statProfile").put("baseMaxHp", 50)
+    for (name in listOf("STR", "DEX", "AGI", "VIT", "EVA")) {
+      raw.getJSONObject("statProfile").put(name, 5)
+    }
+    raw.getJSONObject("vitalState").put("currentHp", 0).put("condition", "DEFEATED")
+    val decoded = GameStateCodec.decode(snapshot.toString())
+    assertEquals(0, decoded.characters.getValue(HUA_TIEU_LAN_ID).vitalState.currentHp)
+    assertEquals(25, CharacterStatCore.effective(decoded, HUA_TIEU_LAN_ID).maxHp)
   }
 }

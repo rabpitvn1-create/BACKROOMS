@@ -85,7 +85,8 @@ object CharacterProgressionCore {
 
   fun normalize(input: GameState): GameState {
     // Drop obsolete Core currency; only the five stored primary stats are authoritative.
-    val state = input.copy(metadata = sanitizeMetadata(input.metadata))
+    val state = CharacterStatProfiles.rebalanceCurrentFollowers(input)
+      .copy(metadata = sanitizeMetadata(input.metadata))
     val chars = state.characters.toMutableMap()
     state.characters.forEach { (id, c) ->
       val raw = c.statProfile
