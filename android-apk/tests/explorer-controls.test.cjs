@@ -34,17 +34,45 @@ function runtime(scene={}){
   const calls=[],stored=[];
   const document={getElementById:id=>elements[id],createElement:element,createElementNS:element,body:element()};
   const ctx={document,state:{scene:{miniIndex:1,generationNeeded:false,map:{currentRoomId:'hall',entryRoomId:'hall',rooms:[{id:'hall',name:'Hành lang',visited:true,adjacentRoomIds:['x']},{id:'x',name:'Chưa khám phá',visited:false,adjacentRoomIds:[]}]},areaLog:[],availableActions:[{actionId:'run:1:MOVE:room:x',sceneVersion:1,roomId:'hall',kind:'MOVE',targetId:'room:x',label:'Phòng X'}],...scene}},busy:false,coreUnavailable:false,
-    Android:{prepareScene:json=>calls.push(['prepare',json]),submitSceneAction:(json,c)=>calls.push(['action',c]),submitPlayerAction:(json,text)=>calls.push(['player',text]),requestWorldHint:tier=>calls.push(['hint',tier]),retryPlayerActionNarration:json=>calls.push(['narration',json])},
+    Android:{prepareScene:json=>calls.push(['prepare',json]),submitSceneAction:(json,c)=>calls.push(['action',c]),submitPlayerAction:(json,text)=>calls.push(['player',text]),submitGmSuggestion:(json,index)=>calls.push(['gm-suggestion',index]),requestWorldHint:tier=>calls.push(['hint',tier]),retryPlayerActionNarration:json=>calls.push(['narration',json])},
     BackroomSnapshotAssets:{environmentFile:id=>({
       yellow_rot:'level_00__zone_01__yellow_rot.webp',
       deadlight:'level_00__zone_02__deadlight.webp'
     })[id]||null},
     localStorage:{setItem:(key,value)=>stored.push([key,value])},
     appendActionPending(){},backroomTurn(json){ctx.state=JSON.parse(json);ctx.busy=false;},backroomError(){ctx.busy=false;}};
+  ctx.render=()=>{elements.log.replaceChildren(...(ctx.state.log||[]).map(entry=>{
+    const article=element();article.className='message '+entry.role;return article;
+  }));};
   ctx.window=ctx;vm.runInNewContext(source,ctx);
   const panel=elements.playerActionBar.children[0],dialog=document.body.children[0];
   return {ctx,calls,stored,panel,dialog,actionDialog:document.body.children[1],buttons:panel.children[0].children.map(slot=>slot.children[0]),menuTools:elements.explorerMenuTools,objectivePanel:elements.explorerMenuObjective,objectiveText:elements.explorerCurrentObjective,casebook:elements.explorerCasebook,menuClose:elements.gameMenuClose,player:panel.children[1].children[0],retry:panel.children[1].children[1],journal:elements.sceneJournal,room:elements.sceneJournalRoom,objective:elements.sceneJournalObjective,records:elements.sceneJournalRecords,log:elements.log,status:elements.status};
 }
+test('four GM hints are selectable INSIDE GM log and each tap queues a single Core action',()=>{
+  const r=runtime({nodeId:'0'});
+  const narration='Tường rung lên.\\nGỢI Ý HÀNH ĐỘNG:\\n'
+    +'1. Kiểm tra vết bụi ở chân cửa phía nam.\\n'
+    +'2. Quan sát dấu xước ngang trên trần.\\n'
+    +'3. Lắng nghe bóng đèn đang rung phía tây.\\n'
+    +'4. Thử kéo vạt thảm đang bị ẩm.';
+  r.ctx.state.log=[{role:'gm',sceneMap:'0:1',text:narration}];
+  r.ctx.render();
+  const choices=r.log.querySelector('.gm-suggestion-list');
+  assert.ok(choices,'options must be placed in the original GM article');
+  assert.equal(choices.children.length,4);
+  assert.deepEqual(choices.children.map(b=>b.textContent.slice(0,2)),['1.','2.','3.','4.']);
+  choices.children[3].onclick();
+  assert.equal(r.calls.filter(x=>x[0]==='gm-suggestion').length,1);
+  assert.deepEqual(r.calls.at(-1),['gm-suggestion',4]);
+  assert.equal(r.calls.filter(x=>x[0]==='player').length,0,'Player Action composer stays separate');
+  assert.equal(choices.children.every(b=>b.disabled),true,'one tap prevents rapid duplicate submissions');
+});
+test('previous scene GM hints never remain actionable',()=>{
+  const r=runtime({nodeId:'0',miniIndex:2});
+  r.ctx.state.log=[{role:'gm',sceneMap:'0:1',text:'GỢI Ý HÀNH ĐỘNG:\\n1. Lắng nghe tiếng gió.\\n2. Thử nhìn sàn.\\n3. Đọc mảnh giấy.\\n4. Gõ nhẹ cửa.'}];
+  r.ctx.render();
+  assert.equal(r.log.querySelector('.gm-suggestion-list'),null);
+});
 test('MAP, Area Log, Giao tiếp occupy the top row; Player Action and Retry share the bottom slot',()=>{
   const r=runtime();
   assert.deepEqual(r.buttons.map(b=>b.textContent),['MAP','Area Log','Giao tiếp']);
