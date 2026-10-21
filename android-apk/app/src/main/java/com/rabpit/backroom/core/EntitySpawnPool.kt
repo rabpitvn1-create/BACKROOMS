@@ -176,7 +176,7 @@ object NpcSpawnTable {
   const val JANET_THRESHOLD = 500        // 5%: disjoint from Entity and Catherine tickets
   const val NAM_THRESHOLD = 500          // 5%: [5000, 5499] separate from all above
   const val TIEU_LAN_THRESHOLD = 500     // 5%: [4500, 4999] disjoint on shared ticket
-  const val TRAC_LAM_THRESHOLD = 300      // 3%: [5500, 5799] Level 0.7 first contact
+  const val TRAC_LAM_THRESHOLD = 300      // 3%: [5500, 5799] on every eligible Level/AREA
   const val IRIS_THRESHOLD = 25         // 0.25%
   const val SYVIAL_THRESHOLD = 25       // 0.25%
   const val AN_NHIEN_THRESHOLD = 25     // 0.25% (baseline value; kept for reference only)
@@ -318,12 +318,11 @@ object NpcSpawnTable {
       }
     }
 
-    // Trác Lâm's first contact is Canon-locked to Level 0.7, rather than
-    // letting a generic ALL-level roll contradict his origin story.
-    // The 300 tickets [5500,5799] are disjoint from all existing 5% windows.
-    if (isPhysical && state.world["levelJson"]?.let { raw ->
-        runCatching { LevelRouteRegistry.requested(JSONObject(raw))?.id }.getOrNull()
-      } == "0.7" && TRAC_LAM_ID !in partyMemberIds &&
+    // Trác Lâm: 3% on every eligible Level, sub-level and AREA.
+    // The 300 tickets [5500,5799] never overlap Entity or other new Followers.
+    // The Codex's Level 0.7 first-contact scene is background lore, not a
+    // geographic spawn restriction after this gameplay-rule change.
+    if (isPhysical && TRAC_LAM_ID !in partyMemberIds &&
         !flagSpawned(flags, "tracLam") &&
         state.characters[TRAC_LAM_ID]?.metadata?.get("encountered") != "true") {
       val ticket = sharedFollowerTicket

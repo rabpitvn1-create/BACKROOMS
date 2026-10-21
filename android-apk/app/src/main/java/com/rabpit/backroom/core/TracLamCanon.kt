@@ -12,7 +12,7 @@ object TracLamCanon {
   const val CANON_REF = "TRAC_LAM_CODEX"
   const val AVATAR_REF = "avatars/TracLam_avatar.jpg"
   const val SPRITE_REF = "TracLam.png"
-  const val ENCOUNTER_RATE_BP = 300 // 3% of eligible Level 0.7 exploration turns
+  const val ENCOUNTER_RATE_BP = 300 // 3% of eligible exploration turns in any Level/AREA
 
   val equipmentSlots = linkedMapOf(
     "weapon" to TRAC_LAM_GEMINI_ID,
@@ -33,10 +33,12 @@ object TracLamCanon {
         "npcType" to "follower", "species" to "human", "gender" to "male",
         "entity" to "false", "combatant" to "true", "joinEligible" to "true",
         "followsPlayer" to "true", "encounterPolicy" to "CORE_SPAWN",
-        "encounterAction" to "PHYSICAL", "encounterLevels" to "0.7",
+        "encounterAction" to "PHYSICAL", "encounterLevels" to "ALL",
         "encounterChance" to "3%", "age" to "28", "originYear" to "2099",
         "origin" to "Đà Nẵng, Việt Nam", "organization" to "SRU-03",
-        "role" to "Special Response Unit Captain", "firstContact" to "Level 0.7",
+        "role" to "Special Response Unit Captain",
+        "firstContact" to "CORE_CONFIRMED_ANY_LEVEL",
+        "codexFirstContactScene" to "Level 0.7",
         "spriteRef" to SPRITE_REF, "canonRef" to CANON_REF,
         "inventoryProfile" to "special_companion"
       )

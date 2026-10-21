@@ -15,7 +15,9 @@ class TracLamFollowerTest {
     assertEquals("28", a.metadata["age"])
     assertEquals("2099", a.metadata["originYear"])
     assertEquals("SRU-03", a.metadata["organization"])
-    assertEquals("0.7", a.metadata["encounterLevels"])
+    assertEquals("ALL", a.metadata["encounterLevels"])
+    assertEquals("CORE_CONFIRMED_ANY_LEVEL", a.metadata["firstContact"])
+    assertEquals("Level 0.7", a.metadata["codexFirstContactScene"])
     assertEquals("3%", a.metadata["encounterChance"])
     assertEquals("avatars/TracLam_avatar.jpg", a.avatarRef)
     assertEquals("TracLam.png", a.metadata["spriteRef"])
@@ -49,24 +51,35 @@ class TracLamFollowerTest {
     assertFalse(CharacterSkillUnlocks.isUnlocked(TRAC_LAM_ID, "ECHO-17: Phá Tuyến", 0))
   }
 
-  @Test fun `three percent window restricted to Canon first contact Level zero point seven`() {
+  @Test fun `Trac Lam has three percent encounter on every known Level sublevel and AREA`() {
     assertEquals(300, NpcSpawnTable.TRAC_LAM_THRESHOLD)
-    val state = at("0.7")
-    val samples = (0 until 10000).map { ticket ->
+    val allNodes = listOf("0", "0.1", "0.2", "0.5", "0.7", "manila_room",
+      "the_torment", "red_rooms", "dullness", "epsilon", "ls_2", "1",
+      "1.2", "1.5", "traders_vault", "base_alpha", "2",
+      "office_space_el3a", "3", "4", "office_market", "5", "5.1", "6", "6.1")
+    assertEquals("Update the coverage when LevelRouteRegistry grows",
+      LevelRouteRegistry.size(), allNodes.size)
+    for (node in allNodes) {
+      val state = at(node)
+      for (ticket in listOf(5500, 5799)) {
+        val encounter = SpawnMechanism.rollSceneSpawns(state, "MOVE") { ticket }
+        assertEquals("Trác Lâm missing from $node at ticket=$ticket",
+          listOf(TRAC_LAM_ID), encounter.npcEncounters.map { it.characterId })
+        assertNull("Entity collision in $node", encounter.entityKey)
+      }
+      for (ticket in listOf(5499, 5800)) {
+        assertFalse("Trác Lâm outside 3% window in $node",
+          SpawnMechanism.rollSceneSpawns(state, "MOVE") { ticket }
+            .npcEncounters.any { it.characterId == TRAC_LAM_ID })
+      }
+    }
+    // Exhaustively check 300 out of 10,000 physical tickets on an ordinary Level,
+    // not just on the Level 0.7 background scene.
+    val state = at("2")
+    assertEquals(300, (0 until 10000).count { ticket ->
       SpawnMechanism.rollSceneSpawns(state, "MOVE") { ticket }
-    }
-    assertEquals(300, samples.count { result -> result.npcEncounters.any { it.characterId == TRAC_LAM_ID } })
-    for (ticket in listOf(5500, 5799)) {
-      val r = SpawnMechanism.rollSceneSpawns(state, "MOVE") { ticket }
-      assertEquals(listOf(TRAC_LAM_ID), r.npcEncounters.map { it.characterId })
-      assertNull(r.entityKey)
-    }
-    assertFalse(SpawnMechanism.rollSceneSpawns(state, "MOVE") { 5800 }
-      .npcEncounters.any { it.characterId == TRAC_LAM_ID })
-    assertFalse(SpawnMechanism.rollSceneSpawns(at("0"), "MOVE") { 5500 }
-      .npcEncounters.any { it.characterId == TRAC_LAM_ID })
-    assertFalse(SpawnMechanism.rollSceneSpawns(at("4"), "MOVE") { 5500 }
-      .npcEncounters.any { it.characterId == TRAC_LAM_ID })
+        .npcEncounters.any { it.characterId == TRAC_LAM_ID }
+    })
   }
 
   @Test fun `confirmed first contact does not automatically recruit and cannot spawn twice`() {
