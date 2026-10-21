@@ -55,6 +55,19 @@ class EntityPowerScalingTest {
     }
   }
 
+  @Test fun entity927HasExactlyTwice926CombatHpAtEveryLevel() {
+    assertEquals("Entity 927", CombatRuntime.entityName("927"))
+    assertEquals(true, CombatRuntime.supportsEntityKey("927"))
+    for (level in 0..6) {
+      val elder = CombatRuntime.active(CombatRuntime.start(levelState(level), "926"))!!
+      val creature = CombatRuntime.active(CombatRuntime.start(levelState(level), "927"))!!
+      assertEquals("927", creature.entityKey)
+      assertEquals(elder.entityMaxHp * 2, creature.entityMaxHp)
+      assertEquals(creature.entityMaxHp, creature.entityHp)
+    }
+    assertEquals(880, CombatRuntime.active(CombatRuntime.start(levelState(0), "927"))!!.entityMaxHp)
+  }
+
   @Test fun activeEncounterKeepsItsRankSnapshotWhenWorldLevelChanges() {
     val started = CombatRuntime.start(levelState(2), "hound")
     val before = CombatRuntime.active(started)!!

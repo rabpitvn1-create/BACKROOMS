@@ -12,7 +12,7 @@ const literal=line.match(/^\s*("(?:[^"\\]|\\.)*")\s*\+/);
 assert.ok(literal,'Embedded Entity renderer must remain parseable');
 const renderer=JSON.parse(literal[1]);
 const assets=path.join(dir,'../app/src/main/assets');
-const supported=['926','hound','clump','duller','deathmoth','hostile_faceling','false_puddle',
+const supported=['926','927','hound','clump','duller','deathmoth','hostile_faceling','false_puddle',
  'paintings','smiler','skin-stealer','predatory_window','biological_pipeline','wretch',
  'cable_mimic','the_beast_of_level_5','hotel_corpse_lure','jeff_the_killer',
  'jane_the_killer','slenderman','diep_minh','blackroot_sentinel','sinew_strider','hollow_grasper'];
@@ -118,6 +118,25 @@ test('Entity 926 has grounded alpha bounds from its bundled transparent WebP',()
   assert.ok(visibleHeight<=snapshotHeight*.97+.5);
   assert.ok(Math.abs(y-(1-1438/1448)*h*scale)<.5);
   assert.ok(Math.abs(x+(323/1086)*w*scale)<.5);
+ }
+});
+
+test('Entity 927 sprite uses measured alpha bounds and remains grounded',()=>{
+ const parts=java.split('\n').filter(row=>row.includes('__entityVisualBounds=')||row.includes('function normalizeEntityVisual('))
+  .map(row=>JSON.parse(row.match(/^\s*("(?:[^"\\]|\\.)*")\s*\+/)[1]));
+ const ctx={__entityOverlay:{key:'927'}};
+ vm.createContext(ctx);vm.runInContext(parts.join('\n'),ctx);
+ // 927.webp 1086x1448, alpha >16 bbox (135,21)-(1060,1420).
+ for(const sh of [200,300,450]){
+  const h=sh*.97,w=h*1086/1448;
+  const img={alt:'927',style:{},getBoundingClientRect:()=>({width:w,height:h})};
+  ctx.normalizeEntityVisual(img);
+  const match=img.style.transform.match(/translate\(([-\d.]+)px,([-\d.]+)px\) scale\(([-\d.]+)\)/);
+  assert.ok(match);
+  const [,x,y,scale]=match.map(Number);
+  assert.ok(Math.abs(((1420-21)/1448)*h*scale-sh*.94)<.5);
+  assert.ok(Math.abs(y-(1-1420/1448)*h*scale)<.5);
+  assert.ok(Math.abs(x+(135/1086)*w*scale)<.5);
  }
 });
 
