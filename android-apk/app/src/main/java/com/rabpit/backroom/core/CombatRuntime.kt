@@ -342,7 +342,7 @@ object CombatRuntime {
       state.metadata[LUC_TRAM_ENEMY_FOCUS_KEY]?.toIntOrNull()?.coerceIn(0, 3) ?: 0 else 0
     var enemyWardTurns = if (current.entityKey == LUC_TRAM_ENEMY_KEY)
       state.metadata[LUC_TRAM_ENEMY_WARD_KEY]?.toIntOrNull()?.coerceIn(0, 2) ?: 0 else 0
-    val enemyWardActive = current.entityKey == LUC_TRAM_ENEMY_KEY && enemyWardTurns > 0
+    var enemyWardActive = current.entityKey == LUC_TRAM_ENEMY_KEY && enemyWardTurns > 0
     var enemyWardCreated = false
     if (enemyWardActive) profile = profile.copy(armor = profile.armor + 8)
     val intent = classify(actionKind, action)
@@ -517,6 +517,7 @@ object CombatRuntime {
       profile = profiles.getValue(c.entityKey)
       enemyFocus = 0
       enemyWardTurns = 0
+      enemyWardActive = false
       enemyWardCreated = false
       cue("wave")
       log += advanced.reply
