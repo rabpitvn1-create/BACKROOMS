@@ -89,6 +89,15 @@ object PhysiologyEngine {
     val sleepReady = PhysiologyStatusPolicy.awakeBand(q.minutesAwake, multiplier) in
       setOf(PhysiologyBand.NORMAL, PhysiologyBand.MILD)
     val maxHp = CharacterStatCore.effective(output, id).maxHp
+    val hasEligibleDamage = afterDamage.vitalState.currentHp < maxHp &&
+      ((foodReady && q.recoverableFoodHp > 0) ||
+       (waterReady && q.recoverableWaterHp > 0) ||
+       (sleepReady && q.recoverableSleepHp > 0))
+    if (!hasEligibleDamage) {
+      // Healthy or still-deprived rest must never bank future free HP recovery.
+      return output.copy(characters = output.characters + (id to
+        afterDamage.copy(physiology = q.copy(restRecoveryMinutes = 0))))
+    }
     var allowance = minOf(credits, (maxHp - afterDamage.vitalState.currentHp).toLong()).toInt()
     val foodHeal = if (foodReady) minOf(allowance, q.recoverableFoodHp) else 0
     allowance -= foodHeal
@@ -101,11 +110,17 @@ object PhysiologyEngine {
     // eligible source allocation so an unmet need cannot donate recovery credit.
     output = CharacterStatEngine.setCurrentHp(output, id, afterDamage.vitalState.currentHp + totalHeal)
     val healed = output.characters.getValue(id)
+    val foodRemaining = q.recoverableFoodHp - foodHeal
+    val waterRemaining = q.recoverableWaterHp - waterHeal
+    val sleepRemaining = q.recoverableSleepHp - sleepHeal
+    val stillEligible = (foodReady && foodRemaining > 0) ||
+      (waterReady && waterRemaining > 0) || (sleepReady && sleepRemaining > 0)
     return output.copy(characters = output.characters + (id to healed.copy(
       physiology = q.copy(
-        recoverableFoodHp = q.recoverableFoodHp - foodHeal,
-        recoverableWaterHp = q.recoverableWaterHp - waterHeal,
-        recoverableSleepHp = q.recoverableSleepHp - sleepHeal
+        recoverableFoodHp = foodRemaining,
+        recoverableWaterHp = waterRemaining,
+        recoverableSleepHp = sleepRemaining,
+        restRecoveryMinutes = if (stillEligible) q.restRecoveryMinutes else 0
       )
     )))
   }

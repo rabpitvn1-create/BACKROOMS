@@ -284,7 +284,9 @@ object CharacterStatEngine {
     val nextPhysiology = p.copy(
       recoverableFoodHp = foodRemaining,
       recoverableWaterHp = waterRemaining,
-      recoverableSleepHp = sleepRemaining
+      recoverableSleepHp = sleepRemaining,
+      restRecoveryMinutes = if (foodRemaining > 0 || waterRemaining > 0 || sleepRemaining > 0)
+        p.restRecoveryMinutes else 0
     )
     return state.copy(characters = state.characters + (characterId to character.copy(
       physiology = nextPhysiology,

@@ -122,6 +122,30 @@ class SurvivalHardeningTest {
       full.characters.getValue(CAO_MINH_ID).physiology.recoverableSleepHp)
   }
 
+  @Test fun restWhileHealthyCannotBankFreeHpRecoveryForLaterInjury() {
+    val healthy = withPhysiology(PhysiologyState(), hp = 40)
+    val idle = advance(healthy, 20, TimeActivity.REST)
+    assertEquals(0, idle.characters.getValue(CAO_MINH_ID).physiology.restRecoveryMinutes)
+    val injured = CharacterStatEngine.applySurvivalDamage(idle, CAO_MINH_ID, 1, "FOOD")
+    val tooShort = advance(injured, 10, TimeActivity.REST)
+    assertEquals(39, tooShort.characters.getValue(CAO_MINH_ID).vitalState.currentHp)
+    assertEquals(10, tooShort.characters.getValue(CAO_MINH_ID).physiology.restRecoveryMinutes)
+    val finished = advance(tooShort, 20, TimeActivity.REST)
+    assertEquals(40, finished.characters.getValue(CAO_MINH_ID).vitalState.currentHp)
+    assertEquals(0, finished.characters.getValue(CAO_MINH_ID).physiology.restRecoveryMinutes)
+  }
+
+  @Test fun fullyHealedDebtDoesNotBankUnusedRestTime() {
+    val p = PhysiologyState(recoverableFoodHp = 1)
+    val rested = advance(withPhysiology(p, hp = 40), 40, TimeActivity.REST)
+    assertEquals(41, rested.characters.getValue(CAO_MINH_ID).vitalState.currentHp)
+    assertEquals(0, rested.characters.getValue(CAO_MINH_ID).physiology.restRecoveryMinutes)
+    val interrupted = advance(withPhysiology(PhysiologyState(recoverableFoodHp = 2), hp = 40),
+      20, TimeActivity.REST)
+    val bandaged = CharacterStatEngine.setCurrentHp(interrupted, CAO_MINH_ID, 42)
+    assertEquals(0, bandaged.characters.getValue(CAO_MINH_ID).physiology.restRecoveryMinutes)
+  }
+
   @Test fun sleepingRestoresAwakeTimeProportionallyAndRestDoesNot() {
     val p = PhysiologyState(minutesSinceFood = 0, minutesSinceWater = 0, minutesAwake = 1000)
     val slept = advance(withPhysiology(p), 60, TimeActivity.SLEEP)
