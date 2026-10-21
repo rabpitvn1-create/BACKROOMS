@@ -49,4 +49,54 @@ class GmQuestItemsCheckpointTest {
     assertEquals("old_token", restored.presentation.getJSONObject("gmQuestItems")
       .getJSONArray("items").getJSONObject(0).getString("id"))
   }
+  private class ReadOnlySave(
+    var live: GameState,
+    val checkpoint: GameCheckpoint?
+  ) : SaveRepository {
+    var writes = 0
+    override fun save(state: GameState) { writes++; live = state }
+    override fun load(): GameState = live
+    override fun exists() = true
+    override fun clear() {}
+    override fun saveCheckpoint(state: GameState, presentation: JSONObject) {}
+    override fun loadCheckpoint(): GameCheckpoint? = checkpoint
+  }
+
+  @Test fun checkpointPreflightDoesNotOverwriteLiveGameState() {
+    val live = CoreClientProjection.initialize(GameState.initial())
+    val gmItems = JSONObject().put("version", 1)
+      .put("items", JSONArray().put(JSONObject().put("id", "mark_123")
+        .put("name", "Mảnh dấu").put("description", "Vật chứng GM")
+        .put("nodeId", "ls_2").put("status", "held")))
+      .put("appliedActions", JSONArray())
+    val saved = GameCheckpoint(live.copy(metadata = live.metadata + ("checkpointProof" to "saved")),
+      JSONObject().put("gmQuestItems", gmItems).put("log", JSONArray()))
+    val storage = ReadOnlySave(live, saved)
+    val ctor = GameCoreFacade::class.java.getDeclaredConstructor(
+      SaveRepository::class.java, GamePipelineLogger::class.java)
+    ctor.isAccessible = true
+    val facade = ctor.newInstance(storage, NoOpGamePipelineLogger)
+    val before = GameStateCodec.encode(storage.live)
+    val preview = JSONObject(facade.previewManualCheckpoint())
+    assertTrue(preview.getBoolean("ok"))
+    assertEquals(gmItems.toString(), preview.getJSONObject("state")
+      .getJSONObject("gmQuestItems").toString())
+    assertEquals(before, GameStateCodec.encode(storage.live))
+    assertEquals(0, storage.writes)
+  }
+
+  @Test fun missingCheckpointPreflightDoesNotChangeCore() {
+    val live = CoreClientProjection.initialize(GameState.initial())
+    val storage = ReadOnlySave(live, null)
+    val ctor = GameCoreFacade::class.java.getDeclaredConstructor(
+      SaveRepository::class.java, GamePipelineLogger::class.java)
+    ctor.isAccessible = true
+    val facade = ctor.newInstance(storage, NoOpGamePipelineLogger)
+    val response = JSONObject(facade.previewManualCheckpoint())
+    assertFalse(response.getBoolean("ok"))
+    assertEquals("checkpoint_missing", response.getString("error"))
+    assertEquals(0, storage.writes)
+    assertEquals(live, storage.live)
+  }
+
 }
