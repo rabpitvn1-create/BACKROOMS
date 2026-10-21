@@ -1654,7 +1654,7 @@ public class MainActivity extends Activity {
               });
             requireGameCore().acceptSceneGeneration(request.getString("token"), raw);
           }
-          emit("backroomTurn", requireGameCore().currentClientState(stateJson));
+          emit("backroomTurn", attachGmItems(requireGameCore().currentClientState(stateJson)));
         } catch (Exception error) {
           String failure = lastFailure[0];
           String category = failure.contains(":validation:") ? "JSON/câu đố không hợp lệ" :
@@ -1944,7 +1944,7 @@ public class MainActivity extends Activity {
               stopMessage = "Đã giữ câu nhập và kết quả Core. GM chưa hoàn tất; Retry chỉ tạo lại lời kể.";
             }
           }
-          emit("backroomTurn", requireGameCore().currentClientState(projection));
+          emit("backroomTurn", attachGmItems(requireGameCore().currentClientState(projection)));
           JSONObject outcome = new JSONObject().put("executed", committed)
             .put("requested", requested).put("completed", stopCode == null)
             .put("stoppedStep", stopCode == null ? JSONObject.NULL : stoppedStep)
@@ -1960,7 +1960,7 @@ public class MainActivity extends Activity {
               "Dừng tại bước " + stoppedStep + ". Các bước còn lại chưa thực hiện; kết quả Core đã lưu được giữ nguyên.",
               "", failureCode, false);
             // Includes the exact persisted pending command, if narration failed.
-            emit("backroomTurn", requireGameCore().currentClientState(projection));
+            emit("backroomTurn", attachGmItems(requireGameCore().currentClientState(projection)));
           } catch (Exception syncError) {
             DiagnosticLog.record("player.action.sync.failed", syncError.getClass().getSimpleName());
           }
@@ -2032,7 +2032,7 @@ public class MainActivity extends Activity {
       try {
         JSONObject batch = new JSONObject(requireGameCore().playerPresentationContext());
         if (!batch.optString("reply").isEmpty()) {
-          emit("backroomTurn", requireGameCore().currentClientState(clientJson));return;
+          emit("backroomTurn", attachGmItems(requireGameCore().currentClientState(clientJson)));return;
         }
         JSONObject view = new JSONObject(requireGameCore().currentClientState(clientJson));
         JSONObject caller = new JSONObject(clientJson).optJSONObject("playerAction");
@@ -2047,7 +2047,7 @@ public class MainActivity extends Activity {
         requireGameCore().finishPlayerPresentation(batch.optInt("requested"), batch.optBoolean("interrupted", true),
           batch.optBoolean("interrupted", true) ? "Chuỗi dừng sớm; các bước còn lại chưa thực hiện." : "", reply, "", false);
         completeGmItems(batch.getString("id"), currentNodeId(new JSONObject(requireGameCore().currentClientState(clientJson))));
-        emit("backroomTurn", requireGameCore().currentClientState(clientJson));
+        emit("backroomTurn", attachGmItems(requireGameCore().currentClientState(clientJson)));
       } catch (Exception error) {
         String reason = writerFailureCode(error);
         DiagnosticLog.record("player.action.writer.failed", reason + "; retryable=" + writerRetryable(error));
@@ -2056,7 +2056,7 @@ public class MainActivity extends Activity {
           requireGameCore().finishPlayerPresentation(batch.optInt("requested"), batch.optBoolean("interrupted", true),
             "GM chưa hoàn tất lời kể (mã " + reason + "). Kết quả Core được giữ nguyên; Retry chỉ tạo lại lời kể.",
             "", reason, writerRetryable(error));
-          emit("backroomTurn", requireGameCore().currentClientState(clientJson));
+          emit("backroomTurn", attachGmItems(requireGameCore().currentClientState(clientJson)));
         } catch (Exception syncError) {
           DiagnosticLog.record("player.action.writer.sync_failed", syncError.getClass().getSimpleName());
         }
@@ -2101,7 +2101,7 @@ public class MainActivity extends Activity {
           String code = error.getMessage();
           if (code == null || !code.matches("scene_[a-z0-9_]{2,60}")) code = "scene_processing_error";
           DiagnosticLog.record("scene.failed", error.getClass().getSimpleName() + "; code=" + code);
-          try { emit("backroomTurn", requireGameCore().currentClientState(stateJson)); } catch (Exception ignored) {}
+          try { emit("backroomTurn", attachGmItems(requireGameCore().currentClientState(stateJson))); } catch (Exception ignored) {}
           emit("backroomError", "Lượt chưa hoàn tất. State và roll đang chờ được giữ nguyên; nhấn Thử lại.");
         }
       });
