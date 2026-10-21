@@ -76,6 +76,29 @@ public class MainActivity extends Activity {
   private final ScenarioGenerator scenarioGenerator = new ScenarioGenerator();
   private GameCoreFacade gameCore;
   private volatile boolean gameCoreUnavailable;
+  private GmQuestItems gmItems;
+  // Narration and writer acceptance share the single-threaded io queue.
+  private JSONArray stagedGmItemOperations = new JSONArray();
+  private synchronized GmQuestItems gmItems() {
+    if (gmItems == null) gmItems = new GmQuestItems(getApplicationContext());
+    return gmItems;
+  }
+  private String attachGmItemsCheckpoint(String rawResponse) {
+    JSONObject response = new JSONObject(rawResponse);
+    if (response.optBoolean("ok", false) && response.has("state"))
+      response.getJSONObject("state").put("gmQuestItems", gmItems().snapshot());
+    return response.toString();
+  }
+  private String attachGmItems(String coreView) {
+    JSONObject response = new JSONObject(coreView);
+    response.put("gmQuestItems", gmItems().snapshot());
+    return response.toString();
+  }
+  private void completeGmItems(String narrationId, String nodeId) {
+    JSONArray ops = stagedGmItemOperations;
+    stagedGmItemOperations = new JSONArray();
+    if (ops.length() > 0) gmItems().applyConfirmed(narrationId, nodeId, ops);
+  }
   private static final String GEMINI_MODEL = "gemini-3.6-flash";
   private static final String[] GEMINI_IMAGE_MODELS = {"gemini-3.1-flash-image", "gemini-3.1-flash-lite-image"};
   private static final int[] RETRYABLE = {408, 429, 500, 502, 503, 504};
@@ -1057,12 +1080,13 @@ public class MainActivity extends Activity {
     emit("backroomProvider", "Gehihi");
     JSONObject packet;
     try {
-      packet = ProviderResponseContract.parseSceneWriter(gehihiText(prompt, 4096, "gm.http"));
+      packet = GmQuestItems.parseEnvelope(gehihiText(prompt, 4096, "gm.http"));
+      gmItems().validateProposal(packet.getJSONArray("questItems"));
     } catch (Exception failure) {
       DiagnosticLog.record("gm.response.failed", writerFailureCode(failure) + "; retryable=" + writerRetryable(failure));
       throw failure;
     }
-    return new JSONObject().put("reply", packet.getString("reply")).toString();
+    return packet.toString();
   }
 
   private String scenarioTransport(String key, String prompt, boolean outline) throws Exception {
@@ -1143,8 +1167,9 @@ public class MainActivity extends Activity {
     if (packet.has("encounter")) view.put("pendingEntityEncounter", packet.getJSONObject("encounter"));
     String canon = com.rabpit.backroom.core.knowledge.KnowledgeContextEngine.build(
       MainActivity.this, view.toString(), packet.getString("kind") + " " + packet.getString("interaction"), "{}");
-    return "Bạn là GM Gehihi, kể văn xuôi tiếng Việt. Chỉ trả JSON {\"reply\":\"lời kể không rỗng\"}. "
-      + "Core đã stage sự kiện; chỉ kể đúng public event. Không thêm hành động, lựa chọn, manh mối, lời giải, loot, spawn hoặc thay route. "
+    return "Bạn là GM Gehihi, kể văn xuôi tiếng Việt. Chỉ trả JSON có reply và questItems (mảng có thể rỗng). "
+      + "Core đã stage sự kiện; chỉ kể đúng public event. Không thêm hành động, lựa chọn, chứng cứ Core, lời giải Core, loot, spawn hoặc thay route. "
+      + "RIÊNG VẬT PHẨM NHIỆM VỤ GM: được tạo vật nhỏ một lần phục vụ suy luận trong diễn biến hợp lệ bằng questItems:[{\"type\":\"create\",\"id\":\"id-on-dinh\",\"name\":\"tên\",\"description\":\"mô tả\"}]; khi thực sự dùng xong trả {\"type\":\"consume\",\"id\":\"id-da-co\"}. Không thể thêm vật phẩm Core/Inventory, chữa trị, trang bị, mở cổng, xác nhận chứng cứ Core hay thay đổi gameplay. Mỗi vật phẩm chỉ tạo một lần, tối đa 8 thao tác/lượt, không ép tạo. "
       + "Không tự tạo, diễn đạt lại, trích dẫn hoặc gán lời thoại cho Cao Minh/người chơi. Lời người chơi do Core lưu nguyên văn riêng; GM chỉ được kể phản ứng và hậu quả đã xác nhận. "
       + "Không tự sinh người lạ hay NPC mới trong lời kể. Chỉ mô tả NPC tại PUBLIC_EVENT.npcs, NPC tương tác PUBLIC_EVENT.npc, nhân vật tại PUBLIC_EVENT.dialogue và Canon encounter trong npcEncounters. "
       + "NPC kịch bản có tên riêng và originPeriod; phản ánh trang phục, lối nói, kiến thức phù hợp thời kỳ ấy, nhưng không tự xác nhận du hành thời gian hoặc thêm lai lịch mới. "
@@ -1165,6 +1190,7 @@ public class MainActivity extends Activity {
       + com.rabpit.backroom.core.knowledge.GmNarrativeVoicePolicy.prompt()
       + "\nOPENING_CONTEXT=" + com.rabpit.backroom.core.knowledge.GmNarrativeVoicePolicy.openingContext()
       + "\nCANON=" + canon + "\nMEMORY=" + requireGameCore().sceneMemoryContext()
+      + "\nGM_QUEST_ITEMS=" + gmItems().snapshot()
       + "\nPUBLIC_EVENT=" + packet;
   }
 
@@ -1189,6 +1215,7 @@ public class MainActivity extends Activity {
     }
     if (!stagedLocationAlreadyInvalid)
       com.rabpit.backroom.core.MiniMapScenario.INSTANCE.canonBoundary(sceneNode, reply.getString("reply"));
+    stagedGmItemOperations = reply.getJSONArray("questItems");
     return reply.getString("reply");
   }
 
@@ -1513,7 +1540,7 @@ public class MainActivity extends Activity {
 
     @JavascriptInterface public String currentClientState(String stateJson) {
       try {
-        return requireGameCore().currentClientState(stateJson);
+        return attachGmItems(requireGameCore().currentClientState(stateJson));
       } catch (Exception error) {
         return "{\"error\":\"core_state_unavailable\"}";
       }
@@ -1534,9 +1561,11 @@ public class MainActivity extends Activity {
     @JavascriptInterface public String resetNewGameCore() {
       try {
         clearAmbientEncounter();
+        JSONObject core = new JSONObject(requireGameCore().resetNewGame());
+        gmItems().reset();
         return new JSONObject()
           .put("ok", true)
-          .put("data", new JSONObject(requireGameCore().resetNewGame()))
+          .put("data", core)
           .toString();
       } catch (Exception e) {
         String message = e.getMessage() == null ? "New Game core reset failed" : e.getMessage();
@@ -1546,7 +1575,9 @@ public class MainActivity extends Activity {
 
     @JavascriptInterface public String saveGameCheckpoint(String presentationJson) {
       try {
-        return requireGameCore().saveManualCheckpoint(presentationJson);
+        JSONObject presentation = new JSONObject(presentationJson);
+        presentation.put("gmQuestItems", gmItems().snapshot());
+        return attachGmItemsCheckpoint(requireGameCore().saveManualCheckpoint(presentation.toString()));
       } catch (Exception error) {
         return "{\"ok\":false,\"error\":\"checkpoint_save_failed\"}";
       }
@@ -1555,7 +1586,13 @@ public class MainActivity extends Activity {
     @JavascriptInterface public String loadGameCheckpoint() {
       try {
         clearAmbientEncounter();
-        return requireGameCore().loadManualCheckpoint();
+        JSONObject result = new JSONObject(requireGameCore().loadManualCheckpoint());
+        if (result.optBoolean("ok", false) && result.has("state")) {
+          JSONObject restored = result.getJSONObject("state");
+          gmItems().restore(restored.getJSONObject("gmQuestItems"));
+          restored.put("gmQuestItems", gmItems().snapshot());
+        }
+        return result.toString();
       } catch (Exception error) {
         return "{\"ok\":false,\"error\":\"checkpoint_load_failed\"}";
       }
@@ -1565,6 +1602,7 @@ public class MainActivity extends Activity {
       try {
         clearAmbientEncounter();
         requireGameCore().clear();
+        gmItems().reset();
         return true;
       } catch (Exception error) {
         return false;
@@ -1893,6 +1931,8 @@ public class MainActivity extends Activity {
               String reply = narrateMixedPlayerAction(rawAction, narrativeEvents, projection, stopCode != null);
               requireGameCore().finishPlayerPresentation(requested, stopCode != null,
                 stopMessage == null ? "" : stopMessage, reply, "", false);
+              completeGmItems(new JSONObject(requireGameCore().playerPresentationContext()).getString("id"),
+                currentNodeId(new JSONObject(requireGameCore().currentClientState(projection))));
             } catch (Exception writerError) {
               String reason = writerFailureCode(writerError);
               DiagnosticLog.record("player.action.writer.failed", reason + "; retryable=" + writerRetryable(writerError));
@@ -1948,12 +1988,15 @@ public class MainActivity extends Activity {
       JSONObject scene = view.optJSONObject("scene");
       String canon = com.rabpit.backroom.core.knowledge.KnowledgeContextEngine.build(
         MainActivity.this, view.toString(), rawAction, "{}");
-      String prompt = "Bạn là GM Gehihi, kể văn xuôi tiếng Việt. Chỉ trả JSON chứa đúng trường reply là lời kể không rỗng. "
+      String prompt = "Bạn là GM Gehihi, kể văn xuôi tiếng Việt. Chỉ trả JSON có reply và questItems (mảng có thể rỗng). "
         + "Kể một lượt theo đúng trình tự RESOLVED_EVENTS; được xuống đoạn để giữ nhịp kể và lời thoại. "
         + "FREE là lượt gameplay thật đã được Core ghi nhận, tốn thời gian và có thể kích hoạt Entity/NPC. "
         + "Phần tưởng tượng chỉ có thể sáng tạo bóng đổ, vật dụng, món ăn, thuốc, "
         + "vũ khí, người qua đường và phản ứng hợp lý không liên quan nhiệm vụ. "
-        + "Vật phẩm nhắc trong FREE, kể cả trùng tên Game ID như Almond Water, chỉ là đạo cụ, KHÔNG lấy từ Inventory. "
+        + "Đạo cụ FREE thông thường, kể cả trùng tên Game ID như Almond Water, KHÔNG lấy từ Inventory. "
+        + "RIÊNG vật phẩm nhiệm vụ GM độc lập: chỉ tạo khi câu chuyện thực sự trao hoặc tìm thấy vật nhỏ phục vụ giải đố GM, bằng questItems [{\"type\":\"create\",\"id\":\"id-on-dinh\",\"name\":\"tên\",\"description\":\"mô tả\"}]. "
+        + "Nếu Player Action thật sự dùng hết vật phẩm đang giữ, cho phép questItems [{\"type\":\"consume\",\"id\":\"id-da-co\"}]. Không tạo nguồn tài nguyên Core, không trang bị, không mở route, không xác minh riddle Core. "
+        + "Vật phẩm GM có ID duy nhất, không hồi sinh sau tiêu thụ. Không bắt buộc tạo vật phẩm ở mỗi lượt. "
         + "Các đạo cụ FREE không được cấp tài nguyên thật, hồi HP, trang bị, tạo Party, mở khóa hoặc chứng cứ. "
         + "Entity/NPC và combat nếu xảy ra chỉ do kết quả Core trong RESOLVED_EVENTS xác nhận. "
         + "Nhân vật Canon chỉ được có mặt khi STATE xác nhận; họ có thể nhận hoặc từ chối quà tưởng tượng, "
@@ -1970,12 +2013,14 @@ public class MainActivity extends Activity {
         + "\nCHARACTER_MEMORY=" + requireGameCore().sceneMemoryContext()
         + "\nPLAYER=" + JSONObject.quote(rawAction)
         + "\nSTATE=" + view
+        + "\nGM_QUEST_ITEMS=" + gmItems().snapshot()
         + "\nRESOLVED_EVENTS=" + resolved;
       JSONObject written = new JSONObject(generateText(prompt));
       ProviderResponseContract.requireWriter(written);
       String prose = written.getString("reply");
       if (scene != null) com.rabpit.backroom.core.MiniMapScenario.INSTANCE.canonBoundary(
         scene.getString("nodeId"), prose);
+      stagedGmItemOperations = written.getJSONArray("questItems");
       return prose;
     }
 
@@ -2001,6 +2046,7 @@ public class MainActivity extends Activity {
           batch.optBoolean("interrupted", true));
         requireGameCore().finishPlayerPresentation(batch.optInt("requested"), batch.optBoolean("interrupted", true),
           batch.optBoolean("interrupted", true) ? "Chuỗi dừng sớm; các bước còn lại chưa thực hiện." : "", reply, "", false);
+        completeGmItems(batch.getString("id"), currentNodeId(new JSONObject(requireGameCore().currentClientState(clientJson))));
         emit("backroomTurn", requireGameCore().currentClientState(clientJson));
       } catch (Exception error) {
         String reason = writerFailureCode(error);
@@ -2042,9 +2088,10 @@ public class MainActivity extends Activity {
             } else {
             requireGameCore().commitSceneAction(new JSONObject(command).getString("actionId"),
               narrateStagedSceneAction(stagedEvent), stateJson);
+            completeGmItems(new JSONObject(command).getString("actionId"), stagedEvent.getString("node"));
             }
           }
-          JSONObject committedView = new JSONObject(requireGameCore().currentClientState(stateJson));
+          JSONObject committedView = new JSONObject(attachGmItems(requireGameCore().currentClientState(stateJson)));
           emit("backroomTurn", committedView.toString());
           // The former temporary passerby feature is archived. Scene NPCs are script-owned.
           DiagnosticLog.timing(MainActivity.this, "scene.action", java.util.concurrent.TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started), 0);
