@@ -178,12 +178,28 @@ object CharacterStatCore {
       val base = (raw.coerceIn(5, 999) + passiveBonus(raw, characterId)).coerceAtMost(CharacterProgressionCore.MAX_STAT)
       return ((base.toLong() * (100 + pct)) / 100).coerceAtMost(CharacterProgressionCore.MAX_STAT.toLong()).toInt()
     }
-    val str = value(p.str, equip.strPct)
-    val dex = value(p.dex, equip.dexPct)
-    val agi = value(p.agi, equip.agiPct)
+    // Needs weaken effective performance, never permanent progression or Max HP.
+    val c = state.characters[characterId]
+    val pState = c?.physiology ?: PhysiologyState()
+    val survivalMultiplier = c?.metadata?.get("survivalMultiplier")?.toDoubleOrNull() ?: 1.0
+    fun severity(band: PhysiologyBand): Int = when (band) {
+      PhysiologyBand.MODERATE -> 1
+      PhysiologyBand.SEVERE -> 2
+      PhysiologyBand.CRITICAL -> 3
+      else -> 0
+    }
+    val hunger = severity(PhysiologyStatusPolicy.hungerBand(pState.minutesSinceFood, survivalMultiplier))
+    val thirst = severity(PhysiologyStatusPolicy.thirstBand(pState.minutesSinceWater, survivalMultiplier))
+    val fatigue = severity(PhysiologyStatusPolicy.awakeBand(pState.minutesAwake, survivalMultiplier))
+    fun weakened(raw: Int, percent: Int): Int =
+      ((raw.toLong() * (100 - percent).coerceAtLeast(0)) / 100).toInt().coerceAtLeast(1)
+    val str = weakened(value(p.str, equip.strPct), hunger * 12 + thirst * 4)
+    val dex = weakened(value(p.dex, equip.dexPct), fatigue * 12 + thirst * 6)
+    val agi = weakened(value(p.agi, equip.agiPct), thirst * 12 + hunger * 4)
     val vit = value(p.vit, equip.vitPct)
-    val eva = value(p.eva, 0)
-    val def = ((defense(vit).toLong() * (100 + equip.defPct)) / 100).coerceAtMost(CharacterProgressionCore.MAX_STAT.toLong()).toInt()
+    val eva = weakened(value(p.eva, 0), fatigue * 12 + thirst * 6)
+    val baseDef = ((defense(vit).toLong() * (100 + equip.defPct)) / 100).coerceAtMost(CharacterProgressionCore.MAX_STAT.toLong()).toInt()
+    val def = weakened(baseDef, thirst * 10)
     val accuracyBp = accuracyBasisPoints(dex, agi)
     val critBp = criticalChanceBasisPoints(agi)
     val dodgeBp = evasionBasisPoints(eva)
