@@ -1757,13 +1757,14 @@ function semanticCollectLocations(map,s,priority){
 function semanticCollectClues(map,s,priority){
   const records=s&&s.scene&&s.scene.records;
   if(!Array.isArray(records))return;
+  const worldGraph=s.scene.runtime==="world-graph-v3";
   records.forEach(record=>{
-    // MiniMapRuntime publishes failed attempts too; never promote those into clues.
-    if(!record||record.confirmed===false||
-      !["FIELD_NOTE","EVIDENCE","CLUE","HINT"].includes(record.kind))return;
-    // WorldGraphRuntime records confirmed evidence; MiniMapRuntime supplies
-    // confirmed:true and the public action label. Prose is not a trusted entity name.
-    if(["CLUE","HINT"].includes(record.kind)&&record.confirmed!==true)return;
+    if(!record)return;
+    // World Graph records are only committed after successful exploration.
+    // Mini-map records also contain failed trials, which must not become facts.
+    const allowed=worldGraph?["FIELD_NOTE","EVIDENCE"]:["CLUE","EVIDENCE","HINT"];
+    if(!allowed.includes(record.kind)||(!worldGraph&&record.confirmed!==true))return;
+    // These labels are released by the Core projection, never guessed from prose.
     semanticAddTerm(map,record.label,"clue",priority);
     if(Array.isArray(record.aliases))record.aliases.slice(0,8).forEach(alias=>
       semanticAddTerm(map,alias,"clue",priority-5));
