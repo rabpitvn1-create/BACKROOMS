@@ -7,7 +7,7 @@ import static org.junit.Assert.*;
 
 /** No Android context or Game Core objects are needed to prove the GM domain. */
 public class GmQuestItemsTest {
-  private JSONObject empty() {
+  private JSONObject empty() throws Exception {
     return new JSONObject().put("version", 1).put("items", new JSONArray())
       .put("appliedActions", new JSONArray());
   }
@@ -16,11 +16,11 @@ public class GmQuestItemsTest {
     for (JSONObject item : value) array.put(item);
     return array;
   }
-  private JSONObject create(String id) {
+  private JSONObject create(String id) throws Exception {
     return new JSONObject().put("type", "create").put("id", id)
       .put("name", "Mảnh ký hiệu").put("description", "Dấu ghép dùng một lần.");
   }
-  private JSONObject consume(String id) {
+  private JSONObject consume(String id) throws Exception {
     return new JSONObject().put("type", "consume").put("id", id);
   }
 
