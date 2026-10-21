@@ -83,18 +83,18 @@ public class MainActivity extends Activity {
     if (gmItems == null) gmItems = new GmQuestItems(getApplicationContext());
     return gmItems;
   }
-  private String attachGmItemsCheckpoint(String rawResponse) {
+  private String attachGmItemsCheckpoint(String rawResponse) throws Exception {
     JSONObject response = new JSONObject(rawResponse);
     if (response.optBoolean("ok", false) && response.has("state"))
       response.getJSONObject("state").put("gmQuestItems", gmItems().snapshot());
     return response.toString();
   }
-  private String attachGmItems(String coreView) {
+  private String attachGmItems(String coreView) throws Exception {
     JSONObject response = new JSONObject(coreView);
     response.put("gmQuestItems", gmItems().snapshot());
     return response.toString();
   }
-  private void completeGmItems(String narrationId, String nodeId) {
+  private void completeGmItems(String narrationId, String nodeId) throws Exception {
     JSONArray ops = stagedGmItemOperations;
     stagedGmItemOperations = new JSONArray();
     if (ops.length() > 0) gmItems().applyConfirmed(narrationId, nodeId, ops);
