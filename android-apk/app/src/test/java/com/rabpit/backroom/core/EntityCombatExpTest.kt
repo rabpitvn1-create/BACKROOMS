@@ -34,6 +34,29 @@ class EntityCombatExpTest {
     assertEquals(1, boss.state.metadata.keys.count { it.startsWith("exp.awarded.") })
   }
 
+  @Test fun luckyBearAlwaysPaysExactly200ExpOnlyAfterConfirmedDefeat() {
+    for (level in listOf(0, 3, 6)) {
+      val initial = levelState(level)
+      val party = initial.copy(party = PartyState(memberIds = listOf(CAO_MINH_ID, IRIS_ID, SYVIAL_ID)))
+      val fallen = CharacterStatEngine.setCurrentHp(party, SYVIAL_ID, 0)
+      val started = CombatRuntime.start(fallen, "LuckyBear")
+      val look = CombatRuntime.resolve(started, "SEARCH", "quan sát")
+      assertFalse(look.entityDestroyed)
+      assertFalse(look.state.metadata.keys.any { it.startsWith("exp.awarded.") })
+      val completed = defeated(started)
+      assertTrue(completed.entityDestroyed)
+      assertTrue(completed.reply.contains("+200 EXP"))
+      assertEquals(setOf("200"), completed.state.metadata.filterKeys { it.startsWith("exp.awarded.") }.values.toSet())
+      assertTrue(completed.state.characters.getValue(IRIS_ID).progression != party.characters.getValue(IRIS_ID).progression)
+      assertEquals(party.characters.getValue(SYVIAL_ID).progression, completed.state.characters.getValue(SYVIAL_ID).progression)
+    }
+    val original = EntityExpRewards.award(GameState.initial(), "lucky:repeat", 0L, fixedExp = 200)
+    val persisted = GameStateCodec.decode(GameStateCodec.encode(original.state))
+    val repeated = EntityExpRewards.award(persisted, "lucky:repeat", 0L, fixedExp = 200)
+    assertFalse(repeated.newlyAwarded)
+    assertEquals(persisted, repeated.state)
+  }
+
   @Test fun fractionalWorldRankDoesNotAdvanceFullLevelExpReward() {
     assertEquals(4, EntityExpRewards.expForRank(1_500_000L))
     try {

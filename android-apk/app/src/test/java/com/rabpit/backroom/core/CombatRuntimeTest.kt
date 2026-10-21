@@ -85,6 +85,22 @@ class CombatRuntimeTest {
     assertNull(CombatRuntime.active(state))
   }
 
+  @Test fun luckyBearHasHoundDurabilityButCannotDealAnyDamage() {
+    val lucky = CombatRuntime.active(CombatRuntime.start(GameState.initial(), "LuckyBear"))!!
+    val hound = CombatRuntime.active(CombatRuntime.start(GameState.initial(), "hound"))!!
+    assertEquals("LuckyBear", lucky.entityName)
+    assertEquals(hound.entityMaxHp, lucky.entityMaxHp)
+    var state = CombatRuntime.start(GameState.initial(), "LuckyBear")
+    repeat(8) {
+      val beforeHp = PartyCombatHealth.currentHp(state)
+      val turn = CombatRuntime.resolve(state, "SEARCH", "quan sát LuckyBear")
+      assertTrue(turn.handled)
+      assertFalse(turn.feedback.any { it.target == "actor" && it.phase == "entity" && it.amount > 0 })
+      assertTrue(PartyCombatHealth.currentHp(turn.state) >= beforeHp)
+      state = turn.state
+    }
+  }
+
   @Test fun combatMovementIsNotAnotherEncounter() {
     val started = CombatRuntime.start(GameState.initial(), "skin-stealer")
     val before = CombatRuntime.active(started)!!
@@ -159,7 +175,7 @@ class CombatRuntimeTest {
 
   @Test fun everyNonDiepMinhEntityDoublesItsPreviousScaledHp() {
     val expected = mapOf(
-      "926" to 220, "927" to 440, "hound" to 110, "clump" to 135, "duller" to 120, "deathmoth" to 95,
+      "926" to 220, "927" to 440, "LuckyBear" to 110, "hound" to 110, "clump" to 135, "duller" to 120, "deathmoth" to 95,
       "hostile_faceling" to 105, "false_puddle" to 125, "paintings" to 100,
       "smiler" to 115, "skin-stealer" to 130, "predatory_window" to 145,
       "biological_pipeline" to 150, "wretch" to 115, "cable_mimic" to 130,

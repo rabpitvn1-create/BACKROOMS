@@ -12,7 +12,7 @@ const literal=line.match(/^\s*("(?:[^"\\]|\\.)*")\s*\+/);
 assert.ok(literal,'Embedded Entity renderer must remain parseable');
 const renderer=JSON.parse(literal[1]);
 const assets=path.join(dir,'../app/src/main/assets');
-const supported=['926','927','hound','clump','duller','deathmoth','hostile_faceling','false_puddle',
+const supported=['926','927','LuckyBear','hound','clump','duller','deathmoth','hostile_faceling','false_puddle',
  'paintings','smiler','skin-stealer','predatory_window','biological_pipeline','wretch',
  'cable_mimic','the_beast_of_level_5','hotel_corpse_lure','jeff_the_killer',
  'jane_the_killer','slenderman','diep_minh','blackroot_sentinel','sinew_strider','hollow_grasper'];
@@ -118,6 +118,34 @@ test('Entity 926 has grounded alpha bounds from its bundled transparent WebP',()
   assert.ok(visibleHeight<=snapshotHeight*.97+.5);
   assert.ok(Math.abs(y-(1-1438/1448)*h*scale)<.5);
   assert.ok(Math.abs(x+(323/1086)*w*scale)<.5);
+ }
+});
+
+test('LuckyBear filename matches its canonical mixed-case Entity key and has alpha bounds',()=>{
+ const keyLine=java.split('\n').find(row=>row.includes('var __entityKeys='));
+ const normalizeLine=java.split('\n').find(row=>row.includes('function normalizeEntityKey(v)'));
+ const boundsLine=java.split('\n').find(row=>row.includes('__entityVisualBounds='));
+ const normalizerLine=java.split('\n').find(row=>row.includes('function normalizeEntityVisual('));
+ const extract=row=>JSON.parse(row.match(/^\s*("(?:[^"\\]|\\.)*")\s*\+/)[1]);
+ const ctx={__entityOverlay:{key:'LuckyBear'}};
+ vm.createContext(ctx);
+ vm.runInContext([keyLine,normalizeLine,boundsLine,normalizerLine].map(extract).join('\n'),ctx);
+ assert.equal(ctx.normalizeEntityKey('LuckyBear'),'LuckyBear');
+ assert.equal(ctx.normalizeEntityKey('luckybear'),'LuckyBear');
+ assert.equal(ctx.normalizeEntityKey('../LuckyBear'),'');
+ const r=runtime('LuckyBear');r.context.appendEntityOverlay();
+ assert.equal(r.imgs()[0].src,'file:///android_asset/entity/LuckyBear.webp');
+ for(const sh of [200,300,450]){
+  const h=sh*.97,w=h*900/1200;
+  const img={alt:'LuckyBear',style:{},getBoundingClientRect:()=>({width:w,height:h})};
+  ctx.normalizeEntityVisual(img);
+  const match=img.style.transform.match(/translate\(([-\d.]+)px,([-\d.]+)px\) scale\(([-\d.]+)\)/);
+  assert.ok(match);
+  const [,x,y,scale]=match.map(Number);
+  const visH=(1160-24)/1200;
+  assert.ok(Math.abs(visH*h*scale-sh*.94)<.5);
+  assert.ok(Math.abs(y-(1-1160/1200)*h*scale)<.5);
+  assert.ok(Math.abs(x+(111/900)*w*scale)<.5);
  }
 });
 

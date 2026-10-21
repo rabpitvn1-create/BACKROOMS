@@ -30,7 +30,7 @@ import org.json.JSONObject
 object EntitySpawnPool {
   // Relative species weights; encounter probability is a separate 35% gate.
   val COMMON = listOf(
-    "926", "927", "hound", "clump", "duller", "deathmoth", "hostile_faceling",
+    "926", "927", "LuckyBear", "hound", "clump", "duller", "deathmoth", "hostile_faceling",
     "false_puddle", "paintings", "smiler", "skin-stealer", "predatory_window",
     "biological_pipeline", "wretch", "cable_mimic", "hotel_corpse_lure"
   )
@@ -59,7 +59,7 @@ object EntitySpawnPool {
   // Jeff/Jane are roaming. Owner also assigned entities without a confirmed
   // current habitat to this gameplay pool on 2026-10-16; not a new lore claim.
   val ROAMING = listOf("jeff_the_killer", "jane_the_killer", "slenderman", "diep_minh",
-    "blackroot_sentinel", "sinew_strider", "hollow_grasper", "926", "927")
+    "blackroot_sentinel", "sinew_strider", "hollow_grasper", "926", "927", "LuckyBear")
 
   fun residentsForLevel(levelId: String): List<String> = RESIDENTS_BY_LEVEL[levelId].orEmpty()
 
