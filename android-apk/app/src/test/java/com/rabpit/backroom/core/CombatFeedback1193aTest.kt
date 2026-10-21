@@ -96,6 +96,9 @@ class CombatFeedback1193aTest {
       .put("log", narrative)
       .put("combatFeedback", JSONObject().put("id", "forged"))
     val output = JSONObject(facade.processCombat(legacy.toString(), "EXECUTE", action)).getJSONObject("state")
+    // Combat is strenuous: one combat minute costs two need-minutes.
+    assertEquals(2L, saved.state.characters.getValue(CAO_MINH_ID).physiology.minutesSinceFood)
+    assertEquals(2L, saved.state.characters.getValue(CAO_MINH_ID).physiology.minutesSinceWater)
     val packet = output.getJSONObject("combatFeedback")
     assertEquals("${active.encounterId}:1", packet.getString("id"))
     assertTrue(packet.getString("summary").isNotBlank())

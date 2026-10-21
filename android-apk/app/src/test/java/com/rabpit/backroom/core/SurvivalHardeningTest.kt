@@ -96,6 +96,32 @@ class SurvivalHardeningTest {
       split.characters.getValue(CAO_MINH_ID).physiology)
   }
 
+  @Test fun interruptedRestKeepsOnlyEarnedRecoveryTimeAndDoesNotHealDuringMovement() {
+    val p = PhysiologyState(recoverableFoodHp = 3, restRecoveryMinutes = 20)
+    val began = withPhysiology(p, hp = 40)
+    val moving = advance(began, 5, TimeActivity.EXERTION)
+    assertEquals(40, moving.characters.getValue(CAO_MINH_ID).vitalState.currentHp)
+    assertEquals(20, moving.characters.getValue(CAO_MINH_ID).physiology.restRecoveryMinutes)
+    val rested = advance(moving, 10, TimeActivity.REST)
+    assertEquals(41, rested.characters.getValue(CAO_MINH_ID).vitalState.currentHp)
+    assertEquals(0, rested.characters.getValue(CAO_MINH_ID).physiology.restRecoveryMinutes)
+  }
+
+  @Test fun healingCannotLeaveMoreRestEligibleHpThanActuallyMissing() {
+    val original = withPhysiology(PhysiologyState(
+      recoverableFoodHp = 30, recoverableWaterHp = 20, recoverableSleepHp = 10), hp = 30)
+    val healed = CharacterStatEngine.setCurrentHp(original, CAO_MINH_ID, 95)
+    val c = healed.characters.getValue(CAO_MINH_ID)
+    val maxHp = CharacterStatCore.effective(healed, CAO_MINH_ID).maxHp
+    val ledger = c.physiology.recoverableFoodHp + c.physiology.recoverableWaterHp +
+      c.physiology.recoverableSleepHp
+    assertTrue(ledger <= maxHp - c.vitalState.currentHp)
+    val full = CharacterStatEngine.setCurrentHp(original, CAO_MINH_ID, maxHp)
+    assertEquals(0, full.characters.getValue(CAO_MINH_ID).physiology.recoverableFoodHp +
+      full.characters.getValue(CAO_MINH_ID).physiology.recoverableWaterHp +
+      full.characters.getValue(CAO_MINH_ID).physiology.recoverableSleepHp)
+  }
+
   @Test fun sleepingRestoresAwakeTimeProportionallyAndRestDoesNot() {
     val p = PhysiologyState(minutesSinceFood = 0, minutesSinceWater = 0, minutesAwake = 1000)
     val slept = advance(withPhysiology(p), 60, TimeActivity.SLEEP)

@@ -61,7 +61,9 @@ object PhysiologyEngine {
         minutesSinceWater = add(p.minutesSinceWater, minutes * waterRate),
         minutesAwake = if (isSleep) p.minutesAwake?.let { (it - minOf(it, minutes * (if (harsh) 1L else 2L))) }
                        else add(p.minutesAwake, minutes * (if (activity == TimeActivity.EXERTION) 2L else 1L)),
-        restRecoveryMinutes = if (isRest) ((p.restRecoveryMinutes.toLong() + minutes) % 30L).toInt() else 0
+        // Movement/combat pauses rest recovery; it must not erase actual rest already earned.
+        restRecoveryMinutes = if (isRest) ((p.restRecoveryMinutes.toLong() + minutes) % 30L).toInt()
+          else p.restRecoveryMinutes
       )
     } catch (_: ArithmeticException) { return null }
     var output = state.copy(characters = state.characters + (id to c.copy(physiology = next)))

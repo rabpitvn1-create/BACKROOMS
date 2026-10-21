@@ -36,6 +36,13 @@ class RestActionPolicyTest {
     assertTrue(RestActionPolicy.targets(state, "Tôi không ngủ, chỉ đứng canh.").isEmpty())
   }
 
+  @Test fun namedCompanionSleepingDoesNotAccidentallyRecoverPlayer() {
+    val state = partyState()
+    assertEquals(listOf("lucia"), RestActionPolicy.targets(state, "Lucia ngủ, tôi canh gác"))
+    assertEquals(listOf(CAO_MINH_ID), RestActionPolicy.targets(state, "Tôi ngủ, Lucia đứng canh"))
+    assertEquals(listOf(CAO_MINH_ID, "lucia"), RestActionPolicy.targets(state, "Tôi ngủ, Lucia ngủ"))
+  }
+
   @Test fun ordinaryCaoMinhRestOnlyTargetsCaoMinh() {
     val state = partyState()
     assertEquals(listOf(CAO_MINH_ID), RestActionPolicy.targets(state, "Tôi chợp mắt một lúc"))

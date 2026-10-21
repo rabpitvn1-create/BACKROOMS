@@ -40,10 +40,26 @@ object RestActionPolicy {
     }
     if (partyRest.containsMatchIn(action)) return activeParty
 
+    // Mentioning a companion does not mean they also slept. Require a subject
+    // followed by a rest/sleep verb before assigning that companion any recovery.
+    val namedSleep = Regex(
+      "(?:ngủ|ngu|chợp\\s*mắt|chop\\s*mat|nghỉ|nghi|sleep|rest)",
+      RegexOption.IGNORE_CASE
+    )
     val explicitFollowers = activeParty.filter { it != CAO_MINH_ID }.filter { id ->
-      val character = state.characters[id] ?: return@filter false
-      action.contains(id, ignoreCase = true) || action.contains(character.name, ignoreCase = true)
+      val character = state.characters.getValue(id)
+      val names = listOf(id, character.name)
+      names.any { name ->
+        Regex(Regex.escape(name) + "\\s+(?:đang\\s+|sẽ\\s+|muốn\\s+)?"+
+          namedSleep.pattern, RegexOption.IGNORE_CASE).containsMatchIn(action)
+      }
     }
-    return (listOf(CAO_MINH_ID) + explicitFollowers).distinct().filter { it in activeParty }
+    val playerExplicit = Regex(
+      "(?<![\\p{L}\\p{N}])(?:tôi|mình|Cao\\s*Minh)\\s+(?:đang\\s+|sẽ\\s+|muốn\\s+)?" +
+        namedSleep.pattern, RegexOption.IGNORE_CASE
+    ).containsMatchIn(action)
+    val actors = if (explicitFollowers.isNotEmpty() && !playerExplicit) explicitFollowers
+      else listOf(CAO_MINH_ID) + explicitFollowers
+    return actors.distinct().filter { it in activeParty }
   }
 }

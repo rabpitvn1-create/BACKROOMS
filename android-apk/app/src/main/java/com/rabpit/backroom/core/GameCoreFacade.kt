@@ -1180,7 +1180,8 @@ class GameCoreFacade private constructor(
       actorId = CAO_MINH_ID,
       source = CommandSource.SYSTEM,
       minutes = 1,
-      reason = "combat_action"
+      reason = "combat_action",
+      activity = TimeActivity.EXERTION
     ))
     if (time.applied) next = time.state
     next = CharacterStatEngine.applyCompletedTurnRegen(next, "COMBAT_TURN_${CoreClientProjection.turnIndex(current)}")

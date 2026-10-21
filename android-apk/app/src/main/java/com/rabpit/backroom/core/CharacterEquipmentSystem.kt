@@ -273,10 +273,18 @@ object CharacterStatEngine {
     val foodUsed = minOf(healed, p.recoverableFoodHp); healed -= foodUsed
     val waterUsed = minOf(healed, p.recoverableWaterHp); healed -= waterUsed
     val sleepUsed = minOf(healed, p.recoverableSleepHp)
+    // The recoverable ledger must never exceed missing HP, including after
+    // equipment changes and explicit HP normalization.
+    var gap = (maxHp - nextHp).coerceAtLeast(0)
+    val foodRemaining = minOf(gap, (p.recoverableFoodHp - foodUsed).coerceAtLeast(0))
+    gap -= foodRemaining
+    val waterRemaining = minOf(gap, (p.recoverableWaterHp - waterUsed).coerceAtLeast(0))
+    gap -= waterRemaining
+    val sleepRemaining = minOf(gap, (p.recoverableSleepHp - sleepUsed).coerceAtLeast(0))
     val nextPhysiology = p.copy(
-      recoverableFoodHp = p.recoverableFoodHp - foodUsed,
-      recoverableWaterHp = p.recoverableWaterHp - waterUsed,
-      recoverableSleepHp = p.recoverableSleepHp - sleepUsed
+      recoverableFoodHp = foodRemaining,
+      recoverableWaterHp = waterRemaining,
+      recoverableSleepHp = sleepRemaining
     )
     return state.copy(characters = state.characters + (characterId to character.copy(
       physiology = nextPhysiology,
