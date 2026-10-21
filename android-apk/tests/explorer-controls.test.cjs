@@ -413,7 +413,7 @@ test('counted footsteps bypass the Gemini planner, save per-step Core receipts a
   assert.match(native,/JSONObject initial = new JSONObject\(requireGameCore\(\)\.scenePlayerActionContext\(\)\)/);
   assert.match(native,/executePlayerFootsteps\(playerText, footstepCount, projection\)/);
   assert.match(facade,/while \(executed < count\)/);
-  assert.match(facade,/if \(CombatRuntime\.pending\(loadCurrentState\(\)\) != null\) break/);
+  assert.match(facade,/if \(fatal \|\| CombatRuntime\.pending\(loadCurrentState\(\)\) != null\) break/);
   assert.match(facade,/commitSceneAction\(command\.getString\("actionId"\), event\.getString\("result"\), presentation\)/);
   assert.match(graph,/fun footstepCommand\(p: JSONObject\)/);
   assert.match(spawn,/kind !in setOf\("MOVE", "SEARCH", "STEP", "FREE", "INTERACT", "TALK"\)/);
