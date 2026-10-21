@@ -72,7 +72,10 @@ object ActionRuntime {
   ): ActionRuntimeResult {
     if (sessionId.isBlank()) return ActionRuntimeResult(state, applied = false, error = "action_session_id_required")
     if (turnId.isBlank()) return ActionRuntimeResult(state, applied = false, error = "action_turn_id_required")
-    if (actorId !in state.characters) return ActionRuntimeResult(state, applied = false, error = "action_actor_unknown")
+    val actor = state.characters[actorId]
+      ?: return ActionRuntimeResult(state, applied = false, error = "action_actor_unknown")
+    if (actor.presence == CharacterPresence.DEAD || actor.vitalState.currentHp <= 0)
+      return ActionRuntimeResult(state, applied = false, error = "action_actor_unavailable")
     if (activeSession(state) != null) return ActionRuntimeResult(state, applied = false, error = "action_session_already_active")
     if (plannedMinutes != null && plannedMinutes <= 0) return ActionRuntimeResult(state, applied = false, error = "action_planned_minutes_invalid")
     if (kind != ActionKind.SEARCH && searchDepth != null) return ActionRuntimeResult(state, applied = false, error = "search_depth_non_search_action")
