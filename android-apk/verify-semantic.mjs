@@ -71,7 +71,7 @@ for(const input of [
 ])assert.equal(spans(input,{player}).length,0,'unverified proper noun must not be typed');
 
 const outside=spans('Irisland không phải Iris, Iris đã quay lại.',coreState);
-assert.deepEqual(outside.filter(s=>s.text==='Iris').map(s=>s.start),[21,27],'word boundaries must exclude substrings');
+assert.deepEqual(outside.filter(s=>s.text==='Iris').map(s=>s.start),[20,26],'word boundaries must exclude substrings');
 const decomposed='Ba\u0306ng ga\u0323c';
 assertTag(spans('Iris giữ '+decomposed,coreState),decomposed,'item');
 
