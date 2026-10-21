@@ -121,10 +121,10 @@ test('GM buttons obey pending and retry locks and recover when the lock clears',
 
 test('dead explorer cannot activate GM suggestions or start another Player Action',()=>{
   const r=runtime({nodeId:'0'});
-  r.ctx.state.log=[{role:'gm',sceneMap:'0:1',text:'GỢI Ý HÀNH ĐỘNG:\\n'
-    +'1. Kiểm tra dấu xước trên vách.\\n'
-    +'2. Quan sát lối đi phía tây.\\n'
-    +'3. Lắng nghe âm thanh bên ngoài.\\n'
+  r.ctx.state.log=[{role:'gm',sceneMap:'0:1',text:'GỢI Ý HÀNH ĐỘNG:\n'
+    +'1. Kiểm tra dấu xước trên vách.\n'
+    +'2. Quan sát lối đi phía tây.\n'
+    +'3. Lắng nghe âm thanh bên ngoài.\n'
     +'4. Chạm nhẹ vào mép thảm.'}];
   r.ctx.render();
   const suggestions=r.log.querySelector('.gm-suggestion-list');
