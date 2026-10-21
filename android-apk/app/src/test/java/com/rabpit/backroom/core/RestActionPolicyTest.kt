@@ -52,12 +52,12 @@ class RestActionPolicyTest {
     assertNull(result.error)
     val caoMinh = result.state.characters.getValue(CAO_MINH_ID).physiology
     val lucia = result.state.characters.getValue("lucia").physiology
-    assertEquals(0L, caoMinh.minutesAwake)
+    assertEquals(1780L, caoMinh.minutesAwake)
     assertEquals(1960L, lucia.minutesAwake)
     assertEquals(1060L, caoMinh.minutesSinceFood)
     assertEquals(1060L, caoMinh.minutesSinceWater)
-    assertEquals(100, PhysiologyStatusPolicy.restPercent(caoMinh.minutesAwake))
-    assertTrue("TURN_REST:SYSTEM:REST:0" in result.state.turn.executedCommandIds)
+    assertTrue(PhysiologyStatusPolicy.restPercent(caoMinh.minutesAwake)!! < 100)
+    assertFalse("sleep must no longer synthesize reset commands", result.state.turn.executedCommandIds.any { it.contains(":SYSTEM:REST:") })
   }
 
   @Test fun coordinatorSharedShiftRestRecoversCaoMinhAndLucia() {
@@ -75,9 +75,8 @@ class RestActionPolicyTest {
     val result = TurnCoordinator.commit(pending, listOf(time))
 
     assertNull(result.error)
-    assertEquals(0L, result.state.characters.getValue(CAO_MINH_ID).physiology.minutesAwake)
-    assertEquals(0L, result.state.characters.getValue("lucia").physiology.minutesAwake)
-    assertTrue("TURN_SHIFT:SYSTEM:REST:0" in result.state.turn.executedCommandIds)
-    assertTrue("TURN_SHIFT:SYSTEM:REST:1" in result.state.turn.executedCommandIds)
+    assertEquals(1780L, result.state.characters.getValue(CAO_MINH_ID).physiology.minutesAwake)
+    assertEquals(1780L, result.state.characters.getValue("lucia").physiology.minutesAwake)
+    assertFalse(result.state.turn.executedCommandIds.any { it.contains(":SYSTEM:REST:") })
   }
 }
