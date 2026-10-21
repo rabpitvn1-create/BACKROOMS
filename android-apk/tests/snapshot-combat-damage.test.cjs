@@ -19,7 +19,7 @@ function boot(initialState,options={}){
    setAttribute(name,value){this[name]=String(value)},
    getBoundingClientRect(){return {left:0,top:0,width:480,height:300}}
   };
-  Object.defineProperty(n,'textContent',{get(){return text},set(value){text=String(value??'');if(text==='')n.children=[]}});
+  Object.defineProperty(n,'textContent',{get(){return text||n.children.map(c=>c.textContent).join('')},set(value){text=String(value??'');if(text==='')n.children=[]}});
   Object.defineProperty(n,'nextElementSibling',{get(){if(!n.parentNode)return null;const i=n.parentNode.children.indexOf(n);return n.parentNode.children[i+1]||null}});
   Object.defineProperty(n,'firstElementChild',{get(){return n.children[0]||null}});
   n.classList={add(...xs){n.className+=' '+xs.join(' ')},remove(x){n.className=n.className.split(' ').filter(c=>c!==x).join(' ')}};
@@ -64,6 +64,69 @@ function boot(initialState,options={}){
   }
  };
 }
+
+test('Combat Log renders typed damage red and remaining HP green, with named actor, target and skill',()=>{
+ const r=boot({combat:{active:true,encounterId:'enc',entityKey:'hound',entityName:'Hound',round:1}});
+ r.turn([{target:'entity',phase:'actor',sourceName:'Cao Minh',entityName:'Hound',
+  skill:'Huyết Ma Tứ Liên',text:'-34 HP',remainingHp:66,maxHp:100,status:'Trúng độc'}]);
+ const entry=r.entries().children.find(n=>n.className.endsWith('--actor'));
+ assert.ok(entry);
+ assert.equal(entry.textContent,'Cao Minh sử dụng [Huyết Ma Tứ Liên] gây -34 HP lên Hound [66/100 HP] [TRÚNG ĐỘC]');
+ const parts=entry.children.filter(n=>n.className.includes('combat-semantic--'));
+ for(const [kind,value] of [
+  ['character','Cao Minh'],['skill','Huyết Ma Tứ Liên'],
+  ['damage','-34 HP'],['entity','Hound'],['hp','66/100 HP'],
+  ['status-poison','TRÚNG ĐỘC']]) {
+  assert.ok(parts.some(n=>n.className.endsWith('--'+kind)&&n.textContent===value),kind+' token absent');
+ }
+ const css=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/combat-feedback-1193a.css'),'utf8');
+ for(const [kind,color] of [
+  ['damage','#ff6872'],['hp','#72dba4'],['status-poison','#c18aff'],
+  ['status-bleed','#c56a82'],['status-stun','#ffbd66']
+ ]) assert.ok(css.includes('.combat-feedback-entry .combat-semantic--'+kind+'{color:'+color),kind+' must have a concrete color');
+});
+
+test('Combat Log colorizes bleeding, stun and other verified Core statuses without changing prose',()=>{
+ for(const [status,kind,label] of [
+  ['Chảy máu','status-bleed','CHẢY MÁU'],['Choáng','status-stun','CHOÁNG'],
+  ['Xuyên giáp','status-armor','XUYÊN GIÁP'],['Mất phương hướng','status-disorient','MẤT PHƯƠNG HƯỚNG']
+ ]) {
+  const r=boot({combat:{active:true,encounterId:'enc',entityKey:'hound',entityName:'Hound',round:1}});
+  r.turn([{target:'entity',sourceName:'Lucia',entityName:'Hound',skill:'Đòn kiểm thử',
+   text:'-12 HP',remainingHp:38,maxHp:50,status}]);
+  const line=r.entries().children.find(n=>n.className.endsWith('--actor'));
+  const child=line.children.find(n=>n.className.endsWith('--'+kind));
+  assert.ok(child,status+' color token missing');
+  assert.equal(child.textContent,label);
+  assert.ok(line.textContent.includes('[-12 HP]')===false,'do not invent additional damage brackets');
+ }
+});
+
+test('Combat Log uses textContent and never interprets skill names as HTML',()=>{
+ const r=boot();
+ const suspicious='<img src=x onerror=alert(1)>';
+ r.turn([{target:'entity',sourceName:'Cao Minh',entityName:'Hound',skill:suspicious,
+  text:'-2 HP',remainingHp:1,maxHp:3}]);
+ const line=r.entries().children.find(n=>n.className.endsWith('--actor'));
+ assert.ok(line.textContent.includes(suspicious),'name must stay literal');
+ assert.ok(line.children.some(n=>n.className.endsWith('--skill')&&n.textContent===suspicious));
+ assert.ok(line.children.every(n=>n.tagName==='SPAN'),'typed segments must not create markup');
+});
+
+test('Combat Log entity counterattack marks damage red, surviving Party HP green, Entity name bold',()=>{
+ const r=boot({combat:{active:true,encounterId:'enc',entityKey:'hound',entityName:'Hound',round:1}});
+ const cue={kind:'entity',eventIndex:0,entityName:'Hound',entityKey:'hound',
+  details:['Hound phản công: Party chịu -15 HP (85/100). Cao Minh -15.']};
+ r.turn([],'enc:counter','enc',{active:true,encounterId:'enc',entityKey:'hound',entityName:'Hound',round:2},{},{turns:[cue]});
+ const due=r.timers.find(t=>t.ms===980);
+ assert.ok(due,'typed Entity counterattack must schedule a result');
+ due.fn();
+ const line=r.entries().children.find(n=>n.className.endsWith('--entity'));
+ assert.ok(line,'entity result missing');
+ assert.ok(line.children.some(n=>n.className.endsWith('--damage')&&n.textContent==='-15 HP'));
+ assert.ok(line.children.some(n=>n.className.endsWith('--hp')&&n.textContent==='85/100 HP'));
+ assert.ok(line.children.some(n=>n.className.endsWith('--entity')&&n.textContent==='Hound'));
+});
 
 test('normal hits keep the original dedicated badge and numeric value',()=>{
  const r=boot();r.event({target:'entity',text:'-36 HP'});
