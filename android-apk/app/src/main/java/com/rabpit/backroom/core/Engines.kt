@@ -232,7 +232,16 @@ object TimeEngine {
     var advanced = state
     var remaining = delta
     while (remaining > 0L) {
-      val slice = if (resting) minOf(remaining, 30L) else remaining
+      // Keep the tick aligned with each character's already accrued rest time.
+      // Otherwise 40 minutes in one command can heal differently from 20 + 20.
+      val untilCredit = if (resting) state.party.memberIds.asSequence()
+        .filter { it in command.restTargets }
+        .mapNotNull { id -> advanced.characters[id]
+          ?.takeIf { it.presence == CharacterPresence.ACTIVE }
+          ?.physiology?.restRecoveryMinutes }
+        .map { 30 - it }
+        .minOrNull() ?: 30 else 30
+      val slice = if (resting) minOf(remaining, untilCredit.toLong()) else remaining
       for ((id, character) in advanced.characters) {
         // Only living, present party members consume resources on this clock.
         if (id !in state.party.memberIds || character.presence != CharacterPresence.ACTIVE) continue

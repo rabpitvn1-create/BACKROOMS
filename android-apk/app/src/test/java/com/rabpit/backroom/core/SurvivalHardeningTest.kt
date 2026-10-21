@@ -83,6 +83,19 @@ class SurvivalHardeningTest {
       single.characters.getValue(CAO_MINH_ID).physiology)
   }
 
+  @Test fun arbitraryRestCheckpointsMatchSingleContinuousInterval() {
+    val p = PhysiologyState(minutesSinceFood = 1407, minutesSinceWater = 0,
+      minutesAwake = 0, recoverableFoodHp = 3)
+    val longRest = advance(withPhysiology(p, hp = 40), 40, TimeActivity.REST)
+    val part = advance(withPhysiology(p, hp = 40), 20, TimeActivity.REST)
+    val split = advance(part, 20, TimeActivity.REST)
+    assertEquals(41, longRest.characters.getValue(CAO_MINH_ID).vitalState.currentHp)
+    assertEquals(longRest.characters.getValue(CAO_MINH_ID).vitalState,
+      split.characters.getValue(CAO_MINH_ID).vitalState)
+    assertEquals(longRest.characters.getValue(CAO_MINH_ID).physiology,
+      split.characters.getValue(CAO_MINH_ID).physiology)
+  }
+
   @Test fun sleepingRestoresAwakeTimeProportionallyAndRestDoesNot() {
     val p = PhysiologyState(minutesSinceFood = 0, minutesSinceWater = 0, minutesAwake = 1000)
     val slept = advance(withPhysiology(p), 60, TimeActivity.SLEEP)
