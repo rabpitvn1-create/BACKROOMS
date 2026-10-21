@@ -136,7 +136,8 @@ data class GameState(
         LUC_TRAM_ID to LucTramCanon.character(),
         IRIS_ID to SpecialFollowersCanon.irisCharacter(),
         SYVIAL_ID to SpecialFollowersCanon.syvialCharacter(),
-        CATHERINE_ID to CatherineCanon.character()
+        CATHERINE_ID to CatherineCanon.character(),
+        JANET_ID to JanetCanon.character()
       ),
       inventories = mapOf(
         CAO_MINH_ID to InventoryState(CAO_MINH_ID),
@@ -144,7 +145,8 @@ data class GameState(
         LUC_TRAM_ID to InventoryState(LUC_TRAM_ID),
         IRIS_ID to InventoryState(IRIS_ID),
         SYVIAL_ID to InventoryState(SYVIAL_ID),
-        CATHERINE_ID to InventoryState(CATHERINE_ID)
+        CATHERINE_ID to InventoryState(CATHERINE_ID),
+        JANET_ID to InventoryState(JANET_ID)
       ),
       equipment = mapOf(
         CAO_MINH_ID to EquipmentState(CAO_MINH_ID, CaoMinhStartingEquipment.slots),
@@ -152,7 +154,8 @@ data class GameState(
         LUC_TRAM_ID to EquipmentState(LUC_TRAM_ID),
         IRIS_ID to EquipmentState(IRIS_ID, SpecialFollowersCanon.irisEquipmentSlots),
         SYVIAL_ID to EquipmentState(SYVIAL_ID, SpecialFollowersCanon.syvialEquipmentSlots),
-        CATHERINE_ID to EquipmentState(CATHERINE_ID, CatherineCanon.equipmentSlots)
+        CATHERINE_ID to EquipmentState(CATHERINE_ID, CatherineCanon.equipmentSlots),
+        JANET_ID to EquipmentState(JANET_ID, JanetCanon.equipmentSlots)
       )
     ))
   }

@@ -104,6 +104,22 @@ object CompanionSkillCatalog {
       "13 quỹ đạo đạn được chuẩn bị, tổng 325% current Weapon DMG, trừ Armor một lần; bỏ qua Evasion, không cộng Critical phụ.", "Một lần kích hoạt trong lượt Ultimate; không tạo đạn vô hạn.")
   )
 
+  private val janet = listOf(
+    s("Ragin' Cajun", "PASSIVE", "Janet ACTIVE; Party chọn TẤN CÔNG",
+      "+10 điểm phần trăm Accuracy cho đòn gậy thường, vẫn kiểm tra Evasion; cận chiến không bắn từ xa."),
+    s("Bayou Swing", "AUTO", "30% sau đòn gậy thường trúng; không kích hoạt từ Ultimate",
+      "Quét gậy thêm lần nữa, 125% current Weapon DMG, trừ Armor."),
+    s("Barbed Encore", "AUTO", "25% sau đòn gậy thường trúng; không kích hoạt từ Ultimate",
+      "Đánh dây gai 140% current Weapon DMG, bỏ qua 20% Armor cho đòn này."),
+    s("Redline Sidestep", "UTILITY", "Janet ACTIVE; Party chọn NÉ TRÁNH",
+      "+12 Escape Progress, không tự miễn mọi đòn đánh."),
+    s("Ride or Die", "DEFENSE", "Janet ACTIVE; Party chọn PHÒNG THỦ",
+      "Entity -15 điểm phần trăm Accuracy trong phản ứng hiện tại."),
+    s("Last Inning // Bayou Thunder", "ULTIMATE", "Poker Dice SSF hoặc FSF; Janet ACTIVE và Party TẤN CÔNG",
+      "Cú đánh cận chiến 330% Weapon DMG, trừ Armor một lần, bỏ qua Evasion; không kèm proc/crit.",
+      "Không đánh xuyên vách, không tự thắng boss hay tạo năng lượng vô hạn.")
+  )
+
   fun forCharacter(characterId: String): List<CharacterSkillDefinition> = when (characterId) {
     CAO_MINH_ID -> caoMinh
     IRIS_ID -> iris
@@ -112,6 +128,7 @@ object CompanionSkillCatalog {
     LUCIA_ID -> lucia
     LUC_TRAM_ID -> lucTram
     CATHERINE_ID -> catherine
+    JANET_ID -> janet
     else -> emptyList()
   }
 }

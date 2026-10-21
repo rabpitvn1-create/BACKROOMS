@@ -1,5 +1,5 @@
 {
-  "version": 7,
+  "version": 8,
   "generator": "built-in imagegen",
   "style": "non-pixel liquid glass; warm gold/orange ordinary items, violet/blue stat book",
   "format": "WEBP",
@@ -431,6 +431,66 @@
       "drive_file_id": "1whOM32VeKDtUDjfmFLgkvO1UZ9VK8hKR",
       "drive_url": "https://drive.google.com/file/d/1whOM32VeKDtUDjfmFLgkvO1UZ9VK8hKR/view?usp=drivesdk",
       "design_reference": "Catherine.webp (exact crop)"
+    },
+    {
+      "item_id": "janet:bayou-belle",
+      "key": "janet-nailbat",
+      "name": "Bayou Belle",
+      "file": "janet-nailbat.webp",
+      "width": 128,
+      "height": 128,
+      "mime_type": "image/webp",
+      "bytes": 2824,
+      "sha256": "21a7455c47a6b7a84d1fea23debc93e490f08dc54d3aeb1f91032c5085256375",
+      "md5": "41103a413d64ee172bb0139c0de7ba05",
+      "drive_file_id": "1QRka3sXWJuQzprhj-9nBNHyEcoDjlviI",
+      "drive_url": "https://drive.google.com/file/d/1QRka3sXWJuQzprhj-9nBNHyEcoDjlviI/view?usp=drivesdk",
+      "design_reference": "670.png (Janet source image)"
+    },
+    {
+      "item_id": "janet:varsity-vest",
+      "key": "janet-varsity-vest",
+      "name": "New Island Varsity Vest",
+      "file": "janet-varsity-vest.webp",
+      "width": 128,
+      "height": 128,
+      "mime_type": "image/webp",
+      "bytes": 4536,
+      "sha256": "2baa55990355a56c2f7ae8fa74461e80f535b4413a8b34e34eaf3b8e85462fa7",
+      "md5": "7643b7b96c104ac5085f69a238a978d2",
+      "drive_file_id": "1dUWVKlkyJGbbsN-ZEISnICHDNw1jZwce",
+      "drive_url": "https://drive.google.com/file/d/1dUWVKlkyJGbbsN-ZEISnICHDNw1jZwce/view?usp=drivesdk",
+      "design_reference": "670.png (Janet source image)"
+    },
+    {
+      "item_id": "janet:grip-gloves",
+      "key": "janet-grip-gloves",
+      "name": "Iron Grip Gloves",
+      "file": "janet-grip-gloves.webp",
+      "width": 128,
+      "height": 128,
+      "mime_type": "image/webp",
+      "bytes": 4012,
+      "sha256": "6860f7e7d3c62fcee547e7e1ce475d57c1429b52f06903f45216e97d38adcf75",
+      "md5": "e44386726fc5d3624551f7ce60ac67b5",
+      "drive_file_id": "1s6GyL__JJdGNqczE1ZrzLQG1vI2WnYpL",
+      "drive_url": "https://drive.google.com/file/d/1s6GyL__JJdGNqczE1ZrzLQG1vI2WnYpL/view?usp=drivesdk",
+      "design_reference": "670.png (Janet source image)"
+    },
+    {
+      "item_id": "janet:road-boots",
+      "key": "janet-combat-boots",
+      "name": "Bayou Road Boots",
+      "file": "janet-combat-boots.webp",
+      "width": 128,
+      "height": 128,
+      "mime_type": "image/webp",
+      "bytes": 1604,
+      "sha256": "e2fd9c5e68ccb55dd52291b3da0f2c936a6301a3ff7a552d701ff8d559e1127b",
+      "md5": "bd14934b20f73b553175e6ead5c7f429",
+      "drive_file_id": "1EPR9xMYOg90dSm7Wjo-rhj2PsRizp4db",
+      "drive_url": "https://drive.google.com/file/d/1EPR9xMYOg90dSm7Wjo-rhj2PsRizp4db/view?usp=drivesdk",
+      "design_reference": "670.png (Janet source image)"
     }
   ]
 }

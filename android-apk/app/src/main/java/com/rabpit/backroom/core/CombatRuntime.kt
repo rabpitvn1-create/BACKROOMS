@@ -548,6 +548,7 @@ object CombatRuntime {
     val anNhienActive = activePartyCharacter(resolvedState, AN_NHIEN_ID) != null
     val lucTramActive = activePartyCharacter(resolvedState, LUC_TRAM_ID) != null
     val catherineActive = activePartyCharacter(resolvedState, CATHERINE_ID) != null
+    val janetActive = activePartyCharacter(resolvedState, JANET_ID) != null
 
 
     fun promoteDefeatedWave(): Boolean {
@@ -632,6 +633,10 @@ object CombatRuntime {
           c = c.copy(cover = Cover.HARD)
           log += "Vạn Kiếm Quy Tâm: Lục Trầm dùng kiếm khí che tuyến rút, Party có HARD cover."
         }
+        if (janetActive && c.entityHp > 0) {
+          c = c.copy(escapeProgress = min(100, c.escapeProgress + 12))
+          log += "Redline Sidestep: Janet che đường rút, Party +12 Escape Progress."
+        }
         if (catherineActive && c.entityHp > 0) {
           companionEnemyAccuracyPenalty += 15
           log += "Valse Đỏ: Catherine đổi góc bắn, Entity -15 điểm % Accuracy trong phản ứng hiện tại."
@@ -659,6 +664,10 @@ object CombatRuntime {
       }
       Intent.GUARD -> {
         c = c.copy(cover = Cover.HARD, momentum = min(3, c.momentum + 1), opening = min(3, c.opening + 1))
+        if (janetActive && c.entityHp > 0) {
+          companionEnemyAccuracyPenalty += 15
+          log += "Ride or Die: Janet chắn trước đồng đội, Entity -15 điểm % Accuracy trong phản ứng này."
+        }
         log += "Cao Minh khóa tư thế phòng thủ và ép ${c.entityName} phải lộ hướng tấn công."
         if (lucTramActive) {
           c = c.copy(opening = min(3, c.opening + 1))
@@ -864,6 +873,59 @@ object CombatRuntime {
                   } else {
                     recordMiss("entity", LUCIA_ID)
                     log += "Lucia \"Lục\" cũng khai hỏa nhưng phát bắn không trúng mục tiêu; Burst không kích hoạt."
+                  }
+                }
+              }
+            }
+            JANET_ID -> {
+              if (janetActive) {
+                // Bayou Belle is a physical bat: Janet must first close the range.
+                if (c.range != RangeBand.CLOSE) {
+                  val previous = c.range
+                  c = c.copy(range = if (c.range == RangeBand.FAR) RangeBand.NEAR else RangeBand.CLOSE,
+                    noise = min(100, c.noise + 8))
+                  log += "Janet áp sát từ $previous bằng Bayou Belle; chưa đủ tầm để tung cú đánh trong lượt này."
+                } else {
+                  val weapon = CharacterStatEngine.skillBaseDamage(resolvedState, JANET_ID)
+                  if (ultimateReady) {
+                    val damage = min(c.entityHp, companionSkillDamage(weapon, 330, profile.armor))
+                    val hp = c.entityHp - damage
+                    recordFeedback("entity", c.entityHp, hp, actorId = JANET_ID, skill = "Last Inning // Bayou Thunder")
+                    c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp),
+                      noise = min(100, c.noise + 30))
+                    log += "Last Inning // Bayou Thunder [$ultimateHand]: Janet tung một cú gậy cận chiến 330% Weapon DMG = -$damage HP, bỏ qua Evasion."
+                  } else {
+                    // Ragin' Cajun: +10 percentage points; Entity keeps its dodge check.
+                    val chance = (hitChance + 1000).coerceAtMost(9900)
+                    val hits = roll(c.copy(eventCounter = c.eventCounter + 617 + turnIndex * 19), 10000) < chance &&
+                      !entityDodges(JANET_ID, 631 + turnIndex * 19)
+                    if (hits) {
+                      val critical = actorCritical(JANET_ID, 647 + turnIndex * 19)
+                      val base = if (critical) CharacterStatCore.criticalDamage(weapon) else weapon
+                      val damage = min(c.entityHp, companionSkillDamage(base, 100, profile.armor))
+                      val hp = c.entityHp - damage
+                      recordFeedback("entity", c.entityHp, hp, critical = critical, actorId = JANET_ID, skill = "Ragin' Cajun")
+                      c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp),
+                        noise = min(100, c.noise + 25))
+                      log += "Ragin' Cajun: Janet đánh trúng bằng Bayou Belle -$damage HP; Accuracy +10 điểm %."
+                      if (c.entityHp > 0 && roll(c.copy(eventCounter = c.eventCounter + 659 + turnIndex * 19), 100) < 30) {
+                        val bonus = min(c.entityHp, companionSkillDamage(weapon, 125, profile.armor))
+                        val after = c.entityHp - bonus
+                        recordFeedback("entity", c.entityHp, after, actorId = JANET_ID, skill = "Bayou Swing")
+                        c = c.copy(entityHp = after, entityCondition = condition(after, c.entityMaxHp))
+                        log += "Bayou Swing: Janet đánh bồi 125% Weapon DMG = -$bonus HP."
+                      }
+                      if (c.entityHp > 0 && roll(c.copy(eventCounter = c.eventCounter + 673 + turnIndex * 19), 100) < 25) {
+                        val bonus = min(c.entityHp, companionSkillDamage(weapon, 140, armorAfterIgnore(profile.armor, 20)))
+                        val after = c.entityHp - bonus
+                        recordFeedback("entity", c.entityHp, after, status = FeedbackStatus.ARMOR, actorId = JANET_ID, skill = "Barbed Encore")
+                        c = c.copy(entityHp = after, entityCondition = condition(after, c.entityMaxHp))
+                        log += "Barbed Encore: Janet quét dây gai 140% Weapon DMG, bỏ qua 20% Armor = -$bonus HP."
+                      }
+                    } else {
+                      recordMiss("entity", JANET_ID, skill = "Ragin' Cajun")
+                      log += "Janet tung cú gậy cận chiến nhưng trượt hoặc bị Entity né."
+                    }
                   }
                 }
               }

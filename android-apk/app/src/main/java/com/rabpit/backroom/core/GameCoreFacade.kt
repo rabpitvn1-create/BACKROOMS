@@ -1358,6 +1358,7 @@ class GameCoreFacade private constructor(
     LUCIA_ID -> "lucia"
     LUC_TRAM_ID -> "lucTram"
     CATHERINE_ID -> "catherine"
+    JANET_ID -> "janet"
     else -> null
   }
 

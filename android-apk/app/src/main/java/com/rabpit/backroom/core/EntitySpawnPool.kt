@@ -14,6 +14,7 @@ import org.json.JSONObject
  * NPC first-meeting rates (d10000, success if roll <= threshold):
  * - Lucia: 5000 (50%) — Level 0 EXECUTE, once-only
  * - Catherine: 500 (5%) — all physical actions across every node, once-only
+ * - Janet: 500 (5%) — all physical actions across every node, once-only
  * - Luc Tram: 25 (0.25%) — Level 4+ physical, once-only
  * - Iris/Syvial reunion: 25 (0.25%) each — physical, continuity SEPARATED/LOST/UNKNOWN
  * - An Nhien: 25 (0.25%) — physical, once-only
@@ -168,6 +169,7 @@ object NpcSpawnTable {
   const val LUCIA_THRESHOLD = 5000       // 50%
   const val LUC_TRAM_THRESHOLD = 25     // 0.25%
   const val CATHERINE_THRESHOLD = 500    // 5%: every parent Level, sublevel and AREA
+  const val JANET_THRESHOLD = 500        // 5%: disjoint from Entity and Catherine tickets
   const val IRIS_THRESHOLD = 25         // 0.25%
   const val SYVIAL_THRESHOLD = 25       // 0.25%
   const val AN_NHIEN_THRESHOLD = 25     // 0.25% (baseline value; kept for reference only)
@@ -267,6 +269,18 @@ object NpcSpawnTable {
       val ticket = catherineTicket ?: nextInt(10000)
       if (ticket in EntitySpawnPool.TOTAL_BP until (EntitySpawnPool.TOTAL_BP + CATHERINE_THRESHOLD)) {
         encounters += NpcEncounter(CATHERINE_ID, "catherine")
+      }
+    }
+
+    // Janet owns [4000, 4499]: no overlap with Entity [0, 3499] or
+    // Catherine [3500, 3999]. No extra random draw when Entity ticket exists.
+    if (isPhysical && JANET_ID !in partyMemberIds &&
+        !flagSpawned(flags, "janet") &&
+        state.characters[JANET_ID]?.metadata?.get("encountered") != "true") {
+      val ticket = catherineTicket ?: nextInt(10000)
+      if (ticket in (EntitySpawnPool.TOTAL_BP + CATHERINE_THRESHOLD) until
+          (EntitySpawnPool.TOTAL_BP + CATHERINE_THRESHOLD + JANET_THRESHOLD)) {
+        encounters += NpcEncounter(JANET_ID, "janet")
       }
     }
 
@@ -507,6 +521,7 @@ object SpawnMechanism {
     AN_NHIEN_ID -> runCatching { AnNhienCanon.character().name }.getOrDefault("An Nhiên")
     LUC_TRAM_ID -> runCatching { LucTramCanon.character().name }.getOrDefault("Lục Trầm")
     CATHERINE_ID -> CatherineCanon.NAME
+    JANET_ID -> JanetCanon.NAME
     IRIS_ID -> runCatching { SpecialFollowersCanon.irisCharacter().name }.getOrDefault("Iris")
     SYVIAL_ID -> runCatching { SpecialFollowersCanon.syvialCharacter().name }.getOrDefault("Syvial")
     "survivor" -> "Người sống sót"
@@ -574,6 +589,7 @@ object SpawnMechanism {
       AN_NHIEN_ID -> AnNhienCanon.character()
       LUC_TRAM_ID -> LucTramCanon.character()
       CATHERINE_ID -> CatherineCanon.character()
+      JANET_ID -> JanetCanon.character()
       IRIS_ID -> SpecialFollowersCanon.irisCharacter()
       SYVIAL_ID -> SpecialFollowersCanon.syvialCharacter()
       else -> null

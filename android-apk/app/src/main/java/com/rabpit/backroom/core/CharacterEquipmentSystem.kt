@@ -160,6 +160,31 @@ object EquipmentCatalog {
       canonRef = CatherineCanon.CANON_REF
     ),
     EquipmentDefinition(
+      id = JANET_BAT_ID, name = "Bayou Belle", type = "BARBED-WIRE WOODEN BASEBALL BAT",
+      primarySlot = EquipmentSlot.WEAPON, weapon = WeaponGameplayStats(24),
+      abilities = listOf(ability("Bayou Swing", "Đòn đánh bồi từ quỹ đạo gậy cận chiến."),
+        ability("Barbed Encore", "Dây thép gai xé qua lớp bảo hộ mềm của mục tiêu.")),
+      restrictions = listOf("Vũ khí vật lý cận chiến: không đánh xuyên tường, không bắn tầm xa.",
+        "Dây thép gai và gỗ có độ bền hữu hạn trong Canon."),
+      canonRef = JanetCanon.CANON_REF
+    ),
+    EquipmentDefinition(
+      id = JANET_VEST_ID, name = "New Island Varsity Vest", type = "1988 COLLEGE VARSITY OUTFIT",
+      primarySlot = EquipmentSlot.OUTFIT, bonuses = EquipmentBonuses(vitPct = 10),
+      restrictions = listOf("Áo vải; không phải áo chống đạn."),
+      canonRef = JanetCanon.CANON_REF
+    ),
+    EquipmentDefinition(
+      id = JANET_GLOVES_ID, name = "Iron Grip Gloves", type = "PADDED LEATHER GLOVES",
+      primarySlot = EquipmentSlot.GAUNTLETS, bonuses = EquipmentBonuses(strPct = 10),
+      canonRef = JanetCanon.CANON_REF
+    ),
+    EquipmentDefinition(
+      id = JANET_BOOTS_ID, name = "Bayou Road Boots", type = "HIGH-LACE LEATHER BOOTS",
+      primarySlot = EquipmentSlot.FOOTWEAR, bonuses = EquipmentBonuses(defPct = 10),
+      canonRef = JanetCanon.CANON_REF
+    ),
+    EquipmentDefinition(
       id = LUCIA_M4A1_ID, name = "M4A1 cá nhân hóa", type = "ASSAULT RIFLE", primarySlot = EquipmentSlot.WEAPON,
       bonuses = EquipmentBonuses(strPct = 100, agiPct = 50),
       weapon = WeaponGameplayStats(26, "60 / 90 reserve", 800, listOf("Semi", "Burst", "Auto")),
@@ -222,6 +247,9 @@ object EquipmentCatalog {
     CATHERINE_ID -> linkedMapOf(EquipmentSlot.WEAPON to CATHERINE_VESPER_ID,
       EquipmentSlot.OUTFIT to CATHERINE_COAT_ID, EquipmentSlot.GAUNTLETS to CATHERINE_GLOVES_ID,
       EquipmentSlot.FOOTWEAR to CATHERINE_BOOTS_ID)
+    JANET_ID -> linkedMapOf(EquipmentSlot.WEAPON to JANET_BAT_ID,
+      EquipmentSlot.OUTFIT to JANET_VEST_ID, EquipmentSlot.GAUNTLETS to JANET_GLOVES_ID,
+      EquipmentSlot.FOOTWEAR to JANET_BOOTS_ID)
     AN_NHIEN_ID -> linkedMapOf(EquipmentSlot.OUTFIT to AN_NHIEN_OUTFIT_ID, EquipmentSlot.FOOTWEAR to AN_NHIEN_FOOTWEAR_ID)
     LUCIA_ID -> linkedMapOf(
       EquipmentSlot.WEAPON to LUCIA_M4A1_ID,
@@ -395,7 +423,7 @@ object CharacterEquipmentSystem {
 
   private fun normalizeInternal(source: GameState, seedStarting: Boolean): GameState {
     // Lucia exists in Core state without being forced into Party.
-    val input = CatherineCanon.ensure(LucTramCanon.ensure(LuciaCanon.ensure(source)))
+    val input = JanetCanon.ensure(CatherineCanon.ensure(LucTramCanon.ensure(LuciaCanon.ensure(source))))
     val inventories = input.inventories.toMutableMap()
     val equipment = input.equipment.toMutableMap()
     input.characters.keys.forEach { characterId ->
