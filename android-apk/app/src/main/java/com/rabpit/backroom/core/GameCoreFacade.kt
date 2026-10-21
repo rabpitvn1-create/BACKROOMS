@@ -284,7 +284,11 @@ class GameCoreFacade private constructor(
     val turnId = nextTurnId(core)
     val turn = TurnCoordinator.createPending(core, turnId, session.input, true)
     check(turn.error == null) { turn.error ?: "scene_pending_failed" }
-    val progressed = ActionRuntime.advance(turn.state, session.sessionId, "scene_commit", session.plannedMinutes ?: 1)
+    // An encounter reserved before sleep/rest interrupts the planned interval immediately.
+    val restInterrupted = CombatRuntime.pending(turn.state) != null &&
+      RestActionPolicy.activity(session.input) != TimeActivity.NORMAL
+    val actualMinutes = if (restInterrupted) 1 else (session.plannedMinutes ?: 1)
+    val progressed = ActionRuntime.advance(turn.state, session.sessionId, "scene_commit", actualMinutes)
     check(progressed.applied || progressed.duplicate) { progressed.error ?: "scene_time_failed" }
     // Time was already advanced by ActionRuntime: do not execute a second TimeAdvanceCommand.
     val committed = TurnCoordinator.commit(progressed.state, emptyList())
