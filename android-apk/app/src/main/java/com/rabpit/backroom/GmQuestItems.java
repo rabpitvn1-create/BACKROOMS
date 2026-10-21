@@ -26,11 +26,11 @@ public final class GmQuestItems {
     preferences = context.getSharedPreferences(STORAGE, Context.MODE_PRIVATE);
   }
 
-  private static JSONObject empty() {
+  private static JSONObject empty() throws Exception {
     return new JSONObject().put("version", 1)
       .put("items", new JSONArray()).put("appliedActions", new JSONArray());
   }
-  private JSONObject read() {
+  private JSONObject read() throws Exception {
     String raw = preferences.getString(KEY, null);
     if (raw == null) return empty();
     try { return validateSnapshot(new JSONObject(raw)); }
@@ -40,9 +40,9 @@ public final class GmQuestItems {
     if (!preferences.edit().putString(KEY, value.toString()).commit())
       throw new IllegalStateException("gm_items_save_failed");
   }
-  public synchronized JSONObject snapshot() { return new JSONObject(read().toString()); }
+  public synchronized JSONObject snapshot() throws Exception { return new JSONObject(read().toString()); }
 
-  public synchronized void restore(JSONObject snapshot) {
+  public synchronized void restore(JSONObject snapshot) throws Exception {
     persist(validateSnapshot(snapshot));
   }
   public synchronized void reset() {
@@ -52,7 +52,7 @@ public final class GmQuestItems {
   private static boolean validId(String id) {
     return id != null && id.matches("[a-z0-9][a-z0-9_-]{2,63}");
   }
-  private static String field(JSONObject object, String key, int maxLength) {
+  private static String field(JSONObject object, String key, int maxLength) throws Exception {
     String value = object.getString(key).trim();
     if (value.isEmpty() || value.length() > maxLength || value.indexOf('<') >= 0 ||
       value.indexOf('>') >= 0 || value.indexOf((char) 0) >= 0)
@@ -60,7 +60,7 @@ public final class GmQuestItems {
     return value;
   }
 
-  private static JSONObject validateSnapshot(JSONObject value) {
+  private static JSONObject validateSnapshot(JSONObject value) throws Exception {
     if (value == null || value.getInt("version") != 1 ||
       !keys(value).equals(set("version", "items", "appliedActions")))
       throw new IllegalArgumentException("gm_items_snapshot_schema");
@@ -128,7 +128,7 @@ public final class GmQuestItems {
       .put("questItems", operations == null ? new JSONArray() : operations);
   }
 
-  private static void validateOperations(JSONArray operations) {
+  private static void validateOperations(JSONArray operations) throws Exception {
     if (operations.length() > MAX_OPERATIONS)
       throw new IllegalArgumentException("gm_item_ops_size");
     Set<String> used = new HashSet<>();
@@ -152,12 +152,12 @@ public final class GmQuestItems {
   }
 
   /** Verify all mutations as one unit. This does not interpret puzzle success. */
-  public synchronized void validateProposal(JSONArray operations) {
+  public synchronized void validateProposal(JSONArray operations) throws Exception {
     validateOperations(operations);
     preview(read(), operations, "node-placeholder");
   }
 
-  private static JSONObject preview(JSONObject base, JSONArray operations, String nodeId) {
+  private static JSONObject preview(JSONObject base, JSONArray operations, String nodeId) throws Exception {
     JSONObject result = new JSONObject(base.toString());
     JSONArray items = result.getJSONArray("items");
     for (int i = 0; i < operations.length(); i++) {
@@ -187,7 +187,7 @@ public final class GmQuestItems {
    * Idempotent by the Core-confirmed narration identity, but does not request,
    * authorize, or inspect any Core state itself.
    */
-  static JSONObject applySnapshot(JSONObject base, String narrationId, String nodeId, JSONArray operations) {
+  static JSONObject applySnapshot(JSONObject base, String narrationId, String nodeId, JSONArray operations) throws Exception {
     if (narrationId == null || narrationId.length() < 3 || narrationId.length() > 240 ||
       !nodeId.matches("[a-z0-9_.-]{1,64}"))
       throw new IllegalArgumentException("gm_item_confirmation_scope");
@@ -206,7 +206,7 @@ public final class GmQuestItems {
     return validateSnapshot(next);
   }
 
-  public synchronized JSONObject applyConfirmed(String narrationId, String nodeId, JSONArray operations) {
+  public synchronized JSONObject applyConfirmed(String narrationId, String nodeId, JSONArray operations) throws Exception {
     JSONObject next = applySnapshot(read(), narrationId, nodeId, operations);
     persist(next);
     return next;
