@@ -12,6 +12,7 @@ Runtime chỉ dùng canonical Entity key trùng chính xác với tên file bỏ
 | `926` | `926.webp` (Whistlers, fan-created) |
 | `927` | `927.webp` (Entity 927, fan-created) |
 | `LuckyBear` | `LuckyBear.webp` (fan-created) |
+| `Brownies` | `Brownies.webp` (fan-created) |
 | `clump` | `clump.webp` |
 | `duller` | `duller.webp` |
 | `deathmoth` | `deathmoth.webp` |
@@ -34,7 +35,7 @@ Runtime chỉ dùng canonical Entity key trùng chính xác với tên file bỏ
 | `sinew_strider` | `sinew_strider.webp` |
 | `hollow_grasper` | `hollow_grasper.webp` |
 
-Cả **25 Entity** thuộc Registry/asset catalog. Core tự roll encounter với xác suất **35% mỗi lượt EXECUTE đủ điều kiện**, dùng resident pool theo exact Level ID và roaming pool khi Level không có danh sách resident. Meta action, Combat đang diễn ra hoặc encounter chờ xác nhận không kích hoạt lượt roll. Xem [ENTITY_SPAWNS.md](ENTITY_SPAWNS.md) và `EntitySpawnPool.kt` để biết điều kiện và danh sách cụ thể.
+Cả **26 Entity** thuộc Registry/asset catalog. Core tự roll encounter với xác suất **35% mỗi lượt EXECUTE đủ điều kiện**, dùng resident pool theo exact Level ID và roaming pool khi Level không có danh sách resident. Meta action, Combat đang diễn ra hoặc encounter chờ xác nhận không kích hoạt lượt roll. Xem [ENTITY_SPAWNS.md](ENTITY_SPAWNS.md) và `EntitySpawnPool.kt` để biết điều kiện và danh sách cụ thể.
 
 Entity do Core chọn được giữ ở `PENDING_ENCOUNTER_CONFIRMATION`; chỉ Battle Start mới kích hoạt Combat và hiển thị ảnh. Tên/chỉ số lấy từ Registry, encounter ID lấy từ Core, không dò câu chữ GM. Không có quota hoặc Boss bắt buộc do Story Milestone cũ quyết định.
 
@@ -45,6 +46,8 @@ Mỗi Entity có đúng 3 skill. Skill chỉ tăng %ATK và chỉ dùng hai hi�
 - **Blackroot Sentinel**: Thorned Hemorrhage; Blight Sap; Crimson Mycotoxin.
 - **Sinew Strider**: Tendon Ripper; Septic Thread; Venomous Flay.
 - **Hollow Grasper**: Hollow Laceration; Carrion Toxin; Necrotic Clutch.
+
+**Brownies:** tương tự LuckyBear với stat Hound gốc **80 HP / 0 ATK / 2 Armor / 8 Aggression**, không phản công, roaming, thưởng cố định **100 EXP** cho mỗi thành viên Party tham chiến còn sống sau khi tiêu diệt, một lần theo encounter instance. Asset `Brownies.webp` dùng canonical key `Brownies`.
 
 **LuckyBear:** stat Hound gốc **80 HP / 0 ATK / 2 Armor / 8 Aggression**, 220 Max HP combat tại Level 0. Không phản công và không gây sát thương dù cơ chế thông thường có floor 1 damage. Tiêu diệt LuckyBear thưởng cố định **200 EXP cho mỗi thành viên Party đang chiến đấu còn sống**, một lần theo encounter instance kể cả qua save/load; không phụ thuộc Level, không thay EXP hay cơ chế loot của các Entity khác. Asset `LuckyBear.webp` đặt tên phân biệt hoa thường trùng canonical key; Java/JS chuyển đầu vào `luckybear` thành đúng key đó.
 

@@ -14,16 +14,18 @@ class EntitySpawnPoolTest {
   private fun stateAt(id: String): GameState = GameState.initial().copy(world = mapOf(
     "levelJson" to JSONObject().put("id", id).toString()))
 
-  @Test fun `all twenty five entities have a resident or roaming pool`() {
+  @Test fun `all twenty six entities have a resident or roaming pool`() {
     val all = EntitySpawnPool.COMMON + EntitySpawnPool.LIFEFORM + EntitySpawnPool.RARE + EntitySpawnPool.KILLERS
     val residents = EntitySpawnPool.RESIDENTS_BY_LEVEL.values.flatten().toSet()
-    assertEquals(25, all.size)
+    assertEquals(26, all.size)
     assertTrue(EntitySpawnPool.ROAMING.contains("926"))
     assertTrue(EntitySpawnPool.COMMON.contains("926"))
     assertTrue(EntitySpawnPool.ROAMING.contains("927"))
     assertTrue(EntitySpawnPool.COMMON.contains("927"))
     assertTrue(EntitySpawnPool.ROAMING.contains("LuckyBear"))
     assertTrue(EntitySpawnPool.COMMON.contains("LuckyBear"))
+    assertTrue(EntitySpawnPool.ROAMING.contains("Brownies"))
+    assertTrue(EntitySpawnPool.COMMON.contains("Brownies"))
     assertEquals(all.toSet(), residents + EntitySpawnPool.ROAMING.toSet())
     assertTrue(residents.intersect(EntitySpawnPool.ROAMING.toSet()).isEmpty())
   }

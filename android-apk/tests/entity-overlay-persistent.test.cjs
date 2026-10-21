@@ -12,7 +12,7 @@ const literal=line.match(/^\s*("(?:[^"\\]|\\.)*")\s*\+/);
 assert.ok(literal,'Embedded Entity renderer must remain parseable');
 const renderer=JSON.parse(literal[1]);
 const assets=path.join(dir,'../app/src/main/assets');
-const supported=['926','927','LuckyBear','hound','clump','duller','deathmoth','hostile_faceling','false_puddle',
+const supported=['926','927','LuckyBear','Brownies','hound','clump','duller','deathmoth','hostile_faceling','false_puddle',
  'paintings','smiler','skin-stealer','predatory_window','biological_pipeline','wretch',
  'cable_mimic','the_beast_of_level_5','hotel_corpse_lure','jeff_the_killer',
  'jane_the_killer','slenderman','diep_minh','blackroot_sentinel','sinew_strider','hollow_grasper'];
@@ -147,6 +147,18 @@ test('LuckyBear filename matches its canonical mixed-case Entity key and has alp
   assert.ok(Math.abs(y-(1-1160/1200)*h*scale)<.5);
   assert.ok(Math.abs(x+(111/900)*w*scale)<.5);
  }
+});
+
+test('Brownies key preserves mixed case and resolves its bundled WebP',()=>{
+ const r=runtime('Brownies');r.context.appendEntityOverlay();
+ assert.equal(r.imgs()[0].src,'file:///android_asset/entity/Brownies.webp');
+ const keyLine=java.split('\n').find(row=>row.includes('var __entityKeys='));
+ const normalLine=java.split('\n').find(row=>row.includes('function normalizeEntityKey(v)'));
+ const extract=row=>JSON.parse(row.match(/^\s*("(?:[^"\\]|\\.)*")\s*\+/)[1]);
+ const ctx={};vm.createContext(ctx);vm.runInContext([keyLine,normalLine].map(extract).join('\n'),ctx);
+ assert.equal(ctx.normalizeEntityKey('brownies'),'Brownies');
+ assert.equal(ctx.normalizeEntityKey('Brownies'),'Brownies');
+ assert.equal(ctx.normalizeEntityKey('../Brownies'),'');
 });
 
 test('Entity 927 sprite uses measured alpha bounds and remains grounded',()=>{

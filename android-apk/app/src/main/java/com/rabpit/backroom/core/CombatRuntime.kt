@@ -22,6 +22,7 @@ object CombatRuntime {
   private const val CAO_MINH_ULTIMATE_DAMAGE_PER_SHOT = 10
   private const val DIEP_MINH_KEY = "diep_minh"
   private const val LUCKY_BEAR_KEY = "LuckyBear"
+  private const val BROWNIES_KEY = "Brownies"
   private const val DIEP_MINH_MAX_HP = 2999
   private const val DIEP_MINH_ATTACK_PERCENT = 10
   private const val DIEP_MINH_REGEN_PER_TURN = 30
@@ -191,6 +192,7 @@ object CombatRuntime {
   private val profiles = listOf(
     Profile("hound", "Hound", 80, 15, 2, 8),
     Profile(LUCKY_BEAR_KEY, "LuckyBear", 80, 0, 2, 8),
+    Profile(BROWNIES_KEY, "Brownies", 80, 0, 2, 8),
     Profile("926", "Whistlers", 160, 30, 4, 16),
     Profile("927", "Entity 927", 320, 60, 8, 32),
     Profile("clump", "Clump", 105, 17, 5, 7),
@@ -1080,9 +1082,9 @@ object CombatRuntime {
       log += "${c.entityName} vừa xuất hiện và chờ lượt giao chiến tiếp theo."
     } else if (entityStunnedThisTurn) {
       log += "Ma Tâm Trấn Hồn: ${c.entityName} bị Stun và mất lượt phản ứng hiện tại."
-    } else if (c.entityKey == LUCKY_BEAR_KEY) {
+    } else if (c.entityKey == LUCKY_BEAR_KEY || c.entityKey == BROWNIES_KEY) {
       // ATK=0 must mean zero inflicted damage, not the ordinary minimum-one hit.
-      log += "LuckyBear không tấn công."
+      log += "${c.entityName} không tấn công."
     } else if (c.entityKey == DIEP_MINH_KEY && c.eventCounter % DIEP_MINH_ULTIMATE_INTERVAL_TURNS == 0) {
       val groupHpBefore = PartyCombatHealth.currentHp(resolvedState)
       val pulse = damageActivePartyByPercent(resolvedState, DIEP_MINH_ULTIMATE_PERCENT)
@@ -1314,7 +1316,11 @@ object CombatRuntime {
     val instanceId = if (queue.size == 1) c.encounterId else "${c.encounterId}:wave:$index"
     val exp = EntityExpRewards.award(withPassive, instanceId, c.progressionRank,
       multiplier = if (c.entityKey == DIEP_MINH_KEY) 24 else 2,
-      fixedExp = if (c.entityKey == LUCKY_BEAR_KEY) 200 else null)
+      fixedExp = when (c.entityKey) {
+        LUCKY_BEAR_KEY -> 200
+        BROWNIES_KEY -> 100
+        else -> null
+      })
     val loot = OfflineEntityLoot.award(exp.state, instanceId, c.seed)
     val defeatNarrative = "${c.entityName} đã không còn sinh khí ngã xuống. Backrooms nuốt chửng lấy tử thi của nó vào nền."
     val resultText = "$log $defeatNarrative ${exp.text} ${loot.text}".trim()

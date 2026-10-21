@@ -57,6 +57,26 @@ class EntityCombatExpTest {
     assertEquals(persisted, repeated.state)
   }
 
+  @Test fun browniesAlwaysPays100ExpExactlyOncePerDefeat() {
+    for (level in listOf(0, 3, 6)) {
+      val initial = levelState(level)
+      val party = initial.copy(party = PartyState(memberIds = listOf(CAO_MINH_ID, IRIS_ID, SYVIAL_ID)))
+      val fallen = CharacterStatEngine.setCurrentHp(party, SYVIAL_ID, 0)
+      val started = CombatRuntime.start(fallen, "Brownies")
+      val completed = defeated(started)
+      assertTrue(completed.entityDestroyed)
+      assertTrue(completed.reply.contains("+100 EXP"))
+      assertEquals(setOf("100"), completed.state.metadata.filterKeys { it.startsWith("exp.awarded.") }.values.toSet())
+      assertTrue(completed.state.characters.getValue(IRIS_ID).progression != party.characters.getValue(IRIS_ID).progression)
+      assertEquals(party.characters.getValue(SYVIAL_ID).progression, completed.state.characters.getValue(SYVIAL_ID).progression)
+    }
+    val original = EntityExpRewards.award(GameState.initial(), "brownies:repeat", 0L, fixedExp = 100)
+    val persisted = GameStateCodec.decode(GameStateCodec.encode(original.state))
+    val repeated = EntityExpRewards.award(persisted, "brownies:repeat", 0L, fixedExp = 100)
+    assertFalse(repeated.newlyAwarded)
+    assertEquals(persisted, repeated.state)
+  }
+
   @Test fun fractionalWorldRankDoesNotAdvanceFullLevelExpReward() {
     assertEquals(4, EntityExpRewards.expForRank(1_500_000L))
     try {
