@@ -10,7 +10,7 @@ data class WorldEnvironment(
 )
 
 /** Immutable clue identity, authored gameplay probe and its visible physical observation. */
-data class WorldLawProbe(val id: String, val environmentId: String, val method: String, val clue: String, val label: String = "")
+data class WorldLawProbe(val id: String, val environmentId: String, val method: String, val clue: String, val label: String = "", val aliases: List<String> = emptyList())
 enum class WorldLawFamily { PHYSICAL_CORRELATION, SPATIAL_ANCHOR }
 
 /** Player-facing alternative explanations, never an instruction to the GM. */
