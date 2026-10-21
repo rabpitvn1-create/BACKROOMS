@@ -34,6 +34,7 @@ public class GmQuestItemsTest {
       "{\"reply\":\"abc\",\"questItems\":[{\"type\":\"create\",\"id\":\"aa\",\"name\":\"X\",\"description\":\"Y\"}]}",
       "{\"reply\":\"abc\",\"questItems\":[{\"type\":\"consume\",\"id\":\"mark_01\",\"quantity\":99}]}",
       "{\"reply\":\"abc\",\"questItems\":[{\"type\":\"create\",\"id\":\"mark_01\",\"name\":\"<script>\",\"description\":\"Y\"}]}",
+      "{\"reply\":\"abc\"} trailing garbage",
       "{\"questItems\":[]}",
       "{\"reply\":\"\",\"questItems\":[]}"} ) {
       try { GmQuestItems.parseEnvelope(bad); fail("accepted invalid payload: "+bad); }
