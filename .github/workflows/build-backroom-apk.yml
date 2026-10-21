@@ -131,7 +131,7 @@ jobs:
           "$BUILD_TOOLS/aapt" dump badging Backroom-1.2.0.0.38.apk | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
           "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 Backroom-1.2.0.0.38.apk
           rm -rf apk-check && mkdir apk-check
-          unzip -q Backroom-1.2.0.0.38.apk 'assets/index.html' 'assets/explorer-controls.*' 'assets/dungeon.*' 'assets/ui/ornate-frame-v1.css' 'assets/ui/backrooms-reference-frame-v2.png' 'assets/ui/industrial-crt-v1.css' 'assets/ui/snapshot-tv.js' 'assets/ui/snapshot-crt.css' 'assets/ui/crt-glass-v5.svg' 'assets/ui/crt-optics.svg' 'assets/ui/black-observation-monitor-v1.webp' 'assets/ui/industrial-crt-v1/*.webp' 'assets/diagnostic-export.js' 'assets/item-icons.js' 'assets/item-detail-actions.js' 'assets/item-presentation.css' 'assets/item-icons/*' 'assets/provider-logos/*' 'assets/combat-feedback-1193a.*' 'assets/entity/*' 'assets/fx/*' 'assets/CaoMinh_MadGod_snapshot_overlay.png' 'assets/CAO_MINH_OVERLAY_EXPLORER_IDLE.png' 'assets/CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png' 'assets/avatars/MadGod.jpg' 'assets/avatars/CAO_MINH_AVATAR.jpg' 'assets/Catherine.webp' 'assets/avatars/Catherine_avatar.webp' 'assets/Janet.webp' 'assets/avatars/Janet_avatar.webp' 'assets/NguyenQuocNam.webp' 'assets/avatars/NguyenQuocNam_avatar.webp' 'assets/HuaTieuLan.webp' 'assets/avatars/HuaTieuLan_avatar.webp' 'assets/hud/player_action_backrooms.png' 'assets/dice/*' 'assets/fonts/Play-Bold.ttf' 'assets/level_snapshots/*' -d apk-check
+          unzip -q Backroom-1.2.0.0.38.apk 'assets/index.html' 'assets/explorer-controls.*' 'assets/dungeon.*' 'assets/ui/ornate-frame-v1.css' 'assets/ui/backrooms-reference-frame-v2.png' 'assets/ui/industrial-crt-v1.css' 'assets/ui/snapshot-tv.js' 'assets/ui/snapshot-crt.css' 'assets/ui/crt-glass-v5.svg' 'assets/ui/crt-optics.svg' 'assets/ui/black-observation-monitor-v1.webp' 'assets/ui/industrial-crt-v1/*.webp' 'assets/diagnostic-export.js' 'assets/item-icons.js' 'assets/item-detail-actions.js' 'assets/item-presentation.css' 'assets/item-icons/*' 'assets/provider-logos/*' 'assets/combat-feedback-1193a.*' 'assets/entity/*' 'assets/fx/*' 'assets/CaoMinh_MadGod_snapshot_overlay.png' 'assets/CAO_MINH_OVERLAY_EXPLORER_IDLE.png' 'assets/CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png' 'assets/avatars/MadGod.jpg' 'assets/avatars/CAO_MINH_AVATAR.jpg' 'assets/Catherine.webp' 'assets/avatars/Catherine_avatar.webp' 'assets/Janet.webp' 'assets/avatars/Janet_avatar.webp' 'assets/NguyenQuocNam.webp' 'assets/avatars/NguyenQuocNam_avatar.webp' 'assets/HuaTieuLan.webp' 'assets/avatars/HuaTieuLan_avatar.webp' 'assets/TracLam.png' 'assets/avatars/TracLam_avatar.jpg' 'assets/hud/player_action_backrooms.png' 'assets/dice/*' 'assets/fonts/Play-Bold.ttf' 'assets/level_snapshots/*' -d apk-check
           ! grep -q 'id="searchActionButton"' apk-check/assets/index.html
           grep -q 'id="submit"' apk-check/assets/index.html
           node android-apk/verify-explorer-controls.mjs apk-check/assets
@@ -186,6 +186,10 @@ jobs:
           ! grep -q 'state.log' apk-check/assets/combat-feedback-1193a.js
           ! grep -q 'localStorage' apk-check/assets/combat-feedback-1193a.js
           ! grep -q 'modal.hidden=true' apk-check/assets/combat-feedback-1193a.js
+          test -s apk-check/assets/TracLam.png
+          cmp android-apk/app/src/main/assets/TracLam.png apk-check/assets/TracLam.png
+          test -s apk-check/assets/avatars/TracLam_avatar.jpg
+          cmp android-apk/app/src/main/assets/avatars/TracLam_avatar.jpg apk-check/assets/avatars/TracLam_avatar.jpg
           test -s apk-check/assets/HuaTieuLan.webp
           cmp android-apk/app/src/main/assets/HuaTieuLan.webp apk-check/assets/HuaTieuLan.webp
           test -s apk-check/assets/avatars/HuaTieuLan_avatar.webp
