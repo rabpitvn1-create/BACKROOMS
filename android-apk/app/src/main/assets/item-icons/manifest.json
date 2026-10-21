@@ -1,5 +1,5 @@
 {
-  "version": 6,
+  "version": 7,
   "generator": "built-in imagegen",
   "style": "non-pixel liquid glass; warm gold/orange ordinary items, violet/blue stat book",
   "format": "WEBP",
@@ -371,6 +371,66 @@
       "generator": "built-in imagegen",
       "palette": "violet / cobalt / cyan",
       "design_reference": "almond-water.webp"
+    },
+    {
+      "item_id": "catherine:vesper-nocturne",
+      "key": "vesper-nocturne",
+      "name": "Vesper Nocturne",
+      "file": "vesper-nocturne.webp",
+      "width": 128,
+      "height": 128,
+      "mime_type": "image/webp",
+      "bytes": 2166,
+      "sha256": "e87306b1bb475f3b18cb82270b439d0af9861ade3c22b6269b1e734a1327580c",
+      "md5": "217e528ddbd3565fc20fb8a4a33677a9",
+      "drive_file_id": "1NdXpIouG7rRoZnw75vxe5XBn1u4lQBRg",
+      "drive_url": "https://drive.google.com/file/d/1NdXpIouG7rRoZnw75vxe5XBn1u4lQBRg/view?usp=drivesdk",
+      "design_reference": "Catherine.webp (exact crop)"
+    },
+    {
+      "item_id": "catherine:ashcombe-coat",
+      "key": "ashcombe-coat",
+      "name": "Ashcombe Mourning Coat",
+      "file": "ashcombe-coat.webp",
+      "width": 128,
+      "height": 128,
+      "mime_type": "image/webp",
+      "bytes": 6838,
+      "sha256": "0a195bddde54ece5edc7f0c06453e6635ccf132ff0c3f1382a52f5eac8e87e90",
+      "md5": "79d2e32f933085cbfb179e7a44927f23",
+      "drive_file_id": "1eUQfFhIqhPddFIYpIsQs8HO0pA6RJ2OK",
+      "drive_url": "https://drive.google.com/file/d/1eUQfFhIqhPddFIYpIsQs8HO0pA6RJ2OK/view?usp=drivesdk",
+      "design_reference": "Catherine.webp (exact crop)"
+    },
+    {
+      "item_id": "catherine:velvet-gauntlets",
+      "key": "velvet-gauntlets",
+      "name": "Velvet Trigger Gloves",
+      "file": "velvet-gauntlets.webp",
+      "width": 128,
+      "height": 128,
+      "mime_type": "image/webp",
+      "bytes": 4370,
+      "sha256": "e94638792a99ca5a5c50c03d334edb4af9b310783a707bc4a5a3de756a18cb54",
+      "md5": "3d4772c3fdcbaeabd8d925c56d5228da",
+      "drive_file_id": "1pN45AbvhZJZqvSZZXaRY_KEfBPtmbVPs",
+      "drive_url": "https://drive.google.com/file/d/1pN45AbvhZJZqvSZZXaRY_KEfBPtmbVPs/view?usp=drivesdk",
+      "design_reference": "Catherine.webp (exact crop)"
+    },
+    {
+      "item_id": "catherine:midnight-boots",
+      "key": "midnight-boots",
+      "name": "Midnight Riding Boots",
+      "file": "midnight-boots.webp",
+      "width": 128,
+      "height": 128,
+      "mime_type": "image/webp",
+      "bytes": 2528,
+      "sha256": "6abafec99ef447402246599c125177ff7c4a2461e933cb71f6db30d03268ef7d",
+      "md5": "e6cf7ebbc81c68b1d550614167a1b07d",
+      "drive_file_id": "1whOM32VeKDtUDjfmFLgkvO1UZ9VK8hKR",
+      "drive_url": "https://drive.google.com/file/d/1whOM32VeKDtUDjfmFLgkvO1UZ9VK8hKR/view?usp=drivesdk",
+      "design_reference": "Catherine.webp (exact crop)"
     }
   ]
 }
