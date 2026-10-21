@@ -1,4 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="724" viewBox="0 0 1000 724" preserveAspectRatio="none">
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="724" viewBox="15 11 970 702" preserveAspectRatio="none">
+  <!-- Inset viewBox enlarges the inner glass by about 3%; the outer TV frame and layout stay fixed. -->
   <!-- A bowed aperture, not a rounded rect: center of every edge projects
        beyond its corner shoulders. The underlying native scene stays live. -->
   <defs>
