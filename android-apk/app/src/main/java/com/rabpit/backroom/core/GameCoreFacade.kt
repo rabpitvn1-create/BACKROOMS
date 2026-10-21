@@ -225,8 +225,8 @@ class GameCoreFacade private constructor(
     // Entity. A 30-minute wake-up uses only the current physiology data.
     val extremeSleepEnvironment = RestActionPolicy.activities(atTarget, input).any { (id, mode) ->
       mode == TimeActivity.SLEEP &&
-        atTarget.characters[id]?.physiology?.thermalState?.trim()?.lowercase() in
-          setOf("overheated", "freezing")
+        (atTarget.characters[id]?.physiology?.thermalState?.trim()?.lowercase()
+          ?.let { it in setOf("overheated", "freezing") } == true)
     }
     val environmentInterrupted = !isWorldExit && roll?.entityKey == null &&
       extremeSleepEnvironment && plannedMinutes > 30
