@@ -39,7 +39,7 @@ Nam cẩn trọng, lý trí, cố gắng nói ít và quan sát trước. Trong 
 4. **Giày Hành Lang** (`nam:corridor-shoes`) — giày da đen mang từ đời thường, +10% DEF. Không giúp đi xuyên tường hoặc không phát tiếng động.
 5. **Nét Vẽ Của Dương** — tờ giấy con gái vẽ, vật lưu niệm **chỉ thuộc Canon**, chưa đăng ký trong inventory hay có hiệu ứng thống kê.
 
-Bốn món đầu có icon WebP riêng 128×128 được cắt từ **đúng ảnh nhân vật 673.png**. Không thêm các món trên vào pool loot toàn cầu.
+Bốn món đầu có icon WebP riêng 128×128 dựng theo thiết kế trong ảnh nhân vật 673.png, phong cách liquid glass nền xanh lá nhạt. Không thêm các món trên vào pool loot toàn cầu.
 
 ## VI. Năm kỹ năng thường
 

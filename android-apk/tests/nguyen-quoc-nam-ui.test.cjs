@@ -11,13 +11,17 @@ const skills = fs.readFileSync(path.join(main, 'java/com/rabpit/backroom/core/Co
 const spawn = fs.readFileSync(path.join(main, 'java/com/rabpit/backroom/core/EntitySpawnPool.kt'), 'utf8');
 const manifest = JSON.parse(fs.readFileSync(path.join(assets, 'item-icons/manifest.json'), 'utf8'));
 
-test('Nam original art and portrait are distinct packaged WebP with alpha and size constraints', () => {
+test('Nam alpha original and pale green 512px portrait are distinct packaged WebP assets', () => {
   const whole = fs.readFileSync(path.join(assets, 'NguyenQuocNam.webp'));
   const face = fs.readFileSync(path.join(assets, 'avatars/NguyenQuocNam_avatar.webp'));
   assert.ok(whole.length <= 350000);
   assert.ok(face.length > 500 && face.length < 350000);
   assert.equal(whole.toString('ascii', 0, 4), 'RIFF');
   assert.equal(face.toString('ascii', 0, 4), 'RIFF');
+  assert.equal(whole.toString('ascii', 12, 16), 'VP8X');
+  assert.equal(face.toString('ascii', 12, 16), 'VP8 ');
+  assert.equal(face.readUInt16LE(26) & 0x3fff, 512);
+  assert.equal(face.readUInt16LE(28) & 0x3fff, 512);
   assert.notEqual(crypto.createHash('sha256').update(whole).digest('hex'),
     crypto.createHash('sha256').update(face).digest('hex'));
   assert.match(canon, /avatars\/NguyenQuocNam_avatar\.webp/);

@@ -1,0 +1,138 @@
+{
+  "tool": "built-in imagegen",
+  "pipeline": "Image Gen -> resize/encode -> upload source PNG and runtime WebP to Drive -> metadata readback -> download WebP from Drive -> verify SHA-256 -> integrate",
+  "avatar_size": [
+    512,
+    512
+  ],
+  "item_size": [
+    128,
+    128
+  ],
+  "palette": "pale light green / mint / celadon",
+  "items": [
+    {
+      "key": "nam-avatar",
+      "owner": "NguyenQuocNam",
+      "kind": "avatar",
+      "target": "avatars/NguyenQuocNam_avatar.webp",
+      "prompt": "Use case: identity-preserve. Create ONE square close-up character avatar for BACKROOMS. Image 1 is the exact SUBJECT identity reference. Preserve the SAME person's face, ethnicity, age, facial proportions, hair, eye color, accessories and visible clothes. Image 2 is STYLE/FRAMING/BACKGROUND reference only (Catherine avatar); do NOT borrow her face or clothing. Refined detailed semi-realistic illustrated game portrait matching the subject source, head-and-shoulders, face prominently fills frame, entire top of hair safely inside image with a small margin, upper chest at bottom, three-quarter view, calm focused expression. Plain opaque pale light green / celadon background, matching Catherine's avatar, no glass tile, no frame, no text, no watermark, no gun or hands blocking face. Subject: Nguyễn Quốc Nam, Vietnamese man age 36, thick slightly tousled black hair, thin dark metal rectangular glasses, serious angular face, off-white collared shirt open at neck. Keep his age, masculine facial structure and glasses exactly recognizable.",
+      "bytes": 54032,
+      "sha256": "3678f28c10673c5e2582e32638f5961f2ca4f81590d2198b7d2a1da046bc11c9",
+      "md5": "d29dd18a3e77ceb4ab4307a38ff04dc5",
+      "framing_revision": "Image Gen edit: preserve identity/style; zoom out and leave at least 5% pale green headroom above complete hair silhouette.",
+      "source_drive_url": "https://drive.google.com/file/d/1OyRSUmgeKSYIPTssJv_FgCe9uOXJYz78/view?usp=drivesdk",
+      "runtime_drive_url": "https://drive.google.com/file/d/1fLUNKpMNtIuYJqIRM7C7OqjhwDRzgDky/view?usp=drivesdk",
+      "runtime_path": "app/src/main/assets/avatars/NguyenQuocNam_avatar.webp"
+    },
+    {
+      "key": "nam-pistol",
+      "owner": "NguyenQuocNam",
+      "kind": "item",
+      "prompt": "Use case: stylized-concept. Create ONE square BACKROOMS inventory equipment icon, NOT a sheet. Image 1 is STYLE REFERENCE ONLY: match its premium non-pixel 3D liquid-glass tile, rounded corners, slim refractive glass bevel, centered object, crisp detailed materials and miniature cinematic lighting. Image 2 is SUBJECT REFERENCE ONLY: derive the specified equipment's actual design from that character, but no person or body part. Redraw as a complete standalone item. Match the reference's PALE LIGHT GREEN / MINT / CELADON background and luminous mint glass border, subtle flowing light wisps and darker green corner vignette. Preserve object colors, do not tint everything green. Object fills 75-82% of tile, complete and fully inside bevel with padding. Opaque background, no words, no logo, no watermark, no UI, no extra props. Subject: ONE used dark steel semi-automatic handgun matching the man's actual pistol, compact rectangular slide, black grip, visible trigger guard, no brand or identifiable logo. Complete muzzle, slide and grip, diagonal composition. Not a revolver.",
+      "bytes": 9542,
+      "sha256": "cccaf43c09a12063aaa85690b9e9fe7789b43ab5c88d062750b23a4426fff271",
+      "md5": "1cadde8f5954e884f085811319600781",
+      "source_drive_url": "https://drive.google.com/file/d/1w8UH7aFZAIKXRC9ppgn2KPiFe__Z6VjG/view?usp=drivesdk",
+      "runtime_drive_url": "https://drive.google.com/file/d/1_tnzlHBh5X1DKu8vQU8ML79vjw62cU5C/view?usp=drivesdk",
+      "runtime_path": "app/src/main/assets/item-icons/nam-pistol.webp"
+    },
+    {
+      "key": "nam-shirt",
+      "owner": "NguyenQuocNam",
+      "kind": "item",
+      "prompt": "Use case: stylized-concept. Create ONE square BACKROOMS inventory equipment icon, NOT a sheet. Image 1 is STYLE REFERENCE ONLY: match its premium non-pixel 3D liquid-glass tile, rounded corners, slim refractive glass bevel, centered object, crisp detailed materials and miniature cinematic lighting. Image 2 is SUBJECT REFERENCE ONLY: derive the specified equipment's actual design from that character, but no person or body part. Redraw as a complete standalone item. Match the reference's PALE LIGHT GREEN / MINT / CELADON background and luminous mint glass border, subtle flowing light wisps and darker green corner vignette. Preserve object colors, do not tint everything green. Object fills 75-82% of tile, complete and fully inside bevel with padding. Opaque background, no words, no logo, no watermark, no UI, no extra props. Subject: ONE empty off-white short-sleeved collared button-down shirt with chest pocket and rolled sleeve cuffs, matching the man's shirt, subtly worn cotton. Shirt only, no arms/body, no trousers, no tie or lab coat. Entire collar, sleeves and hem visible.",
+      "bytes": 9152,
+      "sha256": "4e76c56ca9a5e6daa866aa9890f2a9c9d21a63a1002f31fc45fa8554d7588a32",
+      "md5": "10f2ac494311e125e85c118b0aaac480",
+      "source_drive_url": "https://drive.google.com/file/d/1J9hEh7vh4B-4K1Uurw835wRvG_alrMpJ/view?usp=drivesdk",
+      "runtime_drive_url": "https://drive.google.com/file/d/1FgausjBNGgvxkNQcu1iVPlJavoVf0GOB/view?usp=drivesdk",
+      "runtime_path": "app/src/main/assets/item-icons/nam-shirt.webp"
+    },
+    {
+      "key": "nam-watch",
+      "owner": "NguyenQuocNam",
+      "kind": "item",
+      "prompt": "Use case: stylized-concept. Create ONE square BACKROOMS inventory equipment icon, NOT a sheet. Image 1 is STYLE REFERENCE ONLY: match its premium non-pixel 3D liquid-glass tile, rounded corners, slim refractive glass bevel, centered object, crisp detailed materials and miniature cinematic lighting. Image 2 is SUBJECT REFERENCE ONLY: derive the specified equipment's actual design from that character, but no person or body part. Redraw as a complete standalone item. Match the reference's PALE LIGHT GREEN / MINT / CELADON background and luminous mint glass border, subtle flowing light wisps and darker green corner vignette. Preserve object colors, do not tint everything green. Object fills 75-82% of tile, complete and fully inside bevel with padding. Opaque background, no words, no logo, no watermark, no UI, no extra props. Subject: ONE ordinary analog wristwatch matching the man's watch: round silver steel case, white dial with restrained hour marks and black hands, dark leather strap. Complete face and curved strap readable as standalone watch, no digital display or extra functions, no text.",
+      "bytes": 9490,
+      "sha256": "177c19c95f39fe7163808a7441fa1f7fefe1937ad1716745b174fec58e4e99fd",
+      "md5": "806e9f14a8bc601e11c1e3ae7e307c8f",
+      "source_drive_url": "https://drive.google.com/file/d/15c-VUOcXbu7xiMqU_sCcXMziO_b6y6BI/view?usp=drivesdk",
+      "runtime_drive_url": "https://drive.google.com/file/d/1I9_kuM5AJOEitz1oKO4LbD7hB6qHPTaV/view?usp=drivesdk",
+      "runtime_path": "app/src/main/assets/item-icons/nam-watch.webp"
+    },
+    {
+      "key": "nam-shoes",
+      "owner": "NguyenQuocNam",
+      "kind": "item",
+      "prompt": "Use case: stylized-concept. Create ONE square BACKROOMS inventory equipment icon, NOT a sheet. Image 1 is STYLE REFERENCE ONLY: match its premium non-pixel 3D liquid-glass tile, rounded corners, slim refractive glass bevel, centered object, crisp detailed materials and miniature cinematic lighting. Image 2 is SUBJECT REFERENCE ONLY: derive the specified equipment's actual design from that character, but no person or body part. Redraw as a complete standalone item. Match the reference's PALE LIGHT GREEN / MINT / CELADON background and luminous mint glass border, subtle flowing light wisps and darker green corner vignette. Preserve object colors, do not tint everything green. Object fills 75-82% of tile, complete and fully inside bevel with padding. Opaque background, no words, no logo, no watermark, no UI, no extra props. Subject: ONE matching PAIR of ordinary black leather lace-up low dress shoes, slightly scuffed, dark sturdy soles, matching the man's actual shoes. Complete empty shoes, no feet, legs or socks.",
+      "bytes": 9426,
+      "sha256": "249818eb76b9cf4a9722e2dabec7b77f9fa42036b3a0c519573f912cfc81de99",
+      "md5": "e14f212b32202e6f535181f6e687789e",
+      "source_drive_url": "https://drive.google.com/file/d/1xXQxm6UYvMlOYOP_uvFZfXRtYSkYndyT/view?usp=drivesdk",
+      "runtime_drive_url": "https://drive.google.com/file/d/1EJEBieuV3FZGJFlDQM1FgnOavg2MBRtK/view?usp=drivesdk",
+      "runtime_path": "app/src/main/assets/item-icons/nam-shoes.webp"
+    },
+    {
+      "key": "tieu-lan-avatar",
+      "owner": "HuaTieuLan",
+      "kind": "avatar",
+      "target": "avatars/HuaTieuLan_avatar.webp",
+      "prompt": "Use case: identity-preserve. Create ONE square close-up character avatar for BACKROOMS. Image 1 is the exact SUBJECT identity reference. Preserve the SAME person's face, ethnicity, age, facial proportions, hair, eye color, accessories and visible clothes. Image 2 is STYLE/FRAMING/BACKGROUND reference only (Catherine avatar); do NOT borrow her face or clothing. Refined detailed semi-realistic illustrated game portrait matching the subject source, head-and-shoulders, face prominently fills frame, entire top of hair safely inside image with a small margin, upper chest at bottom, three-quarter view, calm focused expression. Plain opaque pale light green / celadon background, matching Catherine's avatar, no glass tile, no frame, no text, no watermark, no gun or hands blocking face. Subject: Hứa Tiểu Lan, Vietnamese young adult woman age 18, the same young face as the reference, black hair in an elegant high bun with white hair band, pearl drop earrings, high collar of pale blue áo dài with white chrysanthemum pattern. Keep her original hairstyle, features and modest clothing exactly recognizable. No jade bracelet needed in close-up. Framing requirement: leave at least 5 percent of image height of plain background ABOVE the highest point of the COMPLETE hair bun; entire bun, hairband and earrings inside frame.",
+      "bytes": 67356,
+      "sha256": "eed3ee68f4c395cab8f4e8c7fd097e50ab716e147d8b4b534c874076b95bf7c9",
+      "md5": "27af40365baabb99f89c5aba8d74a046",
+      "source_drive_url": "https://drive.google.com/file/d/1VNADeW7ABA0gOcO0KmnY0f2fOqg6Zptx/view?usp=drivesdk",
+      "runtime_drive_url": "https://drive.google.com/file/d/1ywybMxlNpJC3YbEJs1VT_SSJZPdo-T3v/view?usp=drivesdk",
+      "runtime_path": "app/src/main/assets/avatars/HuaTieuLan_avatar.webp"
+    },
+    {
+      "key": "tieu-lan-rifle",
+      "owner": "HuaTieuLan",
+      "kind": "item",
+      "prompt": "Use case: stylized-concept. Create ONE square BACKROOMS inventory equipment icon, NOT a sheet. Image 1 is STYLE REFERENCE ONLY: match its premium non-pixel 3D liquid-glass tile, rounded corners, slim refractive glass bevel, centered object, crisp detailed materials and miniature cinematic lighting. Image 2 is SUBJECT REFERENCE ONLY: derive the specified equipment's actual design from that character, but no person or body part. Redraw as a complete standalone item. Match the reference's PALE LIGHT GREEN / MINT / CELADON background and luminous mint glass border, subtle flowing light wisps and darker green corner vignette. Preserve object colors, do not tint everything green. Object fills 75-82% of tile, complete and fully inside bevel with padding. Opaque background, no words, no logo, no watermark, no UI, no extra props. Subject: ONE complete antique long single-shot wooden rifle matching the woman's actual rifle, rich dark wood stock and fore-end, long black steel barrel, antique brass barrel bands and ornate lock mechanism. Complete muzzle and buttstock must fit comfortably diagonally inside square. No scope, magazine, modern rails or invented brand.",
+      "bytes": 9520,
+      "sha256": "46b926cf29780dd42b21919b82030d47435f4b891a16dc120be97bd163724bdd",
+      "md5": "b3ea015ef2833eb0c458485cb2676ba7",
+      "source_drive_url": "https://drive.google.com/file/d/1BS6_qQqRo0T2-vpFM8q2kE6CvS7uDPb3/view?usp=drivesdk",
+      "runtime_drive_url": "https://drive.google.com/file/d/1S5WtBX6PDalWIp86tJAq9v1Rd1IyJIRf/view?usp=drivesdk",
+      "runtime_path": "app/src/main/assets/item-icons/tieu-lan-rifle.webp"
+    },
+    {
+      "key": "tieu-lan-ao-dai",
+      "owner": "HuaTieuLan",
+      "kind": "item",
+      "prompt": "Use case: stylized-concept. Create ONE square BACKROOMS inventory equipment icon, NOT a sheet. Image 1 is STYLE REFERENCE ONLY: match its premium non-pixel 3D liquid-glass tile, rounded corners, slim refractive glass bevel, centered object, crisp detailed materials and miniature cinematic lighting. Image 2 is SUBJECT REFERENCE ONLY: derive the specified equipment's actual design from that character, but no person or body part. Redraw as a complete standalone item. Match the reference's PALE LIGHT GREEN / MINT / CELADON background and luminous mint glass border, subtle flowing light wisps and darker green corner vignette. Preserve object colors, do not tint everything green. Object fills 75-82% of tile, complete and fully inside bevel with padding. Opaque background, no words, no logo, no watermark, no UI, no extra props. Subject: ONE empty Vietnamese pale light blue silk ÁO DÀI with white chrysanthemum floral pattern, standing high collar, long sleeves, and EXACTLY TWO long panels, one front and one back, split at both sides of the waist. Display gently turned to show the two separate long panels, no third/fourth panel, no skirt, no cape, no body, no trousers. Keep both panels complete with intact corners. Match the actual garment.",
+      "bytes": 9284,
+      "sha256": "235d99d354f1b38eba9e4ea7fd1f2075d82ffeb7ecdeabbe25d2082897f1689f",
+      "md5": "5b1598c856bb32ff3508f5915173f83c",
+      "source_drive_url": "https://drive.google.com/file/d/1CZlLTDjouVqpU8ReHy3fiw5otm4SCTuZ/view?usp=drivesdk",
+      "runtime_drive_url": "https://drive.google.com/file/d/1zE1Kz75dh5p0D3dawrbGFkOgXcWdWmeA/view?usp=drivesdk",
+      "runtime_path": "app/src/main/assets/item-icons/tieu-lan-ao-dai.webp"
+    },
+    {
+      "key": "tieu-lan-jade-bracelet",
+      "owner": "HuaTieuLan",
+      "kind": "item",
+      "prompt": "Use case: stylized-concept. Create ONE square BACKROOMS inventory equipment icon, NOT a sheet. Image 1 is STYLE REFERENCE ONLY: match its premium non-pixel 3D liquid-glass tile, rounded corners, slim refractive glass bevel, centered object, crisp detailed materials and miniature cinematic lighting. Image 2 is SUBJECT REFERENCE ONLY: derive the specified equipment's actual design from that character, but no person or body part. Redraw as a complete standalone item. Match the reference's PALE LIGHT GREEN / MINT / CELADON background and luminous mint glass border, subtle flowing light wisps and darker green corner vignette. Preserve object colors, do not tint everything green. Object fills 75-82% of tile, complete and fully inside bevel with padding. Opaque background, no words, no logo, no watermark, no UI, no extra props. Subject: ONE simple solid round polished green jade bangle matching the woman's actual wrist bangle. Translucent pale green jade with subtle natural mineral veining, smooth continuous circular band, no gems set, no chain, no extra ornaments, no hand or wrist. At a three-quarter angle so hole is obvious, distinct from the background.",
+      "bytes": 8810,
+      "sha256": "1770c0b866c28d1782c01833ece67447ba8365c12695326aca4eb81b5a087f61",
+      "md5": "e0df97b7eede4ef0cb12da91fbdc279c",
+      "source_drive_url": "https://drive.google.com/file/d/1wMWalWo1JTx-vG62P3qCdaZa3VwsiM_j/view?usp=drivesdk",
+      "runtime_drive_url": "https://drive.google.com/file/d/1_Mi0wad-8TPfXSvpVLoNlDiYVdvjSAN5/view?usp=drivesdk",
+      "runtime_path": "app/src/main/assets/item-icons/tieu-lan-jade-bracelet.webp"
+    },
+    {
+      "key": "tieu-lan-shoes",
+      "owner": "HuaTieuLan",
+      "kind": "item",
+      "prompt": "Use case: stylized-concept. Create ONE square BACKROOMS inventory equipment icon, NOT a sheet. Image 1 is STYLE REFERENCE ONLY: match its premium non-pixel 3D liquid-glass tile, rounded corners, slim refractive glass bevel, centered object, crisp detailed materials and miniature cinematic lighting. Image 2 is SUBJECT REFERENCE ONLY: derive the specified equipment's actual design from that character, but no person or body part. Redraw as a complete standalone item. Match the reference's PALE LIGHT GREEN / MINT / CELADON background and luminous mint glass border, subtle flowing light wisps and darker green corner vignette. Preserve object colors, do not tint everything green. Object fills 75-82% of tile, complete and fully inside bevel with padding. Opaque background, no words, no logo, no watermark, no UI, no extra props. Subject: ONE matching PAIR of ivory-white low-heeled closed-toe women's shoes with small neat bows on the toes, matching the woman's actual shoes. Simple elegant pumps, low block heels, complete empty shoes, no feet, socks or trousers. Avoid tall heels.",
+      "bytes": 8780,
+      "sha256": "c4eb877a8119fcbde201d56abf697c3cfffd9ed8dae71da5b9d3d1faccfec773",
+      "md5": "deac83c8824bb161d4110178fe6fee19",
+      "source_drive_url": "https://drive.google.com/file/d/1DNoroTQWB6TJUHhQDJ5iJsuMgwL5T3fj/view?usp=drivesdk",
+      "runtime_drive_url": "https://drive.google.com/file/d/1cVm6XPMyCmOkDyCNW6iwNtZLZxt8F08V/view?usp=drivesdk",
+      "runtime_path": "app/src/main/assets/item-icons/tieu-lan-shoes.webp"
+    }
+  ]
+}

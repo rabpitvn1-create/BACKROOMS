@@ -12,7 +12,7 @@ const skills = fs.readFileSync(path.join(root, 'java/com/rabpit/backroom/core/Co
 const spawn = fs.readFileSync(path.join(root, 'java/com/rabpit/backroom/core/EntitySpawnPool.kt'), 'utf8');
 const manifest = JSON.parse(fs.readFileSync(path.join(assets, 'item-icons/manifest.json'), 'utf8'));
 
-test('Original full-body and cropped face portraits are separate transparent WebP assets', () => {
+test('Original alpha full-body and pale green 512px face portrait are separate WebP assets', () => {
   const full = fs.readFileSync(path.join(assets, 'HuaTieuLan.webp'));
   const avatar = fs.readFileSync(path.join(assets, 'avatars/HuaTieuLan_avatar.webp'));
   assert.ok(full.length > 1000 && full.length <= 350000);
@@ -20,7 +20,9 @@ test('Original full-body and cropped face portraits are separate transparent Web
   assert.equal(full.toString('ascii', 0, 4), 'RIFF');
   assert.equal(avatar.toString('ascii', 0, 4), 'RIFF');
   assert.equal(full.toString('ascii', 12, 16), 'VP8X');
-  assert.equal(avatar.toString('ascii', 12, 16), 'VP8X');
+  assert.equal(avatar.toString('ascii', 12, 16), 'VP8 ');
+  assert.equal(avatar.readUInt16LE(26) & 0x3fff, 512);
+  assert.equal(avatar.readUInt16LE(28) & 0x3fff, 512);
   assert.notEqual(crypto.createHash('sha256').update(full).digest('hex'),
     crypto.createHash('sha256').update(avatar).digest('hex'));
   assert.match(canon, /avatars\/HuaTieuLan_avatar\.webp/);

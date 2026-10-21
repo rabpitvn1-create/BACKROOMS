@@ -52,7 +52,7 @@ Cô sợ gia đình có thể nghĩ mình chủ động trốn đi, và nỗi á
 4. **Bạch Liên Hài**, ID `tieu-lan:white-heels` — giày trắng thấp gót theo trang phục, **+10% DEF** trong hệ thống stat; không giúp đi trên không.
 5. **Thiệp Mời Sinh Nhật**, vật lưu niệm trong cốt truyện chưa phải trang bị có chỉ số. Trên thiệp chỉ có số tuổi mười tám, không có mật mã thoát khỏi Backrooms.
 
-Icon cả bốn trang bị phải dùng WebP VP8 128×128 cắt từ đúng ảnh gốc và nạp theo item-icons manifest. Không đưa trang bị cá nhân vào pool loot toàn cầu.
+Icon cả bốn trang bị dùng WebP VP8 128×128 dựng theo thiết kế trong ảnh gốc, phong cách liquid glass nền xanh lá nhạt và nạp theo item-icons manifest. Không đưa trang bị cá nhân vào pool loot toàn cầu.
 
 ## VII. Năm kỹ năng thường
 
@@ -79,7 +79,7 @@ Cảnh gặp gợi ý: từ góc hành lang có tiếng gỗ nòng súng chạm 
 ## X. Tài nguyên
 
 - Ảnh toàn thân alpha WebP: `android-apk/app/src/main/assets/HuaTieuLan.webp`.
-- Avatar cận mặt alpha WebP: `android-apk/app/src/main/assets/avatars/HuaTieuLan_avatar.webp`.
+- Avatar cận mặt WebP 512×512 nền xanh lá nhạt: `android-apk/app/src/main/assets/avatars/HuaTieuLan_avatar.webp`.
 - Bốn icon VP8 WebP 128×128 trong `android-apk/app/src/main/assets/item-icons/`.
 - Google Drive `Novel/Characters` là điểm đến bắt buộc **trước** khi tạo GitHub blob; Canon nằm trong `assets/canon/HUA_TIEU_LAN_CODEX.md`.
-- Hình 677.png do người dùng gửi: nguồn hình duy nhất, không vẽ lại nhân vật.
+- Hình 677.png do người dùng gửi là nguồn thiết kế nhân vật; giữ nguyên ảnh toàn thân. Avatar và icon dựng riêng theo nguồn này, không thay đổi nhận diện hoặc trang bị.
