@@ -56,6 +56,11 @@ public final class GmQuestItems {
     return new JSONObject().put("items", held);
   }
 
+  /** Preflight a native checkpoint before GameCoreFacade performs its restore. */
+  public synchronized void validateRestore(JSONObject snapshot) throws Exception {
+    validateSnapshot(snapshot);
+  }
+
   public synchronized void restore(JSONObject snapshot) throws Exception {
     JSONObject checked = validateSnapshot(snapshot);
     if (!preferences.edit().putString(KEY, checked.toString()).remove(PENDING).commit())
