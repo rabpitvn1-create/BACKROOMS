@@ -86,7 +86,7 @@ public class MainActivity extends Activity {
   private String attachGmItemsCheckpoint(String rawResponse) throws Exception {
     JSONObject response = new JSONObject(rawResponse);
     if (response.optBoolean("ok", false) && response.has("state"))
-      response.getJSONObject("state").put("gmQuestItems", gmItems().snapshot());
+      response.getJSONObject("state").put("gmQuestItems", gmItems().publicView());
     return response.toString();
   }
   private String attachGmItems(String coreView) throws Exception {
@@ -112,7 +112,7 @@ public class MainActivity extends Activity {
       }
       if (committed) gmItems().confirmPending(id);
     }
-    response.put("gmQuestItems", gmItems().snapshot());
+    response.put("gmQuestItems", gmItems().publicView());
     return response.toString();
   }
   private void stageGmItems(String narrationId, String nodeId) throws Exception {
@@ -1214,7 +1214,7 @@ public class MainActivity extends Activity {
       + com.rabpit.backroom.core.knowledge.GmNarrativeVoicePolicy.prompt()
       + "\nOPENING_CONTEXT=" + com.rabpit.backroom.core.knowledge.GmNarrativeVoicePolicy.openingContext()
       + "\nCANON=" + canon + "\nMEMORY=" + requireGameCore().sceneMemoryContext()
-      + "\nGM_QUEST_ITEMS=" + gmItems().snapshot()
+      + "\nGM_QUEST_ITEMS=" + gmItems().narrativeView()
       + "\nPUBLIC_EVENT=" + packet;
   }
 
@@ -1616,7 +1616,7 @@ public class MainActivity extends Activity {
         if (result.optBoolean("ok", false) && result.has("state")) {
           JSONObject restored = result.getJSONObject("state");
           gmItems().restore(restored.getJSONObject("gmQuestItems"));
-          restored.put("gmQuestItems", gmItems().snapshot());
+          restored.put("gmQuestItems", gmItems().publicView());
         }
         return result.toString();
       } catch (Exception error) {
@@ -2046,7 +2046,7 @@ public class MainActivity extends Activity {
         + "\nCHARACTER_MEMORY=" + requireGameCore().sceneMemoryContext()
         + "\nPLAYER=" + JSONObject.quote(rawAction)
         + "\nSTATE=" + view
-        + "\nGM_QUEST_ITEMS=" + gmItems().snapshot()
+        + "\nGM_QUEST_ITEMS=" + gmItems().narrativeView()
         + "\nRESOLVED_EVENTS=" + resolved;
       JSONObject written = new JSONObject(generateText(prompt));
       ProviderResponseContract.requireWriter(written);
