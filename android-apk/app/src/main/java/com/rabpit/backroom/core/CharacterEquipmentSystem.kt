@@ -97,8 +97,8 @@ object EquipmentCatalog {
       primarySlot = EquipmentSlot.FOOTWEAR,
       bonuses = EquipmentBonuses(agiPct = 100, dexPct = 100),
       skillDamageMultiplier = 1,
-      abilities = listOf(ability("Huyết Ảnh Bộ", "AGI +100%, DEX +100%; hệ số sát thương kỹ năng ×1 khi trang bị.",
-        "Khi phối hợp Găng tay Huyết Ma: ×1 ×1 = ×1 Skill DMG; không khuếch đại thêm sát thương kỹ năng hoặc đánh thường.")),
+      abilities = listOf(ability("Huyết Ảnh Bộ", "AGI +100%, DEX +100%; đóng góp ×1 vào hệ số sát thương kỹ năng khi trang bị.",
+        "Khi phối hợp Găng tay Huyết Ma: ×1 + ×1 = ×2 Skill DMG, áp dụng sau STR; không tăng sát thương đánh thường.")),
       restrictions = listOf("Chỉ Cao Minh sử dụng; không chuyển nhượng hoặc tháo pháp bảo bản mệnh."),
       canonRef = "CAO-EQP-HUYET-MA-BOOTS-01"
     ),
@@ -107,8 +107,8 @@ object EquipmentCatalog {
       primarySlot = EquipmentSlot.GAUNTLETS,
       bonuses = EquipmentBonuses(agiPct = 100, dexPct = 100),
       skillDamageMultiplier = 1,
-      abilities = listOf(ability("Ma Trảo Cường Hóa", "AGI +100%, DEX +100%; hệ số sát thương kỹ năng ×1 khi trang bị.",
-        "Khi phối hợp Giày Huyết Ma: ×1 ×1 = ×1 Skill DMG; không khuếch đại thêm sát thương kỹ năng hoặc đánh thường.")),
+      abilities = listOf(ability("Ma Trảo Cường Hóa", "AGI +100%, DEX +100%; đóng góp ×1 vào hệ số sát thương kỹ năng khi trang bị.",
+        "Khi phối hợp Giày Huyết Ma: ×1 + ×1 = ×2 Skill DMG, áp dụng sau STR; không tăng sát thương đánh thường.")),
       restrictions = listOf("Chỉ Cao Minh sử dụng; không chuyển nhượng hoặc tháo pháp bảo bản mệnh."),
       canonRef = "CAO-EQP-HUYET-MA-GAUNTLETS-01"
     ),
@@ -320,20 +320,27 @@ object EquipmentCatalog {
       CharacterStatCore.isCaoMinh(characterId)
 
   /**
-   * Independent multipliers compound (Huyết Ma boots and gauntlets: ×1 ×1 = ×1).
+   * Huyết Ma accessories add their contributions: one piece ×1, both ×2.
+   * With no accessory, the neutral baseline is ×1 (not an extra +1).
    * Ordinary weapon and basic attacks do not use this factor.
    */
   fun equippedSkillDamageMultiplier(state: GameState, characterId: String): Int {
     val equipmentId = state.characters[characterId]?.equipmentId ?: characterId
     val slots = state.equipment[equipmentId]?.slots ?: return 1
     var result = 1
+    var huyetMaContribution = 0
     for ((slot, itemId) in slots) {
       val def = definition(itemId) ?: continue
       if (!isUsableBy(itemId, characterId) || slot != def.primarySlot.key) continue
-      result = (result.toLong() * def.skillDamageMultiplier.coerceAtLeast(1))
-        .coerceAtMost(999L).toInt()
+      if (itemId == CAO_MINH_BOOTS_ID || itemId == CAO_MINH_GAUNTLETS_ID) {
+        huyetMaContribution += def.skillDamageMultiplier.coerceAtLeast(1)
+      } else {
+        result = (result.toLong() * def.skillDamageMultiplier.coerceAtLeast(1))
+          .coerceAtMost(999L).toInt()
+      }
     }
-    return result
+    return (result.toLong() * huyetMaContribution.coerceAtLeast(1))
+      .coerceAtMost(999L).toInt()
   }
 
   fun startingLoadout(characterId: String): Map<EquipmentSlot, String> = when (characterId) {

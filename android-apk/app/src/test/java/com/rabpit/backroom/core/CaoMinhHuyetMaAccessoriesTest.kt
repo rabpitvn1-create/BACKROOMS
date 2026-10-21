@@ -37,7 +37,7 @@ class CaoMinhHuyetMaAccessoriesTest {
     assertEquals(CAO_MINH_GAUNTLETS_ID, fresh["gauntlets"])
   }
 
-  @Test fun `accessory bonuses are additive and both skill multipliers remain neutral`() {
+  @Test fun `accessory stats are additive and two skill contributions sum to two`() {
     val base = withGear()
     val boots = withGear("footwear" to CAO_MINH_BOOTS_ID)
     val gloves = withGear("gauntlets" to CAO_MINH_GAUNTLETS_ID)
@@ -63,14 +63,14 @@ class CaoMinhHuyetMaAccessoriesTest {
     assertEquals(1, EquipmentCatalog.equippedSkillDamageMultiplier(base, CAO_MINH_ID))
     assertEquals(1, EquipmentCatalog.equippedSkillDamageMultiplier(boots, CAO_MINH_ID))
     assertEquals(1, EquipmentCatalog.equippedSkillDamageMultiplier(gloves, CAO_MINH_ID))
-    assertEquals(1, EquipmentCatalog.equippedSkillDamageMultiplier(full, CAO_MINH_ID))
+    assertEquals(2, EquipmentCatalog.equippedSkillDamageMultiplier(full, CAO_MINH_ID))
 
     val baseSkill = CharacterStatEngine.skillBaseDamage(base, CAO_MINH_ID)
     assertEquals(baseSkill, CharacterStatEngine.skillBaseDamage(boots, CAO_MINH_ID))
     assertEquals(baseSkill, CharacterStatEngine.skillBaseDamage(gloves, CAO_MINH_ID))
-    assertEquals(baseSkill, CharacterStatEngine.skillBaseDamage(full, CAO_MINH_ID))
+    assertEquals(baseSkill * 2, CharacterStatEngine.skillBaseDamage(full, CAO_MINH_ID))
     assertEquals(baseStats.attackPercent, fullStats.attackPercent)
-    assertEquals(baseStats.skillDamagePercent, fullStats.skillDamagePercent)
+    assertEquals(baseStats.skillDamagePercent * 2, fullStats.skillDamagePercent)
     assertEquals(CharacterStatEngine.weaponDamage(base, CAO_MINH_ID),
       CharacterStatEngine.weaponDamage(full, CAO_MINH_ID))
     assertEquals(
@@ -113,7 +113,7 @@ class CaoMinhHuyetMaAccessoriesTest {
     assertEquals(CharacterStatEngine.effective(valid, CAO_MINH_ID).dex,
       CharacterStatEngine.effective(misplaced, CAO_MINH_ID).dex)
   }
-  @Test fun `skill gear leaves STR scaled damage unchanged at every sampled STR`() {
+  @Test fun `two skill pieces double STR scaled damage exactly once at every sampled STR`() {
     for (str in listOf(5, 6, 15, 50, 165)) {
       val state = withGear()
       val actor = state.characters.getValue(CAO_MINH_ID)
@@ -125,8 +125,8 @@ class CaoMinhHuyetMaAccessoriesTest {
           "footwear" to CAO_MINH_BOOTS_ID, "gauntlets" to CAO_MINH_GAUNTLETS_ID
         )
       )))
-      assertEquals(1, EquipmentCatalog.equippedSkillDamageMultiplier(full, CAO_MINH_ID))
-      assertEquals(CharacterStatEngine.skillBaseDamage(base, CAO_MINH_ID),
+      assertEquals(2, EquipmentCatalog.equippedSkillDamageMultiplier(full, CAO_MINH_ID))
+      assertEquals(CharacterStatEngine.skillBaseDamage(base, CAO_MINH_ID) * 2,
         CharacterStatEngine.skillBaseDamage(full, CAO_MINH_ID))
     }
   }

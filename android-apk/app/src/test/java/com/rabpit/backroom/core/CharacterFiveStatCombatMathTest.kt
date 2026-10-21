@@ -18,7 +18,7 @@ class CharacterFiveStatCombatMathTest {
     assertEquals(CharacterStatCore.maxHp(sampled.vit), sampled.maxHp)
     assertEquals(CharacterStatCore.defense(sampled.vit), sampled.def)
     assertEquals(CharacterProgressionCore.statPercent(sampled.str), sampled.attackPercent)
-    assertEquals(sampled.attackPercent, sampled.skillDamagePercent)
+    assertEquals(sampled.attackPercent * 2, sampled.skillDamagePercent)
     assertEquals(CharacterStatCore.criticalChanceBasisPoints(sampled.agi), sampled.criticalChanceBasisPoints)
     assertEquals(CharacterStatCore.criticalResistanceBasisPoints(sampled.dex), sampled.resCriticalBasisPoints)
     assertEquals(CharacterStatCore.evasionBasisPoints(sampled.eva), sampled.evasionBasisPoints)
