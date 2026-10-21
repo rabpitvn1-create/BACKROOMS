@@ -12,7 +12,8 @@ import kotlin.random.Random
 class EntitySpawnPoolTest {
 
   private fun stateAt(id: String): GameState = GameState.initial().copy(world = mapOf(
-    "levelJson" to JSONObject().put("id", id).toString()))
+    "levelJson" to JSONObject().put("id", id).toString(),
+    "flagsJson" to """{"catherine":{"spawned":true}}"""))
 
   @Test fun `all twenty seven entities have a resident or roaming pool`() {
     val all = EntitySpawnPool.COMMON + EntitySpawnPool.LIFEFORM + EntitySpawnPool.RARE + EntitySpawnPool.KILLERS
@@ -89,7 +90,8 @@ class EntitySpawnPoolTest {
       }
     }
     for (raw in listOf("{}", "broken json", "{\"id\":\"missing\"}")) {
-      val state = GameState.initial().copy(world = mapOf("levelJson" to raw))
+      val state = GameState.initial().copy(world = mapOf("levelJson" to raw,
+        "flagsJson" to """{"catherine":{"spawned":true}}"""))
       assertTrue(SpawnMechanism.rollSpawns(state, ActionKind.EXECUTE, "đi") { 0 }.entityKey in EntitySpawnPool.ROAMING)
     }
   }
@@ -133,7 +135,7 @@ class EntitySpawnPoolTest {
 
   @Test fun `legacy crowd NPC never rolls from any freeform action`() {
     val state = GameState.initial().copy(world = mapOf(
-      "flagsJson" to """{"entityEncountersAllowed":false,"lucia":{"spawned":true}}"""
+      "flagsJson" to """{"entityEncountersAllowed":false,"lucia":{"spawned":true},"catherine":{"spawned":true}}"""
     ))
     var calls = 0
     for (action in listOf("đi khám phá", "quan sát xung quanh", "tìm đường", "hỏi tiếp")) {
@@ -149,7 +151,7 @@ class EntitySpawnPoolTest {
 
   @Test fun `typed explorer movement search and dialogue never roll ambient NPC`() {
     val state = GameState.initial().copy(world = mapOf(
-      "flagsJson" to """{"entityEncountersAllowed":false,"lucia":{"spawned":true}}"""
+      "flagsJson" to """{"entityEncountersAllowed":false,"lucia":{"spawned":true},"catherine":{"spawned":true}}"""
     ))
     var calls = 0
     for (kind in listOf("MOVE", "SEARCH", "TALK")) {

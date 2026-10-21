@@ -166,6 +166,7 @@ object PhysicalActionDetector {
 object NpcSpawnTable {
   const val LUCIA_THRESHOLD = 5000       // 50%
   const val LUC_TRAM_THRESHOLD = 25     // 0.25%
+  const val CATHERINE_THRESHOLD = 500    // 5%: every parent Level, sublevel and AREA
   const val IRIS_THRESHOLD = 25         // 0.25%
   const val SYVIAL_THRESHOLD = 25       // 0.25%
   const val AN_NHIEN_THRESHOLD = 25     // 0.25% (baseline value; kept for reference only)
@@ -251,6 +252,16 @@ object NpcSpawnTable {
     if (level == 0 && LUCIA_ID !in partyMemberIds && !flagSpawned(flags, "lucia")) {
       if (nextInt(10000) + 1 <= LUCIA_THRESHOLD) {
         encounters += NpcEncounter(LUCIA_ID, "lucia")
+      }
+    }
+
+    // Catherine: independent 5% on every physical Explorer action, at every node.
+    // The flag AND stored first-meeting metadata both prevent duplicate first spawns.
+    if (isPhysical && CATHERINE_ID !in partyMemberIds &&
+        !flagSpawned(flags, "catherine") &&
+        state.characters[CATHERINE_ID]?.metadata?.get("encountered") != "true") {
+      if (nextInt(10000) + 1 <= CATHERINE_THRESHOLD) {
+        encounters += NpcEncounter(CATHERINE_ID, "catherine")
       }
     }
 
@@ -356,7 +367,10 @@ object SpawnMechanism {
 
     // Archived: free-roaming ephemeral crowd NPCs never spawn.
     // Canon first meetings and combat encounters remain unchanged.
-    return SpawnResult(entityKey, npcEncounters)
+    // Catherine's exact 5% first meeting takes priority if an Entity also rolls.
+    // Otherwise dropping her in beginAction() would reduce actual encounters to 3.25%.
+    // The Entity roll itself remains untouched; only a collision is deferred.
+    return SpawnResult(if (npcEncounters.any { it.characterId == CATHERINE_ID }) null else entityKey, npcEncounters)
   }
 
   /** Called only AFTER Core validates a typed scene target. No text classification. */
@@ -369,7 +383,7 @@ object SpawnMechanism {
       EntitySpawnPool.rollEntity(currentLevelId(state), nextInt) else null
     val npcs = NpcSpawnTable.rollNpcsWithPhysical(state, ActionKind.EXECUTE, "", currentLevelNumber(state), nextInt, true)
     // Explorer NPCs are scripted, local and interactable, never random passersby.
-    return SpawnResult(entity, npcs)
+    return SpawnResult(if (npcs.any { it.characterId == CATHERINE_ID }) null else entity, npcs)
   }
 
   /**
@@ -481,6 +495,7 @@ object SpawnMechanism {
     LUCIA_ID -> runCatching { LuciaCanon.character().name }.getOrDefault("Lucia")
     AN_NHIEN_ID -> runCatching { AnNhienCanon.character().name }.getOrDefault("An Nhiên")
     LUC_TRAM_ID -> runCatching { LucTramCanon.character().name }.getOrDefault("Lục Trầm")
+    CATHERINE_ID -> CatherineCanon.NAME
     IRIS_ID -> runCatching { SpecialFollowersCanon.irisCharacter().name }.getOrDefault("Iris")
     SYVIAL_ID -> runCatching { SpecialFollowersCanon.syvialCharacter().name }.getOrDefault("Syvial")
     "survivor" -> "Người sống sót"
@@ -547,6 +562,7 @@ object SpawnMechanism {
       LUCIA_ID -> LuciaCanon.character()
       AN_NHIEN_ID -> AnNhienCanon.character()
       LUC_TRAM_ID -> LucTramCanon.character()
+      CATHERINE_ID -> CatherineCanon.character()
       IRIS_ID -> SpecialFollowersCanon.irisCharacter()
       SYVIAL_ID -> SpecialFollowersCanon.syvialCharacter()
       else -> null

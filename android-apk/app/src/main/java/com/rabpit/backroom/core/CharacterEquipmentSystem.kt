@@ -136,6 +136,30 @@ object EquipmentCatalog {
       canonRef = "LUC-TRAM-THIEN-KIEM-CODEX-R05+LUC-PRO-R06"
     ),
     EquipmentDefinition(
+      id = CATHERINE_VESPER_ID, name = "Vesper Nocturne", type = "SIX-SHOT OCCULT REVOLVER",
+      primarySlot = EquipmentSlot.WEAPON, weapon = WeaponGameplayStats(22, "6 / 36 reserve", null, listOf("Single Action", "Measured Double Action")),
+      abilities = listOf(ability("Gương ngắm hổ phách", "Điểm ngắm hoàng đồng phản sáng trong ánh đèn yếu; không nhìn xuyên tường."),
+        ability("Ổ đạn khắc kinh văn", "Ổ quay sáu viên ghi khế ước từ xưởng Ashcombe; không tự tạo đạn.")),
+      restrictions = listOf("Đạn hữu hạn trong Canon; hệ thống Combat hiện không mô phỏng từng viên đạn.", "Không dịch chuyển xuyên tường hoặc tự khám phá Exit."),
+      canonRef = CatherineCanon.CANON_REF
+    ),
+    EquipmentDefinition(
+      id = CATHERINE_COAT_ID, name = "Ashcombe Mourning Coat", type = "GOTHIC VICTORIAN OUTFIT",
+      primarySlot = EquipmentSlot.OUTFIT, bonuses = EquipmentBonuses(defPct = 15, vitPct = 5),
+      abilities = listOf(ability("Lớp lót giấu chì", "Vải nhung đen và mảnh kim loại giấu dưới corset, phân tán mảnh đạn nhẹ.")),
+      canonRef = CatherineCanon.CANON_REF
+    ),
+    EquipmentDefinition(
+      id = CATHERINE_GLOVES_ID, name = "Velvet Trigger Gloves", type = "LEATHER GLOVES",
+      primarySlot = EquipmentSlot.GAUNTLETS, bonuses = EquipmentBonuses(dexPct = 10),
+      canonRef = CatherineCanon.CANON_REF
+    ),
+    EquipmentDefinition(
+      id = CATHERINE_BOOTS_ID, name = "Midnight Riding Boots", type = "LACED LEATHER BOOTS",
+      primarySlot = EquipmentSlot.FOOTWEAR, bonuses = EquipmentBonuses(agiPct = 10),
+      canonRef = CatherineCanon.CANON_REF
+    ),
+    EquipmentDefinition(
       id = LUCIA_M4A1_ID, name = "M4A1 cá nhân hóa", type = "ASSAULT RIFLE", primarySlot = EquipmentSlot.WEAPON,
       bonuses = EquipmentBonuses(strPct = 100, agiPct = 50),
       weapon = WeaponGameplayStats(26, "60 / 90 reserve", 800, listOf("Semi", "Burst", "Auto")),
@@ -195,6 +219,9 @@ object EquipmentCatalog {
     )
     IRIS_ID -> linkedMapOf(EquipmentSlot.WEAPON to IRIS_IVORY_EBONY_SET_ID)
     SYVIAL_ID -> linkedMapOf(EquipmentSlot.WEAPON to SYVIAL_GODKILLER_ID)
+    CATHERINE_ID -> linkedMapOf(EquipmentSlot.WEAPON to CATHERINE_VESPER_ID,
+      EquipmentSlot.OUTFIT to CATHERINE_COAT_ID, EquipmentSlot.GAUNTLETS to CATHERINE_GLOVES_ID,
+      EquipmentSlot.FOOTWEAR to CATHERINE_BOOTS_ID)
     AN_NHIEN_ID -> linkedMapOf(EquipmentSlot.OUTFIT to AN_NHIEN_OUTFIT_ID, EquipmentSlot.FOOTWEAR to AN_NHIEN_FOOTWEAR_ID)
     LUCIA_ID -> linkedMapOf(
       EquipmentSlot.WEAPON to LUCIA_M4A1_ID,
@@ -368,7 +395,7 @@ object CharacterEquipmentSystem {
 
   private fun normalizeInternal(source: GameState, seedStarting: Boolean): GameState {
     // Lucia exists in Core state without being forced into Party.
-    val input = LucTramCanon.ensure(LuciaCanon.ensure(source))
+    val input = CatherineCanon.ensure(LucTramCanon.ensure(LuciaCanon.ensure(source)))
     val inventories = input.inventories.toMutableMap()
     val equipment = input.equipment.toMutableMap()
     input.characters.keys.forEach { characterId ->

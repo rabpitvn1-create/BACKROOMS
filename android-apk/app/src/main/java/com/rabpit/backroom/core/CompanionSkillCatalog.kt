@@ -89,6 +89,21 @@ object CompanionSkillCatalog {
       "Đúng 60 phát M4A1; mỗi phát 100% current DMG +15% bonus; FSF x200%. Bỏ qua Evasion và Critical phụ.")
   )
 
+  private val catherine = listOf(
+    s("Đồng Tử Hổ Phách", "PASSIVE", "Catherine ACTIVE và Party TẤN CÔNG",
+      "+10 điểm phần trăm Accuracy cho phát bắn thường; vẫn kiểm tra Evasion của Entity.", "Không phải tự động trúng hoặc nhìn xuyên tường."),
+    s("Khúc Đạn Hồi Âm", "AUTO", "30% sau phát thường trúng; không trong lượt Ultimate",
+      "Phát bồi gây 125% current Weapon DMG, trừ Armor."),
+    s("Hoa Hồng Xuyên Giáp", "AUTO", "25% sau phát thường trúng; không trong lượt Ultimate",
+      "Viên đạn trừ tà gây 155% current Weapon DMG, bỏ qua 30% Armor."),
+    s("Valse Đỏ", "UTILITY", "Catherine ACTIVE; Party chọn NÉ TRÁNH",
+      "Dịch chuyển theo nhịp chân làm Entity giảm 15 điểm phần trăm Accuracy trong phản ứng hiện tại."),
+    s("Phản Xạ Màn Nhung", "COUNTER", "20% sau khi Entity hụt phản công và Catherine ACTIVE",
+      "Phản đạn gây 110% current Weapon DMG, trừ Armor; không chiếm lượt tấn công mới."),
+    s("Dạ Khúc Mười Ba Phát", "ULTIMATE", "Poker Dice SSF hoặc FSF; Catherine ACTIVE và Party TẤN CÔNG",
+      "13 quỹ đạo đạn được chuẩn bị, tổng 325% current Weapon DMG, trừ Armor một lần; bỏ qua Evasion, không cộng Critical phụ.", "Một lần kích hoạt trong lượt Ultimate; không tạo đạn vô hạn.")
+  )
+
   fun forCharacter(characterId: String): List<CharacterSkillDefinition> = when (characterId) {
     CAO_MINH_ID -> caoMinh
     IRIS_ID -> iris
@@ -96,6 +111,7 @@ object CompanionSkillCatalog {
     AN_NHIEN_ID -> anNhien
     LUCIA_ID -> lucia
     LUC_TRAM_ID -> lucTram
+    CATHERINE_ID -> catherine
     else -> emptyList()
   }
 }

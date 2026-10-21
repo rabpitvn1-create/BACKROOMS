@@ -73,6 +73,7 @@ object CharacterStatProfiles {
     "syvial" -> "HIGH-SPEED SWORDSMAN / ASSAULT / COUNTER / EXECUTION"
     "lucia" -> "TACTICAL RIFLEWOMAN / SQUAD LEADER / FOLLOWER"
     LUC_TRAM_ID -> "THIÊN KIẾM MÔN / CHÍNH ĐẠO KIẾM TU"
+    CATHERINE_ID -> "VICTORIAN GUNSLINGER / OCCULT MARKSMAN / COUNTERSHOT"
     "an-nhien", "an_nhien", "annhien" -> "PROTECTED FOLLOWER / NON-COMBAT"
     else -> "UNSPECIFIED"
   }

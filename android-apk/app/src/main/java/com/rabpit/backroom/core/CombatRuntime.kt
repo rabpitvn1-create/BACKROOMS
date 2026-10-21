@@ -547,6 +547,7 @@ object CombatRuntime {
     val syvialActive = syvialCharacter != null
     val anNhienActive = activePartyCharacter(resolvedState, AN_NHIEN_ID) != null
     val lucTramActive = activePartyCharacter(resolvedState, LUC_TRAM_ID) != null
+    val catherineActive = activePartyCharacter(resolvedState, CATHERINE_ID) != null
 
 
     fun promoteDefeatedWave(): Boolean {
@@ -630,6 +631,10 @@ object CombatRuntime {
         if (lucTramActive) {
           c = c.copy(cover = Cover.HARD)
           log += "Vạn Kiếm Quy Tâm: Lục Trầm dùng kiếm khí che tuyến rút, Party có HARD cover."
+        }
+        if (catherineActive && c.entityHp > 0) {
+          companionEnemyAccuracyPenalty += 15
+          log += "Valse Đỏ: Catherine đổi góc bắn, Entity -15 điểm % Accuracy trong phản ứng hiện tại."
         }
         if (CAO_MINH_ID in PartyCombatHealth.actingMembers(resolvedState) && c.entityHp > 0 &&
             roll(c.copy(eventCounter = c.eventCounter + 139), 100) < CAO_MINH_QUICK_STEP_CHANCE_PERCENT) {
@@ -859,6 +864,50 @@ object CombatRuntime {
                   } else {
                     recordMiss("entity", LUCIA_ID)
                     log += "Lucia \"Lục\" cũng khai hỏa nhưng phát bắn không trúng mục tiêu; Burst không kích hoạt."
+                  }
+                }
+              }
+            }
+            CATHERINE_ID -> {
+              if (catherineActive) {
+                val weapon = CharacterStatEngine.skillBaseDamage(resolvedState, CATHERINE_ID)
+                if (ultimateReady) {
+                  // Finalized Poker Dice already gates this whole combat action.
+                  // One fixed 13-trajectory salvo; no secondary critical/proc/dodge.
+                  val damage = min(c.entityHp, companionSkillDamage(weapon, 325, profile.armor))
+                  val hp = c.entityHp - damage
+                  recordFeedback("entity", c.entityHp, hp, actorId = CATHERINE_ID, skill = "Dạ Khúc Mười Ba Phát")
+                  c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp), noise = min(100, c.noise + 28))
+                  log += "Dạ Khúc Mười Ba Phát [$ultimateHand]: Catherine tung 13 quỹ đạo, 325% Weapon DMG = -$damage HP; bỏ qua Evasion."
+                } else {
+                  val accuracy = (hitChance + 1000).coerceAtMost(9900)
+                  val hits = roll(c.copy(eventCounter = c.eventCounter + 431 + turnIndex * 17), 10000) < accuracy &&
+                    !entityDodges(CATHERINE_ID, 449 + turnIndex * 17)
+                  if (hits) {
+                    val critical = actorCritical(CATHERINE_ID, 463 + turnIndex * 17)
+                    val base = if (critical) CharacterStatCore.criticalDamage(weapon) else weapon
+                    val damage = min(c.entityHp, companionSkillDamage(base, 100, profile.armor))
+                    val hp = c.entityHp - damage
+                    recordFeedback("entity", c.entityHp, hp, critical = critical, actorId = CATHERINE_ID, skill = "Đồng Tử Hổ Phách")
+                    c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp), noise = min(100, c.noise + 12))
+                    log += "Đồng Tử Hổ Phách: Catherine bắn Vesper Nocturne -$damage HP; Accuracy +10 điểm %."
+                    if (c.entityHp > 0 && roll(c.copy(eventCounter = c.eventCounter + 479 + turnIndex * 17), 100) < 30) {
+                      val bonus = min(c.entityHp, companionSkillDamage(weapon, 125, profile.armor))
+                      val after = c.entityHp - bonus
+                      recordFeedback("entity", c.entityHp, after, actorId = CATHERINE_ID, skill = "Khúc Đạn Hồi Âm")
+                      c = c.copy(entityHp = after, entityCondition = condition(after, c.entityMaxHp))
+                      log += "Khúc Đạn Hồi Âm kích hoạt: bắn bồi 125% Weapon DMG = -$bonus HP."
+                    }
+                    if (c.entityHp > 0 && roll(c.copy(eventCounter = c.eventCounter + 503 + turnIndex * 17), 100) < 25) {
+                      val bonus = min(c.entityHp, companionSkillDamage(weapon, 155, armorAfterIgnore(profile.armor, 30)))
+                      val after = c.entityHp - bonus
+                      recordFeedback("entity", c.entityHp, after, status = FeedbackStatus.ARMOR, actorId = CATHERINE_ID, skill = "Hoa Hồng Xuyên Giáp")
+                      c = c.copy(entityHp = after, entityCondition = condition(after, c.entityMaxHp))
+                      log += "Hoa Hồng Xuyên Giáp kích hoạt: 155% Weapon DMG, bỏ qua 30% Armor, -$bonus HP."
+                    }
+                  } else {
+                    recordMiss("entity", CATHERINE_ID, skill = "Đồng Tử Hổ Phách")
+                    log += "Catherine nổ súng nhưng đòn bắn trượt hoặc bị Entity né."
                   }
                 }
               }
@@ -1390,6 +1439,14 @@ object CombatRuntime {
             recordMiss("entity", LUC_TRAM_ID, phase = "entity", skill = "Tịch Quang Phản Kiếm")
             log += "Tịch Quang Phản Kiếm: Lục Trầm đổi trục nhưng phản kiếm không trúng."
           }
+        }
+        if (catherineActive && c.entityHp > 0 && roll(c.copy(eventCounter = c.eventCounter + 521), 100) < 20) {
+          val weapon = CharacterStatEngine.skillBaseDamage(resolvedState, CATHERINE_ID)
+          val damage = min(c.entityHp, companionSkillDamage(weapon, 110, profile.armor))
+          val hp = c.entityHp - damage
+          recordFeedback("entity", c.entityHp, hp, phase = "entity", actorId = CATHERINE_ID, skill = "Phản Xạ Màn Nhung")
+          c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp))
+          log += "Phản Xạ Màn Nhung: Catherine phản đạn sau cú đánh hụt, -$damage HP."
         }
         if (intent == Intent.ATTACK && syvialActive && c.entityHp > 0 && roll(c.copy(eventCounter = c.eventCounter + 293), 100) < 30) {
           val damage = companionSkillDamage(CharacterStatEngine.skillBaseDamage(resolvedState, SYVIAL_ID), if (syvialDevilTrigger) 157 else 125, profile.armor)
