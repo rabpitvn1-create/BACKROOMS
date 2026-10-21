@@ -267,11 +267,47 @@ object CharacterStatEngine {
     val character = state.characters[characterId] ?: return state
     val maxHp = effective(state, characterId).maxHp
     val nextHp = hp.coerceIn(0, maxHp)
+    // Ordinary healing first consumes the recoverable portion: rest cannot heal it twice.
+    var healed = (nextHp - character.vitalState.currentHp).coerceAtLeast(0)
+    val p = character.physiology
+    val foodUsed = minOf(healed, p.recoverableFoodHp); healed -= foodUsed
+    val waterUsed = minOf(healed, p.recoverableWaterHp); healed -= waterUsed
+    val sleepUsed = minOf(healed, p.recoverableSleepHp)
+    val nextPhysiology = p.copy(
+      recoverableFoodHp = p.recoverableFoodHp - foodUsed,
+      recoverableWaterHp = p.recoverableWaterHp - waterUsed,
+      recoverableSleepHp = p.recoverableSleepHp - sleepUsed
+    )
     return state.copy(characters = state.characters + (characterId to character.copy(
+      physiology = nextPhysiology,
       vitalState = character.vitalState.copy(
         currentHp = nextHp,
         condition = conditionFor(nextHp, maxHp, character.vitalState.condition, character.presence)
       )
+    )))
+  }
+
+  /** Damage bypasses armor because starvation/dehydration/exhaustion are not physical hits. */
+  fun applySurvivalDamage(state: GameState, characterId: String, amount: Long, source: String): GameState {
+    if (amount <= 0L) return state
+    val c = state.characters[characterId] ?: return state
+    if (c.presence == CharacterPresence.DEAD || c.vitalState.currentHp <= 0) return state
+    val loss = minOf(amount, c.vitalState.currentHp.toLong()).toInt()
+    val damaged = setCurrentHp(state, characterId, c.vitalState.currentHp - loss)
+    val updated = damaged.characters.getValue(characterId)
+    val p = updated.physiology
+    fun plus(value: Int) = (value.toLong() + loss).coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+    val withSource = when (source) {
+      "FOOD" -> p.copy(recoverableFoodHp = plus(p.recoverableFoodHp))
+      "WATER" -> p.copy(recoverableWaterHp = plus(p.recoverableWaterHp))
+      "SLEEP" -> p.copy(recoverableSleepHp = plus(p.recoverableSleepHp))
+      else -> error("survival_damage_source_invalid")
+    }
+    val dead = updated.vitalState.currentHp == 0
+    return damaged.copy(characters = damaged.characters + (characterId to updated.copy(
+      physiology = withSource,
+      presence = if (dead) CharacterPresence.DEAD else updated.presence,
+      vitalState = if (dead) updated.vitalState.copy(condition = CharacterCondition.DEAD) else updated.vitalState
     )))
   }
 
