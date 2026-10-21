@@ -36,7 +36,9 @@ class FollowerEncounterSpacingTest {
   }
 
   @Test fun `disabling Entity spawns does not cause independent Follower ticket collisions`() {
-    val state = at("4")
+    // Level 2 has no independently rolled Lục Trầm, so RNG-call count
+    // isolates the four Follower windows without changing their behavior.
+    val state = at("2")
     val flags = JSONObject().put("entityEncountersAllowed", false)
     val disabled = state.copy(world = state.world + ("flagsJson" to flags.toString()))
     var calls = 0
