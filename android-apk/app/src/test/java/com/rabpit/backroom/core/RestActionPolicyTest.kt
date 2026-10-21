@@ -26,6 +26,16 @@ class RestActionPolicyTest {
     assertEquals(TimeActivity.NORMAL, RestActionPolicy.activity("Tôi đứng chờ."))
   }
 
+  @Test fun negatedSleepOrRestDoesNotRestoreNeed() {
+    val state = partyState()
+    assertEquals(TimeActivity.NORMAL, RestActionPolicy.activity("Tôi không ngủ, chỉ đứng canh."))
+    assertEquals(TimeActivity.NORMAL, RestActionPolicy.activity("Tôi chưa muốn nghỉ."))
+    assertEquals(TimeActivity.NORMAL, RestActionPolicy.activity("Đừng ngủ!"))
+    assertEquals(TimeActivity.REST, RestActionPolicy.activity("Tôi không ngủ, chỉ nghỉ ngơi."))
+    assertEquals(TimeActivity.SLEEP, RestActionPolicy.activity("Tôi không ngủ trước đó, giờ tôi ngủ."))
+    assertTrue(RestActionPolicy.targets(state, "Tôi không ngủ, chỉ đứng canh.").isEmpty())
+  }
+
   @Test fun ordinaryCaoMinhRestOnlyTargetsCaoMinh() {
     val state = partyState()
     assertEquals(listOf(CAO_MINH_ID), RestActionPolicy.targets(state, "Tôi chợp mắt một lúc"))

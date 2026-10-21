@@ -70,6 +70,19 @@ class SurvivalHardeningTest {
     assertEquals(45, rested.characters.getValue(CAO_MINH_ID).vitalState.currentHp)
   }
 
+  @Test fun longRestAndCheckpointedRestHealIdenticallyWhenNeedCrossesThreshold() {
+    val p = PhysiologyState(minutesSinceFood = 1400, minutesSinceWater = 0,
+      minutesAwake = 0, recoverableFoodHp = 3)
+    val single = advance(withPhysiology(p, hp = 40), 60, TimeActivity.REST)
+    val first = advance(withPhysiology(p, hp = 40), 30, TimeActivity.REST)
+    val split = advance(first, 30, TimeActivity.REST)
+    assertEquals(41, single.characters.getValue(CAO_MINH_ID).vitalState.currentHp)
+    assertEquals(split.characters.getValue(CAO_MINH_ID).vitalState.currentHp,
+      single.characters.getValue(CAO_MINH_ID).vitalState.currentHp)
+    assertEquals(split.characters.getValue(CAO_MINH_ID).physiology,
+      single.characters.getValue(CAO_MINH_ID).physiology)
+  }
+
   @Test fun sleepingRestoresAwakeTimeProportionallyAndRestDoesNot() {
     val p = PhysiologyState(minutesSinceFood = 0, minutesSinceWater = 0, minutesAwake = 1000)
     val slept = advance(withPhysiology(p), 60, TimeActivity.SLEEP)

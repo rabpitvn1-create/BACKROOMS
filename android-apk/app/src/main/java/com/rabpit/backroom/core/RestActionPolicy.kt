@@ -10,9 +10,21 @@ object RestActionPolicy {
     "(?<![\\p{L}\\p{N}])(?:nghỉ\\s*ngơi|nghi\\s*ngoi|nghỉ\\s*tạm|nghi\\s*tam|nghỉ|nghi|rest|thư\\s*giãn)(?![\\p{L}\\p{N}])",
     RegexOption.IGNORE_CASE
   )
+  // A mention of sleep is not necessarily an intent to sleep ("không ngủ").
+  private val negation = Regex(
+    "(?:không|chưa|chẳng|đừng|ko|khong|chua|don't|do not)\\s+" +
+      "(?:(?:muốn|thể|định|cần|dám|được|phải|muon|duoc|want to)\\s+){0,2}$",
+    RegexOption.IGNORE_CASE
+  )
+
+  private fun affirmed(regex: Regex, action: String): Boolean = regex.findAll(action).any { match ->
+    val prefix = action.substring(0, match.range.first).takeLast(45)
+    !negation.containsMatchIn(prefix)
+  }
+
   fun activity(action: String): TimeActivity = when {
-    sleepIntent.containsMatchIn(action) -> TimeActivity.SLEEP
-    restIntent.containsMatchIn(action) -> TimeActivity.REST
+    affirmed(sleepIntent, action) -> TimeActivity.SLEEP
+    affirmed(restIntent, action) -> TimeActivity.REST
     else -> TimeActivity.NORMAL
   }
 

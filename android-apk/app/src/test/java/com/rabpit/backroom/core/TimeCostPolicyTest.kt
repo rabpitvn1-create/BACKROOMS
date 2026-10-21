@@ -11,6 +11,11 @@ class TimeCostPolicyTest {
     assertEquals(120, TimeCostPolicy.estimateMinutes("đợi hai tiếng"))
   }
 
+  @Test fun negatedSleepDoesNotGetThirtyMinuteSleepDefault() {
+    assertEquals(2, TimeCostPolicy.estimateMinutes("Tôi không ngủ"))
+    assertEquals(30, TimeCostPolicy.estimateMinutes("Tôi nghỉ tại đây"))
+  }
+
   @Test fun actionCategoriesUseDifferentSubjectiveCosts() {
     assertEquals(10, TimeCostPolicy.estimateMinutes("Cao Minh đi tiếp dọc hành lang"))
     assertEquals(5, TimeCostPolicy.estimateMinutes("Cao Minh kiểm tra căn phòng"))

@@ -224,15 +224,24 @@ object TimeEngine {
     val elapsed = state.time.elapsedSubjectiveMinutes
     if (elapsed > Long.MAX_VALUE - delta) return invalid(state, "time_overflow")
 
+    val resting = command.activity == TimeActivity.REST || command.activity == TimeActivity.SLEEP
+    // Rest is resolved at the existing 30-minute recovery tick, regardless of
+    // whether the caller commits one long interval or several checkpoints.
+    // Reject implausibly long rest commands to bound the number of slices.
+    if (resting && delta > 7L * 24L * 60L) return invalid(state, "rest_duration_too_long")
     var advanced = state
-    for ((id, character) in state.characters) {
-      // Canon characters seeded before recruitment are not physically following the
-      // party. Do not starve or kill them off-screen on the player's clock.
-      if (id !in state.party.memberIds || character.presence == CharacterPresence.DEAD) continue
-      val activity = if (id in command.restTargets) command.activity else
-        if (command.activity == TimeActivity.REST || command.activity == TimeActivity.SLEEP) TimeActivity.NORMAL else command.activity
-      advanced = PhysiologyEngine.advance(advanced, id, delta, activity)
-        ?: return invalid(state, "physiology_time_overflow")
+    var remaining = delta
+    while (remaining > 0L) {
+      val slice = if (resting) minOf(remaining, 30L) else remaining
+      for ((id, character) in advanced.characters) {
+        // Only living, present party members consume resources on this clock.
+        if (id !in state.party.memberIds || character.presence != CharacterPresence.ACTIVE) continue
+        val activity = if (id in command.restTargets) command.activity else
+          if (resting) TimeActivity.NORMAL else command.activity
+        advanced = PhysiologyEngine.advance(advanced, id, slice, activity)
+          ?: return invalid(state, "physiology_time_overflow")
+      }
+      remaining -= slice
     }
 
     val nextTime = state.time.copy(
