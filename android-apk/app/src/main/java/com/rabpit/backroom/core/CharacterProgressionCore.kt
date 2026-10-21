@@ -315,11 +315,7 @@ object CaoMinhCombatPassive {
     val heal = max(1, (maxHp * HEAL_PERCENT + 50) / 100)
     val hp = min(maxHp, c.vitalState.currentHp + heal)
     val nextStack = stacks(state) + 1
-    return state.copy(
-      characters = state.characters + (CAO_MINH_ID to c.copy(
-        vitalState = c.vitalState.copy(currentHp = hp, condition = CharacterStatEngine.conditionFor(hp, maxHp, c.vitalState.condition, c.presence))
-      )),
-      metadata = state.metadata + (STACK_KEY to nextStack.toString())
-    )
+    val healed = CharacterStatEngine.setCurrentHp(state, CAO_MINH_ID, hp)
+    return healed.copy(metadata = healed.metadata + (STACK_KEY to nextStack.toString()))
   }
 }
