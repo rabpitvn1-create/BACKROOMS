@@ -2,17 +2,27 @@ package com.rabpit.backroom.core
 
 /** Deterministic authority for deciding whose sleep counter may be reset by a player rest action. */
 object RestActionPolicy {
-  private val restIntent = Regex(
-    "(?:^|\\s)(?:ngủ|ngu|chợp\\s*mắt|chop\\s*mat|nghỉ\\s*ngơi|nghi\\s*ngoi|nghỉ\\s*tạm|nghi\\s*tam|sleep|nap|rest)(?:\\s|$)",
+  private val sleepIntent = Regex(
+    "(?:^|\\s)(?:ngủ|ngu|chợp\\s*mắt|chop\\s*mat|sleep|nap)(?:\\s|$)",
     RegexOption.IGNORE_CASE
   )
+  private val restIntent = Regex(
+    "(?:^|\\s)(?:nghỉ\\s*ngơi|nghi\\s*ngoi|nghỉ\\s*tạm|nghi\\s*tam|nghỉ|nghi|rest|thư\\s*giãn)(?:\\s|$)",
+    RegexOption.IGNORE_CASE
+  )
+  fun activity(action: String): TimeActivity = when {
+    sleepIntent.containsMatchIn(action) -> TimeActivity.SLEEP
+    restIntent.containsMatchIn(action) -> TimeActivity.REST
+    else -> TimeActivity.NORMAL
+  }
+
   private val partyRest = Regex(
     "(?:cả\\s*hai|ca\\s*hai|cả\\s*nhóm|ca\\s*nhom|cả\\s*party|ca\\s*party|mọi\\s*người|moi\\s*nguoi|luân\\s*phiên|luan\\s*phien|thay\\s*phiên|thay\\s*phien|chia\\s*ca)",
     RegexOption.IGNORE_CASE
   )
 
   fun targets(state: GameState, action: String): List<String> {
-    if (!restIntent.containsMatchIn(action)) return emptyList()
+    if (activity(action) == TimeActivity.NORMAL) return emptyList()
     val activeParty = state.party.memberIds.distinct().filter { id ->
       state.characters[id]?.presence == CharacterPresence.ACTIVE
     }
