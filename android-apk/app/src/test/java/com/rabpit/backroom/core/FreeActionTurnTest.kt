@@ -127,6 +127,39 @@ class FreeActionTurnTest {
     assertEquals(saved, repo.state)
   }
 
+  @Test fun longSleepChecksEntityThreatDuringTheIntervalAndPersistsFirstInterruption() {
+    // Initial scene roll fails; hourly checks fail at 60 then succeed at 120.
+    val rng = ScriptedRng(intArrayOf(9999, 9999, 9999, 0))
+    val (repo, core) = fixture(rng)
+    val action = MiniMapRuntime.freeCommand(repo.state)
+    core.beginSceneAction(action.toString(), "Tôi ngủ 3 giờ", "Tôi ngủ 3 giờ")
+    val pending = JSONObject(repo.state.world.getValue(MiniMapRuntime.PENDING))
+    assertEquals(120, pending.getInt("sleepInterruptAfterMinutes"))
+    assertNotNull(CombatRuntime.pending(repo.state))
+    val calls = rng.calls
+    core.beginSceneAction(action.toString(), "Tôi ngủ 3 giờ", "Tôi ngủ 3 giờ")
+    assertEquals(calls, rng.calls)
+    val before = repo.state.time.elapsedSubjectiveMinutes
+    val event = JSONObject(core.sceneNarrationContext())
+    core.commitSceneAction(action.getString("actionId"), event.getString("result"), "{}")
+    assertEquals(before + 120, repo.state.time.elapsedSubjectiveMinutes)
+    assertNotNull(CombatRuntime.pending(repo.state))
+    assertEquals(calls, rng.calls)
+    assertEquals(repo.state, GameStateCodec.decode(GameStateCodec.encode(repo.state)))
+  }
+
+  @Test fun uninterruptedLongSleepUsesFullPlannedTime() {
+    val rng = ScriptedRng(intArrayOf())
+    val (repo, core) = fixture(rng)
+    val action = MiniMapRuntime.freeCommand(repo.state)
+    core.beginSceneAction(action.toString(), "Tôi ngủ 3 giờ", "Tôi ngủ 3 giờ")
+    assertEquals(0, JSONObject(repo.state.world.getValue(MiniMapRuntime.PENDING)).getInt("sleepInterruptAfterMinutes"))
+    val event = JSONObject(core.sceneNarrationContext())
+    core.commitSceneAction(action.getString("actionId"), event.getString("result"), "{}")
+    assertEquals(180L, repo.state.time.elapsedSubjectiveMinutes)
+    assertNull(CombatRuntime.pending(repo.state))
+  }
+
   @Test fun searchAndInteractionEachGetIndependentEntityRolls() {
     val rng = ScriptedRng(intArrayOf())
     val (_, core) = fixture(rng)

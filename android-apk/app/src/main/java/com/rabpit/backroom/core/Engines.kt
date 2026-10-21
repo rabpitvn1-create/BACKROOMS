@@ -224,7 +224,8 @@ object TimeEngine {
     val elapsed = state.time.elapsedSubjectiveMinutes
     if (elapsed > Long.MAX_VALUE - delta) return invalid(state, "time_overflow")
 
-    val resting = command.activity == TimeActivity.REST || command.activity == TimeActivity.SLEEP
+    val resting = command.activity == TimeActivity.REST || command.activity == TimeActivity.SLEEP ||
+      command.targetActivities.values.any { it == TimeActivity.REST || it == TimeActivity.SLEEP }
     // Rest is resolved at the existing 30-minute recovery tick, regardless of
     // whether the caller commits one long interval or several checkpoints.
     // Reject implausibly long rest commands to bound the number of slices.
@@ -235,7 +236,7 @@ object TimeEngine {
       // Keep the tick aligned with each character's already accrued rest time.
       // Otherwise 40 minutes in one command can heal differently from 20 + 20.
       val untilCredit = if (resting) state.party.memberIds.asSequence()
-        .filter { it in command.restTargets }
+        .filter { it in command.restTargets || command.targetActivities[it] in setOf(TimeActivity.REST, TimeActivity.SLEEP) }
         .mapNotNull { id -> advanced.characters[id]
           ?.takeIf { it.presence == CharacterPresence.ACTIVE }
           ?.physiology?.restRecoveryMinutes }
@@ -245,7 +246,7 @@ object TimeEngine {
       for ((id, character) in advanced.characters) {
         // Only living, present party members consume resources on this clock.
         if (id !in state.party.memberIds || character.presence != CharacterPresence.ACTIVE) continue
-        val activity = if (id in command.restTargets) command.activity else
+        val activity = command.targetActivities[id] ?: if (id in command.restTargets) command.activity else
           if (resting) TimeActivity.NORMAL else command.activity
         advanced = PhysiologyEngine.advance(advanced, id, slice, activity)
           ?: return invalid(state, "physiology_time_overflow")

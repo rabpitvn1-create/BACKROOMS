@@ -32,10 +32,11 @@ object TurnCoordinator {
     // A rest is a time interval, not a post-turn instant reset.
     // Direct time commands receive the same context as ActionRuntime checkpoints.
     val mode = RestActionPolicy.activity(pending.input)
-    val restTargets = RestActionPolicy.targets(state, pending.input).toSet()
+    val perActor = RestActionPolicy.activities(state, pending.input)
+    val restTargets = perActor.keys
     val authoritativeCommands = commands.map { command ->
       if (command is TimeAdvanceCommand && mode != TimeActivity.NORMAL &&
-          command.activity == TimeActivity.NORMAL) command.copy(activity = mode, restTargets = restTargets)
+          command.activity == TimeActivity.NORMAL) command.copy(activity = mode, restTargets = restTargets, targetActivities = perActor)
       else command
     }
     val executing = state.copy(turn = state.turn.copy(pending = pending.copy(

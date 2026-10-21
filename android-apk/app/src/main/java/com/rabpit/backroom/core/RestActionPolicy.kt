@@ -28,38 +28,38 @@ object RestActionPolicy {
     else -> TimeActivity.NORMAL
   }
 
+  private val segments = Regex("[,;.!?\\n]+|(?<![\\p{L}])trong\\s+khi(?![\\p{L}])",
+    RegexOption.IGNORE_CASE)
+  private fun mentions(segment: String, subject: String): Boolean =
+    Regex("(?<![\\p{L}\\p{N}])" + Regex.escape(subject) +
+      "(?![\\p{L}\\p{N}])", RegexOption.IGNORE_CASE).containsMatchIn(segment)
+
+  /** Individual intents retain ownership without introducing another rest system. */
+  fun activities(state: GameState, action: String): Map<String, TimeActivity> {
+    val activeParty = state.party.memberIds.distinct().filter { id ->
+      state.characters[id]?.presence == CharacterPresence.ACTIVE
+    }
+    if (activity(action) == TimeActivity.NORMAL || activeParty.isEmpty()) return emptyMap()
+    if (partyRest.containsMatchIn(action)) return activeParty.associateWith { activity(action) }
+    val result = linkedMapOf<String, TimeActivity>()
+    for (part in action.split(segments)) {
+      val mode = activity(part)
+      if (mode == TimeActivity.NORMAL) continue
+      val explicit = activeParty.filter { id ->
+        if (id == CAO_MINH_ID) listOf("tôi", "mình", "Cao Minh").any { mentions(part, it) }
+        else listOf(id, state.characters.getValue(id).name).any { mentions(part, it) }
+      }
+      for (id in explicit.ifEmpty { listOf(CAO_MINH_ID).filter { it in activeParty } })
+        result[id] = mode
+    }
+    return result
+  }
+
   private val partyRest = Regex(
     "(?:cả\\s*hai|ca\\s*hai|cả\\s*nhóm|ca\\s*nhom|cả\\s*party|ca\\s*party|mọi\\s*người|moi\\s*nguoi|luân\\s*phiên|luan\\s*phien|thay\\s*phiên|thay\\s*phien|chia\\s*ca)",
     RegexOption.IGNORE_CASE
   )
 
-  fun targets(state: GameState, action: String): List<String> {
-    if (activity(action) == TimeActivity.NORMAL) return emptyList()
-    val activeParty = state.party.memberIds.distinct().filter { id ->
-      state.characters[id]?.presence == CharacterPresence.ACTIVE
-    }
-    if (partyRest.containsMatchIn(action)) return activeParty
-
-    // Mentioning a companion does not mean they also slept. Require a subject
-    // followed by a rest/sleep verb before assigning that companion any recovery.
-    val namedSleep = Regex(
-      "(?:ngủ|ngu|chợp\\s*mắt|chop\\s*mat|nghỉ|nghi|sleep|rest)",
-      RegexOption.IGNORE_CASE
-    )
-    val explicitFollowers = activeParty.filter { it != CAO_MINH_ID }.filter { id ->
-      val character = state.characters.getValue(id)
-      val names = listOf(id, character.name)
-      names.any { name ->
-        Regex(Regex.escape(name) + "\\s+(?:đang\\s+|sẽ\\s+|muốn\\s+)?"+
-          namedSleep.pattern, RegexOption.IGNORE_CASE).containsMatchIn(action)
-      }
-    }
-    val playerExplicit = Regex(
-      "(?<![\\p{L}\\p{N}])(?:tôi|mình|Cao\\s*Minh)\\s+(?:đang\\s+|sẽ\\s+|muốn\\s+)?" +
-        namedSleep.pattern, RegexOption.IGNORE_CASE
-    ).containsMatchIn(action)
-    val actors = if (explicitFollowers.isNotEmpty() && !playerExplicit) explicitFollowers
-      else listOf(CAO_MINH_ID) + explicitFollowers
-    return actors.distinct().filter { it in activeParty }
-  }
+  fun targets(state: GameState, action: String): List<String> =
+    activities(state, action).keys.toList()
 }

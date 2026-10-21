@@ -61,7 +61,8 @@ data class TimeAdvanceCommand(
   val minutes: Int,
   val reason: String,
   val activity: TimeActivity = TimeActivity.NORMAL,
-  val restTargets: Set<String> = emptySet()
+  val restTargets: Set<String> = emptySet(),
+  val targetActivities: Map<String, TimeActivity> = emptyMap()
 ) : GameCommand
 
 data class QueryCommand(

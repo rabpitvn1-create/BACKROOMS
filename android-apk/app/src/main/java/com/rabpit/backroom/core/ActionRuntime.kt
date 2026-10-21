@@ -130,7 +130,8 @@ object ActionRuntime {
           Regex("(?:^|\\s)(?:chạy|chay|leo|bò|bo|run|sprint|fight|attack|bắn|ban)(?:\\s|$)", RegexOption.IGNORE_CASE).containsMatchIn(session.input) -> TimeActivity.EXERTION
           else -> TimeActivity.NORMAL
         },
-        restTargets = RestActionPolicy.targets(state, session.input).toSet()
+        restTargets = RestActionPolicy.targets(state, session.input).toSet(),
+        targetActivities = RestActionPolicy.activities(state, session.input)
       )
     )
     if (!timeResult.applied) return ActionRuntimeResult(state, session, applied = false, error = timeResult.validation.reason ?: "action_time_rejected")

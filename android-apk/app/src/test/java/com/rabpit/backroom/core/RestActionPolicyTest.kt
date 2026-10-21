@@ -53,6 +53,21 @@ class RestActionPolicyTest {
     assertEquals(listOf(CAO_MINH_ID, "lucia"), RestActionPolicy.targets(state, "Cả hai chia ca nghỉ ngơi và chợp mắt"))
   }
 
+  @Test fun mixedPartyIntentsGiveSleepOnlyToTheActualSleeper() {
+    val state = partyState()
+    val text = "Tôi ngủ 2 giờ, Lucia chỉ nghỉ ngơi."
+    assertEquals(mapOf(CAO_MINH_ID to TimeActivity.SLEEP, "lucia" to TimeActivity.REST),
+      RestActionPolicy.activities(state, text))
+    val cmd = TimeAdvanceCommand("mixed", "TURN_1", CAO_MINH_ID,
+      source = CommandSource.SYSTEM, minutes = 60, reason = "rest",
+      activity = TimeActivity.SLEEP, restTargets = setOf(CAO_MINH_ID, "lucia"),
+      targetActivities = RestActionPolicy.activities(state, text))
+    val advanced = TimeEngine.execute(state, cmd)
+    assertTrue(advanced.applied)
+    assertEquals(1780L, advanced.state.characters.getValue(CAO_MINH_ID).physiology.minutesAwake)
+    assertEquals(1960L, advanced.state.characters.getValue("lucia").physiology.minutesAwake)
+  }
+
   @Test fun unrelatedWaitingDoesNotFakeSleepRecovery() {
     val state = partyState()
     assertTrue(RestActionPolicy.targets(state, "Đứng chờ và quan sát hành lang").isEmpty())

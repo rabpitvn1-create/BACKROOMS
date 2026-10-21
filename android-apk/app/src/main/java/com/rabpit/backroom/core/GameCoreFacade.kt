@@ -215,8 +215,24 @@ class GameCoreFacade private constructor(
     // A confirmed cross-Level departure is not a room encounter or a spawn roll.
     // Other gameplay actions retain the existing Core encounter policy.
     val isWorldExit = staged.event.optBoolean("transition", false)
-    val roll = if (isWorldExit) null
+    var roll = if (isWorldExit) null
       else SpawnMechanism.rollSceneSpawns(atTarget, command.getString("kind")) { spawnRng.nextInt(it) }
+    var interruptedAt = 0
+    // The ordinary turn roll checks the moment sleep begins. Pre-reserve any
+    // later interruption on 60-minute checks so retry/restart NEVER rerolls it.
+    // Persist the first interruption time with the same pending action.
+    if (!isWorldExit && RestActionPolicy.activity(input) in setOf(TimeActivity.REST, TimeActivity.SLEEP) &&
+        plannedMinutes > 60 && roll?.entityKey == null &&
+        JSONObject(atTarget.world["flagsJson"] ?: "{}").optBoolean("entityEncountersAllowed", true)) {
+      for (minute in 60 until plannedMinutes step 60) {
+        val entity = EntitySpawnPool.rollEntity(staged.nodeId) { spawnRng.nextInt(it) }
+        if (entity != null) {
+          roll = SpawnResult(entity, emptyList())
+          interruptedAt = minute
+          break
+        }
+      }
+    }
     var reserved = if (roll != null) SpawnMechanism.prepareSpawns(atTarget, roll) else atTarget
     if (roll?.entityKey != null) {
       reserved = CombatRuntime.prepareEncounter(reserved, roll.entityKey, "scene:$actionId:${roll.entityKey}")
@@ -234,6 +250,7 @@ class GameCoreFacade private constructor(
       SpawnMechanism.pendingNpcEncounters(reserved).forEach { put(JSONObject().put("characterId", it.characterId).put("name", SpawnMechanism.npcDisplayName(it.characterId))) }
     })
     val pending = JSONObject().put("actionId", actionId).put("command", command)
+      .put("sleepInterruptAfterMinutes", interruptedAt)
       .put("progress", staged.progress).put("discardKeys", JSONArray(staged.discardKeys.toList()))
       .put("nodeId", staged.nodeId).put("label", staged.label)
       .put("public", public).apply {
@@ -297,7 +314,9 @@ class GameCoreFacade private constructor(
     // An encounter reserved before sleep/rest interrupts the planned interval immediately.
     val restInterrupted = CombatRuntime.pending(turn.state) != null &&
       RestActionPolicy.activity(session.input) != TimeActivity.NORMAL
-    val actualMinutes = if (restInterrupted) 1 else (session.plannedMinutes ?: 1)
+    val actualMinutes = if (restInterrupted)
+      pending.optInt("sleepInterruptAfterMinutes", 0).takeIf { it > 0 } ?: 1
+      else (session.plannedMinutes ?: 1)
     val progressed = ActionRuntime.advance(turn.state, session.sessionId, "scene_commit", actualMinutes)
     check(progressed.applied || progressed.duplicate) { progressed.error ?: "scene_time_failed" }
     // Time was already advanced by ActionRuntime: do not execute a second TimeAdvanceCommand.
