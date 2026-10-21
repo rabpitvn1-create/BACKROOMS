@@ -33,7 +33,7 @@
     try{Android.dungeonRequest(JSON.stringify(typeof state==='undefined'?{}:state),JSON.stringify(packet));}
     catch(error){clearTimeout(timer);pending=null;if(operation!=='view')lock(false);render();status.textContent=messages.dungeon_request_failed;}
   }
-  function imageSource(path){return typeof path==='string'&&/^(?:avatars\/[A-Za-z0-9_.-]+\.(?:jpg|png|webp)|LUCIA_LUC_OVERLAY\.png)$/.test(path)?path:'';}
+  function imageSource(path){return typeof path==='string'&&/^(?:avatars\/[A-Za-z0-9_.-]+\.(?:jpg|png|webp)|[A-Za-z0-9_-]+\.webp|LUCIA_LUC_OVERLAY\.png)$/.test(path)?path:'';}
   function snapshot(card,slot){
     var scene=node('div','dungeon-scene');
     var mapping=window.BackroomSnapshotAssets;
@@ -41,7 +41,7 @@
     if(file&&/^[A-Za-z0-9_.-]+\.webp$/.test(file)){
       var bg=node('img','dungeon-background');bg.src='level_snapshots/'+file;bg.alt=slot.environmentName;scene.appendChild(bg);
     }
-    var path=imageSource(slot.follower.avatar);
+    var path=imageSource(slot.follower.sprite)||imageSource(slot.follower.avatar);
     if(path){var portrait=node('img','dungeon-follower');portrait.src=path;portrait.alt=slot.follower.name;scene.appendChild(portrait);}
     scene.appendChild(node('span','dungeon-scene-label',slot.environmentName));
     card.appendChild(scene);

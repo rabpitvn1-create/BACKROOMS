@@ -27,6 +27,11 @@
     var members=state&&state.partyDetails&&Array.isArray(state.partyDetails.members)?
       state.partyDetails.members:[];
     var member=members.find(function(m){return m&&String(m.id)===actorId;});
+    // Scene surfaces prefer the follower's bundled full-body sprite (a transparent
+    // cutout at the assets root, e.g. Catherine.webp) so the character stands in
+    // the scene; the square avatar remains the fallback for members without one.
+    var sprite=String(member&&member.sprite||'');
+    if(/^[A-Za-z0-9_-]+\.webp$/.test(sprite))return sprite;
     var path=String(member&&(member.avatarRef||member.avatar)||knownPortraits[actorId]||'');
     // Only bundled avatar assets are legal here; never render an arbitrary URI from state.
     return /^avatars\/[a-zA-Z0-9_./-]+\.(?:png|jpe?g|webp)$/.test(path)&&

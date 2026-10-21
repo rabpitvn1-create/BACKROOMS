@@ -13,6 +13,7 @@ object CharacterDetailJson {
 
   fun encodeCharacter(c: CharacterDetailProjection): JSONObject = JSONObject().apply {
     put("id", c.id); put("name", c.name); c.avatarRef?.let { put("avatar", it) }
+    c.spriteRef?.let { put("sprite", it) }
     put("presence", c.presence.name); put("isLeader", c.isLeader); c.healthState?.let { put("healthState", it) }
     put("currentHp", c.currentHp); put("maxHp", c.maxHp); put("role", c.role)
     put("level", c.level); put("exp", c.exp)

@@ -26,6 +26,7 @@ data class CharacterDetailProjection(
   val id: String,
   val name: String,
   val avatarRef: String?,
+  val spriteRef: String? = null,
   val presence: CharacterPresence,
   val isLeader: Boolean,
   val healthState: String?,
@@ -144,6 +145,7 @@ object CharacterDetailProjector {
       avatarRef = if (c.id == CAO_MINH_ID) {
         if (equipment["weapon"] == MADGOD_SET_ID) MadGodCanon.AVATAR_ASSET else CAO_MINH_AVATAR_REF
       } else c.avatarRef,
+      spriteRef = c.metadata["spriteRef"],
       presence = c.presence,
       isLeader = normalized.party.leaderId == c.id, healthState = c.healthState,
       currentHp = c.vitalState.currentHp.coerceIn(0, effective.maxHp), maxHp = effective.maxHp,

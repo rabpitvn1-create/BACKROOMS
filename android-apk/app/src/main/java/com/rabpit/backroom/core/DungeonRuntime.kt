@@ -169,7 +169,8 @@ object DungeonRuntime {
   }
 
   private fun characterView(actor: CharacterState) = JSONObject().put("id", actor.id).put("name", actor.name)
-    .put("avatar", actor.avatarRef ?: "").put("level", actor.progression.level).put("exp", actor.progression.exp)
+    .put("avatar", actor.avatarRef ?: "").put("sprite", actor.metadata["spriteRef"] ?: "")
+    .put("level", actor.progression.level).put("exp", actor.progression.exp)
     .put("expRequired", if (actor.progression.level == CharacterProgressionCore.MAX_LEVEL) JSONObject.NULL
       else CharacterProgressionCore.expRequired(actor.progression.level))
 }
