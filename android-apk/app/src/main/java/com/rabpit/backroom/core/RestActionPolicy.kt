@@ -3,11 +3,11 @@ package com.rabpit.backroom.core
 /** Deterministic authority for deciding which active party members actually rest or sleep. */
 object RestActionPolicy {
   private val sleepIntent = Regex(
-    "(?:^|\\s)(?:ngủ|ngu|chợp\\s*mắt|chop\\s*mat|sleep|nap)(?:\\s|$)",
+    "(?<![\\p{L}\\p{N}])(?:ngủ|ngu|chợp\\s*mắt|chop\\s*mat|sleep|nap)(?![\\p{L}\\p{N}])",
     RegexOption.IGNORE_CASE
   )
   private val restIntent = Regex(
-    "(?:^|\\s)(?:nghỉ\\s*ngơi|nghi\\s*ngoi|nghỉ\\s*tạm|nghi\\s*tam|nghỉ|nghi|rest|thư\\s*giãn)(?:\\s|$)",
+    "(?<![\\p{L}\\p{N}])(?:nghỉ\\s*ngơi|nghi\\s*ngoi|nghỉ\\s*tạm|nghi\\s*tam|nghỉ|nghi|rest|thư\\s*giãn)(?![\\p{L}\\p{N}])",
     RegexOption.IGNORE_CASE
   )
   fun activity(action: String): TimeActivity = when {
