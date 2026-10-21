@@ -1360,6 +1360,7 @@ class GameCoreFacade private constructor(
     CATHERINE_ID -> "catherine"
     JANET_ID -> "janet"
     NGUYEN_QUOC_NAM_ID -> "nguyenQuocNam"
+    HUA_TIEU_LAN_ID -> "huaTieuLan"
     else -> null
   }
 

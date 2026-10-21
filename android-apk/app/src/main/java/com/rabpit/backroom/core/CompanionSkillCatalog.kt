@@ -136,6 +136,24 @@ object CompanionSkillCatalog {
       "Không cộng Critical hoặc Phát Bắn Kiềm Chế; không liên lạc với gia đình.")
   )
 
+  private val huaTieuLan = listOf(
+    s("Tĩnh Tâm Ngắm Bắn", "PASSIVE", "Tiểu Lan ACTIVE; Party chọn TẤN CÔNG",
+      "+12 điểm phần trăm Accuracy cho phát bắn thường; Entity vẫn có thể né; giới hạn 99%."),
+    s("Một Phát Định Đoạt", "AUTO", "25% sau cú bắn thường trúng, không kích hoạt khi Ultimate",
+      "Sát thương bổ sung 150% current Weapon DMG, bỏ qua 20% Armor cho riêng hiệu ứng.",
+      "Một viên đạn trúng điểm yếu, không phải bắn thêm một viên không tồn tại."),
+    s("Bộ Pháp Tà Lụa", "DEFENSE", "Tiểu Lan ACTIVE; Party chọn NÉ TRÁNH",
+      "Entity -12 điểm phần trăm Accuracy trong phản ứng hiện tại."),
+    s("Ngắm Qua Hoa Cúc", "UTILITY", "Tiểu Lan ACTIVE; Party QUAN SÁT",
+      "+1 Opening trong giới hạn Core, không nhìn xuyên tường hay biết vị trí Exit."),
+    s("Tài Bắn Phản Xạ", "COUNTER", "20% sau Entity hụt đòn và Tiểu Lan ACTIVE",
+      "Phản kích 110% current Weapon DMG, trừ Armor; không thêm lượt tấn công.",
+      "Phát bắn dự phòng; giới hạn nạp/đạn trong Canon không được Core mô phỏng."),
+    s("Bách Hoa Nhất Tiễn", "ULTIMATE", "Poker Dice SSF hoặc FSF, Tiểu Lan ACTIVE, Party TẤN CÔNG",
+      "Một phát súng trường 320% current Weapon DMG, trừ Armor một lần, bỏ qua Evasion.",
+      "Không cộng Critical hay proc Một Phát Định Đoạt, không tạo đạn vô hạn.")
+  )
+
   fun forCharacter(characterId: String): List<CharacterSkillDefinition> = when (characterId) {
     CAO_MINH_ID -> caoMinh
     IRIS_ID -> iris
@@ -146,6 +164,7 @@ object CompanionSkillCatalog {
     CATHERINE_ID -> catherine
     JANET_ID -> janet
     NGUYEN_QUOC_NAM_ID -> nguyenQuocNam
+    HUA_TIEU_LAN_ID -> huaTieuLan
     else -> emptyList()
   }
 }

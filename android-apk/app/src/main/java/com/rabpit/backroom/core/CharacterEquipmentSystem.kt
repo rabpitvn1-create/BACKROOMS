@@ -211,6 +211,35 @@ object EquipmentCatalog {
       canonRef = NguyenQuocNamCanon.CANON_REF
     ),
     EquipmentDefinition(
+      id = TIEU_LAN_RIFLE_ID, name = "Trường Xuân", type = "ANTIQUE SINGLE-SHOT RIFLE",
+      primarySlot = EquipmentSlot.WEAPON,
+      weapon = WeaponGameplayStats(25, "1 loaded / finite reserve (Canon)", null, listOf("Single shot")),
+      abilities = listOf(ability("Thước ngắm cơ khí", "Giữ điểm ngắm ở tầm nhìn thực, không phát hiện Exit."),
+        ability("Báng gỗ chạm hoa", "Điểm tựa ổn định khi ngắm bắn, không tăng phạm vi xuyên vật chắn.")),
+      restrictions = listOf("Súng cổ chỉ một phát mỗi lần nạp; đạn hữu hạn trong Canon.",
+        "Combat hiện không mô phỏng nạp và trừ đạn từng lượt; không được suy ra đạn vô hạn.",
+        "Không bắn xuyên tường hoặc tự động ngắm mục tiêu ngoài tầm nhìn."),
+      canonRef = HuaTieuLanCanon.CANON_REF
+    ),
+    EquipmentDefinition(
+      id = TIEU_LAN_AO_DAI_ID, name = "Lam Cúc Áo Dài", type = "BLUE DAISY VIETNAMESE AO DAI",
+      primarySlot = EquipmentSlot.OUTFIT, bonuses = EquipmentBonuses(agiPct = 10),
+      restrictions = listOf("Áo dài có hai tà trước và sau, không phải giáp."),
+      canonRef = HuaTieuLanCanon.CANON_REF
+    ),
+    EquipmentDefinition(
+      id = TIEU_LAN_JADE_ID, name = "Vòng Ngọc Bình An", type = "JADE WRIST BANGLE",
+      primarySlot = EquipmentSlot.WRIST, bonuses = EquipmentBonuses(dexPct = 10),
+      restrictions = listOf("Vật kỷ niệm, không có phép chữa lành hoặc liên lạc gia đình."),
+      canonRef = HuaTieuLanCanon.CANON_REF
+    ),
+    EquipmentDefinition(
+      id = TIEU_LAN_SHOES_ID, name = "Bạch Liên Hài", type = "WHITE LOW HEEL SHOES",
+      primarySlot = EquipmentSlot.FOOTWEAR, bonuses = EquipmentBonuses(defPct = 10),
+      restrictions = listOf("Giày thường, không bay hoặc bước xuyên tường."),
+      canonRef = HuaTieuLanCanon.CANON_REF
+    ),
+    EquipmentDefinition(
       id = LUCIA_M4A1_ID, name = "M4A1 cá nhân hóa", type = "ASSAULT RIFLE", primarySlot = EquipmentSlot.WEAPON,
       bonuses = EquipmentBonuses(strPct = 100, agiPct = 50),
       weapon = WeaponGameplayStats(26, "60 / 90 reserve", 800, listOf("Semi", "Burst", "Auto")),
@@ -279,6 +308,9 @@ object EquipmentCatalog {
     NGUYEN_QUOC_NAM_ID -> linkedMapOf(EquipmentSlot.WEAPON to NAM_PISTOL_ID,
       EquipmentSlot.OUTFIT to NAM_SHIRT_ID, EquipmentSlot.WRIST to NAM_WATCH_ID,
       EquipmentSlot.FOOTWEAR to NAM_SHOES_ID)
+    HUA_TIEU_LAN_ID -> linkedMapOf(EquipmentSlot.WEAPON to TIEU_LAN_RIFLE_ID,
+      EquipmentSlot.OUTFIT to TIEU_LAN_AO_DAI_ID, EquipmentSlot.WRIST to TIEU_LAN_JADE_ID,
+      EquipmentSlot.FOOTWEAR to TIEU_LAN_SHOES_ID)
     AN_NHIEN_ID -> linkedMapOf(EquipmentSlot.OUTFIT to AN_NHIEN_OUTFIT_ID, EquipmentSlot.FOOTWEAR to AN_NHIEN_FOOTWEAR_ID)
     LUCIA_ID -> linkedMapOf(
       EquipmentSlot.WEAPON to LUCIA_M4A1_ID,
@@ -452,7 +484,7 @@ object CharacterEquipmentSystem {
 
   private fun normalizeInternal(source: GameState, seedStarting: Boolean): GameState {
     // Lucia exists in Core state without being forced into Party.
-    val input = NguyenQuocNamCanon.ensure(JanetCanon.ensure(CatherineCanon.ensure(LucTramCanon.ensure(LuciaCanon.ensure(source)))))
+    val input = HuaTieuLanCanon.ensure(NguyenQuocNamCanon.ensure(JanetCanon.ensure(CatherineCanon.ensure(LucTramCanon.ensure(LuciaCanon.ensure(source))))))
     val inventories = input.inventories.toMutableMap()
     val equipment = input.equipment.toMutableMap()
     input.characters.keys.forEach { characterId ->

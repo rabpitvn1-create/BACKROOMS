@@ -1,5 +1,5 @@
 {
-  "version": 10,
+  "version": 11,
   "generator": "built-in imagegen",
   "style": "non-pixel liquid glass; warm gold/orange ordinary items, violet/blue stat book, pale green Catherine/Janet equipment",
   "format": "WEBP",
@@ -575,6 +575,70 @@
       "drive_file_id": "1vQXV9SKKAJTw66DJzC2FJW9AL3WIUeZ-",
       "drive_url": "https://drive.google.com/file/d/1vQXV9SKKAJTw66DJzC2FJW9AL3WIUeZ-/view?usp=drivesdk",
       "design_reference": "673.png (Nguyễn Quốc Nam source)"
+    },
+    {
+      "item_id": "tieu-lan:truong-xuan",
+      "key": "tieu-lan-rifle",
+      "name": "Trường Xuân",
+      "file": "tieu-lan-rifle.webp",
+      "width": 128,
+      "height": 128,
+      "mime_type": "image/webp",
+      "bytes": 2054,
+      "sha256": "c175d28e3af6a5ce1eaabbd2d1fd5b8d0a5704f05cb8a16ea7970c0fe7492d56",
+      "md5": "d9027738e8c2e331dc18d94cf20ed9ec",
+      "drive_file_id": "1gtPrq5TgObfBe1H_xPb2bcQpd1Iq200I",
+      "drive_url": "https://drive.google.com/file/d/1gtPrq5TgObfBe1H_xPb2bcQpd1Iq200I/view?usp=drivesdk",
+      "design_reference": "677.png character artwork; green glass backdrop matching Catherine and Janet equipment icon palette",
+      "palette": "pale light green / mint / celadon"
+    },
+    {
+      "item_id": "tieu-lan:lam-cuc-ao-dai",
+      "key": "tieu-lan-ao-dai",
+      "name": "Lam Cúc Áo Dài",
+      "file": "tieu-lan-ao-dai.webp",
+      "width": 128,
+      "height": 128,
+      "mime_type": "image/webp",
+      "bytes": 3278,
+      "sha256": "b9855de04722e4d40afdf75298c8673d686b525a67be863679d4ac198e4efe61",
+      "md5": "3e1044f994fab0913ca9d6d1f5b5aace",
+      "drive_file_id": "1EnjcsWuPtfYpiCr_-MhG86NaePmBtdR5",
+      "drive_url": "https://drive.google.com/file/d/1EnjcsWuPtfYpiCr_-MhG86NaePmBtdR5/view?usp=drivesdk",
+      "design_reference": "677.png character artwork; green glass backdrop matching Catherine and Janet equipment icon palette",
+      "palette": "pale light green / mint / celadon"
+    },
+    {
+      "item_id": "tieu-lan:jade-bangle",
+      "key": "tieu-lan-jade-bracelet",
+      "name": "Vòng Ngọc Bình An",
+      "file": "tieu-lan-jade-bracelet.webp",
+      "width": 128,
+      "height": 128,
+      "mime_type": "image/webp",
+      "bytes": 4120,
+      "sha256": "d48f81047c04af06eb0d92a64dbf123812dc8e7c95276d01239541c1d7b77991",
+      "md5": "2f33c8769bf9314d92f9fe0ba20cf38b",
+      "drive_file_id": "1Q1Ys3MGFdrH7YZ7eM6ZpHnz45_qsJDja",
+      "drive_url": "https://drive.google.com/file/d/1Q1Ys3MGFdrH7YZ7eM6ZpHnz45_qsJDja/view?usp=drivesdk",
+      "design_reference": "677.png character artwork; green glass backdrop matching Catherine and Janet equipment icon palette",
+      "palette": "pale light green / mint / celadon"
+    },
+    {
+      "item_id": "tieu-lan:white-heels",
+      "key": "tieu-lan-shoes",
+      "name": "Bạch Liên Hài",
+      "file": "tieu-lan-shoes.webp",
+      "width": 128,
+      "height": 128,
+      "mime_type": "image/webp",
+      "bytes": 2024,
+      "sha256": "a61cc5b284cb8da374569804275124ee7c7ca3c1d0d3692a3a9fb1bded88ae4d",
+      "md5": "63ba60678e5c5db95ec01b37c4aeac8a",
+      "drive_file_id": "1jyo92NCmCpAWecSHDctMOGJKKcvGEo90",
+      "drive_url": "https://drive.google.com/file/d/1jyo92NCmCpAWecSHDctMOGJKKcvGEo90/view?usp=drivesdk",
+      "design_reference": "677.png character artwork; green glass backdrop matching Catherine and Janet equipment icon palette",
+      "palette": "pale light green / mint / celadon"
     }
   ]
 }

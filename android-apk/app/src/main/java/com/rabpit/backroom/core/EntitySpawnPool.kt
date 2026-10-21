@@ -16,6 +16,7 @@ import org.json.JSONObject
  * - Catherine: 500 (5%) — all physical actions across every node, once-only
  * - Janet: 500 (5%) — all physical actions across every node, once-only
  * - Nguyễn Quốc Nam: 500 (5%) — all physical actions across every node, once-only
+ * - Hứa Tiểu Lan: 500 (5%) — all physical actions across every node, once-only
  * - Luc Tram: 25 (0.25%) — Level 4+ physical, once-only
  * - Iris/Syvial reunion: 25 (0.25%) each — physical, continuity SEPARATED/LOST/UNKNOWN
  * - An Nhien: 25 (0.25%) — physical, once-only
@@ -172,6 +173,7 @@ object NpcSpawnTable {
   const val CATHERINE_THRESHOLD = 500    // 5%: every parent Level, sublevel and AREA
   const val JANET_THRESHOLD = 500        // 5%: disjoint from Entity and Catherine tickets
   const val NAM_THRESHOLD = 500          // 5%: [5000, 5499] separate from all above
+  const val TIEU_LAN_THRESHOLD = 500     // 5%: [4500, 4999] disjoint on shared ticket
   const val IRIS_THRESHOLD = 25         // 0.25%
   const val SYVIAL_THRESHOLD = 25       // 0.25%
   const val AN_NHIEN_THRESHOLD = 25     // 0.25% (baseline value; kept for reference only)
@@ -286,7 +288,19 @@ object NpcSpawnTable {
       }
     }
 
-    // Nguyễn Quốc Nam: [5000, 5499], preserving the 35/5/5/5 windows.
+    // Hứa Tiểu Lan has reserved [4500, 4999] (5%) of the shared d10000
+    // Entity ticket. No Entity, Catherine, Janet or Nam first meeting is displaced.
+    if (isPhysical && HUA_TIEU_LAN_ID !in partyMemberIds &&
+        !flagSpawned(flags, "huaTieuLan") &&
+        state.characters[HUA_TIEU_LAN_ID]?.metadata?.get("encountered") != "true") {
+      val ticket = catherineTicket ?: nextInt(10000)
+      if (ticket in (EntitySpawnPool.TOTAL_BP + CATHERINE_THRESHOLD + JANET_THRESHOLD) until
+          (EntitySpawnPool.TOTAL_BP + CATHERINE_THRESHOLD + JANET_THRESHOLD + TIEU_LAN_THRESHOLD)) {
+        encounters += NpcEncounter(HUA_TIEU_LAN_ID, "huaTieuLan")
+      }
+    }
+
+    // Nguyễn Quốc Nam: [5000, 5499], preserving the other probability windows.
     // Only the first valid physical encounter is eligible; family is not spawnable.
     if (isPhysical && NGUYEN_QUOC_NAM_ID !in partyMemberIds &&
         !flagSpawned(flags, "nguyenQuocNam") &&
@@ -537,6 +551,7 @@ object SpawnMechanism {
     CATHERINE_ID -> CatherineCanon.NAME
     JANET_ID -> JanetCanon.NAME
     NGUYEN_QUOC_NAM_ID -> NguyenQuocNamCanon.NAME
+    HUA_TIEU_LAN_ID -> HuaTieuLanCanon.NAME
     IRIS_ID -> runCatching { SpecialFollowersCanon.irisCharacter().name }.getOrDefault("Iris")
     SYVIAL_ID -> runCatching { SpecialFollowersCanon.syvialCharacter().name }.getOrDefault("Syvial")
     "survivor" -> "Người sống sót"
@@ -606,6 +621,7 @@ object SpawnMechanism {
       CATHERINE_ID -> CatherineCanon.character()
       JANET_ID -> JanetCanon.character()
       NGUYEN_QUOC_NAM_ID -> NguyenQuocNamCanon.character()
+      HUA_TIEU_LAN_ID -> HuaTieuLanCanon.character()
       IRIS_ID -> SpecialFollowersCanon.irisCharacter()
       SYVIAL_ID -> SpecialFollowersCanon.syvialCharacter()
       else -> null
