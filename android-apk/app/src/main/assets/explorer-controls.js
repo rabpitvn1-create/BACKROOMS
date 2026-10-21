@@ -684,12 +684,12 @@
   // GM suggestions live in the GM message itself. Player Action remains
   // a separate free-text composer; neither path grants new Core authority.
   function parseGmSuggestions(text){
-    const lines=String(text||'').trim().split(/\\r?\\n/);
+    const lines=String(text||'').trim().split(/\r?\n/);
     if(lines.length<5||lines[lines.length-5].trim()!=='GỢI Ý HÀNH ĐỘNG:')return [];
     const actions=[];
     for(let i=1;i<=4;i++){
       const line=lines[lines.length-5+i].trim();
-      const match=line.match(/^([1-4])\\. (.+)$/);
+      const match=line.match(/^([1-4])\. (.+)$/);
       if(!match||Number(match[1])!==i)return [];
       const action=match[2].trim();
       if(action.length<5||action.length>400||/[<>]/.test(action))return [];
