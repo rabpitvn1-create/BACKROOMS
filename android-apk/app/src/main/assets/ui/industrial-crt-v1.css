@@ -41,9 +41,12 @@ body.industrial-ui{
   background:radial-gradient(ellipse at center,transparent 53%,#060b064d 83%,#000c 100%);
   box-shadow:inset 0 0 16px 5px #000b,inset 0 0 3px 1px #7c8a7155
 }
-/* Fine stationary raster lines, with no tracking band or animated glare. */
+/* CCTV scanlines belong to the camera BACKGROUND, never the actor/entity overlays.
+   Keep a strict stack: scenery (0), scanlines (1), portraits (2+), HUD/glass (8+).
+   Native renderSnapshot re-creates .snapshot-bg each turn; no DOM wrapper required. */
+.industrial-ui .snapshot .snapshot-bg{z-index:0}
 .industrial-ui .snapshot::after{
-  content:'';position:absolute;inset:0;z-index:7;pointer-events:none;border:0;
+  content:'';position:absolute;inset:0;z-index:1;pointer-events:none;border:0;
   background:repeating-linear-gradient(to bottom,#02060540 0 1px,transparent 1px 3px);
   opacity:1;animation:none;transform:none;will-change:auto
 }
