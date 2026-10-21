@@ -1902,15 +1902,22 @@ function normalizedSemanticSpans(entry){
 function renderSemanticText(entry){
   const source=String(entry&&entry.text||"");
   if(!entry||entry.role==="player")return esc(source);
-  const spans=normalizedSemanticSpans(entry);
-  if(!spans.length)return esc(source);
+  // Render the four final recommendation lines as ACTUAL buttons in the GM
+  // card (explorer-controls.js), rather than duplicated non-clickable prose.
+  // Semantic spans remain computed over the original authoritative narration.
+  const match=entry.role==="gm"&&source.match(/(?:^|\\n)GỢI Ý HÀNH ĐỘNG:\\r?\\n((?:[1-4]\\. [^\\r\\n]+\\r?\\n?){4})\\s*$/);
+  const rows=match&&match[1].trim().split(/\\r?\\n/);
+  const hasChoices=rows&&rows.length===4&&rows.every((line,i)=>line.startsWith((i+1)+". "));
+  const shown=hasChoices?source.slice(0,match.index).trimEnd():source;
+  const spans=normalizedSemanticSpans(entry).filter(span=>span.end<=shown.length);
+  if(!spans.length)return esc(shown);
   let out="",cursor=0;
   spans.forEach(span=>{
-    if(span.start>cursor)out+=esc(source.slice(cursor,span.start));
-    out+="<span class='gm-semantic gm-semantic-"+span.kind+"' data-semantic-kind='"+span.kind+"'>"+esc(source.slice(span.start,span.end))+"</span>";
+    if(span.start>cursor)out+=esc(shown.slice(cursor,span.start));
+    out+="<span class='gm-semantic gm-semantic-"+span.kind+"' data-semantic-kind='"+span.kind+"'>"+esc(shown.slice(span.start,span.end))+"</span>";
     cursor=span.end;
   });
-  if(cursor<source.length)out+=esc(source.slice(cursor));
+  if(cursor<shown.length)out+=esc(shown.slice(cursor));
   return out;
 }
 
