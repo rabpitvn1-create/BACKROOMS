@@ -43,6 +43,18 @@ class EntityPowerScalingTest {
     assertEquals(2_000_000L, hound2.progressionRank)
   }
 
+  @Test fun whistlers926IsExactlyTwiceHoundCombatHpAtEveryLevel() {
+    assertEquals("Whistlers", CombatRuntime.entityName("926"))
+    assertEquals(true, CombatRuntime.supportsEntityKey("926"))
+    for (level in 0..6) {
+      val hound = CombatRuntime.active(CombatRuntime.start(levelState(level), "hound"))!!
+      val whistlers = CombatRuntime.active(CombatRuntime.start(levelState(level), "926"))!!
+      assertEquals("926", whistlers.entityKey)
+      assertEquals(hound.entityMaxHp * 2, whistlers.entityMaxHp)
+      assertEquals(whistlers.entityMaxHp, whistlers.entityHp)
+    }
+  }
+
   @Test fun activeEncounterKeepsItsRankSnapshotWhenWorldLevelChanges() {
     val started = CombatRuntime.start(levelState(2), "hound")
     val before = CombatRuntime.active(started)!!

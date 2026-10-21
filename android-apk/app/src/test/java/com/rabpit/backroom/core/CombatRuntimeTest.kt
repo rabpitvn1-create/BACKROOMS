@@ -159,7 +159,7 @@ class CombatRuntimeTest {
 
   @Test fun everyNonDiepMinhEntityDoublesItsPreviousScaledHp() {
     val expected = mapOf(
-      "hound" to 110, "clump" to 135, "duller" to 120, "deathmoth" to 95,
+      "926" to 220, "hound" to 110, "clump" to 135, "duller" to 120, "deathmoth" to 95,
       "hostile_faceling" to 105, "false_puddle" to 125, "paintings" to 100,
       "smiler" to 115, "skin-stealer" to 130, "predatory_window" to 145,
       "biological_pipeline" to 150, "wretch" to 115, "cable_mimic" to 130,

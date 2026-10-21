@@ -189,6 +189,7 @@ object CombatRuntime {
 
   private val profiles = listOf(
     Profile("hound", "Hound", 80, 15, 2, 8),
+    Profile("926", "Whistlers", 160, 30, 4, 16),
     Profile("clump", "Clump", 105, 17, 5, 7),
     Profile("duller", "Duller", 90, 14, 3, 6),
     Profile("deathmoth", "Deathmoth", 65, 13, 1, 7),
@@ -214,6 +215,12 @@ object CombatRuntime {
 
   /** Double the final, level-scaled HP of every Entity except Diệp Minh. */
   private fun entityMaxHp(profile: Profile, progressionRank: Long): Int {
+    // Whistlers has twice Hound's FINAL combat HP, including the shared +30 and x2 durability.
+    // Scale Hound first to retain exact doubling even at future fractional progression ranks.
+    if (profile.key == "926") {
+      val hound = profiles.getValue("hound")
+      return Math.multiplyExact(EntityPowerScaling.scale(hound.maxHp + ENTITY_HP_BONUS, progressionRank), 4)
+    }
     val base = if (profile.key == DIEP_MINH_KEY) DIEP_MINH_MAX_HP else profile.maxHp + ENTITY_HP_BONUS
     val scaled = EntityPowerScaling.scale(base, progressionRank)
     return if (profile.key == DIEP_MINH_KEY) scaled else Math.multiplyExact(scaled, 2)

@@ -12,7 +12,7 @@ const literal=line.match(/^\s*("(?:[^"\\]|\\.)*")\s*\+/);
 assert.ok(literal,'Embedded Entity renderer must remain parseable');
 const renderer=JSON.parse(literal[1]);
 const assets=path.join(dir,'../app/src/main/assets');
-const supported=['hound','clump','duller','deathmoth','hostile_faceling','false_puddle',
+const supported=['926','hound','clump','duller','deathmoth','hostile_faceling','false_puddle',
  'paintings','smiler','skin-stealer','predatory_window','biological_pipeline','wretch',
  'cable_mimic','the_beast_of_level_5','hotel_corpse_lure','jeff_the_killer',
  'jane_the_killer','slenderman','diep_minh','blackroot_sentinel','sinew_strider','hollow_grasper'];
@@ -98,6 +98,23 @@ test('stale Entity image completion cannot modify new wave visual state',()=>{
  assert.equal(r.syncCalls(),0);
  r.imgs()[0].onload();
  assert.equal(r.syncCalls(),1);
+});
+
+test('Entity 926 has grounded alpha bounds from its bundled transparent WebP',()=>{
+ const parts=java.split('\n').filter(row=>row.includes('__entityVisualBounds=')||row.includes('function normalizeEntityVisual('))
+  .map(row=>JSON.parse(row.match(/^\s*("(?:[^"\\]|\\.)*")\s*\+/)[1]));
+ const ctx={__entityOverlay:{key:'926'}};
+ vm.createContext(ctx);vm.runInContext(parts.join('\n'),ctx);
+ // 926.webp 1086x1448, alpha >=16 bbox (323,5)-(1006,1438).
+ for(const snapshotHeight of [200,300,450]){
+  const h=snapshotHeight*.97,w=h*1086/1448;
+  const img={alt:'926',style:{},getBoundingClientRect:()=>({width:w,height:h})};
+  ctx.normalizeEntityVisual(img);
+  const [,x,y,scale]=img.style.transform.match(/translate\(([-\d.]+)px,([-\d.]+)px\) scale\(([-\d.]+)\)/).map(Number);
+  assert.ok(Math.abs(((1438-5)/1448)*h*scale-snapshotHeight*.94)<.5);
+  assert.ok(Math.abs(y-(1-1438/1448)*h*scale)<.5);
+  assert.ok(Math.abs(x+(323/1086)*w*scale)<.5);
+ }
 });
 
 test('Hound alpha normalization fits its current artwork and keeps its feet on the ground',()=>{

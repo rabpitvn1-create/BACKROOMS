@@ -9,6 +9,7 @@ Runtime chỉ dùng canonical Entity key trùng chính xác với tên file bỏ
 | Canonical Entity key | Local asset |
 |---|---|
 | `hound` | `hound.webp` |
+| `926` | `926.webp` (Whistlers, fan-created) |
 | `clump` | `clump.webp` |
 | `duller` | `duller.webp` |
 | `deathmoth` | `deathmoth.webp` |
@@ -31,7 +32,7 @@ Runtime chỉ dùng canonical Entity key trùng chính xác với tên file bỏ
 | `sinew_strider` | `sinew_strider.webp` |
 | `hollow_grasper` | `hollow_grasper.webp` |
 
-Cả **22 Entity** thuộc Registry/asset catalog. Core tự roll encounter với xác suất **35% mỗi lượt EXECUTE đủ điều kiện**, dùng resident pool theo exact Level ID và roaming pool khi Level không có danh sách resident. Meta action, Combat đang diễn ra hoặc encounter chờ xác nhận không kích hoạt lượt roll. Xem [ENTITY_SPAWNS.md](ENTITY_SPAWNS.md) và `EntitySpawnPool.kt` để biết điều kiện và danh sách cụ thể.
+Cả **23 Entity** thuộc Registry/asset catalog. Core tự roll encounter với xác suất **35% mỗi lượt EXECUTE đủ điều kiện**, dùng resident pool theo exact Level ID và roaming pool khi Level không có danh sách resident. Meta action, Combat đang diễn ra hoặc encounter chờ xác nhận không kích hoạt lượt roll. Xem [ENTITY_SPAWNS.md](ENTITY_SPAWNS.md) và `EntitySpawnPool.kt` để biết điều kiện và danh sách cụ thể.
 
 Entity do Core chọn được giữ ở `PENDING_ENCOUNTER_CONFIRMATION`; chỉ Battle Start mới kích hoạt Combat và hiển thị ảnh. Tên/chỉ số lấy từ Registry, encounter ID lấy từ Core, không dò câu chữ GM. Không có quota hoặc Boss bắt buộc do Story Milestone cũ quyết định.
 
