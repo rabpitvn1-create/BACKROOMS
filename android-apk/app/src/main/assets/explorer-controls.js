@@ -593,7 +593,7 @@
     const currentObjective=typeof scene?.objective==='string'?scene.objective.trim():'';
     objectivePanel.hidden=!scene||!currentObjective;
     if(objectiveText.textContent!==currentObjective)objectiveText.textContent=currentObjective;
-    if(!scene)return;
+    if(!scene){syncGmSuggestionButtons();return;}
     room.textContent='';objective.textContent='';records.replaceChildren();
     if(inference)inference.textContent='';
     buttons.MAP.disabled=!scene.map;
@@ -606,6 +606,9 @@
     playerAction.hidden=showRetry;retry.hidden=!showRetry;
     playerAction.disabled=locked()||!!scene.generationNeeded;
     retry.disabled=busy||batchBusy||coreUnavailable;
+    // The GM narration can render before backroomPlayerActionFinished clears
+    // batchBusy. Reconcile the existing buttons when the turn actually unlocks.
+    syncGmSuggestionButtons();
     if(scene.generationNeeded&&!scene.pendingActionId&&!locked()&&!preparing&&!failed){
       preparing=true;busy=true;refresh();
       writerPending();
@@ -697,6 +700,25 @@
     }
     return actions;
   }
+  function syncGmSuggestionButtons(){
+    const log=document.getElementById('log'),entries=state&&state.log;
+    if(!log)return;
+    const scene=state&&state.scene;
+    const map=scene?String(scene.nodeId)+':'+Number(scene.miniIndex||1):'';
+    let latest=-1;
+    if(Array.isArray(entries))for(let i=entries.length-1;i>=0;i--){
+      if(entries[i]&&entries[i].role==='gm'){latest=i;break;}
+    }
+    const entry=latest<0?null:entries[latest];
+    const article=latest<0?null:log.children[latest];
+    const activeList=article?.querySelector('.gm-suggestion-list');
+    const enabled=!!scene&&!scene.generationNeeded&&!scene.pendingActionId&&!locked()&&
+      entry?.sceneMap===map&&parseGmSuggestions(entry.text).length===4;
+    log.querySelectorAll('.gm-suggestion-list').forEach(list=>{
+      const canUse=enabled&&list===activeList;
+      Array.from(list.children).forEach(button=>{button.disabled=!canUse;});
+    });
+  }
   function renderGmSuggestionButtons(){
     const log=document.getElementById('log'),entries=state&&state.log;
     const scene=state&&state.scene;
@@ -716,9 +738,9 @@
       const button=document.createElement('button');
       button.type='button';button.className='gm-suggestion';
       button.textContent=(index+1)+'. '+action;
-      button.disabled=locked()||!!scene.pendingActionId;
+      button.disabled=true; // Reconciled after render and after the batch finishes.
       button.onclick=()=>{
-        if(locked()||scene.pendingActionId)return;
+        if(button.disabled||locked()||state.scene?.pendingActionId)return;
         batchBusy=true;failed=false;busy=true;refresh();
         for(const old of container.children)old.disabled=true;
         if(global.appendActionPending)global.appendActionPending(action);
@@ -733,6 +755,7 @@
       container.appendChild(button);
     });
     article.appendChild(container);
+    syncGmSuggestionButtons();
   }
   const originalRender=global.render;
   if(typeof originalRender==='function')global.render=function(){

@@ -67,6 +67,58 @@ test('four GM hints are selectable INSIDE GM log and each tap queues a single Co
   assert.equal(r.calls.filter(x=>x[0]==='player').length,0,'Player Action composer stays separate');
   assert.equal(choices.children.every(b=>b.disabled),true,'one tap prevents rapid duplicate submissions');
 });
+test('GM suggestions unlock only after the completed Player Action event',()=>{
+  const r=runtime({nodeId:'0'});
+  const text='GỢI Ý HÀNH ĐỘNG:\n'
+    +'1. Kiểm tra dấu xước trên vách.\n'
+    +'2. Quan sát lối đi phía tây.\n'
+    +'3. Lắng nghe âm thanh bên ngoài.\n'
+    +'4. Chạm nhẹ vào mép thảm.';
+  r.player.onclick();
+  const input=r.actionDialog.children[1],send=r.actionDialog.children[2];
+  input.value='Tôi quan sát căn phòng';input.oninput();send.onclick();
+  assert.equal(r.calls.at(-1)[0],'player');
+  // Core emits backroomTurn while batchBusy is still true. The narration
+  // initially renders disabled. The finish event must re-enable these nodes.
+  r.ctx.backroomTurn(JSON.stringify({...r.ctx.state,
+    log:[{role:'gm',sceneMap:'0:1',text}],
+    playerAction:{status:'complete',recoverable:false}}));
+  r.ctx.render();
+  const list=r.log.querySelector('.gm-suggestion-list');
+  assert.ok(list);
+  assert.equal(list.children.every(b=>b.disabled),true);
+  r.ctx.backroomPlayerActionFinished(JSON.stringify({executed:1,completed:true}));
+  assert.equal(list.children.every(b=>!b.disabled),true);
+  list.children[0].onclick();
+  assert.deepEqual(r.calls.at(-1),['gm-suggestion',1]);
+  assert.equal(list.children.every(b=>b.disabled),true);
+});
+
+test('GM buttons obey pending and retry locks and recover when the lock clears',()=>{
+  const r=runtime({nodeId:'0'});
+  const text='GỢI Ý HÀNH ĐỘNG:\n'
+    +'1. Kiểm tra dấu xước trên vách.\n'
+    +'2. Quan sát lối đi phía tây.\n'
+    +'3. Lắng nghe âm thanh bên ngoài.\n'
+    +'4. Chạm nhẹ vào mép thảm.';
+  r.ctx.state.log=[{role:'gm',sceneMap:'0:1',text}];
+  r.ctx.render();
+  const list=r.log.querySelector('.gm-suggestion-list');
+  assert.equal(list.children.every(b=>!b.disabled),true);
+  r.ctx.state.scene.pendingActionId='pending';
+  r.ctx.backroomSyncExplorer();
+  assert.equal(list.children.every(b=>b.disabled),true);
+  list.children[0].onclick();
+  assert.equal(r.calls.filter(c=>c[0]==='gm-suggestion').length,0);
+  delete r.ctx.state.scene.pendingActionId;
+  r.ctx.state.playerAction={recoverable:true};
+  r.ctx.backroomSyncExplorer();
+  assert.equal(list.children.every(b=>b.disabled),true);
+  r.ctx.state.playerAction={recoverable:false};
+  r.ctx.backroomSyncExplorer();
+  assert.equal(list.children.every(b=>!b.disabled),true);
+});
+
 test('previous scene GM hints never remain actionable',()=>{
   const r=runtime({nodeId:'0',miniIndex:2});
   r.ctx.state.log=[{role:'gm',sceneMap:'0:1',text:'GỢI Ý HÀNH ĐỘNG:\n1. Lắng nghe tiếng gió.\n2. Thử nhìn sàn.\n3. Đọc mảnh giấy.\n4. Gõ nhẹ cửa.'}];
