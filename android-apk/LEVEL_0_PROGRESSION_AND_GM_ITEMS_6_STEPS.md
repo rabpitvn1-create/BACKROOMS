@@ -44,18 +44,25 @@ Yêu cầu đã chốt:
 - Các bước 4–5 mới triển khai giao diện và kho vật phẩm do GM quản lý độc lập; riddle Core hiện không phụ thuộc vật phẩm của GM.
 
 
-## 4. UI Vật phẩm nhiệm vụ [chưa triển khai]
+## 4. UI Vật phẩm nhiệm vụ [đã triển khai, chờ CI Android]
 
-- Đặt ô cạnh nút Sổ tay trong `index.html` / `explorer-controls.js`; giữ nguyên header, GM panel, font và CRT snapshot.
-- Không hiển thị vật phẩm GM trong kho chính hoặc giới hạn 9 loại vật phẩm.
-- Danh sách có tên, mô tả, khả năng xem chi tiết và trạng thái có/đã dùng.
+- `index.html`: thêm nút `explorerQuestItems` cạnh `explorerCasebook` trong cùng grid hai cột của Khám phá; `explorer-controls.css` bổ sung style tối thiểu, không sửa Header, GM Panel, font hay CRT Snapshot.
+- `explorer-controls.js`: hiển thị các item có tên/mô tả/trạng thái `held` hoặc `consumed` từ `state.gmQuestItems.items`; không đọc Inventory/Equipment Core và không thực hiện trực tiếp thao tác Core.
+- Nút "Đề nghị sử dụng trong Player Action" chỉ soạn đề nghị; việc có tác dụng hay bị tiêu thụ là quyết định của GM dựa trên lượt thật, không phải sự kiện tự động khi bấm nút.
+- Kiểm tra cấu trúc ở `tests/gm-quest-items-ui.test.cjs`. Chưa test tương tác trên thiết bị.
 
-## 5. GM Quest Item Manager + persistence [chưa triển khai]
+## 5. GM Quest Item Manager + persistence [đã triển khai, chờ CI Android]
 
-- Hợp đồng GM riêng cho `create` / `consume`, có ID ổn định, phạm vi node, giới hạn số lượng và thao tác idempotent.
-- Vật phẩm thuộc miền GM; bộ quản lý chỉ xác nhận sơ đồ lệnh và lưu giao dịch, không giải puzzle thay GM.
-- Không nới quyền `ProviderResponseContract.parseSceneWriter` của Core hiện tại thành quyền sinh vật phẩm Core.
-- Save/Load phải snapshot Core gameplay và miền GM item cùng checkpoint, không để hai nguồn lưu lệch nhau. Không suy ra vật phẩm từ lời kể tự do.
+- `GmQuestItems.java` là kho độc lập có Android SharedPreferences riêng. **Không import GameCoreFacade, GameState, Inventory hay xử lý riddle Core**.
+- Hợp đồng độc lập của Gehihi: JSON gồm `reply` và tùy chọn `questItems` chứa danh sách hành động `create` (`id`, `name`, `description`) hoặc `consume` (`id`). Bộ quản lý kiểm tra exact fields, giới hạn số lượng, trùng ID, trạng thái đã tiêu thụ và phạm vi node. Nội dung lời kể tự do không biến thành vật phẩm.
+- Mỗi item được tạo tối đa một lần, tiêu thụ tối đa một lần; không cấp tài nguyên, đồ trang bị, item Core, phép giải Core, quyền di chuyển hoặc thay đổi Entity/NPC.
+- Native bridge nhận JSON Gehihi và truyền **chỉ `reply`** vào Core receipt. `questItems` được xử lý độc lập và chỉ sau khi lượt thực sự commit. Hàng đợi GM tại SharedPreferences được ghi trước lượt để có thể phục hồi nếu chết tiến trình, idempotent theo `narrationId`.
+- Bridge chỉ dùng biên nhận từ **Core-projected view với client presentation rỗng**, không tin log do WebView gửi lên để phục hồi hàng đợi.
+- `currentClientState` và các lượt trả về đều đính kèm snapshot kho GM do Native đọc, không lấy từ `state` do JS chỉnh. `saveGameCheckpoint` nhúng ảnh chụp GM ledger vào **presentation** của checkpoint hiện tại. `loadGameCheckpoint` xác thực và phục hồi ảnh chụp đó, `resetNewGameCore`/`clearCoreState` xóa kho GM.
+- `ProviderResponseContract.parseSceneWriter` của Core vẫn giữ hợp đồng một trường `reply` nguyên bản; toàn bộ lệnh vật phẩm được nhận bởi hợp đồng riêng của GM.
+- `GmQuestItemsTest.java`: kiểm tra parser, schema giả, thao tác tạo/trùng/tiêu thụ một lần/replay/idempotency/giao dịch lỗi. `GmQuestItemsCheckpointTest.kt`: kiểm tra checkpoint UI và game Core vẫn tách biệt.
+- **Rủi ro còn lại**: manual load cập nhật Core checkpoint trước khi Native restore GM ledger, đây là hai kho vật lý độc lập. Đã có validation/pending outbox cho lượt bình thường, nhưng cần instrumented test về lỗi SharedPreferences ở thời điểm load, vì chưa thể khẳng định giao dịch vật lý atomic giữa hai kho.
+
 
 ## 6. Integration và regression [chưa triển khai]
 
