@@ -224,21 +224,13 @@ object TimeEngine {
     val elapsed = state.time.elapsedSubjectiveMinutes
     if (elapsed > Long.MAX_VALUE - delta) return invalid(state, "time_overflow")
 
-    val nextCharacters = linkedMapOf<String, CharacterState>()
-    state.characters.forEach { (id, character) ->
-      if (character.presence == CharacterPresence.DEAD) {
-        nextCharacters[id] = character
-        return@forEach
-      }
-      val physiology = character.physiology
-      val food = advanceKnownCounter(physiology.minutesSinceFood, delta) ?: if (physiology.minutesSinceFood != null) return invalid(state, "physiology_time_overflow") else null
-      val water = advanceKnownCounter(physiology.minutesSinceWater, delta) ?: if (physiology.minutesSinceWater != null) return invalid(state, "physiology_time_overflow") else null
-      val awake = advanceKnownCounter(physiology.minutesAwake, delta) ?: if (physiology.minutesAwake != null) return invalid(state, "physiology_time_overflow") else null
-      nextCharacters[id] = character.copy(physiology = physiology.copy(
-        minutesSinceFood = food,
-        minutesSinceWater = water,
-        minutesAwake = awake
-      ))
+    var advanced = state
+    for ((id, character) in state.characters) {
+      if (character.presence == CharacterPresence.DEAD) continue
+      val activity = if (id in command.restTargets) command.activity else
+        if (command.activity == TimeActivity.REST || command.activity == TimeActivity.SLEEP) TimeActivity.NORMAL else command.activity
+      advanced = PhysiologyEngine.advance(advanced, id, delta, activity)
+        ?: return invalid(state, "physiology_time_overflow")
     }
 
     val nextTime = state.time.copy(
@@ -246,7 +238,7 @@ object TimeEngine {
       lastAdvanceMinutes = command.minutes,
       lastAdvanceReason = reason
     )
-    return changed(state.copy(time = nextTime, characters = nextCharacters), "time_advanced")
+    return changed(advanced.copy(time = nextTime), "time_advanced")
   }
 
   private fun advanceKnownCounter(value: Long?, delta: Long): Long? {
