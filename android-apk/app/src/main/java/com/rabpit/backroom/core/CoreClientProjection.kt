@@ -43,7 +43,7 @@ object CoreClientProjection {
     val out = JSONObject(client.toString())
     for (key in arrayOf("turn", "saveVersion", "inventory", "party", "partyDetails",
       "equipment", "player", "coreSystem", "combat", "combatFeedback", "postCombatContinuation", "gameTime",
-      "location", "title", "level", "flags", "story", "pendingEncounter", "encounteredCharacters", "scene")) out.remove(key)
+      "location", "title", "level", "flags", "story", "pendingEncounter", "encounteredCharacters", "scene", "dungeon")) out.remove(key)
     out.put("turn", turnIndex(state))
     out.put("saveVersion", CURRENT_SAVE_VERSION)
     out.put("location", state.world.getValue("location"))
@@ -75,7 +75,7 @@ object CoreClientProjection {
       }
     })
     out.put("encounteredCharacters", JSONArray().apply {
-      state.characters.values.filter { it.metadata["encountered"] == "true" }.forEach { character ->
+      state.characters.values.filter { it.metadata["encountered"] == "true" || it.metadata["dungeon.unlocked"] == "true" }.forEach { character ->
         put(JSONObject().put("id", character.id).put("name", character.name)
           .put("kind", character.metadata["encounterKind"])
           .put("encounterId", character.metadata["encounterId"])

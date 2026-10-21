@@ -10,7 +10,7 @@ const verifier=path.join(__dirname,'../verify-explorer-controls.mjs');
 function fixture(t){
   const assets=fs.mkdtempSync(path.join(os.tmpdir(),'packaged-composer-'));
   t.after(()=>fs.rmSync(assets,{recursive:true,force:true}));
-  for(const file of ['index.html','explorer-controls.js','explorer-controls.css','ui/ornate-frame-v1.css','ui/backrooms-reference-frame-v2.png','ui/industrial-crt-v1.css','ui/snapshot-tv.js','ui/snapshot-crt.css','ui/crt-glass-v5.svg','ui/crt-optics.svg','ui/black-observation-monitor-v1.webp',
+  for(const file of ['index.html','dungeon.js','dungeon.css','explorer-controls.js','explorer-controls.css','ui/ornate-frame-v1.css','ui/backrooms-reference-frame-v2.png','ui/industrial-crt-v1.css','ui/snapshot-tv.js','ui/snapshot-crt.css','ui/crt-glass-v5.svg','ui/crt-optics.svg','ui/black-observation-monitor-v1.webp',
     'ui/industrial-crt-v1/panel-frame.webp','ui/industrial-crt-v1/button-steel.webp',
     'ui/industrial-crt-v1/button-hazard.webp','ui/industrial-crt-v1/surface-crt.webp','ui/industrial-crt-v1/paper-dossier.webp',
     'ui/industrial-crt-v1/crt-glass-v3.webp','ui/industrial-crt-v1/tracking-v3.webp']){
@@ -171,4 +171,9 @@ test('Snapshot is free of CCTV raster stripes and tracking while preserving glas
   assert.doesNotMatch(theme,/\.industrial-ui \.snapshot::after\s*\{/);
   assert.match(theme,/\.industrial-ui \.snapshot::before\s*\{/);
   assert.match(correction,/crt-glass-v5\.svg/);
+});
+
+for(const file of ['dungeon.js','dungeon.css']) test('APK contract rejects missing '+file,t=>{
+  const assets=fixture(t);fs.unlinkSync(path.join(assets,file));const result=verify(assets);
+  assert.notEqual(result.status,0);assert.ok(result.stderr.includes(file));
 });

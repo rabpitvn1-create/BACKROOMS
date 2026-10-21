@@ -12,6 +12,7 @@ class GameCoreFacade private constructor(
   private val rules = RuleIntentInterpreter()
   private val resolver = CommandResolver()
   private val spawnRng = SecureRandom()
+  private var dungeonNow: () -> Long = { System.currentTimeMillis() }
   /** One-shot exit authorization from determineExitDestination, consumed by processValidatedCandidate. */
   private var exitAuthorization: ExitAuthorization? = null
 
@@ -884,6 +885,20 @@ class GameCoreFacade private constructor(
     }
   }
 
+  /** All timestamps and rewards are native-owned; the WebView submits only IDs. */
+  @Synchronized fun dungeonView(): String =
+    DungeonRuntime.view(loadCurrentState(), dungeonNow()).toString()
+
+  @Synchronized fun dungeonAction(slot: Int, followerId: String, expectedRunId: Long, release: Boolean): String {
+    val current = loadCurrentState()
+    require(!MiniMapRuntime.blocked(current)) { "dungeon_game_busy" }
+    val next = if (release) DungeonRuntime.release(current, slot, expectedRunId, dungeonNow())
+      else DungeonRuntime.start(current, slot, followerId, dungeonNow())
+    DungeonRuntime.validate(next)
+    repository.save(CharacterMemoryBags.recordCommitted(current, next))
+    return DungeonRuntime.view(next, dungeonNow()).toString()
+  }
+
   @Synchronized fun currentCoreState(): String = GameStateCodec.encode(repository.load())
 
   /** Prompt-only memory for Core-confirmed actors in the current scene. */
@@ -937,7 +952,7 @@ class GameCoreFacade private constructor(
     val saved = repository.loadCheckpoint() ?: return checkpointError("checkpoint_missing")
     val loaded = saved.core
     repository.save(loaded)
-    val restored = CoreClientProjection.project(saved.presentation, loaded)
+    val restored = CoreClientProjection.project(saved.presentation, loadCurrentState())
     return JSONObject().put("ok", true).put("state", restored).toString()
   }
 
@@ -1219,7 +1234,8 @@ class GameCoreFacade private constructor(
     if (CombatRuntime.pending(current) != null || CombatRuntime.active(current) != null ||
       current.turn.pending != null || ActionRuntime.activeSession(current) != null) return reject("turn_in_progress")
     val character = current.characters[characterId] ?: return reject("target_unknown")
-    if (character.metadata["encountered"] != "true") return reject("follower_not_encountered")
+    if (character.metadata["encountered"] != "true" && character.metadata["dungeon.unlocked"] != "true")
+      return reject("follower_not_encountered")
     if (characterId in current.party.memberIds)
       return response(true, clientSnapshot(client, current), null, "already_in_party", "${character.name} đã ở trong Party.")
     val command = PartyCommand("JOIN:${character.metadata["encounterId"]}:$characterId",
@@ -1351,8 +1367,9 @@ class GameCoreFacade private constructor(
     val normalized = normalizeVisualPresence(CoreClientProjection.initialize(loaded))
     // New runs are initialized without any Milestone planning or story checkpoint seeding.
     val ready = if (existed) normalized else newStoryRun(normalized)
-    if (!existed) repository.save(ready)
-    return ready
+    val settled = DungeonRuntime.settle(ready, dungeonNow())
+    if (!existed || settled != ready) repository.save(settled)
+    return settled
   }
 
   /** UI state is presentation only; gameplay fields are always reprojected from Core. */

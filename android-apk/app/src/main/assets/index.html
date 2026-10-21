@@ -199,6 +199,7 @@ body.game-menu-open{overflow:hidden}
 </style>
 <link rel="stylesheet" href="ui/industrial-crt-v1.css">
 <link rel="stylesheet" href="ui/snapshot-crt.css">
+<link rel="stylesheet" href="dungeon.css">
 </head>
 <body class="industrial-ui">
 <main class="shell">
@@ -242,6 +243,7 @@ body.game-menu-open{overflow:hidden}
   <div class="explorer-dossier-tiles">
     <button type="button" id="explorerCasebook">Sổ tay</button>
     <button type="button" id="explorerQuestItems">Vật phẩm nhiệm vụ</button>
+
   </div>
 </section>
 <section class="card" id="sceneJournal" hidden aria-labelledby="sceneJournalTitle">
@@ -251,6 +253,7 @@ body.game-menu-open{overflow:hidden}
   <details open><summary>Manh mối và lời khai</summary><div id="sceneJournalRecords"></div></details>
   <div class="scene-inference"><strong>Suy luận tạm thời</strong><p id="sceneJournalInference" aria-live="polite"></p></div>
 </section>
+<section class="card"><h2>Dungeon</h2><button type="button" id="dungeonOpen">Dungeon · Huấn luyện Follower</button></section>
 <div class="card menu-dossier"><h2>Hồ sơ sinh tồn</h2><div class="row"><b>Nhân vật</b><span id="player"></span></div><div class="row"><b>Vị trí</b><span id="location"></span></div><div class="row"><b>Chế độ</b><span id="mode"></span></div></div>
 <div class="card"><h2>Save / Load</h2><div class="actions"><button type="button" id="saveButton" onclick="save()">Lưu</button><button type="button" id="loadButton" onclick="load()">Tải</button><button type="button" id="newGameButton" class="wide" onclick="resetGame()">Bắt đầu lại từ đầu</button><button type="button" id="deleteSaveButton" class="wide danger" onclick="clearSave()">Xóa save trên máy</button></div></div>
 <div class="card"><h2>Chẩn đoán lỗi</h2>
@@ -2690,6 +2693,14 @@ body.poker-dice-open .game>.log{display:none!important}
 </script>
 
 
+<section id="dungeonModal" hidden role="dialog" aria-modal="true" aria-labelledby="dungeonTitle">
+  <div class="dungeon-sheet">
+    <header class="dungeon-header"><div><small>HUẤN LUYỆN FOLLOWER</small><h2 id="dungeonTitle">DUNGEON</h2></div><button id="dungeonClose" type="button" aria-label="Đóng Dungeon">×</button></header>
+    <div class="dungeon-content"><p class="dungeon-intro">Mỗi phút train nhận 4 EXP từ một Entity. Follower không thể chết và vẫn train khi đóng game. Follower đang train tạm rời Party; mỗi lượt tự dừng khi hết thời gian.</p><div id="dungeonSlots" class="dungeon-slots"></div><p id="dungeonStatus" role="status" aria-live="polite"></p></div>
+    <footer class="dungeon-footer"><p>Hệ thống sách sẽ được bổ sung sau. Hiện Dungeon chỉ train và tăng cấp.</p><button id="dungeonRefresh" type="button">Cập nhật</button></footer>
+  </div>
+</section>
+<script src="dungeon.js"></script>
 <script src="item-detail-actions.js"></script>
 <script src="combat-feedback-1193a.js"></script>
 <script src="battle-start.js"></script>

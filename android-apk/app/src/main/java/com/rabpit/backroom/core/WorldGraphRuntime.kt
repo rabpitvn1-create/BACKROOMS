@@ -379,7 +379,7 @@ object WorldGraphRuntime {
 
   fun characterPresent(state: GameState, actor: CharacterState, roomId: String = MiniMapRuntime.progress(state).getString("roomId")): Boolean =
     actor.presence == CharacterPresence.ACTIVE && (actor.id in state.party.memberIds ||
-      actor.metadata["encountered"] == "true" && actor.metadata["world.nodeId"] == MiniMapRuntime.progress(state).getString("nodeId") && actor.metadata["world.roomId"] == roomId)
+      (actor.metadata["encountered"] == "true" || actor.metadata["dungeon.unlocked"] == "true") && actor.metadata["world.nodeId"] == MiniMapRuntime.progress(state).getString("nodeId") && actor.metadata["world.roomId"] == roomId)
 
   private fun presentCharacters(state: GameState) = state.characters.values.filter {
     it.id != CAO_MINH_ID && characterPresent(state, it)

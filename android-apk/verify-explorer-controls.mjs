@@ -6,7 +6,7 @@ import vm from 'node:vm';
 const source=fileURLToPath(new URL('./app/src/main/assets/',import.meta.url));
 const assets=process.argv[2];
 assert.ok(assets,'Usage: verify-explorer-controls.mjs <assets-directory>');
-for(const file of ['index.html','explorer-controls.js','explorer-controls.css','ui/ornate-frame-v1.css','ui/backrooms-reference-frame-v2.png','ui/industrial-crt-v1.css','ui/snapshot-tv.js','ui/snapshot-crt.css','ui/crt-glass-v5.svg','ui/crt-optics.svg','ui/black-observation-monitor-v1.webp',
+for(const file of ['index.html','dungeon.js','dungeon.css','explorer-controls.js','explorer-controls.css','ui/ornate-frame-v1.css','ui/backrooms-reference-frame-v2.png','ui/industrial-crt-v1.css','ui/snapshot-tv.js','ui/snapshot-crt.css','ui/crt-glass-v5.svg','ui/crt-optics.svg','ui/black-observation-monitor-v1.webp',
   'ui/industrial-crt-v1/panel-frame.webp','ui/industrial-crt-v1/button-steel.webp',
   'ui/industrial-crt-v1/button-hazard.webp','ui/industrial-crt-v1/surface-crt.webp','ui/industrial-crt-v1/paper-dossier.webp',
     'ui/industrial-crt-v1/crt-glass-v3.webp','ui/industrial-crt-v1/tracking-v3.webp'])
@@ -23,3 +23,7 @@ new vm.Script(fs.readFileSync(path.join(assets,'explorer-controls.js'),'utf8'));
 new vm.Script(fs.readFileSync(path.join(assets,'ui/snapshot-tv.js'),'utf8'));
 assert.match(html,/src="ui\/snapshot-tv.js"/);
 console.log('Packaged Explorer controls verified');
+
+assert.match(html,/src="dungeon.js"/);
+assert.match(html,/href="dungeon.css"/);
+new vm.Script(fs.readFileSync(path.join(assets,'dungeon.js'),'utf8'));

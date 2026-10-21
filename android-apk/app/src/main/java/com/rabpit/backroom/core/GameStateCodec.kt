@@ -19,6 +19,7 @@ object GameStateCodec {
     put("time", gameTime(state.time))
     put("world", stringMap(state.world))
     put("metadata", stringMap(state.metadata))
+    put("dungeon", DungeonRuntime.encode(state.dungeon))
   }.toString()
 
   fun decode(raw: String): GameState = decode(JSONObject(raw))
@@ -38,6 +39,7 @@ object GameStateCodec {
         }
       }
     }
+    DungeonRuntime.validate(decoded)
     CharacterMemoryBags.validate(decoded)
     return CharacterProgressionCore.normalize(CharacterEquipmentSystem.normalize(SpecialFollowersCanon.ensure(AnNhienCanon.ensure(decoded))))
   }
@@ -63,7 +65,8 @@ object GameStateCodec {
       time = decodeGameTime(root.optJSONObject("time")),
       world = root.optJSONObject("world").stringsMap(),
       saveVersion = CURRENT_SAVE_VERSION,
-      metadata = root.optJSONObject("metadata").stringsMap()
+      metadata = root.optJSONObject("metadata").stringsMap(),
+      dungeon = DungeonRuntime.decode(root.getJSONObject("dungeon"))
     )
   }
 

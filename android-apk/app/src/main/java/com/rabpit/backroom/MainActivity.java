@@ -1596,6 +1596,30 @@ public class MainActivity extends Activity {
       }
     }
 
+    @JavascriptInterface public void dungeonRequest(String stateJson, String requestJson) {
+      io.execute(() -> {
+        String requestId = "";
+        try {
+          JSONObject request = new JSONObject(requestJson);
+          requestId = request.getString("requestId");
+          String operation = request.getString("operation");
+          String dungeon;
+          if ("view".equals(operation)) dungeon = requireGameCore().dungeonView();
+          else if ("start".equals(operation) || "release".equals(operation))
+            dungeon = requireGameCore().dungeonAction(request.getInt("slot"),
+              request.optString("followerId"), request.optLong("runId", -1L), "release".equals(operation));
+          else throw new IllegalArgumentException("dungeon_invalid_request");
+          emit("backroomDungeon", new JSONObject().put("ok", true)
+            .put("requestId", requestId).put("dungeon", new JSONObject(dungeon))
+            .put("state", new JSONObject(attachGmItems(requireGameCore().currentClientState(stateJson)))).toString());
+        } catch (Exception error) {
+          String code = error.getMessage();
+          if (code == null || !code.matches("dungeon_[a-z_]{2,50}")) code = "dungeon_request_failed";
+          emit("backroomDungeon", "{\"ok\":false,\"requestId\":" + JSONObject.quote(requestId) + ",\"error\":" + JSONObject.quote(code) + "}");
+        }
+      });
+    }
+
     @JavascriptInterface public String getPartyDetails(String stateJson) {
       try {
         return new JSONObject()

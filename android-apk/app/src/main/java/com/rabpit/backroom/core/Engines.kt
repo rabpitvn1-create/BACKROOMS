@@ -162,6 +162,7 @@ object InventoryEngine {
 object PartyEngine {
   fun execute(state: GameState, command: PartyCommand): ExecutionResult = when (command.operation) {
     PartyCommand.Operation.ADD -> {
+      if (DungeonRuntime.isTraining(state, command.targetId)) return invalid(state, "follower_in_dungeon")
       if (!state.characters.containsKey(command.targetId)) return invalid(state, "target_unknown")
       if (!command.targetPresent) return invalid(state, "target_not_present")
       if (!command.consentConfirmed) return invalid(state, "join_not_confirmed")
