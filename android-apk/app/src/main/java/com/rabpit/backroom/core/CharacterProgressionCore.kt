@@ -29,7 +29,7 @@ object CharacterProgressionCore {
     }.coerceIn(BASE_STAT, MAX_STAT)
   }
 
-  fun statPercent(stat: Int): Int = 100 + 4 * (stat.coerceIn(BASE_STAT, MAX_STAT) - BASE_STAT)
+  fun statPercent(stat: Int): Int = 100 + 4 * (stat.coerceIn(1, MAX_STAT) - BASE_STAT)
   fun statPercent(state: GameState, characterId: String, stat: String): Int =
     statPercent(baseStat(state, characterId, stat))
 
@@ -233,7 +233,7 @@ object CharacterStatCore {
   // Base 58.00%, +0.50 percentage points per effective DEX or AGI above 5.
   // Capped at 95% before encounter tactics; the final attack roll can reach 99%.
   fun accuracyBasisPoints(dex: Int, agi: Int): Int {
-    val bonusPoints = (dex.coerceIn(5, 999) - 5) + (agi.coerceIn(5, 999) - 5)
+    val bonusPoints = (dex.coerceIn(1, 999) - 5) + (agi.coerceIn(1, 999) - 5)
     return (5800 + bonusPoints * 50).coerceAtMost(9500)
   }
 
@@ -248,9 +248,9 @@ object CharacterStatCore {
   }
 
   fun criticalChanceBasisPoints(agi: Int): Int =
-    (500 + (agi.coerceIn(5, 999) - 5) * 45).coerceAtMost(3000)
+    (500 + (agi.coerceIn(1, 999) - 5) * 45).coerceAtMost(3000)
   fun evasionBasisPoints(eva: Int): Int =
-    (500 + (eva.coerceIn(5, 999) - 5) * 50).coerceAtMost(3500)
+    (500 + (eva.coerceIn(1, 999) - 5) * 50).coerceAtMost(3500)
   fun criticalResistanceBasisPoints(dex: Int): Int =
     ((dex.coerceIn(5, 999) - 5) * 25).coerceAtMost(10000)
   fun evasionResistanceBasisPoints(eva: Int): Int =
