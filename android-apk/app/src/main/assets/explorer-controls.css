@@ -251,6 +251,17 @@
 }
 
 /* Factual receipts are explicit while the separate GM narration is unavailable. */
+.log .message.gm .gm-suggestion-list{
+  display:grid;grid-template-columns:1fr;gap:8px;margin-top:14px;padding-top:12px;
+  border-top:1px solid #83754c70
+}
+.log .message.gm .gm-suggestion{
+  display:block;width:100%;min-height:46px;padding:10px 12px;text-align:left;
+  color:#f3deb1;background:#24302e;border:1px solid #89754d;border-radius:5px;
+  font:inherit;font-size:13px;line-height:1.45;overflow-wrap:anywhere;cursor:pointer
+}
+.log .message.gm .gm-suggestion:focus-visible{outline:2px solid #f3d38d;outline-offset:2px}
+.log .message.gm .gm-suggestion:disabled{opacity:.44;cursor:default}
 .message.core{border-left-color:#bd9b53;background:#201c13}
 .message.core .role{color:#dfc78f}
 .message .action-status{margin-top:8px;color:#e2bd76;font-size:12px;line-height:1.5;white-space:pre-wrap}
