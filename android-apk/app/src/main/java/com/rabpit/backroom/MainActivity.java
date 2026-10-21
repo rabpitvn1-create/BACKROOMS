@@ -1611,6 +1611,10 @@ public class MainActivity extends Activity {
 
     @JavascriptInterface public String loadGameCheckpoint() {
       try {
+        // Core MUST NOT restore until the GM-owned checkpoint domain is known valid.
+        JSONObject preview = new JSONObject(requireGameCore().previewManualCheckpoint());
+        if (!preview.optBoolean("ok", false)) return preview.toString();
+        gmItems().validateRestore(preview.getJSONObject("state").getJSONObject("gmQuestItems"));
         clearAmbientEncounter();
         JSONObject result = new JSONObject(requireGameCore().loadManualCheckpoint());
         if (result.optBoolean("ok", false) && result.has("state")) {
