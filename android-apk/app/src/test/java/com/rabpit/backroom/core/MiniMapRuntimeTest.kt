@@ -416,7 +416,13 @@ class MiniMapRuntimeTest {
     apply(core, repo, "room:lab")
     apply(core, repo, "paper")
     val evidence = MiniMapRuntime.publicView(repo.state)
-    assertTrue(evidence.getJSONArray("records").getJSONObject(1).getString("text").contains("Mảnh hồ sơ"))
+    val confirmedClue = evidence.getJSONArray("records").getJSONObject(1)
+    assertTrue(confirmedClue.getString("text").contains("Mảnh hồ sơ"))
+    assertEquals("CLUE", confirmedClue.getString("kind"))
+    assertTrue(confirmedClue.getBoolean("confirmed"))
+    assertEquals("Đọc hồ sơ", confirmedClue.getString("label"))
+    // CLAIM is witness testimony, not an authoritative named physical clue.
+    assertFalse(evidence.getJSONArray("records").getJSONObject(0).has("label"))
     assertTrue(evidence.getString("temporaryInference").contains("so sánh"))
     assertFalse(evidence.toString().contains("facts"))
     // Saved technical receipts are re-rendered from script without mutating game state.
