@@ -783,9 +783,13 @@ object CombatRuntime {
             // PARTY_ATTACK_GCO_GATE_V1
             if (intent == Intent.ATTACK && CAO_MINH_ID in PartyCombatHealth.actingMembers(resolvedState)) {
             if (c.entityHp > 0 && ultimateReady) {
-              val damagePerSlash = CharacterStatEngine.skillBaseDamage(resolvedState, CAO_MINH_ID) * 115 / 100
-              val totalDamage = CAO_MINH_ULTIMATE_SHOTS * damagePerSlash
-              val hp = max(0, c.entityHp - totalDamage)
+              val damagePerSlash = CharacterStatCore.scaleByPercent(
+                CharacterStatEngine.skillBaseDamage(resolvedState, CAO_MINH_ID), 115)
+              // Two ×3 accessories may amplify the 24-slash Ultimate. Use Long
+              // to avoid overflowing an Int at high stat levels.
+              val totalDamage = (CAO_MINH_ULTIMATE_SHOTS.toLong() * damagePerSlash)
+                .coerceAtMost(c.entityHp.toLong()).toInt()
+              val hp = c.entityHp - totalDamage
               recordFeedback("entity", c.entityHp, hp, skill = "Huyết Ma Nhị Thập Tứ Trảm")
               c = c.copy(entityHp = hp, entityCondition = condition(hp, c.entityMaxHp))
               log += "Huyết Ma Nhị Thập Tứ Trảm kích hoạt với Poker Dice [$ultimateHand]: $CAO_MINH_ULTIMATE_SHOTS/" +

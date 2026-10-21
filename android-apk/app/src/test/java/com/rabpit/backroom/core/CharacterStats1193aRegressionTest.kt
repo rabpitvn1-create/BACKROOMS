@@ -25,7 +25,7 @@ class CharacterStats1193aRegressionTest {
     val effective = CharacterStatCore.effective(bare, CAO_MINH_ID)
     assertEquals(listOf(6,6,6,6,6), listOf(effective.str, effective.dex, effective.agi, effective.vit, effective.eva))
     val equipped = CharacterStatCore.effective(state, CAO_MINH_ID)
-    assertEquals(listOf(37,13,12,7,6), listOf(equipped.str,equipped.dex,equipped.agi,equipped.vit,equipped.eva))
+    assertEquals(listOf(37,25,24,7,6), listOf(equipped.str,equipped.dex,equipped.agi,equipped.vit,equipped.eva))
     assertEquals(55, effective.maxHp)
     assertEquals(50, state.characters.getValue(CAO_MINH_ID).vitalState.currentHp)
     assertEquals(5, effective.criticalChancePercent)
@@ -104,7 +104,7 @@ class CharacterStats1193aRegressionTest {
     assertEquals(state.characters.getValue(CAO_MINH_ID).statProfile,
       stripped.characters.getValue(CAO_MINH_ID).statProfile)
     assertEquals(listOf(6,6,6,6,6), listOf(after.str,after.dex,after.agi,after.vit,after.eva))
-    assertEquals(listOf(37,13,12,7,6), listOf(before.str,before.dex,before.agi,before.vit,before.eva))
+    assertEquals(listOf(37,25,24,7,6), listOf(before.str,before.dex,before.agi,before.vit,before.eva))
     val weapon = CharacterStatEngine.weaponDamage(state, CAO_MINH_ID)
     val id = state.equipment.getValue(CAO_MINH_ID).slots["weapon"]
     assertEquals(EquipmentCatalog.definition(id!!)?.weapon?.dmg ?: 18, weapon)

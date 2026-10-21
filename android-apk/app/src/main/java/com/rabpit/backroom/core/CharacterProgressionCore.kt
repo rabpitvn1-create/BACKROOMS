@@ -163,6 +163,7 @@ object CharacterStatCore {
     val itemIds = state.equipment[equipmentId]?.slots?.values ?: return EquipmentBonuses()
     var acc = EquipmentBonuses()
     for (itemId in itemIds) {
+      if (!EquipmentCatalog.isUsableBy(itemId, characterId)) continue
       val b = EquipmentCatalog.definition(itemId)?.bonuses ?: continue
       acc = acc.copy(
         agiPct = acc.agiPct + b.agiPct,
@@ -227,7 +228,10 @@ object CharacterStatCore {
       resCriticalBasisPoints = critResBp,
       resEvasionBasisPoints = dodgeResBp,
       criticalDamagePercent = CRITICAL_DAMAGE_PERCENT,
-      attackPercent = attack, skillDamagePercent = attack,
+      attackPercent = attack,
+      skillDamagePercent = (attack.toLong() *
+        EquipmentCatalog.equippedSkillDamageMultiplier(state, characterId))
+        .coerceAtMost(Int.MAX_VALUE.toLong()).toInt(),
       energy = p.energy,
       regenPerCompletedTurn = 0
     )

@@ -9,7 +9,7 @@ class CharacterStatusEquipmentSystemTest {
     val after = CharacterStatEngine.effective(stripped, CAO_MINH_ID)
     assertEquals(state.characters.getValue(CAO_MINH_ID).statProfile,
       stripped.characters.getValue(CAO_MINH_ID).statProfile)
-    assertEquals(listOf(37,13,12,7,6), listOf(before.str,before.dex,before.agi,before.vit,before.eva))
+    assertEquals(listOf(37,25,24,7,6), listOf(before.str,before.dex,before.agi,before.vit,before.eva))
     assertEquals(listOf(6,6,6,6,6), listOf(after.str,after.dex,after.agi,after.vit,after.eva))
   }
   @Test fun weaponDamageIsRawWeaponAttribute() {

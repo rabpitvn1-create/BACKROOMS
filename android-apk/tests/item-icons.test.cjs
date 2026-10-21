@@ -33,10 +33,10 @@ test('Every registered loot item and catalog equipment has its own WebP icon', (
   assert.equal(new Set(ids.map(id => icons[id])).size, ids.length, 'Distinct catalog items need distinct artwork');
 });
 
-test('Manifest v12 covers exactly 39 registered item IDs and one unknown fallback', () => {
-  assert.equal(manifest.version, 12);
+test('Manifest v13 covers exactly 41 registered item IDs and one unknown fallback', () => {
+  assert.equal(manifest.version, 13);
   assert.equal(manifest.format, 'WEBP');
-  assert.equal(manifest.items.length, 40);
+  assert.equal(manifest.items.length, 42);
   const named = manifest.items.filter(entry => entry.item_id !== null);
   assert.equal(named.length, Object.keys(icons).length);
   const seen = new Set();
@@ -54,7 +54,7 @@ test('Every packaged WebP is byte-for-byte compatible with Drive manifest SHA-25
   const iconDir = path.join(assets, 'item-icons');
   const files = fs.readdirSync(iconDir).filter(file => file.endsWith('.webp')).sort();
   assert.deepEqual(files, manifest.items.map(entry => entry.file).sort());
-  assert.equal(files.length, 40);
+  assert.equal(files.length, 42);
   assert.equal(fs.readdirSync(iconDir).filter(file => file.endsWith('.svg')).length, 0, 'obsolete SVG icons must not ship');
   for (const entry of manifest.items) {
     assert.equal(entry.file, entry.key + '.webp');

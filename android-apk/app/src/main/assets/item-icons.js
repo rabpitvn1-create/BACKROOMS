@@ -11,6 +11,8 @@ window.backroomItemIcons = Object.freeze({
   'southern:saigon-com-tam': 'com-tam',
   'cao_minh:huyet-ma-kiem': 'huyet-ma-kiem',
   'cao_minh:huyet-ma-chien-khai': 'huyet-ma-khai',
+  'cao_minh:huyet-ma-boots': 'huyet-ma-boots',
+  'cao_minh:huyet-ma-gauntlets': 'huyet-ma-gauntlets',
   'iris:ivory-ebony-set': 'ivory-ebony',
   'iris:ivory': 'ivory',
   'iris:ebony': 'ebony',

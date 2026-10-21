@@ -6,6 +6,8 @@ const val CAO_MINH_ID = "cao_minh"
 const val CAO_MINH_AVATAR_REF = "avatars/CAO_MINH_AVATAR.jpg"
 const val CAO_MINH_SWORD_ID = "cao_minh:huyet-ma-kiem"
 const val CAO_MINH_ARMOR_ID = "cao_minh:huyet-ma-chien-khai"
+const val CAO_MINH_BOOTS_ID = "cao_minh:huyet-ma-boots"
+const val CAO_MINH_GAUNTLETS_ID = "cao_minh:huyet-ma-gauntlets"
 
 object CaoMinhStartingEquipment {
   const val WEAPON_NAME = "Huyết Ma Kiếm"
@@ -14,6 +16,8 @@ object CaoMinhStartingEquipment {
   val slots: Map<String, String> = linkedMapOf(
     "weapon" to CAO_MINH_SWORD_ID,
     "armor" to CAO_MINH_ARMOR_ID,
+    "footwear" to CAO_MINH_BOOTS_ID,
+    "gauntlets" to CAO_MINH_GAUNTLETS_ID,
   )
 
 

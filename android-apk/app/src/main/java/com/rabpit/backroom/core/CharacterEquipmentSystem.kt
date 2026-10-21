@@ -67,6 +67,8 @@ data class EquipmentDefinition(
   val rarity: String? = null,
   val bonuses: EquipmentBonuses = EquipmentBonuses(),
   val weapon: WeaponGameplayStats? = null,
+  /** Skill-only damage multiplier (separate from additive STR/DEX/AGI percentages). */
+  val skillDamageMultiplier: Int = 1,
   val abilities: List<EquipmentAbility> = emptyList(),
   val restrictions: List<String> = emptyList(),
   val classification: ItemClassification = ItemClassification.CANONICAL,
@@ -89,6 +91,26 @@ object EquipmentCatalog {
       bonuses = EquipmentBonuses(agiPct = 100, dexPct = 30, vitPct = 20, strPct = 20),
       abilities = listOf(ability("Ma Kim hộ thể", "Ma khải bảo vệ nhục thân và phân tán lực va chạm."), ability("Ma nguyên tự phục hồi", "Tự phục hồi pháp bảo; không đồng nghĩa hồi HP tức thì.")),
       canonRef = "CAO-EQP-HUYET-MA-KHAI-01"
+    ),
+    EquipmentDefinition(
+      id = CAO_MINH_BOOTS_ID, name = "Giày Huyết Ma", type = "MA ĐẠO CHIẾN NGOA",
+      primarySlot = EquipmentSlot.FOOTWEAR,
+      bonuses = EquipmentBonuses(agiPct = 100, dexPct = 100),
+      skillDamageMultiplier = 3,
+      abilities = listOf(ability("Huyết Ảnh Bộ", "AGI +100%, DEX +100%; sát thương kỹ năng ×3 khi trang bị.",
+        "Khi phối hợp Găng tay Huyết Ma: ×3 ×3 = ×9 Skill DMG; không cộng vào sát thương đánh thường.")),
+      restrictions = listOf("Chỉ Cao Minh sử dụng; không chuyển nhượng hoặc tháo pháp bảo bản mệnh."),
+      canonRef = "CAO-EQP-HUYET-MA-BOOTS-01"
+    ),
+    EquipmentDefinition(
+      id = CAO_MINH_GAUNTLETS_ID, name = "Găng tay Huyết Ma", type = "MA ĐẠO HỘ THỦ",
+      primarySlot = EquipmentSlot.GAUNTLETS,
+      bonuses = EquipmentBonuses(agiPct = 100, dexPct = 100),
+      skillDamageMultiplier = 3,
+      abilities = listOf(ability("Ma Trảo Cường Hóa", "AGI +100%, DEX +100%; sát thương kỹ năng ×3 khi trang bị.",
+        "Khi phối hợp Giày Huyết Ma: ×3 ×3 = ×9 Skill DMG; không cộng vào sát thương đánh thường.")),
+      restrictions = listOf("Chỉ Cao Minh sử dụng; không chuyển nhượng hoặc tháo pháp bảo bản mệnh."),
+      canonRef = "CAO-EQP-HUYET-MA-GAUNTLETS-01"
     ),
     EquipmentDefinition(
       id = IRIS_IVORY_EBONY_SET_ID, name = "Ivory & Ebony", type = "DUAL_WEAPON SET", primarySlot = EquipmentSlot.WEAPON,
@@ -292,10 +314,34 @@ object EquipmentCatalog {
     else -> definitions[itemId]
   }
 
+  /** Only Cao Minh may benefit from his bound Huyết Ma accessories. */
+  fun isUsableBy(itemId: String, characterId: String): Boolean =
+    itemId !in setOf(CAO_MINH_BOOTS_ID, CAO_MINH_GAUNTLETS_ID) ||
+      CharacterStatCore.isCaoMinh(characterId)
+
+  /**
+   * Independent ×3 multipliers compound (both equipped => ×9).
+   * Ordinary weapon and basic attacks do not use this factor.
+   */
+  fun equippedSkillDamageMultiplier(state: GameState, characterId: String): Int {
+    val equipmentId = state.characters[characterId]?.equipmentId ?: characterId
+    val slots = state.equipment[equipmentId]?.slots ?: return 1
+    var result = 1
+    for ((slot, itemId) in slots) {
+      val def = definition(itemId) ?: continue
+      if (!isUsableBy(itemId, characterId) || slot != def.primarySlot.key) continue
+      result = (result.toLong() * def.skillDamageMultiplier.coerceAtLeast(1))
+        .coerceAtMost(999L).toInt()
+    }
+    return result
+  }
+
   fun startingLoadout(characterId: String): Map<EquipmentSlot, String> = when (characterId) {
     CAO_MINH_ID -> linkedMapOf(
       EquipmentSlot.WEAPON to CAO_MINH_SWORD_ID,
       EquipmentSlot.ARMOR to CAO_MINH_ARMOR_ID,
+      EquipmentSlot.FOOTWEAR to CAO_MINH_BOOTS_ID,
+      EquipmentSlot.GAUNTLETS to CAO_MINH_GAUNTLETS_ID,
     )
     IRIS_ID -> linkedMapOf(EquipmentSlot.WEAPON to IRIS_IVORY_EBONY_SET_ID)
     SYVIAL_ID -> linkedMapOf(EquipmentSlot.WEAPON to SYVIAL_GODKILLER_ID)
@@ -455,9 +501,11 @@ object CharacterStatEngine {
     val strScaled = CharacterStatCore.basicDamage(
       weaponDamage(state, characterId), effective(state, characterId).str
     )
-    return if (CharacterStatCore.isCaoMinh(characterId)) {
+    val tactical = if (CharacterStatCore.isCaoMinh(characterId)) {
       CharacterStatCore.scaleByPercent(strScaled, CaoMinhCombatPassive.attackPercent(state))
     } else strScaled
+    val multiplier = EquipmentCatalog.equippedSkillDamageMultiplier(state, characterId)
+    return CharacterStatCore.scaleByPercent(tactical, multiplier * 100)
   }
 }
 
@@ -492,7 +540,9 @@ object CharacterEquipmentSystem {
       val inv = inventories[characterId] ?: InventoryState(characterId)
       val eq = equipment[characterId] ?: EquipmentState(characterId)
       val slots = eq.slots.toMutableMap()
-      if (seedStarting) {
+      if (seedStarting || characterId == CAO_MINH_ID) {
+        // Seed new bound Huyết Ma pieces in existing CURRENT-version runs too;
+        // leave manually populated non-empty slots untouched.
         EquipmentCatalog.startingLoadout(characterId).forEach { (slot, itemId) ->
           slots.putIfAbsent(slot.key, itemId)
         }
