@@ -143,11 +143,23 @@
     lastPartyActor=String(name||'Cao Minh');
     if(combatPanelMeta)combatPanelMeta.textContent='NOW : '+lastPartyActor;
   }
-  function appendCombatLine(kind,text){
-    text=String(text||'').trim();if(!text)return;
-    if(!ensureCombatPanel()||!combatPanelList)return;
+  // Combat events already contain verified names, skills, statuses and HP values.
+  // Render their typed fields as safe text nodes, never parse arbitrary HTML or guess names.
+  function combatSemantic(kind,text){return {kind:kind,text:String(text==null?'':text)};}
+  function appendCombatLine(kind,parts){
+    var segments=Array.isArray(parts)?parts:[String(parts==null?'':parts)];
+    var full=segments.map(function(p){return typeof p==='string'?p:String(p&&p.text||'');}).join('');
+    if(!full.trim()||!ensureCombatPanel()||!combatPanelList)return;
     var entry=document.createElement('div');entry.className='combat-feedback-entry combat-feedback-entry--'+kind;
-    entry.textContent=text;combatPanelList.appendChild(entry);
+    segments.forEach(function(part){
+      var span=document.createElement('span'),semantic=part&&typeof part==='object';
+      var role=semantic?String(part.kind||''):'';
+      if(!/^(?:character|entity|skill|damage|hp|miss|status-(?:poison|bleed|stun|armor|disorient))$/.test(role))role='';
+      if(role)span.className='combat-semantic combat-semantic--'+role;
+      span.textContent=semantic?String(part.text||''):String(part);
+      entry.appendChild(span);
+    });
+    combatPanelList.appendChild(entry);
     combatPanelList.scrollTop=combatPanelList.scrollHeight;
   }
   function resetCombatPanel(){
@@ -168,7 +180,8 @@
       if(combatPanelList)combatPanelList.textContent='';
       if(turnIndicator)turnIndicator.hidden=true;
       showNow('Cao Minh');focusCombatActor('cao_minh');
-      appendCombatLine('system','Bắt đầu giao chiến với '+prettyEntity(combat.entityName||combat.entityKey)+'.');
+      appendCombatLine('system',['Bắt đầu giao chiến với ',
+        combatSemantic('entity',prettyEntity(combat.entityName||combat.entityKey)),'.']);
     }
     combatPanel.hidden=false;
   }
@@ -189,7 +202,9 @@
   function appendDamageLine(e){
     if(!e||e.target!=='entity')return;
     if(e.outcome==='miss'){
-      appendCombatLine('actor',String(e.sourceName||lastPartyActor)+' tấn công Trượt '+String(e.entityName||'Entity'));return;
+      appendCombatLine('actor',[combatSemantic('character',e.sourceName||lastPartyActor),
+        ' tấn công ',combatSemantic('miss','Trượt'),' ',
+        combatSemantic('entity',e.entityName||'Entity')]);return;
     }
     var match=String(e.text||'').match(/^-([0-9]+) HP$/);
     var damage=match?Number(match[1]):0;if(!damage)return;
@@ -199,8 +214,14 @@
     var hp=Number(e.remainingHp),max=Number(e.maxHp);
     var suffix=e.remainingHp!=null&&e.maxHp!=null&&Number.isFinite(hp)&&max>0?' ['+hp+'/'+max+' HP]':'';
     var status=combatStatusVisual(e.status);
-    appendCombatLine('actor',name+' sử dụng '+(skill==='đánh thường'?'đánh thường':'['+skill+']')+
-      ' gây -'+damage+' HP lên '+target+suffix+(status?' ['+status.label+']':''));
+    var parts=[combatSemantic('character',name),' sử dụng '];
+    if(skill==='đánh thường')parts.push('đánh thường');
+    else parts.push('[',combatSemantic('skill',skill),']');
+    parts.push(' gây ',combatSemantic('damage','-'+damage+' HP'),' lên ',
+      combatSemantic('entity',target));
+    if(suffix)parts.push(' [',combatSemantic('hp',hp+'/'+max+' HP'),']');
+    if(status)parts.push(' [',combatSemantic('status-'+status.key,status.label),']');
+    appendCombatLine('actor',parts);
   }
   function setFeedbackBusy(value){
     window.__combatFeedbackBusy=!!value;
@@ -453,7 +474,8 @@
     if(turnName)turnName.textContent=kind==='actor'?String(cue.actorName||'Cao Minh'):String(cue.entityName||'Entity');
     if(turnDetail)turnDetail.textContent='';
     if(kind==='wave'){
-      appendCombatLine('system','Bắt đầu giao chiến với '+String(cue.entityName||'Entity')+'.');
+      appendCombatLine('system',['Bắt đầu giao chiến với ',
+        combatSemantic('entity',cue.entityName||'Entity'),'.']);
       return;
     }
     var details=Array.isArray(cue.details)?cue.details:[];
@@ -462,9 +484,10 @@
       details.forEach(function(d){
         var line=String(d||'');
         if(/Quăng Đại Cái Gì Đó/.test(line))
-          appendCombatLine('actor','An Nhiên sử dụng [Quăng Đại Cái Gì Đó] hỗ trợ cả nhóm');
+          appendCombatLine('actor',[combatSemantic('character','An Nhiên'),' sử dụng [',
+            combatSemantic('skill','Quăng Đại Cái Gì Đó'),'] hỗ trợ cả nhóm']);
         else if(/An Nhiên thực hiện lệnh TẤN CÔNG theo vai trò hỗ trợ/.test(line)&&!hasSupportSkill)
-          appendCombatLine('actor','An Nhiên hỗ trợ cả nhóm');
+          appendCombatLine('actor',[combatSemantic('character','An Nhiên'),' hỗ trợ cả nhóm']);
       });
     }
   }
@@ -476,11 +499,17 @@
       var skill=details.find(function(v){return / proc:/.test(String(v));});
       var action=skill?String(skill).split(' proc:')[0]:
         details.some(function(v){return /Devils And Gold kích hoạt/.test(String(v));})?'Devils And Gold':'đánh thường';
-      if(hit)appendCombatLine('entity',String(cue.entityName||'Entity')+' sử dụng '+
-        (action==='đánh thường'?'đánh thường':'['+action+']')+' gây -'+hit[1]+
-        ' HP lên cả nhóm ['+hit[2]+'/'+hit[3]+' HP]');
+      if(hit){
+        var parts=[combatSemantic('entity',cue.entityName||'Entity'),' sử dụng '];
+        if(action==='đánh thường')parts.push('đánh thường');
+        else parts.push('[',combatSemantic('skill',action),']');
+        parts.push(' gây ',combatSemantic('damage','-'+hit[1]+' HP'),
+          ' lên cả nhóm [',combatSemantic('hp',hit[2]+'/'+hit[3]+' HP'),']');
+        appendCombatLine('entity',parts);
+      }
     }else if(details.some(function(v){return /không xuyên|hụt đòn/.test(String(v));}))
-      appendCombatLine('entity',String(cue.entityName||'Entity')+' tấn công Trượt cả nhóm');
+      appendCombatLine('entity',[combatSemantic('entity',cue.entityName||'Entity'),
+        ' tấn công ',combatSemantic('miss','Trượt'),' cả nhóm']);
   }
 
   function playTypedTurnTimeline(packet,token,anchors,slots){
