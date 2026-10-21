@@ -15,7 +15,7 @@ class EntityCombatExpTest {
 
   @Test fun everyWorldLevelGrantsIncreasingExpPerEntity() {
     assertEquals(listOf(2, 4, 6, 8, 10, 12, 14), (0..6).map {
-      EntityExpRewards.expForRank(EntityPowerScaling.rankForLevel(it))
+      EntityExpRewards.expForRank(EntityExpRewards.rankForWorld(levelState(it)))
     })
     val result = defeated(CombatRuntime.start(levelState(3), "hound"))
     assertTrue(result.entityDestroyed)

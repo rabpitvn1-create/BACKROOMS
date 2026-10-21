@@ -36,9 +36,16 @@ object EntityExpRewards {
     }
   }
 
+  /** Reward tiers remain tied to Backrooms Level, independently of power. */
+  fun rankForWorld(state: GameState): Long {
+    val level = org.json.JSONObject(state.world["levelJson"] ?: "{\"number\":0}").getInt("number")
+    require(level in 0..6) { "unknown_level:$level" }
+    return level * EntityPowerScaling.RANK_PER_STEP
+  }
+
   fun expForRank(progressionRank: Long): Int {
     val rank = EntityPowerScaling.requireRank(progressionRank)
-    val worldLevel = rank / EntityPowerScaling.RANK_PER_FULL_LEVEL
+    val worldLevel = rank / EntityPowerScaling.RANK_PER_STEP
     return (BASE_EXP.toLong() + EXP_PER_BACKROOMS_LEVEL.toLong() * worldLevel).toInt()
   }
 

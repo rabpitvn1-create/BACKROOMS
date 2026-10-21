@@ -160,7 +160,10 @@ class GameCoreFacade private constructor(
   /** The optional verbatim player utterance is presentation-only. It must never
    * modify the Core command, target, narration event or gameplay consequences. */
   @JvmOverloads
-  @Synchronized fun beginSceneAction(raw: String, playerText: String? = null, freeText: String? = null): String {
+  @Synchronized fun beginSceneAction(raw: String, playerText: String? = null, freeText: String? = null): String =
+    beginSceneActionInternal(raw, playerText, freeText, false)
+
+  private fun beginSceneActionInternal(raw: String, playerText: String?, freeText: String?, automaticContinuation: Boolean): String {
     require(raw.length <= 1200) { "scene_command_too_large" }
     require(playerText == null || (playerText.isNotBlank() && playerText.length <= 900)) {
       "scene_player_text_invalid"
@@ -194,6 +197,9 @@ class GameCoreFacade private constructor(
       .put("freeText", effectiveFreeText)
       .put("interaction", effectiveFreeText)
       .put("result", "Người chơi thực hiện hành động: " + effectiveFreeText)
+    if (automaticContinuation) staged.event
+      .put("automaticContinuation", true)
+      .put("result", "Giao tranh vừa kết thúc. Cao Minh vẫn ở vị trí hiện tại; diễn biến xung quanh tiếp tục.")
     val deviceControl = MiniMapRuntime.isMechanismControl(state, command.getString("targetId"))
     val turnId = nextTurnId(state)
     val input = effectiveFreeText ?: "${command.getString("kind")}:$actionId"
@@ -266,7 +272,8 @@ class GameCoreFacade private constructor(
     public.put("npcEncounters", JSONArray().apply {
       SpawnMechanism.pendingNpcEncounters(reserved).forEach { put(JSONObject().put("characterId", it.characterId).put("name", SpawnMechanism.npcDisplayName(it.characterId))) }
     })
-    val pending = JSONObject().put("actionId", actionId).put("command", command)
+    val pending = JSONObject().put("automaticContinuation", automaticContinuation)
+      .put("actionId", actionId).put("command", command)
       .put("sleepInterruptAfterMinutes", interruptedAt)
       .put("sleepEnvironmentInterrupted", environmentInterrupted)
       .put("progress", staged.progress).put("discardKeys", JSONArray(staged.discardKeys.toList()))
@@ -355,7 +362,8 @@ class GameCoreFacade private constructor(
       val canceled = JSONObject(pending.toString()).apply {
         getJSONObject("public").put("result", interrupted).put("interrupted", true).remove("encounter")
       }
-      val deathReceipt = JSONObject().put("actionId", actionId)
+      val deathReceipt = JSONObject().put("automaticContinuation", pending.optBoolean("automaticContinuation"))
+        .put("actionId", actionId)
         .put("label", pending.getString("label")).put("reply", interrupted)
         .put("interrupted", true).apply {
           if (pending.has("playerText")) put("playerText", pending.getString("playerText"))
@@ -380,7 +388,8 @@ class GameCoreFacade private constructor(
       remove("exploration"); remove("hiddenExitStreak"); remove("exitReady"); remove("lastRolls")
       put("currentLevel", node.asJson())
     }
-    val receipt = JSONObject().put("actionId", actionId).put("label", pending.getString("label")).put("reply", reply).apply {
+    val receipt = JSONObject().put("automaticContinuation", pending.optBoolean("automaticContinuation"))
+      .put("actionId", actionId).put("label", pending.getString("label")).put("reply", reply).apply {
       // Persist exactly what the player submitted, including punctuation/case.
       // A retry uses the original saved utterance, never an AI paraphrase.
       if (pending.has("playerText")) put("playerText", pending.getString("playerText"))
@@ -417,7 +426,8 @@ class GameCoreFacade private constructor(
     next = separateNonPartyNpcsAfterParentTransition(core, next)
     CombatRuntime.pending(next)?.let {
       next = next.copy(metadata = next.metadata + ("combat.encounterNarrative" to JSONObject()
-        .put("role", "gm").put("text", reply).put("encounterId", it.encounterId).toString()))
+        .put("role", "gm").put("text", reply).put("encounterId", it.encounterId)
+        .apply { if (pending.optBoolean("automaticContinuation")) put("sceneActionId", actionId) }.toString()))
     }
     val beforeView = clientSnapshot(JSONObject(), core)
     val afterView = clientSnapshot(JSONObject(), next)
@@ -1276,7 +1286,15 @@ class GameCoreFacade private constructor(
     // Combat resolves its own rounds; Explorer Turn advances only on Explorer actions.
     repository.save(CharacterMemoryBags.recordCommitted(current, next))
 
-    val output = clientSnapshot(client, next)
+    // One automatic at-rest scene turn after final victory. Reserve and save its
+    // RNG before presentation; writer retries reuse this exact pending command.
+    val continueScene = resolution.entityDestroyed && MiniMapRuntime.STATE in next.world &&
+      next.characters[CAO_MINH_ID]?.presence != CharacterPresence.DEAD &&
+      (next.characters[CAO_MINH_ID]?.vitalState?.currentHp ?: 0) > 0
+    if (continueScene) beginSceneActionInternal(MiniMapRuntime.freeCommand(next).toString(),
+      null, "Diễn biến tại chỗ sau giao tranh", true)
+    val output = clientSnapshot(client, if (continueScene) loadCurrentState() else next)
+    if (continueScene) output.put("postCombatContinuation", true)
     val combatReply = resolution.reply
     output.put("combatFeedback", JSONObject().apply {
       put("id", "${activeCombat.encounterId}:${activeCombat.eventCounter + 1}")

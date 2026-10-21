@@ -866,3 +866,23 @@ test('full-density shatter keeps every shard cropped for mobile WebView',()=>{
  assert.doesNotMatch(debrisAnimation,/filter:|rotateY|translate3d/);
  assert.doesNotMatch(css,/entity-shatter-source|@keyframes entity-shatter-prime/);
 });
+
+test('victory continuation runs once after the actual final shatter and never on ordinary combat or escape',()=>{
+ const r=readyShatter(boot()),calls=[];
+ r.scope.busy=false;
+ r.scope.Android={continueAfterCombat(json){calls.push(JSON.parse(json));}};
+ r.turn([lethal],'enc:auto','enc',null,{postCombatContinuation:true},
+  {turns:[{kind:'actor',actorId:'cao_minh',eventIndex:0}]});
+ assert.equal(calls.length,0);
+ r.timers.find(t=>t.ms===980).fn();
+ r.timers.find(t=>t.ms===Math.max(...r.timers.map(t=>t.ms))).fn();
+ assert.equal(calls.length,0);
+ r.timers.find(t=>t.ms===1320).fn();
+ assert.equal(calls.length,1);assert.equal(calls[0].combat,null);
+ r.turn([lethal],'enc:auto','enc',null,{postCombatContinuation:true});
+ assert.equal(calls.length,1);
+ const escape=boot(),escaped=[];
+ escape.scope.Android={continueAfterCombat(json){escaped.push(json);}};
+ escape.turn([],'enc:escape','enc',null);
+ assert.equal(escaped.length,0);
+});

@@ -608,6 +608,20 @@
     return Math.max(clock,endTime)+50;
   }
 
+  var lastContinuationId='';
+  function continueAfterVictory(incoming) {
+    if(!incoming||incoming.postCombatContinuation!==true)return;
+    if(!window.Android||typeof Android.continueAfterCombat!=='function')return;
+    var id=incoming.combatFeedback&&incoming.combatFeedback.id;
+    if(!id||id===lastContinuationId)return;
+    lastContinuationId=id;
+    busy=true;
+    if(typeof syncPrimaryActions==='function')syncPrimaryActions();
+    try{Android.continueAfterCombat(JSON.stringify(state));}
+    catch(error){lastContinuationId='';busy=false;if(typeof syncPrimaryActions==='function')syncPrimaryActions();
+      if(typeof statusEl!=='undefined')statusEl.textContent='Chưa tiếp tục được sau giao tranh. Nhấn Retry.';}
+  }
+
   var previousTurn=window.backroomTurn;
   if(typeof previousTurn!=='function')return;
   window.backroomTurn=function(json){
@@ -657,6 +671,7 @@
             previousTurn.call(context,json);
             resetCombatPanel();
             setFeedbackBusy(false);
+            continueAfterVictory(incoming);
           });
         },elapsed===null?0:elapsed);
       });
@@ -670,6 +685,7 @@
       // The Dice and Combat Log close together on combat completion.
       // Never leave the last packet queued behind a hidden panel.
       ++animationToken;stopCombatMotion();resetCombatPanel();setFeedbackBusy(false);
+      continueAfterVictory(incoming);
       return result;
     }
     beginCombatLog(after);

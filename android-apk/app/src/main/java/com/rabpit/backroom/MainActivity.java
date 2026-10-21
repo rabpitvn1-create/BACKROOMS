@@ -1216,6 +1216,7 @@ public class MainActivity extends Activity {
       MainActivity.this, view.toString(), packet.getString("kind") + " " + packet.getString("interaction"), "{}");
     return "Bạn là GM Gehihi, kể văn xuôi tiếng Việt. Chỉ trả JSON có reply và questItems (mảng có thể rỗng). "
       + GM_SUGGESTION_RULES
+      + (packet.optBoolean("automaticContinuation") ? "Cảnh tự tiếp diễn sau chiến thắng; Cao Minh đứng tại chỗ. Không gán hành động hay lời mới cho người chơi. Nếu không có encounter, kết thúc bằng bốn gợi ý để người chơi chọn. " : "")
       + "Core đã stage sự kiện; chỉ kể đúng public event. Không thêm hành động đã thực hiện hoặc lựa chọn đã xác nhận, chứng cứ Core, lời giải Core, loot, spawn hay thay route. "
       + "Bốn gợi ý cuối lời kể chỉ là phương án chưa thực hiện để người chơi tùy chọn, KHÔNG được kể như diễn biến hoặc công nhận là kết quả Core. "
       + "RIÊNG VẬT PHẨM NHIỆM VỤ GM: được tạo vật nhỏ một lần phục vụ suy luận trong diễn biến hợp lệ bằng questItems:[{\"type\":\"create\",\"id\":\"id-on-dinh\",\"name\":\"tên\",\"description\":\"mô tả\"}]; khi thực sự dùng xong trả {\"type\":\"consume\",\"id\":\"id-da-co\"}. Không thể thêm vật phẩm Core/Inventory, chữa trị, trang bị, mở cổng, xác nhận chứng cứ Core hay thay đổi gameplay. Mỗi vật phẩm chỉ tạo một lần, tối đa 8 thao tác/lượt, không ép tạo. "
@@ -2212,15 +2213,26 @@ public class MainActivity extends Activity {
       }
     }
 
+    @JavascriptInterface public void continueAfterCombat(String stateJson) {
+      submitSceneAction(stateJson, "AUTO_COMBAT");
+    }
+
     @JavascriptInterface public void submitSceneAction(String stateJson, String commandJson) {
       io.execute(() -> {
         long started = System.nanoTime();
         try {
           String command = commandJson;
-          if ("RETRY".equals(command)) command = requireGameCore().retrySceneAction();
+          if ("RETRY".equals(command) || "AUTO_COMBAT".equals(command)) {
+            if ("AUTO_COMBAT".equals(command) &&
+                !new JSONObject(requireGameCore().sceneNarrationContext()).optBoolean("automaticContinuation"))
+              throw new IllegalStateException("scene_not_automatic_continuation");
+            command = requireGameCore().retrySceneAction();
+          }
+          boolean automaticCombatContinuation = false;
           JSONObject start = new JSONObject(requireGameCore().beginSceneAction(command));
           if (!start.optBoolean("committed")) {
             JSONObject stagedEvent = new JSONObject(requireGameCore().sceneNarrationContext());
+            automaticCombatContinuation = stagedEvent.optBoolean("automaticContinuation");
             JSONObject batch = null;
             try { batch = new JSONObject(requireGameCore().playerPresentationContext()); } catch (Exception ignored) { }
             if ("RETRY".equals(commandJson) && batch != null &&
@@ -2247,6 +2259,16 @@ public class MainActivity extends Activity {
             }
           }
           JSONObject committedView = new JSONObject(attachGmItems(requireGameCore().currentClientState(stateJson)));
+          // Only the system continuation auto-confirms its own Core encounter.
+          // Poker Dice and the player's combat command remain explicit.
+          if ("AUTO_COMBAT".equals(commandJson) || "RETRY".equals(commandJson)) {
+            // The receipt is Core-owned; ordinary scene retries retain Battle Start.
+            if (automaticCombatContinuation && committedView.has("pendingEncounter")) {
+              JSONObject confirmed = new JSONObject(requireGameCore().confirmEncounter(committedView.toString(),
+                committedView.getJSONObject("pendingEncounter").getString("encounterId")));
+              if (confirmed.optBoolean("handled")) committedView = confirmed.getJSONObject("state");
+            }
+          }
           emit("backroomTurn", committedView.toString());
           // The former temporary passerby feature is archived. Scene NPCs are script-owned.
           DiagnosticLog.timing(MainActivity.this, "scene.action", java.util.concurrent.TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started), 0);

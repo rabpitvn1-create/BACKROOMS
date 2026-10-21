@@ -108,7 +108,8 @@ test('the native bridge commits validated GM narration and confirmation never ca
   assert.match(java, /private String narrateStagedSceneAction\(JSONObject stagedEvent\)/);
   assert.match(java, /ProviderResponseContract\.requireWriter\(reply\)/);
   assert.match(java, /canonBoundary\(sceneNode, reply\.getString\("reply"\)\)/);
-  assert.match(java, /commitSceneAction\(new JSONObject\(command\)\.getString\("actionId"\),\s*narrateStagedSceneAction\(stagedEvent\), stateJson\)/);
+  assert.match(java, /String narration = narrateStagedSceneAction\(stagedEvent\)/);
+  assert.match(java, /commitSceneAction\(id, narration, stateJson\)/);
   assert.doesNotMatch(java, /processValidatedCandidate/);
   assert.match(java, /@JavascriptInterface public void battleStart\(String stateJson, String encounterId\)/);
   assert.doesNotMatch(source, /submitAction|selectedEntityKey|startCombatState/);

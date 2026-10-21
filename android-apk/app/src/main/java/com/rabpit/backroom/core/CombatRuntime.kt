@@ -103,6 +103,7 @@ object CombatRuntime {
     val entityKey: String,
     val entityName: String,
     val progressionRank: Long,
+    val rewardRank: Long,
     val phase: Phase,
     val playerHp: Int,
     val playerMaxHp: Int,
@@ -307,6 +308,7 @@ object CombatRuntime {
       entityKey = entityKey,
       entityName = profile.displayName,
       progressionRank = progressionRank,
+      rewardRank = EntityExpRewards.rankForWorld(state),
       phase = phase,
       playerHp = playerHp,
       playerMaxHp = playerMax,
@@ -1418,7 +1420,7 @@ object CombatRuntime {
     val persisted = encode(state, c.copy(phase = Phase.RESOLVED, entityCondition = EntityCondition.DESTROYED))
     val withPassive = if (leaderPassive) afterActiveLeaderTurn(persisted) else persisted
     val instanceId = if (queue.size == 1) c.encounterId else "${c.encounterId}:wave:$index"
-    val exp = EntityExpRewards.award(withPassive, instanceId, c.progressionRank,
+    val exp = EntityExpRewards.award(withPassive, instanceId, c.rewardRank,
       multiplier = if (c.entityKey == DIEP_MINH_KEY) 24 else 2,
       fixedExp = when (c.entityKey) {
         LUCKY_BEAR_KEY -> 200
@@ -1435,12 +1437,13 @@ object CombatRuntime {
 
     val nextIndex = index + 1
     val nextProfile = profiles.getValue(queue[nextIndex])
-    val maxHp = entityMaxHp(nextProfile, c.progressionRank)
+    val nextRank = EntityPowerScaling.rankFor(loot.state)
+    val maxHp = entityMaxHp(nextProfile, nextRank)
     val nextSeed = mix(c.seed, nextIndex)
     val clean = clearTargetEffects(loot.state)
     val leaderHp = clean.characters[CAO_MINH_ID]?.vitalState?.currentHp ?: c.playerHp
     val next = c.copy(
-      entityKey = nextProfile.key, entityName = nextProfile.displayName,
+      entityKey = nextProfile.key, entityName = nextProfile.displayName, progressionRank = nextRank,
       entityHp = maxHp, entityMaxHp = maxHp, entityCondition = EntityCondition.HEALTHY,
       playerHp = leaderHp, phase = Phase.ACTIVE, opening = 0, noise = 0,
       telegraph = telegraphFor(nextProfile, nextSeed, c.eventCounter),
@@ -1567,6 +1570,7 @@ object CombatRuntime {
     metadata["${PREFIX}entityKey"] = c.entityKey
     metadata["${PREFIX}entityName"] = c.entityName
     metadata["${PREFIX}progressionRank"] = c.progressionRank.toString()
+    metadata["${PREFIX}rewardRank"] = c.rewardRank.toString()
     metadata["${PREFIX}phase"] = c.phase.name
     metadata["${PREFIX}entityHp"] = c.entityHp.toString()
     metadata["${PREFIX}entityMaxHp"] = c.entityMaxHp.toString()
@@ -1601,6 +1605,7 @@ object CombatRuntime {
       entityKey = key,
       entityName = profile.displayName,
       progressionRank = progressionRank,
+      rewardRank = EntityPowerScaling.requireRank(m.getValue("${PREFIX}rewardRank").toLong()),
       phase = enumOr(Phase.ACTIVE, m["${PREFIX}phase"]),
       playerHp = playerHp,
       playerMaxHp = playerMax,

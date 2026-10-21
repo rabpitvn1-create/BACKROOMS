@@ -42,7 +42,7 @@ object CoreClientProjection {
     val state = initialize(rawState)
     val out = JSONObject(client.toString())
     for (key in arrayOf("turn", "saveVersion", "inventory", "party", "partyDetails",
-      "equipment", "player", "coreSystem", "combat", "combatFeedback", "gameTime",
+      "equipment", "player", "coreSystem", "combat", "combatFeedback", "postCombatContinuation", "gameTime",
       "location", "title", "level", "flags", "story", "pendingEncounter", "encounteredCharacters", "scene")) out.remove(key)
     out.put("turn", turnIndex(state))
     out.put("saveVersion", CURRENT_SAVE_VERSION)
@@ -127,7 +127,8 @@ object CoreClientProjection {
           for (i in 0 until log.length()) {
             updated.put(log.get(i))
             if (i == pendingLine && CombatRuntime.pending(state) == null) updated.put(JSONObject().put("role", "gm")
-              .put("text", r.getString("reply")).put("sceneMap", currentMap))
+              .put("text", r.getString("reply")).put("sceneMap", currentMap)
+            .put("sceneActionId", r.getString("actionId")))
           }
           out.put("log", updated)
         }
@@ -138,10 +139,11 @@ object CoreClientProjection {
               (0 until ids.length()).any { ids.optString(it) == r.getString("actionId") }
             } == true
         }) {
-          log.put(JSONObject().put("role", "player").put("text", r.optString("playerText", r.getString("label")))
+          if (!r.optBoolean("automaticContinuation")) log.put(JSONObject().put("role", "player").put("text", r.optString("playerText", r.getString("label")))
             .put("sceneMap", currentMap).put("sceneActionId", r.getString("actionId")))
           if (CombatRuntime.pending(state) == null) log.put(JSONObject().put("role", "gm")
-            .put("text", r.getString("reply")).put("sceneMap", currentMap))
+            .put("text", r.getString("reply")).put("sceneMap", currentMap)
+            .put("sceneActionId", r.getString("actionId")))
         }
       }
     }
@@ -149,7 +151,7 @@ object CoreClientProjection {
     // Batch-owned pending commands are already represented by their utterance.
     state.world[MiniMapRuntime.PENDING]?.let { raw ->
       val pending = JSONObject(raw)
-      if (!pending.has("playerActionId")) {
+      if (!pending.has("playerActionId") && !pending.optBoolean("automaticContinuation")) {
         val log = out.optJSONArray("log") ?: JSONArray().also { out.put("log", it) }
         val id = pending.getString("actionId")
         if ((0 until log.length()).none { log.optJSONObject(it)?.optString("sceneActionId") == id }) {
