@@ -2186,6 +2186,86 @@
         "ENTITY.GLOBAL_HARD_LOCK"
       ],
       "affordances": []
+    },
+    {
+      "id": "CHAR.CATHERINE.AUTHORED",
+      "domain": "CHARACTER",
+      "kind": "authored-character-card",
+      "text": "Catherine Valeria Ashcombe. Nữ xạ thủ 27 tuổi đến từ Grayhaven (Anh), thất lạc năm 1899. Tóc nâu sẫm dài ánh đỏ; mắt xám lục; sơ mi trắng cổ và tay viền ren, corset da đen, áo khoác dài đen đỏ thêu đồng; quần tối, thắt lưng nhiều ngăn, găng đen, bốt cao. Giữ súng ổ quay nòng dài thép đen Vesper Nocturne. Điềm tĩnh, lịch thiệp, kín tiếng, quan sát dấu vết trước khi tin ai. Khi gặp lần đầu, chỉ tả những gì thấy/nghe, phản ứng dè chừng tự nhiên; danh tính, gia cảnh và lời nguyền chỉ lộ qua lời cô tự giới thiệu hoặc trao đổi hợp lý. Không tự gia nhập Party hoặc nổ súng vô cớ.",
+      "source": {
+        "document": "canon/CATHERINE_CODEX.md",
+        "anchor": "I. Định danh / III. Ngoại hình và trang phục / IV. Tính cách / Lần gặp đầu"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 32,
+      "tags": [
+        "catherine",
+        "ashcombe",
+        "vesper nocturne"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.JANET.AUTHORED",
+      "domain": "CHARACTER",
+      "kind": "authored-character-card",
+      "text": "Janet the Lady. Janet Marie Boudreaux, nữ sinh 19 tuổi người Mỹ năm 1988, quê gần Houma, Louisiana, đang sống và học tại New York. Tóc vàng dày buộc cao bằng dây đỏ; áo thun trắng xước bẩn tay có sọc đỏ và phù hiệu cờ Mỹ, áo varsity đỏ, quần jean ngắn, găng đen, bốt cao buộc dây. Cầm gậy bóng chày gỗ quấn dây thép gai Bayou Belle. Nóng nảy, bộc trực, hấp tấp nhưng cực kỳ bảo vệ bạn bè. Khi gặp lần đầu, mô tả dáng sẵn sàng phòng vệ và phản ứng thận trọng; không mặc định tấn công, biết trước tên người chơi hoặc tự gia nhập Party.",
+      "source": {
+        "document": "canon/JANET_CODEX.md",
+        "anchor": "I. Định danh / III. Ngoại hình và trang phục / IV. Tính cách / Lần gặp đầu"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 32,
+      "tags": [
+        "janet",
+        "the lady",
+        "bayou belle"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.NGUYEN_QUOC_NAM.AUTHORED",
+      "domain": "CHARACTER",
+      "kind": "authored-character-card",
+      "text": "Nguyễn Quốc Nam. Nam giảng viên y khoa Việt Nam 36 tuổi, mất tích ở Thành phố Hồ Chí Minh năm 2001. Tóc đen ngắn hơi rối, đeo kính gọng mảnh; sơ mi trắng ngà xắn tay, quần tây sẫm, thắt lưng, đồng hồ mặt tròn và giày da đen. Hai tay giữ súng ngắn bán tự động Hành Lang 01, nhặt được SAU khi vào Backrooms chứ không mang từ trường học. Bình tĩnh, cẩn trọng, quan sát tình trạng người khác trước. Vợ Nguyễn Hồng Lan và con gái Nguyễn Thùy Dương (6 tuổi năm 2001) ở ngoài Backrooms, không biết anh còn sống hay chết; đây là thông tin riêng chỉ tiết lộ nếu đối thoại có lý do, không tự gọi họ xuất hiện. Không tự tuyển vào Party.",
+      "source": {
+        "document": "canon/NGUYEN_QUOC_NAM_CODEX.md",
+        "anchor": "I. Định danh / III. Ngoại hình và trang phục / IV. Tính cách / Lần gặp đầu"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 32,
+      "tags": [
+        "nguyen quoc nam",
+        "nguyễn quốc nam",
+        "hành lang 01"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.HUA_TIEU_LAN.AUTHORED",
+      "domain": "CHARACTER",
+      "kind": "authored-character-card",
+      "text": "Hứa Tiểu Lan. Nữ thiện xạ 18 tuổi sống ở Sài Gòn – Chợ Lớn theo lịch sử THAY THẾ HƯ CẤU, bị lạc đúng sinh nhật năm 1895. Tóc đen búi cao, băng trắng, bông tai ngọc trai; áo dài xanh lam nhạt hai tà hoa cúc trắng, quần trắng, giày trắng gót thấp, vòng ngọc bích. Cầm súng trường cổ một phát Trường Xuân bằng báng gỗ nâu sẫm, chi tiết kim loại đồng. Lễ độ, bình tĩnh, tự trọng, rất giỏi bắn mục tiêu nhưng thiếu kinh nghiệm đối phó Entity. Trong Canon game cô là con gái của Hứa Bổn Hòa; chi tiết này là HƯ CẤU, không phải lịch sử có thật. Không tự biết hiện tượng Backrooms, tên người chơi hoặc gia nhập Party.",
+      "source": {
+        "document": "canon/HUA_TIEU_LAN_CODEX.md",
+        "anchor": "I. Định danh / III. Ngoại hình và trang phục / IV. Tính cách / Lần gặp đầu"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 32,
+      "tags": [
+        "hua tieu lan",
+        "hứa tiểu lan",
+        "trường xuân"
+      ],
+      "references": [],
+      "affordances": []
     }
   ]
 }

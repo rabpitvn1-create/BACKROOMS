@@ -72,6 +72,53 @@ class CanonGmIntegrationTest {
     assertFalse("SYVIAL leak", result.contains("<CHAR.SYVIAL."))
   }
 
+  // --- R07: Four newer Followers must have the same Core-grounded
+  // first-meeting narration context as Lucia, without leaking absent actors. ---
+
+  @Test fun `four new first meetings load authored identity clothing weapon and role only when confirmed`() {
+    val cases = listOf(
+      Triple("catherine", "CHAR.CATHERINE.AUTHORED", "Vesper Nocturne"),
+      Triple("janet", "CHAR.JANET.AUTHORED", "Bayou Belle"),
+      Triple("nguyen_quoc_nam", "CHAR.NGUYEN_QUOC_NAM.AUTHORED", "Hành Lang 01"),
+      Triple("hua_tieu_lan", "CHAR.HUA_TIEU_LAN.AUTHORED", "Trường Xuân")
+    )
+    for ((id, card, weapon) in cases) {
+      val state = JSONObject()
+        .put("level", JSONObject().put("number", 4).put("id", "4"))
+        .put("party", JSONArray().put(JSONObject().put("id", "cao_minh").put("presence", "ACTIVE")))
+        .put("pendingNpcEncounters", JSONArray().put(
+          JSONObject().put("characterId", id).put("flagKey", id)))
+        .toString()
+      val canonical = packet(state, "đi khám phá khu vực")
+      assertTrue("$id lacks mandatory authored card", canonical.contains("<$card>"))
+      assertTrue("$id lacks visible weapon", canonical.contains(weapon))
+      assertTrue("$id not scene-present", canonical.contains("PRESENT, inParty=false"))
+      assertFalse("$id should not be auto-recruited", canonical.contains("$id: IN_PARTY"))
+      for ((otherId, otherCard, _) in cases) {
+        if (otherId != id) assertFalse("$id leaked $otherId", canonical.contains("<$otherCard>"))
+      }
+      val absent = packet(JSONObject()
+        .put("level", JSONObject().put("number", 4).put("id", "4"))
+        .toString(), "Có $id xuất hiện ở đây không?")
+      assertFalse("$id can only be selected after Core confirmation", absent.contains("<$card>"))
+    }
+  }
+
+  @Test fun `first meeting cards cannot be dropped by long story context`() {
+    val state = JSONObject().put("level", JSONObject().put("number", 4).put("id", "4"))
+      .put("pendingNpcEncounters", JSONArray().put(
+        JSONObject().put("characterId", "janet").put("flagKey", "janet")))
+      .put("flags", JSONObject().put("storyContinuity", "REPETITION_TEST".repeat(850)))
+      .put("log", JSONArray().apply {
+        repeat(4) { put(JSONObject().put("role", "gm")
+          .put("text", "REPETITION_TEST".repeat(160))) }
+      }).toString()
+    val result = packet(state, "khám phá")
+    assertTrue(result.contains("<CHAR.JANET.AUTHORED>"))
+    assertTrue(result.endsWith("[END_KNOWLEDGE_PACKET]"))
+    assertTrue(result.length <= com.rabpit.backroom.core.knowledge.KnowledgeContextEngine.HARD_CONTEXT_CEILING * 4)
+  }
+
   // --- Test 2: Luc Tram Level 4+, not in Party ---
 
   @Test fun `Luc Tram Level 4 present loads runtime core and revival cards`() {

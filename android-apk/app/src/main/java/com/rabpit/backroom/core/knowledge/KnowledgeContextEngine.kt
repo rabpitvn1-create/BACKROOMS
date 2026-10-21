@@ -595,8 +595,26 @@ object KnowledgeContextEngine {
       reasons.putIfAbsent(id, reason)
     }
 
+    /** A first-meeting's short authored description is mandatory in the same GM turn. */
+    private fun firstMeetingIds(): Set<String> {
+      val ids = linkedSetOf<String>()
+      fun read(events: JSONArray?) {
+        if (events == null) return
+        for (i in 0 until events.length()) {
+          val id = events.optJSONObject(i)?.optString("characterId", "").orEmpty()
+          if (id in setOf("catherine", "janet", "nguyen_quoc_nam", "hua_tieu_lan")) ids += id
+        }
+      }
+      read(state.optJSONArray("pendingNpcEncounters"))
+      read(rolls.optJSONArray("pendingNpcEncounters"))
+      return ids
+    }
+
     /** The current encounter's identity/visual card cannot be dropped as optional context. */
     private fun mandatory(record: Record): Boolean = record.priority <= 30 ||
+      (record.id.endsWith(".AUTHORED") &&
+        record.id.removePrefix("CHAR.").substringBefore('.')
+          .lowercase(Locale.ROOT) in firstMeetingIds()) ||
       record.id == "SUPPORT.LINH_KHI.DETAIL.ENVIRONMENT.0002.01" ||
       record.id == confirmedEntityVisualId() ||
       (record.id == "CHAR.LUCIA.AUTHORED" && "lucia" in presentActors) ||
