@@ -2009,7 +2009,8 @@ public class MainActivity extends Activity {
             // A failed/misleading plan still costs exactly one real Core FREE turn.
             // FREE cannot move through locked exits, grant evidence, items or rewards.
             failureCode = "core_failure";
-            String attempt = "Thử: " + playerText +
+            String briefAttempt = playerText.length() > 340 ? playerText.substring(0, 340) : playerText;
+            String attempt = "Thử: " + briefAttempt +
               ". Nếu không khả thi, chỉ ghi nhận nỗ lực thất bại; không thay đổi đường đi, vật phẩm hay câu đố.";
             JSONObject tried = new JSONObject(requireGameCore().executePlayerFreeStep(attempt, playerText, projection));
             projection = tried.getJSONObject("state").toString();
