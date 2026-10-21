@@ -348,9 +348,12 @@ class GameCoreFacade private constructor(
           if (pending.has("playerText")) put("playerText", pending.getString("playerText"))
         }
       var terminal = SpawnMechanism.discardPendingNpcEncounters(CombatRuntime.clear(finished.state))
+      val flagsAfterDeath = JSONObject(terminal.world["flagsJson"] ?: "{}")
+        .put("entityEncounterKey", "")
       terminal = terminal.copy(
-        world = (terminal.world - MiniMapRuntime.PENDING) +
-          (MiniMapRuntime.RECEIPT to deathReceipt.toString()),
+        world = (terminal.world - MiniMapRuntime.PENDING) + mapOf(
+          MiniMapRuntime.RECEIPT to deathReceipt.toString(),
+          "flagsJson" to flagsAfterDeath.toString()),
         metadata = terminal.metadata - SPAWN_ENCOUNTER_OWNER
       )
       terminal = CoreClientProjection.advance(terminal)

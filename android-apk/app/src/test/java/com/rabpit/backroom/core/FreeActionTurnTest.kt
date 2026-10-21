@@ -100,7 +100,7 @@ class FreeActionTurnTest {
   }
 
   @Test fun fatalDeprivationCommitsTimeButNotStagedSceneProgress() {
-    val rng = ScriptedRng(intArrayOf())
+    val rng = ScriptedRng(intArrayOf(0, 9999))
     val (repo, core) = fixture(rng)
     val leader = repo.state.characters.getValue(CAO_MINH_ID)
     repo.state = repo.state.copy(characters = repo.state.characters +
@@ -122,6 +122,7 @@ class FreeActionTurnTest {
     assertEquals(start.toString(), MiniMapRuntime.progress(repo.state).toString())
     assertFalse(MiniMapRuntime.PENDING in repo.state.world)
     assertNull(CombatRuntime.pending(repo.state))
+    assertEquals("", JSONObject(repo.state.world.getValue("flagsJson")).optString("entityEncounterKey"))
     assertEquals(true, JSONObject(repo.state.world.getValue(MiniMapRuntime.RECEIPT)).getBoolean("interrupted"))
     assertEquals(repo.state, GameStateCodec.decode(GameStateCodec.encode(repo.state)))
     val saved = repo.state
