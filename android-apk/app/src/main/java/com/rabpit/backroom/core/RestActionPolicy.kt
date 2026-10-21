@@ -1,6 +1,6 @@
 package com.rabpit.backroom.core
 
-/** Deterministic authority for deciding whose sleep counter may be reset by a player rest action. */
+/** Deterministic authority for deciding which active party members actually rest or sleep. */
 object RestActionPolicy {
   private val sleepIntent = Regex(
     "(?:^|\\s)(?:ngủ|ngu|chợp\\s*mắt|chop\\s*mat|sleep|nap)(?:\\s|$)",
