@@ -50,6 +50,8 @@ data class StatusCommand(
   enum class Operation { APPLY, REMOVE, UPDATE, QUERY }
 }
 
+enum class TimeActivity { NORMAL, EXERTION, REST, SLEEP }
+
 data class TimeAdvanceCommand(
   override val commandId: String,
   override val turnId: String?,
@@ -57,7 +59,9 @@ data class TimeAdvanceCommand(
   override val targetId: String? = null,
   override val source: CommandSource,
   val minutes: Int,
-  val reason: String
+  val reason: String,
+  val activity: TimeActivity = TimeActivity.NORMAL,
+  val restTargets: Set<String> = emptySet()
 ) : GameCommand
 
 data class QueryCommand(
