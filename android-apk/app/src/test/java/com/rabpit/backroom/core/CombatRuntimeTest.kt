@@ -171,16 +171,26 @@ class CombatRuntimeTest {
   }
 
   @Test fun lucTramEnemyCounterUsesMissedPartyAttackAndNotFollowerEquipment() {
-    for (salt in 1..24) {
+    // A Stun legitimately cancels the entire enemy response, including its counter.
+    var counterObserved = false
+    for (salt in 1..128) {
       val initial = CombatRuntime.start(GameState.initial(), "luc_tram_hac_hoa")
       val attempted = initial.copy(metadata = initial.metadata + ("combat.seed" to salt.toString()))
       val result = CombatRuntime.resolve(attempted, "EXECUTE", "Cả Party tấn công")
-      if (result.feedback.any { it.target == "entity" && it.phase == "actor" && it.outcome == "miss" }) {
-        assertTrue(result.reply.contains("Tịch Quang Phản Kiếm"))
-        return
+      val partyMissed = result.feedback.any {
+        it.target == "entity" && it.phase == "actor" && it.outcome == "miss"
       }
+      if (!partyMissed) continue
+      val stunned = result.reply.contains("bị Stun và mất lượt phản ứng")
+      if (stunned) {
+        assertFalse(result.reply.contains("Tịch Quang Phản Kiếm: Lục Trầm Hắc Hóa phản kiếm"))
+        continue
+      }
+      assertTrue(result.reply, result.reply.contains("Tịch Quang Phản Kiếm: Lục Trầm Hắc Hóa phản kiếm"))
+      counterObserved = true
+      break
     }
-    fail("No missed Party attack found in controlled seeds")
+    assertTrue("No eligible missed Party attack caused an enemy counter", counterObserved)
   }
 
   @Test fun combatMovementIsNotAnotherEncounter() {
