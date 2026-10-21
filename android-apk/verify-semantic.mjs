@@ -165,4 +165,22 @@ const worldSource = readFileSync(fileURLToPath(new URL(
 assert.ok(worldSource.includes('put("label", source.label)'),
   'World Graph must project authored confirmed evidence names');
 
+const synonymState={player,scene:{runtime:'world-graph-v3',records:[
+  {kind:'EVIDENCE',label:'Giọt nước từ trần',aliases:['giọt nước rơi từ trần']}
+]}};
+assertTag(spans('Những giọt nước rơi từ trần tạo thành một vệt.',synonymState),'giọt nước rơi từ trần','clue');
+assert.equal(spans('giọt nước rơi từ trần',{player,scene:{runtime:'world-graph-v3',records:[]}}).length,0,
+  'authored alias cannot highlight before discovery');
+
+const crossKind={player,scene:{runtime:'world-graph-v3',
+  environment:{name:'Phòng Đảo'},records:[{kind:'EVIDENCE',label:'Phòng Đảo'}]}};
+const resolved=spans('Phòng Đảo',crossKind);
+assert.equal(resolved.length,1,'cross-category names should not be duplicated');
+assertTag(resolved,'Phòng Đảo','location');
+
+const worldClueSource=readFileSync(fileURLToPath(new URL(
+  './app/src/main/java/com/rabpit/backroom/core/Level0WorldDefinition.kt',import.meta.url)), 'utf8');
+assert.ok(worldClueSource.includes('listOf("giọt nước rơi từ trần")'),
+  'Level 0 alias must be grounded in actual authored Canon');
+
 console.log('Semantic pipeline verified: Core sources, six kinds, scene transfer, Unicode and rejection rules');
