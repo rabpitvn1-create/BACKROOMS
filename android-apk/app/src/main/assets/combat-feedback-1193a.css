@@ -114,6 +114,19 @@ body.poker-dice-open .player-action-bar .primary-action{pointer-events:none;opac
 .combat-feedback-entry--system{color:#e4cf92;font-weight:600}
 .combat-feedback-entry--entity{color:#ead3cd}
 .combat-feedback-entry--actor{color:#e0ede2}
+/* Combat-only semantic emphasis. HP loss, surviving HP, and effects are distinct. */
+.combat-feedback-entry .combat-semantic{font-family:Play,sans-serif;font-weight:700}
+.combat-feedback-entry .combat-semantic--character{color:#f6eee0}
+.combat-feedback-entry .combat-semantic--entity{color:#f1c5bc}
+.combat-feedback-entry .combat-semantic--skill{color:#f4dfa0}
+.combat-feedback-entry .combat-semantic--damage{color:#ff6872;font-weight:800}
+.combat-feedback-entry .combat-semantic--hp{color:#72dba4;font-weight:800}
+.combat-feedback-entry .combat-semantic--status-poison{color:#c18aff;font-weight:800}
+.combat-feedback-entry .combat-semantic--status-bleed{color:#c56a82;font-weight:800}
+.combat-feedback-entry .combat-semantic--status-stun{color:#ffbd66;font-weight:800}
+.combat-feedback-entry .combat-semantic--status-armor{color:#83cfff;font-weight:800}
+.combat-feedback-entry .combat-semantic--status-disorient{color:#8fe3d1;font-weight:800}
+.combat-feedback-entry .combat-semantic--miss{color:#ffbd66;font-weight:700}
 .combat-turn-indicator{display:none!important}
 /* On short viewports, preserve the full-size Snapshot and a usable scrollable Log.
    Only the game scrolls when the full stack cannot fit; keep actions within reach. */
