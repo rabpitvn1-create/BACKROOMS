@@ -308,7 +308,7 @@ test('Player Action commits Core facts before one Gehihi pass for the whole utte
   assert.match(player,/narrateMixedPlayerAction/);
   assert.ok(player.indexOf('commitSceneAction(')<player.indexOf('String reply = narrateMixedPlayerAction('));
   assert.match(player,/finishPlayerPresentation/);
-  assert.match(player,/emit\("backroomTurn", requireGameCore\(\)\.currentClientState\(projection\)\)/);
+  assert.match(player,/emit\("backroomTurn", attachGmItems\(requireGameCore\(\)\.currentClientState\(projection\)\)\)/);
   assert.match(direct,/narrateStagedSceneAction\(stagedEvent\)/);
 });
 test('failed GM narration retries the persisted pending step, never the prior Player Action plan',()=>{
