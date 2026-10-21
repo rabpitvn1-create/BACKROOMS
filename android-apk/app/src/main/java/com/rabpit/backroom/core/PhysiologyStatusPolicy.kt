@@ -73,6 +73,30 @@ object PhysiologyStatusPolicy {
   fun waterPercent(minutesSinceWater: Long?, survivalMultiplier: Double = 1.0): Int? = remainingPercent(minutesSinceWater, scaled(WATER_CRITICAL_MINUTES, survivalMultiplier))
   fun restPercent(minutesAwake: Long?, survivalMultiplier: Double = 1.0): Int? = remainingPercent(minutesAwake, scaled(REST_CRITICAL_MINUTES, survivalMultiplier))
 
+  /** Total HP attrition since the last replenishment, integrated across severity bands.
+   * Taking the difference between two counters avoids rounding damage per tiny checkpoint. */
+  fun hungerDamage(minutes: Long?, multiplier: Double = 1.0): Long =
+    totalDamage(minutes, multiplier, 24L * 60L, 48L * 60L, FOOD_CRITICAL_MINUTES, 180L)
+
+  fun thirstDamage(minutes: Long?, multiplier: Double = 1.0): Long =
+    totalDamage(minutes, multiplier, 12L * 60L, 24L * 60L, WATER_CRITICAL_MINUTES, 90L)
+
+  fun sleepDamage(minutes: Long?, multiplier: Double = 1.0): Long =
+    totalDamage(minutes, multiplier, 20L * 60L, 24L * 60L, REST_CRITICAL_MINUTES, 120L)
+
+  private fun totalDamage(value: Long?, multiplier: Double, moderate: Long, severe: Long, critical: Long, interval: Long): Long {
+    if (value == null || value <= 0L) return 0L
+    val m = scaled(moderate, multiplier)
+    val s = scaled(severe, multiplier)
+    val c = scaled(critical, multiplier)
+    fun span(start: Long, end: Long): Long = (minOf(value, end) - start).coerceAtLeast(0L)
+    // Separate integer quotients retain correct accrual across a threshold.
+    val moderateDamage = span(m, s) / interval
+    val severeDamage = span(s, c) / interval * 2L
+    val criticalDamage = ((value - c).coerceAtLeast(0L) / interval) * 3L
+    return moderateDamage + severeDamage + criticalDamage
+  }
+
   private fun scaled(minutes: Long, multiplier: Double): Long {
     val safe = if (multiplier.isFinite() && multiplier > 0.0) multiplier else 1.0
     return (minutes.toDouble() * safe).toLong().coerceAtLeast(1L)
