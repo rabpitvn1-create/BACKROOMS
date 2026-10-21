@@ -5,6 +5,8 @@ import vm from 'node:vm';
 
 const html = readFileSync(fileURLToPath(new URL('./app/src/main/assets/index.html', import.meta.url)), 'utf8');
 assert.ok(!html.includes('SEMANTIC_COMPATIBILITY_TERMS'), 'no universal compatibility dictionary');
+assert.ok(html.includes('.log .message.core .gm-semantic{font-weight:700}'),
+  'Core-result semantic names must receive the same bold weight as GM narration');
 const start = html.indexOf('const SEMANTIC_KINDS=');
 const end = html.indexOf('\nfunction levelHeader(', start);
 assert.ok(start >= 0 && end > start, 'semantic functions present');
