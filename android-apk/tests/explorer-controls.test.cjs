@@ -119,6 +119,24 @@ test('GM buttons obey pending and retry locks and recover when the lock clears',
   assert.equal(list.children.every(b=>!b.disabled),true);
 });
 
+test('dead explorer cannot activate GM suggestions or start another Player Action',()=>{
+  const r=runtime({nodeId:'0'});
+  r.ctx.state.log=[{role:'gm',sceneMap:'0:1',text:'GỢI Ý HÀNH ĐỘNG:\\n'
+    +'1. Kiểm tra dấu xước trên vách.\\n'
+    +'2. Quan sát lối đi phía tây.\\n'
+    +'3. Lắng nghe âm thanh bên ngoài.\\n'
+    +'4. Chạm nhẹ vào mép thảm.'}];
+  r.ctx.render();
+  const suggestions=r.log.querySelector('.gm-suggestion-list');
+  assert.equal(suggestions.children.every(b=>!b.disabled),true);
+  r.ctx.state.player={hp:0,condition:'DEAD'};
+  r.ctx.backroomSyncExplorer();
+  assert.equal(suggestions.children.every(b=>b.disabled),true);
+  assert.equal(r.player.disabled,true);
+  suggestions.children[0].onclick();
+  assert.equal(r.calls.filter(x=>x[0]==='gm-suggestion').length,0);
+});
+
 test('previous scene GM hints never remain actionable',()=>{
   const r=runtime({nodeId:'0',miniIndex:2});
   r.ctx.state.log=[{role:'gm',sceneMap:'0:1',text:'GỢI Ý HÀNH ĐỘNG:\n1. Lắng nghe tiếng gió.\n2. Thử nhìn sàn.\n3. Đọc mảnh giấy.\n4. Gõ nhẹ cửa.'}];

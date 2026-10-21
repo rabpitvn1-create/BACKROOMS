@@ -112,7 +112,9 @@
     if(log)log.querySelectorAll('[data-scene-preparing="1"]').forEach(n=>n.remove());
   }
   global.backroomSceneWriterProvider=()=>{if(preparing)writerPending();};
-  function locked(){return busy||batchBusy||coreUnavailable||!!state.playerAction?.recoverable||!!state.pendingEncounter||!!(state.combat&&state.combat.active);}
+  function locked(){return busy||batchBusy||coreUnavailable||
+    (state.player&&Number(state.player.hp)<=0)||state.player?.condition==='DEAD'||
+    !!state.playerAction?.recoverable||!!state.pendingEncounter||!!(state.combat&&state.combat.active);}
   function showPopup(title){
     heading.textContent=title;
     dialog.className=title==='MAP'?'explorer-map-mode':'';
