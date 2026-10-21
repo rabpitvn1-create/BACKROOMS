@@ -1811,7 +1811,7 @@ function semanticExactCandidates(source,terms){
 }
 function semanticSelect(source,hits){
   // Authoritative overlapping matches win by specificity, not source order.
-  hits.sort((a,b)=>b.priority-a.priority||(b.end-b.start)-(a.end-a.start)||a.start-b.start);
+  hits.sort((a,b)=>(b.end-b.start)-(a.end-a.start)||b.priority-a.priority||a.start-b.start);
   const chosen=[];
   hits.forEach(hit=>{
     if(hit.start<0||hit.end<=hit.start||hit.end>source.length)return;
