@@ -31,11 +31,12 @@ Runtime chỉ dùng canonical Entity key trùng chính xác với tên file bỏ
 | `jane_the_killer` | `jane_the_killer.webp` |
 | `slenderman` | `slenderman.webp` |
 | `diep_minh` | `diep_minh.webp` |
+| `luc_tram_hac_hoa` | `luc_tram_hac_hoa.webp` (Lục Trầm Hắc Hóa, enemy-only) |
 | `blackroot_sentinel` | `blackroot_sentinel.webp` |
 | `sinew_strider` | `sinew_strider.webp` |
 | `hollow_grasper` | `hollow_grasper.webp` |
 
-Cả **26 Entity** thuộc Registry/asset catalog. Core tự roll encounter với xác suất **35% mỗi lượt EXECUTE đủ điều kiện**, dùng resident pool theo exact Level ID và roaming pool khi Level không có danh sách resident. Meta action, Combat đang diễn ra hoặc encounter chờ xác nhận không kích hoạt lượt roll. Xem [ENTITY_SPAWNS.md](ENTITY_SPAWNS.md) và `EntitySpawnPool.kt` để biết điều kiện và danh sách cụ thể.
+Cả **27 Entity** thuộc Registry/asset catalog. Core tự roll encounter với xác suất **35% mỗi lượt EXECUTE đủ điều kiện**, dùng resident pool theo exact Level ID và roaming pool khi Level không có danh sách resident. Meta action, Combat đang diễn ra hoặc encounter chờ xác nhận không kích hoạt lượt roll. Xem [ENTITY_SPAWNS.md](ENTITY_SPAWNS.md) và `EntitySpawnPool.kt` để biết điều kiện và danh sách cụ thể.
 
 Entity do Core chọn được giữ ở `PENDING_ENCOUNTER_CONFIRMATION`; chỉ Battle Start mới kích hoạt Combat và hiển thị ảnh. Tên/chỉ số lấy từ Registry, encounter ID lấy từ Core, không dò câu chữ GM. Không có quota hoặc Boss bắt buộc do Story Milestone cũ quyết định.
 
@@ -46,6 +47,8 @@ Mỗi Entity có đúng 3 skill. Skill chỉ tăng %ATK và chỉ dùng hai hi�
 - **Blackroot Sentinel**: Thorned Hemorrhage; Blight Sap; Crimson Mycotoxin.
 - **Sinew Strider**: Tendon Ripper; Septic Thread; Venomous Flay.
 - **Hollow Grasper**: Hollow Laceration; Carrion Toxin; Necrotic Clutch.
+
+**Lục Trầm Hắc Hóa (Entity):** profile 2999 HP / 0 ATK gốc / 8 Armor / 9 Aggression của Diệp Minh; HP sau scale vẫn theo boss và hồi **30 HP/turn**. Không dùng đòn 10% HP, chiêu 5% AoE hay EXP boss của Diệp Minh. Sáu kiếm kỹ Follower được chuyển thành skill đối thủ: Thiên Kiếm Linh Tâm tích kiếm ý, Bạch Hồng Quán Nhật đột tiến và chém, Nhất Tuyến Phá Vọng chém bỏ qua 20% DEF, Tịch Quang Phản Kiếm phản kích sau Party hụt đòn, Vạn Kiếm Quy Tâm phòng thủ khi Party EVADE/GUARD mỗi 3 turn, Thiên Kiếm Định Giới dựng Kiếm Vực từ turn thứ 5 với kiếm ý >=2 (một lần mỗi wave, chiếm lượt tấn công). Khi Ward/Domain còn hiệu lực: +8 Armor và +20 điểm % Evasion trong 2 lượt kế. Sword base DMG 20 theo Level scale là hệ số enemy gameplay riêng, không lấy trang bị hay trạng thái nhân vật Follower. Follower Lục Trầm và bộ skill gốc giữ nguyên. Asset nén 820×1457, 247244 bytes trên Google Drive `Novel/ENTITY/luc_tram_hac_hoa.webp` từ `LUC_TRAM_HAC_HOA_OVERLAY.webp` gốc.
 
 **Brownies:** tương tự LuckyBear với stat Hound gốc **80 HP / 0 ATK / 2 Armor / 8 Aggression**, không phản công, roaming, thưởng cố định **100 EXP** cho mỗi thành viên Party tham chiến còn sống sau khi tiêu diệt, một lần theo encounter instance. Asset `Brownies.webp` dùng canonical key `Brownies`.
 

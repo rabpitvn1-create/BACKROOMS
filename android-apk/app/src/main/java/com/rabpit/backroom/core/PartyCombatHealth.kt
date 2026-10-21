@@ -40,8 +40,10 @@ object PartyCombatHealth {
     round: Int,
     dodgeRoll: (Int) -> Int,
     criticalRoll: (Int) -> Int,
-    leaderEvasionBonusPercent: Int = 0
+    leaderEvasionBonusPercent: Int = 0,
+    armorIgnorePercent: Int = 0
   ): DamageResult {
+    require(armorIgnorePercent in 0..100) { "invalid_armor_ignore_percent" }
     if (requestedDamage <= 0) return DamageResult(state, 0, emptyMap())
     val ids = actingMembers(state)
     if (ids.isEmpty()) return DamageResult(state, 0, emptyMap())
@@ -69,7 +71,8 @@ object PartyCombatHealth {
       val isCritical = criticalRoll(index) < (500 - effective.resCriticalBasisPoints).coerceAtLeast(0)
       if (isCritical) critical += id
       val incoming = if (isCritical) CharacterStatCore.criticalDamage(raw) else raw
-      val mitigated = CharacterStatCore.defendedIncomingDamage(incoming, effective.def)
+      val mitigated = CharacterStatCore.defendedIncomingDamage(
+        incoming, effective.def * (100 - armorIgnorePercent) / 100)
       val hp = next.characters.getValue(id).vitalState.currentHp
       val loss = mitigated.coerceAtMost(hp)
       if (loss > 0) {

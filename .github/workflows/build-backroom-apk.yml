@@ -229,6 +229,8 @@ jobs:
           done
           test -s apk-check/assets/fonts/Play-Bold.ttf
           cmp apk-check/assets/fonts/Play-Bold.ttf android-apk/app/src/main/assets/fonts/Play-Bold.ttf
+          test -s apk-check/assets/entity/luc_tram_hac_hoa.webp
+          cmp android-apk/app/src/main/assets/entity/luc_tram_hac_hoa.webp apk-check/assets/entity/luc_tram_hac_hoa.webp
           test -s apk-check/assets/entity/Brownies.webp
           cmp android-apk/app/src/main/assets/entity/Brownies.webp apk-check/assets/entity/Brownies.webp
           test -s apk-check/assets/entity/LuckyBear.webp

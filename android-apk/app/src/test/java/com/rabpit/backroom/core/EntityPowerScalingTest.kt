@@ -68,6 +68,14 @@ class EntityPowerScalingTest {
     assertEquals(880, CombatRuntime.active(CombatRuntime.start(levelState(0), "927"))!!.entityMaxHp)
   }
 
+  @Test fun lucTramEnemyFollowsBossHpScalingAtAllLevels() {
+    for (level in 0..6) {
+      val boss = CombatRuntime.active(CombatRuntime.start(levelState(level), "diep_minh"))!!
+      val enemy = CombatRuntime.active(CombatRuntime.start(levelState(level), "luc_tram_hac_hoa"))!!
+      assertEquals(boss.entityMaxHp, enemy.entityMaxHp)
+    }
+  }
+
   @Test fun activeEncounterKeepsItsRankSnapshotWhenWorldLevelChanges() {
     val started = CombatRuntime.start(levelState(2), "hound")
     val before = CombatRuntime.active(started)!!

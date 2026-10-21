@@ -15,7 +15,7 @@ const assets=path.join(dir,'../app/src/main/assets');
 const supported=['926','927','LuckyBear','Brownies','hound','clump','duller','deathmoth','hostile_faceling','false_puddle',
  'paintings','smiler','skin-stealer','predatory_window','biological_pipeline','wretch',
  'cable_mimic','the_beast_of_level_5','hotel_corpse_lure','jeff_the_killer',
- 'jane_the_killer','slenderman','diep_minh','blackroot_sentinel','sinew_strider','hollow_grasper'];
+ 'jane_the_killer','slenderman','diep_minh','luc_tram_hac_hoa','blackroot_sentinel','sinew_strider','hollow_grasper'];
 
 function runtime(key){
  let children=[],syncCalls=0,bridgeCalls=0;
@@ -177,6 +177,26 @@ test('Entity 927 sprite uses measured alpha bounds and remains grounded',()=>{
   assert.ok(Math.abs(((1420-21)/1448)*h*scale-sh*.94)<.5);
   assert.ok(Math.abs(y-(1-1420/1448)*h*scale)<.5);
   assert.ok(Math.abs(x+(135/1086)*w*scale)<.5);
+ }
+});
+
+test('Lục Trầm Hắc Hóa overlay aligns at ground and is fully bundled',()=>{
+ const line=java.split('\n').find(row=>row.includes('__entityVisualBounds='));
+ const normalize=java.split('\n').find(row=>row.includes('function normalizeEntityVisual('));
+ const extract=row=>JSON.parse(row.match(/^\s*("(?:[^"\\]|\\.)*")\s*\+/)[1]);
+ const ctx={__entityOverlay:{key:'luc_tram_hac_hoa'}};
+ vm.createContext(ctx);vm.runInContext([extract(line),extract(normalize)].join('\n'),ctx);
+ for(const height of [200,300,450]){
+   const eh=height*.97,ew=eh*820/1457;
+   const img={alt:'luc_tram_hac_hoa',style:{},
+     getBoundingClientRect:()=>({width:ew,height:eh})};
+   ctx.normalizeEntityVisual(img);
+   const match=img.style.transform.match(/translate\(([-\d.]+)px,([-\d.]+)px\) scale\(([-\d.]+)\)/);
+   assert.ok(match);
+   const [,x,y,scale]=match.map(Number);
+   assert.ok(scale>=1);
+   assert.ok(Math.abs(x+2/820*ew*scale)<.5);
+   assert.ok(Math.abs(y-(1-1441/1457)*eh*scale)<.5);
  }
 });
 

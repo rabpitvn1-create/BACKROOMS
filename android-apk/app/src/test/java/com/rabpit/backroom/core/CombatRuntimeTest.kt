@@ -116,6 +116,72 @@ class CombatRuntimeTest {
     }
   }
 
+  @Test fun lucTramEnemyUsesDiepMinhDurabilityAndOwnSixSwordArts() {
+    val base = GameState.initial()
+    val enemy = CombatRuntime.active(CombatRuntime.start(base, "luc_tram_hac_hoa"))!!
+    val boss = CombatRuntime.active(CombatRuntime.start(base, "diep_minh"))!!
+    assertEquals(2999, enemy.entityMaxHp)
+    assertEquals(boss.entityMaxHp, enemy.entityMaxHp)
+    assertEquals("Lục Trầm Hắc Hóa", enemy.entityName)
+    var state = CombatRuntime.start(base, "luc_tram_hac_hoa")
+    val logs = mutableListOf<String>()
+    repeat(6) { index ->
+      val before = CombatRuntime.active(state)!!
+      val injured = if (index == 0) state.copy(metadata = state.metadata +
+        ("combat.entityHp" to (before.entityMaxHp - 60).toString())) else state
+      val intent = if (index == 2) "Cả Party phòng thủ" else "quan sát chuyển động"
+      val result = CombatRuntime.resolve(injured, if (index == 2) "EXECUTE" else "SEARCH", intent)
+      assertTrue(result.handled)
+      assertFalse(result.reply.contains("Devils And Gold"))
+      assertTrue(result.feedback.none { it.skill == "Devils And Gold" })
+      state = result.state
+      logs += result.reply
+    }
+    assertTrue(logs.any { it.contains("Thiên Kiếm Linh Tâm") })
+    assertTrue(logs.any { it.contains("Bạch Hồng Quán Nhật") })
+    assertTrue(logs.any { it.contains("Nhất Tuyến Phá Vọng") })
+    assertTrue(logs.any { it.contains("Vạn Kiếm Quy Tâm") })
+    assertTrue(logs.any { it.contains("Thiên Kiếm Định Giới") })
+    assertTrue(logs.any { it.contains("hồi +30 HP") })
+    assertEquals(1, state.metadata.keys.count { it == "combat.lucTramEnemyDomainWave" })
+    assertEquals(6, CombatRuntime.active(state)!!.eventCounter)
+  }
+
+  @Test fun lucTramEnemyDomainPersistsThroughSaveAndClearsOnWaveHandoff() {
+    var state = CombatRuntime.start(GameState.initial(), "luc_tram_hac_hoa")
+    repeat(5) {
+      state = CombatRuntime.resolve(state, "SEARCH", "quan sát chuyển động").state
+    }
+    assertNotNull(state.metadata["combat.lucTramEnemyDomainWave"])
+    val reloaded = GameStateCodec.decode(GameStateCodec.encode(state))
+    val next = CombatRuntime.resolve(reloaded, "SEARCH", "quan sát chuyển động")
+    assertTrue(next.handled)
+    assertFalse(next.reply.contains("Thiên Kiếm Định Giới"))
+    assertEquals(1, next.state.metadata["combat.lucTramEnemyWardTurns"]?.toInt())
+    val wave = CombatRuntime.startWaves(GameState.initial(), listOf("luc_tram_hac_hoa", "hound"))
+    val defeated = CombatRuntime.resolve(wave.copy(metadata = wave.metadata +
+      ("combat.entityHp" to "0") + ("combat.lucTramEnemyWardTurns" to "2") +
+      ("combat.lucTramEnemyFocus" to "3") + ("combat.lucTramEnemyDomainWave" to "fake")),
+      "SEARCH", "quan sát")
+    assertNull(defeated.state.metadata["combat.lucTramEnemyWardTurns"])
+    assertNull(defeated.state.metadata["combat.lucTramEnemyFocus"])
+    assertNull(defeated.state.metadata["combat.lucTramEnemyDomainWave"])
+    assertEquals("hound", CombatRuntime.active(defeated.state)!!.entityKey)
+  }
+
+  @Test fun lucTramEnemyCounterUsesMissedPartyAttackAndNotFollowerEquipment() {
+    for (salt in 1..24) {
+      val initial = CombatRuntime.start(GameState.initial(), "luc_tram_hac_hoa")
+      val attempted = initial.copy(metadata = initial.metadata + ("combat.seed" to salt.toString()))
+      val result = CombatRuntime.resolve(attempted, "EXECUTE", "Cả Party tấn công")
+      if (result.feedback.any { it.target == "entity" && it.phase == "actor" && it.outcome == "miss" }) {
+        assertTrue(result.reply.contains("Tịch Quang Phản Kiếm"))
+        return
+      }
+    }
+    fail("No missed Party attack found in controlled seeds")
+  }
+
   @Test fun combatMovementIsNotAnotherEncounter() {
     val started = CombatRuntime.start(GameState.initial(), "skin-stealer")
     val before = CombatRuntime.active(started)!!
@@ -198,7 +264,7 @@ class CombatRuntimeTest {
       "jeff_the_killer" to 150, "jane_the_killer" to 150, "slenderman" to 190,
       "blackroot_sentinel" to 134, "sinew_strider" to 134, "hollow_grasper" to 134
     )
-    assertEquals(CombatRuntime.supportedEntityKeys().toSet() - "diep_minh", expected.keys)
+    assertEquals(CombatRuntime.supportedEntityKeys().toSet() - setOf("diep_minh", "luc_tram_hac_hoa"), expected.keys)
     expected.forEach { (key, hp) ->
       val entity = CombatRuntime.active(CombatRuntime.start(GameState.initial(), key))!!
       assertEquals("Full current HP of $key must double", hp * 2, entity.entityMaxHp)

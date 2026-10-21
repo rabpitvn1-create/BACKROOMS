@@ -37,7 +37,7 @@ object EntitySpawnPool {
   // Lifeform rarity group.
   val LIFEFORM = listOf("blackroot_sentinel", "sinew_strider", "hollow_grasper")
   // Rare group.
-  val RARE = listOf("the_beast_of_level_5", "slenderman", "diep_minh")
+  val RARE = listOf("the_beast_of_level_5", "slenderman", "diep_minh", "luc_tram_hac_hoa")
   // Killer group.
   val KILLERS = listOf("jeff_the_killer", "jane_the_killer")
 
@@ -59,7 +59,7 @@ object EntitySpawnPool {
   // Jeff/Jane are roaming. Owner also assigned entities without a confirmed
   // current habitat to this gameplay pool on 2026-10-16; not a new lore claim.
   val ROAMING = listOf("jeff_the_killer", "jane_the_killer", "slenderman", "diep_minh",
-    "blackroot_sentinel", "sinew_strider", "hollow_grasper", "926", "927", "LuckyBear", "Brownies")
+    "blackroot_sentinel", "sinew_strider", "hollow_grasper", "926", "927", "LuckyBear", "Brownies", "luc_tram_hac_hoa")
 
   fun residentsForLevel(levelId: String): List<String> = RESIDENTS_BY_LEVEL[levelId].orEmpty()
 

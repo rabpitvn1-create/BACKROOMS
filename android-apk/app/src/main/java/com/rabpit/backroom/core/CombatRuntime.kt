@@ -21,6 +21,11 @@ object CombatRuntime {
   private const val CAO_MINH_ULTIMATE_ACCURACY_PERCENT = 200
   private const val CAO_MINH_ULTIMATE_DAMAGE_PER_SHOT = 10
   private const val DIEP_MINH_KEY = "diep_minh"
+  private const val LUC_TRAM_ENEMY_KEY = "luc_tram_hac_hoa"
+  private const val LUC_TRAM_ENEMY_FOCUS_KEY = "combat.lucTramEnemyFocus"
+  private const val LUC_TRAM_ENEMY_WARD_KEY = "combat.lucTramEnemyWardTurns"
+  private const val LUC_TRAM_ENEMY_DOMAIN_KEY = "combat.lucTramEnemyDomainWave"
+  private const val LUC_TRAM_ENEMY_SWORD_DAMAGE = 20
   private const val LUCKY_BEAR_KEY = "LuckyBear"
   private const val BROWNIES_KEY = "Brownies"
   private const val DIEP_MINH_MAX_HP = 2999
@@ -213,6 +218,7 @@ object CombatRuntime {
     Profile("jane_the_killer", "Jane the Killer", 120, 20, 4, 9),
     Profile("slenderman", "Slenderman", 160, 23, 8, 10),
     Profile(DIEP_MINH_KEY, "Diệp Minh", DIEP_MINH_MAX_HP, 0, 8, 9),
+    Profile(LUC_TRAM_ENEMY_KEY, "Lục Trầm Hắc Hóa", DIEP_MINH_MAX_HP, 0, 8, 9),
     Profile("blackroot_sentinel", "Blackroot Sentinel", LIFEFORM_BASE_MAX_HP, LIFEFORM_BASE_ATTACK, LIFEFORM_BASE_ARMOR, LIFEFORM_BASE_AGGRESSION),
     Profile("sinew_strider", "Sinew Strider", LIFEFORM_BASE_MAX_HP, LIFEFORM_BASE_ATTACK, LIFEFORM_BASE_ARMOR, LIFEFORM_BASE_AGGRESSION),
     Profile("hollow_grasper", "Hollow Grasper", LIFEFORM_BASE_MAX_HP, LIFEFORM_BASE_ATTACK, LIFEFORM_BASE_ARMOR, LIFEFORM_BASE_AGGRESSION),
@@ -230,9 +236,10 @@ object CombatRuntime {
     if (profile.key == "927") {
       return Math.multiplyExact(entityMaxHp(profiles.getValue("926"), progressionRank), 2)
     }
-    val base = if (profile.key == DIEP_MINH_KEY) DIEP_MINH_MAX_HP else profile.maxHp + ENTITY_HP_BONUS
+    val bossStats = profile.key == DIEP_MINH_KEY || profile.key == LUC_TRAM_ENEMY_KEY
+    val base = if (bossStats) DIEP_MINH_MAX_HP else profile.maxHp + ENTITY_HP_BONUS
     val scaled = EntityPowerScaling.scale(base, progressionRank)
-    return if (profile.key == DIEP_MINH_KEY) scaled else Math.multiplyExact(scaled, 2)
+    return if (bossStats) scaled else Math.multiplyExact(scaled, 2)
   }
 
   /** Single source of truth for combat-supported Entity keys. */
@@ -330,6 +337,14 @@ object CombatRuntime {
     val current = active(state) ?: return Resolution(state, handled = false)
     val originalProfile = profiles[current.entityKey] ?: return Resolution(clear(state), handled = false)
     var profile = if ((state.metadata["combat.caoMinhProc1"]?.toIntOrNull() ?: 0) > 0) originalProfile.copy(armor = originalProfile.armor * 90 / 100) else originalProfile
+    // Separate enemy-only sword-domain state; never read Follower Lục Trầm's equipment or buffs.
+    var enemyFocus = if (current.entityKey == LUC_TRAM_ENEMY_KEY)
+      state.metadata[LUC_TRAM_ENEMY_FOCUS_KEY]?.toIntOrNull()?.coerceIn(0, 3) ?: 0 else 0
+    var enemyWardTurns = if (current.entityKey == LUC_TRAM_ENEMY_KEY)
+      state.metadata[LUC_TRAM_ENEMY_WARD_KEY]?.toIntOrNull()?.coerceIn(0, 2) ?: 0 else 0
+    val enemyWardActive = current.entityKey == LUC_TRAM_ENEMY_KEY && enemyWardTurns > 0
+    var enemyWardCreated = false
+    if (enemyWardActive) profile = profile.copy(armor = profile.armor + 8)
     val intent = classify(actionKind, action)
     // One finalized Poker Dice hand authorizes Ultimates for the current Party action only.
     val ultimateHand = if (intent == Intent.ATTACK &&
@@ -346,7 +361,7 @@ object CombatRuntime {
     fun entityDodges(actorId: String, salt: Int): Boolean {
       val attacker = CharacterStatEngine.effective(resolvedState, actorId)
       val chance = CharacterStatCore.effectiveChanceBasisPoints(
-        ENTITY_EVASION_PERCENT * 100, attacker.resEvasionBasisPoints)
+        (ENTITY_EVASION_PERCENT + if (enemyWardActive) 20 else 0) * 100, attacker.resEvasionBasisPoints)
       return roll(c.copy(eventCounter = c.eventCounter + salt), 10000) < chance
     }
 
@@ -500,6 +515,9 @@ object CombatRuntime {
       resolvedState = advanced.state
       c = active(resolvedState) ?: error("Wave handoff must preserve active combat")
       profile = profiles.getValue(c.entityKey)
+      enemyFocus = 0
+      enemyWardTurns = 0
+      enemyWardCreated = false
       cue("wave")
       log += advanced.reply
       bleedTurns = 0
@@ -1085,6 +1103,83 @@ object CombatRuntime {
     } else if (c.entityKey == LUCKY_BEAR_KEY || c.entityKey == BROWNIES_KEY) {
       // ATK=0 must mean zero inflicted damage, not the ordinary minimum-one hit.
       log += "${c.entityName} không tấn công."
+    } else if (c.entityKey == LUC_TRAM_ENEMY_KEY) {
+      // Enemy adaptation of the six R06 Follower arts. Only this Entity uses these
+      // formulas: Diệp Minh's 10% HP strike and 5% AoE are not inherited.
+      val waveId = "${c.encounterId}:wave:${waveIndex(resolvedState, waveKeys(resolvedState, c.entityKey).size)}"
+      val domainUsed = resolvedState.metadata[LUC_TRAM_ENEMY_DOMAIN_KEY] == waveId
+      enemyFocus = (enemyFocus + 1).coerceAtMost(3)
+      log += "Thiên Kiếm Linh Tâm: Lục Trầm Hắc Hóa đọc thế kiếm (kiếm ý $enemyFocus/3)."
+      val defense = when (intent) {
+        Intent.EVADE -> 34; Intent.GUARD -> 30; Intent.MOVE -> 18
+        Intent.READ -> 12; else -> 0
+      } + when (c.cover) {
+        Cover.HARD -> 22; Cover.PARTIAL -> 10; Cover.EXPOSED -> 0
+      } + max(0, c.momentum) * 4 + PokerDiceCore.defenseBonus(state)
+      val chance = (profile.aggression * 8 - defense + max(0, -c.momentum) * 7 -
+        companionEnemyAccuracyPenalty).coerceIn(0, 88)
+
+      fun swordHit(technique: String, ignoreDefense: Int = 0, salt: Int): Unit {
+        val damage = EntityPowerScaling.scale(LUC_TRAM_ENEMY_SWORD_DAMAGE, c.progressionRank)
+        val before = CharacterStatEngine.setCurrentHp(resolvedState, CAO_MINH_ID, c.playerHp)
+        val hit = PartyCombatHealth.applyStatAdjustedDamage(
+          before, damage, c.eventCounter,
+          dodgeRoll = { idx -> roll(c.copy(eventCounter = c.eventCounter + salt + idx * 41), 10000) },
+          criticalRoll = { idx -> roll(c.copy(eventCounter = c.eventCounter + salt + 19 + idx * 41), 10000) },
+          leaderEvasionBonusPercent = if (quickStepTurns > 0) CAO_MINH_QUICK_STEP_EVASION_BONUS_PERCENT else 0,
+          armorIgnorePercent = ignoreDefense
+        )
+        resolvedState = hit.state
+        hit.damageByMember.forEach { (id, loss) ->
+          feedback += DamageFeedback("actor", loss, actorId = id, phase = "entity",
+            skill = technique, sourceName = c.entityName, entityName = c.entityName,
+            critical = id in hit.criticalIds)
+        }
+        hit.dodgedIds.forEach { recordMiss("actor", it, phase = "entity", skill = technique) }
+        c = c.copy(playerHp = resolvedState.characters[CAO_MINH_ID]?.vitalState?.currentHp ?: c.playerHp,
+          momentum = max(-3, c.momentum - 1))
+        log += "$technique: Party chịu -${hit.appliedDamage} HP."
+      }
+      // Counter is a reaction, separate from her main technique, and only follows
+      // a confirmed Party miss in this wave. Sword is intrinsic to the enemy asset.
+      if (intent == Intent.ATTACK && feedback.any {
+          it.target == "entity" && it.phase == "actor" && it.outcome == "miss"
+        }) {
+        log += "Tịch Quang Phản Kiếm: Lục Trầm Hắc Hóa phản kiếm khi Party hụt đòn."
+        if (roll(c.copy(eventCounter = c.eventCounter + 797), 100) < chance) {
+          swordHit("Tịch Quang Phản Kiếm", salt = 809)
+        } else recordMiss("actor", phase = "entity", skill = "Tịch Quang Phản Kiếm")
+      }
+      when {
+        !domainUsed && c.eventCounter % 5 == 0 && enemyFocus >= 2 -> {
+          // Enemy-only domain replaces the main attack and lasts the next 2 turns.
+          enemyWardTurns = 2
+          enemyWardCreated = true
+          resolvedState = resolvedState.copy(metadata = resolvedState.metadata +
+            (LUC_TRAM_ENEMY_DOMAIN_KEY to waveId))
+          log += "Thiên Kiếm Định Giới: dựng Kiếm Vực, tăng 8 Armor và 20 điểm % Evasion trong 2 lượt kế; không gây damage."
+        }
+        (intent == Intent.EVADE || intent == Intent.GUARD) && c.eventCounter % 3 == 0 -> {
+          enemyWardTurns = 2
+          enemyWardCreated = true
+          log += "Vạn Kiếm Quy Tâm: kiếm khí che chắn, tăng 8 Armor và 20 điểm % Evasion trong 2 lượt kế."
+        }
+        else -> {
+          val advance = c.range != RangeBand.CLOSE && enemyFocus < 2
+          val technique = if (advance) "Bạch Hồng Quán Nhật" else "Nhất Tuyến Phá Vọng"
+          if (advance) {
+            c = c.copy(range = if (c.range == RangeBand.FAR) RangeBand.NEAR else RangeBand.CLOSE)
+            log += "Bạch Hồng Quán Nhật: đột tiến một range band."
+          }
+          if (roll(c.copy(eventCounter = c.eventCounter + 31), 100) < chance) {
+            // Nhất Tuyến Phá Vọng ignores 20% of each defender's DEF.
+            swordHit(technique, ignoreDefense = if (advance) 0 else 20, salt = 911)
+          } else {
+            recordMiss("actor", phase = "entity", skill = technique)
+            log += "$technique: đòn kiếm không trúng hoặc bị né."
+          }
+        }
+      }
     } else if (c.entityKey == DIEP_MINH_KEY && c.eventCounter % DIEP_MINH_ULTIMATE_INTERVAL_TURNS == 0) {
       val groupHpBefore = PartyCombatHealth.currentHp(resolvedState)
       val pulse = damageActivePartyByPercent(resolvedState, DIEP_MINH_ULTIMATE_PERCENT)
@@ -1238,11 +1333,18 @@ object CombatRuntime {
     }
 
     val entityHpBeforeRegen = c.entityHp
-    val entityRegen = if (c.entityKey == DIEP_MINH_KEY) DIEP_MINH_REGEN_PER_TURN else ENTITY_REGEN_PER_TURN
+    val entityRegen = if (c.entityKey == DIEP_MINH_KEY || c.entityKey == LUC_TRAM_ENEMY_KEY)
+      DIEP_MINH_REGEN_PER_TURN else ENTITY_REGEN_PER_TURN
     val entityHpAfterRegen = min(c.entityMaxHp, c.entityHp + entityRegen)
     if (entityHpAfterRegen > entityHpBeforeRegen) {
       c = c.copy(entityHp = entityHpAfterRegen, entityCondition = condition(entityHpAfterRegen, c.entityMaxHp))
       log += "${c.entityName} hồi +$entityRegen HP (${c.entityHp}/${c.entityMaxHp})."
+    }
+
+    if (c.entityKey == LUC_TRAM_ENEMY_KEY) {
+      resolvedState = withCombatCounter(resolvedState, LUC_TRAM_ENEMY_FOCUS_KEY, enemyFocus)
+      resolvedState = withCombatCounter(resolvedState, LUC_TRAM_ENEMY_WARD_KEY,
+        if (enemyWardCreated) enemyWardTurns else max(0, enemyWardTurns - 1))
     }
 
     c = c.copy(
@@ -1297,7 +1399,8 @@ object CombatRuntime {
       CAO_MINH_BLEED_TURNS_KEY, IRIS_ANALYZED_TURNS_KEY, IRIS_ARMOR_BREAK_TURNS_KEY,
       IRIS_EXPOSED_TURNS_KEY, SYVIAL_BLEED_TURNS_KEY, SYVIAL_DISORIENT_TURNS_KEY,
       LUCIA_BLEED_TURNS_KEY, LUCIA_BLEED_PERCENT_KEY, LUCIA_POISON_TURNS_KEY,
-      LUCIA_POISON_PERCENT_KEY, LUCIA_ARMOR_BREAK_TURNS_KEY, LUCIA_ARMOR_BREAK_PERCENT_KEY
+      LUCIA_POISON_PERCENT_KEY, LUCIA_ARMOR_BREAK_TURNS_KEY, LUCIA_ARMOR_BREAK_PERCENT_KEY,
+      LUC_TRAM_ENEMY_FOCUS_KEY, LUC_TRAM_ENEMY_WARD_KEY, LUC_TRAM_ENEMY_DOMAIN_KEY
     )
     return state.copy(metadata = state.metadata.filterKeys { key ->
       key !in targetKeys && !key.startsWith("combat.caoMinhProc")
@@ -1550,6 +1653,7 @@ object CombatRuntime {
       profile.key == "smiler" -> listOf("STALK", "RUSH", "VANISH")
       profile.key == "cable_mimic" -> listOf("GRAB", "LUNGE", "FLANK")
       profile.key == "slenderman" -> listOf("STALK", "GRAB", "RUSH")
+      profile.key == LUC_TRAM_ENEMY_KEY -> listOf("SWORD_ADVANCE", "SWORD_PIERCE", "SWORD_WARD", "SWORD_DOMAIN")
       else -> listOf("LUNGE", "GRAB", "RUSH", "FLANK")
     }
     return options[positiveMod(mix(seed, counter), options.size)]
