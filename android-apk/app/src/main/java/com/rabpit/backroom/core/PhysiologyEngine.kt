@@ -6,10 +6,16 @@ object PhysiologyEngine {
     if (character.presence == CharacterPresence.DEAD) return invalid(state, "physiology_target_dead")
 
     val current = character.physiology
+    val recovery = command.recoveryMinutes
+    if (recovery != null && (recovery <= 0L || recovery > 10080L * 100L))
+      return invalid(state, "physiology_recovery_invalid")
     val next = when (command.operation) {
-      PhysiologyCommand.Operation.RECORD_FOOD -> current.copy(minutesSinceFood = 0L)
-      PhysiologyCommand.Operation.RECORD_WATER -> current.copy(minutesSinceWater = 0L)
-      PhysiologyCommand.Operation.RECORD_SLEEP -> current.copy(minutesAwake = 0L)
+      PhysiologyCommand.Operation.RECORD_FOOD -> current.copy(
+        minutesSinceFood = current.minutesSinceFood?.let { (it - minOf(it, recovery ?: 720L)) })
+      PhysiologyCommand.Operation.RECORD_WATER -> current.copy(
+        minutesSinceWater = current.minutesSinceWater?.let { (it - minOf(it, recovery ?: 360L)) })
+      PhysiologyCommand.Operation.RECORD_SLEEP -> current.copy(
+        minutesAwake = current.minutesAwake?.let { (it - minOf(it, recovery ?: 60L)) })
       PhysiologyCommand.Operation.UPDATE_CONDITION -> {
         val pain = normalizedCondition(command.painState) ?: command.painState?.let { return invalid(state, "physiology_condition_blank") }
         val infection = normalizedCondition(command.infectionState) ?: command.infectionState?.let { return invalid(state, "physiology_condition_blank") }
