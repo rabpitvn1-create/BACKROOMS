@@ -7,6 +7,8 @@ data class PhysiologyCommand(
   override val targetId: String = actorId,
   override val source: CommandSource,
   val operation: Operation,
+  /** Explicit recovery in equivalent need-minutes; null uses the ordinary portion. */
+  val recoveryMinutes: Long? = null,
   val painState: String? = null,
   val infectionState: String? = null,
   val thermalState: String? = null
