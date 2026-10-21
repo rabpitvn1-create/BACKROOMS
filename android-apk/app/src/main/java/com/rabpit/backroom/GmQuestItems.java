@@ -98,7 +98,7 @@ public final class GmQuestItems {
 
   /**
    * A GM response stays outside the old Core writer contract. The reply itself
-   * is separately checked with ProviderResponseContract.parseSceneWriter.
+   * is checked here, without delegating any item authority to Game Core.
    */
   public static JSONObject parseEnvelope(String raw) throws Exception {
     if (raw == null || raw.trim().isEmpty() || raw.length() > 18000)
@@ -187,12 +187,12 @@ public final class GmQuestItems {
    * Idempotent by the Core-confirmed narration identity, but does not request,
    * authorize, or inspect any Core state itself.
    */
-  public synchronized JSONObject applyConfirmed(String narrationId, String nodeId, JSONArray operations) {
+  static JSONObject applySnapshot(JSONObject base, String narrationId, String nodeId, JSONArray operations) {
     if (narrationId == null || narrationId.length() < 3 || narrationId.length() > 240 ||
       !nodeId.matches("[a-z0-9_.-]{1,64}"))
       throw new IllegalArgumentException("gm_item_confirmation_scope");
     validateOperations(operations);
-    JSONObject current = read();
+    JSONObject current = validateSnapshot(base);
     JSONArray actions = current.getJSONArray("appliedActions");
     for (int i = 0; i < actions.length(); i++)
       if (narrationId.equals(actions.getString(i))) return current;
@@ -203,6 +203,11 @@ public final class GmQuestItems {
       latest.put(prior.getString(i));
     latest.put(narrationId);
     next.put("appliedActions", latest);
+    return validateSnapshot(next);
+  }
+
+  public synchronized JSONObject applyConfirmed(String narrationId, String nodeId, JSONArray operations) {
+    JSONObject next = applySnapshot(read(), narrationId, nodeId, operations);
     persist(next);
     return next;
   }
