@@ -118,4 +118,26 @@ class SurvivalHardeningTest {
     assertEquals(state.characters.getValue(CAO_MINH_ID).physiology,
       restored.characters.getValue(CAO_MINH_ID).physiology)
   }
+  @Test fun consumedPortionsStackByQuantityWithoutAutoFilling() {
+    val item = OfflineItemRegistry.get("southern:ben-tre-coconut")!!
+    var state = withPhysiology(PhysiologyState(minutesSinceWater = 500))
+    val inventory = state.inventories.getValue(CAO_MINH_ID)
+    state = state.copy(inventories = state.inventories + (CAO_MINH_ID to inventory.copy(
+      items = mapOf(item.id to ItemStack(item.id, item.name, 2, item.metadata)))))
+    val command = ItemCommand("drink-two", "TURN_1", CAO_MINH_ID,
+      source = CommandSource.UI, operation = ItemCommand.Operation.USE,
+      itemId = item.id, itemName = item.name, quantity = 2)
+    val result = StateReducer.execute(state, command)
+    assertTrue(result.toString(), result.applied)
+    assertEquals(140L, result.state.characters.getValue(CAO_MINH_ID).physiology.minutesSinceWater)
+    assertFalse(result.state.inventories.getValue(CAO_MINH_ID).items.containsKey(item.id))
+  }
+
+  @Test fun defeatedAndDeadExplorersCannotStartNewActions() {
+    val defeated = CharacterStatEngine.setCurrentHp(GameState.initial(), CAO_MINH_ID, 0)
+    val rejected = ActionRuntime.start(defeated, "s", "TURN_1", CAO_MINH_ID,
+      ActionKind.EXECUTE, "khám phá")
+    assertFalse(rejected.applied)
+    assertEquals("action_actor_unavailable", rejected.error)
+  }
 }
