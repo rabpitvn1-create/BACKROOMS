@@ -131,7 +131,7 @@ jobs:
           "$BUILD_TOOLS/aapt" dump badging Backroom-1.2.0.0.38.apk | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
           "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 Backroom-1.2.0.0.38.apk
           rm -rf apk-check && mkdir apk-check
-          unzip -q Backroom-1.2.0.0.38.apk 'assets/index.html' 'assets/explorer-controls.*' 'assets/dungeon.*' 'assets/ui/ornate-frame-v1.css' 'assets/ui/backrooms-reference-frame-v2.png' 'assets/ui/industrial-crt-v1.css' 'assets/ui/snapshot-tv.js' 'assets/ui/snapshot-crt.css' 'assets/ui/crt-glass-v5.svg' 'assets/ui/crt-optics.svg' 'assets/ui/black-observation-monitor-v1.webp' 'assets/ui/industrial-crt-v1/*.webp' 'assets/diagnostic-export.js' 'assets/item-icons.js' 'assets/item-detail-actions.js' 'assets/item-presentation.css' 'assets/item-icons/*' 'assets/provider-logos/*' 'assets/combat-feedback-1193a.*' 'assets/entity/*' 'assets/fx/*' 'assets/CaoMinh_MadGod_snapshot_overlay.png' 'assets/CAO_MINH_OVERLAY_EXPLORER_IDLE.png' 'assets/CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png' 'assets/avatars/MadGod.jpg' 'assets/avatars/CAO_MINH_AVATAR.jpg' 'assets/hud/player_action_backrooms.png' 'assets/dice/*' 'assets/fonts/Play-Bold.ttf' 'assets/level_snapshots/*' -d apk-check
+          unzip -q Backroom-1.2.0.0.38.apk 'assets/index.html' 'assets/explorer-controls.*' 'assets/dungeon.*' 'assets/ui/ornate-frame-v1.css' 'assets/ui/backrooms-reference-frame-v2.png' 'assets/ui/industrial-crt-v1.css' 'assets/ui/snapshot-tv.js' 'assets/ui/snapshot-crt.css' 'assets/ui/crt-glass-v5.svg' 'assets/ui/crt-optics.svg' 'assets/ui/black-observation-monitor-v1.webp' 'assets/ui/industrial-crt-v1/*.webp' 'assets/diagnostic-export.js' 'assets/item-icons.js' 'assets/item-detail-actions.js' 'assets/item-presentation.css' 'assets/item-icons/*' 'assets/provider-logos/*' 'assets/combat-feedback-1193a.*' 'assets/entity/*' 'assets/fx/*' 'assets/CaoMinh_MadGod_snapshot_overlay.png' 'assets/CAO_MINH_OVERLAY_EXPLORER_IDLE.png' 'assets/CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png' 'assets/avatars/MadGod.jpg' 'assets/avatars/CAO_MINH_AVATAR.jpg' 'assets/Catherine.webp' 'assets/avatars/Catherine_avatar.webp' 'assets/hud/player_action_backrooms.png' 'assets/dice/*' 'assets/fonts/Play-Bold.ttf' 'assets/level_snapshots/*' -d apk-check
           ! grep -q 'id="searchActionButton"' apk-check/assets/index.html
           grep -q 'id="submit"' apk-check/assets/index.html
           node android-apk/verify-explorer-controls.mjs apk-check/assets
@@ -150,7 +150,9 @@ jobs:
           cmp android-apk/app/src/main/assets/item-presentation.css apk-check/assets/item-presentation.css
           grep -q 'statBookPicker' apk-check/assets/item-detail-actions.js
           cmp android-apk/app/src/main/assets/item-icons.js apk-check/assets/item-icons.js
-          test "$(find android-apk/app/src/main/assets/item-icons -maxdepth 1 -name '*.webp' | wc -l)" -eq 24
+          # Match the catalog rather than a hard-coded pre-Catherine count.
+          expected_icon_count=$(node -p "require('./android-apk/app/src/main/assets/item-icons/manifest.json').items.length")
+          test "$(find android-apk/app/src/main/assets/item-icons -maxdepth 1 -name '*.webp' | wc -l)" -eq "$expected_icon_count"
           cmp android-apk/app/src/main/assets/item-icons/manifest.json apk-check/assets/item-icons/manifest.json
           ! unzip -Z1 Backroom-1.2.0.0.38.apk | grep -Eq '^assets/item-icons/[^/]+[.]svg$'
           for icon in android-apk/app/src/main/assets/item-icons/*.webp; do
@@ -184,6 +186,10 @@ jobs:
           ! grep -q 'state.log' apk-check/assets/combat-feedback-1193a.js
           ! grep -q 'localStorage' apk-check/assets/combat-feedback-1193a.js
           ! grep -q 'modal.hidden=true' apk-check/assets/combat-feedback-1193a.js
+          test -s apk-check/assets/Catherine.webp
+          cmp android-apk/app/src/main/assets/Catherine.webp apk-check/assets/Catherine.webp
+          test -s apk-check/assets/avatars/Catherine_avatar.webp
+          cmp android-apk/app/src/main/assets/avatars/Catherine_avatar.webp apk-check/assets/avatars/Catherine_avatar.webp
           test -s apk-check/assets/avatars/CAO_MINH_AVATAR.jpg
           cmp android-apk/app/src/main/assets/avatars/CAO_MINH_AVATAR.jpg apk-check/assets/avatars/CAO_MINH_AVATAR.jpg
           grep -q 'CHARACTER_INFO_STATS_V2' apk-check/assets/index.html

@@ -39,6 +39,15 @@ class CatherineFollowerTest {
   @Test fun `exact five percent at all registered parent and sub levels`() {
     val nodes = listOf("0", "0.1", "1", "2", "3", "4", "5", "6", "dullness", "epsilon", "ls_2")
     assertEquals(500, NpcSpawnTable.CATHERINE_THRESHOLD)
+    // Verify 35% Entity plus 5% Catherine exactly, with zero collisions.
+    val sample = freshAt("4")
+    val outcomes = (0 until 10000).map { ticket ->
+      SpawnMechanism.rollSceneSpawns(sample, "MOVE") { ticket }
+    }
+    assertEquals(3500, outcomes.count { it.entityKey != null })
+    assertEquals(500, outcomes.count { r -> r.npcEncounters.any { it.characterId == CATHERINE_ID } })
+    assertTrue(outcomes.none { r -> r.entityKey != null &&
+      r.npcEncounters.any { it.characterId == CATHERINE_ID } })
     for (node in nodes) {
       val state = freshAt(node)
       val level = requireNotNull(LevelRouteRegistry.node(node)).parent
@@ -51,10 +60,13 @@ class CatherineFollowerTest {
     }
   }
 
-  @Test fun `Catherine encounter wins entity collision and is never auto recruited`() {
+  @Test fun `Catherine preserves both encounter probabilities and never auto recruits`() {
     val state = freshAt("0")
-    val rolled = SpawnMechanism.rollSpawns(state, ActionKind.EXECUTE, "đi khám phá") { 0 }
-    assertNull("Catherine must not be dropped by simultaneous Entity", rolled.entityKey)
+    val entity = SpawnMechanism.rollSpawns(state, ActionKind.EXECUTE, "đi khám phá") { 0 }
+    assertNotNull("Original Entity window must stay intact", entity.entityKey)
+    assertTrue(entity.npcEncounters.none { it.characterId == CATHERINE_ID })
+    val rolled = SpawnMechanism.rollSpawns(state, ActionKind.EXECUTE, "đi khám phá") { 3500 }
+    assertNull("Catherine's disjoint five-percent window excludes Entity", rolled.entityKey)
     assertTrue(rolled.npcEncounters.any { it.characterId == CATHERINE_ID })
     val met = SpawnMechanism.applySpawns(state, rolled)
     assertEquals("true", met.characters.getValue(CATHERINE_ID).metadata["encountered"])
@@ -71,7 +83,7 @@ class CatherineFollowerTest {
     assertTrue(SpawnMechanism.rollSpawns(state, ActionKind.EXECUTE, "xem trạng thái",
       isMeta = true, nextInt = { 0 }).npcEncounters.isEmpty())
     assertTrue(NpcSpawnTable.rollNpcs(state, ActionKind.SEARCH, "đi", 6) { 0 }.isEmpty())
-    val rolled = SpawnMechanism.rollSpawns(state, ActionKind.EXECUTE, "đi") { 0 }
+    val rolled = SpawnMechanism.rollSpawns(state, ActionKind.EXECUTE, "đi") { 3500 }
     val pending = SpawnMechanism.prepareSpawns(state, rolled)
     assertNull(pending.characters.getValue(CATHERINE_ID).metadata["encountered"])
     assertEquals("true", SpawnMechanism.commitPendingNpcEncounters(pending)

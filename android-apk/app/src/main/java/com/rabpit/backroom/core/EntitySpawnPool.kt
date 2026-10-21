@@ -13,6 +13,7 @@ import org.json.JSONObject
  *
  * NPC first-meeting rates (d10000, success if roll <= threshold):
  * - Lucia: 5000 (50%) — Level 0 EXECUTE, once-only
+ * - Catherine: 500 (5%) — all physical actions across every node, once-only
  * - Luc Tram: 25 (0.25%) — Level 4+ physical, once-only
  * - Iris/Syvial reunion: 25 (0.25%) each — physical, continuity SEPARATED/LOST/UNKNOWN
  * - An Nhien: 25 (0.25%) — physical, once-only
@@ -238,7 +239,8 @@ object NpcSpawnTable {
     actionText: String,
     level: Int,
     nextInt: (Int) -> Int,
-    physicalOverride: Boolean? = null
+    physicalOverride: Boolean? = null,
+    catherineTicket: Int? = null
   ): List<NpcEncounter> {
     val encounters = mutableListOf<NpcEncounter>()
     val flags = runCatching { JSONObject(state.world["flagsJson"] ?: "{}") }.getOrNull() ?: JSONObject()
@@ -255,12 +257,15 @@ object NpcSpawnTable {
       }
     }
 
-    // Catherine: independent 5% on every physical Explorer action, at every node.
-    // The flag AND stored first-meeting metadata both prevent duplicate first spawns.
+    // Reserve d10000 tickets [3500, 3999] for Catherine, disjoint from the
+    // Entity window [0, 3499]. Both use the same Entity ticket when available.
+    // No dropped NPC or Entity event, preserving 5% and 35% unconditionally.
+    // First-meeting flags prevent duplicate appearances.
     if (isPhysical && CATHERINE_ID !in partyMemberIds &&
         !flagSpawned(flags, "catherine") &&
         state.characters[CATHERINE_ID]?.metadata?.get("encountered") != "true") {
-      if (nextInt(10000) + 1 <= CATHERINE_THRESHOLD) {
+      val ticket = catherineTicket ?: nextInt(10000)
+      if (ticket in EntitySpawnPool.TOTAL_BP until (EntitySpawnPool.TOTAL_BP + CATHERINE_THRESHOLD)) {
         encounters += NpcEncounter(CATHERINE_ID, "catherine")
       }
     }
@@ -355,22 +360,24 @@ object SpawnMechanism {
     // Baseline: `entityEncounterAction && entityAllowed` (MainActivity:1391 @ 202737c2).
     val entityEncounterAction = kind == ActionKind.EXECUTE
     val entityAllowed = flags.optBoolean("entityEncountersAllowed", true)
+    var entityTicket: Int? = null
     val entityKey = if (entityEncounterAction && entityAllowed) {
-      EntitySpawnPool.rollEntity(currentLevelId(state), nextInt)
+      EntitySpawnPool.rollEntity(currentLevelId(state)) { bound ->
+        nextInt(bound).also { entityTicket = it }
+      }
     } else {
       null
     }
 
-    // Gate 4: NPCs gated by physical (from action text), level, and once-only flags.
+    // Gate 4: share the Entity ticket for Catherine, preserving old Entity rolls.
+    // All other NPCs retain their original independent RNG checks.
     val level = currentLevelNumber(state)
-    val npcEncounters = NpcSpawnTable.rollNpcs(state, kind, actionText, level, nextInt)
+    val npcEncounters = NpcSpawnTable.rollNpcsWithPhysical(
+      state, kind, actionText, level, nextInt, catherineTicket = entityTicket)
 
     // Archived: free-roaming ephemeral crowd NPCs never spawn.
     // Canon first meetings and combat encounters remain unchanged.
-    // Catherine's exact 5% first meeting takes priority if an Entity also rolls.
-    // Otherwise dropping her in beginAction() would reduce actual encounters to 3.25%.
-    // The Entity roll itself remains untouched; only a collision is deferred.
-    return SpawnResult(if (npcEncounters.any { it.characterId == CATHERINE_ID }) null else entityKey, npcEncounters)
+    return SpawnResult(entityKey, npcEncounters)
   }
 
   /** Called only AFTER Core validates a typed scene target. No text classification. */
@@ -379,11 +386,15 @@ object SpawnMechanism {
     if (CombatRuntime.active(state) != null || CombatRuntime.pending(state) != null)
       return SpawnResult(null, emptyList())
     val flags = JSONObject(state.world["flagsJson"] ?: "{}")
+    var entityTicket: Int? = null
     val entity = if (flags.optBoolean("entityEncountersAllowed", true))
-      EntitySpawnPool.rollEntity(currentLevelId(state), nextInt) else null
-    val npcs = NpcSpawnTable.rollNpcsWithPhysical(state, ActionKind.EXECUTE, "", currentLevelNumber(state), nextInt, true)
-    // Explorer NPCs are scripted, local and interactable, never random passersby.
-    return SpawnResult(if (npcs.any { it.characterId == CATHERINE_ID }) null else entity, npcs)
+      EntitySpawnPool.rollEntity(currentLevelId(state)) { bound ->
+        nextInt(bound).also { entityTicket = it }
+      } else null
+    val npcs = NpcSpawnTable.rollNpcsWithPhysical(state, ActionKind.EXECUTE, "",
+      currentLevelNumber(state), nextInt, physicalOverride = true, catherineTicket = entityTicket)
+    // The Entity and Catherine windows are disjoint, so neither gets dropped.
+    return SpawnResult(entity, npcs)
   }
 
   /**
