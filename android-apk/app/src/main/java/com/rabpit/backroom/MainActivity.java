@@ -1960,7 +1960,12 @@ public class MainActivity extends Activity {
               stageGmItems(batchId, gmNode);
               requireGameCore().finishPlayerPresentation(requested, stopCode != null,
                 stopMessage == null ? "" : stopMessage, reply, "", false);
-              completeGmItems(batchId, gmNode);
+              try {
+                completeGmItems(batchId, gmNode);
+              } catch (Exception gmStoreError) {
+                // Core narration already committed. Keep the durable GM outbox for recovery.
+                DiagnosticLog.record("gm.items.pending", gmStoreError.getClass().getSimpleName());
+              }
             } catch (Exception writerError) {
               String reason = writerFailureCode(writerError);
               DiagnosticLog.record("player.action.writer.failed", reason + "; retryable=" + writerRetryable(writerError));
@@ -2076,7 +2081,12 @@ public class MainActivity extends Activity {
         stageGmItems(batch.getString("id"), gmNode);
         requireGameCore().finishPlayerPresentation(batch.optInt("requested"), batch.optBoolean("interrupted", true),
           batch.optBoolean("interrupted", true) ? "Chuỗi dừng sớm; các bước còn lại chưa thực hiện." : "", reply, "", false);
-        completeGmItems(batch.getString("id"), gmNode);
+        try {
+          completeGmItems(batch.getString("id"), gmNode);
+        } catch (Exception gmStoreError) {
+          // Core narration already committed. Keep the durable GM outbox for recovery.
+          DiagnosticLog.record("gm.items.pending", gmStoreError.getClass().getSimpleName());
+        }
         emit("backroomTurn", attachGmItems(requireGameCore().currentClientState(clientJson)));
       } catch (Exception error) {
         String reason = writerFailureCode(error);
@@ -2120,7 +2130,12 @@ public class MainActivity extends Activity {
               String id = new JSONObject(command).getString("actionId");
               stageGmItems(id, stagedEvent.getString("node"));
               requireGameCore().commitSceneAction(id, narration, stateJson);
-              completeGmItems(id, stagedEvent.getString("node"));
+              try {
+                completeGmItems(id, stagedEvent.getString("node"));
+              } catch (Exception gmStoreError) {
+                // Core narration already committed. Keep the durable GM outbox for recovery.
+                DiagnosticLog.record("gm.items.pending", gmStoreError.getClass().getSimpleName());
+              }
             }
           }
           JSONObject committedView = new JSONObject(attachGmItems(requireGameCore().currentClientState(stateJson)));
