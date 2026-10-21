@@ -619,7 +619,10 @@ object WorldGraphRuntime {
             result = source.clue
             if (!p.getJSONObject("evidenceState").optBoolean(source.id)) {
               p.getJSONObject("evidenceState").put(source.id, true)
-              p.getJSONArray("records").put(JSONObject().put("id", id).put("kind", "EVIDENCE").put("text", result).apply { if (source.label.isNotBlank()) put("label", source.label) })
+              p.getJSONArray("records").put(JSONObject().put("id", id).put("kind", "EVIDENCE").put("text", result).apply {
+                if (source.label.isNotBlank()) put("label", source.label)
+                if (source.aliases.isNotEmpty()) put("aliases", JSONArray(source.aliases))
+              })
               p.getJSONArray("areaEvents").put(JSONObject().put("type", "EVIDENCE").put("text", result))
             }
           }
