@@ -349,9 +349,9 @@ test('snapshot style has distinct active-actor rules and existing local Party as
  assert.doesNotMatch(css,/combat-switch-ring/);
  assert.doesNotMatch(css,/combat-party-appear/,'only one Party animation definition may own a slot');
  assert.match(css,/\.snapshot\[data-combat-focus\] \.snapshot-lucia,/);
- assert.match(css,/right:0!important;left:auto!important/);
- assert.match(css,/height:97%!important/);
- assert.match(css,/max-width:100%!important/);
+ assert.match(css,/right:var\(--combat-portrait-right,0px\)!important;left:auto!important/);
+ assert.match(css,/height:var\(--combat-portrait-height,97%\)!important/);
+ assert.match(css,/max-width:none!important;max-height:none!important/);
  assert.match(css,/animation:none!important/,'Entity never rotates for its own cue');
 
  for(const filename of ['avatars/Iris_avatar.jpg','avatars/Syvial_avatar.jpg','avatars/an_nhien_avatar.png']){
@@ -910,4 +910,34 @@ test('exploration party uses disjoint bounded slots and leaves combat geometry t
  }
  const css=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/combat-feedback-1193a.css'),'utf8');
  for(const name of ['catherine','janet','nguyen-quoc-nam','hua-tieu-lan'])assert.ok(css.includes('.snapshot[data-party-layout="combat"] .snapshot-'+name));
+});
+
+
+test('combat portraits normalize visible body height and ground without changing focus or transforms',()=>{
+ const helper=script.slice(script.indexOf('  var partyPortraitBounds='),script.indexOf('  function combatPortraitSource('));
+ for(const [width,height] of [[288,240],[358,260],[700,300]]){
+  const scope={window:{},document:{}};vm.runInNewContext(helper,scope);
+  const snapshot={clientWidth:width,clientHeight:height,getBoundingClientRect(){return {width,height}}};
+  let expectedHeight=null;
+  for(const [name,bounds] of Object.entries(scope.partyPortraitBounds)){
+   const values={},image={src:name,style:{transform:'translate(4px,0)',setProperty(k,v){values[k]=parseFloat(v)}},dataset:{},addEventListener(){}};
+   scope.prepareCombatPortrait(image,snapshot);
+   const scale=values['--combat-portrait-height']/bounds[1];
+   const visible=(bounds[5]-bounds[3])*scale;
+   const bottom=values['--combat-portrait-bottom']+(bounds[1]-bounds[5])*scale;
+   const right=values['--combat-portrait-right']+(bounds[0]-bounds[4])*scale;
+   if(expectedHeight===null)expectedHeight=visible;
+   assert.ok(Math.abs(visible-expectedHeight)<.001,name+' visible height');
+   assert.ok(Math.abs(bottom-height*.05)<.001,name+' floor');
+   assert.ok(Math.abs(right-width*.05)<.001,name+' right edge');
+   assert.ok((bounds[4]-bounds[2])*scale<width*.85,name+' bounded width');
+   assert.equal(image.style.transform,'translate(4px,0)');
+  }
+  const values={},events={},avatar={src:'avatars/Iris_avatar.jpg',style:{setProperty(k,v){values[k]=parseFloat(v)}},dataset:{},addEventListener(k,f){events[k]=f}};
+  scope.prepareCombatPortrait(avatar,snapshot);assert.equal(values['--combat-portrait-height'],undefined);
+  avatar.naturalWidth=1277;avatar.naturalHeight=1267;events.load();
+  assert.ok(Math.abs(values['--combat-portrait-height']-expectedHeight)<.001);
+  const old=values['--combat-portrait-height'];snapshot.clientHeight=height/2;scope.prepareCombatPortrait(avatar,snapshot);
+  assert.ok(values['--combat-portrait-height']<old,'resize recalculates the common height');
+ }
 });

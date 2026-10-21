@@ -113,4 +113,22 @@ class CaoMinhHuyetMaAccessoriesTest {
     assertEquals(CharacterStatEngine.effective(valid, CAO_MINH_ID).dex,
       CharacterStatEngine.effective(misplaced, CAO_MINH_ID).dex)
   }
+  @Test fun `skill gear stays nine times STR scaled damage at every sampled STR`() {
+    for (str in listOf(5, 6, 15, 50, 165)) {
+      val state = withGear()
+      val actor = state.characters.getValue(CAO_MINH_ID)
+      val base = state.copy(characters = state.characters + (CAO_MINH_ID to actor.copy(
+        statProfile = actor.statProfile.copy(str = str)
+      )))
+      val full = base.copy(equipment = base.equipment + (CAO_MINH_ID to EquipmentState(
+        CAO_MINH_ID, base.equipment.getValue(CAO_MINH_ID).slots + mapOf(
+          "footwear" to CAO_MINH_BOOTS_ID, "gauntlets" to CAO_MINH_GAUNTLETS_ID
+        )
+      )))
+      assertEquals(9, EquipmentCatalog.equippedSkillDamageMultiplier(full, CAO_MINH_ID))
+      assertEquals(CharacterStatEngine.skillBaseDamage(base, CAO_MINH_ID) * 9,
+        CharacterStatEngine.skillBaseDamage(full, CAO_MINH_ID))
+    }
+  }
+
 }

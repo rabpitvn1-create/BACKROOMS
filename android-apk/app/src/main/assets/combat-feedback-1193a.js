@@ -19,6 +19,47 @@
     syvial:'avatars/Syvial_avatar.jpg',
     an_nhien:'avatars/an_nhien_avatar.png'
   };
+  // Visible alpha bounds, measured from bundled sprites (alpha > 16). Canvas
+  // dimensions alone make Catherine shorter and leave Lucia floating above ground.
+  var partyPortraitBounds={
+    'CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png':[1122,1402,1,0,1122,1385],
+    'CAO_MINH_OVERLAY_EXPLORER_IDLE.png':[1122,1402,54,16,1019,1388],
+    'LUCIA_LUC_OVERLAY.png':[1024,1536,17,9,1013,1494],
+    'Catherine.webp':[941,1672,2,113,941,1611],
+    'Janet.webp':[941,1672,15,2,936,1652],
+    'NguyenQuocNam.webp':[941,1672,33,30,941,1646],
+    'HuaTieuLan.webp':[1024,1536,11,63,1023,1490]
+  };
+  function fitCombatPortrait(image,snapshot){
+    if(!image||!image.style||typeof image.style.setProperty!=='function')return;
+    var name=String(image.src||'').split('/').pop(),b=partyPortraitBounds[name];
+    if(!b&&image.naturalWidth&&image.naturalHeight)b=[image.naturalWidth,image.naturalHeight,0,0,image.naturalWidth,image.naturalHeight];
+    if(!b)return;
+    var rect=snapshot.getBoundingClientRect();
+    var w=snapshot.clientWidth||rect.width,h=snapshot.clientHeight||rect.height;
+    // One target height for every actor, including square avatar fallbacks. Reserve
+    // width for the broadest portrait, so narrow screens do not shrink only one actor.
+    var visibleHeight=Math.min(h*.90,w*.84/1.04),scale=visibleHeight/(b[5]-b[3]);
+    image.style.setProperty('--combat-portrait-height',(b[1]*scale)+'px');
+    image.style.setProperty('--combat-portrait-width',(b[0]*scale)+'px');
+    image.style.setProperty('--combat-portrait-bottom',(h*.05-(b[1]-b[5])*scale)+'px');
+    image.style.setProperty('--combat-portrait-right',(w*.05-(b[0]-b[4])*scale)+'px');
+  }
+  function prepareCombatPortrait(image,snapshot){
+    fitCombatPortrait(image,snapshot);
+    if(!image||image.dataset.combatSizingBound)return;
+    image.dataset.combatSizingBound='true';
+    image.addEventListener('load',function(){
+      if(image.isConnected!==false)fitCombatPortrait(image,snapshot);
+    });
+  }
+  function syncCombatPortraitSizes(snapshot){
+    Array.prototype.forEach.call(snapshot.querySelectorAll('.snapshot-character,.snapshot-lucia,.combat-turn-avatar,.combat-turn-exit'),function(image){prepareCombatPortrait(image,snapshot);});
+  }
+  if(typeof window.ResizeObserver==='function'){
+    var portraitResize=new ResizeObserver(function(){var box=document.getElementById('snapshot');if(box&&activeCombat())syncCombatPortraitSizes(box);});
+    var portraitStage=document.getElementById('snapshot');if(portraitStage)portraitResize.observe(portraitStage);
+  }
   function combatPortraitSource(actorId,snapshot){
     var selector=actorId==='cao_minh'?'.snapshot-character':
       actorId==='lucia'?'.snapshot-lucia':'';
@@ -51,6 +92,7 @@
     portrait.className='combat-turn-avatar';portrait.src=source;portrait.alt='';
     portrait.setAttribute('aria-hidden','true');
     snapshot.appendChild(portrait);
+    prepareCombatPortrait(portrait,snapshot);
   }
   function focusCombatActor(actorId){
     var snapshot=document.getElementById('snapshot');if(!snapshot)return;
@@ -69,6 +111,7 @@
       departing.className='combat-turn-exit';departing.src=oldSource;departing.alt='';
       departing.setAttribute('aria-hidden','true');
       snapshot.appendChild(departing);
+      prepareCombatPortrait(departing,snapshot);
       departing.addEventListener('animationend',function(){departing.remove()},{once:true});
       setTimeout(function(){departing.remove()},reduced?90:800);
     }
@@ -86,6 +129,7 @@
     var snapshot=document.getElementById('snapshot');
     if(!snapshot||!activeCombat())return;
     ensureActiveCombatAvatar(snapshot,String(snapshot.dataset.combatFocus||'cao_minh'));
+    syncCombatPortraitSizes(snapshot);
   };
   function clearCombatFocus(){
     ++partyFocusEpoch;
