@@ -11,7 +11,7 @@ import org.json.JSONObject
  * Nodes without a resident roster use the owner-approved roaming pool.
  * Existing rarity weights only choose the species AFTER the encounter succeeds.
  *
- * NPC first-meeting rates (d10000, success if roll <= threshold):
+ * NPC first-meeting rates (d10000, on eligible non-cooldown turns):
  * - Lucia: 5000 (50%) — Level 0 EXECUTE, once-only
  * - Catherine: 500 (5%) — all physical actions across every node, once-only
  * - Janet: 500 (5%) — all physical actions across every node, once-only
@@ -21,6 +21,8 @@ import org.json.JSONObject
  * - Iris/Syvial reunion: 25 (0.25%) each — physical, continuity SEPARATED/LOST/UNKNOWN
  * - An Nhien: 25 (0.25%) — physical, once-only
  * - Temporary ambient NPC generation is archived and never triggered.
+ * After a committed Follower/reunion meeting, 10 subsequent turns suppress
+ * NPC random encounters. At most one NPC is staged per eligible turn.
  *
  * Eligibility (from baseline MainActivity.makeGameplayRolls @ 202737c2):
  * - Meta turns (status/inventory/help): NO rolls at all
@@ -251,10 +253,13 @@ object NpcSpawnTable {
     val encounters = mutableListOf<NpcEncounter>()
     val flags = runCatching { JSONObject(state.world["flagsJson"] ?: "{}") }.getOrNull() ?: JSONObject()
     val partyMemberIds = state.party.memberIds
-    // Guard the NPC table itself, not just its usual SpawnMechanism caller.
-    if (kind != ActionKind.EXECUTE) return emptyList()
+    // The cooldown starts only after a successfully COMMITTED encounter.
+    if (kind != ActionKind.EXECUTE || SpawnMechanism.followerCooldownActive(state)) return emptyList()
     // Baseline: physical from action TEXT verbs, not action kind (MainActivity:1359 @ 202737c2)
     val isPhysical = physicalOverride ?: PhysicalActionDetector.isPhysical(actionText)
+    // One shared ticket for the four 5% windows, including when Entity RNG is disabled.
+    // Lazy: ineligible actions/characters consume no unnecessary random draw.
+    val sharedFollowerTicket by lazy { catherineTicket ?: nextInt(10000) }
 
     // Lucia: 50% on Level 0 EXECUTE, once-only
     if (level == 0 && LUCIA_ID !in partyMemberIds && !flagSpawned(flags, "lucia")) {
@@ -270,7 +275,7 @@ object NpcSpawnTable {
     if (isPhysical && CATHERINE_ID !in partyMemberIds &&
         !flagSpawned(flags, "catherine") &&
         state.characters[CATHERINE_ID]?.metadata?.get("encountered") != "true") {
-      val ticket = catherineTicket ?: nextInt(10000)
+      val ticket = sharedFollowerTicket
       if (ticket in EntitySpawnPool.TOTAL_BP until (EntitySpawnPool.TOTAL_BP + CATHERINE_THRESHOLD)) {
         encounters += NpcEncounter(CATHERINE_ID, "catherine")
       }
@@ -281,7 +286,7 @@ object NpcSpawnTable {
     if (isPhysical && JANET_ID !in partyMemberIds &&
         !flagSpawned(flags, "janet") &&
         state.characters[JANET_ID]?.metadata?.get("encountered") != "true") {
-      val ticket = catherineTicket ?: nextInt(10000)
+      val ticket = sharedFollowerTicket
       if (ticket in (EntitySpawnPool.TOTAL_BP + CATHERINE_THRESHOLD) until
           (EntitySpawnPool.TOTAL_BP + CATHERINE_THRESHOLD + JANET_THRESHOLD)) {
         encounters += NpcEncounter(JANET_ID, "janet")
@@ -293,7 +298,7 @@ object NpcSpawnTable {
     if (isPhysical && HUA_TIEU_LAN_ID !in partyMemberIds &&
         !flagSpawned(flags, "huaTieuLan") &&
         state.characters[HUA_TIEU_LAN_ID]?.metadata?.get("encountered") != "true") {
-      val ticket = catherineTicket ?: nextInt(10000)
+      val ticket = sharedFollowerTicket
       if (ticket in (EntitySpawnPool.TOTAL_BP + CATHERINE_THRESHOLD + JANET_THRESHOLD) until
           (EntitySpawnPool.TOTAL_BP + CATHERINE_THRESHOLD + JANET_THRESHOLD + TIEU_LAN_THRESHOLD)) {
         encounters += NpcEncounter(HUA_TIEU_LAN_ID, "huaTieuLan")
@@ -305,9 +310,9 @@ object NpcSpawnTable {
     if (isPhysical && NGUYEN_QUOC_NAM_ID !in partyMemberIds &&
         !flagSpawned(flags, "nguyenQuocNam") &&
         state.characters[NGUYEN_QUOC_NAM_ID]?.metadata?.get("encountered") != "true") {
-      val ticket = catherineTicket ?: nextInt(10000)
-      if (ticket in (EntitySpawnPool.TOTAL_BP + CATHERINE_THRESHOLD + JANET_THRESHOLD) until
-          (EntitySpawnPool.TOTAL_BP + CATHERINE_THRESHOLD + JANET_THRESHOLD + NAM_THRESHOLD)) {
+      val ticket = sharedFollowerTicket
+      if (ticket in (EntitySpawnPool.TOTAL_BP + CATHERINE_THRESHOLD + JANET_THRESHOLD + TIEU_LAN_THRESHOLD) until
+          (EntitySpawnPool.TOTAL_BP + CATHERINE_THRESHOLD + JANET_THRESHOLD + TIEU_LAN_THRESHOLD + NAM_THRESHOLD)) {
         encounters += NpcEncounter(NGUYEN_QUOC_NAM_ID, "nguyenQuocNam")
       }
     }
@@ -343,7 +348,15 @@ object NpcSpawnTable {
       }
     }
 
-    return encounters
+    // One physical encounter is narrated per turn. Prefer rare reunions, then
+    // the four 5% Followers, then Lucia's more common Level 0 first meeting.
+    // 5% applies to each new Follower's qualifying roll before the shared cooldown.
+    val first = encounters.minByOrNull { encounter -> when (encounter.characterId) {
+      LUC_TRAM_ID, IRIS_ID, SYVIAL_ID, AN_NHIEN_ID -> 0
+      CATHERINE_ID, JANET_ID, HUA_TIEU_LAN_ID, NGUYEN_QUOC_NAM_ID -> 1
+      else -> 2
+    } }
+    return first?.let(::listOf).orEmpty()
   }
 }
 
@@ -365,6 +378,18 @@ data class SpawnResult(
  * GM only narrates results; Core decides.
  */
 object SpawnMechanism {
+  /** Number of complete turns without a random Follower meeting after one is confirmed. */
+  const val FOLLOWER_SPACING_TURNS = 10
+  const val LAST_FOLLOWER_MEETING_TURN = "spawn.lastFollowerMeetingTurn"
+
+  fun followerCooldownActive(state: GameState): Boolean {
+    val last = state.metadata[LAST_FOLLOWER_MEETING_TURN]?.toIntOrNull() ?: return false
+    // Inclusive bound suppresses the 10 subsequent turns; a new NPC may roll
+    // only on turn last+11. CoreClientProjection advances after each completed turn.
+    val turn = CoreClientProjection.turnIndex(state)
+    return turn <= last + FOLLOWER_SPACING_TURNS
+  }
+
   /**
    * Rolls for entity and NPC spawns.
    *
@@ -502,7 +527,7 @@ object SpawnMechanism {
   fun prepareNpcEncounters(state: GameState, encounters: List<NpcSpawnTable.NpcEncounter>): GameState {
     if (encounters.isEmpty()) return discardPendingNpcEncounters(state)
     val arr = JSONArray()
-    encounters.forEach { e ->
+    encounters.take(1).forEach { e ->
       arr.put(JSONObject().put("characterId", e.characterId).put("flagKey", e.flagKey))
     }
     return state.copy(metadata = state.metadata + (PENDING_NPC_METADATA_KEY to arr.toString()))
@@ -570,8 +595,9 @@ object SpawnMechanism {
     var next = state
     val flags = runCatching { JSONObject(state.world["flagsJson"] ?: "{}") }.getOrNull() ?: JSONObject()
 
-    // NPCs: set encounter flags and character metadata
-    for (encounter in encounters) {
+    // Never commit more than one NPC meeting from a single turn, including
+    // explicit/direct-apply callers. Cooldown is recorded only on successful commit.
+    for (encounter in encounters.take(1)) {
       val key = encounter.flagKey
       val record = flags.optJSONObject(key) ?: JSONObject()
       // Mark as encountered/spawned (once-only protection for future rolls)
@@ -598,7 +624,10 @@ object SpawnMechanism {
       }
     }
 
-    next = next.copy(world = next.world + ("flagsJson" to flags.toString()))
+    next = next.copy(
+      world = next.world + ("flagsJson" to flags.toString()),
+      metadata = next.metadata + (LAST_FOLLOWER_MEETING_TURN to CoreClientProjection.turnIndex(state).toString())
+    )
     return next
   }
 

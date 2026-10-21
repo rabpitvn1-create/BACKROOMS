@@ -224,11 +224,15 @@ class EntitySpawnPoolTest {
       val existing = flags.getJSONObject(key)
       assertTrue(existing.getBoolean("spawned"))
       assertTrue(existing.getBoolean("present"))
+      // Simulate real elapsed turns before a reunion; the shared encounter
+      // cooldown prevents any Follower from appearing immediately after a meeting.
       val separated = met.copy(
         characters = met.characters + (id to met.characters.getValue(id)
           .copy(presence = CharacterPresence.SEPARATED)),
         world = met.world + ("flagsJson" to flags.put(key,
-          existing.put("present", false).put("continuity", "SEPARATED")).toString())
+          existing.put("present", false).put("continuity", "SEPARATED")).toString()),
+        metadata = met.metadata + ("core.viewTurn" to
+          (CoreClientProjection.turnIndex(met) + SpawnMechanism.FOLLOWER_SPACING_TURNS + 1).toString()))
       )
       val reunion = NpcSpawnTable.rollNpcs(separated, ActionKind.EXECUTE,
         "đi về phía trước", 2) { 0 }
