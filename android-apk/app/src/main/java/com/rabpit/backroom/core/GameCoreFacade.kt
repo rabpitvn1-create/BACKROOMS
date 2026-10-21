@@ -194,7 +194,12 @@ class GameCoreFacade private constructor(
     val deviceControl = MiniMapRuntime.isMechanismControl(state, command.getString("targetId"))
     val turnId = nextTurnId(state)
     val input = effectiveFreeText ?: "${command.getString("kind")}:$actionId"
-    val plannedMinutes = if (effectiveFreeText != null) TimeCostPolicy.estimateMinutes(effectiveFreeText)
+    // Ordinary FREE narration has always cost one minute. Only explicit durations
+    // or genuine rest/sleep may reserve longer intervals.
+    val timedFree = effectiveFreeText != null &&
+      (RestActionPolicy.activity(effectiveFreeText) != TimeActivity.NORMAL ||
+        TimeCostPolicy.explicitMinutes(effectiveFreeText) != null)
+    val plannedMinutes = if (timedFree) TimeCostPolicy.estimateMinutes(effectiveFreeText!!)
       else if (command.getString("kind") == "SEARCH" && !deviceControl) 5 else 1
     val started = ActionRuntime.start(state, actionId, turnId, CAO_MINH_ID, ActionKind.EXECUTE,
       input, staged.nodeId, plannedMinutes)
