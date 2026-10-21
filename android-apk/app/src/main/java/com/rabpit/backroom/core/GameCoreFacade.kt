@@ -221,10 +221,21 @@ class GameCoreFacade private constructor(
     var roll = if (isWorldExit) null
       else SpawnMechanism.rollSceneSpawns(atTarget, command.getString("kind")) { spawnRng.nextInt(it) }
     var interruptedAt = 0
+    // Existing extreme thermal states can interrupt sleep even without an
+    // Entity. A 30-minute wake-up uses only the current physiology data.
+    val extremeSleepEnvironment = RestActionPolicy.activities(atTarget, input).any { (id, mode) ->
+      mode == TimeActivity.SLEEP &&
+        atTarget.characters[id]?.physiology?.thermalState?.trim()?.lowercase() in
+          setOf("overheated", "freezing")
+    }
+    val environmentInterrupted = !isWorldExit && roll?.entityKey == null &&
+      extremeSleepEnvironment && plannedMinutes > 30
+    if (environmentInterrupted) interruptedAt = 30
     // The ordinary turn roll checks the moment sleep begins. Pre-reserve any
     // later interruption on 60-minute checks so retry/restart NEVER rerolls it.
     // Persist the first interruption time with the same pending action.
-    if (!isWorldExit && RestActionPolicy.activity(input) in setOf(TimeActivity.REST, TimeActivity.SLEEP) &&
+    if (!isWorldExit && !environmentInterrupted &&
+        RestActionPolicy.activity(input) in setOf(TimeActivity.REST, TimeActivity.SLEEP) &&
         plannedMinutes > 60 && roll?.entityKey == null &&
         JSONObject(atTarget.world["flagsJson"] ?: "{}").optBoolean("entityEncountersAllowed", true)) {
       for (minute in 60 until plannedMinutes step 60) {
@@ -247,7 +258,8 @@ class GameCoreFacade private constructor(
       metadata = reserved.metadata + (SPAWN_ENCOUNTER_OWNER to actionId))
     val public = staged.event
     if (interruptedAt > 0) public.put("result",
-      "Nghỉ/ngủ bị gián đoạn sau $interruptedAt phút vì có thực thể xuất hiện.")
+      if (environmentInterrupted) "Giấc ngủ bị gián đoạn sau $interruptedAt phút vì nhiệt độ môi trường cực đoan."
+      else "Nghỉ/ngủ bị gián đoạn sau $interruptedAt phút vì có thực thể xuất hiện.")
     CombatRuntime.pending(reserved)?.let {
       public.put("encounter", JSONObject().put("entityKey", it.entityKey).put("entityName", CombatRuntime.entityName(it.entityKey)).put("encounterId", it.encounterId))
     }
@@ -256,6 +268,7 @@ class GameCoreFacade private constructor(
     })
     val pending = JSONObject().put("actionId", actionId).put("command", command)
       .put("sleepInterruptAfterMinutes", interruptedAt)
+      .put("sleepEnvironmentInterrupted", environmentInterrupted)
       .put("progress", staged.progress).put("discardKeys", JSONArray(staged.discardKeys.toList()))
       .put("nodeId", staged.nodeId).put("label", staged.label)
       .put("public", public).apply {
@@ -323,8 +336,8 @@ class GameCoreFacade private constructor(
     val turn = TurnCoordinator.createPending(core, turnId, session.input, true)
     check(turn.error == null) { turn.error ?: "scene_pending_failed" }
     // An encounter reserved before sleep/rest interrupts the planned interval immediately.
-    val restInterrupted = CombatRuntime.pending(turn.state) != null &&
-      RestActionPolicy.activity(session.input) != TimeActivity.NORMAL
+    val restInterrupted = RestActionPolicy.activity(session.input) != TimeActivity.NORMAL &&
+      (CombatRuntime.pending(turn.state) != null || pending.optBoolean("sleepEnvironmentInterrupted", false))
     val actualMinutes = if (restInterrupted)
       pending.optInt("sleepInterruptAfterMinutes", 0).takeIf { it > 0 } ?: 1
       else (session.plannedMinutes ?: 1)

@@ -167,6 +167,26 @@ class FreeActionTurnTest {
     assertEquals(repo.state, GameStateCodec.decode(GameStateCodec.encode(repo.state)))
   }
 
+  @Test fun extremeTemperatureWakesSleeperWithoutInventingAnEntity() {
+    val rng = ScriptedRng(intArrayOf())
+    val (repo, core) = fixture(rng)
+    val player = repo.state.characters.getValue(CAO_MINH_ID)
+    repo.state = repo.state.copy(characters = repo.state.characters + (CAO_MINH_ID to
+      player.copy(physiology = player.physiology.copy(thermalState = "freezing"))))
+    val cmd = MiniMapRuntime.freeCommand(repo.state)
+    core.beginSceneAction(cmd.toString(), "Tôi ngủ 3 giờ", "Tôi ngủ 3 giờ")
+    val pending = JSONObject(repo.state.world.getValue(MiniMapRuntime.PENDING))
+    assertTrue(pending.getBoolean("sleepEnvironmentInterrupted"))
+    assertEquals(30, pending.getInt("sleepInterruptAfterMinutes"))
+    assertNull(CombatRuntime.pending(repo.state))
+    val event = JSONObject(core.sceneNarrationContext())
+    assertTrue(event.getString("result").contains("nhiệt độ"))
+    core.commitSceneAction(cmd.getString("actionId"), event.getString("result"), "{}")
+    assertEquals(30L, repo.state.time.elapsedSubjectiveMinutes)
+    assertNull(CombatRuntime.pending(repo.state))
+    assertEquals(repo.state, GameStateCodec.decode(GameStateCodec.encode(repo.state)))
+  }
+
   @Test fun uninterruptedLongSleepUsesFullPlannedTime() {
     val rng = ScriptedRng(intArrayOf())
     val (repo, core) = fixture(rng)
