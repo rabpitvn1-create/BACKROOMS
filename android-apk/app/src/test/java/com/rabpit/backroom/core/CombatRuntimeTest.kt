@@ -514,6 +514,54 @@ class CombatRuntimeTest {
   }
 
 
+  @Test fun newRoamingEntitiesHaveIndependent40PercentSkillProcsAndPersistEffects() {
+    val skills = mapOf(
+      "926" to listOf("Âm Trảo Phá Mạch" to 130, "Tiếng Rít Đoạt Hồn" to 140),
+      "927" to listOf("Nanh Độc Xuyên Thịt" to 135, "Tam Túc Liệt Cốt" to 145)
+    )
+    for ((key, specs) in skills) {
+      val observed = mutableMapOf<String, Int>()
+      var both = 0
+      for (counter in 0..300) {
+        val initial = CombatRuntime.start(GameState.initial(), key)
+        val state = initial.copy(metadata = initial.metadata +
+          ("combat.eventCounter" to counter.toString()))
+        val result = CombatRuntime.resolve(state, "SEARCH", "quan sát")
+        val procCount = specs.count { (name, percent) ->
+          val found = result.reply.contains("$name proc: $percent% Basic Attack")
+          if (found) observed[name] = (observed[name] ?: 0) + 1
+          found
+        }
+        if (procCount == 2) both++
+      }
+      assertEquals(2, observed.size)
+      for ((name, count) in observed) {
+        assertTrue("$name proc frequency is out of range: $count", count in 60..150)
+      }
+      assertTrue("$key two independent procs should overlap", both > 4)
+    }
+    val initial = CombatRuntime.start(GameState.initial(), "926")
+    val state = initial.copy(metadata = initial.metadata + mapOf(
+      "combat.roamingBleed.$CAO_MINH_ID" to "2",
+      "combat.roamingPoison.$CAO_MINH_ID" to "2",
+      "combat.roamingStun.$CAO_MINH_ID" to "1"
+    ))
+    val loaded = GameStateCodec.decode(GameStateCodec.encode(state))
+    val result = CombatRuntime.resolve(loaded, "EXECUTE", "Cả Party tấn công")
+    assertTrue(result.reply.contains("bị Choáng và mất lượt tấn công"))
+    assertEquals("1", result.state.metadata["combat.roamingBleed.$CAO_MINH_ID"])
+    assertEquals("1", result.state.metadata["combat.roamingPoison.$CAO_MINH_ID"])
+    assertFalse(result.state.metadata.containsKey("combat.roamingStun.$CAO_MINH_ID"))
+    assertTrue(result.feedback.any { it.actorId == CAO_MINH_ID &&
+      it.outcome == "tick" && it.status == CombatRuntime.FeedbackStatus.BLEED })
+    assertTrue(result.feedback.any { it.actorId == CAO_MINH_ID &&
+      it.outcome == "tick" && it.status == CombatRuntime.FeedbackStatus.POISON })
+    assertEquals(CombatRuntime.active(initial)!!.entityMaxHp, CombatRuntime.active(result.state)!!.entityHp)
+    assertTrue(CombatRuntime.clear(result.state).metadata.keys.none {
+      it.startsWith("combat.roaming")
+    })
+  }
+
   @Test fun lifeformTrioUsesOnePointThreeHoundBaseBeforeSharedDurability() {
     for (key in listOf("blackroot_sentinel", "sinew_strider", "hollow_grasper")) {
       val active = CombatRuntime.active(CombatRuntime.start(GameState.initial(), key))!!

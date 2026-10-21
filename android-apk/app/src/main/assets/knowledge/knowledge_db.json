@@ -2006,7 +2006,7 @@
       "id": "ENTITY.926.CANON",
       "domain": "ENTITY",
       "kind": "entity-canon-card",
-      "text": "Whistlers là Entity săn người; tiếng huýt gió mảnh và nhịp đặt chi lệch chỉ là manh mối, không phải phép thôi miên hay định vị chắc chắn. Không có skill/status riêng trong Core. Common Roaming; không xác nhận Level cư trú. Stat 160 HP gốc / 30 ATK / 4 Armor / 16 Aggression; HP thực chiến 2 lần Hound cùng rank, Level 0 là 440. Nguồn gốc và năng lực khác UNKNOWN.",
+      "text": "Whistlers: Âm Trảo Phá Mạch 40% proc, 130% Basic Attack + Bleed 3 lượt (3% Max HP mỗi lượt). Tiếng Rít Đoạt Hồn 40% proc độc lập, 140% Basic Attack + Stun mất lượt tấn công tiếp. Hai proc có thể cùng xảy ra trên một lần Entity vượt accuracy, tạo hai đòn; nếu cả hai trượt proc thì đánh thường. Chỉ nạn nhân thực sự chịu damage mới có trạng thái. Common Roaming, 440 HP thực chiến Level 0. Năng lực khác UNKNOWN.",
       "source": {
         "document": "Google Drive /Novel/Asset/03_Entity/NEW_ENTITIES_CODEX_R01.md (1XRoBXISlL61kdIl56w5xzkkCdEOsQdWP)",
         "anchor": "## ENT-926 — WHISTLERS"
@@ -2046,7 +2046,7 @@
       "id": "ENTITY.927.CANON",
       "domain": "ENTITY",
       "kind": "entity-canon-card",
-      "text": "Entity 927 săn người bằng áp sát và hàm lớn; dịch nhầy chưa được xác nhận có độc hay acid. Không có AoE/bleed/status/skill riêng trong Core; không khẳng định quan hệ chủng loài với 926. Common Roaming, không có Level cư trú xác nhận. Stat 320 HP gốc / 60 ATK / 8 Armor / 32 Aggression (2 lần 926); HP thực chiến 2 lần 926 cùng rank, Level 0 là 880. Nguồn gốc/điểm yếu UNKNOWN.",
+      "text": "Entity 927: Nanh Độc Xuyên Thịt 40% proc, 135% Basic Attack + Poison 3 lượt (2% Max HP/lượt); Tam Túc Liệt Cốt 40% proc độc lập, 145% Basic Attack + Bleed 3 lượt (3% Max HP/lượt). Có thể kích hoạt đồng thời thành hai đòn; không proc thì đánh thường, mọi đòn chịu EVA/DEF. Common Roaming, stat gốc 320 HP / 60 ATK / 8 Armor / 32 Aggression, 880 HP thực chiến Level 0. Không tự suy nguồn độc từ dịch nhầy; nguồn gốc UNKNOWN.",
       "source": {
         "document": "Google Drive /Novel/Asset/03_Entity/NEW_ENTITIES_CODEX_R01.md (1XRoBXISlL61kdIl56w5xzkkCdEOsQdWP)",
         "anchor": "## ENT-927 — ENTITY 927"

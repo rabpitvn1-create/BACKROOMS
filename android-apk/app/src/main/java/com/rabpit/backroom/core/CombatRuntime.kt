@@ -26,6 +26,11 @@ object CombatRuntime {
   private const val LUC_TRAM_ENEMY_WARD_KEY = "combat.lucTramEnemyWardTurns"
   private const val LUC_TRAM_ENEMY_DOMAIN_KEY = "combat.lucTramEnemyDomainWave"
   private const val LUC_TRAM_ENEMY_SWORD_DAMAGE = 20
+  private const val PROC_BLEED = "combat.roamingBleed."
+  private const val PROC_POISON = "combat.roamingPoison."
+  private const val PROC_STUN = "combat.roamingStun."
+  private const val PROC_DOT_TURNS = 3
+  private const val PROC_CHANCE_PERCENT = 40
   private const val LUCKY_BEAR_KEY = "LuckyBear"
   private const val BROWNIES_KEY = "Brownies"
   private const val DIEP_MINH_MAX_HP = 2999
@@ -424,6 +429,7 @@ object CombatRuntime {
     var bleedTurns = state.metadata[CAO_MINH_BLEED_TURNS_KEY]?.toIntOrNull()?.coerceIn(0, CAO_MINH_FOUR_SLASH_BLEED_TURNS) ?: 0
     var quickStepTurns = state.metadata[CAO_MINH_QUICK_STEP_TURNS_KEY]?.toIntOrNull()?.coerceIn(0, CAO_MINH_QUICK_STEP_DURATION_TURNS) ?: 0
     var entityStunnedThisTurn = false
+    val stunnedParty = mutableSetOf<String>()
     var luciaBleedTurns = state.metadata[LUCIA_BLEED_TURNS_KEY]?.toIntOrNull()?.coerceIn(0, 2) ?: 0
     var luciaBleedPercent = state.metadata[LUCIA_BLEED_PERCENT_KEY]?.toIntOrNull()?.coerceIn(0, 25) ?: 0
     var luciaPoisonTurns = state.metadata[LUCIA_POISON_TURNS_KEY]?.toIntOrNull()?.coerceIn(0, 2) ?: 0
@@ -479,6 +485,40 @@ object CombatRuntime {
     var syvialBleedTurns = state.metadata[SYVIAL_BLEED_TURNS_KEY]?.toIntOrNull()?.coerceIn(0, 3) ?: 0
     var syvialDisorientTurns = state.metadata[SYVIAL_DISORIENT_TURNS_KEY]?.toIntOrNull()?.coerceIn(0, 2) ?: 0
     var syvialDevilTrigger = state.metadata[SYVIAL_DEVIL_TRIGGER_KEY]?.equals("true", ignoreCase = true) == true
+
+
+    // The afflicted member owns this combat-local status. Effects only tick from
+    // the following Party turn, persist through save/load, and never target a
+    // different character merely because Cao Minh is the combat HUD leader.
+    for (id in PartyCombatHealth.members(resolvedState)) {
+      val stunKey = PROC_STUN + id
+      val stun = state.metadata[stunKey]?.toIntOrNull()?.coerceIn(0, 1) ?: 0
+      if (stun > 0) {
+        if ((resolvedState.characters[id]?.vitalState?.currentHp ?: 0) > 0) stunnedParty += id
+        resolvedState = withCombatCounter(resolvedState, stunKey, 0)
+      }
+      for ((prefix, effect, percent) in listOf(
+        Triple(PROC_BLEED, FeedbackStatus.BLEED, 3),
+        Triple(PROC_POISON, FeedbackStatus.POISON, 2)
+      )) {
+        val key = prefix + id
+        val turns = state.metadata[key]?.toIntOrNull()?.coerceIn(0, PROC_DOT_TURNS) ?: 0
+        if (turns <= 0) continue
+        val hp = resolvedState.characters[id]?.vitalState?.currentHp ?: 0
+        if (hp > 0) {
+          val maxHp = CharacterStatEngine.effective(resolvedState, id).maxHp
+          val amount = percentDamage(maxHp, percent).coerceAtMost(hp)
+          val after = hp - amount
+          resolvedState = CharacterStatEngine.setCurrentHp(resolvedState, id, after)
+          if (id == CAO_MINH_ID) c = c.copy(playerHp = after)
+          feedback += DamageFeedback("actor", amount, status = effect, actorId = id,
+            phase = "entity", skill = if (effect == FeedbackStatus.BLEED) "Vết thương do Entity" else "Độc của Entity",
+            sourceName = c.entityName, entityName = c.entityName, outcome = "tick")
+          log += "${resolvedState.characters[id]?.name ?: id} chịu ${effect.label}: -$amount HP, còn ${turns - 1} lượt."
+        }
+        resolvedState = withCombatCounter(resolvedState, key, turns - 1)
+      }
+    }
 
     if (c.playerHp > 0 && lifeformBleedTurns > 0) {
       val bleedDamage = percentDamage(c.playerMaxHp, LIFEFORM_BLEED_MAX_HP_PERCENT)
@@ -639,6 +679,10 @@ object CombatRuntime {
         log += "PARTY ACTION TẤN CÔNG: ${activePartyNames(resolvedState)} cùng khai triển đòn đánh trong một combat turn."
         for ((turnIndex, actorId) in partyOrder.withIndex()) {
           if (c.entityHp <= 0) break
+          if (actorId in stunnedParty) {
+            log += "${resolvedState.characters[actorId]?.name ?: actorId} bị Choáng và mất lượt tấn công."
+            continue
+          }
           if (newWaveAwaitingAction) {
             canCounterAttack = true
             newWaveAwaitingAction = false
@@ -1192,6 +1236,70 @@ object CombatRuntime {
       log += "Devils And Gold kích hoạt ở combat turn ${c.eventCounter}: toàn bộ nhân vật ACTIVE đang ra trận nhận ${DIEP_MINH_ULTIMATE_PERCENT}% Max HP. ${pulse.summary}."
       val groupHpAfter = PartyCombatHealth.currentHp(resolvedState)
       log += "${c.entityName} phản công: Party chịu -${(groupHpBefore - groupHpAfter).coerceAtLeast(0)} HP (${groupHpAfter}/${PartyCombatHealth.maxHp(resolvedState)})."
+    } else if (c.entityKey == "926" || c.entityKey == "927") {
+      val incomingRoll = roll(c.copy(eventCounter = c.eventCounter + 31), 100)
+      val defense = when (intent) {
+        Intent.EVADE -> 34; Intent.GUARD -> 30; Intent.MOVE -> 18
+        Intent.READ -> 12; else -> 0
+      } + when (c.cover) {
+        Cover.HARD -> 22; Cover.PARTIAL -> 10; Cover.EXPOSED -> 0
+      } + max(0, c.momentum) * 4 + PokerDiceCore.defenseBonus(state)
+      val chance = (profile.aggression * 8 - defense + max(0, -c.momentum) * 7 -
+        companionEnemyAccuracyPenalty).coerceIn(0, 88)
+      if (incomingRoll >= chance) {
+        recordMiss("actor", CAO_MINH_ID, phase = "entity")
+        log += "${c.entityName} không xuyên được thế phòng thủ/di chuyển của Party."
+      } else {
+        val procs = roamingProcs(c.entityKey).filterIndexed { index, _ ->
+          roll(c.copy(eventCounter = c.eventCounter + 1103 + index * 139), 100) < PROC_CHANCE_PERCENT
+        }
+        // Independent procs can both fire. They REPLACE one ordinary hit with up
+        // to two enhanced hits, never add free damage atop an ordinary hit.
+        val strikes: List<RoamingProc?> = if (procs.isEmpty()) listOf(null) else procs
+        val basicDamage = max(1, EntityPowerScaling.scale(profile.attack, c.progressionRank) +
+          roll(c.copy(eventCounter = c.eventCounter + 47), 7) - when (c.cover) {
+            Cover.HARD -> 8; Cover.PARTIAL -> 4; Cover.EXPOSED -> 0
+          })
+        for ((strikeIndex, skill) in strikes.withIndex()) {
+          val damage = if (skill == null) basicDamage
+            else CharacterStatCore.scaleByPercent(basicDamage, skill.multiplier)
+          val before = CharacterStatEngine.setCurrentHp(resolvedState, CAO_MINH_ID, c.playerHp)
+          val hit = PartyCombatHealth.applyStatAdjustedDamage(before, damage,
+            c.eventCounter + strikeIndex,
+            dodgeRoll = { i -> roll(c.copy(eventCounter = c.eventCounter + 601 + i * 41 + strikeIndex * 101), 10000) },
+            criticalRoll = { i -> roll(c.copy(eventCounter = c.eventCounter + 619 + i * 41 + strikeIndex * 101), 10000) },
+            leaderEvasionBonusPercent = if (quickStepTurns > 0) CAO_MINH_QUICK_STEP_EVASION_BONUS_PERCENT else 0)
+          resolvedState = hit.state
+          for ((id, loss) in hit.damageByMember) {
+            feedback += DamageFeedback("actor", loss, critical = id in hit.criticalIds,
+              status = skill?.effect, actorId = id, phase = "entity", skill = skill?.name ?: "đánh thường",
+              sourceName = c.entityName, entityName = c.entityName)
+            // Dodge, fully blocked and fatal hits do not start persistent debuffs.
+            if (skill != null && (resolvedState.characters[id]?.vitalState?.currentHp ?: 0) > 0) {
+              val key = when (skill.effect) {
+                FeedbackStatus.BLEED -> PROC_BLEED + id
+                FeedbackStatus.POISON -> PROC_POISON + id
+                FeedbackStatus.STUN -> PROC_STUN + id
+                else -> error("Unexpected proc effect")
+              }
+              resolvedState = withCombatCounter(resolvedState, key,
+                if (skill.effect == FeedbackStatus.STUN) 1 else PROC_DOT_TURNS)
+            }
+          }
+          hit.dodgedIds.forEach {
+            recordMiss("actor", it, phase = "entity", skill = skill?.name ?: "đánh thường")
+          }
+          c = c.copy(playerHp = resolvedState.characters[CAO_MINH_ID]?.vitalState?.currentHp ?: c.playerHp,
+            momentum = max(-3, c.momentum - 1))
+          if (skill != null) log += "${skill.name} proc: ${skill.multiplier}% Basic Attack; ${skill.effect.label}."
+          val partyHp = PartyCombatHealth.currentHp(resolvedState)
+          val distribution = hit.damageByMember.entries.joinToString("; ") { (id, loss) ->
+            "${resolvedState.characters[id]?.name ?: id} -$loss"
+          }
+          log += "${c.entityName} phản công: Party chịu -${hit.appliedDamage} HP " +
+            "($partyHp/${PartyCombatHealth.maxHp(resolvedState)}). $distribution."
+        }
+      }
     } else {
       val incomingRoll = roll(c.copy(eventCounter = c.eventCounter + 31), 100)
       val defense = when (intent) { Intent.EVADE -> 34; Intent.GUARD -> 30; Intent.MOVE -> 18; Intent.READ -> 12; else -> 0 } +
@@ -1516,6 +1624,21 @@ object CombatRuntime {
       caoMinhHp = caoMinhHp,
       summary = if (lines.isEmpty()) "không có nhân vật ACTIVE hợp lệ để nhận sát thương" else lines.joinToString("; ")
     )
+  }
+
+
+  // Each skill has its own 40% trigger, checked after the standard attack hit roll.
+  private data class RoamingProc(val name: String, val multiplier: Int, val effect: FeedbackStatus)
+  private fun roamingProcs(key: String): List<RoamingProc> = when (key) {
+    "926" -> listOf(
+      RoamingProc("Âm Trảo Phá Mạch", 130, FeedbackStatus.BLEED),
+      RoamingProc("Tiếng Rít Đoạt Hồn", 140, FeedbackStatus.STUN)
+    )
+    "927" -> listOf(
+      RoamingProc("Nanh Độc Xuyên Thịt", 135, FeedbackStatus.POISON),
+      RoamingProc("Tam Túc Liệt Cốt", 145, FeedbackStatus.BLEED)
+    )
+    else -> emptyList()
   }
 
   // LIFEFORM_BASIC_ATTACK_PERCENT_R03
