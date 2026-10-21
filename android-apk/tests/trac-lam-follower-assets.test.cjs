@@ -26,3 +26,14 @@ test('Trac Lam is registered in authoritative GM knowledge without a second NPC 
   assert.match(card[0].text, /M-92 Gemini/);
   assert.match(card[0].text, /AEGIS-K4/);
 });
+
+test('Trác Lâm renders in snapshot only when Core marks him present or active in Party', () => {
+  const main = fs.readFileSync(path.join(assets, '../java/com/rabpit/backroom/MainActivity.java'), 'utf8');
+  assert.match(main, /TRAC_LAM_FOLLOWER_OVERLAY_R01/);
+  assert.match(main, /function tracLamVisualPresent\(\)/);
+  assert.match(main, /function appendTracLamVisual\(\)/);
+  assert.match(main, /file:\/\/\/android_asset\/TracLam\.png/);
+  assert.match(main, /m\.id\)==='trac_lam'/);
+  assert.match(main, /encounteredCharacters/);
+  assert.match(main, /\.snapshot-hua-tieu-lan,\.snapshot-trac-lam/);
+});
