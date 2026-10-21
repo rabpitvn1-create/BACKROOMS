@@ -119,8 +119,8 @@ object CharacterDetailProjector {
         val physiology = normalizedItem.metadata["physiologyEffect"].orEmpty()
           .split(',', ';', '|').map { it.trim().uppercase() }.filter { it.isNotEmpty() }.toSet()
         if (physiology.all { it in setOf("FOOD", "WATER") }) {
-          if ("FOOD" in physiology) add("Đặt lại bộ đếm thiếu thức ăn về 0 phút.")
-          if ("WATER" in physiology) add("Đặt lại bộ đếm thiếu nước về 0 phút.")
+          if ("FOOD" in physiology) add("Giảm tối đa ${normalizedItem.metadata["foodRecoveryMinutes"] ?: "720"} phút thiếu thức ăn mỗi khẩu phần.")
+          if ("WATER" in physiology) add("Giảm tối đa ${normalizedItem.metadata["waterRecoveryMinutes"] ?: "360"} phút thiếu nước mỗi khẩu phần.")
         }
         if (ItemContentRules.nextAfterUse(normalizedItem) == null) add("Tiêu hao theo số lượng đã chọn khi dùng.")
       }
@@ -175,7 +175,7 @@ object CharacterDetailProjector {
       evasionBasisPoints = effective.evasionBasisPoints,
       criticalResistanceBasisPoints = effective.resCriticalBasisPoints,
       evasionResistanceBasisPoints = effective.resEvasionBasisPoints,
-      injuries = c.injuries.toList(), physiology = PhysiologyStatusPolicy.derive(c.physiology),
+      injuries = c.injuries.toList(), physiology = PhysiologyStatusPolicy.derive(c.physiology, c.metadata["survivalMultiplier"]?.toDoubleOrNull() ?: 1.0),
       inventory = inventory.toList(), inventoryDetails = details,
       inventoryCapacityUsed = InventoryCapacityPolicy.usedSlots(normalized, c.id),
       inventoryCapacityMax = InventoryCapacityPolicy.maxSlots(normalized, c.id),
