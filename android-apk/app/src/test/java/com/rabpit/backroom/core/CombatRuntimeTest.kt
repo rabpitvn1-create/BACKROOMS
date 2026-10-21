@@ -288,8 +288,8 @@ class CombatRuntimeTest {
     val started = CombatRuntime.start(GameState.initial(), "diep_minh")
     val state = started.copy(metadata = started.metadata + mapOf(
       "combat.eventCounter" to "2",
-      "combat.entityHp" to "2000",
-      "combat.entityMaxHp" to "2999"
+      "combat.entityHp" to "50000",
+      "combat.entityMaxHp" to "50000"
     ))
     val noHand = CombatRuntime.resolve(state, "EXECUTE", action)
     val ordinary = CombatRuntime.resolve(withUltimateHand(state, "TWO PAIR"), "EXECUTE", action)
@@ -300,7 +300,8 @@ class CombatRuntimeTest {
       assertFalse(result.reply, result.reply.contains("Huyết Ma Nhị Thập Tứ Trảm"))
     }
 
-    val slashDamage = CharacterStatEngine.skillBaseDamage(state, CAO_MINH_ID) * 115 / 100
+    val slashDamage = CharacterStatCore.scaleByPercent(
+      CharacterStatEngine.skillBaseDamage(state, CAO_MINH_ID), 115)
     for (hand in listOf("SSF", "FSF")) {
       val result = CombatRuntime.resolve(withUltimateHand(state, hand), "EXECUTE", action)
       assertTrue(result.handled)
@@ -333,7 +334,10 @@ class CombatRuntimeTest {
       // 12th turn is a former automatic trigger for Iris/Syvial. Lục Trầm
       // additionally has a confirmed sword and opening 2.
       val state = started.copy(metadata = started.metadata + mapOf(
-        "combat.eventCounter" to "11", "combat.opening" to "2"
+        "combat.eventCounter" to "11", "combat.opening" to "2",
+        // Keep the target alive long enough to verify every Party member's
+        // finalized Ultimate after Cao Minh's new x9 skill-only multiplier.
+        "combat.entityHp" to "50000", "combat.entityMaxHp" to "50000"
       ))
       for (without in listOf(state, withUltimateHand(state, "TWO PAIR"),
           withUltimateHand(state, "SSF", finalized = false))) {
@@ -352,14 +356,15 @@ class CombatRuntimeTest {
   @Test fun guiltyCrownOverrideAppliesTwentyFourStrScaledHitsBeforeNormalRegen() {
     var state = CombatRuntime.start(GameState.initial(), "diep_minh")
     state = state.copy(metadata = state.metadata + mapOf(
-      "combat.entityHp" to "2000",
-      "combat.entityMaxHp" to "2999",
+      "combat.entityHp" to "50000",
+      "combat.entityMaxHp" to "50000",
       "combat.eventCounter" to "2"
     ))
 
     val third = CombatRuntime.resolve(withUltimateHand(state, "SSF"), "EXECUTE", PokerDiceCore.DIRECT_COMBAT_ACTION)
     assertTrue(third.handled)
-    val slashDamage = CharacterStatEngine.skillBaseDamage(state, CAO_MINH_ID) * 115 / 100
+    val slashDamage = CharacterStatCore.scaleByPercent(
+      CharacterStatEngine.skillBaseDamage(state, CAO_MINH_ID), 115)
     assertTrue(third.reply.contains("tổng -${24 * slashDamage} HP"))
     assertTrue(third.reply.contains("Accuracy 200%"))
     assertTrue(third.reply.contains("bỏ qua toàn bộ hiệu ứng né"))

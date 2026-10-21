@@ -107,5 +107,10 @@ class CaoMinhHuyetMaAccessoriesTest {
       CharacterStatEngine.effective(janet, JANET_ID).agi)
     val misplaced = withGear("ring" to CAO_MINH_GAUNTLETS_ID)
     assertEquals(1, EquipmentCatalog.equippedSkillDamageMultiplier(misplaced, CAO_MINH_ID))
+    val valid = withGear()
+    assertEquals(CharacterStatEngine.effective(valid, CAO_MINH_ID).agi,
+      CharacterStatEngine.effective(misplaced, CAO_MINH_ID).agi)
+    assertEquals(CharacterStatEngine.effective(valid, CAO_MINH_ID).dex,
+      CharacterStatEngine.effective(misplaced, CAO_MINH_ID).dex)
   }
 }

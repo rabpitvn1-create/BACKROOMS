@@ -160,11 +160,15 @@ object CharacterStatCore {
   /** Sum of percentage stat bonuses from all equipped items. Bound gear cannot be unequipped. */
   private fun equipmentBonuses(state: GameState, characterId: String): EquipmentBonuses {
     val equipmentId = state.characters[characterId]?.equipmentId ?: characterId
-    val itemIds = state.equipment[equipmentId]?.slots?.values ?: return EquipmentBonuses()
+    val equipped = state.equipment[equipmentId]?.slots ?: return EquipmentBonuses()
     var acc = EquipmentBonuses()
-    for (itemId in itemIds) {
+    for ((slot, itemId) in equipped) {
       if (!EquipmentCatalog.isUsableBy(itemId, characterId)) continue
-      val b = EquipmentCatalog.definition(itemId)?.bonuses ?: continue
+      val def = EquipmentCatalog.definition(itemId) ?: continue
+      // New bound skill accessories must occupy their own slot to grant stats.
+      // Existing generic test fixtures and legacy equipment keep their former behavior.
+      if (def.skillDamageMultiplier > 1 && slot != def.primarySlot.key) continue
+      val b = def.bonuses
       acc = acc.copy(
         agiPct = acc.agiPct + b.agiPct,
         dexPct = acc.dexPct + b.dexPct,
