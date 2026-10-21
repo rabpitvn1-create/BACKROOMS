@@ -1876,10 +1876,16 @@ function semanticAnnotate(entry,before,after){
   entry.semanticHash=semanticHash(text);
 }
 function semanticPrepareNextState(before,json){
-  const next=JSON.parse(json),oldLength=before&&Array.isArray(before.log)?before.log.length:0;
-  if(Array.isArray(next.log))next.log.forEach((entry,index)=>{
+  const next=JSON.parse(json);
+  // Core can remove and reorder mini-map log entries when changing scenes.
+  // Array indices are not a reliable test of whether narration is new.
+  const previous=new Set((before&&Array.isArray(before.log)?before.log:[])
+    .filter(entry=>entry&&entry.role!=="player")
+    .map(entry=>entry.role+"\u0000"+String(entry.text||"")));
+  if(Array.isArray(next.log))next.log.forEach(entry=>{
     if(!entry||entry.role==="player"||semanticValidCache(entry))return;
-    semanticAnnotate(entry,index<oldLength?null:before,next);
+    const existed=previous.has(entry.role+"\u0000"+String(entry.text||""));
+    semanticAnnotate(entry,existed?null:before,next);
   });
   return next;
 }
