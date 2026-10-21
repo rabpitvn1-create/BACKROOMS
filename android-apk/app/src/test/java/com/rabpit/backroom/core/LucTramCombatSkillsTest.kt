@@ -5,7 +5,7 @@ import org.junit.Test
 
 class LucTramCombatSkillsTest {
   private fun party(sword: Boolean = false): GameState {
-    val initial = GameState.initial()
+    val initial = GameState.initial().withUnlockedSkills(LUC_TRAM_ID)
     val prepared = initial.copy(party = initial.party.copy(memberIds = listOf(CAO_MINH_ID, LUC_TRAM_ID)))
     if (!sword) return prepared
     val equip = prepared.equipment.getValue(LUC_TRAM_ID)

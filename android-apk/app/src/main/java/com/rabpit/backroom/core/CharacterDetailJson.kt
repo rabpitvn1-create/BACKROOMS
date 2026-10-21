@@ -49,6 +49,9 @@ object CharacterDetailJson {
       CompanionSkillCatalog.forCharacter(c.id).forEach { skill -> put(JSONObject().apply {
         put("name", skill.name)
         put("kind", skill.kind)
+        val required = CharacterSkillUnlocks.requiredLevel(c.id, skill.name)!!
+        put("unlockLevel", required)
+        put("locked", !CharacterSkillUnlocks.isUnlocked(c.id, skill.name, c.level))
         put("trigger", skill.trigger)
         put("effect", skill.effect)
         skill.note?.let { put("note", it) }

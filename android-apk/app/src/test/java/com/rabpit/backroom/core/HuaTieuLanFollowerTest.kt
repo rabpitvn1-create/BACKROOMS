@@ -109,7 +109,7 @@ class HuaTieuLanFollowerTest {
   @Test fun `Tiểu Lan active combat skills actually execute`() {
     var state = GameState.initial().copy(
       party = PartyState(memberIds = listOf(HUA_TIEU_LAN_ID, CAO_MINH_ID)))
-    state = CombatRuntime.start(state, "diep_minh")
+    state = CombatRuntime.start(state, "diep_minh").withUnlockedSkills(HUA_TIEU_LAN_ID)
     val attack = CombatRuntime.resolve(state, "EXECUTE", "Cả Party tấn công")
     assertTrue(attack.reply.contains("Tĩnh Tâm Ngắm Bắn") || attack.reply.contains("Bách Hoa Nhất Tiễn"))
     val evade = CombatRuntime.resolve(state, "EXECUTE", "Party né tránh")

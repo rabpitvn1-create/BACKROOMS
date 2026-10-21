@@ -16,7 +16,7 @@ class CombatRuntimeTest {
     action: String = PokerDiceCore.DIRECT_COMBAT_ACTION
   ): GameState {
     val encounterId = CombatRuntime.active(state)!!.encounterId
-    return state.copy(metadata = state.metadata + mapOf(
+    return state.withUnlockedSkills().copy(metadata = state.metadata + mapOf(
       "poker.dice.encounter" to encounterId,
       "poker.dice.action" to action,
       "poker.dice.values" to when (hand) {
@@ -415,7 +415,7 @@ class CombatRuntimeTest {
     val seen = mutableSetOf<String>()
     for (counter in 0..240) {
       if (seen.size == 4) break
-      var state = CombatRuntime.start(GameState.initial(), "diep_minh")
+      var state = CombatRuntime.start(GameState.initial(), "diep_minh").withUnlockedSkills(CAO_MINH_ID)
       state = state.copy(metadata = state.metadata + ("combat.eventCounter" to counter.toString()))
       val result = CombatRuntime.resolve(state, "EXECUTE", "Cả Party cùng tấn công")
       if (result.reply.contains("Huyết Ma Tứ Liên tự động kích hoạt")) seen += "requiem"
@@ -451,7 +451,7 @@ class CombatRuntimeTest {
     var verified = false
     for (counter in 0..240) {
       if (verified) break
-      var state = CombatRuntime.start(GameState.initial(), "diep_minh")
+      var state = CombatRuntime.start(GameState.initial(), "diep_minh").withUnlockedSkills(CAO_MINH_ID)
       state = state.copy(metadata = state.metadata + ("combat.eventCounter" to counter.toString()))
       val result = CombatRuntime.resolve(state, "EXECUTE", "Cả Party cùng tấn công")
       if (!result.reply.contains("Ma Tâm Trấn Hồn tự động kích hoạt")) continue
@@ -467,7 +467,7 @@ class CombatRuntimeTest {
     var verified = false
     for (counter in 0..240) {
       if (verified) break
-      var state = CombatRuntime.start(GameState.initial(), "diep_minh")
+      var state = CombatRuntime.start(GameState.initial(), "diep_minh").withUnlockedSkills(CAO_MINH_ID)
       state = state.copy(metadata = state.metadata + ("combat.eventCounter" to counter.toString()))
       val result = CombatRuntime.resolve(state, "EXECUTE", "Cả Party cùng né tránh")
       if (!result.reply.contains("Thiên Ma Bộ tự động kích hoạt")) continue

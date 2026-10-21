@@ -109,7 +109,7 @@ class NguyenQuocNamFollowerTest {
       party = PartyState(memberIds = listOf(CAO_MINH_ID, NGUYEN_QUOC_NAM_ID)))
     val maxHp = CharacterStatEngine.effective(state, CAO_MINH_ID).maxHp
     state = CharacterStatEngine.setCurrentHp(state, CAO_MINH_ID, maxHp - 35)
-    state = CombatRuntime.start(state, "diep_minh")
+    state = CombatRuntime.start(state, "diep_minh").withUnlockedSkills(NGUYEN_QUOC_NAM_ID)
     val guard = CombatRuntime.resolve(state, "EXECUTE", "Party phòng thủ")
     assertTrue(guard.reply.contains("Sơ Cứu Tại Chỗ"))
     assertNotNull(guard.state.metadata["combat.nguyenQuocNamFirstAidEncounter"])

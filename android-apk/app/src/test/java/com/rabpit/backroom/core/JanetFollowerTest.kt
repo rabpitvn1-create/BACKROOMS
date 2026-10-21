@@ -102,7 +102,7 @@ class JanetFollowerTest {
   @Test fun `Janet combat actions execute mechanical effects not just skill descriptions`() {
     var state = GameState.initial().copy(
       party = PartyState(memberIds = listOf(CAO_MINH_ID, JANET_ID)))
-    state = CombatRuntime.start(state, "diep_minh")
+    state = CombatRuntime.start(state, "diep_minh").withUnlockedSkills(JANET_ID)
     val first = CombatRuntime.resolve(state, "EXECUTE", "Cả Party tấn công")
     assertTrue("First melee action moves or hits", first.reply.contains("Janet"))
     // Some encounters start at range, so start from the committed next combat state.

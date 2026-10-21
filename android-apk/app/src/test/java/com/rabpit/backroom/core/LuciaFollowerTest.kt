@@ -5,7 +5,7 @@ import org.junit.Test
 
 class LuciaFollowerTest {
   @Test fun luciaUltimateUsesOnlyFinalizedSsfAndFsfWithSixtyShots() {
-    val initial = LuciaCanon.ensure(GameState.initial())
+    val initial = LuciaCanon.ensure(GameState.initial()).withUnlockedSkills(LUCIA_ID)
     val starting = CombatRuntime.start(initial.copy(
       party = PartyState(memberIds = listOf(CAO_MINH_ID, LUCIA_ID))), "diep_minh")
     // Target durability is a test fixture, not a production balance change:
@@ -45,7 +45,7 @@ class LuciaFollowerTest {
   }
 
   @Test fun luciaBurstsProcIndependentlyOnlyAfterAHit() {
-    val initial = LuciaCanon.ensure(GameState.initial())
+    val initial = LuciaCanon.ensure(GameState.initial()).withUnlockedSkills(LUCIA_ID)
     val ready = CombatRuntime.start(initial.copy(party = PartyState(memberIds = listOf(CAO_MINH_ID, LUCIA_ID))), "diep_minh")
     val expected = setOf("Toxic Burst", "Armor-Piercing Burst", "Concussive Burst", "Rending Burst", "Corrosive Burst")
     val triggered = mutableSetOf<String>()

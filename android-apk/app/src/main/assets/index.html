@@ -2388,7 +2388,7 @@ function selected(){const id=view&&view.dataset.characterId||'cao_minh';return m
 </script>
 
 <style>
-.character-skills-button{width:100%;margin:10px 0;border:1px solid #39434a;background:#12171b;color:#dce4e7;padding:10px 12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.character-skills-modal{position:fixed;inset:0;z-index:140;background:rgba(3,5,6,.92);padding:14px;overflow:auto}.character-skills-modal[hidden]{display:none}.character-skills-sheet{max-width:720px;margin:0 auto;border:1px solid #343d44;background:#0b0f12;padding:14px}.character-skills-head{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid #2b3137;padding-bottom:12px}.character-skills-head h2{margin:3px 0 0}.character-skills-head button{width:auto}.character-skills-list{display:grid;gap:9px;margin-top:12px}.character-skill-card{border:1px solid #2d363d;background:#101519;padding:11px}.character-skill-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.character-skill-name{font-weight:900}.character-skill-kind{border:1px solid #3a454d;padding:2px 6px;color:#9eabb4;font-size:9px;letter-spacing:.08em}.character-skill-trigger{margin-top:5px;color:#8e9aa3;font-size:11px}.character-skill-effect{margin-top:7px;line-height:1.45}.character-skill-note{margin-top:7px;color:#c5ad7b;font-size:11px;line-height:1.4}
+.character-skills-button{width:100%;margin:10px 0;border:1px solid #39434a;background:#12171b;color:#dce4e7;padding:10px 12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.character-skills-modal{position:fixed;inset:0;z-index:140;background:rgba(3,5,6,.92);padding:14px;overflow:auto}.character-skills-modal[hidden]{display:none}.character-skills-sheet{max-width:720px;margin:0 auto;border:1px solid #343d44;background:#0b0f12;padding:14px}.character-skills-head{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid #2b3137;padding-bottom:12px}.character-skills-head h2{margin:3px 0 0}.character-skills-head button{width:auto}.character-skills-list{display:grid;gap:9px;margin-top:12px}.character-skill-card{border:1px solid #2d363d;background:#101519;padding:11px}.character-skill-card.is-locked{border-style:dashed}.character-skill-card.is-locked .character-skill-content{opacity:.42;filter:grayscale(1)}.character-skill-lock{display:flex;gap:6px;align-items:center;color:#d5bb7c;font-weight:700;font-size:12px;margin-bottom:8px}.character-skill-lock-icon{width:14px;height:14px;flex:0 0 14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.character-skill-unlock{margin-top:7px;color:#8e9aa3;font-size:11px}.character-skill-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.character-skill-name{font-weight:900}.character-skill-kind{border:1px solid #3a454d;padding:2px 6px;color:#9eabb4;font-size:9px;letter-spacing:.08em}.character-skill-trigger{margin-top:5px;color:#8e9aa3;font-size:11px}.character-skill-effect{margin-top:7px;line-height:1.45}.character-skill-note{margin-top:7px;color:#c5ad7b;font-size:11px;line-height:1.4}
 </style>
 <div id="characterSkillsModal" class="character-skills-modal" hidden>
   <div class="character-skills-sheet" role="dialog" aria-modal="true" aria-labelledby="characterSkillsTitle">
@@ -2419,12 +2419,22 @@ function selected(){const id=view&&view.dataset.characterId||'cao_minh';return m
     }
     const current=skills();button.hidden=current.length===0;button.textContent=current.length?'Kỹ năng · '+current.length+' ▾':'Kỹ năng';button.setAttribute('aria-haspopup','dialog');button.setAttribute('aria-controls','characterSkillsModal');button.setAttribute('aria-expanded',String(!modal.hidden));
   }
-  function openSkills(){
+  function renderSkills(){
     const member=selected();const current=skills();
     title.textContent=(member&&member.name?member.name+' · ':'')+'Kỹ năng';
-    list.innerHTML=current.length?current.map(skill=>'<div class="character-skill-card"><div class="character-skill-top"><div class="character-skill-name">'+escapeHtml(skill.name||'Kỹ năng')+'</div><span class="character-skill-kind">'+escapeHtml(skill.kind||'SKILL')+'</span></div><div class="character-skill-trigger">'+escapeHtml(skill.trigger||'')+'</div><div class="character-skill-effect">'+escapeHtml(skill.effect||'')+'</div>'+(skill.note?'<div class="character-skill-note">'+escapeHtml(skill.note)+'</div>':'')+'</div>').join(''):'<div class="character-skill-card">Chưa có kỹ năng được ghi nhận.</div>';
-    modal.hidden=false;ensureButton();
+    list.innerHTML=current.length?current.map(skill=>{
+      const locked=skill.kind!=='PASSIVE'&&skill.locked!==false;
+      const required=Number.isInteger(skill.unlockLevel)&&skill.unlockLevel>=0?skill.unlockLevel:null;
+      const requirement=required===null?'Chưa có điều kiện mở khóa':'Mở ở cấp '+required;
+      return '<div class="character-skill-card'+(locked?' is-locked':'')+'" aria-disabled="'+locked+'">'+
+        (locked?'<div class="character-skill-lock"><svg class="character-skill-lock-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M7 10V7a5 5 0 0 1 10 0v3M12 14v3"/></svg>Đang khóa · '+escapeHtml(requirement)+'</div>':'')+
+        '<div class="character-skill-content"><div class="character-skill-top"><div class="character-skill-name">'+escapeHtml(skill.name||'Kỹ năng')+'</div><span class="character-skill-kind">'+escapeHtml(skill.kind||'SKILL')+'</span></div><div class="character-skill-trigger">'+escapeHtml(skill.trigger||'')+'</div><div class="character-skill-effect">'+escapeHtml(skill.effect||'')+'</div>'+(skill.note?'<div class="character-skill-note">'+escapeHtml(skill.note)+'</div>':'')+'</div>'+
+        (!locked?'<div class="character-skill-unlock">'+(skill.kind==='PASSIVE'?'Nội tại · luôn mở':required===0?'Đã mở từ đầu':'Đã mở · cấp '+required)+'</div>':'')+'</div>';
+    }).join(''):'<div class="character-skill-card">Chưa có kỹ năng được ghi nhận.</div>';
   }
+  function openSkills(){renderSkills();modal.hidden=false;ensureButton()}
+  const previousRenderCharacter=window.renderCharacterStatusEquipment;
+  if(typeof previousRenderCharacter==='function')window.renderCharacterStatusEquipment=function(){const result=previousRenderCharacter.apply(this,arguments);ensureButton();if(!modal.hidden)renderSkills();return result};
   close.addEventListener('click',()=>{modal.hidden=true;ensureButton()});
   modal.addEventListener('click',event=>{if(event.target===modal){modal.hidden=true;ensureButton()}});
   new MutationObserver(ensureButton).observe(view,{attributes:true,attributeFilter:['data-character-id']});
