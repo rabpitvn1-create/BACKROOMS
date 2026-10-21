@@ -46,7 +46,7 @@ class CombatWaveQueueTest {
   }
 
   @Test fun transitionKeepsRoundAndPartyEffectsButClearsEntityEffects() {
-    val initial = CombatRuntime.startWaves(GameState.initial(), listOf("hound", "smiler"))
+    val initial = CombatRuntime.startWaves(GameState.initial(), listOf("hound", "smiler")).withUnlockedSkills(CAO_MINH_ID)
     val marked = initial.copy(metadata = initial.metadata + mapOf(
       "combat.entityHp" to "0", "combat.eventCounter" to "2",
       "combat.irisAnalyzedTurns" to "2", "combat.caoMinhBleedTurns" to "2",
@@ -59,7 +59,8 @@ class CombatWaveQueueTest {
     assertNull(result.state.metadata["combat.caoMinhBleedTurns"])
     assertEquals("1", result.state.metadata["combat.caoMinhQuickStepTurns"])
     assertEquals("1", result.state.metadata["combat.lifeformBleedTurns"])
-    assertEquals(230, CombatRuntime.active(result.state)!!.entityMaxHp)
+    assertEquals(EntityPowerScaling.scale(230, EntityPowerScaling.rankFor(initial)),
+      CombatRuntime.active(result.state)!!.entityMaxHp)
   }
 
   @Test fun mixedWavesApplyDoubleOnlyToNonBossHpAndExp() {
@@ -136,11 +137,13 @@ class CombatWaveQueueTest {
     val result = CombatRuntime.resolve(state, "SEARCH", "quan sát")
     assertTrue(result.reply.contains("ARGUS Terrain Read"))
     assertTrue(result.reply.contains("Lucifer Core hồi Syvial"))
-    assertTrue(result.reply.contains("Syvial kích hoạt Devil Trigger"))
+    assertFalse(result.reply.contains("Syvial kích hoạt Devil Trigger"))
+    val unlocked = CombatRuntime.resolve(state.withUnlockedSkills(SYVIAL_ID), "SEARCH", "quan sát")
+    assertTrue(unlocked.reply.contains("Syvial kích hoạt Devil Trigger"))
   }
 
   @Test fun anNhienEscapeUltimateStillTriggersOnFifthRound() {
-    val initial = AnNhienCanon.ensure(GameState.initial())
+    val initial = AnNhienCanon.ensure(GameState.initial()).withUnlockedSkills(AN_NHIEN_ID)
     val party = initial.copy(party = PartyState(memberIds = listOf(CAO_MINH_ID, AN_NHIEN_ID)))
     val started = CombatRuntime.start(party, "hound")
     val state = started.copy(metadata = started.metadata + ("combat.eventCounter" to "4"))
