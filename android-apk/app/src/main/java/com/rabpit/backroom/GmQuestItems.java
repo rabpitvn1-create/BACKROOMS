@@ -18,7 +18,7 @@ public final class GmQuestItems {
   private static final String STORAGE = "backroom_gm_quest_items";
   private static final String KEY = "ledger_v1";
   private static final String PENDING = "pending_v1";
-  private static final int MAX_ITEMS = 48;
+  private static final int MAX_ITEMS = 256;
   private static final int MAX_OPERATIONS = 8;
   private static final int MAX_HISTORY = 2048;
   private final SharedPreferences preferences;
@@ -36,10 +36,6 @@ public final class GmQuestItems {
     if (raw == null) return empty();
     try { return validateSnapshot(new JSONObject(raw)); }
     catch (Exception error) { throw new IllegalStateException("gm_items_corrupt", error); }
-  }
-  private void persist(JSONObject value) {
-    if (!preferences.edit().putString(KEY, value.toString()).commit())
-      throw new IllegalStateException("gm_items_save_failed");
   }
   public synchronized JSONObject snapshot() throws Exception { return new JSONObject(read().toString()); }
 
@@ -244,9 +240,4 @@ public final class GmQuestItems {
     return validateSnapshot(next);
   }
 
-  public synchronized JSONObject applyConfirmed(String narrationId, String nodeId, JSONArray operations) throws Exception {
-    JSONObject next = applySnapshot(read(), narrationId, nodeId, operations);
-    persist(next);
-    return next;
-  }
 }
