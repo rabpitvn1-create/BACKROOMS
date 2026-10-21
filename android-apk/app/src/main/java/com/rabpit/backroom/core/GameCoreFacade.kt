@@ -821,6 +821,18 @@ class GameCoreFacade private constructor(
     return JSONObject().put("ok", true).put("state", view).toString()
   }
 
+  /** Preview a complete current-version checkpoint without modifying gameplay state.
+   * Only used by the native bridge to validate non-Core presentation domains. */
+  @Synchronized fun previewManualCheckpoint(): String {
+    val current = repository.load()
+    if (!current.metadata.containsKey("loadError") &&
+      (current.turn.pending != null || ActionRuntime.activeSession(current) != null))
+      return checkpointError("turn_in_progress")
+    val saved = repository.loadCheckpoint() ?: return checkpointError("checkpoint_missing")
+    val restored = CoreClientProjection.project(saved.presentation, saved.core)
+    return JSONObject().put("ok", true).put("state", restored).toString()
+  }
+
   /** Decode and validate the complete slot before changing the current Core state. */
   @Synchronized fun loadManualCheckpoint(): String {
     val current = repository.load()
