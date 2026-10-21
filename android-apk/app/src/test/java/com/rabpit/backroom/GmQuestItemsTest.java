@@ -41,7 +41,7 @@ public class GmQuestItemsTest {
     }
   }
 
-  @Test public void singleUseAndReplayNeverRestoreConsumedItems() {
+  @Test public void singleUseAndReplayNeverRestoreConsumedItems() throws Exception {
     JSONObject held = GmQuestItems.applySnapshot(empty(), "scene:001", "ls_2", ops(create("mark_01")));
     assertEquals("held", held.getJSONArray("items").getJSONObject(0).getString("status"));
     assertEquals("ls_2", held.getJSONArray("items").getJSONObject(0).getString("nodeId"));
@@ -58,7 +58,7 @@ public class GmQuestItemsTest {
     catch (IllegalArgumentException expected) {}
   }
 
-  @Test public void failedTransactionNeverMutatesOldLedger() {
+  @Test public void failedTransactionNeverMutatesOldLedger() throws Exception {
     JSONObject initial = GmQuestItems.applySnapshot(empty(), "scene:101", "epsilon", ops(create("abc1")));
     String before = initial.toString();
     try {
@@ -73,7 +73,7 @@ public class GmQuestItemsTest {
     assertEquals("held", success.getJSONArray("items").getJSONObject(1).getString("status"));
   }
 
-  @Test public void restoreCannotImportTamperedSchemaOrDuplicateIds() {
+  @Test public void restoreCannotImportTamperedSchemaOrDuplicateIds() throws Exception {
     JSONObject forged = empty();
     forged.put("coreInventory", new JSONArray());
     try { GmQuestItems.applySnapshot(forged, "scene:01", "0", ops(create("abc"))); fail(); }
