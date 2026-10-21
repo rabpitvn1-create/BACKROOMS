@@ -86,6 +86,19 @@ class FreeActionTurnTest {
     assertEquals(0, rng.calls)
   }
 
+  @Test fun invalidlyLongSleepCannotLeaveAnUncommittablePendingScene() {
+    val rng = ScriptedRng(intArrayOf())
+    val (repo, core) = fixture(rng)
+    val before = repo.state
+    val command = MiniMapRuntime.freeCommand(before)
+    assertThrows(IllegalArgumentException::class.java) {
+      core.beginSceneAction(command.toString(), "Tôi ngủ 200 giờ", "Tôi ngủ 200 giờ")
+    }
+    assertEquals(before, repo.state)
+    assertNull(ActionRuntime.activeSession(repo.state))
+    assertEquals(0, rng.calls)
+  }
+
   @Test fun searchAndInteractionEachGetIndependentEntityRolls() {
     val rng = ScriptedRng(intArrayOf())
     val (_, core) = fixture(rng)

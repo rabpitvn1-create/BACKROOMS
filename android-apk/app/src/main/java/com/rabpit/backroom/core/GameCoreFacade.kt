@@ -201,6 +201,11 @@ class GameCoreFacade private constructor(
         TimeCostPolicy.explicitMinutes(effectiveFreeText) != null)
     val plannedMinutes = if (timedFree) TimeCostPolicy.estimateMinutes(effectiveFreeText!!)
       else if (command.getString("kind") == "SEARCH" && !deviceControl) 5 else 1
+    // A long rest beyond TimeEngine's supported window must be rejected before
+    // creating a pending scene; otherwise its later commit can never succeed.
+    require(RestActionPolicy.activity(input) == TimeActivity.NORMAL || plannedMinutes <= 10080) {
+      "rest_duration_too_long"
+    }
     val started = ActionRuntime.start(state, actionId, turnId, CAO_MINH_ID, ActionKind.EXECUTE,
       input, staged.nodeId, plannedMinutes)
     check(started.applied) { "scene_session_failed" }
