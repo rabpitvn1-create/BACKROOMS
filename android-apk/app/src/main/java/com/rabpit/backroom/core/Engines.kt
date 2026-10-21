@@ -226,7 +226,9 @@ object TimeEngine {
 
     var advanced = state
     for ((id, character) in state.characters) {
-      if (character.presence == CharacterPresence.DEAD) continue
+      // Canon characters seeded before recruitment are not physically following the
+      // party. Do not starve or kill them off-screen on the player's clock.
+      if (id !in state.party.memberIds || character.presence == CharacterPresence.DEAD) continue
       val activity = if (id in command.restTargets) command.activity else
         if (command.activity == TimeActivity.REST || command.activity == TimeActivity.SLEEP) TimeActivity.NORMAL else command.activity
       advanced = PhysiologyEngine.advance(advanced, id, delta, activity)
