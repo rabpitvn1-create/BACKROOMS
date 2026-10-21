@@ -1852,7 +1852,17 @@ public class MainActivity extends Activity {
               + "\nCONTEXT=" + context + "\nCONFIRMED_STEPS=" + confirmedSteps
               + "\nPLAYER=" + JSONObject.quote(playerText);
             // Planner is Gemini, never Gehihi. Provider output only proposes IDs; Core revalidates every step.
-            String text = geminiTextPolicy(plannerPrompt, -1, 0.0, 850, false);
+            String text;
+            try {
+              text = geminiTextPolicy(plannerPrompt, -1, 0.0, 850, false);
+            } catch (Exception plannerError) {
+              if (suggestedIndex == 0) throw plannerError;
+              // A GM button is always an ATTEMPT at one turn. Provider outage
+              // cannot turn a misleading suggestion into an inert UI button.
+              stopCode = "gm_suggestion_attempt";
+              stopMessage = "Đang ghi nhận nỗ lực thử gợi ý mà không suy đoán quyền Core.";
+              break;
+            }
             failureCode = "invalid_plan";
             JSONObject parsed = PlayerActionPlan.parse(text, suggestedIndex > 0 ? 1 : totalActions, committed);
             totalActions = parsed.getInt("totalActions");
@@ -1984,6 +1994,25 @@ public class MainActivity extends Activity {
               break;
             }
             // The next iteration will get the newly confirmed public context.
+          }
+          if (suggestedIndex > 0 && committed == 0 &&
+              java.util.Arrays.asList("gm_suggestion_attempt", "unexplored_action",
+                "invalid_plan", "invalid_route", "locked_control", "unresolved_action").contains(stopCode)) {
+            // A failed/misleading plan still costs exactly one real Core FREE turn.
+            // FREE cannot move through locked exits, grant evidence, items or rewards.
+            failureCode = "core_failure";
+            String attempt = "Thử: " + playerText +
+              ". Nếu không khả thi, chỉ ghi nhận nỗ lực thất bại; không thay đổi đường đi, vật phẩm hay câu đố.";
+            JSONObject tried = new JSONObject(requireGameCore().executePlayerFreeStep(attempt, playerText, projection));
+            projection = tried.getJSONObject("state").toString();
+            narrativeEvents.put(tried.getJSONObject("event"));
+            confirmedSteps.put(new JSONObject().put("kind", "FREE").put("text", attempt));
+            committed = requested = totalActions = 1;
+            stopCode = null;
+            stopMessage = null;
+            emit("backroomPlayerActionProgress", new JSONObject()
+              .put("state", new JSONObject(projection)).put("executed", 1)
+              .put("requested", 1).toString());
           }
           // Store interruption detail before HTTP, so process death/retry knows
           // exactly which events were resolved. Never replay the original plan.
