@@ -128,7 +128,7 @@ object CoreClientProjection {
             updated.put(log.get(i))
             if (i == pendingLine && CombatRuntime.pending(state) == null) updated.put(JSONObject().put("role", "gm")
               .put("text", r.getString("reply")).put("sceneMap", currentMap)
-            .put("sceneActionId", r.getString("actionId")))
+              .apply { if (r.optBoolean("automaticContinuation")) put("sceneActionId", r.getString("actionId")) })
           }
           out.put("log", updated)
         }
@@ -143,7 +143,7 @@ object CoreClientProjection {
             .put("sceneMap", currentMap).put("sceneActionId", r.getString("actionId")))
           if (CombatRuntime.pending(state) == null) log.put(JSONObject().put("role", "gm")
             .put("text", r.getString("reply")).put("sceneMap", currentMap)
-            .put("sceneActionId", r.getString("actionId")))
+              .apply { if (r.optBoolean("automaticContinuation")) put("sceneActionId", r.getString("actionId")) })
         }
       }
     }
