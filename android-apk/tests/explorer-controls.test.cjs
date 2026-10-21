@@ -23,6 +23,7 @@ function runtime(scene={}){
         }walk(this);return found;
       },
       remove(){if(this.parent)this.parent.children=this.parent.children.filter(n=>n!==this);},
+      focus(){this.focused=true;},
       showModal(){this.open=true;},close(){this.open=false;}
     };
   }
