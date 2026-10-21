@@ -446,6 +446,34 @@ object WorldGraphRuntime {
     return out
   }
 
+  /** Rebuild presentation-only clue names from validated, authored Core facts.
+   * Saved records keep gameplay evidence, not a second mutable name dictionary. */
+  private fun publicClueRecords(p: JSONObject, definition: WorldDefinition): JSONArray {
+    val graph = p.getJSONObject(GRAPH)
+    val studies = definition.fieldStudies.associateBy { it.environmentId }
+    val probes = definition.evidenceLaws.flatMap { it.probes }
+    return JSONArray().apply {
+      objects(p.getJSONArray("records")).forEach { stored ->
+        val entry = JSONObject(stored.toString())
+        // Never trust presentation labels in persisted record payloads.
+        entry.remove("label"); entry.remove("aliases")
+        val environmentId = room(graph, entry.getString("id")).getString("environmentId")
+        when (entry.optString("kind")) {
+          "FIELD_NOTE" -> studies[environmentId]
+            ?.takeIf { it.observation == entry.optString("text") }
+            ?.let { entry.put("label", it.focus) }
+          "EVIDENCE" -> probes.firstOrNull {
+            it.environmentId == environmentId && it.clue == entry.optString("text")
+          }?.let { source ->
+            if (source.label.isNotBlank()) entry.put("label", source.label)
+            if (source.aliases.isNotEmpty()) entry.put("aliases", JSONArray(source.aliases))
+          }
+        }
+        put(entry)
+      }
+    }
+  }
+
   fun publicView(state: GameState, p: JSONObject, definition: WorldDefinition = definition(p)): JSONObject {
     val g = p.getJSONObject(GRAPH); val current = p.getString("roomId")
     val rs = rooms(g); val e = environment(room(g, current), definition)
@@ -501,7 +529,7 @@ object WorldGraphRuntime {
       .put("sceneVersion", p.getInt("version")).put("generationNeeded", false)
       .put("awaitingEnding", false).put("nodeExitUnlocked", nextWorldNode(p, definition) != null)
       .put("completed", nextWorldNode(p, definition) != null)
-      .put("availableActions", actions(state, p, definition)).put("records", p.getJSONArray("records"))
+      .put("availableActions", actions(state, p, definition)).put("records", publicClueRecords(p, definition))
       .put("areaLog", p.getJSONArray("areaEvents")).put("temporaryInference", "")
       .put("objective", definition.currentObjective(p))
       .apply { locationTags(this, e) }
@@ -605,7 +633,7 @@ object WorldGraphRuntime {
             it.optString("kind") == "FIELD_NOTE" && it.optString("id") == id
           }) {
             p.getJSONArray("records").put(JSONObject().put("id", id)
-              .put("kind", "FIELD_NOTE").put("text", study.observation).put("label", study.focus))
+              .put("kind", "FIELD_NOTE").put("text", study.observation))
             p.getJSONArray("areaEvents").put(JSONObject().put("type", "FIELD")
               .put("text", "Đã ghi nhận: " + study.focus + "."))
           }
@@ -619,10 +647,7 @@ object WorldGraphRuntime {
             result = source.clue
             if (!p.getJSONObject("evidenceState").optBoolean(source.id)) {
               p.getJSONObject("evidenceState").put(source.id, true)
-              p.getJSONArray("records").put(JSONObject().put("id", id).put("kind", "EVIDENCE").put("text", result).apply {
-                if (source.label.isNotBlank()) put("label", source.label)
-                if (source.aliases.isNotEmpty()) put("aliases", JSONArray(source.aliases))
-              })
+              p.getJSONArray("records").put(JSONObject().put("id", id).put("kind", "EVIDENCE").put("text", result))
               p.getJSONArray("areaEvents").put(JSONObject().put("type", "EVIDENCE").put("text", result))
             }
           }
