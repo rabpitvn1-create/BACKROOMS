@@ -170,6 +170,14 @@ object MiniMapRuntime {
         val action = interactions[record.getString("id")]
         val displayed = MiniMapScenario.copy(record)
         if (action != null) displayed.put("text", MiniMapScenario.effectText(s, action).first)
+        // A failed investigation attempt can appear in records, but is not a confirmed clue.
+        // Publish the already visible action label only after Core accepted that fact.
+        val kind = displayed.optString("kind")
+        if (kind in setOf("CLUE", "EVIDENCE", "HINT")) {
+          val confirmed = record.getString("id") in accepted(p)
+          displayed.put("confirmed", confirmed)
+          if (confirmed && action != null) displayed.put("label", action.getString("label"))
+        }
         put(displayed)
       }
     }
