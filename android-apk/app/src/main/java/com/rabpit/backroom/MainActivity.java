@@ -91,13 +91,34 @@ public class MainActivity extends Activity {
   }
   private String attachGmItems(String coreView) throws Exception {
     JSONObject response = new JSONObject(coreView);
+    // Replay a durable GM-only outbox if the Core narration receipt committed
+    // before Android could persist the corresponding GM item state.
+    JSONObject pending = gmItems().pending();
+    if (pending != null) {
+      String id = pending.getString("id");
+      JSONArray log = response.optJSONArray("log");
+      boolean committed = false;
+      if (log != null) for (int i = 0; i < log.length(); i++) {
+        JSONObject entry = log.optJSONObject(i);
+        if (entry != null &&
+            (id.equals(entry.optString("sceneActionId")) && "player".equals(entry.optString("role")) ||
+             id.equals(entry.optString("playerActionId")) && "gm".equals(entry.optString("role")))) {
+          committed = true;
+          break;
+        }
+      }
+      if (committed) gmItems().confirmPending(id);
+    }
     response.put("gmQuestItems", gmItems().snapshot());
     return response.toString();
   }
+  private void stageGmItems(String narrationId, String nodeId) throws Exception {
+    if (stagedGmItemOperations.length() > 0)
+      gmItems().stage(narrationId, nodeId, stagedGmItemOperations);
+  }
   private void completeGmItems(String narrationId, String nodeId) throws Exception {
-    JSONArray ops = stagedGmItemOperations;
+    if (stagedGmItemOperations.length() > 0) gmItems().confirmPending(narrationId);
     stagedGmItemOperations = new JSONArray();
-    if (ops.length() > 0) gmItems().applyConfirmed(narrationId, nodeId, ops);
   }
   private static final String GEMINI_MODEL = "gemini-3.6-flash";
   private static final String[] GEMINI_IMAGE_MODELS = {"gemini-3.1-flash-image", "gemini-3.1-flash-lite-image"};
@@ -1575,6 +1596,8 @@ public class MainActivity extends Activity {
 
     @JavascriptInterface public String saveGameCheckpoint(String presentationJson) {
       try {
+        // Reconcile any confirmed GM outbox before snapshotting the manual slot.
+        attachGmItems(requireGameCore().currentClientState(presentationJson));
         JSONObject presentation = new JSONObject(presentationJson);
         presentation.put("gmQuestItems", gmItems().snapshot());
         return attachGmItemsCheckpoint(requireGameCore().saveManualCheckpoint(presentation.toString()));
@@ -1929,10 +1952,12 @@ public class MainActivity extends Activity {
             try {
               failureCode = "narration_failed";
               String reply = narrateMixedPlayerAction(rawAction, narrativeEvents, projection, stopCode != null);
+              String batchId = new JSONObject(requireGameCore().playerPresentationContext()).getString("id");
+              String gmNode = currentNodeId(new JSONObject(requireGameCore().currentClientState(projection)));
+              stageGmItems(batchId, gmNode);
               requireGameCore().finishPlayerPresentation(requested, stopCode != null,
                 stopMessage == null ? "" : stopMessage, reply, "", false);
-              completeGmItems(new JSONObject(requireGameCore().playerPresentationContext()).getString("id"),
-                currentNodeId(new JSONObject(requireGameCore().currentClientState(projection))));
+              completeGmItems(batchId, gmNode);
             } catch (Exception writerError) {
               String reason = writerFailureCode(writerError);
               DiagnosticLog.record("player.action.writer.failed", reason + "; retryable=" + writerRetryable(writerError));
@@ -2044,9 +2069,11 @@ public class MainActivity extends Activity {
         if (events.length() == 0) throw new IllegalStateException("player_narration_no_events");
         String reply = narrateMixedPlayerAction(batch.getString("playerText"), events, clientJson,
           batch.optBoolean("interrupted", true));
+        String gmNode = currentNodeId(new JSONObject(requireGameCore().currentClientState(clientJson)));
+        stageGmItems(batch.getString("id"), gmNode);
         requireGameCore().finishPlayerPresentation(batch.optInt("requested"), batch.optBoolean("interrupted", true),
           batch.optBoolean("interrupted", true) ? "Chuỗi dừng sớm; các bước còn lại chưa thực hiện." : "", reply, "", false);
-        completeGmItems(batch.getString("id"), currentNodeId(new JSONObject(requireGameCore().currentClientState(clientJson))));
+        completeGmItems(batch.getString("id"), gmNode);
         emit("backroomTurn", attachGmItems(requireGameCore().currentClientState(clientJson)));
       } catch (Exception error) {
         String reason = writerFailureCode(error);
@@ -2086,9 +2113,11 @@ public class MainActivity extends Activity {
               requireGameCore().commitSceneAction(
                 new JSONObject(command).getString("actionId"), stagedEvent.getString("result"), stateJson);
             } else {
-            requireGameCore().commitSceneAction(new JSONObject(command).getString("actionId"),
-              narrateStagedSceneAction(stagedEvent), stateJson);
-            completeGmItems(new JSONObject(command).getString("actionId"), stagedEvent.getString("node"));
+              String narration = narrateStagedSceneAction(stagedEvent);
+              String id = new JSONObject(command).getString("actionId");
+              stageGmItems(id, stagedEvent.getString("node"));
+              requireGameCore().commitSceneAction(id, narration, stateJson);
+              completeGmItems(id, stagedEvent.getString("node"));
             }
           }
           JSONObject committedView = new JSONObject(attachGmItems(requireGameCore().currentClientState(stateJson)));
