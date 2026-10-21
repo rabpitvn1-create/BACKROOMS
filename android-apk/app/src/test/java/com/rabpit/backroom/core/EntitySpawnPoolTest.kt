@@ -232,7 +232,7 @@ class EntitySpawnPoolTest {
         world = met.world + ("flagsJson" to flags.put(key,
           existing.put("present", false).put("continuity", "SEPARATED")).toString()),
         metadata = met.metadata + ("core.viewTurn" to
-          (CoreClientProjection.turnIndex(met) + SpawnMechanism.FOLLOWER_SPACING_TURNS + 1).toString()))
+          (CoreClientProjection.turnIndex(met) + SpawnMechanism.FOLLOWER_SPACING_TURNS + 1).toString())
       )
       val reunion = NpcSpawnTable.rollNpcs(separated, ActionKind.EXECUTE,
         "đi về phía trước", 2) { 0 }
