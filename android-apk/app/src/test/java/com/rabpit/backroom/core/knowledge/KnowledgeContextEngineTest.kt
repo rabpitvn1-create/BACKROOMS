@@ -99,6 +99,30 @@ class KnowledgeContextEngineTest {
     assertTrue(packet("""{"combat":{"active":true,"entityKey":"hound"}}""").contains("<ENTITY.HOUND.VISUAL>"))
   }
 
+  @Test fun newEntityCanonRequiresCoreConfirmedEncounterAndSupportsMixedCaseKeys() {
+    val cases = listOf("926" to "926", "927" to "927", "LuckyBear" to "LUCKYBEAR",
+      "Brownies" to "BROWNIES", "luc_tram_hac_hoa" to "LUC_TRAM_HAC_HOA")
+    for ((key, suffix) in cases) {
+      val unconfirmed = packet(action = "Hỏi về $key và nguồn gốc của nó")
+      assertFalse(key, unconfirmed.contains("<ENTITY.$suffix.VISUAL>"))
+      assertFalse(key, unconfirmed.contains("<ENTITY.$suffix.CANON>"))
+      val pending = packet("""{"pendingEntityEncounter":{"entityKey":"$key"}}""")
+      assertTrue(key, pending.contains("<ENTITY.$suffix.VISUAL>"))
+      assertTrue(key, pending.contains("<ENTITY.$suffix.CANON>"))
+      assertTrue(key, pending.contains("provenance=TRACEABLE"))
+      assertTrue(key, pending.length <= KnowledgeContextEngine.HARD_CONTEXT_CEILING * 4)
+      val active = packet("""{"combat":{"active":true,"entityKey":"$key"}}""")
+      assertTrue(key, active.contains("<ENTITY.$suffix.VISUAL>"))
+      assertTrue(key, active.contains("<ENTITY.$suffix.CANON>"))
+    }
+    val enemy = packet("""{"pendingEntityEncounter":{"entityKey":"luc_tram_hac_hoa"}}""",
+      "Lục Trầm dùng chiêu gì?")
+    assertFalse(enemy.contains("<CHAR.LUC_TRAM.AUTHORED>"))
+    assertFalse(enemy.contains("<CHAR.LUC_TRAM.REVIVAL_R06>"))
+    assertFalse(packet("""{"pendingEntityEncounter":{"entityKey":"../LuckyBear"}}""")
+      .contains("<ENTITY.LUCKYBEAR.VISUAL>"))
+  }
+
   @Test fun exactNodeAndParentStaySeparate() {
     val result = packet("""{"level":{"number":0,"id":"red_rooms"}}""")
     assertTrue(result.contains("<LEVEL.00.AUTHORED>"))

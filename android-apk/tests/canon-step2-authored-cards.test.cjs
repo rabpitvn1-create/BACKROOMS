@@ -29,6 +29,31 @@ test('all twenty-two playable entities have one Drive-sourced visual card', () =
   }
 });
 
+test('all five new Entities have independently traceable visual and Canon cards',()=>{
+  const full=path.join(root,'app/src/main/assets/canon/NEW_ENTITIES_CODEX_R01.md');
+  assert.ok(fs.existsSync(full),'full Entity Codex must be bundled in the APK');
+  const body=fs.readFileSync(full,'utf8');
+  const pairs=[['926','926'],['927','927'],['LuckyBear','LUCKYBEAR'],
+    ['Brownies','BROWNIES'],['luc_tram_hac_hoa','LUC_TRAM_HAC_HOA']];
+  for(const [key,id] of pairs){
+    const visual=records.get('ENTITY.'+id+'.VISUAL');
+    const canon=records.get('ENTITY.'+id+'.CANON');
+    assert.ok(visual,key+' visual missing');
+    assert.ok(canon,key+' canon missing');
+    assert.match(visual.text,/^\[VISUAL\] /);
+    assert.equal(visual.domain,'ENTITY');
+    assert.equal(canon.kind,'entity-canon-card');
+    assert.equal(visual.source.document,canon.source.document);
+    assert.ok(canon.source.document.startsWith('Google Drive /Novel/Asset/03_Entity/NEW_ENTITIES_CODEX_R01.md'));
+    assert.ok(body.includes(visual.source.anchor),key+' anchor missing from complete Codex');
+    assert.ok(visual.tags.some(tag=>canon.tags.includes(tag)));
+    assert.ok(canon.references.includes('ENTITY.GLOBAL_HARD_LOCK'));
+  }
+  assert.match(records.get('ENTITY.LUCKYBEAR.CANON').text,/200 EXP/);
+  assert.match(records.get('ENTITY.BROWNIES.CANON').text,/100 EXP/);
+  assert.match(records.get('ENTITY.LUC_TRAM_HAC_HOA.CANON').text,/UNKNOWN/);
+});
+
 test('eleven authored level cards and four exact authored nodes are indexed without resolving conflicts', () => {
   for (let number = 0; number <= 10; number++) {
     const id = 'LEVEL.' + String(number).padStart(2, '0') + '.AUTHORED';

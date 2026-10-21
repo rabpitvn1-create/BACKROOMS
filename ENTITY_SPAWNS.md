@@ -1,5 +1,7 @@
 # Entity spawn routing
 
+**Project Original R01:** Tập tính, dấu hiệu, giới hạn diễn giải và hồ sơ Canon năm Entity mới nằm trong `android-apk/app/src/main/assets/canon/NEW_ENTITIES_CODEX_R01.md`. Tài liệu không tạo resident habitat hoặc thay đổi khả năng encounter vốn do Core quyết định.
+
 Core rolls once per eligible EXECUTE turn on d10000: tickets 1–3500 create an Entity encounter; 3501–10000 do not. This is 35% per eligible turn at every node, regardless of the number of species in its pool. It is a probability, not a guarantee of exactly 35 encounters in every 100 played turns. Meta actions, active/pending combat and the explicit entityEncountersAllowed=false switch retain their existing exclusions.
 
 | Exact level ID | Resident Entity keys |

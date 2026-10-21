@@ -504,7 +504,7 @@ object KnowledgeContextEngine {
         pendingEntity != null -> pendingEntity.optString("entityKey", "")
         else -> flags?.optString("entityEncounterKey", "").orEmpty()
       }
-      return key.takeIf { it.matches(Regex("[a-z0-9_-]{1,80}")) }
+      return key.takeIf { it.matches(Regex("[A-Za-z0-9_-]{1,80}")) }
         ?.uppercase(Locale.ROOT)?.replace('-', '_')?.let { "ENTITY.$it.VISUAL" }
     }
 

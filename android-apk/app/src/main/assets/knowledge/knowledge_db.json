@@ -1962,8 +1962,7 @@
       ],
       "references": [],
       "affordances": []
-    }
-,
+    },
     {
       "id": "LEVEL.NODE.ls_2",
       "domain": "LEVEL",
@@ -1982,6 +1981,210 @@
         "level 0 area"
       ],
       "references": [],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.926.VISUAL",
+      "domain": "ENTITY",
+      "kind": "visual-card",
+      "text": "[VISUAL] Whistlers (926) là khối cao gầy đen bóng như gân ướt; đầu thon có ba khoang trắng (hai trên, một dưới như miệng mở), tay dài và ngón cong, các chi chống nửa dưới vươn cao gấp khúc.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/NEW_ENTITIES_CODEX_R01.md (1XRoBXISlL61kdIl56w5xzkkCdEOsQdWP)",
+        "anchor": "## ENT-926 — WHISTLERS"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 56,
+      "tags": [
+        "926",
+        "whistlers"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.926.CANON",
+      "domain": "ENTITY",
+      "kind": "entity-canon-card",
+      "text": "Whistlers là Entity săn người; tiếng huýt gió mảnh và nhịp đặt chi lệch chỉ là manh mối, không phải phép thôi miên hay định vị chắc chắn. Không có skill/status riêng trong Core. Common Roaming; không xác nhận Level cư trú. Stat 160 HP gốc / 30 ATK / 4 Armor / 16 Aggression; HP thực chiến 2 lần Hound cùng rank, Level 0 là 440. Nguồn gốc và năng lực khác UNKNOWN.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/NEW_ENTITIES_CODEX_R01.md (1XRoBXISlL61kdIl56w5xzkkCdEOsQdWP)",
+        "anchor": "## ENT-926 — WHISTLERS"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 43,
+      "tags": [
+        "926",
+        "whistlers"
+      ],
+      "references": [
+        "ENTITY.GLOBAL_HARD_LOCK"
+      ],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.927.VISUAL",
+      "domain": "ENTITY",
+      "kind": "visual-card",
+      "text": "[VISUAL] Entity 927 có khối đầu màu xám thịt ẩm gần như chiếm cả thân trên; một mắt lớn, hàm há rất rộng với răng tam giác nhọn và dịch nhầy; mô mềm rủ hai bên, thân nhỏ nối với ba chân dài mảnh.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/NEW_ENTITIES_CODEX_R01.md (1XRoBXISlL61kdIl56w5xzkkCdEOsQdWP)",
+        "anchor": "## ENT-927 — ENTITY 927"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 56,
+      "tags": [
+        "927",
+        "entity 927"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.927.CANON",
+      "domain": "ENTITY",
+      "kind": "entity-canon-card",
+      "text": "Entity 927 săn người bằng áp sát và hàm lớn; dịch nhầy chưa được xác nhận có độc hay acid. Không có AoE/bleed/status/skill riêng trong Core; không khẳng định quan hệ chủng loài với 926. Common Roaming, không có Level cư trú xác nhận. Stat 320 HP gốc / 60 ATK / 8 Armor / 32 Aggression (2 lần 926); HP thực chiến 2 lần 926 cùng rank, Level 0 là 880. Nguồn gốc/điểm yếu UNKNOWN.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/NEW_ENTITIES_CODEX_R01.md (1XRoBXISlL61kdIl56w5xzkkCdEOsQdWP)",
+        "anchor": "## ENT-927 — ENTITY 927"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 43,
+      "tags": [
+        "927",
+        "entity 927"
+      ],
+      "references": [
+        "ENTITY.GLOBAL_HARD_LOCK"
+      ],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.LUCKYBEAR.VISUAL",
+      "domain": "ENTITY",
+      "kind": "visual-card",
+      "text": "[VISUAL] LuckyBear là gấu bông vàng kem, đầu tròn to, một mắt mở một mắt như nháy, mõm trắng thêu mặt cười. Bụng có ngôi sao vàng lớn; cổ đeo vòng hạt pastel với mặt dây nhỏ tím, tay ngắn, thân mềm.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/NEW_ENTITIES_CODEX_R01.md (1XRoBXISlL61kdIl56w5xzkkCdEOsQdWP)",
+        "anchor": "## ENT-LB — LUCKYBEAR"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 56,
+      "tags": [
+        "LuckyBear",
+        "luckybear",
+        "gấu vòng hạt"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.LUCKYBEAR.CANON",
+      "domain": "ENTITY",
+      "kind": "entity-canon-card",
+      "text": "LuckyBear trông vô hại nhưng là Entity thù địch theo Project HARD LOCK, không phải thú cưng, NPC hay đồng minh. Core hiện hành tuyệt đối không cho nó tấn công, phản công hoặc gây sát thương: 80 HP gốc / 0 ATK / 2 Armor / 8 Aggression; Level 0 có 220 HP. Common Roaming; không gán Level cư trú hay năng lực may mắn/bẫy. Hạ được nó cho 200 EXP cố định mỗi Party member sống và tham chiến, mỗi encounter một lần; không lộ thưởng trước trong lời kể.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/NEW_ENTITIES_CODEX_R01.md (1XRoBXISlL61kdIl56w5xzkkCdEOsQdWP)",
+        "anchor": "## ENT-LB — LUCKYBEAR"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 43,
+      "tags": [
+        "LuckyBear",
+        "luckybear",
+        "gấu vòng hạt"
+      ],
+      "references": [
+        "ENTITY.GLOBAL_HARD_LOCK"
+      ],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.BROWNIES.VISUAL",
+      "domain": "ENTITY",
+      "kind": "visual-card",
+      "text": "[VISUAL] Brownies là thú bông lai gấu/chó phủ lông xoăn nâu, đầu lớn, một tai xòe dựng và một tai rũ, mắt đen thủy tinh, mũi đen bóng; tay ngắn, chân mềm dài. Không có sao vàng hoặc vòng hạt của LuckyBear.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/NEW_ENTITIES_CODEX_R01.md (1XRoBXISlL61kdIl56w5xzkkCdEOsQdWP)",
+        "anchor": "## ENT-BR — BROWNIES"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 56,
+      "tags": [
+        "Brownies",
+        "brownies",
+        "gấu lông xoăn"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.BROWNIES.CANON",
+      "domain": "ENTITY",
+      "kind": "entity-canon-card",
+      "text": "Brownies có dáng đồ chơi yên lặng nhưng được phân loại Entity thù địch, không thân thiện; không khẳng định cùng loài hoặc có quan hệ với LuckyBear. Core hiện hành không cho tấn công, phản công hoặc gây sát thương: 80 HP gốc / 0 ATK / 2 Armor / 8 Aggression; Level 0 có 220 HP. Common Roaming; không gán Level cư trú, chiêu nguyền rủa hoặc bẫy. Hạ được nó cho 100 EXP cố định mỗi Party member sống và tham chiến, mỗi encounter một lần.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/NEW_ENTITIES_CODEX_R01.md (1XRoBXISlL61kdIl56w5xzkkCdEOsQdWP)",
+        "anchor": "## ENT-BR — BROWNIES"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 43,
+      "tags": [
+        "Brownies",
+        "brownies",
+        "gấu lông xoăn"
+      ],
+      "references": [
+        "ENTITY.GLOBAL_HARD_LOCK"
+      ],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.LUC_TRAM_HAC_HOA.VISUAL",
+      "domain": "ENTITY",
+      "kind": "visual-card",
+      "text": "[VISUAL] Entity Lục Trầm Hắc Hóa hiện hình nữ kiếm tu tóc bạc-trắng dài, mắt đỏ, kiếm quan nhọn, chiến giáp đen-đỏ và vạt áo phân lớp, mang đại kiếm đỏ sáng. Đây là ngoại hình enemy-only, không thay visual canon Follower Lục Trầm.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/NEW_ENTITIES_CODEX_R01.md (1XRoBXISlL61kdIl56w5xzkkCdEOsQdWP)",
+        "anchor": "## ENT-LTH — LỤC TRẦM HẮC HÓA (ENTITY ENCOUNTER)"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 56,
+      "tags": [
+        "luc_tram_hac_hoa",
+        "lục trầm hắc hóa"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.LUC_TRAM_HAC_HOA.CANON",
+      "domain": "ENTITY",
+      "kind": "entity-canon-card",
+      "text": "Lục Trầm Hắc Hóa là Entity đối địch, danh tính/quan hệ thật với Follower Lục Trầm UNKNOWN; không khẳng định hồi sinh dẫn đến hắc hóa hoàn chỉnh hay Tịch Quang đã được xác nhận trang bị. Rare Roaming. HP cùng Diệp Minh (Level 0: 2999), Armor 8, Aggression 9, hồi 30 HP/lượt, ATK gốc 0 nhưng có sát thương kiếm riêng. Sáu kỹ năng phía địch: Thiên Kiếm Linh Tâm, Bạch Hồng Quán Nhật, Nhất Tuyến Phá Vọng xuyên 20% DEF, Tịch Quang Phản Kiếm, Vạn Kiếm Quy Tâm, Thiên Kiếm Định Giới (ward +8 Armor/+20% Evasion hai lượt). Không kế thừa đòn 10% HP, AoE 5% hoặc EXP boss Diệp Minh. Không thay dữ liệu Follower.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/NEW_ENTITIES_CODEX_R01.md (1XRoBXISlL61kdIl56w5xzkkCdEOsQdWP)",
+        "anchor": "## ENT-LTH — LỤC TRẦM HẮC HÓA (ENTITY ENCOUNTER)"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 43,
+      "tags": [
+        "luc_tram_hac_hoa",
+        "lục trầm hắc hóa"
+      ],
+      "references": [
+        "ENTITY.GLOBAL_HARD_LOCK"
+      ],
       "affordances": []
     }
   ]

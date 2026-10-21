@@ -1,5 +1,7 @@
 # BACKROOMS Entity Assets
 
+**Hồ sơ Canon mới:** Năm Entity `926`, `927`, `LuckyBear`, `Brownies`, `luc_tram_hac_hoa` có Codex hoàn chỉnh tại `android-apk/app/src/main/assets/canon/NEW_ENTITIES_CODEX_R01.md` (đồng bộ bản tác giả trên Google Drive `/Novel/Asset/03_Entity/NEW_ENTITIES_CODEX_R01.md`). `knowledge_db.json` đăng ký hai thẻ `.VISUAL` / `.CANON` mỗi Entity, chỉ GM nhận sau Core-confirmed encounter.
+
 Toàn bộ sprite Entity dùng trong APK nằm trực tiếp tại:
 
 `android-apk/app/src/main/assets/entity/`
