@@ -605,7 +605,7 @@ object WorldGraphRuntime {
             it.optString("kind") == "FIELD_NOTE" && it.optString("id") == id
           }) {
             p.getJSONArray("records").put(JSONObject().put("id", id)
-              .put("kind", "FIELD_NOTE").put("text", study.observation))
+              .put("kind", "FIELD_NOTE").put("text", study.observation).put("label", study.focus))
             p.getJSONArray("areaEvents").put(JSONObject().put("type", "FIELD")
               .put("text", "Đã ghi nhận: " + study.focus + "."))
           }
@@ -619,7 +619,7 @@ object WorldGraphRuntime {
             result = source.clue
             if (!p.getJSONObject("evidenceState").optBoolean(source.id)) {
               p.getJSONObject("evidenceState").put(source.id, true)
-              p.getJSONArray("records").put(JSONObject().put("id", id).put("kind", "EVIDENCE").put("text", result))
+              p.getJSONArray("records").put(JSONObject().put("id", id).put("kind", "EVIDENCE").put("text", result).apply { if (source.label.isNotBlank()) put("label", source.label) })
               p.getJSONArray("areaEvents").put(JSONObject().put("type", "EVIDENCE").put("text", result))
             }
           }
