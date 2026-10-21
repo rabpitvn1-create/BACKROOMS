@@ -28,7 +28,7 @@ function runtime(scene={}){
   }
   elements.playerActionBar=element();elements.form=element();elements.log=element();elements.status=element();
   for(const id of ['sceneJournal','sceneJournalRoom','sceneJournalObjective','sceneJournalRecords',
-    'explorerMenuTools','explorerMenuObjective','explorerCurrentObjective','explorerCasebook','gameMenuClose'])elements[id]=element();
+    'explorerMenuTools','explorerMenuObjective','explorerCurrentObjective','explorerCasebook','explorerQuestItems','gameMenuClose'])elements[id]=element();
   elements.gameMenuClose.click=()=>{elements.gameMenuClose.clicked=true;};
   const calls=[],stored=[];
   const document={getElementById:id=>elements[id],createElement:element,createElementNS:element,body:element()};
@@ -76,6 +76,25 @@ test('Casebook is read-only and three hint tiers require explicit request',()=>{
   assert.equal(r.dialog.querySelectorAll('.explorer-hint').length,0);
   r.ctx.backroomWorldHint(JSON.stringify({roomId:'hall',sceneVersion:9,tier:3,text:'Kiểm tra dấu'}));
   assert.equal(r.dialog.querySelectorAll('.explorer-hint').length,1);
+});
+test('GM quest item tile displays single-use items without changing Core inventory',()=>{
+  const r=runtime({runtime:'world-graph-v3'});
+  r.ctx.state.gmQuestItems={version:1,items:[
+    {id:'clue_001',name:'Mảnh ký hiệu',description:'Dùng để đối chiếu',nodeId:'ls_2',status:'held'},
+    {id:'clue_002',name:'Thẻ đã dùng',description:'Không còn tác dụng',nodeId:'ls_2',status:'consumed'}
+  ]};
+  r.ctx.state.inventory=[{id:'core_item',quantity:4}];
+  r.ctx.document.getElementById('explorerQuestItems').onclick();
+  const entries=r.dialog.querySelectorAll('.gm-quest-item');
+  assert.equal(entries.length,2);
+  assert.equal(entries[0].children[0].textContent,'Mảnh ký hiệu');
+  assert.equal(entries[1].children.length,3,'consumed item has no use control');
+  assert.equal(r.calls.length,0);
+  assert.deepEqual(r.ctx.state.inventory,[{id:'core_item',quantity:4}]);
+  entries[0].children[3].onclick();
+  assert.equal(r.actionDialog.open,true);
+  assert.match(r.actionDialog.children[1].value,/Mảnh ký hiệu/);
+  assert.equal(r.calls.length,0,'using a draft never consumes the item automatically');
 });
 test('Core action palette bypasses Gemini planning but still sends only an offered validated command',()=>{
   const r=runtime({runtime:'world-graph-v3',room:{id:'hall'},records:[],
