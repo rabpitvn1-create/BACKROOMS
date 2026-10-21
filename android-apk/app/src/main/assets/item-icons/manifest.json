@@ -1,5 +1,5 @@
 {
-  "version": 13,
+  "version": 14,
   "generator": "built-in imagegen",
   "style": "non-pixel liquid glass; warm gold/orange ordinary items, violet/blue stat book, pale green Catherine/Janet/Nam/Tieu Lan equipment",
   "format": "WEBP",
@@ -668,13 +668,15 @@
       "width": 128,
       "height": 128,
       "mime_type": "image/webp",
-      "bytes": 4900,
-      "sha256": "62d8296af6a1159c8653dfe6122f16ba5407600e28addbcf59327bc96a1294be",
-      "md5": "5aac08fb4bc545f19f42c18e3ab8cf51",
-      "drive_file_id": "1ZMsCwRK5UMEl0oh_TcjPVq_xL18disjE",
-      "drive_url": "https://drive.google.com/file/d/1ZMsCwRK5UMEl0oh_TcjPVq_xL18disjE/view?usp=drivesdk",
-      "design_reference": "Cao Minh Huyết Ma sword and armor palette; original clean equipment silhouettes",
-      "palette": "pale mint / deep crimson / antique gold"
+      "bytes": 11108,
+      "sha256": "9b3ad94094642a7e2c88036e6cdc24f731ed7ca842d180a902ccd04cb2bcaf62",
+      "md5": "c46b18e8193c764650c5255c362dd009",
+      "drive_file_id": "18YVjvXUDvc3ssCxtUn0aL0A3g3fBXPUu",
+      "drive_url": "https://drive.google.com/file/d/18YVjvXUDvc3ssCxtUn0aL0A3g3fBXPUu/view?usp=drivesdk",
+      "design_reference": "huyet-ma-kiem.webp; huyet-ma-khai.webp",
+      "palette": "gold / orange / amber background; crimson / black steel / antique gold equipment",
+      "source_drive_file_id": "1_vs_S3KXH1nmxYZTnvLaH60Z5bW3FLXm",
+      "generator": "built-in imagegen"
     },
     {
       "item_id": "cao_minh:huyet-ma-gauntlets",
@@ -684,13 +686,15 @@
       "width": 128,
       "height": 128,
       "mime_type": "image/webp",
-      "bytes": 4184,
-      "sha256": "0099e35540cec6e7a334a3c013697ac44dccd4f88b92628409207fc42c274dac",
-      "md5": "6ba82c3d86f5e922ce3e3b7b43783680",
-      "drive_file_id": "1hLUm4d3Ws2tao_PBVtW4rMFLtQGGxtLr",
-      "drive_url": "https://drive.google.com/file/d/1hLUm4d3Ws2tao_PBVtW4rMFLtQGGxtLr/view?usp=drivesdk",
-      "design_reference": "Cao Minh Huyết Ma sword and armor palette; original clean equipment silhouettes",
-      "palette": "pale mint / deep crimson / antique gold"
+      "bytes": 10800,
+      "sha256": "d1a9de8ab48fca7f169cb3e6249d21e062219de3a54263a6bb3e7c1511d2ac92",
+      "md5": "fdd08e7296fbc0d27858d28b2e779bfa",
+      "drive_file_id": "1TSu36uLO7LfGr6vA3MhzQELwW7qbBtRd",
+      "drive_url": "https://drive.google.com/file/d/1TSu36uLO7LfGr6vA3MhzQELwW7qbBtRd/view?usp=drivesdk",
+      "design_reference": "huyet-ma-kiem.webp; huyet-ma-khai.webp",
+      "palette": "gold / orange / amber background; crimson / black steel / antique gold equipment",
+      "source_drive_file_id": "1eNtg1NKaO_V9u450jntNo6LzFeVvah_8",
+      "generator": "built-in imagegen"
     }
   ]
 }
