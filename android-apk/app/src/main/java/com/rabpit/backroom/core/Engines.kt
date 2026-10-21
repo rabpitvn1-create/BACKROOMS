@@ -59,7 +59,7 @@ private fun finishItemUse(
     }
     val perItem = when (effect) {
       "FOOD" -> commandRecoveryMinutes(originalState, command, "foodRecoveryMinutes", 720L)
-      "WATER" -> commandRecoveryMinutes(current, command, "waterRecoveryMinutes", 360L)
+      "WATER" -> commandRecoveryMinutes(originalState, command, "waterRecoveryMinutes", 360L)
       else -> null
     } ?: return ExecutionResult(originalState, false, validation = ValidationResult(false, "physiology_recovery_invalid"))
     val physiology = PhysiologyEngine.execute(current, PhysiologyCommand(
