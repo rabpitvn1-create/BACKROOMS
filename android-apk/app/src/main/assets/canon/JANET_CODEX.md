@@ -42,7 +42,7 @@ Janet nóng nảy, hấp tấp, ghét phải đứng nhìn người khác bị �
 4. **Bayou Road Boots** — `janet:road-boots`: đôi bốt chiến đấu buộc dây cao cổ đã cũ, **+10% DEF**, hỗ trợ trụ vững nhưng không làm Janet di chuyển âm thầm.
 5. **Dog Tag of Home** — mặt dây kỷ niệm do Noah tặng, item **thuần cốt truyện**; chưa đăng ký trang bị gameplay và không tăng chỉ số.
 
-Trang bị có icon WebP riêng lấy trực tiếp từ ảnh gốc Janet. Chúng không tự được thêm vào drop pool hay trở thành vật phẩm dùng chung nếu người chơi chưa có cơ chế được Core xác nhận.
+Trang bị có icon WebP riêng dựng theo thiết kế trong ảnh gốc Janet, đồng bộ phong cách liquid glass với nền xanh lá nhạt. Chúng không tự được thêm vào drop pool hay trở thành vật phẩm dùng chung nếu người chơi chưa có cơ chế được Core xác nhận.
 
 ## VI. Năm kỹ năng thường
 
@@ -69,6 +69,6 @@ Cảnh gặp gợi ý: trong hành lang đèn huỳnh quang đỏ bất thườn
 ## IX. Tài nguyên và giới hạn
 
 - Ảnh alpha toàn thân `Janet.webp` (941 × 1672, 341.370 byte), avatar cận mặt `avatars/Janet_avatar.webp` (512 × 512, 118.612 byte), đều từ ảnh 670.png gốc.
-- Bốn icon WebP 128 × 128 cắt từ đúng hình Janet, upload Google Drive trước rồi GitHub sau.
+- Bốn icon WebP 128 × 128 dựng riêng theo hình Janet, phong cách liquid glass nền xanh lá nhạt; upload Google Drive rồi tải về xác minh trước khi đưa vào GitHub.
 - New Island University là địa danh hư cấu **trong canon game**, không phải cơ sở đào tạo ngoài đời được xác thực.
 - Không tạo quan hệ sẵn có với Catherine, Iris, Syvial hoặc Cao Minh. Janet có thể bị thương, thất bại, bị tách khỏi Party; không bất tử.

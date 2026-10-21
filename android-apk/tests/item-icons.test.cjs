@@ -33,8 +33,8 @@ test('Every registered loot item and catalog equipment has its own WebP icon', (
   assert.equal(new Set(ids.map(id => icons[id])).size, ids.length, 'Distinct catalog items need distinct artwork');
 });
 
-test('Manifest v9 covers exactly 35 registered item IDs and one unknown fallback', () => {
-  assert.equal(manifest.version, 9);
+test('Manifest v10 covers exactly 35 registered item IDs and one unknown fallback', () => {
+  assert.equal(manifest.version, 10);
   assert.equal(manifest.format, 'WEBP');
   assert.equal(manifest.items.length, 36);
   const named = manifest.items.filter(entry => entry.item_id !== null);

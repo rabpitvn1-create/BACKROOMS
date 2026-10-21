@@ -1,0 +1,107 @@
+{
+  "tool": "built-in imagegen",
+  "pipeline": "Image Gen PNG -> resize/encode WebP -> upload PNG and WebP to Drive -> metadata readback -> download WebP from Drive -> verify SHA-256 -> replace existing runtime asset",
+  "runtime_dimensions": [
+    128,
+    128
+  ],
+  "palette": "pale light green / mint / celadon",
+  "items": [
+    {
+      "key": "vesper-nocturne",
+      "owner": "Catherine",
+      "subject": "ONE ornate Victorian long-barreled six-shot revolver, dark black steel barrel and cylinder, delicate brass scroll engravings and fittings, black grip; matching Catherine's actual revolver. Complete muzzle, barrel, cylinder and grip visible, diagonally arranged.",
+      "prompt": "Use case: stylized-concept. Create ONE square BACKROOMS inventory equipment icon, NOT a sheet. Image 1 is STYLE REFERENCE ONLY (almond-water icon): match its premium non-pixel 3D liquid-glass square tile, rounded corners, slim refractive glass bevel, densely composed centered object, crisp detailed materials and cinematic miniature lighting. Image 2 is SUBJECT REFERENCE ONLY: derive the specified equipment's design from that character, but do NOT show any person, body parts or crop of the character. Redraw the object as a standalone polished game item illustration. Replace the reference's gold/orange background with the SAME PALE LIGHT GREEN palette for this entire set: mint green and light celadon gradient, soft fresh green refraction and delicate green wisps, luminous mint glass border, darker green corner vignette for contrast. Preserve original black/red/brass object colors; do not tint the item all green. Object occupies about 75-82% of tile, fully inside bevel with clean padding, legible at 128x128. Opaque square background. No words, no watermark, no labels, no UI, no extra props, no gold/orange background.\nSubject: ONE ornate Victorian long-barreled six-shot revolver, dark black steel barrel and cylinder, delicate brass scroll engravings and fittings, black grip; matching Catherine's actual revolver. Complete muzzle, barrel, cylinder and grip visible, diagonally arranged.",
+      "bytes": 9126,
+      "sha256": "080b6e1f4d1d3df6ebcf0b775e149316642438ef7103abf0cc8435bf97bac0c8",
+      "md5": "8777f354710a1bde69e24665bf393334",
+      "source_drive_url": "https://drive.google.com/file/d/1EXWG9QwaNc2khWUGKPvsZBKbfYNuVSRv/view?usp=drivesdk",
+      "runtime_drive_url": "https://drive.google.com/file/d/1Hpj4cCrdEINtZGWcgVni5t5fc8sJ1qMI/view?usp=drivesdk",
+      "runtime_path": "app/src/main/assets/item-icons/vesper-nocturne.webp"
+    },
+    {
+      "key": "ashcombe-coat",
+      "owner": "Catherine",
+      "subject": "ONE complete empty Gothic Victorian black and dark burgundy mourning long coat with split tails, antique brass embroidered trim, integrated fitted black leather corset and white ruffled lace collar/cuffs. Display as a coherent empty outfit, no body, elegant coat silhouette and both long tails fully visible.",
+      "prompt": "Use case: stylized-concept. Create ONE square BACKROOMS inventory equipment icon, NOT a sheet. Image 1 is STYLE REFERENCE ONLY (almond-water icon): match its premium non-pixel 3D liquid-glass square tile, rounded corners, slim refractive glass bevel, densely composed centered object, crisp detailed materials and cinematic miniature lighting. Image 2 is SUBJECT REFERENCE ONLY: derive the specified equipment's design from that character, but do NOT show any person, body parts or crop of the character. Redraw the object as a standalone polished game item illustration. Replace the reference's gold/orange background with the SAME PALE LIGHT GREEN palette for this entire set: mint green and light celadon gradient, soft fresh green refraction and delicate green wisps, luminous mint glass border, darker green corner vignette for contrast. Preserve original black/red/brass object colors; do not tint the item all green. Object occupies about 75-82% of tile, fully inside bevel with clean padding, legible at 128x128. Opaque square background. No words, no watermark, no labels, no UI, no extra props, no gold/orange background.\nSubject: ONE complete empty Gothic Victorian black and dark burgundy mourning long coat with split tails, antique brass embroidered trim, integrated fitted black leather corset and white ruffled lace collar/cuffs. Display as a coherent empty outfit, no body, elegant coat silhouette and both long tails fully visible.",
+      "bytes": 9644,
+      "sha256": "8159fed16960f21afdeae83914b90c537e24f4b4040c5d2ec0416fcc90e49f1a",
+      "md5": "98945d17645d1bf84c7019e88b858401",
+      "source_drive_url": "https://drive.google.com/file/d/1DbTnPua90TkrGp4INOph05tON5Tud0P4/view?usp=drivesdk",
+      "runtime_drive_url": "https://drive.google.com/file/d/13eVCAov-eYxeSUREsJilmx_lJVVWYzeT/view?usp=drivesdk",
+      "runtime_path": "app/src/main/assets/item-icons/ashcombe-coat.webp"
+    },
+    {
+      "key": "velvet-gauntlets",
+      "owner": "Catherine",
+      "subject": "ONE matching PAIR of refined fitted black leather Victorian gunslinger gloves, thin supple leather, subtle antique brass details, textured palms, short neat cuffs. Gloves empty, no hands or arms, fingers clearly formed; matching Catherine's gloves.",
+      "prompt": "Use case: stylized-concept. Create ONE square BACKROOMS inventory equipment icon, NOT a sheet. Image 1 is STYLE REFERENCE ONLY (almond-water icon): match its premium non-pixel 3D liquid-glass square tile, rounded corners, slim refractive glass bevel, densely composed centered object, crisp detailed materials and cinematic miniature lighting. Image 2 is SUBJECT REFERENCE ONLY: derive the specified equipment's design from that character, but do NOT show any person, body parts or crop of the character. Redraw the object as a standalone polished game item illustration. Replace the reference's gold/orange background with the SAME PALE LIGHT GREEN palette for this entire set: mint green and light celadon gradient, soft fresh green refraction and delicate green wisps, luminous mint glass border, darker green corner vignette for contrast. Preserve original black/red/brass object colors; do not tint the item all green. Object occupies about 75-82% of tile, fully inside bevel with clean padding, legible at 128x128. Opaque square background. No words, no watermark, no labels, no UI, no extra props, no gold/orange background.\nSubject: ONE matching PAIR of refined fitted black leather Victorian gunslinger gloves, thin supple leather, subtle antique brass details, textured palms, short neat cuffs. Gloves empty, no hands or arms, fingers clearly formed; matching Catherine's gloves.",
+      "bytes": 9536,
+      "sha256": "4a5e4eddf9a091c6458681c70e0b10b2e490f02188c517009c636df294e5750f",
+      "md5": "6ece48c8293ccb2e0c17cca8fd219948",
+      "source_drive_url": "https://drive.google.com/file/d/19m4dIieFyP_AwSbb_PhUtX1x5Irw1BdA/view?usp=drivesdk",
+      "runtime_drive_url": "https://drive.google.com/file/d/1TeYPHI0zLcNCDKJfFtWz6vtdvMK4-6Eo/view?usp=drivesdk",
+      "runtime_path": "app/src/main/assets/item-icons/velvet-gauntlets.webp"
+    },
+    {
+      "key": "midnight-boots",
+      "owner": "Catherine",
+      "subject": "ONE matching PAIR of tall black leather Gothic Victorian riding boots, front lacing and small antique brass side buckles, elegant sturdy soles and scuffed rounded toes; matching Catherine's actual boots. Entire boots visible, empty no legs.",
+      "prompt": "Use case: stylized-concept. Create ONE square BACKROOMS inventory equipment icon, NOT a sheet. Image 1 is STYLE REFERENCE ONLY (almond-water icon): match its premium non-pixel 3D liquid-glass square tile, rounded corners, slim refractive glass bevel, densely composed centered object, crisp detailed materials and cinematic miniature lighting. Image 2 is SUBJECT REFERENCE ONLY: derive the specified equipment's design from that character, but do NOT show any person, body parts or crop of the character. Redraw the object as a standalone polished game item illustration. Replace the reference's gold/orange background with the SAME PALE LIGHT GREEN palette for this entire set: mint green and light celadon gradient, soft fresh green refraction and delicate green wisps, luminous mint glass border, darker green corner vignette for contrast. Preserve original black/red/brass object colors; do not tint the item all green. Object occupies about 75-82% of tile, fully inside bevel with clean padding, legible at 128x128. Opaque square background. No words, no watermark, no labels, no UI, no extra props, no gold/orange background.\nSubject: ONE matching PAIR of tall black leather Gothic Victorian riding boots, front lacing and small antique brass side buckles, elegant sturdy soles and scuffed rounded toes; matching Catherine's actual boots. Entire boots visible, empty no legs.",
+      "bytes": 9432,
+      "sha256": "3ef297167af3a71e6d17ea068fb0982686e387840c756c02059634fe034fd9fa",
+      "md5": "3e7a002be7631e4c15c625e3042a1911",
+      "source_drive_url": "https://drive.google.com/file/d/13VQJb_7gVwwa70nIfHaIGPc3iTNLoXfB/view?usp=drivesdk",
+      "runtime_drive_url": "https://drive.google.com/file/d/1tCRf6MvZSvuExK0OBiOQHh8t43N_hcRR/view?usp=drivesdk",
+      "runtime_path": "app/src/main/assets/item-icons/midnight-boots.webp"
+    },
+    {
+      "key": "janet-nailbat",
+      "owner": "Janet",
+      "subject": "ONE battered wooden baseball bat with rusty barbed wire wrapped tightly around the thick upper striking end; weathered brown wood, wrapped grip, plausible physical bat, matching Janet's bat. Complete knob, grip, shaft and head visible, diagonally arranged. No nails substituted for the barbed wire, no gore.",
+      "prompt": "Use case: stylized-concept. Create ONE square BACKROOMS inventory equipment icon, NOT a sheet. Image 1 is STYLE REFERENCE ONLY (almond-water icon): match its premium non-pixel 3D liquid-glass square tile, rounded corners, slim refractive glass bevel, densely composed centered object, crisp detailed materials and cinematic miniature lighting. Image 2 is SUBJECT REFERENCE ONLY: derive the specified equipment's design from that character, but do NOT show any person, body parts or crop of the character. Redraw the object as a standalone polished game item illustration. Replace the reference's gold/orange background with the SAME PALE LIGHT GREEN palette for this entire set: mint green and light celadon gradient, soft fresh green refraction and delicate green wisps, luminous mint glass border, darker green corner vignette for contrast. Preserve original black/red/brass object colors; do not tint the item all green. Object occupies about 75-82% of tile, fully inside bevel with clean padding, legible at 128x128. Opaque square background. No words, no watermark, no labels, no UI, no extra props, no gold/orange background.\nSubject: ONE battered wooden baseball bat with rusty barbed wire wrapped tightly around the thick upper striking end; weathered brown wood, wrapped grip, plausible physical bat, matching Janet's bat. Complete knob, grip, shaft and head visible, diagonally arranged. No nails substituted for the barbed wire, no gore.",
+      "bytes": 8860,
+      "sha256": "a1b51d4b8c98c6fa44ec80dd3ce7060cae2e16f78b5627e7305c51a80dd3485d",
+      "md5": "fbe1989c06b7b345897073150fdae48d",
+      "source_drive_url": "https://drive.google.com/file/d/1E1Pk8mr9Evsee-raxxZq5RcCBYd-5al_/view?usp=drivesdk",
+      "runtime_drive_url": "https://drive.google.com/file/d/1he_UAkwrcR4gmhcOT4VcksI4Kc7IEDHb/view?usp=drivesdk",
+      "runtime_path": "app/src/main/assets/item-icons/janet-nailbat.webp"
+    },
+    {
+      "key": "janet-varsity-vest",
+      "owner": "Janet",
+      "subject": "ONE coherent empty 1980s red sleeveless varsity vest with white striped ribbed edging, layered over a worn white short-sleeved tee with red sleeve stripes and small American flag patch at shoulder, matching Janet's actual outfit. No text or letters, no body, no shorts or jewelry.",
+      "prompt": "Use case: stylized-concept. Create ONE square BACKROOMS inventory equipment icon, NOT a sheet. Image 1 is STYLE REFERENCE ONLY (almond-water icon): match its premium non-pixel 3D liquid-glass square tile, rounded corners, slim refractive glass bevel, densely composed centered object, crisp detailed materials and cinematic miniature lighting. Image 2 is SUBJECT REFERENCE ONLY: derive the specified equipment's design from that character, but do NOT show any person, body parts or crop of the character. Redraw the object as a standalone polished game item illustration. Replace the reference's gold/orange background with the SAME PALE LIGHT GREEN palette for this entire set: mint green and light celadon gradient, soft fresh green refraction and delicate green wisps, luminous mint glass border, darker green corner vignette for contrast. Preserve original black/red/brass object colors; do not tint the item all green. Object occupies about 75-82% of tile, fully inside bevel with clean padding, legible at 128x128. Opaque square background. No words, no watermark, no labels, no UI, no extra props, no gold/orange background.\nSubject: ONE coherent empty 1980s red sleeveless varsity vest with white striped ribbed edging, layered over a worn white short-sleeved tee with red sleeve stripes and small American flag patch at shoulder, matching Janet's actual outfit. No text or letters, no body, no shorts or jewelry.",
+      "bytes": 9578,
+      "sha256": "52c4ee059f7734189ba4e55802f53d1ded3498c05b67361f776bab61938aabe8",
+      "md5": "43467808f7031d5b899d372c8e0f33b2",
+      "source_drive_url": "https://drive.google.com/file/d/12P8xPHtzu8GODIusKdTt6zCsIiOsK1L0/view?usp=drivesdk",
+      "runtime_drive_url": "https://drive.google.com/file/d/1HBYl2uNPKExPlgwzvpnwPNFE_C8htcqG/view?usp=drivesdk",
+      "runtime_path": "app/src/main/assets/item-icons/janet-varsity-vest.webp"
+    },
+    {
+      "key": "janet-grip-gloves",
+      "owner": "Janet",
+      "subject": "ONE matching PAIR of rugged black fingerless leather grip gloves, reinforced knuckles and palms, practical wrist straps, matching Janet's actual gloves. Clearly open fingerless ends with NO human skin, hands or arms. Empty gloves arranged as a readable pair.",
+      "prompt": "Use case: stylized-concept. Create ONE square BACKROOMS inventory equipment icon, NOT a sheet. Image 1 is STYLE REFERENCE ONLY (almond-water icon): match its premium non-pixel 3D liquid-glass square tile, rounded corners, slim refractive glass bevel, densely composed centered object, crisp detailed materials and cinematic miniature lighting. Image 2 is SUBJECT REFERENCE ONLY: derive the specified equipment's design from that character, but do NOT show any person, body parts or crop of the character. Redraw the object as a standalone polished game item illustration. Replace the reference's gold/orange background with the SAME PALE LIGHT GREEN palette for this entire set: mint green and light celadon gradient, soft fresh green refraction and delicate green wisps, luminous mint glass border, darker green corner vignette for contrast. Preserve original black/red/brass object colors; do not tint the item all green. Object occupies about 75-82% of tile, fully inside bevel with clean padding, legible at 128x128. Opaque square background. No words, no watermark, no labels, no UI, no extra props, no gold/orange background.\nSubject: ONE matching PAIR of rugged black fingerless leather grip gloves, reinforced knuckles and palms, practical wrist straps, matching Janet's actual gloves. Clearly open fingerless ends with NO human skin, hands or arms. Empty gloves arranged as a readable pair.",
+      "bytes": 9408,
+      "sha256": "71531c79157d6c1f01d7ecb1dd8ed58efc61f4aa5f2903c9a0e5c796d154ddee",
+      "md5": "b9b2cc6e0bff040f77ea23e5c29810f9",
+      "source_drive_url": "https://drive.google.com/file/d/1U44qeHD-furIQD1pGQUcMfVaKwA3D3mg/view?usp=drivesdk",
+      "runtime_drive_url": "https://drive.google.com/file/d/100xUA--Mb1p-GnE57qNYFkFAkA0ZYR4M/view?usp=drivesdk",
+      "runtime_path": "app/src/main/assets/item-icons/janet-grip-gloves.webp"
+    },
+    {
+      "key": "janet-combat-boots",
+      "owner": "Janet",
+      "subject": "ONE matching PAIR of rugged tall black leather combat boots, red-brown front laces, side buckle straps, thick lugged soles, worn scuffed toes, matching Janet's boots. No socks, no human legs, both empty boots fully visible.",
+      "prompt": "Use case: stylized-concept. Create ONE square BACKROOMS inventory equipment icon, NOT a sheet. Image 1 is STYLE REFERENCE ONLY (almond-water icon): match its premium non-pixel 3D liquid-glass square tile, rounded corners, slim refractive glass bevel, densely composed centered object, crisp detailed materials and cinematic miniature lighting. Image 2 is SUBJECT REFERENCE ONLY: derive the specified equipment's design from that character, but do NOT show any person, body parts or crop of the character. Redraw the object as a standalone polished game item illustration. Replace the reference's gold/orange background with the SAME PALE LIGHT GREEN palette for this entire set: mint green and light celadon gradient, soft fresh green refraction and delicate green wisps, luminous mint glass border, darker green corner vignette for contrast. Preserve original black/red/brass object colors; do not tint the item all green. Object occupies about 75-82% of tile, fully inside bevel with clean padding, legible at 128x128. Opaque square background. No words, no watermark, no labels, no UI, no extra props, no gold/orange background.\nSubject: ONE matching PAIR of rugged tall black leather combat boots, red-brown front laces, side buckle straps, thick lugged soles, worn scuffed toes, matching Janet's boots. No socks, no human legs, both empty boots fully visible.",
+      "bytes": 9584,
+      "sha256": "f6fb27cb350aa2623910d196e06edc6b972024c2a536730cf17602f401d132e5",
+      "md5": "76eb030ce162dff88e8be21d8bf69ae6",
+      "source_drive_url": "https://drive.google.com/file/d/1o6q92AvKiNYdvVe_rnTV5P36wto_V0rl/view?usp=drivesdk",
+      "runtime_drive_url": "https://drive.google.com/file/d/1Zx5i8mOOCBgDOCVy_eRzLMNliadBurVr/view?usp=drivesdk",
+      "runtime_path": "app/src/main/assets/item-icons/janet-combat-boots.webp"
+    }
+  ]
+}
