@@ -30,6 +30,16 @@ private fun parsePhysiologyEffects(raw: String?): Set<String>? {
   return effects.toSet()
 }
 
+/** Strictly validate per-serving values; never consume an item if its recovery data is invalid. */
+private fun commandRecoveryMinutes(state: GameState, command: ItemCommand, key: String, defaultMinutes: Long): Long? {
+  val stack = state.inventories[command.actorId]?.items?.get(command.itemId) ?: return null
+  val raw = stack.metadata[key]
+  val perItem = if (raw == null) defaultMinutes else raw.toLongOrNull() ?: return null
+  if (perItem !in 1L..10080L) return null
+  val total = perItem * command.quantity.toLong()
+  return total.takeIf { it in 1L..(10080L * 100L) }
+}
+
 private fun finishItemUse(
   originalState: GameState,
   inventoryResult: ExecutionResult,
@@ -47,13 +57,19 @@ private fun finishItemUse(
       "FOOD" -> PhysiologyCommand.Operation.RECORD_FOOD
       else -> return ExecutionResult(originalState, false, validation = ValidationResult(false, "physiology_effect_invalid"))
     }
+    val perItem = when (effect) {
+      "FOOD" -> commandRecoveryMinutes(originalState, command, "foodRecoveryMinutes", 720L)
+      "WATER" -> commandRecoveryMinutes(current, command, "waterRecoveryMinutes", 360L)
+      else -> null
+    } ?: return ExecutionResult(originalState, false, validation = ValidationResult(false, "physiology_recovery_invalid"))
     val physiology = PhysiologyEngine.execute(current, PhysiologyCommand(
       commandId = "${command.commandId}:PHYS:$index",
       turnId = command.turnId,
       actorId = command.actorId,
       targetId = command.actorId,
       source = CommandSource.SYSTEM,
-      operation = operation
+      operation = operation,
+      recoveryMinutes = perItem
     ))
     if (!physiology.applied) return ExecutionResult(originalState, false, validation = physiology.validation)
     current = physiology.state
