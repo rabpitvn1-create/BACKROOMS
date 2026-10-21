@@ -49,6 +49,26 @@ class Level0WorldExplorationTest {
     assertThrows(IllegalArgumentException::class.java) { WorldGraphRuntime.validate(bad) }
   }
 
+  @Test fun verifiedWorldEvidenceExportsAuthoredNamesOnlyAfterDiscovery() {
+    val probe = Level0WorldDefinition.evidenceLaws.flatMap { it.probes }
+      .first { it.id == "wet:drip" }
+    assertEquals("Giọt nước từ trần", probe.label)
+    assertEquals(listOf("giọt nước rơi từ trần"), probe.aliases)
+    var state = world(41L)
+    val initial = MiniMapRuntime.publicView(state).getJSONArray("records").toString()
+    assertFalse(initial.contains(probe.label))
+    state = Level0RiddleTestSupport.visit(state, probe.environmentId)
+    val beforeProbe = MiniMapRuntime.publicView(state).getJSONArray("records").toString()
+    assertFalse(beforeProbe.contains(probe.label))
+    state = Level0RiddleTestSupport.take(state, "probe:${probe.method}")
+    val records = MiniMapScenario.objects(MiniMapRuntime.publicView(state).getJSONArray("records"))
+    val found = records.single { it.optString("kind") == "EVIDENCE" && it.optString("text") == probe.clue }
+    assertEquals(probe.label, found.getString("label"))
+    assertEquals(probe.aliases,
+      MiniMapScenario.strings(found.getJSONArray("aliases")))
+    WorldGraphRuntime.validateSavedProgress(MiniMapRuntime.progress(state))
+  }
+
   @Test fun atlasClustersMatchCoreCanonAndNeverExportUndiscoveredNamesOrPrivateIds() {
     val state = world(71L); val graph = p(state).getJSONObject("worldGraph")
     val map = MiniMapRuntime.publicView(state).getJSONObject("map")
