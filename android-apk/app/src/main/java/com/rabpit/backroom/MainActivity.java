@@ -1168,14 +1168,20 @@ public class MainActivity extends Activity {
   }
 
   private static final String GM_SUGGESTION_RULES =
-    "Sau phần kể, kết thúc reply bằng mục GỢI Ý HÀNH ĐỘNG: rồi 2 hoặc 3 dòng đánh số liên tiếp "
-    + "1. ... / 2. ... / 3. ... (mỗi dòng một hành động đơn lẻ ngắn, cụ thể, khả thi tại cảnh đang biết). "
-    + "Những dòng này chỉ gợi ý người chơi CÓ THỂ tự chọn, không phải sự kiện đã xảy ra; "
-    + "không viết câu ra lệnh vượt khóa, không đoán đường chưa mở, không gợi ý lời giải chưa tìm được. "
-    + "Gợi ý tìm kiếm/đi lại phải phù hợp availableActions Core nếu có; "
-    + "cũng có thể là một hành động tự do một lượt chỉ mô tả/cử chỉ không thay luật Core. "
-    + "Nếu đang có chiến đấu, Entity chặn lối, hoặc lượt cần retry, không đưa gợi ý. "
-    + "Viết tiêu đề và số đúng định dạng, mỗi dòng không xuống dòng giữa chừng. ";
+    "Cuối reply, khi không có giao tranh hoặc cảnh cần Retry, đặt chính xác tiêu đề GỢI Ý HÀNH ĐỘNG: "
+    + "trên một dòng, ngay sau đó viết CHÍNH XÁC 4 dòng theo mẫu "
+    + "1. hành động / 2. hành động / 3. hành động / 4. hành động (mỗi dòng độc lập, không thêm chú thích cuối). "
+    + "Mỗi dòng phải là một việc đơn lẻ có thể thử NGAY trong cảnh hiện tại, không phải một chuỗi việc. "
+    + "Trong bốn gợi ý, tạo hai hướng có khả năng giúp khám phá thật dựa trên bằng chứng và availableActions ĐÃ CÔNG KHAI, "
+    + "hai hướng đánh lạc hướng tiêu tốn một lượt dù không giúp câu đố. "
+    + "Trộn thứ tự ngẫu nhiên, tránh lặp lại vị trí đúng giữa các lượt, không ghi đúng/sai/đánh lạc hướng. "
+    + "Viết hai hướng hữu ích trông đáng ngờ hoặc kém hấp dẫn, và hai hướng vô ích trông hợp lý, thuyết phục. "
+    + "Không hứa kết quả chắc chắn, không tiết lộ đáp án bí mật, không giả vờ biết nghiệm chưa được Core công khai. "
+    + "Gợi ý sai phải chỉ là một nỗ lực thực hiện được hoặc điều tra vô ích, không phải lệnh bất hợp pháp hay đi xuyên cửa khóa. "
+    + "Dù người chơi chọn hướng nào, hành động đó phải tiêu thụ một lượt Core, có thể kích hoạt Entity/NPC. "
+    + "Nếu chưa đủ hai hướng hữu ích theo dữ kiện công khai, chọn hai phép quan sát/kiểm tra khác nhau để tìm thêm thông tin, "
+    + "không tự phát minh lời giải. "
+    + "Đúng bốn dòng gợi ý là nội dung có thể chọn, không phải hành động đã thực hiện. ";
 
   private String sceneWriterPrompt() throws Exception {
     JSONObject packet = new JSONObject(requireGameCore().sceneNarrationContext());
