@@ -81,14 +81,43 @@ object CharacterStatProfiles {
     else -> "UNSPECIFIED"
   }
 
+  // Starting-only balance for the four recently introduced mortal Followers.
+  // The other characters retain their shared 5-stat / 50-HP baseline.
+  private val lowStatFollowers = mapOf(
+    CATHERINE_ID to CharacterStatProfile(
+      baseMaxHp = 26, str = 1, dex = 2, agi = 2, vit = 1, eva = 2,
+      combatRole = role(CATHERINE_ID)
+    ),
+    JANET_ID to CharacterStatProfile(
+      baseMaxHp = 30, str = 2, dex = 1, agi = 2, vit = 2, eva = 1,
+      combatRole = role(JANET_ID)
+    ),
+    NGUYEN_QUOC_NAM_ID to CharacterStatProfile(
+      baseMaxHp = 28, str = 1, dex = 2, agi = 1, vit = 2, eva = 1,
+      combatRole = role(NGUYEN_QUOC_NAM_ID)
+    ),
+    HUA_TIEU_LAN_ID to CharacterStatProfile(
+      baseMaxHp = 25, str = 1, dex = 2, agi = 1, vit = 1, eva = 2,
+      combatRole = role(HUA_TIEU_LAN_ID)
+    )
+  )
+
+  fun followerStartingBalance(characterId: String): CharacterStatProfile? =
+    lowStatFollowers[characterId.trim().lowercase()]
+
+  fun minimumStat(characterId: String): Int =
+    if (followerStartingBalance(characterId) != null) 1 else CharacterProgressionCore.BASE_STAT
+
   private fun energy(id: String): EnergyProfile = when (id.trim().lowercase()) {
     "cao_minh", "iris", "syvial" -> EnergyProfile.infinite()
     else -> EnergyProfile.notApplicable()
   }
 
   fun forId(characterId: String): CharacterStatProfile =
-    CharacterStatProfile(combatRole = role(characterId), energy = energy(characterId))
+    followerStartingBalance(characterId) ?: CharacterStatProfile(
+      combatRole = role(characterId), energy = energy(characterId)
+    )
 
   fun initialVitals(characterId: String): CharacterVitalState =
-    CharacterVitalState(currentHp = CharacterProgressionCore.BASE_MAX_HP)
+    CharacterVitalState(currentHp = forId(characterId).baseMaxHp)
 }

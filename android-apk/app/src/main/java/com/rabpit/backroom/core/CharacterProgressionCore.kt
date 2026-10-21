@@ -26,7 +26,7 @@ object CharacterProgressionCore {
       "VIT" -> p.vit
       "EVA" -> p.eva
       else -> BASE_STAT
-    }.coerceIn(BASE_STAT, MAX_STAT)
+    }.coerceIn(CharacterStatProfiles.minimumStat(characterId), MAX_STAT)
   }
 
   fun statPercent(stat: Int): Int = 100 + 4 * (stat.coerceIn(1, MAX_STAT) - BASE_STAT)
@@ -90,13 +90,14 @@ object CharacterProgressionCore {
     state.characters.forEach { (id, c) ->
       val raw = c.statProfile
       val canonical = if (raw.schema == SCHEMA) {
+        val minStat = CharacterStatProfiles.minimumStat(id)
         raw.copy(
-          baseMaxHp = BASE_MAX_HP,
-          str = raw.str.coerceIn(BASE_STAT, MAX_STAT),
-          dex = raw.dex.coerceIn(BASE_STAT, MAX_STAT),
-          agi = raw.agi.coerceIn(BASE_STAT, MAX_STAT),
-          eva = raw.eva.coerceIn(BASE_STAT, MAX_STAT),
-          vit = raw.vit.coerceIn(BASE_STAT, MAX_STAT),
+          baseMaxHp = CharacterStatProfiles.forId(id).baseMaxHp,
+          str = raw.str.coerceIn(minStat, MAX_STAT),
+          dex = raw.dex.coerceIn(minStat, MAX_STAT),
+          agi = raw.agi.coerceIn(minStat, MAX_STAT),
+          eva = raw.eva.coerceIn(minStat, MAX_STAT),
+          vit = raw.vit.coerceIn(minStat, MAX_STAT),
           regen = HpRegenRule(),
           schema = SCHEMA
         )
@@ -177,7 +178,8 @@ object CharacterStatCore {
     val p = state.characters[characterId]?.statProfile ?: CharacterStatProfiles.forId(characterId)
     val equip = equipmentBonuses(state, characterId)
     fun value(raw: Int, pct: Int): Int {
-      val base = (raw.coerceIn(5, 999) + passiveBonus(raw, characterId)).coerceAtMost(CharacterProgressionCore.MAX_STAT)
+      val minimum = CharacterStatProfiles.minimumStat(characterId)
+      val base = (raw.coerceIn(minimum, 999) + passiveBonus(raw, characterId)).coerceAtMost(CharacterProgressionCore.MAX_STAT)
       return ((base.toLong() * (100 + pct)) / 100).coerceAtMost(CharacterProgressionCore.MAX_STAT.toLong()).toInt()
     }
     // Needs weaken effective performance, never permanent progression or Max HP.
@@ -209,7 +211,10 @@ object CharacterStatCore {
     val dodgeResBp = evasionResistanceBasisPoints(eva)
     val attack = CharacterProgressionCore.statPercent(str)
     return EffectiveCharacterStats(
-      maxHp = maxHp(vit),
+      maxHp = CharacterStatProfiles.followerStartingBalance(characterId)?.let { seed ->
+        // Each additional effective VIT point still raises HP by five after leveling.
+        (seed.baseMaxHp.toLong() + 5L * (vit - seed.vit)).coerceIn(1L, Int.MAX_VALUE.toLong()).toInt()
+      } ?: maxHp(vit),
       str = str, dex = dex, agi = agi, vit = vit, eva = eva, def = def,
       criticalChancePercent = roundPercent(critBp),
       evasionPercent = roundPercent(dodgeBp),

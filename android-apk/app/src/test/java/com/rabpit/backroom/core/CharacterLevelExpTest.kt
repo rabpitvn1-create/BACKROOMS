@@ -13,7 +13,7 @@ class CharacterLevelExpTest {
     state.characters.values.forEach { c ->
       assertEquals(0, c.progression.level)
       assertEquals(0, c.progression.exp)
-      assertEquals(listOf(5, 5, 5, 5, 5), primary(c.statProfile))
+      assertEquals(primary(CharacterStatProfiles.forId(c.id)), primary(c.statProfile))
     }
     assertEquals(10, CharacterProgressionCore.expRequired(0))
     assertEquals(18, CharacterProgressionCore.expRequired(1))

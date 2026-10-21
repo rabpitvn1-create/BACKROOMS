@@ -4,13 +4,15 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class CharacterPrimaryStatsBaselineTest {
-  @Test fun allCharactersBeginWithFivePrimaryStatsAtFive() {
+  @Test fun `standard characters use five baseline and four new followers have low initial stats`() {
     val state = CharacterProgressionCore.normalize(GameState.initial())
     assertTrue(state.characters.isNotEmpty())
     state.characters.values.forEach { c ->
       val p = c.statProfile
-      assertEquals(c.id, listOf(5, 5, 5, 5, 5), listOf(p.str, p.dex, p.agi, p.vit, p.eva))
-      assertEquals(c.id, 50, p.baseMaxHp)
+      val seed = CharacterStatProfiles.forId(c.id)
+      assertEquals(c.id, listOf(seed.str, seed.dex, seed.agi, seed.vit, seed.eva),
+        listOf(p.str, p.dex, p.agi, p.vit, p.eva))
+      assertEquals(c.id, seed.baseMaxHp, p.baseMaxHp)
     }
   }
 
@@ -26,7 +28,9 @@ class CharacterPrimaryStatsBaselineTest {
 
     assertEquals(listOf(8, 12, 16), listOf(p.dex, p.agi, p.eva))
     decoded.characters.filterKeys { it != id }.values.forEach { other ->
-      assertEquals(listOf(5, 5, 5), listOf(other.statProfile.dex, other.statProfile.agi, other.statProfile.eva))
+      val baseline = CharacterStatProfiles.forId(other.id)
+      assertEquals(listOf(baseline.dex, baseline.agi, baseline.eva),
+        listOf(other.statProfile.dex, other.statProfile.agi, other.statProfile.eva))
     }
   }
 

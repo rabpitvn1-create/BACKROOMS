@@ -119,7 +119,7 @@ object GameStateCodec {
 
   private fun characterStatProfile(value: CharacterStatProfile) = JSONObject().apply {
     put("schema", CharacterProgressionCore.SCHEMA)
-    put("baseMaxHp", CharacterProgressionCore.BASE_MAX_HP)
+    put("baseMaxHp", value.baseMaxHp)
     put("STR", value.str)
     put("DEX", value.dex)
     put("AGI", value.agi)
@@ -130,13 +130,14 @@ object GameStateCodec {
   private fun decodeCharacterStatProfile(json: JSONObject?, characterId: String): CharacterStatProfile {
     val fallback = CharacterStatProfiles.forId(characterId)
     if (json == null || json.optString("schema") != CharacterProgressionCore.SCHEMA) return fallback
+    val minStat = CharacterStatProfiles.minimumStat(characterId)
     return fallback.copy(
-      baseMaxHp = CharacterProgressionCore.BASE_MAX_HP,
-      str = json.optInt("STR", CharacterProgressionCore.BASE_STAT).coerceIn(5, 999),
-      dex = json.optInt("DEX", CharacterProgressionCore.BASE_STAT).coerceIn(5, 999),
-      agi = json.optInt("AGI", CharacterProgressionCore.BASE_STAT).coerceIn(5, 999),
-      vit = json.optInt("VIT", CharacterProgressionCore.BASE_STAT).coerceIn(5, 999),
-      eva = json.optInt("EVA", CharacterProgressionCore.BASE_STAT).coerceIn(5, 999),
+      baseMaxHp = fallback.baseMaxHp,
+      str = json.optInt("STR", fallback.str).coerceIn(minStat, 999),
+      dex = json.optInt("DEX", fallback.dex).coerceIn(minStat, 999),
+      agi = json.optInt("AGI", fallback.agi).coerceIn(minStat, 999),
+      vit = json.optInt("VIT", fallback.vit).coerceIn(minStat, 999),
+      eva = json.optInt("EVA", fallback.eva).coerceIn(minStat, 999),
       schema = CharacterProgressionCore.SCHEMA
     )
   }
@@ -148,8 +149,8 @@ object GameStateCodec {
 
   private fun decodeCharacterVitalState(json: JSONObject?, profile: CharacterStatProfile): CharacterVitalState =
     CharacterVitalState(
-      currentHp = json?.optInt("currentHp", CharacterProgressionCore.BASE_MAX_HP)?.coerceAtLeast(0)
-        ?: CharacterProgressionCore.BASE_MAX_HP,
+      currentHp = json?.optInt("currentHp", profile.baseMaxHp)?.coerceAtLeast(0)
+        ?: profile.baseMaxHp,
       condition = enumOr(CharacterCondition.HEALTHY, json?.optString("condition").orEmpty())
     )
 
