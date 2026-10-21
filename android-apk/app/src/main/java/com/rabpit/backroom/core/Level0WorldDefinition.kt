@@ -44,13 +44,13 @@ object Level0WorldDefinition : WorldDefinition {
     // Distinguish an actual structural connection from deceptive black reflections.
     WorldEvidenceLaw("wet-ceiling", WorldLawFamily.PHYSICAL_CORRELATION, listOf(
       WorldLawProbe("wet:floor", "phong_ngap", "floor",
-        "Vết kéo lê dưới mặt nước chỉ chứng minh sự xáo trộn trên sàn; mép thảm ẩm tiếp giáp vách chưa xác định hướng nước."),
+        "Vết kéo lê dưới mặt nước chỉ chứng minh sự xáo trộn trên sàn; mép thảm ẩm tiếp giáp vách chưa xác định hướng nước.", "Vết kéo lê"),
       WorldLawProbe("wet:mirror", "vung_den", "reflection",
-        "Bóng trong vũng đen không trùng với phòng thật. Hình phản chiếu không thể dùng làm bằng chứng về hướng dòng nước."),
+        "Bóng trong vũng đen không trùng với phòng thật. Hình phản chiếu không thể dùng làm bằng chứng về hướng dòng nước.", "Bóng trong vũng đen"),
       WorldLawProbe("wet:drip", "goc_thoi", "ceiling",
-        "Những giọt nước rơi từ trần xuống; vệt sàn và vị trí nhỏ giọt là hai quan sát khác nhau, chưa xác nhận cùng nguồn."),
+        "Những giọt nước rơi từ trần xuống; vệt sàn và vị trí nhỏ giọt là hai quan sát khác nhau, chưa xác nhận cùng nguồn.", "Giọt nước từ trần"),
       WorldLawProbe("wet:pipe", "khoang_ky_thuat", "ceiling",
-        "Đường ống lộ thiên và mối ghép sát vách tạo một vị trí kiểm tra cấu trúc cụ thể, khác hình phản chiếu trong vũng.")
+        "Đường ống lộ thiên và mối ghép sát vách tạo một vị trí kiểm tra cấu trúc cụ thể, khác hình phản chiếu trong vũng.", "Mối ghép ống-vách")
     ), "khoang_ky_thuat",
       "Đã loại trừ hình phản chiếu và dấu kéo lê làm chỉ dấu dòng chảy. Mối ghép cấu trúc trở thành vị trí có thể thử mở.",
       "Chưa đủ chứng cứ độc lập hoặc chưa bảo vệ được cách phân biệt nguồn nước và hình ảnh.",
@@ -75,13 +75,13 @@ object Level0WorldDefinition : WorldDefinition {
     // marks are required to disambiguate identical rooms.
     WorldEvidenceLaw("loop-reflection", WorldLawFamily.SPATIAL_ANCHOR, listOf(
       WorldLawProbe("loop:mark", "hanh_lang_lap", "markings",
-        "Ký hiệu có sẵn lặp tại nhiều đoạn hành lang; tự nó không xác định căn phòng đã đi qua."),
+        "Ký hiệu có sẵn lặp tại nhiều đoạn hành lang; tự nó không xác định căn phòng đã đi qua.", "Ký hiệu lặp"),
       WorldLawProbe("loop:copy", "phong_ban_sao", "geometry",
-        "Ghế gãy, vết nứt và dấu chân có bản sao giống nhau. Nhận diện theo một đồ vật là không đủ."),
+        "Ghế gãy, vết nứt và dấu chân có bản sao giống nhau. Nhận diện theo một đồ vật là không đủ.", "Ghế gãy"),
       WorldLawProbe("loop:cross", "nga_tu_vo_tan", "geometry",
-        "Những hướng khác nhau có lúc dẫn về điểm trông giống ban đầu; hướng di chuyển không đủ xác nhận địa điểm."),
+        "Những hướng khác nhau có lúc dẫn về điểm trông giống ban đầu; hướng di chuyển không đủ xác nhận địa điểm.", "Ngã tư vô tận"),
       WorldLawProbe("loop:mirror", "phong_dao", "reflection",
-        "Bố cục đổi phía như ảnh gương; chỉ có dấu tự tạo được đối chiếu theo vị trí mới phân biệt việc đảo với bản sao.")
+        "Bố cục đổi phía như ảnh gương; chỉ có dấu tự tạo được đối chiếu theo vị trí mới phân biệt việc đảo với bản sao.", "Phòng đảo")
     ), "hanh_lang_lap",
       "Hai điểm neo do người chơi tạo đã phân biệt ký hiệu lặp với vị trí thực để nhận diện đường nối.",
       "Dấu cũ, hình dạng giống nhau hoặc một điểm neo đơn độc chưa chứng minh được lộ trình.",
@@ -107,13 +107,13 @@ object Level0WorldDefinition : WorldDefinition {
     // valid inference is *insufficient evidence*, not a new supernatural law.
     WorldEvidenceLaw("signal-distortion", WorldLawFamily.PHYSICAL_CORRELATION, listOf(
       WorldLawProbe("signal:blink", "phong_chop", "light",
-        "Đồ vật dường như đổi hình trong khoảng đèn tắt; không có bằng chứng chúng thực sự di chuyển."),
+        "Đồ vật dường như đổi hình trong khoảng đèn tắt; không có bằng chứng chúng thực sự di chuyển.", "Đồ vật đổi hình"),
       WorldLawProbe("signal:lag", "hanh_lang_cam", "sound",
-        "Tiếng bước chân đôi khi đến muộn so với bước chân, nên âm thanh không phải thước đo thời điểm tuyệt đối."),
+        "Tiếng bước chân đôi khi đến muộn so với bước chân, nên âm thanh không phải thước đo thời điểm tuyệt đối.", "Tiếng bước chân đến muộn"),
       WorldLawProbe("signal:wall", "phong_thi_tham", "sound",
-        "Tiếng thì thầm ở sau vách không đủ rõ để nhận ra lời nói hoặc xác định người phát."),
+        "Tiếng thì thầm ở sau vách không đủ rõ để nhận ra lời nói hoặc xác định người phát.", "Tiếng thì thầm"),
       WorldLawProbe("signal:call", "phong_tieng_goi", "sound",
-        "Tiếng gọi đổi vị trí khi tiến gần; cảm giác quen thuộc không chứng minh một người có thật đang di chuyển.")
+        "Tiếng gọi đổi vị trí khi tiến gần; cảm giác quen thuộc không chứng minh một người có thật đang di chuyển.", "Tiếng gọi đổi vị trí")
     ), "hanh_lang_cam",
       "Đã phân biệt âm trễ, tín hiệu méo và giọng gọi thay đổi: chưa có bằng chứng buộc chúng cùng một nguồn.",
       "Chưa phân biệt dấu quan sát được với suy đoán về người phát hoặc thời điểm phát.",
@@ -139,13 +139,13 @@ object Level0WorldDefinition : WorldDefinition {
     // the Fracture as an authenticated exit to another Level.
     WorldEvidenceLaw("fracture-boundary", WorldLawFamily.SPATIAL_ANCHOR, listOf(
       WorldLawProbe("fracture:crack", "tuong_nut", "surface",
-        "Vết nứt và tiếng rung trầm xác nhận bề mặt có dấu biến dạng, không tự xác nhận lối đi ở phía sau."),
+        "Vết nứt và tiếng rung trầm xác nhận bề mặt có dấu biến dạng, không tự xác nhận lối đi ở phía sau.", "Vết nứt"),
       WorldLawProbe("fracture:floor", "san_lech", "floor",
-        "Những khối sàn lệch cao và hành lang nghiêng là hình học quan sát được; hướng nghiêng chưa chỉ đích đến."),
+        "Những khối sàn lệch cao và hành lang nghiêng là hình học quan sát được; hướng nghiêng chưa chỉ đích đến.", "Khối sàn lệch cao"),
       WorldLawProbe("fracture:void", "khe_toi", "depth",
-        "Khe tối không xác định được chiều sâu, tiếng vọng không rõ; không thể lấy độ sâu tưởng tượng làm lối ra."),
+        "Khe tối không xác định được chiều sâu, tiếng vọng không rõ; không thể lấy độ sâu tưởng tượng làm lối ra.", "Khe tối"),
       WorldLawProbe("fracture:layers", "phong_giao_thoa", "surface",
-        "Các lớp tường lộ bê tông xám cho thấy vật liệu khác nhau, nhưng không xác nhận nơi này nối sang Level mới.")
+        "Các lớp tường lộ bê tông xám cho thấy vật liệu khác nhau, nhưng không xác nhận nơi này nối sang Level mới.", "Lớp tường bê tông xám")
     ), "phong_giao_thoa",
       "Đã phân biệt biến dạng cấu trúc, sai lệch cao độ và giới hạn đo sâu. Phòng Giao Thoa chưa được xác nhận là lối thoát.",
       "Thiếu đối chứng hoặc đang nhầm bề mặt bất thường với bằng chứng tồn tại một cửa chuyển Level.",
