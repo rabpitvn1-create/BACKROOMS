@@ -681,6 +681,66 @@
       failed=false;refresh();
     }
   };
+  // GM suggestions live in the GM message itself. Player Action remains
+  // a separate free-text composer; neither path grants new Core authority.
+  function parseGmSuggestions(text){
+    const lines=String(text||'').trim().split(/\\r?\\n/);
+    if(lines.length<5||lines[lines.length-5].trim()!=='GỢI Ý HÀNH ĐỘNG:')return [];
+    const actions=[];
+    for(let i=1;i<=4;i++){
+      const line=lines[lines.length-5+i].trim();
+      const match=line.match(/^([1-4])\\. (.+)$/);
+      if(!match||Number(match[1])!==i)return [];
+      const action=match[2].trim();
+      if(action.length<5||action.length>400||/[<>]/.test(action))return [];
+      actions.push(action);
+    }
+    return actions;
+  }
+  function renderGmSuggestionButtons(){
+    const log=document.getElementById('log'),entries=state&&state.log;
+    const scene=state&&state.scene;
+    if(!log||!Array.isArray(entries)||!scene||scene.generationNeeded)return;
+    const map=String(scene.nodeId)+':'+Number(scene.miniIndex||1);
+    let i=entries.length-1;
+    for(;i>=0;i--)if(entries[i]&&entries[i].role==='gm')break;
+    if(i<0||entries[i].sceneMap!==map)return;
+    const options=parseGmSuggestions(entries[i].text);
+    if(options.length!==4)return;
+    const article=log.children[i];
+    if(!article||!String(article.className||'').includes('gm')||article.querySelector('.gm-suggestion-list'))return;
+    const container=document.createElement('div');
+    container.className='gm-suggestion-list';
+    container.setAttribute('aria-label','Bốn gợi ý từ Game Master');
+    options.forEach((action,index)=>{
+      const button=document.createElement('button');
+      button.type='button';button.className='gm-suggestion';
+      button.textContent=(index+1)+'. '+action;
+      button.disabled=locked()||!!scene.pendingActionId;
+      button.onclick=()=>{
+        if(locked()||scene.pendingActionId)return;
+        batchBusy=true;failed=false;busy=true;refresh();
+        for(const old of container.children)old.disabled=true;
+        if(global.appendActionPending)global.appendActionPending(action);
+        try{
+          if(!Android.submitGmSuggestion)throw Error('Thiếu cầu nối gợi ý GM');
+          Android.submitGmSuggestion(JSON.stringify(state),index+1);
+        }catch(_){
+          batchBusy=false;busy=false;
+          global.backroomError('Không thể gửi gợi ý GM tới Core.');
+        }
+      };
+      container.appendChild(button);
+    });
+    article.appendChild(container);
+  }
+  const originalRender=global.render;
+  if(typeof originalRender==='function')global.render=function(){
+    const result=originalRender.apply(this,arguments);
+    renderGmSuggestionButtons();
+    return result;
+  };
   global.backroomSyncExplorer=refresh;
+  renderGmSuggestionButtons();
   refresh();
 })(window);
