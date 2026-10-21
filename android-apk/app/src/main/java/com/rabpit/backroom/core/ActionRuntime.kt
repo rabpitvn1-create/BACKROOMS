@@ -121,7 +121,13 @@ object ActionRuntime {
         actorId = session.actorId,
         source = CommandSource.SYSTEM,
         minutes = minutes,
-        reason = "action_${session.kind.name.lowercase()}"
+        reason = "action_${session.kind.name.lowercase()}",
+        activity = when {
+          RestActionPolicy.activity(session.input) != TimeActivity.NORMAL -> RestActionPolicy.activity(session.input)
+          Regex("(?:^|\\s)(?:chạy|chay|leo|bò|bo|run|sprint|fight|attack|bắn|ban)(?:\\s|$)", RegexOption.IGNORE_CASE).containsMatchIn(session.input) -> TimeActivity.EXERTION
+          else -> TimeActivity.NORMAL
+        },
+        restTargets = RestActionPolicy.targets(state, session.input).toSet()
       )
     )
     if (!timeResult.applied) return ActionRuntimeResult(state, session, applied = false, error = timeResult.validation.reason ?: "action_time_rejected")
