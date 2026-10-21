@@ -199,7 +199,7 @@ object CharacterStatCore {
     val vit = value(p.vit, equip.vitPct)
     val eva = weakened(value(p.eva, 0), fatigue * 12 + thirst * 6)
     val baseDef = ((defense(vit).toLong() * (100 + equip.defPct)) / 100).coerceAtMost(CharacterProgressionCore.MAX_STAT.toLong()).toInt()
-    val def = weakened(baseDef, thirst * 10)
+    val def = if (baseDef == 0) 0 else weakened(baseDef, thirst * 10)
     val accuracyBp = accuracyBasisPoints(dex, agi)
     val critBp = criticalChanceBasisPoints(agi)
     val dodgeBp = evasionBasisPoints(eva)
