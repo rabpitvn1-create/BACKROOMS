@@ -6,8 +6,9 @@
   const objectivePanel=document.getElementById('explorerMenuObjective');
   const objectiveText=document.getElementById('explorerCurrentObjective');
   const casebook=document.getElementById('explorerCasebook');
+  const questItems=document.getElementById('explorerQuestItems');
   if(!bar||!form||!journal||!room||!objective||!records||
-    !menuTools||!objectivePanel||!objectiveText||!casebook)return;
+    !menuTools||!objectivePanel||!objectiveText||!casebook||!questItems)return;
   const panel=document.createElement('section');panel.id='explorerControls';panel.setAttribute('aria-label','Khám phá');
   const row=document.createElement('div');row.className='explorer-buttons';
   const buttons={};
@@ -38,6 +39,11 @@
     if(!state?.scene?.map)return;
     document.getElementById('gameMenuClose')?.click();
     openCasebook();
+  };
+  questItems.onclick=()=>{
+    if(!state?.scene)return;
+    document.getElementById('gameMenuClose')?.click();
+    openQuestItems();
   };
   actionSlot.append(playerAction,retry);panel.append(row,actionSlot);bar.appendChild(panel);
   const dialog=document.createElement('dialog');dialog.id='explorerChoices';dialog.setAttribute('aria-label','Chọn tương tác');
@@ -167,6 +173,37 @@
       const b=document.createElement('button');b.type='button';
       b.textContent=action.label;b.onclick=()=>submitChoice(action,false);
       choices.appendChild(b);
+    });
+  }
+  function openQuestItems(){
+    activeMechanismId=null;showPopup('Vật phẩm nhiệm vụ');
+    const all=Array.isArray(state.gmQuestItems?.items)?state.gmQuestItems.items:[];
+    if(!all.length){
+      const empty=document.createElement('p');
+      empty.textContent='Chưa có vật phẩm nhiệm vụ nào do GM trao.';choices.appendChild(empty);return;
+    }
+    all.forEach(item=>{
+      const card=document.createElement('section');
+      card.className='gm-quest-item'+(item.status==='consumed'?' gm-quest-item--used':'');
+      const heading=document.createElement('strong');heading.textContent=String(item.name||'Vật phẩm không tên');
+      const detail=document.createElement('p');detail.textContent=String(item.description||'');
+      const stateLine=document.createElement('small');
+      stateLine.textContent=item.status==='held'?'Đang giữ · Vật phẩm dùng một lần':'Đã sử dụng';
+      card.append(heading,detail,stateLine);
+      if(item.status==='held'){
+        const use=document.createElement('button');use.type='button';
+        use.textContent='Đề nghị sử dụng trong Player Action';
+        use.disabled=locked();
+        use.onclick=()=>{
+          dialog.close();
+          actionInput.value='Tôi muốn sử dụng '+String(item.name||'vật phẩm')+' để ';
+          actionSend.disabled=false;
+          actionInput.focus();
+          if(!actionDialog.open)actionDialog.showModal();
+        };
+        card.appendChild(use);
+      }
+      choices.appendChild(card);
     });
   }
   function openCasebook(){
@@ -563,6 +600,7 @@
     buttons.AREA_LOG.disabled=!scene.map;
     buttons.TALK.disabled=locked()||!(scene.availableActions||[]).some(a=>a.kind==='TALK');
     casebook.disabled=!scene.map;
+    questItems.disabled=false;
     // Invalid input/planner failures leave Player Action editable.
     const showRetry=!!scene.pendingActionId||!!state.playerAction?.recoverable||(failed&&!!scene.generationNeeded);
     playerAction.hidden=showRetry;retry.hidden=!showRetry;
