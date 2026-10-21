@@ -40,5 +40,9 @@ window.backroomItemIcons = Object.freeze({
   'lucia:military-watch': 'military-watch',
   'an-nhien:pink-patterned-outfit': 'pink-outfit',
   'an-nhien:pink-crocs': 'pink-crocs',
+  'trac_lam:m92-gemini': 'trac-lam-gemini',
+  'trac_lam:aegis-k4': 'trac-lam-aegis',
+  'trac_lam:scout-kit': 'trac-lam-scout',
+  'trac_lam:sru-medkit': 'trac-lam-medkit',
   'madgod:set': 'madgod-sword'
 });
