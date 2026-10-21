@@ -154,6 +154,10 @@ object GameStateCodec {
     putNullable("minutesSinceFood", value.minutesSinceFood)
     putNullable("minutesSinceWater", value.minutesSinceWater)
     putNullable("minutesAwake", value.minutesAwake)
+    put("recoverableFoodHp", value.recoverableFoodHp)
+    put("recoverableWaterHp", value.recoverableWaterHp)
+    put("recoverableSleepHp", value.recoverableSleepHp)
+    put("restRecoveryMinutes", value.restRecoveryMinutes)
     putNullable("painState", value.painState)
     putNullable("infectionState", value.infectionState)
     putNullable("thermalState", value.thermalState)
@@ -166,6 +170,10 @@ object GameStateCodec {
       minutesSinceFood = json.nullableLong("minutesSinceFood")?.coerceAtLeast(0L),
       minutesSinceWater = json.nullableLong("minutesSinceWater")?.coerceAtLeast(0L),
       minutesAwake = json.nullableLong("minutesAwake")?.coerceAtLeast(0L),
+      recoverableFoodHp = json.optInt("recoverableFoodHp", 0).coerceAtLeast(0),
+      recoverableWaterHp = json.optInt("recoverableWaterHp", 0).coerceAtLeast(0),
+      recoverableSleepHp = json.optInt("recoverableSleepHp", 0).coerceAtLeast(0),
+      restRecoveryMinutes = json.optInt("restRecoveryMinutes", 0).coerceIn(0, 29),
       painState = json.nullableString("painState"),
       infectionState = json.nullableString("infectionState"),
       thermalState = json.nullableString("thermalState"),
