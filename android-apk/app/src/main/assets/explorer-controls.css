@@ -9,8 +9,16 @@
 #explorerMenuTools[hidden],#explorerMenuTools .explorer-current-objective[hidden]{display:none!important}
 #explorerMenuTools .explorer-current-objective strong{display:block;font-size:12px;color:#ddc18a;margin-bottom:4px}
 #explorerMenuTools .explorer-current-objective p{margin:0;font-size:13px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
-#explorerMenuTools #explorerCasebook{display:block;width:100%;min-height:48px;margin-top:10px;text-align:left}
-#explorerMenuTools #explorerCasebook:disabled{opacity:.45}
+#explorerMenuTools .explorer-dossier-tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+#explorerMenuTools .explorer-dossier-tiles button{display:block;width:100%;min-height:52px;margin:0;padding:10px;text-align:left;font-weight:700;font-size:12px;white-space:normal}
+#explorerMenuTools .explorer-dossier-tiles button:disabled{opacity:.45}
+#explorerChoices .gm-quest-item{padding:12px;margin-bottom:8px;border:1px solid #666247;background:#161e20;overflow-wrap:anywhere}
+#explorerChoices .gm-quest-item strong{display:block;color:#e3cb91;margin-bottom:5px;font-size:14px}
+#explorerChoices .gm-quest-item p{font-size:12px;color:#d1d8d4;line-height:1.5;white-space:pre-wrap;margin:5px 0}
+#explorerChoices .gm-quest-item small{display:block;color:#b2b8b1}
+#explorerChoices .gm-quest-item button{margin-top:9px;margin-bottom:0}
+#explorerChoices .gm-quest-item--used{opacity:.58}
+@media(max-width:360px){#explorerMenuTools .explorer-dossier-tiles{gap:5px}}
 .explorer-buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
 .explorer-buttons button{min-height:48px;padding:8px 4px;font-weight:700;font-size:13px;touch-action:manipulation}
 #sceneJournal details{margin-bottom:8px;font-size:12px;max-height:28vh;overflow:auto}
