@@ -99,6 +99,34 @@ class FreeActionTurnTest {
     assertEquals(0, rng.calls)
   }
 
+  @Test fun fatalDeprivationCommitsTimeButNotStagedSceneProgress() {
+    val rng = ScriptedRng(intArrayOf())
+    val (repo, core) = fixture(rng)
+    val leader = repo.state.characters.getValue(CAO_MINH_ID)
+    repo.state = repo.state.copy(characters = repo.state.characters +
+      (CAO_MINH_ID to leader.copy(
+        physiology = PhysiologyState(minutesSinceFood = 0, minutesSinceWater = 809, minutesAwake = 0),
+        vitalState = leader.vitalState.copy(currentHp = 1)
+      )))
+    val start = MiniMapRuntime.progress(repo.state)
+    val cmd = MiniMapRuntime.freeCommand(repo.state)
+    core.beginSceneAction(cmd.toString(), "Tôi bước tiếp", "Tôi bước tiếp")
+    val event = JSONObject(core.sceneNarrationContext())
+    core.commitSceneAction(cmd.getString("actionId"), event.getString("result"), "{}")
+    val dead = repo.state.characters.getValue(CAO_MINH_ID)
+    assertEquals(CharacterPresence.DEAD, dead.presence)
+    assertEquals(0, dead.vitalState.currentHp)
+    assertEquals(1L, repo.state.time.elapsedSubjectiveMinutes)
+    assertEquals(start.toString(), MiniMapRuntime.progress(repo.state).toString())
+    assertFalse(MiniMapRuntime.PENDING in repo.state.world)
+    assertNull(CombatRuntime.pending(repo.state))
+    assertEquals(true, JSONObject(repo.state.world.getValue(MiniMapRuntime.RECEIPT)).getBoolean("interrupted"))
+    assertEquals(repo.state, GameStateCodec.decode(GameStateCodec.encode(repo.state)))
+    val saved = repo.state
+    core.commitSceneAction(cmd.getString("actionId"), "Do not replay", "{}")
+    assertEquals(saved, repo.state)
+  }
+
   @Test fun searchAndInteractionEachGetIndependentEntityRolls() {
     val rng = ScriptedRng(intArrayOf())
     val (_, core) = fixture(rng)

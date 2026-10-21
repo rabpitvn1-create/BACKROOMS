@@ -41,6 +41,10 @@ object PlayerActionPresentation {
         val event = JSONObject().put("kind", if (isFree) "FREE" else "CORE").put("event", public)
         if (isFree) event.put("text", public.getString("freeText"))
         it.getJSONArray("events").put(event)
+        // The receipt belongs to the destination if this action advanced the
+        // mini-map or crossed a Level. Keep the committed utterance visible there.
+        val p = MiniMapRuntime.progress(state)
+        it.put("sceneMap", p.getString("nodeId") + ":" + p.getInt("index"))
       }
     }
   }

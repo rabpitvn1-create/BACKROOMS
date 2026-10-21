@@ -305,6 +305,29 @@ class GameCoreFacade private constructor(
     check(committed.error == null) { committed.error ?: "scene_commit_failed" }
     val finished = ActionRuntime.complete(committed.state, session.sessionId)
     check(finished.applied) { finished.error ?: "scene_session_failed" }
+    if (finished.state.characters[CAO_MINH_ID]?.presence == CharacterPresence.DEAD) {
+      // Time and fatal physiology are committed, but the action's staged graph,
+      // evidence, exit and rewards must not be committed after the actor dies.
+      val interrupted = "Hành động bị ngắt vì Cao Minh đã tử vong do suy kiệt."
+      val canceled = JSONObject(pending.toString()).apply {
+        getJSONObject("public").put("result", interrupted).put("interrupted", true).remove("encounter")
+      }
+      val deathReceipt = JSONObject().put("actionId", actionId)
+        .put("label", pending.getString("label")).put("reply", interrupted)
+        .put("interrupted", true).apply {
+          if (pending.has("playerText")) put("playerText", pending.getString("playerText"))
+        }
+      var terminal = SpawnMechanism.discardPendingNpcEncounters(CombatRuntime.clear(finished.state))
+      terminal = terminal.copy(
+        world = (terminal.world - MiniMapRuntime.PENDING) +
+          (MiniMapRuntime.RECEIPT to deathReceipt.toString()),
+        metadata = terminal.metadata - SPAWN_ENCOUNTER_OWNER
+      )
+      terminal = CoreClientProjection.advance(terminal)
+      terminal = PlayerActionPresentation.receipt(terminal, canceled)
+      repository.save(terminal)
+      return clientSnapshot(JSONObject(clientJson), terminal).toString()
+    }
     val node = LevelRouteRegistry.node(pending.getString("nodeId"))
     val flags = JSONObject(finished.state.world["flagsJson"] ?: "{}").apply {
       remove("exploration"); remove("hiddenExitStreak"); remove("exitReady"); remove("lastRolls")

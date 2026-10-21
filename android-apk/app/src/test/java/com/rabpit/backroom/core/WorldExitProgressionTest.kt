@@ -102,6 +102,32 @@ class WorldExitProgressionTest {
       .getJSONObject("world").getString("levelJson").let(::JSONObject).getString("id"))
   }
 
+  @Test fun playerNarrationSurvivesAnAuthorizedLevelTransition() {
+    val previous = allVisitedWithProofs()
+    val save = MemorySave(previous)
+    val ctor = GameCoreFacade::class.java.getDeclaredConstructor(
+      SaveRepository::class.java, GamePipelineLogger::class.java)
+    ctor.isAccessible = true
+    val core = ctor.newInstance(save, NoOpGamePipelineLogger)
+    val input = "Tôi bước qua lối sang khu tiếp theo."
+    core.beginPlayerPresentation("cross-level", input, "{}")
+    val choice = MiniMapScenario.objects(JSONObject(core.currentClientState("{}"))
+      .getJSONObject("scene").getJSONArray("availableActions"))
+      .first { it.getString("targetId") == "exit:0.1" }
+    val cmd = JSONObject(choice.toString()).apply { remove("label") }
+    core.beginSceneAction(cmd.toString(), input)
+    val event = JSONObject(core.sceneNarrationContext())
+    core.commitSceneAction(cmd.getString("actionId"), event.getString("result"), "{}")
+    core.finishPlayerPresentation(1, false, "", "Cao Minh đã bước sang khu mới.", "", false)
+    val projected = JSONObject(core.currentClientState("{}"))
+    assertEquals("0.1", projected.getJSONObject("scene").getString("nodeId"))
+    assertEquals("0.1:1", JSONObject(save.state.world.getValue(PlayerActionPresentation.JOURNAL))
+      .getString("sceneMap"))
+    val entries = MiniMapScenario.objects(projected.getJSONArray("log"))
+    assertTrue(entries.any { it.optString("role") == "player" && it.optString("text") == input })
+    assertTrue(entries.any { it.optString("role") == "gm" && it.optString("text") == "Cao Minh đã bước sang khu mới." })
+  }
+
   @Test fun authorizedExitStagesPreviousGraphThenCreatesNextGraphOnCommit() {
     val completed = allVisitedWithProofs()
     val p = MiniMapRuntime.progress(completed)
