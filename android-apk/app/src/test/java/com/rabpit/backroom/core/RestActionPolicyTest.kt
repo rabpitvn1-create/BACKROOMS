@@ -20,6 +20,12 @@ class RestActionPolicyTest {
     )
   }
 
+  @Test fun restAndSleepAreDistinctEvenWithPunctuation() {
+    assertEquals(TimeActivity.SLEEP, RestActionPolicy.activity("Tôi ngủ."))
+    assertEquals(TimeActivity.REST, RestActionPolicy.activity("Tôi nghỉ."))
+    assertEquals(TimeActivity.NORMAL, RestActionPolicy.activity("Tôi đứng chờ."))
+  }
+
   @Test fun ordinaryCaoMinhRestOnlyTargetsCaoMinh() {
     val state = partyState()
     assertEquals(listOf(CAO_MINH_ID), RestActionPolicy.targets(state, "Tôi chợp mắt một lúc"))
