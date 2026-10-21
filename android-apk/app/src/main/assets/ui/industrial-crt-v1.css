@@ -216,3 +216,19 @@ body.industrial-ui{
 .industrial-ui .poker-dice-sheet,.industrial-ui .combat-dice-panel,
 .industrial-ui .combat-feedback-panel,.industrial-ui .gm-choice,
 .industrial-ui .poker-dice-actions>button{border-image-repeat:repeat!important}
+
+/* Dungeon uses the shared menu frame and controls. Keep texture URLs relative to this theme. */
+
+.industrial-ui #dungeonModal{padding:calc(env(safe-area-inset-top) + 6px) 4px calc(env(safe-area-inset-bottom) + 6px);box-sizing:border-box}
+.industrial-ui .dungeon-sheet{height:100%;border:12px solid transparent;border-image:var(--industrial-frame) 80 / 12px / 0 repeat;border-radius:10px;background:#10150f var(--industrial-crt) center/512px 512px;color:#eeddb5;box-shadow:0 8px 32px #000b}
+.industrial-ui .dungeon-header,.industrial-ui .dungeon-footer{background:#10150f var(--industrial-crt) center/512px 512px;border-color:#726343}
+.industrial-ui .dungeon-slot{border:9px solid transparent;border-image:var(--industrial-frame) 80 / 9px / 0 repeat;padding:10px;background:#11170f var(--industrial-crt) center/512px 512px}
+.industrial-ui .dungeon-scene{border:5px solid #111a17;border-radius:6px;box-shadow:0 0 0 1px #6c715b,inset 0 0 12px #0009;isolation:isolate}
+.industrial-ui .dungeon-header button,.industrial-ui .dungeon-footer button,.industrial-ui .dungeon-release,.industrial-ui .dungeon-start{box-sizing:border-box;border:9px solid transparent;border-image:var(--industrial-steel) 70 fill / 10px / 0 stretch;border-radius:7px;background:transparent;color:#ffedb3;min-height:48px;box-shadow:0 3px 7px #0008}
+.industrial-ui .dungeon-start{border-image-source:var(--industrial-hazard);color:#201905;font-weight:bold}
+.industrial-ui .dungeon-select{box-sizing:border-box;background:#0c120e;border-color:#827453;color:#eeddb5;border-radius:3px}
+.industrial-ui .dungeon-header{padding:8px 10px}
+.industrial-ui .dungeon-header button{min-width:44px}
+.industrial-ui .dungeon-footer{padding:8px;flex-wrap:wrap}
+.industrial-ui .dungeon-footer p{min-width:120px}
+@media(max-width:600px){.industrial-ui .dungeon-content{padding:10px 2px}.industrial-ui .dungeon-slot{padding:8px}.industrial-ui .dungeon-slots{gap:12px}}

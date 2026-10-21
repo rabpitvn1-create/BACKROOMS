@@ -199,3 +199,10 @@ body.poker-dice-open .player-action-bar .primary-action{pointer-events:none;opac
 @keyframes entity-shatter-spark{0%{opacity:0;transform:translate(0,0) rotate(var(--spark-angle)) scaleX(.3)}8%{opacity:1}55%{opacity:.8}100%{opacity:0;transform:translate(var(--spark-x),var(--spark-y)) rotate(var(--spark-angle)) scaleX(.15)}}
 @keyframes entity-shatter-soft{from{opacity:.8;filter:brightness(1.2)}to{opacity:0;filter:brightness(1.4)}}
 @media(prefers-reduced-motion:reduce){.entity-shatter-charge,.entity-shatter-cracks,.entity-shatter-core,.entity-shatter-flare,.entity-shatter-shockwave,.entity-shatter-spark,.entity-shatter-shard{display:none}.entity-shatter-ghost{animation:entity-shatter-soft 180ms ease-out forwards}}
+
+/* Native encounter sprites are exploration companions. Combat has one Party slot,
+   supplied by combat-turn-avatar (or Cao Minh/Lucia), never a second copy. */
+.snapshot[data-party-layout="combat"] .snapshot-catherine,
+.snapshot[data-party-layout="combat"] .snapshot-janet,
+.snapshot[data-party-layout="combat"] .snapshot-nguyen-quoc-nam,
+.snapshot[data-party-layout="combat"] .snapshot-hua-tieu-lan{display:none!important}

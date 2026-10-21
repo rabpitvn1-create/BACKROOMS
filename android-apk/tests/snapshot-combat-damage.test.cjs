@@ -886,3 +886,28 @@ test('victory continuation runs once after the actual final shatter and never on
  escape.turn([],'enc:escape','enc',null);
  assert.equal(escaped.length,0);
 });
+
+test('exploration party uses disjoint bounded slots and leaves combat geometry to the turn renderer',()=>{
+ const java=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/MainActivity.java'),'utf8');
+ const line=java.split('\n').find(l=>l.includes('/* SNAPSHOT_PARTY_LAYOUT_R01 */'));
+ const script=JSON.parse(line.trim().replace(/ \+$/,''));
+ for(let count=1;count<=6;count++){
+  const actors=Array.from({length:count},()=>({style:{}}));
+  const box={dataset:{},querySelectorAll(){return actors}};
+  let baseCalls=0;
+  const scope={document:{getElementById(){return box}},state:{combat:{active:false}},renderSnapshot(){baseCalls++}};scope.window=scope;
+  vm.runInNewContext(script,scope);scope.renderSnapshot();
+  assert.equal(baseCalls,1);assert.equal(box.dataset.partyLayout,'exploration');
+  if(count>1)actors.forEach((actor,index)=>{
+   const left=parseFloat(actor.style.left),width=parseFloat(actor.style.width);
+   assert.ok(left>=6&&left+width<=94.00001);
+   if(index)assert.ok(left>=parseFloat(actors[index-1].style.left)+width-0.00001);
+   assert.equal(actor.style.objectFit,'contain');
+  });
+  actors.forEach(actor=>actor.style={});scope.state.combat.active=true;scope.renderSnapshot();
+  assert.equal(box.dataset.partyLayout,'combat');actors.forEach(actor=>assert.deepEqual(actor.style,{}));
+  scope.backroomFreezeSnapshot=true;scope.renderSnapshot();assert.equal(baseCalls,2);
+ }
+ const css=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/combat-feedback-1193a.css'),'utf8');
+ for(const name of ['catherine','janet','nguyen-quoc-nam','hua-tieu-lan'])assert.ok(css.includes('.snapshot[data-party-layout="combat"] .snapshot-'+name));
+});
