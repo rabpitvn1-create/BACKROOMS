@@ -5,8 +5,6 @@ const val BANDAGE_ID = "medical:bandage"
 const val ANTISEPTIC_ID = "medical:antiseptic"
 const val BANH_TET_ID = "southern:banh-tet"
 const val COM_TAM_ID = "southern:saigon-com-tam"
-const val BANH_TET_HEAL_HP = 5
-const val COM_TAM_HEAL_HP = 10
 
 object HealingItems {
   const val LIQUID_PAIN_HEAL_PERCENT = 15
@@ -21,8 +19,6 @@ object HealingItems {
   fun healAmount(item: ItemStack): Int = when {
     item.itemId == BANDAGE_ID || normalizedName(item.name) in setOf("băng gạc", "bang gac", "bandage") -> BANDAGE_HEAL_HP
     item.itemId == ANTISEPTIC_ID || normalizedName(item.name) in setOf("thuốc sát trùng", "thuoc sat trung", "antiseptic") -> ANTISEPTIC_HEAL_HP
-    item.itemId == BANH_TET_ID -> BANH_TET_HEAL_HP
-    item.itemId == COM_TAM_ID -> COM_TAM_HEAL_HP
     else -> item.metadata["healHp"]?.toIntOrNull()?.coerceAtLeast(0) ?: 0
   }
 
