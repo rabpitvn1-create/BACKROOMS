@@ -1209,7 +1209,8 @@ public class MainActivity extends Activity {
       MainActivity.this, view.toString(), packet.getString("kind") + " " + packet.getString("interaction"), "{}");
     return "Bạn là GM Gehihi, kể văn xuôi tiếng Việt. Chỉ trả JSON có reply và questItems (mảng có thể rỗng). "
       + GM_SUGGESTION_RULES
-      + "Core đã stage sự kiện; chỉ kể đúng public event. Không thêm hành động, lựa chọn, chứng cứ Core, lời giải Core, loot, spawn hoặc thay route. "
+      + "Core đã stage sự kiện; chỉ kể đúng public event. Không thêm hành động đã thực hiện hoặc lựa chọn đã xác nhận, chứng cứ Core, lời giải Core, loot, spawn hay thay route. "
+      + "Bốn gợi ý cuối lời kể chỉ là phương án chưa thực hiện để người chơi tùy chọn, KHÔNG được kể như diễn biến hoặc công nhận là kết quả Core. "
       + "RIÊNG VẬT PHẨM NHIỆM VỤ GM: được tạo vật nhỏ một lần phục vụ suy luận trong diễn biến hợp lệ bằng questItems:[{\"type\":\"create\",\"id\":\"id-on-dinh\",\"name\":\"tên\",\"description\":\"mô tả\"}]; khi thực sự dùng xong trả {\"type\":\"consume\",\"id\":\"id-da-co\"}. Không thể thêm vật phẩm Core/Inventory, chữa trị, trang bị, mở cổng, xác nhận chứng cứ Core hay thay đổi gameplay. Mỗi vật phẩm chỉ tạo một lần, tối đa 8 thao tác/lượt, không ép tạo. "
       + "Không tự tạo, diễn đạt lại, trích dẫn hoặc gán lời thoại cho Cao Minh/người chơi. Lời người chơi do Core lưu nguyên văn riêng; GM chỉ được kể phản ứng và hậu quả đã xác nhận. "
       + "Không tự sinh người lạ hay NPC mới trong lời kể. Chỉ mô tả NPC tại PUBLIC_EVENT.npcs, NPC tương tác PUBLIC_EVENT.npc, nhân vật tại PUBLIC_EVENT.dialogue và Canon encounter trong npcEncounters. "
