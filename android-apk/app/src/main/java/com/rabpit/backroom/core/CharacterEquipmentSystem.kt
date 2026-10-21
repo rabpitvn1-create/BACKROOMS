@@ -96,9 +96,9 @@ object EquipmentCatalog {
       id = CAO_MINH_BOOTS_ID, name = "Giày Huyết Ma", type = "MA ĐẠO CHIẾN NGOA",
       primarySlot = EquipmentSlot.FOOTWEAR,
       bonuses = EquipmentBonuses(agiPct = 100, dexPct = 100),
-      skillDamageMultiplier = 3,
-      abilities = listOf(ability("Huyết Ảnh Bộ", "AGI +100%, DEX +100%; sát thương kỹ năng ×3 khi trang bị.",
-        "Khi phối hợp Găng tay Huyết Ma: ×3 ×3 = ×9 Skill DMG; không cộng vào sát thương đánh thường.")),
+      skillDamageMultiplier = 1,
+      abilities = listOf(ability("Huyết Ảnh Bộ", "AGI +100%, DEX +100%; hệ số sát thương kỹ năng ×1 khi trang bị.",
+        "Khi phối hợp Găng tay Huyết Ma: ×1 ×1 = ×1 Skill DMG; không khuếch đại thêm sát thương kỹ năng hoặc đánh thường.")),
       restrictions = listOf("Chỉ Cao Minh sử dụng; không chuyển nhượng hoặc tháo pháp bảo bản mệnh."),
       canonRef = "CAO-EQP-HUYET-MA-BOOTS-01"
     ),
@@ -106,9 +106,9 @@ object EquipmentCatalog {
       id = CAO_MINH_GAUNTLETS_ID, name = "Găng tay Huyết Ma", type = "MA ĐẠO HỘ THỦ",
       primarySlot = EquipmentSlot.GAUNTLETS,
       bonuses = EquipmentBonuses(agiPct = 100, dexPct = 100),
-      skillDamageMultiplier = 3,
-      abilities = listOf(ability("Ma Trảo Cường Hóa", "AGI +100%, DEX +100%; sát thương kỹ năng ×3 khi trang bị.",
-        "Khi phối hợp Giày Huyết Ma: ×3 ×3 = ×9 Skill DMG; không cộng vào sát thương đánh thường.")),
+      skillDamageMultiplier = 1,
+      abilities = listOf(ability("Ma Trảo Cường Hóa", "AGI +100%, DEX +100%; hệ số sát thương kỹ năng ×1 khi trang bị.",
+        "Khi phối hợp Giày Huyết Ma: ×1 ×1 = ×1 Skill DMG; không khuếch đại thêm sát thương kỹ năng hoặc đánh thường.")),
       restrictions = listOf("Chỉ Cao Minh sử dụng; không chuyển nhượng hoặc tháo pháp bảo bản mệnh."),
       canonRef = "CAO-EQP-HUYET-MA-GAUNTLETS-01"
     ),
@@ -320,7 +320,7 @@ object EquipmentCatalog {
       CharacterStatCore.isCaoMinh(characterId)
 
   /**
-   * Independent ×3 multipliers compound (both equipped => ×9).
+   * Independent multipliers compound (Huyết Ma boots and gauntlets: ×1 ×1 = ×1).
    * Ordinary weapon and basic attacks do not use this factor.
    */
   fun equippedSkillDamageMultiplier(state: GameState, characterId: String): Int {

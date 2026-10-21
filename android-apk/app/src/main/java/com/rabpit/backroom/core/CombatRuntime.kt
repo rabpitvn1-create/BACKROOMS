@@ -787,7 +787,7 @@ object CombatRuntime {
             if (c.entityHp > 0 && ultimateReady && unlocked(CAO_MINH_ID, "Huyết Ma Nhị Thập Tứ Trảm")) {
               val damagePerSlash = CharacterStatCore.scaleByPercent(
                 CharacterStatEngine.skillBaseDamage(resolvedState, CAO_MINH_ID), 115)
-              // Two ×3 accessories may amplify the 24-slash Ultimate. Use Long
+              // Skill modifiers may amplify the 24-slash Ultimate. Use Long
               // to avoid overflowing an Int at high stat levels.
               val totalDamage = (CAO_MINH_ULTIMATE_SHOTS.toLong() * damagePerSlash)
                 .coerceAtMost(c.entityHp.toLong()).toInt()

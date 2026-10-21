@@ -167,7 +167,7 @@ object CharacterStatCore {
       val def = EquipmentCatalog.definition(itemId) ?: continue
       // New bound skill accessories must occupy their own slot to grant stats.
       // Existing generic test fixtures and legacy equipment keep their former behavior.
-      if (def.skillDamageMultiplier > 1 && slot != def.primarySlot.key) continue
+      if (itemId in setOf(CAO_MINH_BOOTS_ID, CAO_MINH_GAUNTLETS_ID) && slot != def.primarySlot.key) continue
       val b = def.bonuses
       acc = acc.copy(
         agiPct = acc.agiPct + b.agiPct,

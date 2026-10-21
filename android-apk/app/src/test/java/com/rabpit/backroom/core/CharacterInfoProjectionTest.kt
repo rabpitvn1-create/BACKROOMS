@@ -33,7 +33,7 @@ class CharacterInfoProjectionTest {
       assertEquals(stat.getInt("effective") - stat.getInt("base"), stat.getInt("passive"))
     }
     val combat = iris.getJSONObject("combatStatus")
-    assertEquals(setOf("defense", "attackPercent", "skillDamagePercent", "skillDamageMultiplier", "accuracyPercent",
+    assertEquals(setOf("defense", "attackPercent", "skillDamagePercent", "accuracyPercent",
       "criticalChancePercent", "criticalDamagePercent", "evasionPercent",
       "criticalResistancePercent", "evasionResistancePercent"),
       combat.keys().asSequence().toSet())
@@ -46,10 +46,6 @@ class CharacterInfoProjectionTest {
       combat.getDouble("evasionPercent"), 0.001)
     assertEquals(400, combat.getInt("criticalDamagePercent"))
     assertFalse(combat.has("SKL"))
-    assertEquals(1, combat.getInt("skillDamageMultiplier"))
-    val caoCombat = caoMinh.getJSONObject("combatStatus")
-    assertEquals(9, caoCombat.getInt("skillDamageMultiplier"))
-    assertEquals(caoCombat.getInt("attackPercent") * 9, caoCombat.getInt("skillDamagePercent"))
   }
 
   @Test fun maxLevelProducesExplicitNullExpRequirement() {

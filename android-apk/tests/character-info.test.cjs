@@ -36,7 +36,7 @@ const base = {
   EVA: {base: 5, effective: 6, passive: 1}
 };
 const combat = {
-  defense: 1, attackPercent: 104, skillDamagePercent: 104, skillDamageMultiplier: 1, accuracyPercent: 65.5,
+  defense: 1, attackPercent: 104, skillDamagePercent: 104, accuracyPercent: 65.5,
   criticalChancePercent: 5.45, criticalDamagePercent: 400,
   evasionPercent: 5.5, criticalResistancePercent: 0.25,
   evasionResistancePercent: 0.25
@@ -114,16 +114,4 @@ test('HP and EXP bars follow selected character, support MAX LEVEL and unknown d
   assert.equal(nodes.characterLevelValue.textContent,'LV. —');
   assert.equal(nodes.characterExpValue.textContent,'EXP —');
   assert.equal(hpValue.textContent,'— / —');
-});
-
-
-test('skill amplification shows equipment x9 independently from STR and never labels the combined x20 as the item multiplier',()=>{
- const {scope,status}=screen();
- for(const attackPercent of [100,220,228,500]){
-  scope.render({id:'cao_minh',stats:base,combatStatus:{...combat,attackPercent,skillDamagePercent:attackPercent*9,skillDamageMultiplier:9},statuses:[]});
-  assert.match(status.innerHTML,/Khuếch đại kỹ năng<\/span><strong class="character-info-combat-value">×9\.00/);
-  assert.match(status.innerHTML,/nhân thêm trên sát thương từ STR/);
- }
- scope.render({id:'iris',stats:base,combatStatus:{...combat,skillDamageMultiplier:1},statuses:[]});
- assert.match(status.innerHTML,/Khuếch đại kỹ năng<\/span><strong class="character-info-combat-value">×1\.00/);
 });

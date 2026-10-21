@@ -2320,7 +2320,7 @@ function selected(){const id=view&&view.dataset.characterId||'cao_minh';return m
     const combat=member.combatStatus||{};
     const combatRows=[
       ['Sát thương đòn đánh',multiplierText(combat.attackPercent)],
-      ['Khuếch đại kỹ năng',multiplierText(finiteValue(combat.skillDamageMultiplier)==null?null:Number(combat.skillDamageMultiplier)*100)],
+      ['Sát thương kỹ năng',multiplierText(combat.skillDamagePercent)],
       ['Tỷ lệ chính xác',percentText(combat.accuracyPercent)],
       ['DEF',numberText(combat.defense)],
       ['Tỷ lệ chí mạng',percentText(combat.criticalChancePercent)],
@@ -2352,7 +2352,7 @@ function selected(){const id=view&&view.dataset.characterId||'cao_minh';return m
         '<section class="character-info-block" id="characterCombatStats" aria-label="Combat Stats">'+
           '<h4 class="character-info-heading">CHỈ SỐ CHIẾN ĐẤU</h4>'+
           '<div class="character-info-combat-grid">'+combatRows.map(x=>combatStat(x[0],x[1])).join('')+'</div>'+
-          '<p class="character-info-combat-hint">ATK bao gồm STR. Khuếch đại kỹ năng nhân thêm trên sát thương từ STR.</p>'+
+          '<p class="character-info-combat-hint">ATK và Skill DMG là hệ số nhân; các tỷ lệ đã bao gồm chỉ số hiệu lực và nội tại.</p>'+
         '</section>'+
         '<section class="character-info-block" id="characterStatusEffects" aria-label="Trạng thái nhân vật">'+
           '<h4 class="character-info-heading">TÌNH TRẠNG</h4>'+
