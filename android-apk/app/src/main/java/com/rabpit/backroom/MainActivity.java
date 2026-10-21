@@ -1864,7 +1864,15 @@ public class MainActivity extends Activity {
               break;
             }
             failureCode = "invalid_plan";
-            JSONObject parsed = PlayerActionPlan.parse(text, suggestedIndex > 0 ? 1 : totalActions, committed);
+            JSONObject parsed;
+            try {
+              parsed = PlayerActionPlan.parse(text, suggestedIndex > 0 ? 1 : totalActions, committed);
+            } catch (Exception invalidPlannerJson) {
+              if (suggestedIndex == 0) throw invalidPlannerJson;
+              stopCode = "gm_suggestion_attempt";
+              stopMessage = "Gợi ý chưa khớp lệnh Core; ghi nhận một nỗ lực không làm thay đổi câu đố.";
+              break;
+            }
             totalActions = parsed.getInt("totalActions");
             requireGameCore().setPlayerRequestCount(totalActions);
             JSONArray plan = parsed.getJSONArray("steps");
