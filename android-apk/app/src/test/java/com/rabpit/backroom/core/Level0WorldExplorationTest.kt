@@ -61,6 +61,10 @@ class Level0WorldExplorationTest {
     val beforeProbe = MiniMapRuntime.publicView(state).getJSONArray("records").toString()
     assertFalse(beforeProbe.contains(probe.label))
     state = Level0RiddleTestSupport.take(state, "probe:${probe.method}")
+    val persisted = MiniMapScenario.objects(MiniMapRuntime.progress(state).getJSONArray("records"))
+      .single { it.optString("kind") == "EVIDENCE" && it.optString("text") == probe.clue }
+    assertFalse(persisted.has("label"))
+    assertFalse(persisted.has("aliases"))
     val records = MiniMapScenario.objects(MiniMapRuntime.publicView(state).getJSONArray("records"))
     val found = records.single { it.optString("kind") == "EVIDENCE" && it.optString("text") == probe.clue }
     assertEquals(probe.label, found.getString("label"))
