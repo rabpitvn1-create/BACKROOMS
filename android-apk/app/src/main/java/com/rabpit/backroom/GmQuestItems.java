@@ -39,6 +39,23 @@ public final class GmQuestItems {
   }
   public synchronized JSONObject snapshot() throws Exception { return new JSONObject(read().toString()); }
 
+  /** Read-only UI data; the idempotency journal never leaves Android storage. */
+  public synchronized JSONObject publicView() throws Exception {
+    return new JSONObject().put("version", 1).put("items",
+      new JSONArray(read().getJSONArray("items").toString()));
+  }
+
+  /** The GM only needs held quest props, not 2,048 historical receipt IDs. */
+  public synchronized JSONObject narrativeView() throws Exception {
+    JSONArray held = new JSONArray();
+    JSONArray all = read().getJSONArray("items");
+    for (int i = 0; i < all.length(); i++) {
+      JSONObject item = all.getJSONObject(i);
+      if ("held".equals(item.getString("status"))) held.put(new JSONObject(item.toString()));
+    }
+    return new JSONObject().put("items", held);
+  }
+
   public synchronized void restore(JSONObject snapshot) throws Exception {
     JSONObject checked = validateSnapshot(snapshot);
     if (!preferences.edit().putString(KEY, checked.toString()).remove(PENDING).commit())
