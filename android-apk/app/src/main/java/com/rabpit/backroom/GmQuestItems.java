@@ -168,7 +168,11 @@ public final class GmQuestItems {
         throw new IllegalArgumentException("gm_writer_envelope");
       text = text.substring(nl + 1, end).trim();
     }
-    JSONObject outer = new JSONObject(text);
+    org.json.JSONTokener tokens = new org.json.JSONTokener(text);
+    Object root = tokens.nextValue();
+    if (!(root instanceof JSONObject) || tokens.nextClean() != 0)
+      throw new IllegalArgumentException("gm_writer_json_trailing");
+    JSONObject outer = (JSONObject) root;
     if (!keys(outer).equals(set("reply")) &&
         !keys(outer).equals(set("reply", "questItems")))
       throw new IllegalArgumentException("gm_writer_fields");
