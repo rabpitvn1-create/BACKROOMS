@@ -1236,20 +1236,15 @@ object CombatRuntime {
       log += "Devils And Gold kích hoạt ở combat turn ${c.eventCounter}: toàn bộ nhân vật ACTIVE đang ra trận nhận ${DIEP_MINH_ULTIMATE_PERCENT}% Max HP. ${pulse.summary}."
       val groupHpAfter = PartyCombatHealth.currentHp(resolvedState)
       log += "${c.entityName} phản công: Party chịu -${(groupHpBefore - groupHpAfter).coerceAtLeast(0)} HP (${groupHpAfter}/${PartyCombatHealth.maxHp(resolvedState)})."
-    } else if (c.entityKey == "926" || c.entityKey == "927") {
+    } else {
       val incomingRoll = roll(c.copy(eventCounter = c.eventCounter + 31), 100)
-      val defense = when (intent) {
-        Intent.EVADE -> 34; Intent.GUARD -> 30; Intent.MOVE -> 18
-        Intent.READ -> 12; else -> 0
-      } + when (c.cover) {
-        Cover.HARD -> 22; Cover.PARTIAL -> 10; Cover.EXPOSED -> 0
-      } + max(0, c.momentum) * 4 + PokerDiceCore.defenseBonus(state)
-      val chance = (profile.aggression * 8 - defense + max(0, -c.momentum) * 7 -
-        companionEnemyAccuracyPenalty).coerceIn(0, 88)
-      if (incomingRoll >= chance) {
-        recordMiss("actor", CAO_MINH_ID, phase = "entity")
-        log += "${c.entityName} không xuyên được thế phòng thủ/di chuyển của Party."
-      } else {
+      val defense = when (intent) { Intent.EVADE -> 34; Intent.GUARD -> 30; Intent.MOVE -> 18; Intent.READ -> 12; else -> 0 } +
+        when (c.cover) { Cover.HARD -> 22; Cover.PARTIAL -> 10; Cover.EXPOSED -> 0 } + max(0, c.momentum) * 4 +
+      PokerDiceCore.defenseBonus(state)
+      val quickStepEvasion = if (quickStepTurns > 0) CAO_MINH_QUICK_STEP_EVASION_BONUS_PERCENT else 0
+      val enemyChance = (profile.aggression * 8 - defense + max(0, -c.momentum) * 7 - companionEnemyAccuracyPenalty).coerceIn(0, 88)
+      if (incomingRoll < enemyChance) {
+        if (c.entityKey == "926" || c.entityKey == "927") {
         val procs = roamingProcs(c.entityKey).filterIndexed { index, _ ->
           roll(c.copy(eventCounter = c.eventCounter + 1103 + index * 139), 100) < PROC_CHANCE_PERCENT
         }
@@ -1299,16 +1294,8 @@ object CombatRuntime {
           log += "${c.entityName} phản công: Party chịu -${hit.appliedDamage} HP " +
             "($partyHp/${PartyCombatHealth.maxHp(resolvedState)}). $distribution."
         }
-      }
-    } else {
-      val incomingRoll = roll(c.copy(eventCounter = c.eventCounter + 31), 100)
-      val defense = when (intent) { Intent.EVADE -> 34; Intent.GUARD -> 30; Intent.MOVE -> 18; Intent.READ -> 12; else -> 0 } +
-        when (c.cover) { Cover.HARD -> 22; Cover.PARTIAL -> 10; Cover.EXPOSED -> 0 } + max(0, c.momentum) * 4 +
-      PokerDiceCore.defenseBonus(state)
-      val quickStepEvasion = if (quickStepTurns > 0) CAO_MINH_QUICK_STEP_EVASION_BONUS_PERCENT else 0
-      val enemyChance = (profile.aggression * 8 - defense + max(0, -c.momentum) * 7 - companionEnemyAccuracyPenalty).coerceIn(0, 88)
-      if (incomingRoll < enemyChance) {
-        val lifeformSkill = rollLifeformSkill(c)
+        } else {
+          val lifeformSkill = rollLifeformSkill(c)
         val damage = if (c.entityKey == DIEP_MINH_KEY) {
           EntityPowerScaling.scale(percentDamage(c.playerMaxHp, DIEP_MINH_ATTACK_PERCENT), c.progressionRank)
         } else {
@@ -1370,6 +1357,7 @@ object CombatRuntime {
           "($partyHp/$partyMaxHp). $distribution." +
           (if (dodged.isNotEmpty()) " Né tránh: $dodged." else "") +
           (if (critical.isNotEmpty()) " CRIT 400%: $critical." else "")
+        }
       } else {
         recordMiss("actor", CAO_MINH_ID, phase = "entity")
         log += if (quickStepTurns > 0) {
