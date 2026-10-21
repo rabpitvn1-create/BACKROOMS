@@ -90,3 +90,21 @@ unchanged.
 Routing uses the exact node/environment identity for all 60 authored rooms.
 Node-level frames remain only for input without a valid scene environment.
 The existing Level 0 and seven satellite-node mappings are unchanged.
+
+
+### Foreground correction after composition review (2026-10-21)
+
+A visual review of all 60 backgrounds found seven Epsilon bridge/stair views
+with railings or atrium edges crowding the foreground standing zones. LS-2's
+`area_LS_z3_s3` also contained apparent floor openings. Image Gen edited these
+eight backgrounds to retain the environment behind a broad continuous solid
+foreground. Corrected Epsilon IDs: `area_EP_z2`, `area_EP_z2_s1` through
+`area_EP_z2_s4`, `area_EP_z4`, and `area_EP_z4_s3`.
+
+The corrected images were reviewed after cover-cropping to the snapshot
+proportions and compositing representative native left/right character assets.
+Drive files were replaced in place before GitHub import, preserving their IDs,
+names and folders. GitHub blobs again use the raw Drive bytes and verified Git
+object hashes. Only these eight WebPs and source metadata change; routing,
+Canon, character artwork and UI remain unchanged. This visual QA does not
+claim a real Android/WebView playtest.
