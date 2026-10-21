@@ -185,7 +185,8 @@ object Level0RouteRiddles {
       val probes = sources.mapIndexed { i, environment ->
         WorldLawProbe("$label:p${i + 1}", environment.id, methods[i],
           "Quan sát được tại ${environment.name}: ${environment.canon} " +
-            "Đây là dữ liệu hiện trường, không phải lời giải đã được chứng minh.")
+            "Đây là dữ liệu hiện trường, không phải lời giải đã được chứng minh.",
+          thread.focus)
       }
       fun toStep(n: Int, c: Choice) = WorldInferenceStep("$label-step$n", c.question,
         c.possibilities.mapIndexed { index, text ->
