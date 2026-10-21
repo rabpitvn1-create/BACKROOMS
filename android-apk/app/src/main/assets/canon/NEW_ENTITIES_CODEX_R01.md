@@ -31,7 +31,14 @@ Whistlers thiên về rình theo khoảng cách và lao vào khi đường rút 
 
 ### Nguy hiểm, tương tác và gameplay đã khóa
 
-Thù địch với người theo HARD LOCK. Sử dụng hệ thống tấn công vật lý, né/giáp/hồi máu phổ thông và kiểm tra hit của Combat Core; **không có hiệu ứng trạng thái đặc thù** được đăng ký. Profile gốc **160 HP / 30 ATK / 4 Armor / 16 Aggression**; HP thực chiến bằng **2 lần HP thực chiến Hound cùng progression rank** (Level 0: **440 HP**). Đây là sức mạnh combat, không phải kích thước vật lý hoặc lời khẳng định một Whistler luôn giết Hound.
+Thù địch với người theo HARD LOCK. Sử dụng hệ thống tấn công vật lý, né/giáp/hồi máu phổ thông và kiểm tra hit của Combat Core. **Có hai kiếm/kích trảo đặc thù dạng proc**, kích hoạt độc lập trên lượt phản công đánh trúng; không thay đổi tỉ lệ trúng đòn nền. Profile gốc **160 HP / 30 ATK / 4 Armor / 16 Aggression**; HP thực chiến bằng **2 lần HP thực chiến Hound cùng progression rank** (Level 0: **440 HP**). Đây là sức mạnh combat, không phải kích thước vật lý hoặc lời khẳng định một Whistler luôn giết Hound.
+
+### Hai kỹ năng proc đã khóa (Project Original R02)
+
+- **Âm Trảo Phá Mạch**: mỗi đòn phản công đánh trúng thực hiện một kiểm tra proc độc lập **40%**. Nếu kích hoạt, gây **130% Basic Attack** và có thể gây **Chảy máu** lên từng thành viên thực sự mất HP. Bleed kéo dài **3 lượt tiếp theo**, mỗi lượt trừ **3% Max HP** của chính nạn nhân (ít nhất 1 nếu còn sống). Không cộng dồn nhiều lớp cùng hiệu ứng, lần trúng tiếp theo làm mới thời hạn.
+- **Tiếng Rít Đoạt Hồn**: kiểm tra proc độc lập **40%** mỗi lượt phản công đánh trúng, gây **140% Basic Attack** và có thể gây **Choáng**. Người bị đánh trúng mất quyền tấn công trong **lượt Party tiếp theo**; không mặc nhiên bị mất trí, thôi miên hoặc câm lặng. Choáng không xuyên qua né tránh / phòng ngự nếu thực tế không mất HP.
+
+Hai proc có thể cùng kích hoạt và lần lượt tạo **hai đòn thay cho một đòn thường**; nếu không proc sẽ đánh thường. Mỗi đòn proc vẫn qua chống chịu, EVA và tính critical thông thường của Core. Các thông số/kỹ năng là dữ liệu Core và hậu trường GM, không là tri thức tự có của nhân vật. Trạng thái không tiếp tục gây hiệu ứng sau khi combat kết thúc; các thành viên Party bị trúng đòn mới chịu trạng thái.
 
 **Giới hạn:** Chưa xác nhận nguồn gốc tiếng huýt, cơ quan cảm nhận, tập tính đàn, thức ăn, điểm yếu đặc hiệu hay cư trú tại Level nào. Không phát lời thoại hiểu tiếng người hoặc giao dịch nếu không được continuity xác nhận.
 
@@ -53,7 +60,14 @@ Bộ răng và mắt là đặc điểm quan sát được; không nâng thành 
 
 ### Nguy hiểm, tương tác và gameplay đã khóa
 
-Thù địch, dùng đòn vật lý hệ combat phổ thông; **chưa có skill phụ, status độc/bleed, AoE hoặc khả năng phá môi trường riêng**. Profile gốc **320 HP / 60 ATK / 8 Armor / 32 Aggression**: toàn bộ bốn chỉ số gốc bằng **2 lần Entity 926**. HP thực chiến tiếp tục bằng **2 lần HP thực chiến 926** cùng progression rank (Level 0: **880 HP**). Đánh mạnh hơn là số liệu combat, không cho phép GM tự quyết định luôn trúng, luôn truy đuổi thành công hay gây thương tích không qua Core.
+Thù địch, dùng đòn vật lý hệ combat phổ thông và **hai kỹ năng proc vật lý**; không có AoE hoặc khả năng phá môi trường riêng. Profile gốc **320 HP / 60 ATK / 8 Armor / 32 Aggression**: toàn bộ bốn chỉ số gốc bằng **2 lần Entity 926**. HP thực chiến tiếp tục bằng **2 lần HP thực chiến 926** cùng progression rank (Level 0: **880 HP**). Đánh mạnh hơn là số liệu combat, không cho phép GM tự quyết định luôn trúng, luôn truy đuổi thành công hay gây thương tích không qua Core.
+
+### Hai kỹ năng proc đã khóa (Project Original R02)
+
+- **Nanh Độc Xuyên Thịt**: kiểm tra proc độc lập **40%** trên đòn phản công đánh trúng, gây **135% Basic Attack** và có thể gây **Trúng độc** cho thành viên thực sự chịu damage. Độc kéo dài **3 lượt kế**, mỗi lượt mất **2% Max HP** của nạn nhân (ít nhất 1 nếu còn sống). Tên skill chỉ mô tả tác dụng độc do Core xác nhận, **không chứng minh dịch nhầy thường trực trên răng là acid hay độc**.
+- **Tam Túc Liệt Cốt**: kiểm tra proc độc lập **40%**, gây **145% Basic Attack** và có thể gây **Chảy máu**. Bleed kéo dài **3 lượt tiếp theo**, mỗi lượt mất **3% Max HP** của đúng người bị thương. Cấu trúc ba chân là chi tiết thị giác; không suy ra tốc độ phi thực tế hay đâm xuyên tường.
+
+Cả hai proc có thể cùng kích hoạt trên một lần Entity vượt qua cửa hit; lúc đó là hai đòn theo thứ tự. Không proc thì đánh thường. Giáp, né, critical được Core xử lý riêng từng đòn; debuff chỉ áp lên mục tiêu thật sự mất HP, không cộng dồn cùng loại mà làm mới thời hạn.
 
 **Giới hạn:** Nguồn gốc, nguồn dinh dưỡng, mối liên hệ với 926, mức trí tuệ, khả năng chịu đòn ngoài hệ thống và cư trú đều chưa khóa. Không có điểm yếu canon được xác nhận.
 
@@ -144,7 +158,7 @@ Profile giống boss Diệp Minh: **2999 HP gốc, 0 ATK gốc (sát thương t�
 - Chỉ Core-confirmed `combat.entityKey` hoặc `pendingEntityEncounter.entityKey` (và fallback encounter key đã do Core ghi) mới mở thẻ; lời nói của người chơi hoặc ảnh đơn lẻ không tạo encounter.
 - Khi chưa xác nhận: GM có thể miêu tả chi tiết nhìn/nghe thấy **nếu** scene thực sự cung cấp dấu hiệu, nhưng không biết chắc tên hoặc cơ chế. Sau xác nhận: thẻ visual giúp nhất quán ngoại hình; thẻ canon giới hạn tập tính và tuyệt đối không cho GM sửa kết quả combat.
 - **Không áp resident vào Level:** phân bố dùng `EntitySpawnPool` hiện hành. Không ép spawn bằng lời kể hay tự đổi encounter rate 35% của Core.
-- **Không học kỹ năng bừa:** chỉ `luc_tram_hac_hoa` có sáu kiếm kỹ địch; 926/927 dùng combat thường, LuckyBear/Brownies tuyệt đối không gây sát thương. Không trao skill của Follower cho hai phiên bản gấu.
+- **Không học kỹ năng bừa:** chỉ `luc_tram_hac_hoa` có sáu kiếm kỹ địch; `926`/`927` có đúng hai kỹ năng proc được khóa ở R02 trên mỗi loài, LuckyBear/Brownies tuyệt đối không gây sát thương. Không trao skill của Follower cho hai phiên bản gấu.
 - **Còn UNKNOWN phải giữ UNKNOWN:** mọi truyền thuyết, báo cáo nguồn gốc hay quan hệ giữa các Entity do NPC kể lại chỉ là lời kể/chứng cứ ở mức tương ứng cho đến khi gameplay/canon mới xác minh.
 
 ## 08. Nguồn có thể kiểm tra
