@@ -87,6 +87,8 @@ public final class GmQuestItems {
     return id != null && id.matches("[a-z0-9][a-z0-9_-]{2,63}");
   }
   private static String field(JSONObject object, String key, int maxLength) throws Exception {
+    if (!(object.opt(key) instanceof String))
+      throw new IllegalArgumentException("gm_item_field_type");
     String value = object.getString(key).trim();
     if (value.isEmpty() || value.length() > maxLength || value.indexOf('<') >= 0 ||
       value.indexOf('>') >= 0 || value.indexOf((char) 0) >= 0)
@@ -105,13 +107,17 @@ public final class GmQuestItems {
     for (int i = 0; i < items.length(); i++) {
       JSONObject item = items.getJSONObject(i);
       if (!keys(item).equals(set("id", "name", "description", "nodeId", "status")) ||
+        !(item.opt("id") instanceof String) || !(item.opt("status") instanceof String) ||
         !validId(item.getString("id")) || !ids.add(item.getString("id")) ||
-        !set("held", "consumed").contains(item.getString("status")))
+        !set("held", "consumed").contains(item.getString("status")) ||
+        !item.getString("nodeId").matches("[a-z0-9_.-]{1,64}"))
         throw new IllegalArgumentException("gm_items_snapshot_item");
       field(item, "name", 90); field(item, "description", 500); field(item, "nodeId", 64);
     }
     Set<String> seenActions = new HashSet<>();
     for (int i = 0; i < applied.length(); i++) {
+      if (!(applied.opt(i) instanceof String))
+        throw new IllegalArgumentException("gm_items_action_type");
       String action = applied.getString(i);
       if (action.length() < 3 || action.length() > 240 || !seenActions.add(action))
         throw new IllegalArgumentException("gm_items_snapshot_action");
@@ -168,6 +174,8 @@ public final class GmQuestItems {
     Set<String> used = new HashSet<>();
     for (int i = 0; i < operations.length(); i++) {
       JSONObject op = operations.getJSONObject(i);
+      if (!(op.opt("type") instanceof String) || !(op.opt("id") instanceof String))
+        throw new IllegalArgumentException("gm_item_op_field_type");
       String type = op.getString("type"), id = op.getString("id");
       if (!validId(id) || !used.add(id + ":" + type))
         throw new IllegalArgumentException("gm_item_op_id");
