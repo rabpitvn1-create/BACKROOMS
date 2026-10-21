@@ -5,6 +5,11 @@ object ItemContentRules {
   fun hasForbiddenPreciseAmount(text: String): Boolean = forbiddenAmount.containsMatchIn(text)
 
   fun normalize(item: ItemStack): ItemStack {
+    if (item.itemId == STAT_POINT_BOOK_ID) {
+      val definition = OfflineItemRegistry.get(STAT_POINT_BOOK_ID)!!
+      return item.copy(name = definition.name, metadata = definition.metadata +
+        item.metadata.filterKeys { it == "itemOrigin" })
+    }
     HealingItems.normalize(item)?.let { return it }
     val name = item.name.lowercase()
     val consumable = name.contains("chai nước") || name.contains("hộp thức ăn") || name.contains("hộp đồ ăn") ||

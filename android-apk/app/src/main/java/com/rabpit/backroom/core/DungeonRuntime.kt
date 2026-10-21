@@ -11,13 +11,15 @@ data class DungeonRun(
   val followerId: String,
   val environmentId: String,
   val startedAtMs: Long,
-  val creditedMinutes: Int = 0
+  val creditedMinutes: Int = 0,
+  val booksFound: Int = 0
 )
 
 data class DungeonState(
   val serial: Long = 0,
   val clockMs: Long = 0,
-  val runs: List<DungeonRun> = emptyList()
+  val runs: List<DungeonRun> = emptyList(),
+  val pendingBooks: Long = 0
 )
 
 object DungeonRuntime {
@@ -39,20 +41,26 @@ object DungeonRuntime {
   /** One persisted cursor per run; reconnect/polling cannot award the same minute twice. */
   fun settle(input: GameState, nowMs: Long): GameState {
     require(nowMs >= 0) { "dungeon_invalid_clock" }
-    if (input.dungeon.runs.isEmpty()) return input
+    if (input.dungeon.runs.isEmpty()) return StatPointBook.collectPending(input)
     val now = maxOf(nowMs, input.dungeon.clockMs)
     var state = input
     val runs = input.dungeon.runs.sortedBy { it.slot }.map { run ->
       val elapsed = ((now - run.startedAtMs).coerceAtLeast(0) / MINUTE_MS)
         .coerceAtMost(durations[run.slot].toLong()).toInt()
+      var booksFound = run.booksFound
       for (minute in run.creditedMinutes until elapsed) {
         // Per-minute seeds keep the exact stat rolls independent of polling frequency.
         state = CharacterProgressionCore.grantExp(state, run.followerId, EXP_PER_ENTITY,
           Random("dungeon:${run.id}:${run.startedAtMs}:${run.followerId}:$minute".hashCode())).state
+        val roll = Random("dungeon-book:${run.id}:${run.startedAtMs}:${run.followerId}:$minute".hashCode()).nextInt(10000)
+        if (StatPointBook.dropForRoll(roll) != null) {
+          booksFound++
+          state = state.copy(dungeon = state.dungeon.copy(pendingBooks = Math.addExact(state.dungeon.pendingBooks, 1L)))
+        }
       }
-      run.copy(creditedMinutes = maxOf(run.creditedMinutes, elapsed))
+      run.copy(creditedMinutes = maxOf(run.creditedMinutes, elapsed), booksFound = booksFound)
     }
-    return state.copy(dungeon = input.dungeon.copy(clockMs = now, runs = runs))
+    return StatPointBook.collectPending(state.copy(dungeon = state.dungeon.copy(clockMs = now, runs = runs)))
   }
 
   /** Core selects the image once per assignment; it never moves the campaign's location. */
@@ -73,7 +81,7 @@ object DungeonRuntime {
     return state.copy(
       characters = state.characters + (followerId to trained),
       party = state.party.copy(memberIds = state.party.memberIds - followerId),
-      dungeon = DungeonState(serial, start, state.dungeon.runs + run)
+      dungeon = state.dungeon.copy(serial = serial, clockMs = start, runs = state.dungeon.runs + run)
     )
   }
 
@@ -93,7 +101,7 @@ object DungeonRuntime {
 
   fun validate(state: GameState) {
     val data = state.dungeon
-    require(data.serial >= 0 && data.clockMs >= 0 && data.runs.size <= 5) { "dungeon_invalid_state" }
+    require(data.serial >= 0 && data.clockMs >= 0 && data.pendingBooks >= 0 && data.runs.size <= 5) { "dungeon_invalid_state" }
     require(data.runs.map { it.slot }.distinct().size == data.runs.size &&
       data.runs.map { it.followerId }.distinct().size == data.runs.size &&
       data.runs.map { it.id }.distinct().size == data.runs.size) { "dungeon_duplicate_assignment" }
@@ -101,7 +109,7 @@ object DungeonRuntime {
       require(run.slot in durations.indices && run.id in 1..data.serial &&
         run.startedAtMs in 0..data.clockMs &&
         run.startedAtMs <= Long.MAX_VALUE - durations[run.slot] * MINUTE_MS &&
-        run.creditedMinutes in 0..durations[run.slot] &&
+        run.creditedMinutes in 0..durations[run.slot] && run.booksFound in 0..run.creditedMinutes &&
         run.creditedMinutes.toLong() <= (data.clockMs - run.startedAtMs) / MINUTE_MS &&
         Level0Environments.all.any { it.id == run.environmentId }) { "dungeon_invalid_run" }
       val actor = state.characters[run.followerId]
@@ -113,11 +121,11 @@ object DungeonRuntime {
   }
 
   fun encode(data: DungeonState): JSONObject = JSONObject()
-    .put("serial", data.serial).put("clockMs", data.clockMs).put("runs", JSONArray().apply {
+    .put("serial", data.serial).put("clockMs", data.clockMs).put("pendingBooks", data.pendingBooks).put("runs", JSONArray().apply {
       data.runs.sortedBy { it.slot }.forEach { run -> put(JSONObject()
         .put("slot", run.slot).put("id", run.id).put("followerId", run.followerId)
         .put("environmentId", run.environmentId).put("startedAtMs", run.startedAtMs)
-        .put("creditedMinutes", run.creditedMinutes)) }
+        .put("creditedMinutes", run.creditedMinutes).put("booksFound", run.booksFound)) }
     })
 
   fun decode(json: JSONObject): DungeonState {
@@ -128,15 +136,16 @@ object DungeonRuntime {
     return DungeonState(json.getLong("serial"), json.getLong("clockMs"),
       MiniMapScenario.objects(runs).map { run ->
         DungeonRun(run.getInt("slot"), run.getLong("id"), run.getString("followerId"),
-          run.getString("environmentId"), run.getLong("startedAtMs"), run.getInt("creditedMinutes"))
-      })
+          run.getString("environmentId"), run.getLong("startedAtMs"), run.getInt("creditedMinutes"), run.getInt("booksFound"))
+      }, json.getLong("pendingBooks"))
   }
 
   fun view(state: GameState, nowMs: Long): JSONObject = JSONObject().apply {
     val now = maxOf(nowMs, state.dungeon.clockMs)
     put("serverNowMs", now)
     put("expPerEntity", EXP_PER_ENTITY)
-    put("booksEnabled", false)
+    put("booksEnabled", true)
+    put("pendingBooks", state.dungeon.pendingBooks)
     put("bookDropBasisPoints", BOOK_DROP_BASIS_POINTS)
     put("followers", JSONArray().apply {
       state.characters.values.filter { eligible(state, it) }.sortedBy { it.name }.forEach { actor ->
@@ -149,7 +158,7 @@ object DungeonRuntime {
         if (run == null) put("status", "empty") else {
           put("runId", run.id).put("startedAtMs", run.startedAtMs)
           put("endsAtMs", run.startedAtMs + duration * MINUTE_MS)
-          put("creditedMinutes", run.creditedMinutes).put("earnedExp", run.creditedMinutes * EXP_PER_ENTITY)
+          put("creditedMinutes", run.creditedMinutes).put("booksFound", run.booksFound).put("earnedExp", run.creditedMinutes * EXP_PER_ENTITY)
           put("status", if (run.creditedMinutes == duration) "complete" else "training")
           put("follower", characterView(state.characters.getValue(run.followerId)))
           put("environmentId", run.environmentId)

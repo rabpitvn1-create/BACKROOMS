@@ -1,6 +1,7 @@
 package com.rabpit.backroom.core
 
-const val CURRENT_SAVE_VERSION = 14
+const val CURRENT_SAVE_VERSION = 15
+const val STAT_POINT_BOOK_ID = "training:stat-point-book"
 const val CAO_MINH_ID = "cao_minh"
 const val CAO_MINH_AVATAR_REF = "avatars/CAO_MINH_AVATAR.jpg"
 const val CAO_MINH_SWORD_ID = "cao_minh:huyet-ma-kiem"

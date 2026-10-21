@@ -112,6 +112,7 @@ object CharacterDetailProjector {
       val def = EquipmentCatalog.definition(item.itemId)
       val normalizedItem = ItemContentRules.normalize(item)
       val useEffects = buildList {
+        if (item.itemId == STAT_POINT_BOOK_ID) add("Dùng từng cuốn: chọn STR, DEX, AGI, VIT hoặc EVA để cộng +1 điểm gốc vĩnh viễn; giới hạn 999. Không cộng EXP hoặc hồi HP.")
         val healPercent = HealingItems.healMaxHpPercent(normalizedItem)
         val heal = HealingItems.healAmount(normalizedItem)
         if (healPercent > 0) add("Hồi $healPercent% Max HP mỗi vật phẩm (làm tròn xuống), không vượt quá Max HP. Không hồi sinh.")

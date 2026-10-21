@@ -1438,6 +1438,7 @@ class GameCoreFacade private constructor(
   private fun eventReply(events: List<String>): String {
     val last = events.lastOrNull { it != "time_advanced" }
     return when {
+      last != null && last.startsWith("stat_book_used:") -> "Đã dùng một Sách + Stats: +1 " + last.substringAfter(":") + "."
       last == "item_consumed" -> "Đã sử dụng vật phẩm và áp dụng hiệu ứng có sẵn."
       last == "item_used" -> "Đã sử dụng vật phẩm."
       last == "inventory_remove" -> "Vật phẩm đã được loại khỏi Inventory theo hành động của Cao Minh."
@@ -1461,6 +1462,10 @@ class GameCoreFacade private constructor(
       "madgod_equipment_permanent" -> "MadGod đã khóa vĩnh viễn sau khi trang bị; không thể tháo hoặc đổi."
       "insufficient_item_quantity", "item_not_owned" -> "Cao Minh không có đủ vật phẩm cần thiết cho hành động này."
       "item_action_resolution_required" -> "Không thể xác thực hành động vật phẩm này từ state hiện tại; Inventory không thay đổi."
+      "stat_book_selection_required" -> "Hãy chọn STR, DEX, AGI, VIT hoặc EVA trước khi dùng sách."
+      "stat_book_one_at_a_time" -> "Mỗi lần chỉ sử dụng một cuốn Sách + Stats."
+      "stat_book_stat_capped" -> "Chỉ số gốc đã đạt 999; sách không bị tiêu hao."
+      "stat_book_actor_unavailable" -> "Nhân vật phải còn sống và ở trong Party để dùng sách."
       "party_full" -> "Party đã đủ tối đa bốn thành viên."
       "join_not_confirmed" -> "Yêu cầu gia nhập chưa đủ điều kiện hoặc chưa được NPC xác nhận."
       else -> "Hành động này không khả dụng trong trạng thái hiện tại."
@@ -1500,10 +1505,11 @@ class GameCoreFacade private constructor(
     // Inventory commands are atomic Core actions, not Explorer Turns.
     val command = ItemCommand(commandId = "UI:ITEM:${java.util.UUID.randomUUID()}", turnId = null, actorId = actorId,
       targetId = if (operation == ItemCommand.Operation.TRANSFER) targetId else null, source = CommandSource.UI,
-      operation = operation, itemId = item.itemId, itemName = item.name, quantity = quantity)
+      operation = operation, itemId = item.itemId, itemName = item.name, quantity = quantity, metadata = if (operation == ItemCommand.Operation.USE && item.itemId == STAT_POINT_BOOK_ID)
+        mapOf("targetStat" to request.optString("targetStat")) else emptyMap())
     val execution = StateReducer.execute(state, command)
     if (!execution.applied) return reject(execution.validation.reason ?: "item_action_resolution_required")
-    val next = OfflineEntityLoot.collectPending(execution.state)
+    val next = StatPointBook.collectPending(OfflineEntityLoot.collectPending(execution.state))
     repository.save(next)
     val result = clientSnapshot(client, next)
     val reply = eventReply(execution.events)

@@ -23,7 +23,7 @@ jobs:
       - name: Run JavaScript regression tests
         run: |
           if [ "$GITHUB_HEAD_REF" = "feat/653-mini-map-explorer" ]; then
-            node --test android-apk/tests/prologue-reader.test.cjs android-apk/tests/explorer-controls.test.cjs android-apk/tests/level-snapshot-routing.test.cjs android-apk/tests/diagnostic-export.test.cjs android-apk/tests/primary-action-buttons.test.cjs android-apk/tests/packaged-explorer-controls.test.cjs android-apk/tests/snapshot-combat-damage.test.cjs android-apk/tests/battle-start.test.cjs android-apk/tests/dungeon.test.cjs
+            node --test android-apk/tests/prologue-reader.test.cjs android-apk/tests/explorer-controls.test.cjs android-apk/tests/level-snapshot-routing.test.cjs android-apk/tests/diagnostic-export.test.cjs android-apk/tests/primary-action-buttons.test.cjs android-apk/tests/packaged-explorer-controls.test.cjs android-apk/tests/snapshot-combat-damage.test.cjs android-apk/tests/battle-start.test.cjs android-apk/tests/dungeon.test.cjs android-apk/tests/stat-book.test.cjs android-apk/tests/item-icons.test.cjs
           else
             node --test android-apk/tests/*.test.cjs
           fi
@@ -53,7 +53,7 @@ jobs:
               --tests '*CombatRuntimeTest' --tests '*LucTramCombatSkillsTest' \
               --tests '*EntityPowerScalingTest' --tests '*EntityCombatExpTest' \
               --tests '*CombatWaveQueueTest' --tests '*PostCombatContinuationTest' \
-              --tests '*Level0CombatContinuityTest' --tests '*DungeonRuntimeTest' --tests '*DungeonFacadeTest' --tests '*GameStateCodecTest'
+              --tests '*Level0CombatContinuityTest' --tests '*DungeonRuntimeTest' --tests '*DungeonFacadeTest' --tests '*GameStateCodecTest' --tests '*StatPointBookTest' --tests '*ItemDetailActionsTest' --tests '*LuciaFollowerTest'
           else
             gradle :app:testDebugUnitTest --no-daemon
           fi

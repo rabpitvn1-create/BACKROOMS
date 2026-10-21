@@ -41,7 +41,7 @@ class DungeonRuntimeTest {
     assertEquals(run.characters.getValue(CAO_MINH_ID), saved.characters.getValue(CAO_MINH_ID))
   }
 
-  @Test fun trainingNeverRunsCombatTimeInjuriesLootOrBooks() {
+  @Test fun trainingNeverRunsCombatTimeInjuriesOrOrdinaryLoot() {
     val initial = fresh()
     val hp = initial.characters.getValue(IRIS_ID).vitalState.currentHp
     val trained = DungeonRuntime.settle(DungeonRuntime.start(initial, 4, IRIS_ID, start),
@@ -49,7 +49,9 @@ class DungeonRuntimeTest {
     assertEquals(initial.time, trained.time)
     assertEquals(initial.turn, trained.turn)
     assertEquals(initial.world, trained.world)
-    assertEquals(initial.inventories, trained.inventories)
+    assertEquals(initial.inventories - CAO_MINH_ID, trained.inventories - CAO_MINH_ID)
+    assertEquals(initial.inventories.getValue(CAO_MINH_ID).items,
+      trained.inventories.getValue(CAO_MINH_ID).items - STAT_POINT_BOOK_ID)
     assertEquals(initial.statuses, trained.statuses)
     assertEquals(initial.characters.getValue(IRIS_ID).injuries, trained.characters.getValue(IRIS_ID).injuries)
     assertTrue(trained.characters.getValue(IRIS_ID).vitalState.currentHp >= hp)
@@ -59,7 +61,7 @@ class DungeonRuntimeTest {
     assertNull(CombatRuntime.active(trained))
     assertNull(CombatRuntime.pending(trained))
     val view = DungeonRuntime.view(trained, start)
-    assertFalse(view.getBoolean("booksEnabled"))
+    assertTrue(view.getBoolean("booksEnabled"))
     assertEquals(300, view.getInt("bookDropBasisPoints"))
     val afterClock = TimeEngine.execute(trained, TimeAdvanceCommand(commandId = "time", turnId = null, actorId = CAO_MINH_ID,
       source = CommandSource.SYSTEM, minutes = 360, reason = "explore", activity = TimeActivity.EXERTION)).state
@@ -97,6 +99,22 @@ class DungeonRuntimeTest {
       DungeonRuntime.release(replacement, 0, run.dungeon.runs.single().id, start + 180000)
     }
     assertEquals(returned, DungeonRuntime.settle(returned, start + 999999))
+  }
+
+  @Test fun bookDropsAreChunkInvariantAndNeverRepeatOnRestoreOrReread() {
+    var base = fresh()
+    for ((slot, id) in listOf(IRIS_ID, SYVIAL_ID, AN_NHIEN_ID, LUC_TRAM_ID, LUCIA_ID).withIndex())
+      base = DungeonRuntime.start(base, slot, id, start)
+    val end = start + 180 * DungeonRuntime.MINUTE_MS
+    val offline = DungeonRuntime.settle(base, end)
+    var online = base
+    for (minute in 1..180) online = DungeonRuntime.settle(online, start + minute * DungeonRuntime.MINUTE_MS)
+    assertEquals(offline, online)
+    val found = offline.dungeon.runs.sumOf { it.booksFound }
+    assertTrue(found > 0)
+    val owned = offline.inventories.getValue(CAO_MINH_ID).items[STAT_POINT_BOOK_ID]?.quantity ?: 0
+    assertEquals(found.toLong(), owned.toLong() + offline.dungeon.pendingBooks)
+    assertEquals(offline, DungeonRuntime.settle(GameStateCodec.decode(GameStateCodec.encode(offline)), end))
   }
 
   @Test fun clockRollbackNeverDecreasesProgressOrReawardsMinutes() {

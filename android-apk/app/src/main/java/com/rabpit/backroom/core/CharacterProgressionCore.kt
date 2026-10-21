@@ -11,7 +11,7 @@ object CharacterProgressionCore {
   const val BASE_STAT = 5
   const val MAX_STAT = 999
   const val BASE_MAX_HP = 50
-  // Each new level can add up to 6 to one stat. This bound prevents any roll exceeding MAX_STAT.
+  // Keep the existing level ceiling. Books can cap stats earlier; grantExp allocates only to remaining stat capacity.
   const val MAX_LEVEL = (MAX_STAT - BASE_STAT) / 6
   private val STAT_KEYS = setOf("STR", "DEX", "AGI", "VIT", "EVA")
 
@@ -53,12 +53,14 @@ object CharacterProgressionCore {
     var gained = 0
     while (level < MAX_LEVEL && xp >= expRequired(level).toLong()) {
       xp -= expRequired(level).toLong()
-      val bonus = IntArray(5) { 1 }
-      repeat(5) { bonus[random.nextInt(5)]++ }
       val p = character.statProfile
       val values = intArrayOf(p.str, p.dex, p.agi, p.vit, p.eva)
-      for (i in values.indices) check(values[i] + bonus[i] <= MAX_STAT) {
-        "STAT chạm giới hạn; không thể phân phối đủ 10 điểm."
+      // Books can reach the cap before MAX_LEVEL. Redistribute only to stats
+      // with capacity; uncapped characters retain their exact previous RNG draws.
+      val bonus = IntArray(5) { if (values[it] < MAX_STAT) 1 else 0 }
+      repeat(10 - bonus.sum()) {
+        val available = values.indices.filter { values[it] + bonus[it] < MAX_STAT }
+        if (available.isNotEmpty()) bonus[available[random.nextInt(available.size)]]++
       }
       val before = CharacterStatCore.effective(normalized.copy(characters = normalized.characters + (id to character)), id).maxHp
       val updatedProfile = p.copy(

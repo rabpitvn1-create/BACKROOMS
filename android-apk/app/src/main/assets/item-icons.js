@@ -1,5 +1,6 @@
 /* Bundled WebP assets; IDs mirror OfflineItemRegistry and EquipmentCatalog and are verified against item-icons/manifest.json. */
 window.backroomItemIcons = Object.freeze({
+  'training:stat-point-book': 'stat-point-book',
   'almond-water': 'almond-water',
   'greek-fire': 'greek-fire',
   'liquid-pain': 'liquid-pain',

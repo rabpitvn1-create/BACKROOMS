@@ -92,6 +92,7 @@ private fun useItem(state: GameState, source: InventoryState, command: ItemComma
   val ownedRaw = source.items[command.itemId] ?: return invalid(state, "item_not_owned")
   if (ownedRaw.quantity < command.quantity) return invalid(state, "insufficient_item_quantity")
   val owned = ItemContentRules.normalize(ownedRaw)
+  if (owned.itemId == STAT_POINT_BOOK_ID) return StatPointBook.use(state, command)
   val physiologyEffects = parsePhysiologyEffects(owned.metadata["physiologyEffect"])
     ?: return invalid(state, "physiology_effect_invalid")
   val healingAmount = if (HealingItems.healMaxHpPercent(owned) > 0) {
@@ -115,12 +116,12 @@ private fun useItem(state: GameState, source: InventoryState, command: ItemComma
 }
 
 object InventoryEngine {
-  internal fun grantDrop(state: GameState, itemId: String): GameState? {
+  internal fun grantDrop(state: GameState, itemId: String, origin: String = "ENTITY_DROP"): GameState? {
     val definition = OfflineItemRegistry.get(itemId) ?: return null
     val inventory = state.inventories[CAO_MINH_ID] ?: InventoryState(CAO_MINH_ID)
     val item = ItemContentRules.normalize(ItemStack(
       definition.id, definition.name, 1,
-      metadata = definition.metadata + ("itemOrigin" to "ENTITY_DROP")
+      metadata = definition.metadata + ("itemOrigin" to origin)
     ))
     if (InventoryPolicy.validateAddition(state, CAO_MINH_ID, inventory, item, 1) != null) return null
     return state.copy(inventories = state.inventories + (CAO_MINH_ID to addItem(inventory, item)))

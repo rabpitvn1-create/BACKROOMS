@@ -37,7 +37,7 @@ function boot(){
  return {scope,ids,requests,timers,intervals,data,respond,open(){ids.dungeonOpen.click()},tick(ms){now+=ms;intervals.forEach(f=>f())},renders(){return renderCount}};
 }
 function training(model,index=0){model.followers=[];model.slots[index]={slot:index,durationMinutes:[15,30,60,120,180][index],status:'training',runId:9,
- startedAtMs:model.serverNowMs,endsAtMs:model.serverNowMs+900000,creditedMinutes:0,earnedExp:0,
+ startedAtMs:model.serverNowMs,endsAtMs:model.serverNowMs+900000,creditedMinutes:0,earnedExp:0,booksFound:0,
  environmentId:'yellow_rot',environmentName:'Vàng Úa',follower:{id:'iris',name:'Iris',level:0,avatar:'avatars/Iris_avatar.jpg'}};return model;}
 
 test('Dungeon opens from menu with five fixed slots and only sends a read request',()=>{

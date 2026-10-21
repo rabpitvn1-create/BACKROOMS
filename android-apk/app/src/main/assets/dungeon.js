@@ -65,7 +65,7 @@
       }else{
         snapshot(card,slot);
         card.appendChild(node('strong','dungeon-name',slot.follower.name+' · LV. '+slot.follower.level));
-        card.appendChild(node('p','dungeon-exp','Đã nhận '+slot.earnedExp+' EXP · '+slot.creditedMinutes+'/'+slot.durationMinutes+' Entity'));
+        card.appendChild(node('p','dungeon-exp','Đã nhận '+slot.earnedExp+' EXP · '+slot.creditedMinutes+'/'+slot.durationMinutes+' Entity · '+slot.booksFound+' sách'));
         var bar=node('progress','dungeon-progress');bar.max=slot.durationMinutes*60000;bar.value=0;
         bar.setAttribute('aria-label','Thời gian train '+slot.follower.name);card.appendChild(bar);
         var clock=node('p','dungeon-clock');clock.dataset.slot=String(slot.slot);card.appendChild(clock);
@@ -99,6 +99,8 @@
     if(operation!=='view')lock(false);
     if(result.ok===true&&result.dungeon){
       model=result.dungeon;receivedAt=performance.now();
+      var booksNote=document.getElementById('dungeonBooksNote');
+      if(booksNote)booksNote.textContent='Sách + Stats: tổng 3% mỗi Entity.'+(model.pendingBooks>0?' '+model.pendingBooks+' cuốn đang chờ vì kho Cao Minh đầy.':' Sách rơi vào kho Cao Minh.');
       if(operation!=='view'&&result.state){
         // Refresh Party/stat UI without feeding a fake player turn into combat animation.
         state=semanticPrepareNextState(state,JSON.stringify(result.state));

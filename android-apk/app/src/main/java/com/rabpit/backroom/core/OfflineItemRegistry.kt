@@ -11,6 +11,9 @@ object OfflineItemRegistry {
   )
 
   private val definitions = listOf(
+    Definition(STAT_POINT_BOOK_ID, "Sách + Stats",
+      mapOf("consumable" to "true", "consumedOnUse" to "true", "itemCategory" to "stat_book",
+        "dropPool" to "DUNGEON", "description" to "Tiêu hao một cuốn để cộng vĩnh viễn +1 điểm vào STR, DEX, AGI, VIT hoặc EVA của người sử dụng. Chọn chỉ số khi dùng. Không tăng Level/EXP; không thể vượt 999 điểm chỉ số gốc.")),
     Definition("almond-water", "Almond Water",
       mapOf("consumable" to "true", "consumedOnUse" to "true", "physiologyEffect" to "WATER", "waterRecoveryMinutes" to "360")),
     Definition("greek-fire", "Greek Fire"),
@@ -42,6 +45,7 @@ object OfflineItemRegistry {
 
   fun all(): List<Definition> = definitions.toList()
   fun get(id: String): Definition? = byId[id]
-  fun random(seed: Long): Definition = definitions[Random(seed).nextInt(definitions.size)]
+  private val ordinaryLoot = definitions.filter { it.metadata["dropPool"] != "DUNGEON" }
+  fun random(seed: Long): Definition = ordinaryLoot[Random(seed).nextInt(ordinaryLoot.size)]
 }
 

@@ -1,7 +1,7 @@
 {
-  "version": 5,
+  "version": 6,
   "generator": "built-in imagegen",
-  "style": "non-pixel liquid glass, warm golden-brown background",
+  "style": "non-pixel liquid glass; warm gold/orange ordinary items, violet/blue stat book",
   "format": "WEBP",
   "dimensions": [
     128,
@@ -353,6 +353,24 @@
       "drive_file_id": "1GBlEqExGze3VU1uEup2V0YgIF6o9WaLH",
       "drive_url": "https://drive.google.com/file/d/1GBlEqExGze3VU1uEup2V0YgIF6o9WaLH/view?usp=drivesdk",
       "design_reference": null
+    },
+    {
+      "item_id": "training:stat-point-book",
+      "key": "stat-point-book",
+      "name": "Sách + Stats",
+      "file": "stat-point-book.webp",
+      "width": 128,
+      "height": 128,
+      "mime_type": "image/webp",
+      "bytes": 10026,
+      "sha256": "826ca60ed685bc4e328fc687a921836b79d828104fbfd49944f7a66ff479d58e",
+      "md5": "b14984321fa38ea9ea33afde50eb93d3",
+      "drive_file_id": "1G2dqae2xVtFkgEFMoR4lRNQRd1ZIjuqA",
+      "drive_url": "https://drive.google.com/file/d/1G2dqae2xVtFkgEFMoR4lRNQRd1ZIjuqA/view?usp=drivesdk",
+      "source_drive_file_id": "13VwW7Iveco4606U85nS5VQZb_QB13b0u",
+      "generator": "built-in imagegen",
+      "palette": "violet / cobalt / cyan",
+      "design_reference": "almond-water.webp"
     }
   ]
 }

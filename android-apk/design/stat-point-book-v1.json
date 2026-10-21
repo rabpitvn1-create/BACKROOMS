@@ -1,0 +1,16 @@
+{
+  "item_id": "training:stat-point-book",
+  "tool": "built-in imagegen",
+  "reference": "app/src/main/assets/item-icons/almond-water.webp",
+  "final_asset": "app/src/main/assets/item-icons/stat-point-book.webp",
+  "dimensions": [
+    128,
+    128
+  ],
+  "bytes": 10026,
+  "sha256": "826ca60ed685bc4e328fc687a921836b79d828104fbfd49944f7a66ff479d58e",
+  "drive_source_png": "https://drive.google.com/file/d/13VwW7Iveco4606U85nS5VQZb_QB13b0u/view?usp=drivesdk",
+  "drive_runtime_webp": "https://drive.google.com/file/d/1G2dqae2xVtFkgEFMoR4lRNQRd1ZIjuqA/view?usp=drivesdk",
+  "pipeline": "Image Gen PNG -> resize/encode WebP -> upload both to Drive -> metadata readback -> download WebP from Drive -> verify identical SHA-256 -> integrate repo",
+  "prompt": "Use case: stylized-concept. Create ONE square inventory item icon for BACKROOMS game, matching the supplied reference image's exact family: non-pixel premium 3D liquid-glass item illustration, centered single object, rounded square glass tile with slim luminous bevel, rich refractive highlights, crisp at 128x128, cinematic miniature product lighting. The reference is STYLE ONLY; replace the bottle entirely with a single closed STAT TRAINING BOOK, a substantial dark teal leather and translucent blue crystal tome viewed in a three-quarter diagonal angle, visible page block, silver corners, luminous simple plus-shaped cyan emblem on its cover, no letters or words. Replace the reference's golden/orange/amber background and tile glow with a PURPLE-AND-BLUE gradient, amethyst violet blending into deep cobalt/teal blue, subtle cool magical light wisps behind the book. Keep the reference's composition density, realistic illustrated materials, dark vignette, border shape, padding and glossy game-item finish. Book fills roughly 75% of tile, fully inside frame. No bottle, no character, no surrounding UI, no text, no watermark. Opaque full background, not transparent. Deliver a single polished square icon."
+}
