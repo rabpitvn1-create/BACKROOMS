@@ -17,6 +17,7 @@ import java.util.Set;
 public final class GmQuestItems {
   private static final String STORAGE = "backroom_gm_quest_items";
   private static final String KEY = "ledger_v1";
+  private static final String PENDING = "pending_v1";
   private static final int MAX_ITEMS = 48;
   private static final int MAX_OPERATIONS = 8;
   private static final int MAX_HISTORY = 2048;
@@ -43,11 +44,48 @@ public final class GmQuestItems {
   public synchronized JSONObject snapshot() throws Exception { return new JSONObject(read().toString()); }
 
   public synchronized void restore(JSONObject snapshot) throws Exception {
-    persist(validateSnapshot(snapshot));
+    JSONObject checked = validateSnapshot(snapshot);
+    if (!preferences.edit().putString(KEY, checked.toString()).remove(PENDING).commit())
+      throw new IllegalStateException("gm_items_restore_failed");
   }
   public synchronized void reset() {
-    if (!preferences.edit().remove(KEY).commit())
+    if (!preferences.edit().remove(KEY).remove(PENDING).commit())
       throw new IllegalStateException("gm_items_reset_failed");
+  }
+  /** Durable outbox: a GM operation can only become visible after acknowledgement.
+   * On process restart the UI bridge may supply a confirmed narration ID. */
+  public synchronized void stage(String id, String nodeId, JSONArray operations) throws Exception {
+    if (operations.length() == 0) return;
+    if (id == null || id.length() < 3 || id.length() > 240 ||
+      nodeId == null || !nodeId.matches("[a-z0-9_.-]{1,64}"))
+      throw new IllegalArgumentException("gm_item_stage_scope");
+    validateProposal(operations);
+    JSONObject pending = pending();
+    if (pending != null && !id.equals(pending.getString("id")))
+      throw new IllegalStateException("gm_items_pending_unresolved");
+    JSONObject next = new JSONObject().put("id", id).put("nodeId", nodeId)
+      .put("operations", new JSONArray(operations.toString()));
+    if (!preferences.edit().putString(PENDING, next.toString()).commit())
+      throw new IllegalStateException("gm_item_stage_failed");
+  }
+  public synchronized JSONObject pending() throws Exception {
+    String raw = preferences.getString(PENDING, null);
+    if (raw == null) return null;
+    JSONObject value = new JSONObject(raw);
+    if (!keys(value).equals(set("id", "nodeId", "operations")))
+      throw new IllegalStateException("gm_items_pending_corrupt");
+    validateOperations(value.getJSONArray("operations"));
+    return value;
+  }
+  public synchronized void confirmPending(String id) throws Exception {
+    JSONObject pending = pending();
+    if (pending == null) return;
+    if (!id.equals(pending.getString("id")))
+      throw new IllegalArgumentException("gm_item_confirmation_wrong_id");
+    JSONObject after = applySnapshot(read(), pending.getString("id"),
+      pending.getString("nodeId"), pending.getJSONArray("operations"));
+    if (!preferences.edit().putString(KEY, after.toString()).remove(PENDING).commit())
+      throw new IllegalStateException("gm_items_confirm_failed");
   }
   private static boolean validId(String id) {
     return id != null && id.matches("[a-z0-9][a-z0-9_-]{2,63}");
