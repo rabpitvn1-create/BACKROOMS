@@ -46,6 +46,11 @@ data class PhysiologyState(
   val minutesSinceFood: Long? = null,
   val minutesSinceWater: Long? = null,
   val minutesAwake: Long? = null,
+  /** Remaining survival-origin HP loss eligible for rest recovery, by cause. */
+  val recoverableFoodHp: Int = 0,
+  val recoverableWaterHp: Int = 0,
+  val recoverableSleepHp: Int = 0,
+  val restRecoveryMinutes: Int = 0,
   val painState: String? = null,
   val infectionState: String? = null,
   val thermalState: String? = null,
