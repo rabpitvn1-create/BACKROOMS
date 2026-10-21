@@ -241,11 +241,6 @@ object TimeEngine {
     return changed(advanced.copy(time = nextTime), "time_advanced")
   }
 
-  private fun advanceKnownCounter(value: Long?, delta: Long): Long? {
-    if (value == null) return null
-    if (value < 0L || value > Long.MAX_VALUE - delta) return null
-    return value + delta
-  }
 }
 
 internal fun invalid(state: GameState, reason: String) = ExecutionResult(state, false, validation = ValidationResult(false, reason))
