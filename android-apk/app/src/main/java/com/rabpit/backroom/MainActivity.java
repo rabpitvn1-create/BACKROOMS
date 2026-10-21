@@ -96,7 +96,10 @@ public class MainActivity extends Activity {
     JSONObject pending = gmItems().pending();
     if (pending != null) {
       String id = pending.getString("id");
-      JSONArray log = response.optJSONArray("log");
+      // UI state/log is untrusted. Derive confirmations from a freshly
+      // projected Core state with an EMPTY client presentation, not caller JSON.
+      JSONObject authoritative = new JSONObject(requireGameCore().currentClientState("{}"));
+      JSONArray log = authoritative.optJSONArray("log");
       boolean committed = false;
       if (log != null) for (int i = 0; i < log.length(); i++) {
         JSONObject entry = log.optJSONObject(i);
