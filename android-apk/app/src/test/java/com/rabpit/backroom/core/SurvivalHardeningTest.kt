@@ -8,7 +8,11 @@ class SurvivalHardeningTest {
     val state = GameState.initial()
     val leader = state.characters.getValue(CAO_MINH_ID)
     return state.copy(characters = state.characters + (CAO_MINH_ID to leader.copy(
-      physiology = p,
+      // These recovery tests represent a fresh run with known needs, not UNKNOWN data.
+      physiology = p.copy(
+        minutesSinceFood = p.minutesSinceFood ?: 0L,
+        minutesSinceWater = p.minutesSinceWater ?: 0L,
+        minutesAwake = p.minutesAwake ?: 0L),
       vitalState = leader.vitalState.copy(currentHp = hp)
     )))
   }
