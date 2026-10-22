@@ -132,7 +132,7 @@ test('offline story trigger consumes the next unheard chapter only after a commi
   next.turn=5;next.log=[{role:'player',text:'Di chuyển qua hành lang'}];
   x.ctx.backroomTurn(JSON.stringify(next));
   assert.equal(x.dialog.hidden,false);
-  assert.match(x.parts['#specialDialogueText'].textContent,/lời không thể thu lại/);
+  assert.match(x.parts['#specialDialogueText'].textContent,/Có một câu tôi đã nói/);
   finishModal(x);
   assert.equal(x.ctx.state.specialDialogueProgress.chapters.hua_tieu_lan,1);
   x.ctx.SpecialDialogue.offerEntity();
@@ -523,7 +523,7 @@ test('all ten Follower biographies carry authored private memories and multi-tur
     const p=catalog[id];
     assert.ok(p.intro.length>=5,id+' has an authored first contact');
     assert.ok(p.story.length>=4,id+' has multiple recalled scenes');
-    assert.ok(p.past.length>=3,id+' has varied recollections');
+    assert.equal(p.past.length,p.story.length+1,id+' unlocks one recollection per finished chapter');
     for(const scene of p.story){
       assert.ok(scene.length>=3&&scene.length<=6,id+' has dialogue, not a lecture');
       assert.ok(scene.some(line=>line.speaker==='cao_minh'),id+' talks with Cao Minh');
@@ -610,7 +610,7 @@ test('new Follower chapters advance only when reading finishes after a committed
   next.log=[{role:'player',text:'Di chuyển qua hành lang và kiểm tra lối rẽ'}];
   x.ctx.backroomTurn(JSON.stringify(next));
   assert.equal(x.dialog.hidden,false);
-  assert.match(x.parts['#specialDialogueText'].textContent,/bị người khác nhìn/);
+  assert.match(x.parts['#specialDialogueText'].textContent,/Có lần người ta thấy quỷ tính/);
   assert.equal(x.ctx.state.specialDialogueProgress.chapters.syvial,0);
   const mid=JSON.parse(JSON.stringify(x.ctx.state));
   const resumed=env({state:mid});
@@ -619,4 +619,31 @@ test('new Follower chapters advance only when reading finishes after a committed
   assert.equal(resumed.ctx.state.specialDialogueProgress.chapters.syvial,1);
   const after=env({state:JSON.parse(JSON.stringify(resumed.ctx.state))});
   assert.equal(after.dialog.hidden,true,'no second reveal without a committed turn');
+});
+
+
+test('edited follower history respects dynamic Core state and does not assert invented injuries',()=>{
+  const profiles=env({state:{party:[],partyDetails:{members:[]},encounteredCharacters:[]}})
+    .ctx.BackroomSpecialDialogueData;
+  const namFirst=profiles.nguyen_quoc_nam.story[0].map(x=>x.text).join(' ');
+  assert.match(namFirst,/Nếu có vết xây xát/);
+  assert.doesNotMatch(namFirst,/Anh bị xây xát/);
+  const endings={
+    catherine:/tiếng chuông thứ mười ba/,
+    janet:/dây thép gai/,
+    nguyen_quoc_nam:/Dương vẽ cả nhà/,
+    lucia:/Đồng bằng sông Cửu Long/,
+    hua_tieu_lan:/không phải Anh Tý/,
+    luc_tram:/vết xước/,
+    trac_lam:/ECHO-17/,
+    iris:/chưa sẵn sàng/,
+    syvial:/GodKiller/,
+    'an-nhien':/cơm nóng/
+  };
+  for(const [id,pattern] of Object.entries(endings)){
+    const d=profiles[id];
+    assert.match(d.past.at(-1),pattern,id+' last recalled detail is not unlocked at introduction');
+    assert.equal(d.past.length,d.story.length+1);
+    assert.ok(d.past.every(t=>typeof t==='string'&&t.trim().length>15));
+  }
 });
