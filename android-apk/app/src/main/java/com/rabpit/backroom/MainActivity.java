@@ -2236,7 +2236,7 @@ public class MainActivity extends Activity {
         + "Vật phẩm GM có ID duy nhất, không hồi sinh sau tiêu thụ. Không bắt buộc tạo vật phẩm ở mỗi lượt. "
         + "Các đạo cụ FREE không được cấp tài nguyên thật, hồi HP, trang bị, tạo Party, mở khóa hoặc chứng cứ. "
         + "Entity/NPC và combat nếu xảy ra chỉ do kết quả Core trong RESOLVED_EVENTS xác nhận. "
-        + "BẮT BUỘC kể ngay cảnh gặp Follower mới trong mọi RESOLVED_EVENTS có event.npcEncounters: dành một đoạn riêng mô tả tóc, diện mạo, quần áo, vũ khí và phản ứng dựa trên thẻ CHAR.*.AUTHORED. Không chỉ nhắc tên, không tự thêm NPC, không mặc định biết danh tính, tiết lộ ký ức riêng, gây chiến hoặc gia nhập Party. "
+        + "Khi RESOLVED_EVENTS có event.npcEncounters, chỉ ghi nhận sự xuất hiện và ngoại hình nhìn thấy được. Không tạo lời thoại, hành động ôm hoặc tương tác gặp đầu: Special Encounter offline hiển thị sau khi Core xác nhận. Không sinh thêm NPC và không tự gia nhập Party. "
         + "Nhân vật Canon chỉ được có mặt khi STATE xác nhận; họ có thể nhận hoặc từ chối quà tưởng tượng, "
         + "nhưng diễn biến này không được thay đổi HP, quan hệ, trang bị hay ký ức cốt truyện. "
         + "CORE là kết quả được xác nhận: phải kể đúng sự kiện, không tự thay đổi vị trí, điều kiện khóa, câu đố, đường đi. "
