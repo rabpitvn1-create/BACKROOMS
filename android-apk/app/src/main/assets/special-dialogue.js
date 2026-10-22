@@ -33,7 +33,11 @@
     const party=(state.partyDetails&&state.partyDetails.members)||[];
     return party.find(c=>String(c.id)===String(id))||
       (state.encounteredCharacters||[]).find(c=>String(c.id)===String(id))||
-      (state.party||[]).find(c=>String(c.id)===String(id))||null;
+      (state.party||[]).find(c=>String(c.id)===String(id))||
+      (state.scene&&state.scene.npcs||[]).find(c=>String(c.id||c.characterId)===String(id))||
+      (state.scene&&state.scene.availableActions||[]).filter(c=>c.kind==='TALK')
+        .map(c=>({id:c.targetId,name:c.targetName||c.label}))
+        .find(c=>String(c.id)===String(id))||null;
   }
   function label(id){const c=visibleCharacter(id);return c&&c.name||entityCatalog[id]&&entityCatalog[id].name||id;}
   function avatar(id){
@@ -130,7 +134,11 @@
     if(mode==='hint'){
       if(!open(id,'hint',[{speaker:id,text:'Đang xem xét manh mối tại khu vực hiện tại…'}]))return false;
       actions.replaceChildren();
-      if(global.Android&&typeof Android.requestDialogueHint==='function')
+      const talk=(state.scene&&state.scene.availableActions||[]).find(a=>a.kind==='TALK'&&String(a.targetId)===String(id));
+      if(talk&&global.Android&&typeof Android.requestDialogueTalk==='function'){
+        const command={actionId:talk.actionId,sceneVersion:talk.sceneVersion,roomId:talk.roomId,kind:talk.kind,targetId:talk.targetId};
+        Android.requestDialogueTalk(JSON.stringify(state),JSON.stringify(command),id);
+      }else if(global.Android&&typeof Android.requestDialogueHint==='function')
         Android.requestDialogueHint(JSON.stringify(state),id);
       else{active.lines=[{speaker:id,text:'Chưa kết nối được chức năng gợi ý của GM.'}];render();}
       return true;
@@ -147,6 +155,7 @@
   function handleHint(raw){
     let answer;try{answer=JSON.parse(raw);}catch(_){return;}
     if(!active||active.kind!=='hint'||String(active.id)!==String(answer.id))return;
+    if(answer.state&&typeof global.backroomTurn==='function')global.backroomTurn(JSON.stringify(answer.state));
     active.lines=[{speaker:active.id,text:String(answer.text||'Chưa tìm được manh mối đáng tin cậy.').slice(0,1000)}];
     active.index=0;render();
   }
