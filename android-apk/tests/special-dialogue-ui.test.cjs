@@ -133,7 +133,7 @@ test('offline story trigger consumes the next unheard chapter only after a commi
   x.ctx.backroomTurn(JSON.stringify(next));
   assert.equal(x.dialog.hidden,false);
   assert.match(x.parts['#specialDialogueText'].textContent,/lời không thể thu lại/);
-  x.parts['#specialDialogueActions'].children.at(-1).click();
+  finishModal(x);
   assert.equal(x.ctx.state.specialDialogueProgress.chapters.hua_tieu_lan,1);
   x.ctx.SpecialDialogue.offerEntity();
   assert.equal(x.dialog.hidden,true);
