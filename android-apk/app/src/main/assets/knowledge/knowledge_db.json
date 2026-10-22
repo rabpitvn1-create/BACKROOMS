@@ -1028,7 +1028,7 @@
       "id": "CHAR.LUC_TRAM.OPEN_R06",
       "domain": "CHARACTER",
       "kind": "continuity-firewall",
-      "text": "R07 đã giải quyết sự thật lịch sử từng OPEN: Lục Trầm tự rời Cao Minh khi hắn bất tỉnh, gặp Diệp Minh và bị dẫn dắt qua những sự thật chọn lọc để tin lời cáo buộc sai. Nàng truy sát vì tự phán xét, không bị điều khiển tinh thần. Hiện trạng sống/chết, vị trí, thương tích, niềm tin, hồi ức đã nhớ lại và quan hệ trong mỗi save vẫn DYNAMIC, phải lấy từ Core/continuity. Gặp Follower 0,25% Level 4+ là hệ NPC riêng và không quyết định việc Entity truy sát xuất hiện. Không tự cho nhân vật hòa giải hay gia nhập Party.",
+      "text": "R07 đã giải quyết sự thật lịch sử từng OPEN: Lục Trầm tự rời Cao Minh khi hắn bất tỉnh, gặp Diệp Minh và bị dẫn dắt qua những sự thật chọn lọc để tin lời cáo buộc sai. Nàng truy sát vì tự phán xét, không bị điều khiển tinh thần. Hiện trạng sống/chết, vị trí, thương tích, niềm tin, hồi ức đã nhớ lại và quan hệ trong mỗi save vẫn DYNAMIC, phải lấy từ Core/continuity. Không tự gặp trước Level 4 đối với Follower; từ Level 4+ roll 0,25% là hệ NPC riêng và không quyết định việc Entity truy sát xuất hiện. Không tự cho nhân vật hòa giải hay gia nhập Party.",
       "source": {
         "document": "canon/STORY_VAN_GIOI_TAN_MONG_R07.md",
         "anchor": "CHAR.LUC_TRAM.OPEN_R06"
