@@ -2510,8 +2510,10 @@ public class MainActivity extends Activity {
         try {
           JSONObject view = new JSONObject(requireGameCore().currentClientState(stateJson));
           JSONObject command = new JSONObject(commandJson);
+          String targetId = command.optString("targetId");
           if (!"TALK".equals(command.optString("kind")) ||
-              !characterId.equals(command.optString("targetId"))) throw new IllegalArgumentException("dialogue_target_invalid");
+              !(characterId.equals(targetId) || targetId.startsWith("character:" + characterId + ":")))
+            throw new IllegalArgumentException("dialogue_target_invalid");
           JSONObject scene = view.optJSONObject("scene");
           JSONArray available = scene == null ? null : scene.optJSONArray("availableActions");
           boolean allowed = false;
@@ -2519,7 +2521,7 @@ public class MainActivity extends Activity {
             JSONObject action = available.optJSONObject(i);
             if (action != null && "TALK".equals(action.optString("kind")) &&
                 command.optString("actionId").equals(action.optString("actionId")) &&
-                characterId.equals(action.optString("targetId"))) { allowed = true; break; }
+                targetId.equals(action.optString("targetId"))) { allowed = true; break; }
           }
           if (!allowed) throw new IllegalArgumentException("dialogue_not_available");
           JSONObject started = new JSONObject(requireGameCore().beginSceneAction(commandJson));
