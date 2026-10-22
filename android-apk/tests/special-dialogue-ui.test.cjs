@@ -488,7 +488,7 @@ test('three new Follower narratives remain hidden until Core presence and expose
   ];
   for(const [id,name,avatar,firstChapter] of cases){
     const d=catalog[id];
-    assert.equal(d.story.length,4);
+    assert.equal(d.story.length,7);
     assert.ok(d.story.every(scene=>scene.length>=3&&scene.some(x=>x.speaker==='cao_minh')));
     const unseen=env({state:{party:[],partyDetails:{members:[]},encounteredCharacters:[],
       log:[{role:'gm',text:'Đã nhìn thấy '+name}]}});
@@ -510,4 +510,113 @@ test('three new Follower narratives remain hidden until Core presence and expose
     finishModal(intro);
     assert.equal(intro.ctx.state.specialDialogueProgress.chapters[id],1);
   }
+});
+
+
+test('all ten Follower biographies carry authored private memories and multi-turn past arcs',()=>{
+  const env0=env({state:{party:[],partyDetails:{members:[]},encounteredCharacters:[]}});
+  const catalog=env0.ctx.BackroomSpecialDialogueData;
+  const ids=['lucia','hua_tieu_lan','luc_tram','trac_lam','catherine','janet',
+    'nguyen_quoc_nam','iris','syvial','an-nhien'];
+  assert.equal(Object.keys(catalog).length,ids.length);
+  for(const id of ids){
+    const p=catalog[id];
+    assert.ok(p.intro.length>=5,id+' has an authored first contact');
+    assert.ok(p.story.length>=4,id+' has multiple recalled scenes');
+    assert.ok(p.past.length>=3,id+' has varied recollections');
+    for(const scene of p.story){
+      assert.ok(scene.length>=3&&scene.length<=6,id+' has dialogue, not a lecture');
+      assert.ok(scene.some(line=>line.speaker==='cao_minh'),id+' talks with Cao Minh');
+      assert.ok(scene.every(line=>[id,'cao_minh'].includes(line.speaker)&&line.text.trim()),id+' legitimate speakers');
+    }
+  }
+  assert.match(catalog.trac_lam.story.map(x=>x.map(l=>l.text).join(' ')).join(' '),/ECHO-17/);
+  assert.match(catalog.catherine.story.map(x=>x.map(l=>l.text).join(' ')).join(' '),/Grayhaven/);
+  assert.match(catalog.janet.story.map(x=>x.map(l=>l.text).join(' ')).join(' '),/Mia/);
+  assert.match(catalog.nguyen_quoc_nam.story.map(x=>x.map(l=>l.text).join(' ')).join(' '),/Thùy Dương|Dương/);
+  assert.match(catalog.luc_tram.story.map(x=>x.map(l=>l.text).join(' ')).join(' '),/Thiên Kiếm Môn/);
+  assert.doesNotMatch(JSON.stringify(catalog['an-nhien']),/đã chết|bị sát hại|bị bắt cóc/);
+  assert.doesNotMatch(JSON.stringify(catalog.syvial),/Kai.*đang ở đây|Kai.*đã chết/);
+});
+
+test('Iris, Syvial and An Nhiên only open introductory backstory on Core-confirmed presence',()=>{
+  const profiles=[
+    ['iris','Iris','avatars/Iris_avatar.jpg',/Đứng ở đó/],
+    ['syvial','Syvial','avatars/Syvial_avatar.jpg',/Đừng nhìn thanh kiếm/],
+    ['an-nhien','An Nhiên','avatars/an_nhien_avatar.png',/Chú ơi/]
+  ];
+  for(const [id,name,avatar,first] of profiles){
+    const absent=env({state:{party:[],partyDetails:{members:[]},
+      encounteredCharacters:[{id,name,avatar,present:false,inParty:false,joinEligible:true}]}});
+    assert.equal(absent.dialog.hidden,true,'absent NPC cannot auto-open '+id);
+    const present=JSON.parse(JSON.stringify(absent.ctx.state));
+    present.encounteredCharacters[0].present=true;
+    absent.ctx.backroomTurn(JSON.stringify(present));
+    assert.equal(absent.dialog.hidden,false,'Core present opens '+id);
+    assert.match(absent.parts['#specialDialogueText'].textContent,first);
+    assert.equal(absent.parts['#specialDialogueAvatar'].children[0].src,avatar);
+    assert.equal(absent.ctx.invited,undefined);
+    finishModal(absent);
+    assert.equal(absent.ctx.state.specialDialogueProgress.introduced[id],true);
+    assert.ok(absent.ctx.state.specialDialogueProgress.introRevisions[id]);
+    assert.equal(absent.ctx.state.party.length,0);
+    const resumed=env({state:JSON.parse(JSON.stringify(absent.ctx.state))});
+    assert.equal(resumed.dialog.hidden,true,'authored intro is not replayed on load');
+  }
+});
+
+test('Past button rotates only currently unlocked memories and never advances authored story',()=>{
+  const id='catherine';
+  const name='Catherine Valeria Ashcombe';
+  const follower={id,name,avatar:'avatars/Catherine_avatar.webp',presence:'ACTIVE'};
+  const x=env({state:{party:[follower],partyDetails:{members:[follower]},
+    encounteredCharacters:[{...follower,present:true,inParty:true,joinEligible:true}],
+    specialDialogueProgress:{introduced:{catherine:true},introRevisions:{catherine:'catherine-intro-r01'},
+      chapters:{catherine:0},pastVisits:{},shownEncounters:{},pending:null,lastRollTurn:4}}});
+  const past=x.ctx.BackroomSpecialDialogueData.catherine.past;
+  assert.equal(x.dialog.hidden,true);
+  for(let i=0;i<3;i++){
+    assert.equal(x.ctx.SpecialDialogue.openCharacter(id,'past'),true);
+    assert.equal(x.parts['#specialDialogueText'].textContent,past[0],
+      'a later memory must not be available before chapter unlock');
+    finishModal(x);
+  }
+  assert.equal(x.ctx.state.specialDialogueProgress.chapters.catherine,0);
+  assert.equal(x.ctx.state.specialDialogueProgress.pastVisits.catherine,3);
+  x.ctx.state.specialDialogueProgress.chapters.catherine=2;
+  x.ctx.state.specialDialogueProgress.pastVisits.catherine=0;
+  for(let i=0;i<3;i++){
+    assert.equal(x.ctx.SpecialDialogue.openCharacter(id,'past'),true);
+    assert.equal(x.parts['#specialDialogueText'].textContent,past[i]);
+    finishModal(x);
+  }
+  assert.equal(x.ctx.state.specialDialogueProgress.chapters.catherine,2);
+  const saved=JSON.parse(JSON.stringify(x.ctx.state));
+  const y=env({state:saved});
+  assert.equal(y.ctx.SpecialDialogue.openCharacter(id,'past'),true);
+  assert.equal(y.parts['#specialDialogueText'].textContent,past[0],'past-memory rotation resumes with presentation state');
+  finishModal(y);
+});
+
+test('new Follower chapters advance only when reading finishes after a committed exploration turn',()=>{
+  const id='syvial';
+  const f={id,name:'Syvial',presence:'ACTIVE',avatar:'avatars/Syvial_avatar.jpg'};
+  const x=env({state:{party:[f],partyDetails:{members:[f]},
+    encounteredCharacters:[{...f,present:true,inParty:true}],
+    specialDialogueProgress:{introduced:{syvial:true},introRevisions:{syvial:'syvial-intro-r01'},
+      chapters:{syvial:0},shownEncounters:{},pending:null,lastRollTurn:4}}});
+  const next=JSON.parse(JSON.stringify(x.ctx.state));
+  next.turn=5;
+  next.log=[{role:'player',text:'Di chuyển qua hành lang và kiểm tra lối rẽ'}];
+  x.ctx.backroomTurn(JSON.stringify(next));
+  assert.equal(x.dialog.hidden,false);
+  assert.match(x.parts['#specialDialogueText'].textContent,/bị người khác nhìn/);
+  assert.equal(x.ctx.state.specialDialogueProgress.chapters.syvial,0);
+  const mid=JSON.parse(JSON.stringify(x.ctx.state));
+  const resumed=env({state:mid});
+  assert.equal(resumed.dialog.hidden,false);
+  finishModal(resumed);
+  assert.equal(resumed.ctx.state.specialDialogueProgress.chapters.syvial,1);
+  const after=env({state:JSON.parse(JSON.stringify(resumed.ctx.state))});
+  assert.equal(after.dialog.hidden,true,'no second reveal without a committed turn');
 });
