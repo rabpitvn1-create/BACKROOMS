@@ -30,6 +30,6 @@ test('every packaged Entity is available to the authoritative Registry and image
  const rendererKeys=main.match(/var __entityKeys=\[([^\]]+)\]/)[1];
  const keys=[...rendererKeys.matchAll(/'([^']+)'/g)].map(x=>x[1]).sort();
  const assets=fs.readdirSync(path.join(root,'app/src/main/assets/entity')).filter(x=>x.endsWith('.webp')).map(x=>x.slice(0,-5)).sort();
- assert.deepEqual(keys,assets);assert.equal(keys.length,22);
+ assert.deepEqual(keys,assets);assert.equal(keys.length,27); // 22 original + 5 approved special Entities
  for(const key of keys)assert.ok(combat.includes('"'+key+'"'),key+' Registry profile missing');
 });

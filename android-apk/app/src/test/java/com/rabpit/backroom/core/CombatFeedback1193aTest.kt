@@ -12,7 +12,8 @@ class CombatFeedback1193aTest {
   }
 
   @Test fun poisonFeedbackRecordsGrossDamageBeforeEntityRegen() {
-    val state = started().let { it.copy(metadata = it.metadata + ("combat.caoMinhProc3" to "1")) }
+    val state = started().withUnlockedSkills(CAO_MINH_ID)
+      .let { it.copy(metadata = it.metadata + ("combat.caoMinhProc3" to "1")) }
     val before = CombatRuntime.active(state)!!
     val result = CombatRuntime.resolve(state, "SEARCH", "Quan sát")
     val poison = result.feedback.single { it.status == CombatRuntime.FeedbackStatus.POISON }
@@ -63,7 +64,8 @@ class CombatFeedback1193aTest {
   }
 
   @Test fun periodicPoisonDoesNotProduceAnAttackImpact() {
-    val state = started().let { it.copy(metadata = it.metadata + ("combat.caoMinhProc3" to "1")) }
+    val state = started().withUnlockedSkills(CAO_MINH_ID)
+      .let { it.copy(metadata = it.metadata + ("combat.caoMinhProc3" to "1")) }
     val poison = CombatRuntime.resolve(state, "SEARCH", "Quan sát").feedback
       .single { it.status == CombatRuntime.FeedbackStatus.POISON }
     assertEquals("tick", poison.outcome)

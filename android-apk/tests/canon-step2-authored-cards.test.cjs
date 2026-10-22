@@ -72,7 +72,9 @@ test('authored character identities stay separate and source traceable', () => {
   for (const person of ['CAO_MINH', 'LUC_TRAM', 'LUCIA', 'TRAC_LAM']) {
     const r = records.get('CHAR.' + person + '.AUTHORED');
     assert.ok(r, person);
-    assert.match(r.source.document, /^Google Drive \/Novel\/Asset\/01_Character\//);
+    assert.ok(/^Google Drive \/Novel\/Asset\/01_Character\//.test(r.source.document) ||
+      (person === 'TRAC_LAM' && r.source.document === 'canon/TRAC_LAM_CODEX.md'),
+      `${person}: authorized source provenance missing`);
   }
   assert.notEqual(records.get('CHAR.LUC_TRAM.AUTHORED').text, records.get('CHAR.LUCIA.AUTHORED').text);
   // Detailed revival/memory continuity belongs to the confirmed-actor firewall,
@@ -125,9 +127,19 @@ test('legacy provenance is labeled, not silently promoted into author Canon', ()
   const approved = db.records.filter(r => r.id === 'LEVEL.00.ZONES.OVERVIEW' &&
     r.source.document === 'android-apk/LEVEL_0_EIGHT_ZONES_CANON.md');
   assert.equal(approved.length, 1, 'author-approved in-repository Canon has separate provenance');
+  // Five author-approved local Follower Codex mirrors and the LS2 authored
+  // project document were added after this baseline was established.
+  // Neither provenance is unverified legacy content.
+  const localApproved = db.records.filter(r =>
+    /^CHAR\.(TRAC_LAM|CATHERINE|JANET|NGUYEN_QUOC_NAM|HUA_TIEU_LAN)\.AUTHORED$/.test(r.id) &&
+    /^canon\/.+_CODEX\.md$/.test(r.source.document));
+  const ls2Approved = db.records.filter(r =>
+    r.source.document === 'android-apk/LS2_PROJECT_CANON_20261021.md');
+  assert.equal(localApproved.length, 5);
+  assert.equal(ls2Approved.length, 1);
   const legacy = db.records.filter(r =>
     !r.source.document.startsWith('Google Drive /Novel/Asset/') &&
-    !approved.includes(r));
+    !approved.includes(r) && !localApproved.includes(r) && !ls2Approved.includes(r));
   assert.equal(legacy.length, 42, 'the existing unverified records remain unchanged');
   assert.ok(reader.includes('LEGACY_UNVERIFIED'));
   assert.ok(reader.includes('provenance='));

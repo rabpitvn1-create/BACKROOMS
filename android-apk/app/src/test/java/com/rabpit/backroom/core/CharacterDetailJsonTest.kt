@@ -166,7 +166,8 @@ class CharacterDetailJsonTest {
     assertTrue(item(BANDAGE_ID).getJSONArray("useEffects").toString().contains("Hồi 10 HP"))
     val foodJson = item(BANH_TET_ID)
     assertEquals(food.metadata.getValue("description"), foodJson.getString("description"))
-    assertTrue(foodJson.getJSONArray("useEffects").toString().contains("Hồi 5 HP"))
+    assertFalse(foodJson.getJSONArray("useEffects").toString().contains("Hồi 5 HP")) // Food reduces hunger; it does not heal HP.
+    assertTrue(foodJson.getJSONArray("useEffects").toString().contains("240 phút thiếu thức ăn"))
     assertTrue(foodJson.getJSONArray("useEffects").toString().contains("thiếu thức ăn"))
     assertFalse(foodJson.has("metadata"))
     assertFalse(foodJson.toString().contains("hidden"))

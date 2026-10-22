@@ -8,7 +8,11 @@ class SurvivalHardeningTest {
     val state = GameState.initial()
     val leader = state.characters.getValue(CAO_MINH_ID)
     return state.copy(characters = state.characters + (CAO_MINH_ID to leader.copy(
-      physiology = p,
+      // These recovery tests represent a fresh run with known needs, not UNKNOWN data.
+      physiology = p.copy(
+        minutesSinceFood = p.minutesSinceFood ?: 0L,
+        minutesSinceWater = p.minutesSinceWater ?: 0L,
+        minutesAwake = p.minutesAwake ?: 0L),
       vitalState = leader.vitalState.copy(currentHp = hp)
     )))
   }
@@ -57,7 +61,10 @@ class SurvivalHardeningTest {
     assertEquals(3, c.physiology.recoverableFoodHp)
     assertEquals(0, c.physiology.recoverableWaterHp)
     val later = advance(rested, 60)
-    assertEquals(42, later.characters.getValue(CAO_MINH_ID).vitalState.currentHp)
+    // Food deprivation crosses its 180-minute damage boundary at minute 1620.
+    // Normal movement must not heal the remaining food debt; it causes 1 new HP loss.
+    assertEquals(41, later.characters.getValue(CAO_MINH_ID).vitalState.currentHp)
+    assertEquals(4, later.characters.getValue(CAO_MINH_ID).physiology.recoverableFoodHp)
   }
 
   @Test fun ordinaryHealingConsumesRestEligibilitySoItCannotDoubleHeal() {

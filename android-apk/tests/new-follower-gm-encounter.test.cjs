@@ -34,11 +34,12 @@ test('first meeting Canon is mandatory and cannot appear from name-only text', (
   assert.match(engine, /actor !in presentActors/);
 });
 
-test('both staged-scene and resolved player-action writers require encounter portrayal', () => {
+test('GM recognizes Core encounters but leaves dialogue to the offline Special Encounter UI', () => {
   assert.match(activity, /PUBLIC_EVENT\.npcEncounters/);
   assert.match(activity, /RESOLVED_EVENTS có event\.npcEncounters/);
   assert.match(activity, /firstMeetings/);
   assert.match(activity, /view\.put\("pendingNpcEncounters", firstMeetings\)/);
-  assert.match(activity, /!"CORE"\.equals\(step\.optString\("kind"\)\)/);
-  assert.match(activity, /CHAR\.\*\.AUTHORED/);
+  assert.match(activity, /Special Encounter offline/);
+  assert.match(activity, /requestDialogueTalk/);
+  assert.doesNotMatch(activity, /BẮT BUỘC kể ngay cảnh gặp Follower/);
 });
