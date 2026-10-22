@@ -78,6 +78,7 @@ object CoreClientProjection {
       state.characters.values.filter { it.metadata["encountered"] == "true" || it.metadata["dungeon.unlocked"] == "true" }.forEach { character ->
         put(JSONObject().put("id", character.id).put("name", character.name)
           .put("kind", character.metadata["encounterKind"])
+          .apply { character.avatarRef?.let { put("avatar", it) } }
           .put("encounterId", character.metadata["encounterId"])
           .put("turn", character.metadata["encounterTurn"]?.toIntOrNull())
           .put("present", character.presence == CharacterPresence.ACTIVE &&
