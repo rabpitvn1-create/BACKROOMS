@@ -334,7 +334,8 @@ object NpcSpawnTable {
     }
 
     // Luc Tram: 0.25% on Level 4+ physical, once-only
-    if (isPhysical && level >= 4 && !lucTramAlreadyMet(flags, partyMemberIds)) {
+    if (isPhysical && level >= 4 && !lucTramAlreadyMet(flags, partyMemberIds) &&
+        state.metadata["story.permanentDefeat.luc_tram_hac_hoa"] != "true") {
       if (nextInt(10000) + 1 <= LUC_TRAM_THRESHOLD) {
         encounters += NpcEncounter(LUC_TRAM_ID, "lucTram")
       }
@@ -397,6 +398,14 @@ object SpawnMechanism {
   /** Number of complete turns without a random Follower meeting after one is confirmed. */
   const val FOLLOWER_SPACING_TURNS = 10
   const val LAST_FOLLOWER_MEETING_TURN = "spawn.lastFollowerMeetingTurn"
+  /** Unique storyline antagonists cannot reappear after a confirmed lethal loss. */
+  private fun excludedStoryEntities(state: GameState): Set<String> = listOfNotNull(
+    if (LUC_TRAM_ID in state.party.memberIds ||
+      state.metadata["story.permanentDefeat.luc_tram_hac_hoa"] == "true")
+      "luc_tram_hac_hoa" else null,
+    if (state.metadata["story.permanentDefeat.diep_minh"] == "true")
+      "diep_minh" else null
+  ).toSet()
 
   fun followerCooldownActive(state: GameState): Boolean {
     val last = state.metadata[LAST_FOLLOWER_MEETING_TURN]?.toIntOrNull() ?: return false
@@ -447,7 +456,7 @@ object SpawnMechanism {
     val entityKey = if (entityEncounterAction && entityAllowed) {
       EntitySpawnPool.rollEntity(
         currentLevelId(state),
-        excluded = if (LUC_TRAM_ID in state.party.memberIds) setOf("luc_tram_hac_hoa") else emptySet()
+        excluded = excludedStoryEntities(state)
       ) { bound ->
         nextInt(bound).also { entityTicket = it }
       }
@@ -478,7 +487,7 @@ object SpawnMechanism {
     val entity = if (flags.optBoolean("entityEncountersAllowed", true))
       EntitySpawnPool.rollEntity(
         currentLevelId(state),
-        excluded = if (LUC_TRAM_ID in state.party.memberIds) setOf("luc_tram_hac_hoa") else emptySet()
+        excluded = excludedStoryEntities(state)
       ) { bound ->
         nextInt(bound).also { entityTicket = it }
       } else null
