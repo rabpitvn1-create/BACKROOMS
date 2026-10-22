@@ -10,6 +10,7 @@ object LuciaCanon {
   const val AGE = 19
   const val HOME_LEVEL = 0
   const val AVATAR_REF = "avatars/lucia_avatar.jpg"
+  const val SPRITE_REF = "LUCIA_LUC_OVERLAY.png"
 
   val equipmentSlots: Map<String, String> = linkedMapOf(
     "weapon" to LUCIA_M4A1_ID,
@@ -36,6 +37,7 @@ object LuciaCanon {
       statProfile = base.statProfile,
       vitalState = base.vitalState,
       metadata = base.metadata + mapOf(
+        "spriteRef" to SPRITE_REF,
         "age" to AGE.toString(),
         "species" to "human",
         "gender" to "female",

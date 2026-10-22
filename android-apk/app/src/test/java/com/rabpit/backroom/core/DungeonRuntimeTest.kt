@@ -15,6 +15,48 @@ class DungeonRuntimeTest {
   }
   private fun begin(slot: Int = 0) = DungeonRuntime.start(fresh(), slot, IRIS_ID, start)
 
+  @Test fun luciaUsesHerFullBodyOverlayInDungeonChoicesAndTrainingSlot() {
+    val state = fresh()
+    assertEquals("LUCIA_LUC_OVERLAY.png", LuciaCanon.SPRITE_REF)
+    val choices = DungeonRuntime.view(state, start).getJSONArray("followers")
+    val lucia = (0 until choices.length()).map { choices.getJSONObject(it) }
+      .single { it.getString("id") == LUCIA_ID }
+    assertEquals(LuciaCanon.AVATAR_REF, lucia.getString("avatar"))
+    assertEquals(LuciaCanon.SPRITE_REF, lucia.getString("sprite"))
+
+    val training = DungeonRuntime.start(state, 0, LUCIA_ID, start)
+    val slot = DungeonRuntime.view(training, start).getJSONArray("slots").getJSONObject(0)
+    assertEquals("training", slot.getString("status"))
+    assertEquals(LUCIA_ID, slot.getJSONObject("follower").getString("id"))
+    assertEquals(LuciaCanon.SPRITE_REF, slot.getJSONObject("follower").getString("sprite"))
+  }
+
+  @Test fun legacyTrainingSaveRestoresLuciaOverlayWithoutResettingHerRunOrEarnedStats() {
+    val training = DungeonRuntime.settle(DungeonRuntime.start(fresh(), 0, LUCIA_ID, start),
+      start + 3 * DungeonRuntime.MINUTE_MS)
+    val actor = training.characters.getValue(LUCIA_ID)
+    assertTrue(actor.progression.level > 0)
+    // Model an existing save from before Lucia had canonical sprite metadata.
+    val legacy = training.copy(characters = training.characters + (LUCIA_ID to actor.copy(
+      metadata = (actor.metadata - "spriteRef") + ("test.retained" to "true")
+    )))
+    val restored = GameStateCodec.decode(GameStateCodec.encode(legacy))
+    val lucia = restored.characters.getValue(LUCIA_ID)
+    assertEquals(LuciaCanon.SPRITE_REF, lucia.metadata["spriteRef"])
+    assertEquals("true", lucia.metadata["test.retained"])
+    assertEquals(actor.progression, lucia.progression)
+    assertEquals(actor.statProfile, lucia.statProfile)
+    assertEquals(actor.vitalState, lucia.vitalState)
+    assertEquals(CharacterPresence.SEPARATED, lucia.presence)
+    assertFalse(LUCIA_ID in restored.party.memberIds)
+    assertEquals(training.dungeon, restored.dungeon)
+    val slot = DungeonRuntime.view(restored, restored.dungeon.clockMs)
+      .getJSONArray("slots").getJSONObject(0)
+    assertEquals("training", slot.getString("status"))
+    assertEquals(3, slot.getInt("creditedMinutes"))
+    assertEquals(LuciaCanon.SPRITE_REF, slot.getJSONObject("follower").getString("sprite"))
+  }
+
   @Test fun fiveDurationsEachCreditExactlyOneEntityPerMinuteAndStopAtTheCap() {
     assertEquals(listOf(15, 30, 60, 120, 180), DungeonRuntime.durations)
     for ((slot, duration) in DungeonRuntime.durations.withIndex()) {
