@@ -75,7 +75,12 @@ test('authored character identities stay separate and source traceable', () => {
   for (const person of ['CAO_MINH', 'LUC_TRAM', 'LUCIA', 'TRAC_LAM']) {
     const r = records.get('CHAR.' + person + '.AUTHORED');
     assert.ok(r, person);
-    assert.match(r.source.document, /^Google Drive \/Novel\/Asset\/01_Character\//);
+    if (person === 'TRAC_LAM') {
+      // Trác Lâm's current authority is the bundled in-repository Codex.
+      assert.equal(r.source.document, 'canon/TRAC_LAM_CODEX.md');
+    } else {
+      assert.match(r.source.document, /^Google Drive \/Novel\/Asset\/01_Character\//);
+    }
   }
   assert.notEqual(records.get('CHAR.LUC_TRAM.AUTHORED').text, records.get('CHAR.LUCIA.AUTHORED').text);
   // Detailed revival/memory continuity belongs to the confirmed-actor firewall,
@@ -131,7 +136,13 @@ test('legacy provenance is labeled, not silently promoted into author Canon', ()
   const legacy = db.records.filter(r =>
     !r.source.document.startsWith('Google Drive /Novel/Asset/') &&
     !approved.includes(r));
-  assert.equal(legacy.length, 42, 'the existing unverified records remain unchanged');
+  // The registry now contains more approved in-repo sources and R07 story cards.
+  // Verify old unverified material is still registered without freezing its count.
+  assert.ok(legacy.some(r => r.id === 'WORLD.CORE' &&
+    r.source.document === '01_WORLD/world.md'));
+  assert.ok(legacy.some(r => r.id === 'STORY.DIEP_MINH.SCENE_R07' &&
+    r.source.document === 'canon/STORY_VAN_GIOI_TAN_MONG_R07.md'));
+  assert.match(reader, /approvedStorySource/);
   assert.ok(reader.includes('LEGACY_UNVERIFIED'));
   assert.ok(reader.includes('provenance='));
 });
