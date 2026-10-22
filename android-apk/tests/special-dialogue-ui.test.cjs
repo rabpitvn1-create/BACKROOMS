@@ -76,6 +76,11 @@ test('script and stylesheet are mounted without altering the CRT or the GM panel
 });
 test('normal Follower talks offline using the same Party portrait and never invokes AI',()=>{
   const x=env();
+  // Core-confirmed Lucia already in Party but without her authored first-contact
+  // story must receive that story before ambient dialogue can be opened.
+  assert.equal(x.dialog.hidden,false);
+  assert.match(x.parts['#specialDialogueText'].textContent,/Tôi chưa biết anh là ai/);
+  finishModal(x);
   assert.equal(x.ctx.SpecialDialogue.openCharacter('lucia','talk'),true);
   assert.equal(x.dialog.hidden,false);
   assert.equal(x.parts['#specialDialogueName'].textContent,'Lucia "Lục"');
