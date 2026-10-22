@@ -99,7 +99,7 @@ class EntityGmMetaGatingTest {
     // Every entity in the spawn pool must have a display name for the GM prompt.
     val allEntities = EntitySpawnPool.COMMON + EntitySpawnPool.LIFEFORM +
       EntitySpawnPool.RARE + EntitySpawnPool.KILLERS
-    assertEquals(22, allEntities.size)
+    assertEquals(27, allEntities.size) // Includes the five approved special Entities.
     for (key in allEntities) {
       val name = CombatRuntime.entityName(key)
       assertTrue("Entity $key must have a display name", name.isNotBlank())
