@@ -172,8 +172,13 @@
     (state.encounteredCharacters||[]).filter(c=>c.present&&!c.inParty)
       .forEach(c=>add(c.id,c.name));
     (state.scene?.npcs||[]).forEach(c=>add(c.id||c.characterId,c.name));
-    (state.scene?.availableActions||[]).filter(a=>a.kind==='TALK')
-      .forEach(a=>add(a.targetId,a.targetName||a.label));
+    (state.scene?.availableActions||[]).filter(a=>a.kind==='TALK').forEach(a=>{
+      // Scenario TALK targets can be action identifiers such as
+      // character:lucia:introduce rather than the Canon character ID.
+      const canonical=[...(state.party||[]),...(state.encounteredCharacters||[])].find(c=>
+        a.targetId===c.id||String(a.targetId||'').startsWith('character:'+c.id+':'));
+      add(canonical?canonical.id:a.targetId,canonical?canonical.name:(a.targetName||a.label));
+    });
     roster.forEach((displayName,id)=>{
       const b=document.createElement('button');b.type='button';b.textContent=displayName;
       b.onclick=()=>{
