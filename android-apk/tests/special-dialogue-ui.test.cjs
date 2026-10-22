@@ -152,11 +152,13 @@ test('R07 encounters have consecutive authored beats, repeat safely and never sp
   assert.equal(x.ctx.state.specialDialogueProgress.entityBeats.diep_minh,2);
   for(let n=3;n<=5;n++){encounter(x,'diep_minh','r07-diep-'+n);finishModal(x);}
   assert.equal(x.ctx.state.specialDialogueProgress.entityBeats.diep_minh,5);
-  encounter(x,'diep_minh','r07-diep-6');
+  for(let n=6;n<=11;n++){encounter(x,'diep_minh','r07-diep-'+n);finishModal(x);}
+  assert.equal(x.ctx.state.specialDialogueProgress.entityBeats.diep_minh,11);
+  encounter(x,'diep_minh','r07-diep-repeat-1');
   assert.match(x.parts['#specialDialogueText'].textContent,/Đường đi đổi hướng/);
   finishModal(x);
   assert.equal(x.ctx.state.specialDialogueProgress.entityRepeats.diep_minh,1);
-  encounter(x,'diep_minh','r07-diep-7');
+  encounter(x,'diep_minh','r07-diep-repeat-2');
   assert.match(x.parts['#specialDialogueText'].textContent,/không nên sống sót/);
   finishModal(x);
   assert.equal(x.ctx.state.specialDialogueProgress.entityRepeats.diep_minh,2);
@@ -167,8 +169,9 @@ test('Lục Trầm is autonomous; both confirmed adversaries unlock one cross-en
   assert.match(x.parts['#specialDialogueText'].textContent,/Ma khí trong kinh mạch/);
   finishModal(x);
   assert.equal(x.ctx.state.specialDialogueProgress.entityBeats.luc_tram_hac_hoa,1);
-  for(let n=2;n<=5;n++){encounter(x,'luc_tram_hac_hoa','r07-tram-'+n);finishModal(x);}
-  encounter(x,'luc_tram_hac_hoa','r07-tram-6');
+  for(let n=2;n<=11;n++){encounter(x,'luc_tram_hac_hoa','r07-tram-'+n);finishModal(x);}
+  assert.equal(x.ctx.state.specialDialogueProgress.entityBeats.luc_tram_hac_hoa,11);
+  encounter(x,'luc_tram_hac_hoa','r07-tram-repeat-1');
   assert.match(x.parts['#specialDialogueText'].textContent,/Cùng một luồng ma khí/);
   finishModal(x);
   encounter(x,'diep_minh','r07-diep-cross-pre');
