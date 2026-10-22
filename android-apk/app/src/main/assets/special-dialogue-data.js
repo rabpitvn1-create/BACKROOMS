@@ -217,7 +217,7 @@
       },
       {
         "speaker": "cao_minh",
-        "text": "...Không. Chỉ là ta đã từng nghe cái tên ấy."
+        "text": "Ta biết nàng. Chỉ không nghĩ sẽ được gặp lại ở đây."
       },
       {
         "speaker": "luc_tram",
