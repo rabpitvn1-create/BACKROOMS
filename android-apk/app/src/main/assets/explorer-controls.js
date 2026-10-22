@@ -83,6 +83,9 @@
        !/(?:rồi|sau đó|tiếp theo|đồng thời)/i.test(draft)&&devices.length){
       actionDialog.close();showMechanism(devices[0].mechanismId);if(!dialog.open)dialog.showModal();return;
     }
+    if(global.SpecialDialogue&&global.SpecialDialogue.rejectPlayerAction(draft)){
+      actionDialog.close();actionInput.value='';draft='';actionSend.disabled=true;return;
+    }
     actionDialog.close();sendPlayerAction(draft);
   };
   function writerPending(provider){
@@ -113,6 +116,7 @@
   }
   global.backroomSceneWriterProvider=()=>{if(preparing)writerPending();};
   function locked(){return busy||batchBusy||coreUnavailable||
+    !!(global.SpecialDialogue&&global.SpecialDialogue.isOpen())||
     (state.player&&Number(state.player.hp)<=0)||state.player?.condition==='DEAD'||
     !!state.playerAction?.recoverable||!!state.pendingEncounter||!!(state.combat&&state.combat.active);}
   function showPopup(title){
@@ -124,6 +128,7 @@
   }
   function sendPlayerAction(value){
     if(!value.trim()||!state.scene||state.scene.generationNeeded)return;
+    if(global.SpecialDialogue&&global.SpecialDialogue.rejectPlayerAction(value))return;
     batchBusy=true;failed=false;busy=true;refresh();
     if(global.appendActionPending)global.appendActionPending(value);
     try{
@@ -156,12 +161,48 @@
   }
   function openTalk(){
     if(locked())return;
-    activeMechanismId=null;showPopup('Giao tiếp');
-    (state.scene?.availableActions||[]).filter(a=>a.kind==='TALK').forEach(a=>{
-      const b=document.createElement('button');b.type='button';b.textContent=a.label;
-      b.onclick=()=>submitChoice(a,false);choices.appendChild(b);
+    activeMechanismId=null;showPopup('Giao Tiếp');
+    const roster=new Map();
+    const add=(id,name)=>{
+      const key=String(id||'').trim();if(!key||key==='cao_minh')return;
+      if(!roster.has(key))roster.set(key,String(name||key));
+    };
+    (state.party||[]).filter(c=>c.presence!=='DEAD'&&c.presence!=='SEPARATED')
+      .forEach(c=>add(c.id,c.name));
+    (state.encounteredCharacters||[]).filter(c=>c.present&&!c.inParty)
+      .forEach(c=>add(c.id,c.name));
+    (state.scene?.npcs||[]).forEach(c=>add(c.id||c.characterId,c.name));
+    (state.scene?.availableActions||[]).filter(a=>a.kind==='TALK')
+      .forEach(a=>add(a.targetId,a.targetName||a.label));
+    roster.forEach((displayName,id)=>{
+      const b=document.createElement('button');b.type='button';b.textContent=displayName;
+      b.onclick=()=>{
+        if(locked())return;
+        showPopup('Giao Tiếp · '+displayName);
+        const back=document.createElement('button');back.type='button';
+        back.textContent='← Danh sách nhân vật';back.onclick=openTalk;choices.appendChild(back);
+        [['Nói chuyện','talk'],['Gợi ý manh mối','hint'],['Hỏi về quá khứ','past']].forEach(([label,mode])=>{
+          const option=document.createElement('button');option.type='button';option.textContent=label;
+          option.onclick=()=>{
+            if(locked())return;
+            if(global.SpecialDialogue&&global.SpecialDialogue.openCharacter(id,mode)){
+              dialog.close();
+            }else{
+              const notice=document.createElement('p');
+              notice.textContent='Chưa thể bắt đầu cuộc trò chuyện này.';
+              choices.appendChild(notice);
+            }
+          };
+          choices.appendChild(option);
+        });
+      };
+      choices.appendChild(b);
     });
-    if(!choices.children.length){const p=document.createElement('p');p.textContent='Không có ai để giao tiếp tại đây.';choices.appendChild(p);}
+    if(!roster.size){
+      const p=document.createElement('p');
+      p.textContent='Không có nhân vật nào ở gần để giao tiếp.';
+      choices.appendChild(p);
+    }
   }
   let hintTier=0;
   function openAvailableCoreActions(){
