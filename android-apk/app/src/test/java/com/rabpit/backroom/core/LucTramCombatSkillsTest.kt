@@ -5,7 +5,7 @@ import org.junit.Test
 
 class LucTramCombatSkillsTest {
   private fun party(sword: Boolean = false): GameState {
-    val initial = GameState.initial()
+    val initial = GameState.initial().withUnlockedSkills(LUC_TRAM_ID)
     val prepared = initial.copy(party = initial.party.copy(memberIds = listOf(CAO_MINH_ID, LUC_TRAM_ID)))
     if (!sword) return prepared
     val equip = prepared.equipment.getValue(LUC_TRAM_ID)
@@ -68,13 +68,15 @@ class LucTramCombatSkillsTest {
       "poker.dice.hand" to "SSF"
     ))
     val without = CombatRuntime.start(party(), "diep_minh").let {
-      it.copy(metadata = it.metadata + ("combat.opening" to "2"))
+      it.copy(metadata = it.metadata + mapOf("combat.opening" to "2",
+        "combat.entityHp" to "50000", "combat.entityMaxHp" to "50000"))
     }
     val noSword = CombatRuntime.resolve(withSsf(without), "EXECUTE", action)
     assertFalse(noSword.reply.contains("Thiên Kiếm Định Giới"))
 
     val withSword = CombatRuntime.start(party(sword = true), "diep_minh").let {
-      it.copy(metadata = it.metadata + ("combat.opening" to "2"))
+      it.copy(metadata = it.metadata + mapOf("combat.opening" to "2",
+        "combat.entityHp" to "50000", "combat.entityMaxHp" to "50000"))
     }
     val noHand = CombatRuntime.resolve(withSword, "EXECUTE", action)
     assertFalse(noHand.reply.contains("Thiên Kiếm Định Giới"))

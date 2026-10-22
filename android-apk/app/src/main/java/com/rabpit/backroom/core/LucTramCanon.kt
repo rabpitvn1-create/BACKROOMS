@@ -65,7 +65,8 @@ object LucTramCanon {
   fun domainKey(encounterId: String, waveIndex: Int) = "$encounterId:wave:$waveIndex"
 
   fun canEstablishDomain(state: GameState, opening: Int, waveId: String): Boolean =
-    hasConfirmedSword(state) && opening >= 2 &&
+    CharacterSkillUnlocks.isUnlocked(state, LUC_TRAM_ID, "Thiên Kiếm Định Giới") &&
+      hasConfirmedSword(state) && opening >= 2 &&
       state.metadata["combat.lucTramDomainWave"] != waveId
 
   fun currentLevel(state: GameState): Int {

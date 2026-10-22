@@ -19,6 +19,7 @@ object GameStateCodec {
     put("time", gameTime(state.time))
     put("world", stringMap(state.world))
     put("metadata", stringMap(state.metadata))
+    put("dungeon", DungeonRuntime.encode(state.dungeon))
   }.toString()
 
   fun decode(raw: String): GameState = decode(JSONObject(raw))
@@ -27,6 +28,18 @@ object GameStateCodec {
     val version = root.optInt("saveVersion", 0)
     require(version == CURRENT_SAVE_VERSION) { "Unsupported save schema: $version" }
     val decoded = decodeCurrent(root)
+    decoded.world[MiniMapRuntime.STATE]?.let { raw ->
+      val progress = JSONObject(raw)
+      if (WorldGraphRuntime.active(progress)) {
+        WorldGraphRuntime.validateSavedProgress(progress)
+        decoded.world[MiniMapRuntime.PENDING]?.let { pending ->
+          val staged = JSONObject(pending).getJSONObject("progress")
+          WorldGraphRuntime.validateSavedProgress(staged)
+          require(staged.getJSONObject("worldGraph").toString() == progress.getJSONObject("worldGraph").toString()) { "world_pending_graph_changed" }
+        }
+      }
+    }
+    DungeonRuntime.validate(decoded)
     CharacterMemoryBags.validate(decoded)
     return CharacterProgressionCore.normalize(CharacterEquipmentSystem.normalize(SpecialFollowersCanon.ensure(AnNhienCanon.ensure(decoded))))
   }
@@ -52,7 +65,8 @@ object GameStateCodec {
       time = decodeGameTime(root.optJSONObject("time")),
       world = root.optJSONObject("world").stringsMap(),
       saveVersion = CURRENT_SAVE_VERSION,
-      metadata = root.optJSONObject("metadata").stringsMap()
+      metadata = root.optJSONObject("metadata").stringsMap(),
+      dungeon = DungeonRuntime.decode(root.getJSONObject("dungeon"))
     )
   }
 
@@ -105,7 +119,7 @@ object GameStateCodec {
 
   private fun characterStatProfile(value: CharacterStatProfile) = JSONObject().apply {
     put("schema", CharacterProgressionCore.SCHEMA)
-    put("baseMaxHp", CharacterProgressionCore.BASE_MAX_HP)
+    put("baseMaxHp", value.baseMaxHp)
     put("STR", value.str)
     put("DEX", value.dex)
     put("AGI", value.agi)
@@ -116,13 +130,16 @@ object GameStateCodec {
   private fun decodeCharacterStatProfile(json: JSONObject?, characterId: String): CharacterStatProfile {
     val fallback = CharacterStatProfiles.forId(characterId)
     if (json == null || json.optString("schema") != CharacterProgressionCore.SCHEMA) return fallback
+    val minStat = CharacterStatProfiles.minimumStat(characterId)
     return fallback.copy(
-      baseMaxHp = CharacterProgressionCore.BASE_MAX_HP,
-      str = json.optInt("STR", CharacterProgressionCore.BASE_STAT).coerceIn(5, 999),
-      dex = json.optInt("DEX", CharacterProgressionCore.BASE_STAT).coerceIn(5, 999),
-      agi = json.optInt("AGI", CharacterProgressionCore.BASE_STAT).coerceIn(5, 999),
-      vit = json.optInt("VIT", CharacterProgressionCore.BASE_STAT).coerceIn(5, 999),
-      eva = json.optInt("EVA", CharacterProgressionCore.BASE_STAT).coerceIn(5, 999),
+      // Keep the current-run persisted baseline until normalizers can rebase
+      // the four newly balanced Followers without discarding trained points.
+      baseMaxHp = json.optInt("baseMaxHp", fallback.baseMaxHp),
+      str = json.optInt("STR", fallback.str).coerceIn(minStat, 999),
+      dex = json.optInt("DEX", fallback.dex).coerceIn(minStat, 999),
+      agi = json.optInt("AGI", fallback.agi).coerceIn(minStat, 999),
+      vit = json.optInt("VIT", fallback.vit).coerceIn(minStat, 999),
+      eva = json.optInt("EVA", fallback.eva).coerceIn(minStat, 999),
       schema = CharacterProgressionCore.SCHEMA
     )
   }
@@ -134,8 +151,8 @@ object GameStateCodec {
 
   private fun decodeCharacterVitalState(json: JSONObject?, profile: CharacterStatProfile): CharacterVitalState =
     CharacterVitalState(
-      currentHp = json?.optInt("currentHp", CharacterProgressionCore.BASE_MAX_HP)?.coerceAtLeast(0)
-        ?: CharacterProgressionCore.BASE_MAX_HP,
+      currentHp = json?.optInt("currentHp", profile.baseMaxHp)?.coerceAtLeast(0)
+        ?: profile.baseMaxHp,
       condition = enumOr(CharacterCondition.HEALTHY, json?.optString("condition").orEmpty())
     )
 
@@ -143,6 +160,10 @@ object GameStateCodec {
     putNullable("minutesSinceFood", value.minutesSinceFood)
     putNullable("minutesSinceWater", value.minutesSinceWater)
     putNullable("minutesAwake", value.minutesAwake)
+    put("recoverableFoodHp", value.recoverableFoodHp)
+    put("recoverableWaterHp", value.recoverableWaterHp)
+    put("recoverableSleepHp", value.recoverableSleepHp)
+    put("restRecoveryMinutes", value.restRecoveryMinutes)
     putNullable("painState", value.painState)
     putNullable("infectionState", value.infectionState)
     putNullable("thermalState", value.thermalState)
@@ -155,6 +176,10 @@ object GameStateCodec {
       minutesSinceFood = json.nullableLong("minutesSinceFood")?.coerceAtLeast(0L),
       minutesSinceWater = json.nullableLong("minutesSinceWater")?.coerceAtLeast(0L),
       minutesAwake = json.nullableLong("minutesAwake")?.coerceAtLeast(0L),
+      recoverableFoodHp = json.getInt("recoverableFoodHp").coerceAtLeast(0),
+      recoverableWaterHp = json.getInt("recoverableWaterHp").coerceAtLeast(0),
+      recoverableSleepHp = json.getInt("recoverableSleepHp").coerceAtLeast(0),
+      restRecoveryMinutes = json.getInt("restRecoveryMinutes").coerceIn(0, 29),
       painState = json.nullableString("painState"),
       infectionState = json.nullableString("infectionState"),
       thermalState = json.nullableString("thermalState"),

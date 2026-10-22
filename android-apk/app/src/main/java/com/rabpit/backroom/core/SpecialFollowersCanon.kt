@@ -86,6 +86,7 @@ object SpecialFollowersCanon {
 
   fun forceIntoParty(state: GameState, targetId: String): Pair<GameState, String?> {
     if (targetId != IRIS_ID && targetId != SYVIAL_ID) return state to "unknown_follower"
+    if (DungeonRuntime.isTraining(state, targetId)) return state to "follower_in_dungeon"
     val ensured = ensure(state)
     if (targetId in ensured.party.memberIds) return ensured to null
     if (ensured.party.memberIds.size >= ensured.party.maxMembers) return ensured to "party_full"

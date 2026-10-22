@@ -1,49 +1,19 @@
 package com.rabpit.backroom.core
 
-import org.json.JSONObject
-
-/**
- * Deterministic Entity power scaling.
- *
- * Balance semantics are linear on the Level-0 base:
- * full Level 0/1/2/3 => 100/110/120/130 percent of base.
- * This is NOT compounding against the previous Level.
- */
+/** Linear power: +10 percentage points of base per five Cao Minh levels. */
 object EntityPowerScaling {
-  const val RANK_PER_FULL_LEVEL: Long = 1_000_000L
+  const val LEVELS_PER_STEP = 5
+  const val RANK_PER_STEP: Long = 1_000_000L
   const val MAX_PROGRESSION_RANK: Long = 1_000_000_000L
-  private const val DENOMINATOR: Long = 10L * RANK_PER_FULL_LEVEL
+  private const val DENOMINATOR: Long = 10L * RANK_PER_STEP
 
-  private val levelRanks = longArrayOf(
-    0L,
-    1_000_000L,
-    2_000_000L,
-    3_000_000L,
-    4_000_000L,
-    5_000_000L,
-    6_000_000L
-  )
-
-  fun rankForLevel(level: Int): Long {
-    require(level in levelRanks.indices) { "unknown_level:$level" }
-    return levelRanks[level]
+  fun rankForCharacterLevel(level: Int): Long {
+    require(level in 0..CharacterProgressionCore.MAX_LEVEL) { "invalid_character_level:$level" }
+    return (level / LEVELS_PER_STEP) * RANK_PER_STEP
   }
 
-  /**
-   * The current Game Core persists the committed Level in world.levelJson.
-   * Missing Level is treated as Level 0 in the current schema; malformed explicit data fails closed.
-   */
-  fun rankFor(state: GameState): Long {
-    val raw = state.world["levelJson"]?.takeIf { it.isNotBlank() } ?: return 0L
-    val level = try {
-      val json = JSONObject(raw)
-      require(json.has("number")) { "level_number_missing" }
-      json.getInt("number")
-    } catch (error: Exception) {
-      throw IllegalArgumentException("invalid_level_json", error)
-    }
-    return rankForLevel(level)
-  }
+  fun rankFor(state: GameState): Long =
+    rankForCharacterLevel(state.characters.getValue(CAO_MINH_ID).progression.level)
 
   fun requireRank(rank: Long): Long {
     require(rank in 0L..MAX_PROGRESSION_RANK) { "invalid_progression_rank:$rank" }
@@ -52,7 +22,7 @@ object EntityPowerScaling {
 
   /**
    * Fixed-point half-up scaling. No intermediate integer percent is used, so
-   * future fractional Sub-level ranks retain their precision.
+   * rounding remains identical for HP and damage.
    */
   fun scale(baseValue: Int, progressionRank: Long): Int {
     require(baseValue >= 0) { "negative_base_value:$baseValue" }

@@ -1,0 +1,271 @@
+/* URLs in custom properties resolve at the consuming stylesheet. */
+#explorerControls,#explorerChoices{--ornate-frame:url('ui/backrooms-reference-frame-v2.png')}
+#explorerControls{padding:10px;background:#10171ce8;border:1px solid #57605c;border-radius:8px;color:#e2e7e1}
+#sceneJournal>p{margin:0 0 8px;font-size:13px;line-height:1.4}
+#explorerMenuTools .explorer-current-objective{
+  margin:9px 0 8px;padding:9px 11px;border-left:2px solid #b59b65;
+  background:#222c2d;color:#e5e1d5;max-height:24vh;overflow-y:auto
+}
+#explorerMenuTools[hidden],#explorerMenuTools .explorer-current-objective[hidden]{display:none!important}
+#explorerMenuTools .explorer-current-objective strong{display:block;font-size:12px;color:#ddc18a;margin-bottom:4px}
+#explorerMenuTools .explorer-current-objective p{margin:0;font-size:13px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
+#explorerMenuTools .explorer-dossier-tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+#explorerMenuTools .explorer-dossier-tiles button{display:block;width:100%;min-height:52px;margin:0;padding:10px;text-align:left;font-weight:700;font-size:12px;white-space:normal}
+#explorerMenuTools .explorer-dossier-tiles button:disabled{opacity:.45}
+#explorerChoices .gm-quest-item{padding:12px;margin-bottom:8px;border:1px solid #666247;background:#161e20;overflow-wrap:anywhere}
+#explorerChoices .gm-quest-item strong{display:block;color:#e3cb91;margin-bottom:5px;font-size:14px}
+#explorerChoices .gm-quest-item p{font-size:12px;color:#d1d8d4;line-height:1.5;white-space:pre-wrap;margin:5px 0}
+#explorerChoices .gm-quest-item small{display:block;color:#b2b8b1}
+#explorerChoices .gm-quest-item button{margin-top:9px;margin-bottom:0}
+#explorerChoices .gm-quest-item--used{opacity:.58}
+@media(max-width:360px){#explorerMenuTools .explorer-dossier-tiles{gap:5px}}
+.explorer-buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.explorer-buttons button{min-height:48px;padding:8px 4px;font-weight:700;font-size:13px;touch-action:manipulation}
+#sceneJournal details{margin-bottom:8px;font-size:12px;max-height:28vh;overflow:auto}
+#sceneJournal summary{cursor:pointer;padding:6px}
+#explorerChoices{background:#131c23;color:#e4e9e4;border:1px solid #727b70;border-radius:12px;width:min(90vw,440px);max-height:70vh;padding:12px}
+#explorerChoices::backdrop{background:#000a}
+#explorerChoices button{display:block;width:100%;min-height:48px;margin-bottom:8px;text-align:left;white-space:normal}
+#form[hidden],#explorerControls[hidden],#sceneJournal[hidden]{display:none!important}
+#playerActionBar{position:sticky;bottom:0;z-index:20;width:100%;padding-bottom:env(safe-area-inset-bottom)}
+#form .chat-avatar{display:none}
+
+/* Share the CSS square-knot frame with narrative, menu and combat panels. */
+#explorerControls{background:linear-gradient(145deg,#182022,#0d1316);border:1px solid #b5a16a66;border-radius:8px;padding:12px}
+#explorerControls .explorer-control-slot{position:relative;isolation:isolate;min-width:0}
+#explorerControls .explorer-control-slot button{display:block;width:100%;height:100%}
+#explorerControls .explorer-buttons button,#explorerChoices .explorer-choice-list button{
+  position:relative;isolation:isolate;border:1px solid transparent;
+  background:linear-gradient(145deg,#1d2628,#11191c);color:#e6d9af;
+  padding:16px 13px;min-height:58px;font-weight:750
+}
+#explorerControls .explorer-control-slot::after,#explorerChoices .explorer-choice-list button::after,
+#explorerChoices::after{
+  content:'';position:absolute;inset:0;z-index:1;border:14px solid transparent;
+  border-image:var(--ornate-frame) var(--ornate-slice) / 14px / 3.5px 2.8px stretch;pointer-events:none
+}
+#explorerControls .explorer-control-slot::after{
+  /* Same PNG margin compensation at the compact 18px corner size. */
+  border-width:18px;border-image-width:18px;border-image-outset:4.5px 3.6px
+}
+#explorerControls .explorer-control-slot:has(>button:disabled)::after{opacity:.42}
+#explorerControls .explorer-buttons button:focus-visible,#explorerChoices button:focus-visible{
+  outline:2px solid #efdb9b;outline-offset:2px
+}
+#explorerControls .explorer-buttons button:disabled{opacity:.42}
+#explorerChoices{position:relative;isolation:isolate;padding:18px 18px 12px;
+  background:linear-gradient(145deg,#182022,#0d1316);border:1px solid #b5a16a;
+  max-height:min(78vh,640px);overflow:hidden}
+#explorerChoices::after{border-width:18px;border-image-width:18px;border-image-outset:4.5px 3.6px}
+#explorerChoices .explorer-dialog-header{position:relative;z-index:2;display:flex;
+  align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;
+  padding:2px 4px 10px;border-bottom:1px solid #b5a16a66;color:#ebd7a1}
+#explorerChoices .explorer-dialog-close{width:44px;min-width:44px;min-height:44px;
+  margin:0;padding:0;display:grid;place-items:center;text-align:center;font-size:28px;line-height:1;
+  background:#20282a;color:#f0dfb0;border:1px solid #a18d5d}
+#explorerChoices .explorer-choice-list{position:relative;z-index:2;
+  overflow:auto;max-height:calc(min(78vh,640px) - 112px);padding:4px}
+#explorerChoices .explorer-choice-list button{margin-bottom:10px}
+#explorerChoices .explorer-choice-list button:last-child{margin-bottom:4px}
+#explorerChoices .explorer-dialog-close::after{display:none}
+.scene-generation-pending .scene-provider-logo[hidden]{display:none!important}
+.scene-generation-pending .gm-thinking-name{color:#e0d1a1}
+@media(max-width:360px){
+  #explorerChoices{padding:14px 12px 10px}
+  #explorerControls{padding:8px}
+  #explorerControls .explorer-buttons button{padding:13px 4px;font-size:12px}
+}
+@media(prefers-reduced-motion:reduce){
+  #explorerControls button,#explorerChoices button{transition:none!important}
+}
+
+/* Keep the reference's square outline. A real dialog border remains visible
+   while the choice list scrolls; decorative button overlays never catch taps. */
+#explorerControls,#explorerControls .explorer-buttons button,
+#explorerChoices,#explorerChoices .explorer-choice-list button{border-radius:0!important}
+#explorerChoices{
+  border:28px solid transparent;
+  border-image:var(--ornate-frame) var(--ornate-slice) / 28px / 7px 5.6px stretch;
+  padding:8px
+}
+#explorerChoices::after{content:none}
+#explorerChoices .explorer-choice-list{max-height:calc(min(78vh,640px) - 168px)}
+
+/* Inference is derived by Core from observed evidence; keep it visually separate. */
+#sceneJournal .scene-inference{margin:12px 0 4px;padding:10px 12px;
+ border-left:3px solid #b78c4f;background:rgba(184,151,86,.07);line-height:1.5}
+#sceneJournal .scene-inference strong{display:block;color:#e4c688;margin-bottom:6px;font-size:13px}
+#sceneJournal .scene-inference p{margin:0;color:#d0d5cf;font-size:12px;white-space:pre-wrap}
+
+/* Core-gated next-area option: a distinct green panel, not a regular room choice. */
+#explorerChoices .explorer-next-area-panel{
+  margin:10px 0 2px;padding:10px;
+  border:1px solid #5f9f77;
+  background:linear-gradient(150deg,#173d2b,#0a261b);
+  box-shadow:inset 0 0 0 1px rgba(128,184,131,.18)
+}
+#explorerChoices .explorer-next-area-panel[hidden]{display:none!important}
+#explorerChoices .explorer-next-area-panel .explorer-next-area-option{
+  display:block;width:100%;margin:0;min-height:60px;padding:12px 16px;
+  border:1px solid #6bb08b;background:linear-gradient(160deg,#20583e,#123927);
+  color:#effde9;font-weight:750;text-align:center;white-space:normal;
+  touch-action:manipulation
+}
+#explorerChoices .explorer-next-area-panel .explorer-next-area-option:active:not(:disabled){
+  background:#2e6b4c
+}
+#explorerChoices .explorer-next-area-panel .explorer-next-area-option:focus-visible{
+  outline:2px solid #b4edc1;outline-offset:2px
+}
+#explorerChoices:has(.explorer-next-area-panel:not([hidden])) .explorer-choice-list{
+  max-height:calc(min(78vh,640px) - 260px)
+}
+
+
+/* Player Action and Retry use the same full-width slot. Menu owns Sổ tay. */
+#explorerControls .explorer-action-slot{
+  position:relative;isolation:isolate;margin-top:8px;
+  display:grid;grid-template-columns:minmax(0,1fr);gap:7px
+}
+#explorerControls .explorer-action-slot button{grid-column:1;grid-row:1}
+#explorerChoices .explorer-casebook-record,#explorerChoices .explorer-hint{
+  white-space:pre-wrap;overflow-wrap:anywhere;padding:8px 10px;
+  border-left:2px solid #9f9069;background:#1d2829;line-height:1.5
+}
+#explorerChoices .explorer-hint{border-left-color:#80a3a8;color:#e2edec}
+#explorerControls .explorer-action-slot button{
+  display:block;width:100%;min-height:58px;padding:13px 18px;font-weight:800;
+  color:#ead6a7;border:1px solid #7c6847;background:linear-gradient(145deg,#26302b,#141b19)
+}
+#explorerControls .explorer-action-slot button[hidden]{display:none!important}
+#explorerControls .explorer-action-slot .explorer-retry-danger{
+  color:#fff0ed!important;border-color:#c7635f!important;
+  background:linear-gradient(145deg,#8d292c,#54191d)!important
+}
+#explorerControls .explorer-action-slot::after{
+  content:'';position:absolute;inset:0;z-index:1;pointer-events:none;
+  border:18px solid transparent;
+  border-image:var(--ornate-frame) var(--ornate-slice) / 18px / 4.5px 3.6px stretch
+}
+#explorerControls .explorer-action-slot:has(>button:not([hidden]):disabled)::after{opacity:.42}
+#explorerControls .explorer-action-slot button:disabled{opacity:.42}
+#explorerPlayerAction{
+  color:#ecdec0;background:#151c1e;border:2px solid #aa9364;
+  width:min(92vw,480px);max-height:80vh;padding:16px;overflow:auto
+}
+#explorerPlayerAction::backdrop{background:#000b}
+#explorerPlayerAction .explorer-dialog-header{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px
+}
+#explorerPlayerAction .explorer-dialog-header button{width:44px;min-height:44px}
+#explorerPlayerAction textarea{
+  display:block;width:100%;min-height:130px;resize:vertical;line-height:1.5;
+  background:#0b1112;color:#f2e8d4;border:1px solid #87724f
+}
+#explorerPlayerAction #explorerActionText+button{
+  display:block;width:100%;min-height:52px;margin-top:12px;
+  background:#2a392b;border-color:#78936f;color:#edffe7
+}
+#explorerPlayerAction #explorerActionText+button:disabled{opacity:.4}
+#explorerChoices .explorer-map-scroll{max-width:100%;overflow:auto;padding:12px 4px}
+#explorerChoices .explorer-map-scroll svg{display:block;max-height:52vh}
+#explorerChoices .explorer-map-legend{font-size:12px;color:#c6b68e}
+#explorerChoices .explorer-area-event{
+  padding:10px 12px;margin:0 0 8px;
+  border-left:2px solid #b59b65;background:#202829;color:#e5e1d5;line-height:1.5
+}
+
+
+/* Fullscreen Explorer MAP: the scrollable graph is flush with the ornate frame.
+   No SVG max-height scaling; users pan both directions without shrinking nodes. */
+#explorerChoices.explorer-map-mode:not([open]){display:none!important}
+#explorerChoices.explorer-map-mode{
+  position:fixed!important;inset:0!important;margin:0!important;
+  width:100vw!important;height:var(--app-height,100dvh)!important;
+  max-width:none!important;max-height:none!important;
+  padding:calc(8px + env(safe-area-inset-top)) 8px
+    calc(8px + env(safe-area-inset-bottom))!important;
+  border:12px solid transparent;
+  border-image:var(--ornate-frame) var(--ornate-slice) / 12px / 0 stretch;
+  display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box
+}
+#explorerChoices.explorer-map-mode .explorer-dialog-header{
+  flex:0 0 auto;display:grid;grid-template-columns:minmax(0,1fr) 44px;
+  grid-template-rows:auto auto;column-gap:10px;align-items:center;
+  margin:0 0 8px;padding:9px 10px 12px
+}
+#explorerChoices.explorer-map-mode .explorer-dialog-header>strong{
+  grid-column:1;grid-row:1;font-size:27px;line-height:1.15;
+  letter-spacing:.08em;color:#f1d59c
+}
+#explorerChoices.explorer-map-mode .explorer-dialog-close{
+  grid-column:2;grid-row:1/span 2;justify-self:end
+}
+#explorerChoices.explorer-map-mode .explorer-map-subtitle{
+  grid-column:1;grid-row:2;margin-top:5px;font-size:15px;
+  line-height:1.4;color:#d0d8d1;overflow-wrap:anywhere
+}
+#explorerChoices.explorer-map-mode .explorer-map-subtitle[hidden]{display:none}
+#explorerChoices.explorer-map-mode .explorer-choice-list{
+  display:flex;flex-direction:column;flex:1 1 auto;min-width:0;min-height:0;
+  max-height:none!important;padding:0;margin:0;overflow:hidden
+}
+#explorerChoices.explorer-map-mode .explorer-map-scroll{
+  display:block;flex:1 1 auto;min-width:0;min-height:0;width:100%;height:100%;
+  max-width:none;margin:0;padding:0;overflow:auto;
+  overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+  touch-action:none;background:#0e171b
+}
+#explorerChoices.explorer-map-mode .explorer-map-scroll svg{
+  display:block;max-height:none!important;max-width:none!important;
+  flex:none
+}
+#explorerChoices.explorer-map-mode .explorer-map-zoom{
+  display:flex;align-items:center;gap:8px;order:-1;flex:0 0 auto;
+  padding:6px 10px;background:#131b1e;border-bottom:1px solid #5a5139
+}
+#explorerChoices.explorer-map-mode .explorer-map-zoom button{
+  width:auto;flex:0 0 auto;min-width:44px;min-height:44px;margin:0;padding:6px 12px;
+  text-align:center;border:1px solid #a58c55;
+  border-radius:10px!important;background:#30291c;color:#f5dfab;
+  font-size:22px;line-height:1;touch-action:manipulation
+}
+#explorerChoices.explorer-map-mode .explorer-map-zoom button:last-child{
+  margin-left:auto;font-size:14px
+}
+#explorerChoices.explorer-map-mode .explorer-map-zoom button:disabled{opacity:.4}
+#explorerChoices.explorer-map-mode .explorer-map-zoom output{
+  min-width:48px;text-align:center;color:#e4d4ad;font-size:13px;font-variant-numeric:tabular-nums
+}
+#explorerChoices.explorer-map-mode .explorer-map-legend{
+  flex:0 0 auto;margin:0;padding:8px 10px 4px;font-size:11px;
+  line-height:1.4;color:#ccb888;border-top:1px solid #5a5139;
+  background:#131b1e
+}
+#explorerChoices.explorer-map-mode .explorer-next-area-panel{display:none!important}
+
+#explorerChoices.explorer-map-mode .explorer-map-obstruction{
+  flex:0 0 auto;margin:0;padding:6px 10px;font-size:11px;line-height:1.35;
+  background:#151e22;color:#b6c1b9;max-height:45px;overflow:auto;
+  border-top:1px solid #39433f
+}
+
+/* Factual receipts are explicit while the separate GM narration is unavailable. */
+.log .message.gm .gm-suggestion-list{
+  display:grid;grid-template-columns:1fr;gap:8px;margin-top:14px;padding-top:12px;
+  border-top:1px solid #83754c70
+}
+.log .message.gm .gm-suggestion{
+  display:block;width:100%;min-height:46px;padding:10px 12px;text-align:left;
+  color:#f3deb1;background:#24302e;border:1px solid #89754d;border-radius:5px;
+  font:inherit;font-size:13px;line-height:1.45;overflow-wrap:anywhere;cursor:pointer
+}
+.log .message.gm .gm-suggestion:focus-visible{outline:2px solid #f3d38d;outline-offset:2px}
+.log .message.gm .gm-suggestion:disabled{opacity:.44;cursor:default}
+.message.core{border-left-color:#bd9b53;background:#201c13}
+.message.core .role{color:#dfc78f}
+.message .action-status{margin-top:8px;color:#e2bd76;font-size:12px;line-height:1.5;white-space:pre-wrap}
+.explorer-map-scroll svg [data-map-node]{cursor:pointer;outline:none}
+.explorer-map-scroll svg [data-map-node]:focus>rect:last-of-type{stroke:#fff1bd;stroke-width:4}
+#explorerChoices.explorer-map-mode .explorer-map-scroll{cursor:grab}
+#explorerChoices.explorer-map-mode .explorer-map-scroll:active{cursor:grabbing}

@@ -32,8 +32,9 @@ object LuciaCanon {
       inventoryId = LUCIA_ID,
       equipmentId = LUCIA_ID,
       healthState = base.healthState ?: "HEALTHY",
-      statProfile = CharacterStatProfiles.forId(LUCIA_ID),
-      vitalState = base.vitalState.copy(currentHp = base.vitalState.currentHp.coerceIn(0, 100)),
+      // Identity/equipment normalization must not erase earned levels or book stats.
+      statProfile = base.statProfile,
+      vitalState = base.vitalState,
       metadata = base.metadata + mapOf(
         "age" to AGE.toString(),
         "species" to "human",

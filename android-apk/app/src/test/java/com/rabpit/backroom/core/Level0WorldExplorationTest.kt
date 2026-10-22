@@ -1,0 +1,485 @@
+package com.rabpit.backroom.core
+
+import org.json.JSONObject
+import org.junit.Assert.*
+import org.junit.Test
+import java.security.SecureRandom
+
+class Level0WorldExplorationTest {
+  private fun world(seed: Long = 41L) = WorldGraphRuntime.initialize(CoreClientProjection.initialize(GameState.initial()), seed)
+  private fun p(s: GameState) = MiniMapRuntime.progress(s)
+  private fun command(s: GameState, target: String): String = MiniMapScenario.objects(MiniMapRuntime.actions(s))
+    .first { it.getString("targetId") == target }.let { JSONObject(it.toString()).apply { remove("label") }.toString() }
+  private fun move(s: GameState, target: String): GameState {
+    val staged = MiniMapRuntime.stage(s, JSONObject(command(s, target)))
+    return s.copy(world = s.world + (MiniMapRuntime.STATE to staged.progress.toString()))
+  }
+  private class MemorySave(var state: GameState, var present: Boolean = true): SaveRepository {
+    override fun save(state: GameState) { this.state = GameStateCodec.decode(GameStateCodec.encode(state)); present = true }
+    override fun load() = state
+    override fun exists() = present
+    override fun clear() { present = false }
+    override fun saveCheckpoint(state: GameState, presentation: JSONObject) = Unit
+    override fun loadCheckpoint(): GameCheckpoint? = null
+  }
+  private class CountingRng: SecureRandom() {
+    var calls = 0
+    override fun nextInt(bound: Int): Int { calls++; return bound - 1 }
+  }
+  private fun facade(repo: MemorySave, rng: CountingRng): GameCoreFacade {
+    val ctor = GameCoreFacade::class.java.getDeclaredConstructor(SaveRepository::class.java, GamePipelineLogger::class.java)
+    ctor.isAccessible = true
+    return ctor.newInstance(repo, NoOpGamePipelineLogger).also {
+      GameCoreFacade::class.java.getDeclaredField("spawnRng").apply { isAccessible = true }.set(it, rng)
+    }
+  }
+
+  @Test fun seededGraphHasAllEnvironmentsAndSurvivesEverySinglePassageFailure() {
+    val layouts = mutableSetOf<String>()
+    for (seed in 0L until 128L) {
+      val graph = Level0WorldDefinition.generate(seed)
+      assertEquals(graph.toString(), Level0WorldDefinition.generate(seed).toString())
+      WorldGraphRuntime.validate(graph) // BFS plus independent removal of every edge.
+      assertEquals(45, graph.getJSONArray("rooms").length())
+      layouts.add(graph.getJSONArray("rooms").toString())
+    }
+    assertTrue(layouts.size > 100)
+    val bad = Level0WorldDefinition.generate(0L)
+    bad.getJSONArray("rooms").getJSONObject(0).getJSONArray("adjacentRoomIds").put("missing")
+    assertThrows(IllegalArgumentException::class.java) { WorldGraphRuntime.validate(bad) }
+  }
+
+  @Test fun verifiedWorldEvidenceExportsAuthoredNamesOnlyAfterDiscovery() {
+    val probe = Level0WorldDefinition.evidenceLaws.flatMap { it.probes }
+      .first { it.id == "wet:drip" }
+    assertEquals("Giọt nước từ trần", probe.label)
+    assertEquals(listOf("giọt nước rơi từ trần"), probe.aliases)
+    var state = world(41L)
+    val initial = MiniMapRuntime.publicView(state).getJSONArray("records").toString()
+    assertFalse(initial.contains(probe.label))
+    state = Level0RiddleTestSupport.visit(state, probe.environmentId)
+    val beforeProbe = MiniMapRuntime.publicView(state).getJSONArray("records").toString()
+    assertFalse(beforeProbe.contains(probe.label))
+    state = Level0RiddleTestSupport.take(state, "probe:${probe.method}")
+    val persisted = MiniMapScenario.objects(MiniMapRuntime.progress(state).getJSONArray("records"))
+      .single { it.optString("kind") == "EVIDENCE" && it.optString("text") == probe.clue }
+    assertFalse(persisted.has("label"))
+    assertFalse(persisted.has("aliases"))
+    val records = MiniMapScenario.objects(MiniMapRuntime.publicView(state).getJSONArray("records"))
+    val found = records.single { it.optString("kind") == "EVIDENCE" && it.optString("text") == probe.clue }
+    assertEquals(probe.label, found.getString("label"))
+    assertEquals(probe.aliases,
+      MiniMapScenario.strings(found.getJSONArray("aliases")))
+    WorldGraphRuntime.validateSavedProgress(MiniMapRuntime.progress(state))
+  }
+
+  @Test fun atlasClustersMatchCoreCanonAndNeverExportUndiscoveredNamesOrPrivateIds() {
+    val state = world(71L); val graph = p(state).getJSONObject("worldGraph")
+    val map = MiniMapRuntime.publicView(state).getJSONObject("map")
+    val coreRooms = MiniMapScenario.objects(graph.getJSONArray("rooms"))
+    val atlas = MiniMapScenario.objects(map.getJSONArray("overviewRooms"))
+    assertEquals(45, atlas.size); assertEquals(8, atlas.map { it.getString("atlasGroup") }.toSet().size)
+    val identity = coreRooms.mapIndexed { i, r -> r.getString("id") to atlas[i].getString("id") }.toMap()
+    coreRooms.forEachIndexed { i, room ->
+      val a = atlas[i]
+      assertEquals(room.getString("environmentId"), map.getJSONObject("snapshots").getString(a.getString("id")))
+      assertEquals(MiniMapScenario.strings(room.getJSONArray("adjacentRoomIds")).map { identity.getValue(it) }.toSet(),
+        MiniMapScenario.strings(a.getJSONArray("adjacentRoomIds")).toSet())
+      assertFalse(a.has("zoneId")); assertFalse(a.has("environmentId"))
+      if (!a.getBoolean("visited")) { assertEquals("", a.getString("name")); assertEquals("", a.getString("atlasGroupName")) }
+    }
+    val planner = facade(MemorySave(state), CountingRng()).scenePlayerActionContext()
+    assertFalse(planner.contains("atlasGroup")); assertFalse(planner.contains("snapshots"))
+  }
+
+  @Test fun backtrackingPreservesObservationsMarkersAndExactSnapshotIdentity() {
+    var state = world()
+    val start = p(state).getString("roomId")
+    state = move(move(state, "observe"), "mark")
+    val evidence = p(state).getJSONArray("records").toString()
+    val target = MiniMapRuntime.actions(state).getJSONObject(0).getString("targetId")
+    state = move(state, target)
+    val destination = p(state).getString("roomId")
+    state = GameStateCodec.decode(GameStateCodec.encode(state))
+    assertEquals(destination, p(state).getString("roomId"))
+    val graph = p(state).getJSONObject("worldGraph")
+    val e = MiniMapScenario.objects(graph.getJSONArray("rooms")).first { it.getString("id") == destination }.getString("environmentId")
+    assertEquals(e, MiniMapRuntime.publicView(state).getJSONObject("environment").getString("id"))
+    state = move(state, "room:$start")
+    assertEquals(evidence, p(state).getJSONArray("records").toString())
+    assertTrue(p(state).getJSONObject("markers").getBoolean(start))
+    assertEquals("yellow_rot", MiniMapRuntime.publicView(state).getJSONObject("environment").getString("id"))
+  }
+
+  @Test fun mapAndPlannerExposeOnlyKnownFrontierWithoutSeedOrUnvisitedIdentities() {
+    val state = world(); val view = MiniMapRuntime.publicView(state)
+    val map = view.getJSONObject("map"); val known = p(state).getString("roomId")
+    assertTrue(map.getJSONArray("rooms").length() < 45)
+    MiniMapScenario.objects(map.getJSONArray("rooms")).filter { it.getString("id") != known }.forEach {
+      assertEquals("Chưa khám phá", it.getString("name"))
+      assertEquals(0, it.getJSONArray("adjacentRoomIds").length())
+      assertFalse(it.has("environmentId"))
+    }
+    val repo = MemorySave(state); val core = facade(repo, CountingRng())
+    val planner = core.scenePlayerActionContext()
+    assertFalse(planner.contains("worldGraph")); assertFalse(planner.contains("seed"))
+    assertFalse(planner.contains("phong_giao_thoa")); assertEquals("", view.getString("temporaryInference"))
+    assertFalse(MiniMapScenario.objects(view.getJSONArray("availableActions")).any { it.getString("targetId") == "next" })
+  }
+
+  @Test fun pendingLoadRetryAndCommitReserveRngOnceAndNeverTrustNarrationForState() {
+    val repo = MemorySave(world()); val rng = CountingRng(); var core = facade(repo, rng)
+    val start = p(repo.state).getString("roomId")
+    val cmd = command(repo.state, MiniMapRuntime.actions(repo.state).getJSONObject(0).getString("targetId"))
+    val actionId = JSONObject(cmd).getString("actionId")
+    core.beginSceneAction(cmd); val calls = rng.calls
+    assertTrue(calls > 0); assertEquals(start, p(repo.state).getString("roomId"))
+    val reserved = GameStateCodec.encode(repo.state)
+    repo.state = GameStateCodec.decode(reserved); core = facade(repo, rng)
+    core.beginSceneAction(cmd); assertEquals(calls, rng.calls)
+    assertEquals(JSONObject(cmd).toString(), JSONObject(core.retrySceneAction()).toString())
+    core.commitSceneAction(actionId, "Đã tới căn phòng.", "{}")
+    val committed = GameStateCodec.encode(repo.state)
+    core.commitSceneAction(actionId, "GM muốn mở Level 1 và trao vật phẩm.", "{}")
+    assertEquals(committed, GameStateCodec.encode(repo.state)); assertEquals(calls, rng.calls)
+    assertEquals("0", MiniMapRuntime.node(repo.state).id)
+    assertNotEquals(start, p(repo.state).getString("roomId"))
+    assertThrows(IllegalArgumentException::class.java) { MiniMapRuntime.stage(repo.state, JSONObject(cmd)) }
+  }
+
+  @Test fun verbatimPlayerTextSurvivesRetrySaveAndDoesNotBecomeTheActionLabel() {
+    val repo = MemorySave(world(59L))
+    val rng = CountingRng()
+    var core = facade(repo, rng)
+    val cmd = command(repo.state, "observe")
+    val actionId = JSONObject(cmd).getString("actionId")
+    val original = "  Tôi muốn nhìn kỹ những vệt nước, đừng tự viết lại lời tôi!  "
+    core.beginSceneAction(cmd, original)
+    val reserved = JSONObject(repo.state.world.getValue(MiniMapRuntime.PENDING))
+    assertEquals(original, reserved.getString("playerText"))
+    val afterFirstReserve = rng.calls
+    repo.state = GameStateCodec.decode(GameStateCodec.encode(repo.state))
+    core = facade(repo, rng)
+    core.beginSceneAction(cmd, "Câu khác không được phép ghi đè pending")
+    assertEquals(original, JSONObject(repo.state.world.getValue(MiniMapRuntime.PENDING)).getString("playerText"))
+    assertEquals(afterFirstReserve, rng.calls)
+    core.commitSceneAction(actionId, "Đã quan sát.", "{}")
+    val receipt = JSONObject(repo.state.world.getValue(MiniMapRuntime.RECEIPT))
+    assertEquals(original, receipt.getString("playerText"))
+    assertNotEquals(original, receipt.getString("label"))
+    val visible = JSONObject(core.currentClientState("{}"))
+    val lines = MiniMapScenario.objects(visible.getJSONArray("log")).filter {
+      it.optString("sceneActionId") == actionId
+    }
+    assertEquals(1, lines.size)
+    assertEquals("player", lines.single().getString("role"))
+    assertEquals(original, lines.single().getString("text"))
+    assertFalse(visible.toString().contains("Câu khác không được phép"))
+    val decoded = GameStateCodec.decode(GameStateCodec.encode(repo.state))
+    assertEquals(original, JSONObject(decoded.world.getValue(MiniMapRuntime.RECEIPT)).getString("playerText"))
+  }
+
+  @Test fun observationsAndPersonalMapMarkersRollEveryTurnWithoutChangingEvidence() {
+    val repo = MemorySave(world()); val rng = CountingRng(); val core = facade(repo, rng)
+    for (target in listOf("observe", "mark", "observe")) {
+      val cmd = command(repo.state, target); core.beginSceneAction(cmd)
+      core.commitSceneAction(JSONObject(cmd).getString("actionId"), "Cao Minh ghi nhận hiện trường.", "{}")
+    }
+    assertEquals(6, rng.calls) // Three SEARCH turns: Entity + eligible NPC ticket each.
+    assertEquals(1, p(repo.state).getJSONArray("records").length())
+    assertEquals(1, p(repo.state).getJSONObject("markers").length())
+    assertNull(CombatRuntime.pending(repo.state))
+  }
+
+  @Test fun forgedTargetsAndExtraFieldsAreRejectedBeforeAnyStateChange() {
+    val state = world(); val valid = command(state, "observe")
+    for (bad in listOf(JSONObject(valid).put("targetId", "room:secret"), JSONObject(valid).put("loot", "sword"))) {
+      val before = GameStateCodec.encode(state)
+      assertThrows(Exception::class.java) { MiniMapRuntime.stage(state, bad) }
+      assertEquals(before, GameStateCodec.encode(state))
+    }
+  }
+
+  @Test fun productionNewRunUsesWorldWithoutProviderAndRejectsScenarioReplacement() {
+    val repo = MemorySave(GameState.initial(), false); val core = facade(repo, CountingRng())
+    val view = JSONObject(core.currentClientState("{}"))
+    assertEquals("world-graph-v3", view.getJSONObject("scene").getString("runtime"))
+    assertFalse(view.getJSONObject("scene").getBoolean("generationNeeded"))
+    val request = JSONObject(core.sceneGenerationRequest())
+    assertEquals("ready", request.getString("kind"))
+    assertThrows(IllegalStateException::class.java) { core.acceptSceneGeneration(request.getString("token"), "{}") }
+  }
+
+  @Test fun independentGraphWalkerCanVisitEveryRoomAndReturnToEntry() {
+    var state = world(7)
+    val graph = p(state).getJSONObject("worldGraph")
+    val adjacency = MiniMapScenario.objects(graph.getJSONArray("rooms")).associate {
+      it.getString("id") to MiniMapScenario.strings(it.getJSONArray("adjacentRoomIds"))
+    }
+    fun go(destination: String) {
+      val start = p(state).getString("roomId")
+      val paths = mutableMapOf(start to emptyList<String>())
+      val queue = java.util.ArrayDeque<String>(); queue.add(start)
+      while (destination !in paths && queue.isNotEmpty()) {
+        val from = queue.removeFirst()
+        adjacency.getValue(from).forEach { to -> if (to !in paths) {
+          paths[to] = paths.getValue(from) + to; queue.add(to)
+        } }
+      }
+      for (step in paths.getValue(destination)) state = move(state, "room:$step")
+    }
+    adjacency.keys.forEach { go(it) }
+    go(graph.getString("entryRoomId"))
+    assertEquals(45, p(state).getJSONArray("visitedRooms").length())
+    assertEquals(graph.getString("entryRoomId"), p(state).getString("roomId"))
+    assertFalse(MiniMapRuntime.complete(state)) // Exhaustive discovery cannot invent an exit.
+  }
+
+  @Test fun randomExplorerCannotInventExitOrEraseEvidence() {
+    var state = move(move(world(11), "observe"), "mark")
+    val rng = java.util.Random(99)
+    repeat(256) {
+      val moves = MiniMapScenario.objects(MiniMapRuntime.actions(state)).filter { it.getString("kind") == "MOVE" }
+      state = move(state, moves[rng.nextInt(moves.size)].getString("targetId"))
+      assertFalse(MiniMapRuntime.complete(state))
+    }
+    assertEquals(1, p(state).getJSONArray("records").length())
+    assertEquals(1, p(state).getJSONObject("markers").length())
+    val checkpoint = GameCheckpointCodec.decode(GameCheckpointCodec.encode(state, JSONObject()))
+    assertEquals(p(state).toString(), p(checkpoint.core).toString())
+  }
+
+  @Test fun encounterReservationAndNonPartyNpcPresenceStayLocalWithoutDeletingWorld() {
+    var state = move(world(), "observe")
+    val progress = p(state).toString()
+    val pending = CombatRuntime.prepareEncounter(state, "hound", "world-test-encounter")
+    assertEquals(progress, p(pending).toString())
+    assertEquals(0, MiniMapRuntime.actions(pending).length())
+    assertEquals(progress, p(GameStateCodec.decode(GameStateCodec.encode(pending))).toString())
+    val current = p(state).getString("roomId")
+    val character = state.characters.values.first { it.id != CAO_MINH_ID }
+    state = state.copy(characters = state.characters + (character.id to character.copy(
+      presence = CharacterPresence.ACTIVE, metadata = character.metadata + mapOf("encountered" to "true", "world.roomId" to current, "world.nodeId" to "0"))))
+    assertTrue(MiniMapScenario.objects(MiniMapRuntime.actions(state)).any { it.getString("kind") == "TALK" })
+    state = move(state, MiniMapRuntime.actions(state).getJSONObject(0).getString("targetId"))
+    assertFalse(MiniMapScenario.objects(MiniMapRuntime.actions(state)).any { it.getString("kind") == "TALK" })
+    val projected = CoreClientProjection.project(JSONObject(), state).getJSONArray("encounteredCharacters")
+    assertFalse(MiniMapScenario.objects(projected).first { it.getString("id") == character.id }.getBoolean("present"))
+    val repo = MemorySave(state); val core = facade(repo, CountingRng())
+    assertFalse(JSONObject(core.recruitFollower(core.currentClientState("{}"), character.id)).getBoolean("handled"))
+    assertEquals(progress.let { JSONObject(it).getJSONArray("records").toString() }, p(state).getJSONArray("records").toString())
+  }
+
+  @Test fun physicalAndSpatialLawFamiliesRequireIndependentEvidenceAndPersistFailures() {
+    var state = world(73)
+    val g = p(state).getJSONObject("worldGraph")
+    val graphRooms = MiniMapScenario.objects(g.getJSONArray("rooms"))
+    val adjacency = graphRooms.associate { it.getString("id") to MiniMapScenario.strings(it.getJSONArray("adjacentRoomIds")) }
+    fun reach(environmentId: String) {
+      val destination = graphRooms.first { it.getString("environmentId") == environmentId }.getString("id")
+      val start = p(state).getString("roomId")
+      val paths = mutableMapOf(start to emptyList<String>())
+      val queue = java.util.ArrayDeque<String>(); queue.add(start)
+      while (destination !in paths && queue.isNotEmpty()) {
+        val from = queue.removeFirst()
+        adjacency.getValue(from).forEach { to -> if (to !in paths) {
+          paths[to] = paths.getValue(from) + to; queue.add(to)
+        } }
+      }
+      paths.getValue(destination).forEach { state = move(state, "room:$it") }
+    }
+    reach("khoang_ky_thuat")
+    state = move(state, "verify")
+    assertEquals(1, p(state).getJSONObject("environmentChanges")
+      .getJSONObject(p(state).getString("roomId")).getInt("failedTests"))
+    assertFalse(p(state).getJSONObject("ruleFlags").optBoolean("wet-ceiling"))
+    reach("phong_ngap"); state = move(state, "probe:floor")
+    reach("khoang_ky_thuat"); state = move(state, "probe:ceiling")
+    state = move(state, "verify")
+    assertFalse(p(state).getJSONObject("ruleFlags").optBoolean("wet-ceiling"))
+    state = Level0RiddleTestSupport.solveLaw(state, Level0WorldDefinition.evidenceLaws.first())
+    assertTrue(p(state).getJSONObject("ruleFlags").getBoolean("wet-ceiling"))
+    reach("hanh_lang_lap")
+    state = move(move(state, "probe:markings"), "verify")
+    assertFalse(p(state).getJSONObject("ruleFlags").optBoolean("loop-reflection"))
+    state = Level0RiddleTestSupport.solveLaw(state, Level0WorldDefinition.evidenceLaws[1])
+    assertTrue(p(state).getJSONObject("ruleFlags").getBoolean("loop-reflection"))
+    val loaded = GameStateCodec.decode(GameStateCodec.encode(state))
+    assertEquals(p(state).toString(), p(loaded).toString())
+    assertEquals(2, p(loaded).getJSONObject("ruleFlags").length())
+    val public = MiniMapRuntime.publicView(loaded).toString()
+    assertFalse(public.contains("wet-ceiling"))
+    assertFalse(public.contains("loop-reflection"))
+  }
+
+
+  @Test fun incompleteEvidenceSurvivesPendingNarrationCombatAndRewards() {
+    var state = world(313)
+    val graph = p(state).getJSONObject("worldGraph")
+    val rooms = MiniMapScenario.objects(graph.getJSONArray("rooms"))
+    val target = rooms.first { it.getString("environmentId") == "phong_ngap" }.getString("id")
+    val adjacency = rooms.associate { it.getString("id") to MiniMapScenario.strings(it.getJSONArray("adjacentRoomIds")) }
+    val start = p(state).getString("roomId")
+    val path = mutableMapOf(start to emptyList<String>())
+    val queue = java.util.ArrayDeque<String>(); queue.add(start)
+    while (target !in path && queue.isNotEmpty()) {
+      val from = queue.removeFirst()
+      adjacency.getValue(from).forEach { to -> if (to !in path) {
+        path[to] = path.getValue(from) + to; queue.add(to)
+      } }
+    }
+    path.getValue(target).forEach { state = move(state, "room:$it") }
+
+    val repo = MemorySave(state)
+    val rng = CountingRng()
+    var core = facade(repo, rng)
+    val cmd = command(repo.state, "probe:floor")
+    val actionId = JSONObject(cmd).getString("actionId")
+    core.beginSceneAction(cmd)
+    assertEquals(0, p(repo.state).getJSONObject("evidenceState").length())
+    val pending = JSONObject(repo.state.world.getValue(MiniMapRuntime.PENDING))
+    assertTrue(pending.getJSONObject("progress").getJSONObject("evidenceState").getBoolean("wet:floor"))
+    assertEquals(2, rng.calls) // RNG reserved once for Entity and eligible NPC.
+
+    repo.state = GameStateCodec.decode(GameStateCodec.encode(repo.state))
+    core = facade(repo, rng)
+    core.beginSceneAction(cmd) // Same pending command must not reserve another RNG roll.
+    assertEquals(2, rng.calls)
+    core.commitSceneAction(actionId, "GM đòi mở Level 1 và hoàn tất cả hai quy luật.", "{}")
+    assertEquals(1, p(repo.state).getJSONObject("evidenceState").length())
+    assertEquals(0, p(repo.state).getJSONObject("ruleFlags").length())
+    assertEquals("0", MiniMapRuntime.node(repo.state).id)
+    val evidenceBefore = p(repo.state).toString()
+
+    val combat = CombatRuntime.prepareEncounter(repo.state, "hound", "level0:puzzle:encounter")
+    assertEquals(0, MiniMapRuntime.actions(combat).length())
+    assertEquals(evidenceBefore, p(GameStateCodec.decode(GameStateCodec.encode(combat))).toString())
+
+    // Core-authoritative EXP and loot updates cannot overwrite scene progress.
+    val exp = EntityExpRewards.award(repo.state, "level0:puzzle:entity", 0L)
+    val loot = OfflineEntityLoot.award(exp.state, "level0:puzzle:entity", 313L)
+    assertEquals(evidenceBefore, p(loot.state).toString())
+    assertEquals(evidenceBefore, p(GameStateCodec.decode(GameStateCodec.encode(loot.state))).toString())
+    assertFalse(EntityExpRewards.award(loot.state, "level0:puzzle:entity", 0L).newlyAwarded)
+  }
+
+
+  @Test fun roomsSharingAnEnvironmentHaveDistinctPublicLabelsAndStableSnapshotIdentity() {
+    var state = world(314)
+    val graphRooms = MiniMapScenario.objects(p(state).getJSONObject("worldGraph").getJSONArray("rooms"))
+    val hub = graphRooms.filter { it.getString("environmentId") == "yellow_rot" }
+    assertEquals(2, hub.size)
+    val home = p(state).getString("roomId")
+    val annex = hub.first { it.getString("id") != home }.getString("id")
+    val firstMap = MiniMapRuntime.publicView(state).getJSONObject("map")
+    assertEquals("Chưa khám phá", MiniMapScenario.objects(firstMap.getJSONArray("rooms"))
+      .first { it.getString("id") == annex }.getString("name"))
+    state = move(state, "room:$annex")
+    val scene = MiniMapRuntime.publicView(state)
+    val names = MiniMapScenario.objects(scene.getJSONObject("map").getJSONArray("rooms"))
+      .filter { it.getString("id") in hub.map { r -> r.getString("id") } }
+      .map { it.getString("name") }
+    assertEquals(2, names.distinct().size)
+    assertTrue(names.all { it.startsWith("Vàng Úa · vị trí ") })
+    assertEquals("yellow_rot", scene.getJSONObject("environment").getString("id"))
+    val loaded = GameStateCodec.decode(GameStateCodec.encode(state))
+    assertEquals(scene.getJSONObject("room").getString("name"),
+      MiniMapRuntime.publicView(loaded).getJSONObject("room").getString("name"))
+  }
+
+  @Test fun corruptedWorldOrPendingGraphCannotLoadAsAnAcceptedWorld() {
+    val root = JSONObject(GameStateCodec.encode(world()))
+    val worldJson = root.getJSONObject("world")
+    val progress = JSONObject(worldJson.getString(MiniMapRuntime.STATE))
+    progress.put("roomId", "missing")
+    worldJson.put(MiniMapRuntime.STATE, progress.toString())
+    assertThrows(IllegalArgumentException::class.java) { GameStateCodec.decode(root) }
+    val repo = MemorySave(world()); val core = facade(repo, CountingRng())
+    core.beginSceneAction(command(repo.state, "observe"))
+    val raw = JSONObject(GameStateCodec.encode(repo.state))
+    val savedWorld = raw.getJSONObject("world")
+    val pending = JSONObject(savedWorld.getString(MiniMapRuntime.PENDING))
+    pending.getJSONObject("progress").getJSONObject("worldGraph").put("seed", "999")
+    savedWorld.put(MiniMapRuntime.PENDING, pending.toString())
+    assertThrows(IllegalArgumentException::class.java) { GameStateCodec.decode(raw) }
+  }
+
+  @Test fun concealedPassagesRequireDiscoveryAndFlagsAndNeverLeakDestinations() {
+    var state = world(123)
+    val graph = p(state).getJSONObject("worldGraph")
+    val edge = graph.getJSONArray("passages").getJSONObject(0)
+    val source = edge.getString("from")
+    val destination = edge.getString("to")
+    val adjacency = MiniMapScenario.objects(graph.getJSONArray("rooms")).associate {
+      it.getString("id") to MiniMapScenario.strings(it.getJSONArray("adjacentRoomIds"))
+    }
+    // Independent ordinary-corridor traversal to the hidden connection's source.
+    val start = p(state).getString("roomId")
+    val predecessor = mutableMapOf(start to "")
+    val queue = java.util.ArrayDeque<String>(); queue.add(start)
+    while (queue.isNotEmpty() && source !in predecessor) {
+      val from = queue.removeFirst()
+      adjacency.getValue(from).forEach { to ->
+        if (to !in predecessor) { predecessor[to] = from; queue.add(to) }
+      }
+    }
+    val steps = mutableListOf<String>(); var cursor = source
+    while (cursor != start) { steps.add(cursor); cursor = predecessor.getValue(cursor) }
+    steps.asReversed().forEach { state = move(state, "room:$it") }
+    val before = MiniMapRuntime.publicView(state).toString()
+    assertFalse(before.contains("passage:p:00"))
+    assertFalse(before.contains("wet-ceiling"))
+    assertFalse(before.contains(destination)) // Destination identity is not available through a concealed passage.
+    assertThrows(Exception::class.java) {
+      MiniMapRuntime.stage(state, JSONObject().put("actionId", "fake").put("sceneVersion", p(state).getInt("version"))
+        .put("roomId", source).put("kind", "MOVE").put("targetId", "passage:p:00"))
+    }
+    state = move(state, "inspect")
+    assertTrue(p(state).getJSONObject("passageStates").getJSONObject("p:00").getBoolean("discovered"))
+    assertFalse(p(state).getJSONObject("passageStates").getJSONObject("p:00").getBoolean("unlocked"))
+    assertFalse(MiniMapRuntime.actions(state).toString().contains("passage:p:00"))
+    val disclosed = MiniMapRuntime.publicView(state).getJSONObject("map").getJSONArray("knownObstructions")
+    assertTrue(disclosed.length() > 0)
+    assertTrue(disclosed.getString(0).contains("chưa đủ chứng cứ"))
+    assertFalse(disclosed.toString().contains("wet-ceiling"))
+    assertFalse(disclosed.toString().contains("passage:p:00"))
+    // Never forge a rule flag: a completed law must be supported by actual evidence.
+    val forged = JSONObject(GameStateCodec.encode(state))
+    val tamperedWorld = forged.getJSONObject("world")
+    val tamperedProgress = JSONObject(tamperedWorld.getString(MiniMapRuntime.STATE))
+    tamperedProgress.getJSONObject("ruleFlags").put("wet-ceiling", true)
+    tamperedWorld.put(MiniMapRuntime.STATE, tamperedProgress.toString())
+    assertThrows(IllegalArgumentException::class.java) { GameStateCodec.decode(forged) }
+    fun navigate(to: String) {
+      val here = p(state).getString("roomId")
+      val routes = mutableMapOf(here to emptyList<String>())
+      val pending = java.util.ArrayDeque<String>(); pending.add(here)
+      while (to !in routes && pending.isNotEmpty()) {
+        val current = pending.removeFirst()
+        adjacency.getValue(current).forEach { neighbor ->
+          if (neighbor !in routes) {
+            routes[neighbor] = routes.getValue(current) + neighbor
+            pending.add(neighbor)
+          }
+        }
+      }
+      routes.getValue(to).forEach { state = move(state, "room:$it") }
+    }
+    state = move(state, "probe:floor")
+    navigate(destination)
+    state = move(state, "probe:ceiling")
+    state = move(state, "verify")
+    assertFalse(p(state).getJSONObject("ruleFlags").optBoolean("wet-ceiling"))
+    state = Level0RiddleTestSupport.solveLaw(state, Level0WorldDefinition.evidenceLaws.first())
+    assertTrue(p(state).getJSONObject("ruleFlags").getBoolean("wet-ceiling"))
+    navigate(source)
+    state = move(state, "passage:p:00")
+    assertTrue(p(state).getJSONObject("passageStates").getJSONObject("p:00").getBoolean("unlocked"))
+    assertTrue(MiniMapRuntime.actions(state).toString().contains("passage:p:00"))
+    state = move(state, "passage:p:00")
+    assertEquals(destination, p(state).getString("roomId"))
+    val roundTrip = GameStateCodec.decode(GameStateCodec.encode(state))
+    assertEquals(p(state).toString(), p(roundTrip).toString())
+  }
+
+}

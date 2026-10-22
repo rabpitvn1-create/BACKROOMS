@@ -14,7 +14,7 @@ const manifest = JSON.parse(fs.readFileSync(path.join(assets, 'item-icons/manife
 
 test('Every registered loot item and catalog equipment has its own WebP icon', () => {
   const files = ['GameState.kt', 'HealingItems.kt', 'SpecialFollowersCanon.kt', 'LucTramCanon.kt',
-    'LuciaCanon.kt', 'AnNhienCanon.kt', 'MadGodCanon.kt', 'CharacterEquipmentSystem.kt'];
+    'LuciaCanon.kt', 'AnNhienCanon.kt', 'MadGodCanon.kt', 'CatherineCanon.kt', 'JanetCanon.kt', 'NguyenQuocNamCanon.kt', 'HuaTieuLanCanon.kt', 'TracLamCanon.kt', 'CharacterEquipmentSystem.kt'];
   const constants = new Map();
   for (const file of files) {
     const source = fs.readFileSync(path.join(core, file), 'utf8');
@@ -33,10 +33,10 @@ test('Every registered loot item and catalog equipment has its own WebP icon', (
   assert.equal(new Set(ids.map(id => icons[id])).size, ids.length, 'Distinct catalog items need distinct artwork');
 });
 
-test('Manifest v5 covers exactly 22 registered item IDs and one unknown fallback', () => {
-  assert.equal(manifest.version, 5);
+test('Manifest v15 covers exactly 45 registered item IDs and one unknown fallback', () => {
+  assert.equal(manifest.version, 15);
   assert.equal(manifest.format, 'WEBP');
-  assert.equal(manifest.items.length, 23);
+  assert.equal(manifest.items.length, 46);
   const named = manifest.items.filter(entry => entry.item_id !== null);
   assert.equal(named.length, Object.keys(icons).length);
   const seen = new Set();
@@ -54,7 +54,7 @@ test('Every packaged WebP is byte-for-byte compatible with Drive manifest SHA-25
   const iconDir = path.join(assets, 'item-icons');
   const files = fs.readdirSync(iconDir).filter(file => file.endsWith('.webp')).sort();
   assert.deepEqual(files, manifest.items.map(entry => entry.file).sort());
-  assert.equal(files.length, 23);
+  assert.equal(files.length, 46);
   assert.equal(fs.readdirSync(iconDir).filter(file => file.endsWith('.svg')).length, 0, 'obsolete SVG icons must not ship');
   for (const entry of manifest.items) {
     assert.equal(entry.file, entry.key + '.webp');

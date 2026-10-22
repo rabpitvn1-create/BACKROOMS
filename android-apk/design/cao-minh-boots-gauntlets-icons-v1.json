@@ -1,0 +1,32 @@
+{
+  "tool": "built-in imagegen",
+  "pipeline": "Generate PNG -> resize/encode WebP -> upload PNG and WebP to Drive -> metadata readback -> download WebP from Drive -> verify SHA-256 -> replace runtime asset",
+  "dimensions": [
+    128,
+    128
+  ],
+  "items": [
+    {
+      "key": "huyet-ma-boots",
+      "name": "Giày Huyết Ma",
+      "prompt": "Use case: stylized-concept. Create ONE square BACKROOMS inventory equipment icon. Both supplied images are exact STYLE / SET REFERENCES: Huyet Ma sword and Huyet Ma armor. Match their premium detailed non-pixel 3D fantasy game item illustration, centered single equipment set in a rounded square liquid-glass tile with slim luminous beveled corners, full rich GOLD / ORANGE / AMBER glass background with flowing golden refraction, dark amber corner vignette, dramatic miniature product lighting and crisp silhouette at 128x128. Equipment must belong to the SAME HUYET MA armor set: deep blood-crimson red armor plates, blackened steel / dark leather joints, intricate antique-gold trim, angular pointed flanges and restrained glowing crimson inlays. Keep equipment color distinct from golden background. Complete objects occupy about 78% of tile and remain fully INSIDE its glass border with padding. No text, letters, watermark, logo, character, human limbs, UI, mint or green background, flat/vector style, cartoon or pixel art. One icon only, not a sheet. Subject: ONE matching PAIR of empty heavy Huyet Ma WAR BOOTS / battle greaves, calf-high layered crimson and black metal armor, angular knee/shin plates, antique-gold edge trim, armored articulated toe plates and sturdy soles. Both whole boots visible, one slightly behind the other in a three-quarter product view. No legs, no cape, no other armor pieces. Visually derive their plate shapes and detailing from the supplied Huyet Ma torso armor.",
+      "bytes": 11108,
+      "sha256": "9b3ad94094642a7e2c88036e6cdc24f731ed7ca842d180a902ccd04cb2bcaf62",
+      "md5": "c46b18e8193c764650c5255c362dd009",
+      "source_drive_url": "https://drive.google.com/file/d/1_vs_S3KXH1nmxYZTnvLaH60Z5bW3FLXm/view?usp=drivesdk",
+      "runtime_drive_url": "https://drive.google.com/file/d/18YVjvXUDvc3ssCxtUn0aL0A3g3fBXPUu/view?usp=drivesdk",
+      "runtime_path": "app/src/main/assets/item-icons/huyet-ma-boots.webp"
+    },
+    {
+      "key": "huyet-ma-gauntlets",
+      "name": "Găng tay Huyết Ma",
+      "prompt": "Use case: stylized-concept. Create ONE square BACKROOMS inventory equipment icon. Both supplied images are exact STYLE / SET REFERENCES: Huyet Ma sword and Huyet Ma armor. Match their premium detailed non-pixel 3D fantasy game item illustration, centered single equipment set in a rounded square liquid-glass tile with slim luminous beveled corners, full rich GOLD / ORANGE / AMBER glass background with flowing golden refraction, dark amber corner vignette, dramatic miniature product lighting and crisp silhouette at 128x128. Equipment must belong to the SAME HUYET MA armor set: deep blood-crimson red armor plates, blackened steel / dark leather joints, intricate antique-gold trim, angular pointed flanges and restrained glowing crimson inlays. Keep equipment color distinct from golden background. Complete objects occupy about 78% of tile and remain fully INSIDE its glass border with padding. No text, letters, watermark, logo, character, human limbs, UI, mint or green background, flat/vector style, cartoon or pixel art. One icon only, not a sheet. Subject: ONE matching PAIR of empty Huyet Ma ARMORED GAUNTLETS, articulated crimson-and-black metal finger armor over dark leather, five clearly distinct armored fingers per glove, overlapping knuckle plates, angular protective wrist cuffs, antique-gold edge trim matching the supplied Huyet Ma torso armor. Both complete gloves visible in a three-quarter product arrangement, one palm-side and one backhand-side, no hands/arms inside, no other armor pieces.",
+      "bytes": 10800,
+      "sha256": "d1a9de8ab48fca7f169cb3e6249d21e062219de3a54263a6bb3e7c1511d2ac92",
+      "md5": "fdd08e7296fbc0d27858d28b2e779bfa",
+      "source_drive_url": "https://drive.google.com/file/d/1eNtg1NKaO_V9u450jntNo6LzFeVvah_8/view?usp=drivesdk",
+      "runtime_drive_url": "https://drive.google.com/file/d/1TSu36uLO7LfGr6vA3MhzQELwW7qbBtRd/view?usp=drivesdk",
+      "runtime_path": "app/src/main/assets/item-icons/huyet-ma-gauntlets.webp"
+    }
+  ]
+}

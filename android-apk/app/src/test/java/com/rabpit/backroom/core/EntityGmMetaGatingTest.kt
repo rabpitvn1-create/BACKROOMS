@@ -49,7 +49,9 @@ class EntityGmMetaGatingTest {
   }
 
   @Test fun `non-meta turn may roll`() {
-    val state = GameState.initial()
+    // Isolate the Entity gate: an already-met Catherine cannot preempt it.
+    val state = GameState.initial().copy(world = mapOf(
+      "flagsJson" to """{"catherine":{"spawned":true}}"""))
     var rngCalls = 0
     // Use a seed that guarantees entity spawn (roll 1).
     val result = SpawnMechanism.rollSpawns(

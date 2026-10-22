@@ -19,7 +19,7 @@ function boot(initialState,options={}){
    setAttribute(name,value){this[name]=String(value)},
    getBoundingClientRect(){return {left:0,top:0,width:480,height:300}}
   };
-  Object.defineProperty(n,'textContent',{get(){return text},set(value){text=String(value??'');if(text==='')n.children=[]}});
+  Object.defineProperty(n,'textContent',{get(){return text||n.children.map(c=>c.textContent).join('')},set(value){text=String(value??'');if(text==='')n.children=[]}});
   Object.defineProperty(n,'nextElementSibling',{get(){if(!n.parentNode)return null;const i=n.parentNode.children.indexOf(n);return n.parentNode.children[i+1]||null}});
   Object.defineProperty(n,'firstElementChild',{get(){return n.children[0]||null}});
   n.classList={add(...xs){n.className+=' '+xs.join(' ')},remove(x){n.className=n.className.split(' ').filter(c=>c!==x).join(' ')}};
@@ -64,6 +64,69 @@ function boot(initialState,options={}){
   }
  };
 }
+
+test('Combat Log renders typed damage red and remaining HP green, with named actor, target and skill',()=>{
+ const r=boot({combat:{active:true,encounterId:'enc',entityKey:'hound',entityName:'Hound',round:1}});
+ r.turn([{target:'entity',phase:'actor',sourceName:'Cao Minh',entityName:'Hound',
+  skill:'Huyết Ma Tứ Liên',text:'-34 HP',remainingHp:66,maxHp:100,status:'Trúng độc'}]);
+ const entry=r.entries().children.find(n=>n.className.endsWith('--actor'));
+ assert.ok(entry);
+ assert.equal(entry.textContent,'Cao Minh sử dụng [Huyết Ma Tứ Liên] gây -34 HP lên Hound [66/100 HP] [TRÚNG ĐỘC]');
+ const parts=entry.children.filter(n=>n.className.includes('combat-semantic--'));
+ for(const [kind,value] of [
+  ['character','Cao Minh'],['skill','Huyết Ma Tứ Liên'],
+  ['damage','-34 HP'],['entity','Hound'],['hp','66/100 HP'],
+  ['status-poison','TRÚNG ĐỘC']]) {
+  assert.ok(parts.some(n=>n.className.endsWith('--'+kind)&&n.textContent===value),kind+' token absent');
+ }
+ const css=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/combat-feedback-1193a.css'),'utf8');
+ for(const [kind,color] of [
+  ['damage','#ff6872'],['hp','#72dba4'],['status-poison','#c18aff'],
+  ['status-bleed','#c56a82'],['status-stun','#ffbd66']
+ ]) assert.ok(css.includes('.combat-feedback-entry .combat-semantic--'+kind+'{color:'+color),kind+' must have a concrete color');
+});
+
+test('Combat Log colorizes bleeding, stun and other verified Core statuses without changing prose',()=>{
+ for(const [status,kind,label] of [
+  ['Chảy máu','status-bleed','CHẢY MÁU'],['Choáng','status-stun','CHOÁNG'],
+  ['Xuyên giáp','status-armor','XUYÊN GIÁP'],['Mất phương hướng','status-disorient','MẤT PHƯƠNG HƯỚNG']
+ ]) {
+  const r=boot({combat:{active:true,encounterId:'enc',entityKey:'hound',entityName:'Hound',round:1}});
+  r.turn([{target:'entity',sourceName:'Lucia',entityName:'Hound',skill:'Đòn kiểm thử',
+   text:'-12 HP',remainingHp:38,maxHp:50,status}]);
+  const line=r.entries().children.find(n=>n.className.endsWith('--actor'));
+  const child=line.children.find(n=>n.className.endsWith('--'+kind));
+  assert.ok(child,status+' color token missing');
+  assert.equal(child.textContent,label);
+  assert.ok(line.textContent.includes('[-12 HP]')===false,'do not invent additional damage brackets');
+ }
+});
+
+test('Combat Log uses textContent and never interprets skill names as HTML',()=>{
+ const r=boot();
+ const suspicious='<img src=x onerror=alert(1)>';
+ r.turn([{target:'entity',sourceName:'Cao Minh',entityName:'Hound',skill:suspicious,
+  text:'-2 HP',remainingHp:1,maxHp:3}]);
+ const line=r.entries().children.find(n=>n.className.endsWith('--actor'));
+ assert.ok(line.textContent.includes(suspicious),'name must stay literal');
+ assert.ok(line.children.some(n=>n.className.endsWith('--skill')&&n.textContent===suspicious));
+ assert.ok(line.children.every(n=>n.tagName==='SPAN'),'typed segments must not create markup');
+});
+
+test('Combat Log entity counterattack marks damage red, surviving Party HP green, Entity name bold',()=>{
+ const r=boot({combat:{active:true,encounterId:'enc',entityKey:'hound',entityName:'Hound',round:1}});
+ const cue={kind:'entity',eventIndex:0,entityName:'Hound',entityKey:'hound',
+  details:['Hound phản công: Party chịu -15 HP (85/100). Cao Minh -15.']};
+ r.turn([],'enc:counter','enc',{active:true,encounterId:'enc',entityKey:'hound',entityName:'Hound',round:2},{},{turns:[cue]});
+ const due=r.timers.find(t=>t.ms===980);
+ assert.ok(due,'typed Entity counterattack must schedule a result');
+ due.fn();
+ const line=r.entries().children.find(n=>n.className.endsWith('--entity'));
+ assert.ok(line,'entity result missing');
+ assert.ok(line.children.some(n=>n.className.endsWith('--damage')&&n.textContent==='-15 HP'));
+ assert.ok(line.children.some(n=>n.className.endsWith('--hp')&&n.textContent==='85/100 HP'));
+ assert.ok(line.children.some(n=>n.className.endsWith('--entity')&&n.textContent==='Hound'));
+});
 
 test('normal hits keep the original dedicated badge and numeric value',()=>{
  const r=boot();r.event({target:'entity',text:'-36 HP'});
@@ -286,9 +349,9 @@ test('snapshot style has distinct active-actor rules and existing local Party as
  assert.doesNotMatch(css,/combat-switch-ring/);
  assert.doesNotMatch(css,/combat-party-appear/,'only one Party animation definition may own a slot');
  assert.match(css,/\.snapshot\[data-combat-focus\] \.snapshot-lucia,/);
- assert.match(css,/right:0!important;left:auto!important/);
- assert.match(css,/height:97%!important/);
- assert.match(css,/max-width:100%!important/);
+ assert.match(css,/right:var\(--combat-portrait-right,0px\)!important;left:auto!important/);
+ assert.match(css,/height:var\(--combat-portrait-height,97%\)!important/);
+ assert.match(css,/max-width:none!important;max-height:none!important/);
  assert.match(css,/animation:none!important/,'Entity never rotates for its own cue');
 
  for(const filename of ['avatars/Iris_avatar.jpg','avatars/Syvial_avatar.jpg','avatars/an_nhien_avatar.png']){
@@ -802,4 +865,79 @@ test('full-density shatter keeps every shard cropped for mobile WebView',()=>{
  const debrisAnimation=css.slice(css.indexOf('@keyframes entity-shatter-fragment'),css.indexOf('@keyframes entity-shatter-spark'));
  assert.doesNotMatch(debrisAnimation,/filter:|rotateY|translate3d/);
  assert.doesNotMatch(css,/entity-shatter-source|@keyframes entity-shatter-prime/);
+});
+
+test('victory continuation runs once after the actual final shatter and never on ordinary combat or escape',()=>{
+ const r=readyShatter(boot()),calls=[];
+ r.scope.busy=false;
+ r.scope.Android={continueAfterCombat(json){calls.push(JSON.parse(json));}};
+ r.turn([lethal],'enc:auto','enc',null,{postCombatContinuation:true},
+  {turns:[{kind:'actor',actorId:'cao_minh',eventIndex:0}]});
+ assert.equal(calls.length,0);
+ r.timers.find(t=>t.ms===980).fn();
+ r.timers.find(t=>t.ms===Math.max(...r.timers.map(t=>t.ms))).fn();
+ assert.equal(calls.length,0);
+ r.timers.find(t=>t.ms===1320).fn();
+ assert.equal(calls.length,1);assert.equal(calls[0].combat,null);
+ r.turn([lethal],'enc:auto','enc',null,{postCombatContinuation:true});
+ assert.equal(calls.length,1);
+ const escape=boot(),escaped=[];
+ escape.scope.Android={continueAfterCombat(json){escaped.push(json);}};
+ escape.turn([],'enc:escape','enc',null);
+ assert.equal(escaped.length,0);
+});
+
+test('exploration party uses disjoint bounded slots and leaves combat geometry to the turn renderer',()=>{
+ const java=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/MainActivity.java'),'utf8');
+ const line=java.split('\n').find(l=>l.includes('/* SNAPSHOT_PARTY_LAYOUT_R01 */'));
+ const script=JSON.parse(line.trim().replace(/ \+$/,''));
+ for(let count=1;count<=6;count++){
+  const actors=Array.from({length:count},()=>({style:{}}));
+  const box={dataset:{},querySelectorAll(){return actors}};
+  let baseCalls=0;
+  const scope={document:{getElementById(){return box}},state:{combat:{active:false}},renderSnapshot(){baseCalls++}};scope.window=scope;
+  vm.runInNewContext(script,scope);scope.renderSnapshot();
+  assert.equal(baseCalls,1);assert.equal(box.dataset.partyLayout,'exploration');
+  if(count>1)actors.forEach((actor,index)=>{
+   const left=parseFloat(actor.style.left),width=parseFloat(actor.style.width);
+   assert.ok(left>=6&&left+width<=94.00001);
+   if(index)assert.ok(left>=parseFloat(actors[index-1].style.left)+width-0.00001);
+   assert.equal(actor.style.objectFit,'contain');
+  });
+  actors.forEach(actor=>actor.style={});scope.state.combat.active=true;scope.renderSnapshot();
+  assert.equal(box.dataset.partyLayout,'combat');actors.forEach(actor=>assert.deepEqual(actor.style,{}));
+  scope.backroomFreezeSnapshot=true;scope.renderSnapshot();assert.equal(baseCalls,2);
+ }
+ const css=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/combat-feedback-1193a.css'),'utf8');
+ for(const name of ['catherine','janet','nguyen-quoc-nam','hua-tieu-lan'])assert.ok(css.includes('.snapshot[data-party-layout="combat"] .snapshot-'+name));
+});
+
+
+test('combat portraits normalize visible body height and ground without changing focus or transforms',()=>{
+ const helper=script.slice(script.indexOf('  var partyPortraitBounds='),script.indexOf('  function combatPortraitSource('));
+ for(const [width,height] of [[288,240],[358,260],[700,300]]){
+  const scope={window:{},document:{}};vm.runInNewContext(helper,scope);
+  const snapshot={clientWidth:width,clientHeight:height,getBoundingClientRect(){return {width,height}}};
+  let expectedHeight=null;
+  for(const [name,bounds] of Object.entries(scope.partyPortraitBounds)){
+   const values={},image={src:name,style:{transform:'translate(4px,0)',setProperty(k,v){values[k]=parseFloat(v)}},dataset:{},addEventListener(){}};
+   scope.prepareCombatPortrait(image,snapshot);
+   const scale=values['--combat-portrait-height']/bounds[1];
+   const visible=(bounds[5]-bounds[3])*scale;
+   const bottom=values['--combat-portrait-bottom']+(bounds[1]-bounds[5])*scale;
+   const right=values['--combat-portrait-right']+(bounds[0]-bounds[4])*scale;
+   if(expectedHeight===null)expectedHeight=visible;
+   assert.ok(Math.abs(visible-expectedHeight)<.001,name+' visible height');
+   assert.ok(Math.abs(bottom-height*.05)<.001,name+' floor');
+   assert.ok(Math.abs(right-width*.05)<.001,name+' right edge');
+   assert.ok((bounds[4]-bounds[2])*scale<width*.85,name+' bounded width');
+   assert.equal(image.style.transform,'translate(4px,0)');
+  }
+  const values={},events={},avatar={src:'avatars/Iris_avatar.jpg',style:{setProperty(k,v){values[k]=parseFloat(v)}},dataset:{},addEventListener(k,f){events[k]=f}};
+  scope.prepareCombatPortrait(avatar,snapshot);assert.equal(values['--combat-portrait-height'],undefined);
+  avatar.naturalWidth=1277;avatar.naturalHeight=1267;events.load();
+  assert.ok(Math.abs(values['--combat-portrait-height']-expectedHeight)<.001);
+  const old=values['--combat-portrait-height'];snapshot.clientHeight=height/2;scope.prepareCombatPortrait(avatar,snapshot);
+  assert.ok(values['--combat-portrait-height']<old,'resize recalculates the common height');
+ }
 });

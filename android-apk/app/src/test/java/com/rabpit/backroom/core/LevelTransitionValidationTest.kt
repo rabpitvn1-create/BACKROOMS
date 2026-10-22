@@ -88,19 +88,22 @@ class LevelTransitionValidationTest {
     val core = facade(saved)
     val action = "đi qua cửa trở lại Level 1"
     val decision = authorize(core, turn = 1, kind = "EXECUTE", action = action)
-    assertTrue(decision.toString(), decision.isNull("destinationId"))
+    // This legacy API has one allowed forward edge, but can never approve a
+    // forged backward candidate, even if the text says "Level 1".
+    assertNotEquals("1", decision.optString("destinationId"))
     val rejected = JSONObject(core.processValidatedCandidate(
       beforeJson(turn = 1), candidateJson("1"), action))
     assertFalse(rejected.toString(), rejected.getBoolean("handled"))
     assertEquals("level_change_forbidden", rejected.getString("error"))
   }
 
-  @Test fun coreCanReturnFromSublevelToAreaWithinSameParentLevel() {
+  @Test fun coreAuthorizesNextSublevelWithinSameParentLevel() {
     val saved = MemorySave(freshAt("1.2", streak = HiddenExitStreak.REQUIRED_STREAK))
     val core = facade(saved)
     val decision = authorize(core, turn = 1, kind = "EXECUTE",
-      action = "đi qua cửa về Level 1")
-    assertEquals("1", decision.optString("destinationId"))
+      action = "đi qua cửa đến Level 1.5")
+    assertEquals("1.5", decision.optString("destinationId"))
+    assertFalse(LevelRouteRegistry.canMove("1.2", "1"))
   }
 
   @Test fun parentLevelExitSeparatesEncounteredNpcButKeepsHerMemory() {
@@ -182,23 +185,20 @@ class LevelTransitionValidationTest {
     assertEquals("no_traversal_intent", dest.optString("reason"))
   }
 
-  @Test fun coreMatchesNamedDestinationAmongMultipleExits() {
-    // Core at "1": exits = [2, 1.2, 1.5, traders_vault, base_alpha].
-    // Player names "Trader's Vault" -> Core picks it (not GM's choice).
+  @Test fun legacyRouterHasOnlyOneForwardExitPerNode() {
     val save = MemorySave(freshAt("1", streak = HiddenExitStreak.REQUIRED_STREAK))
     val core = facade(save)
-    val dest = authorize(core, turn = 1, kind = "EXECUTE", action = "đi vào Trader's Vault")
-    assertEquals("traders_vault", dest.optString("destinationId"))
+    val dest = authorize(core, turn = 1, kind = "EXECUTE", action = "đi vào Level 1.2")
+    assertEquals("1.2", dest.optString("destinationId"))
+    assertEquals(listOf("1.2"), LevelRouteRegistry.exits("1"))
+    assertFalse(LevelRouteRegistry.canMove("1", "traders_vault"))
   }
 
-  @Test fun coreRejectsAmbiguousDestination() {
-    // Core at "1" with multiple exits and a generic traverse (no named destination).
-    // Core never guesses -> null; GM prompts via gmRoutingContext.
+  @Test fun legacyRouterCanResolveUnnamedTraversalOnSingleExit() {
     val save = MemorySave(freshAt("1", streak = HiddenExitStreak.REQUIRED_STREAK))
     val core = facade(save)
     val dest = authorize(core, turn = 1, kind = "EXECUTE", action = "bước qua cửa")
-    assertTrue(dest.isNull("destinationId"))
-    assertEquals("destination_ambiguous", dest.optString("reason"))
+    assertEquals("1.2", dest.optString("destinationId"))
   }
 
   // --- processValidatedCandidate: accepts only Core-authorized transitions ---

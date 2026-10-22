@@ -1,0 +1,83 @@
+{
+  "source": {
+    "width": 1473,
+    "height": 1068,
+    "bytes": 856908,
+    "sha256": "7c91f73ccc84d7f657dcb631b60239b8cbe83db73235d8df74240bdb23327e1d"
+  },
+  "runtime": {
+    "file": "black-observation-monitor-v1.webp",
+    "width": 1024,
+    "height": 742,
+    "bytes": 58504,
+    "sha256": "d727d999826957add13e9ce99238ecf53b074888a9b67efc372113d03cb626d3"
+  },
+  "alphaSamples": {
+    "center": 0,
+    "topRail": 253,
+    "leftRail": 253,
+    "corner": 0
+  },
+  "generation": {
+    "mode": "built-in image_gen",
+    "prompt": "Use case: product-mockup. Asset type: a production 2D transparent game UI overlay, ONLY the outer frame of a black CCTV observation monitor. Front view, exactly orthographic, no perspective. Entire frame tightly fills a landscape canvas about 1.38:1 width to height. Design: deep matte BLACK molded casing, softly rounded outer corners, sturdy narrow black bezel on all four sides, a gently raised beveled inner lip around a curved CRT screen opening. Subtle charcoal material grain, restrained edge highlights and very light use wear, convincingly photographic black surveillance monitor hardware. Broad curved rectangular opening occupies about 91 percent of width and 89 percent of height; its four long sides bow gently outward and corners are soft, like real convex CRT glass. CRITICAL: the entire central screen opening is uniformly completely TRANSPARENT alpha (an empty cutout), and everything outside the monitor silhouette is transparent alpha too. No screen content, no glass reflection across the cutout, no opaque black/grey screen, no central circle, no checkerboard painted into the image. Only the solid black frame is visible. No stand, no cables, no buttons, no control panel, no logos, no text, no labels, no LED, no HUD, no ornaments, no rust, no hazard stripes, no silver metal. This will sit over a live game scene; do not generate a game screenshot. Thin realistic highlights can follow only the black bezel. Keep all four edges and corners complete and visible with almost zero transparent outer margin."
+  },
+  "drive": {
+    "folder": {
+      "success": true,
+      "id": "1d3Ir4EqUBHOT9tL1g8tEMdK4Vu2pGBb1",
+      "url": "https://drive.google.com/drive/folders/1d3Ir4EqUBHOT9tL1g8tEMdK4Vu2pGBb1",
+      "title": "Black_observation_monitor_frame_20261020",
+      "parent_id": "1H13I34yN6FfIN4qdXpoN3j2InSmjZT60"
+    },
+    "source": {
+      "accepted_input": "file_uri",
+      "success": true,
+      "id": "1d6IjnXWegpx6kpbv9So-P8fh4_hpcNLi",
+      "title": "black-observation-monitor-v1-source.png",
+      "file_name": "black-observation-monitor-v1-source.png",
+      "mime_type": "image/png",
+      "url": "https://drive.google.com/file/d/1d6IjnXWegpx6kpbv9So-P8fh4_hpcNLi/view?usp=drivesdk",
+      "parent_id": "1d3Ir4EqUBHOT9tL1g8tEMdK4Vu2pGBb1",
+      "structuredContent": {
+        "accepted_input": "file_uri",
+        "success": true,
+        "id": "1d6IjnXWegpx6kpbv9So-P8fh4_hpcNLi",
+        "title": "black-observation-monitor-v1-source.png",
+        "file_name": "black-observation-monitor-v1-source.png",
+        "mime_type": "image/png",
+        "url": "https://drive.google.com/file/d/1d6IjnXWegpx6kpbv9So-P8fh4_hpcNLi/view?usp=drivesdk",
+        "parent_id": "1d3Ir4EqUBHOT9tL1g8tEMdK4Vu2pGBb1"
+      }
+    },
+    "runtime": {
+      "accepted_input": "file_uri",
+      "success": true,
+      "id": "1Up3kzz7T_pz-hN64rj2MyotXoBhDMzz8",
+      "title": "black-observation-monitor-v1.webp",
+      "file_name": "black-observation-monitor-v1.webp",
+      "mime_type": "image/webp",
+      "url": "https://drive.google.com/file/d/1Up3kzz7T_pz-hN64rj2MyotXoBhDMzz8/view?usp=drivesdk",
+      "parent_id": "1d3Ir4EqUBHOT9tL1g8tEMdK4Vu2pGBb1",
+      "structuredContent": {
+        "accepted_input": "file_uri",
+        "success": true,
+        "id": "1Up3kzz7T_pz-hN64rj2MyotXoBhDMzz8",
+        "title": "black-observation-monitor-v1.webp",
+        "file_name": "black-observation-monitor-v1.webp",
+        "mime_type": "image/webp",
+        "url": "https://drive.google.com/file/d/1Up3kzz7T_pz-hN64rj2MyotXoBhDMzz8/view?usp=drivesdk",
+        "parent_id": "1d3Ir4EqUBHOT9tL1g8tEMdK4Vu2pGBb1"
+      }
+    }
+  },
+  "baseline": "469ac4d48ebfb82d1c8cea8f3df70855adc361a8",
+  "integration": {
+    "stylesheet": "ui/snapshot-crt.css",
+    "slice": 96,
+    "borderWidthCssPx": 16,
+    "repeat": "stretch",
+    "screenCenterAlpha": 0,
+    "changes": "only snapshot outer border; existing glass/OSD/room routing untouched"
+  }
+}

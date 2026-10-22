@@ -18,7 +18,7 @@ permissions:
 
 concurrency:
   group: build-backroom-apk-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: ${{ github.head_ref == 'feat/653-mini-map-explorer' }}
 
 jobs:
   build-apk:
@@ -51,7 +51,9 @@ jobs:
       - name: Verify combat panel layout
         run: node android-apk/verify-combat-layout.mjs
 
+      # This PR's focused regression gate runs in core-without-emulator.yml.
       - name: Verify combat UI and Entity encounter rate tests
+        if: github.head_ref != 'feat/653-mini-map-explorer'
         run: node --test android-apk/tests/*.test.cjs
 
       - name: Capture active run id
@@ -106,9 +108,14 @@ jobs:
         with:
           gradle-version: "8.10.2"
 
-      - name: Run Kotlin tests and build debug APK
+      - name: Build debug APK (Core tests have their own gate)
         working-directory: android-apk
-        run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
+        run: |
+          if [ "$GITHUB_HEAD_REF" = "feat/653-mini-map-explorer" ]; then
+            gradle :app:assembleDebug --no-daemon
+          else
+            gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon
+          fi
 
       - name: Prepare APK
         run: cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-1.2.0.0.38.apk
@@ -124,10 +131,10 @@ jobs:
           "$BUILD_TOOLS/aapt" dump badging Backroom-1.2.0.0.38.apk | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
           "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 Backroom-1.2.0.0.38.apk
           rm -rf apk-check && mkdir apk-check
-          unzip -q Backroom-1.2.0.0.38.apk 'assets/index.html' 'assets/player-composer.*' 'assets/ui/ornate-frame-v1.css' 'assets/diagnostic-export.js' 'assets/item-icons.js' 'assets/item-icons/*' 'assets/provider-logos/*' 'assets/combat-feedback-1193a.*' 'assets/entity/*' 'assets/fx/*' 'assets/CaoMinh_MadGod_snapshot_overlay.png' 'assets/CAO_MINH_OVERLAY_EXPLORER_IDLE.png' 'assets/CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png' 'assets/avatars/MadGod.jpg' 'assets/avatars/CAO_MINH_AVATAR.jpg' 'assets/hud/player_action_backrooms.png' 'assets/dice/*' 'assets/fonts/Play-Bold.ttf' 'assets/level_snapshots/*' -d apk-check
+          unzip -q Backroom-1.2.0.0.38.apk 'assets/index.html' 'assets/explorer-controls.*' 'assets/dungeon.*' 'assets/ui/ornate-frame-v1.css' 'assets/ui/backrooms-reference-frame-v2.png' 'assets/ui/industrial-crt-v1.css' 'assets/ui/snapshot-tv.js' 'assets/ui/snapshot-crt.css' 'assets/ui/crt-glass-v5.svg' 'assets/ui/crt-optics.svg' 'assets/ui/black-observation-monitor-v1.webp' 'assets/ui/industrial-crt-v1/*.webp' 'assets/diagnostic-export.js' 'assets/item-icons.js' 'assets/item-detail-actions.js' 'assets/item-presentation.css' 'assets/item-icons/*' 'assets/provider-logos/*' 'assets/combat-feedback-1193a.*' 'assets/entity/*' 'assets/fx/*' 'assets/CaoMinh_MadGod_snapshot_overlay.png' 'assets/CAO_MINH_OVERLAY_EXPLORER_IDLE.png' 'assets/CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png' 'assets/avatars/MadGod.jpg' 'assets/avatars/CAO_MINH_AVATAR.jpg' 'assets/Catherine.webp' 'assets/avatars/Catherine_avatar.webp' 'assets/Janet.webp' 'assets/avatars/Janet_avatar.webp' 'assets/NguyenQuocNam.webp' 'assets/avatars/NguyenQuocNam_avatar.webp' 'assets/HuaTieuLan.webp' 'assets/avatars/HuaTieuLan_avatar.webp' 'assets/TracLam.png' 'assets/avatars/TracLam_avatar.jpg' 'assets/hud/player_action_backrooms.png' 'assets/dice/*' 'assets/fonts/Play-Bold.ttf' 'assets/level_snapshots/*' -d apk-check
           ! grep -q 'id="searchActionButton"' apk-check/assets/index.html
           grep -q 'id="submit"' apk-check/assets/index.html
-          node android-apk/verify-player-composer.mjs apk-check/assets
+          node android-apk/verify-explorer-controls.mjs apk-check/assets
           # Milestone is intentionally removed; never require the retired loader or chooser.
           ! unzip -Z1 Backroom-1.2.0.0.38.apk | grep -Fxq 'assets/milestone-loading.js'
           ! grep -q 'milestoneChooseGemini' apk-check/assets/index.html
@@ -139,8 +146,13 @@ jobs:
           grep -q 'gameMenuModal' apk-check/assets/index.html
           grep -q 'exportDiagnosticButton' apk-check/assets/index.html
           test -s apk-check/assets/diagnostic-export.js
+          cmp android-apk/app/src/main/assets/item-detail-actions.js apk-check/assets/item-detail-actions.js
+          cmp android-apk/app/src/main/assets/item-presentation.css apk-check/assets/item-presentation.css
+          grep -q 'statBookPicker' apk-check/assets/item-detail-actions.js
           cmp android-apk/app/src/main/assets/item-icons.js apk-check/assets/item-icons.js
-          test "$(find android-apk/app/src/main/assets/item-icons -maxdepth 1 -name '*.webp' | wc -l)" -eq 23
+          # Match the catalog rather than a hard-coded pre-Catherine count.
+          expected_icon_count=$(node -p "require('./android-apk/app/src/main/assets/item-icons/manifest.json').items.length")
+          test "$(find android-apk/app/src/main/assets/item-icons -maxdepth 1 -name '*.webp' | wc -l)" -eq "$expected_icon_count"
           cmp android-apk/app/src/main/assets/item-icons/manifest.json apk-check/assets/item-icons/manifest.json
           ! unzip -Z1 Backroom-1.2.0.0.38.apk | grep -Eq '^assets/item-icons/[^/]+[.]svg$'
           for icon in android-apk/app/src/main/assets/item-icons/*.webp; do
@@ -174,6 +186,26 @@ jobs:
           ! grep -q 'state.log' apk-check/assets/combat-feedback-1193a.js
           ! grep -q 'localStorage' apk-check/assets/combat-feedback-1193a.js
           ! grep -q 'modal.hidden=true' apk-check/assets/combat-feedback-1193a.js
+          test -s apk-check/assets/TracLam.png
+          cmp android-apk/app/src/main/assets/TracLam.png apk-check/assets/TracLam.png
+          test -s apk-check/assets/avatars/TracLam_avatar.jpg
+          cmp android-apk/app/src/main/assets/avatars/TracLam_avatar.jpg apk-check/assets/avatars/TracLam_avatar.jpg
+          test -s apk-check/assets/HuaTieuLan.webp
+          cmp android-apk/app/src/main/assets/HuaTieuLan.webp apk-check/assets/HuaTieuLan.webp
+          test -s apk-check/assets/avatars/HuaTieuLan_avatar.webp
+          cmp android-apk/app/src/main/assets/avatars/HuaTieuLan_avatar.webp apk-check/assets/avatars/HuaTieuLan_avatar.webp
+          test -s apk-check/assets/NguyenQuocNam.webp
+          cmp android-apk/app/src/main/assets/NguyenQuocNam.webp apk-check/assets/NguyenQuocNam.webp
+          test -s apk-check/assets/avatars/NguyenQuocNam_avatar.webp
+          cmp android-apk/app/src/main/assets/avatars/NguyenQuocNam_avatar.webp apk-check/assets/avatars/NguyenQuocNam_avatar.webp
+          test -s apk-check/assets/Janet.webp
+          cmp android-apk/app/src/main/assets/Janet.webp apk-check/assets/Janet.webp
+          test -s apk-check/assets/avatars/Janet_avatar.webp
+          cmp android-apk/app/src/main/assets/avatars/Janet_avatar.webp apk-check/assets/avatars/Janet_avatar.webp
+          test -s apk-check/assets/Catherine.webp
+          cmp android-apk/app/src/main/assets/Catherine.webp apk-check/assets/Catherine.webp
+          test -s apk-check/assets/avatars/Catherine_avatar.webp
+          cmp android-apk/app/src/main/assets/avatars/Catherine_avatar.webp apk-check/assets/avatars/Catherine_avatar.webp
           test -s apk-check/assets/avatars/CAO_MINH_AVATAR.jpg
           cmp android-apk/app/src/main/assets/avatars/CAO_MINH_AVATAR.jpg apk-check/assets/avatars/CAO_MINH_AVATAR.jpg
           grep -q 'CHARACTER_INFO_STATS_V2' apk-check/assets/index.html
@@ -222,6 +254,16 @@ jobs:
           done
           test -s apk-check/assets/fonts/Play-Bold.ttf
           cmp apk-check/assets/fonts/Play-Bold.ttf android-apk/app/src/main/assets/fonts/Play-Bold.ttf
+          test -s apk-check/assets/entity/luc_tram_hac_hoa.webp
+          cmp android-apk/app/src/main/assets/entity/luc_tram_hac_hoa.webp apk-check/assets/entity/luc_tram_hac_hoa.webp
+          test -s apk-check/assets/entity/Brownies.webp
+          cmp android-apk/app/src/main/assets/entity/Brownies.webp apk-check/assets/entity/Brownies.webp
+          test -s apk-check/assets/entity/LuckyBear.webp
+          cmp android-apk/app/src/main/assets/entity/LuckyBear.webp apk-check/assets/entity/LuckyBear.webp
+          test -s apk-check/assets/entity/927.webp
+          cmp android-apk/app/src/main/assets/entity/927.webp apk-check/assets/entity/927.webp
+          test -s apk-check/assets/entity/926.webp
+          cmp android-apk/app/src/main/assets/entity/926.webp apk-check/assets/entity/926.webp
           test -s apk-check/assets/entity/hound.webp
           test -s apk-check/assets/entity/slenderman.webp
           test -s apk-check/assets/entity/diep_minh.webp
@@ -251,12 +293,12 @@ jobs:
       # Pull-request experiment installs alongside the main app. Never require
       # uninstalling a user's existing game (and risking current save data).
       - name: Build isolated Canon R2 trial APK
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && github.head_ref != 'feat/653-mini-map-explorer'
         working-directory: android-apk
         run: gradle :app:assembleDebug -PbackroomCanonTrial=true --no-daemon
 
       - name: Verify isolated Canon trial package
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && github.head_ref != 'feat/653-mini-map-explorer'
         run: |
           set -euo pipefail
           cp android-apk/app/build/outputs/apk/debug/app-debug.apk Backroom-Canon-R2-Trial.apk
@@ -267,7 +309,7 @@ jobs:
           "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 Backroom-Canon-R2-Trial.apk
 
       - name: Upload isolated Canon R2 trial APK
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && github.head_ref != 'feat/653-mini-map-explorer'
         uses: actions/upload-artifact@v4
         with:
           name: Backroom-Canon-R2-Trial-debug-apk
@@ -323,8 +365,8 @@ jobs:
           unzip -p Backroom-1.2.0.0.38-verified.apk assets/index.html | grep -q 'function semanticTerms(before,after)'
           unzip -p Backroom-1.2.0.0.38-verified.apk assets/index.html | grep -q 'UI_119_BACKPORT_R01'
           rm -rf verified-composer && mkdir verified-composer
-          unzip -q Backroom-1.2.0.0.38-verified.apk 'assets/index.html' 'assets/player-composer.*' 'assets/ui/ornate-frame-v1.css' -d verified-composer
-          node android-apk/verify-player-composer.mjs verified-composer/assets
+          unzip -q Backroom-1.2.0.0.38-verified.apk 'assets/index.html' 'assets/explorer-controls.*' 'assets/ui/ornate-frame-v1.css' 'assets/ui/backrooms-reference-frame-v2.png' 'assets/ui/industrial-crt-v1.css' 'assets/ui/snapshot-tv.js' 'assets/ui/snapshot-crt.css' 'assets/ui/crt-glass-v5.svg' 'assets/ui/crt-optics.svg' 'assets/ui/black-observation-monitor-v1.webp' 'assets/ui/industrial-crt-v1/*.webp' -d verified-composer
+          node android-apk/verify-explorer-controls.mjs verified-composer/assets
           unzip -p Backroom-1.2.0.0.38-verified.apk assets/index.html | grep -q 'POKER_DICE_CORE_BACKPORT_R01'
           unzip -p Backroom-1.2.0.0.38-verified.apk assets/index.html | grep -q 'pokerDiceModal'
           unzip -p Backroom-1.2.0.0.38-verified.apk assets/combat-feedback-1193a.js | grep -q 'COMBAT_TRANSIENT_LOG_R01'
@@ -375,4 +417,3 @@ jobs:
           git add release-status/v1.2.0.0.38.txt release-status/v1.2.0.0.38-running.txt
           git commit -m 'Record verified Backroom 1.2.0.0.38 debug release'
           git push origin "HEAD:${GITHUB_REF_NAME}"
-

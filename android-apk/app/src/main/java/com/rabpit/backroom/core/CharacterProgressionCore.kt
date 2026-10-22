@@ -11,7 +11,7 @@ object CharacterProgressionCore {
   const val BASE_STAT = 5
   const val MAX_STAT = 999
   const val BASE_MAX_HP = 50
-  // Each new level can add up to 6 to one stat. This bound prevents any roll exceeding MAX_STAT.
+  // Keep the existing level ceiling. Books can cap stats earlier; grantExp allocates only to remaining stat capacity.
   const val MAX_LEVEL = (MAX_STAT - BASE_STAT) / 6
   private val STAT_KEYS = setOf("STR", "DEX", "AGI", "VIT", "EVA")
 
@@ -26,10 +26,10 @@ object CharacterProgressionCore {
       "VIT" -> p.vit
       "EVA" -> p.eva
       else -> BASE_STAT
-    }.coerceIn(BASE_STAT, MAX_STAT)
+    }.coerceIn(CharacterStatProfiles.minimumStat(characterId), MAX_STAT)
   }
 
-  fun statPercent(stat: Int): Int = 100 + 4 * (stat.coerceIn(BASE_STAT, MAX_STAT) - BASE_STAT)
+  fun statPercent(stat: Int): Int = 100 + 4 * (stat.coerceIn(1, MAX_STAT) - BASE_STAT)
   fun statPercent(state: GameState, characterId: String, stat: String): Int =
     statPercent(baseStat(state, characterId, stat))
 
@@ -53,12 +53,14 @@ object CharacterProgressionCore {
     var gained = 0
     while (level < MAX_LEVEL && xp >= expRequired(level).toLong()) {
       xp -= expRequired(level).toLong()
-      val bonus = IntArray(5) { 1 }
-      repeat(5) { bonus[random.nextInt(5)]++ }
       val p = character.statProfile
       val values = intArrayOf(p.str, p.dex, p.agi, p.vit, p.eva)
-      for (i in values.indices) check(values[i] + bonus[i] <= MAX_STAT) {
-        "STAT chạm giới hạn; không thể phân phối đủ 10 điểm."
+      // Books can reach the cap before MAX_LEVEL. Redistribute only to stats
+      // with capacity; uncapped characters retain their exact previous RNG draws.
+      val bonus = IntArray(5) { if (values[it] < MAX_STAT) 1 else 0 }
+      repeat(10 - bonus.sum()) {
+        val available = values.indices.filter { values[it] + bonus[it] < MAX_STAT }
+        if (available.isNotEmpty()) bonus[available[random.nextInt(available.size)]]++
       }
       val before = CharacterStatCore.effective(normalized.copy(characters = normalized.characters + (id to character)), id).maxHp
       val updatedProfile = p.copy(
@@ -83,18 +85,20 @@ object CharacterProgressionCore {
 
   fun normalize(input: GameState): GameState {
     // Drop obsolete Core currency; only the five stored primary stats are authoritative.
-    val state = input.copy(metadata = sanitizeMetadata(input.metadata))
+    val state = CharacterStatProfiles.rebalanceCurrentFollowers(input)
+      .copy(metadata = sanitizeMetadata(input.metadata))
     val chars = state.characters.toMutableMap()
     state.characters.forEach { (id, c) ->
       val raw = c.statProfile
       val canonical = if (raw.schema == SCHEMA) {
+        val minStat = CharacterStatProfiles.minimumStat(id)
         raw.copy(
-          baseMaxHp = BASE_MAX_HP,
-          str = raw.str.coerceIn(BASE_STAT, MAX_STAT),
-          dex = raw.dex.coerceIn(BASE_STAT, MAX_STAT),
-          agi = raw.agi.coerceIn(BASE_STAT, MAX_STAT),
-          eva = raw.eva.coerceIn(BASE_STAT, MAX_STAT),
-          vit = raw.vit.coerceIn(BASE_STAT, MAX_STAT),
+          baseMaxHp = CharacterStatProfiles.forId(id).baseMaxHp,
+          str = raw.str.coerceIn(minStat, MAX_STAT),
+          dex = raw.dex.coerceIn(minStat, MAX_STAT),
+          agi = raw.agi.coerceIn(minStat, MAX_STAT),
+          eva = raw.eva.coerceIn(minStat, MAX_STAT),
+          vit = raw.vit.coerceIn(minStat, MAX_STAT),
           regen = HpRegenRule(),
           schema = SCHEMA
         )
@@ -156,10 +160,15 @@ object CharacterStatCore {
   /** Sum of percentage stat bonuses from all equipped items. Bound gear cannot be unequipped. */
   private fun equipmentBonuses(state: GameState, characterId: String): EquipmentBonuses {
     val equipmentId = state.characters[characterId]?.equipmentId ?: characterId
-    val itemIds = state.equipment[equipmentId]?.slots?.values ?: return EquipmentBonuses()
+    val equipped = state.equipment[equipmentId]?.slots ?: return EquipmentBonuses()
     var acc = EquipmentBonuses()
-    for (itemId in itemIds) {
-      val b = EquipmentCatalog.definition(itemId)?.bonuses ?: continue
+    for ((slot, itemId) in equipped) {
+      if (!EquipmentCatalog.isUsableBy(itemId, characterId)) continue
+      val def = EquipmentCatalog.definition(itemId) ?: continue
+      // New bound skill accessories must occupy their own slot to grant stats.
+      // Existing generic test fixtures and legacy equipment keep their former behavior.
+      if (itemId in setOf(CAO_MINH_BOOTS_ID, CAO_MINH_GAUNTLETS_ID) && slot != def.primarySlot.key) continue
+      val b = def.bonuses
       acc = acc.copy(
         agiPct = acc.agiPct + b.agiPct,
         dexPct = acc.dexPct + b.dexPct,
@@ -175,15 +184,32 @@ object CharacterStatCore {
     val p = state.characters[characterId]?.statProfile ?: CharacterStatProfiles.forId(characterId)
     val equip = equipmentBonuses(state, characterId)
     fun value(raw: Int, pct: Int): Int {
-      val base = (raw.coerceIn(5, 999) + passiveBonus(raw, characterId)).coerceAtMost(CharacterProgressionCore.MAX_STAT)
+      val minimum = CharacterStatProfiles.minimumStat(characterId)
+      val base = (raw.coerceIn(minimum, 999) + passiveBonus(raw, characterId)).coerceAtMost(CharacterProgressionCore.MAX_STAT)
       return ((base.toLong() * (100 + pct)) / 100).coerceAtMost(CharacterProgressionCore.MAX_STAT.toLong()).toInt()
     }
-    val str = value(p.str, equip.strPct)
-    val dex = value(p.dex, equip.dexPct)
-    val agi = value(p.agi, equip.agiPct)
+    // Needs weaken effective performance, never permanent progression or Max HP.
+    val c = state.characters[characterId]
+    val pState = c?.physiology ?: PhysiologyState()
+    val survivalMultiplier = c?.metadata?.get("survivalMultiplier")?.toDoubleOrNull() ?: 1.0
+    fun severity(band: PhysiologyBand): Int = when (band) {
+      PhysiologyBand.MODERATE -> 1
+      PhysiologyBand.SEVERE -> 2
+      PhysiologyBand.CRITICAL -> 3
+      else -> 0
+    }
+    val hunger = severity(PhysiologyStatusPolicy.hungerBand(pState.minutesSinceFood, survivalMultiplier))
+    val thirst = severity(PhysiologyStatusPolicy.thirstBand(pState.minutesSinceWater, survivalMultiplier))
+    val fatigue = severity(PhysiologyStatusPolicy.awakeBand(pState.minutesAwake, survivalMultiplier))
+    fun weakened(raw: Int, percent: Int): Int =
+      ((raw.toLong() * (100 - percent).coerceAtLeast(0)) / 100).toInt().coerceAtLeast(1)
+    val str = weakened(value(p.str, equip.strPct), hunger * 12 + thirst * 4)
+    val dex = weakened(value(p.dex, equip.dexPct), fatigue * 12 + thirst * 6)
+    val agi = weakened(value(p.agi, equip.agiPct), thirst * 12 + hunger * 4)
     val vit = value(p.vit, equip.vitPct)
-    val eva = value(p.eva, 0)
-    val def = ((defense(vit).toLong() * (100 + equip.defPct)) / 100).coerceAtMost(CharacterProgressionCore.MAX_STAT.toLong()).toInt()
+    val eva = weakened(value(p.eva, 0), fatigue * 12 + thirst * 6)
+    val baseDef = ((defense(vit).toLong() * (100 + equip.defPct)) / 100).coerceAtMost(CharacterProgressionCore.MAX_STAT.toLong()).toInt()
+    val def = if (baseDef == 0) 0 else weakened(baseDef, thirst * 10)
     val accuracyBp = accuracyBasisPoints(dex, agi)
     val critBp = criticalChanceBasisPoints(agi)
     val dodgeBp = evasionBasisPoints(eva)
@@ -191,7 +217,10 @@ object CharacterStatCore {
     val dodgeResBp = evasionResistanceBasisPoints(eva)
     val attack = CharacterProgressionCore.statPercent(str)
     return EffectiveCharacterStats(
-      maxHp = maxHp(vit),
+      maxHp = CharacterStatProfiles.followerStartingBalance(characterId)?.let { seed ->
+        // Each additional effective VIT point still raises HP by five after leveling.
+        (seed.baseMaxHp.toLong() + 5L * (vit - seed.vit)).coerceIn(1L, Int.MAX_VALUE.toLong()).toInt()
+      } ?: maxHp(vit),
       str = str, dex = dex, agi = agi, vit = vit, eva = eva, def = def,
       criticalChancePercent = roundPercent(critBp),
       evasionPercent = roundPercent(dodgeBp),
@@ -203,7 +232,10 @@ object CharacterStatCore {
       resCriticalBasisPoints = critResBp,
       resEvasionBasisPoints = dodgeResBp,
       criticalDamagePercent = CRITICAL_DAMAGE_PERCENT,
-      attackPercent = attack, skillDamagePercent = attack,
+      attackPercent = attack,
+      skillDamagePercent = (attack.toLong() *
+        EquipmentCatalog.equippedSkillDamageMultiplier(state, characterId))
+        .coerceAtMost(Int.MAX_VALUE.toLong()).toInt(),
       energy = p.energy,
       regenPerCompletedTurn = 0
     )
@@ -217,7 +249,7 @@ object CharacterStatCore {
   // Base 58.00%, +0.50 percentage points per effective DEX or AGI above 5.
   // Capped at 95% before encounter tactics; the final attack roll can reach 99%.
   fun accuracyBasisPoints(dex: Int, agi: Int): Int {
-    val bonusPoints = (dex.coerceIn(5, 999) - 5) + (agi.coerceIn(5, 999) - 5)
+    val bonusPoints = (dex.coerceIn(1, 999) - 5) + (agi.coerceIn(1, 999) - 5)
     return (5800 + bonusPoints * 50).coerceAtMost(9500)
   }
 
@@ -232,9 +264,9 @@ object CharacterStatCore {
   }
 
   fun criticalChanceBasisPoints(agi: Int): Int =
-    (500 + (agi.coerceIn(5, 999) - 5) * 45).coerceAtMost(3000)
+    (500 + (agi.coerceIn(1, 999) - 5) * 45).coerceAtMost(3000)
   fun evasionBasisPoints(eva: Int): Int =
-    (500 + (eva.coerceIn(5, 999) - 5) * 50).coerceAtMost(3500)
+    (500 + (eva.coerceIn(1, 999) - 5) * 50).coerceAtMost(3500)
   fun criticalResistanceBasisPoints(dex: Int): Int =
     ((dex.coerceIn(5, 999) - 5) * 25).coerceAtMost(10000)
   fun evasionResistanceBasisPoints(eva: Int): Int =
@@ -299,11 +331,7 @@ object CaoMinhCombatPassive {
     val heal = max(1, (maxHp * HEAL_PERCENT + 50) / 100)
     val hp = min(maxHp, c.vitalState.currentHp + heal)
     val nextStack = stacks(state) + 1
-    return state.copy(
-      characters = state.characters + (CAO_MINH_ID to c.copy(
-        vitalState = c.vitalState.copy(currentHp = hp, condition = CharacterStatEngine.conditionFor(hp, maxHp, c.vitalState.condition, c.presence))
-      )),
-      metadata = state.metadata + (STACK_KEY to nextStack.toString())
-    )
+    val healed = CharacterStatEngine.setCurrentHp(state, CAO_MINH_ID, hp)
+    return healed.copy(metadata = healed.metadata + (STACK_KEY to nextStack.toString()))
   }
 }

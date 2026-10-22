@@ -87,34 +87,31 @@ public final class LevelRouteRegistry {
     forward("0.1", "0.2");
     forward("0.2", "0.5");
     forward("0.5", "0.7");
-    forward("0.7", "manila_room");
+    forward("0.7", "dullness");
+    forward("dullness", "epsilon");
+    forward("epsilon", "ls_2");
+    forward("ls_2", "manila_room");
     forward("manila_room", "the_torment");
     forward("the_torment", "red_rooms");
     forward("red_rooms", "1");
 
-    // Parent Level progression never returns to an earlier main Level.
-    // Same-parent AREA/SUBLEVEL detours remain bidirectional below.
-    forward("1", "2");
-    forward("2", "3");
+    // The player confirmed one uninterrupted one-way route for ALL exact nodes.
+    // Side areas are mandatory stages, never return detours or shortcuts.
+    forward("1", "1.2");
+    forward("1.2", "1.5");
+    forward("1.5", "traders_vault");
+    forward("traders_vault", "base_alpha");
+    forward("base_alpha", "2");
+    forward("2", "office_space_el3a");
+    forward("office_space_el3a", "3");
     forward("3", "4");
-    forward("3", "6");
-    forward("4", "5");
-    forward("5", "6");
+    forward("4", "office_market");
+    forward("office_market", "5");
+    forward("5", "5.1");
+    forward("5.1", "6");
+    forward("6", "6.1");
 
-    // Image-referenced optional environments, attached only to their parent level.
-    both("0", "dullness");
-    both("0", "epsilon");
-    both("0", "ls_2");
-    both("1", "1.2");
-    both("1", "1.5");
-    both("1", "traders_vault");
-    both("1", "base_alpha");
-    both("2", "office_space_el3a");
-    both("4", "office_market");
-    both("5", "5.1");
-    both("6", "6.1");
-
-    assertAcyclicParentRoutes();
+    assertAcyclicRoutes();
   }
 
   private LevelRouteRegistry() {}
@@ -128,39 +125,22 @@ public final class LevelRouteRegistry {
     EXITS.get(from).add(to);
   }
 
-  private static void both(String first, String second) {
-    forward(first, second);
-    forward(second, first);
-  }
-
   /**
-   * A route graph that is acyclic across parent Levels cannot send the player back
-   * to a previously departed Level. Cycles inside one parent are valid local detours.
-   * Validate at registry construction so future routes cannot silently break this rule.
+   * No edge may reach an earlier node, including nodes sharing a parent Level.
+   * Check the exact-node graph to catch any accidentally reintroduced detours.
    */
-  private static void assertAcyclicParentRoutes() {
-    Map<Integer, Set<Integer>> parents = new LinkedHashMap<>();
-    for (Map.Entry<String, Set<String>> entry : EXITS.entrySet()) {
-      int from = NODES.get(entry.getKey()).parent;
-      for (String destination : entry.getValue()) {
-        int to = NODES.get(destination).parent;
-        if (from != to) parents.computeIfAbsent(from, ignored -> new LinkedHashSet<>()).add(to);
-      }
-    }
-    Set<Integer> active = new HashSet<>();
-    Set<Integer> complete = new HashSet<>();
-    for (Integer parent : parents.keySet()) checkParentRoute(parent, parents, active, complete);
+  private static void assertAcyclicRoutes() {
+    Set<String> active = new HashSet<>();
+    Set<String> complete = new HashSet<>();
+    for (String nodeId : NODES.keySet()) checkRoute(nodeId, active, complete);
   }
 
-  private static void checkParentRoute(int parent, Map<Integer, Set<Integer>> routes,
-      Set<Integer> active, Set<Integer> complete) {
-    if (complete.contains(parent)) return;
-    if (!active.add(parent)) throw new IllegalStateException("Parent Level route cycle: " + parent);
-    for (Integer destination : routes.getOrDefault(parent, Collections.emptySet())) {
-      checkParentRoute(destination, routes, active, complete);
-    }
-    active.remove(parent);
-    complete.add(parent);
+  private static void checkRoute(String nodeId, Set<String> active, Set<String> complete) {
+    if (complete.contains(nodeId)) return;
+    if (!active.add(nodeId)) throw new IllegalStateException("Route cycle: " + nodeId);
+    for (String next : EXITS.get(nodeId)) checkRoute(next, active, complete);
+    active.remove(nodeId);
+    complete.add(nodeId);
   }
 
   public static Node node(String id) { return NODES.get(id); }
@@ -228,6 +208,9 @@ public final class LevelRouteRegistry {
       case "manila_room": return "Manila Room is a relatively stable, quiet beige room with wooden flooring, a central table and survivor notes, not a busy safe hub";
       case "the_torment": return "The Torment is an eerie grayscale graveyard of concentric tomb rings, dead trees, fog, a fixed moon and a damaged hooded statue; its origin is unknown";
       case "red_rooms": return "Red Rooms have dark-red wallpaper, reddish darkroom lighting, sticky carpet, mold and poor communications";
+      case "dullness": return "Dullness changes apparent room sizes and merges spatial forms; an ordinary map is not reliable evidence of adjacency";
+      case "epsilon": return "Level Epsilon has high yellow halls, beige carpet and fluorescent hum, with bridges, tunnels, platforms, and surprising vertical connections";
+      case "ls_2": return "LS-2 PROJECT-AUTHORED EXTENSION (approved 2026-10-21): abandoned numbered shelving, silent gear housings, discrepant markings and a nameless latch. Missing labels are not confirmed numeric codes, and time travel is not established";
       default:
         return "Use documented parent-Level conditions. Exact physical traits, inhabitants and supplies of this extra named node are not yet independently established; do not invent confirmed lore or guaranteed exits";
     }
@@ -251,7 +234,8 @@ public final class LevelRouteRegistry {
       .append("not a freeform change to location alone. Never skip mandatory Level-0 nodes. ")
       .append("An available exit does not move the player: only the player's deliberate traversal does. ")
       .append("All moves require authoritative hidden Exit readiness. ")
-      .append("Named optional areas are local detours, not shortcuts across main levels. ")
+      .append("Every Canon node is a mandatory one-way stage; never return to any completed node. ")
+      .append("Level 3 must lead to Level 4; Level 6 must lead to 6.1 before the ending. ")
       .append("Use parent Level for hazards/entity rolls. No Level 7.");
     return result.toString();
   }

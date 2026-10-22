@@ -67,6 +67,8 @@ data class EquipmentDefinition(
   val rarity: String? = null,
   val bonuses: EquipmentBonuses = EquipmentBonuses(),
   val weapon: WeaponGameplayStats? = null,
+  /** Skill-only damage multiplier (separate from additive STR/DEX/AGI percentages). */
+  val skillDamageMultiplier: Int = 1,
   val abilities: List<EquipmentAbility> = emptyList(),
   val restrictions: List<String> = emptyList(),
   val classification: ItemClassification = ItemClassification.CANONICAL,
@@ -89,6 +91,26 @@ object EquipmentCatalog {
       bonuses = EquipmentBonuses(agiPct = 100, dexPct = 30, vitPct = 20, strPct = 20),
       abilities = listOf(ability("Ma Kim hộ thể", "Ma khải bảo vệ nhục thân và phân tán lực va chạm."), ability("Ma nguyên tự phục hồi", "Tự phục hồi pháp bảo; không đồng nghĩa hồi HP tức thì.")),
       canonRef = "CAO-EQP-HUYET-MA-KHAI-01"
+    ),
+    EquipmentDefinition(
+      id = CAO_MINH_BOOTS_ID, name = "Giày Huyết Ma", type = "MA ĐẠO CHIẾN NGOA",
+      primarySlot = EquipmentSlot.FOOTWEAR,
+      bonuses = EquipmentBonuses(agiPct = 100, dexPct = 100),
+      skillDamageMultiplier = 1,
+      abilities = listOf(ability("Huyết Ảnh Bộ", "AGI +100%, DEX +100%; đóng góp ×1 vào hệ số sát thương kỹ năng khi trang bị.",
+        "Khi phối hợp Găng tay Huyết Ma: ×1 + ×1 = ×2 Skill DMG, áp dụng sau STR; không tăng sát thương đánh thường.")),
+      restrictions = listOf("Chỉ Cao Minh sử dụng; không chuyển nhượng hoặc tháo pháp bảo bản mệnh."),
+      canonRef = "CAO-EQP-HUYET-MA-BOOTS-01"
+    ),
+    EquipmentDefinition(
+      id = CAO_MINH_GAUNTLETS_ID, name = "Găng tay Huyết Ma", type = "MA ĐẠO HỘ THỦ",
+      primarySlot = EquipmentSlot.GAUNTLETS,
+      bonuses = EquipmentBonuses(agiPct = 100, dexPct = 100),
+      skillDamageMultiplier = 1,
+      abilities = listOf(ability("Ma Trảo Cường Hóa", "AGI +100%, DEX +100%; đóng góp ×1 vào hệ số sát thương kỹ năng khi trang bị.",
+        "Khi phối hợp Giày Huyết Ma: ×1 + ×1 = ×2 Skill DMG, áp dụng sau STR; không tăng sát thương đánh thường.")),
+      restrictions = listOf("Chỉ Cao Minh sử dụng; không chuyển nhượng hoặc tháo pháp bảo bản mệnh."),
+      canonRef = "CAO-EQP-HUYET-MA-GAUNTLETS-01"
     ),
     EquipmentDefinition(
       id = IRIS_IVORY_EBONY_SET_ID, name = "Ivory & Ebony", type = "DUAL_WEAPON SET", primarySlot = EquipmentSlot.WEAPON,
@@ -134,6 +156,137 @@ object EquipmentCatalog {
       abilities = listOf(ability("Phân tán phản lực", "Ổn định chuyển hướng và chịu va đập.")),
       restrictions = listOf("Là pháp bảo tiên hiệp; không có AI, reactor hoặc HUD."),
       canonRef = "LUC-TRAM-THIEN-KIEM-CODEX-R05+LUC-PRO-R06"
+    ),
+    EquipmentDefinition(
+      id = CATHERINE_VESPER_ID, name = "Vesper Nocturne", type = "SIX-SHOT OCCULT REVOLVER",
+      primarySlot = EquipmentSlot.WEAPON, weapon = WeaponGameplayStats(22, "6 / 36 reserve", null, listOf("Single Action", "Measured Double Action")),
+      abilities = listOf(ability("Gương ngắm hổ phách", "Điểm ngắm hoàng đồng phản sáng trong ánh đèn yếu; không nhìn xuyên tường."),
+        ability("Ổ đạn khắc kinh văn", "Ổ quay sáu viên ghi khế ước từ xưởng Ashcombe; không tự tạo đạn.")),
+      restrictions = listOf("Đạn hữu hạn trong Canon; hệ thống Combat hiện không mô phỏng từng viên đạn.", "Không dịch chuyển xuyên tường hoặc tự khám phá Exit."),
+      canonRef = CatherineCanon.CANON_REF
+    ),
+    EquipmentDefinition(
+      id = CATHERINE_COAT_ID, name = "Ashcombe Mourning Coat", type = "GOTHIC VICTORIAN OUTFIT",
+      primarySlot = EquipmentSlot.OUTFIT, bonuses = EquipmentBonuses(defPct = 15, vitPct = 5),
+      abilities = listOf(ability("Lớp lót giấu chì", "Vải nhung đen và mảnh kim loại giấu dưới corset, phân tán mảnh đạn nhẹ.")),
+      canonRef = CatherineCanon.CANON_REF
+    ),
+    EquipmentDefinition(
+      id = CATHERINE_GLOVES_ID, name = "Velvet Trigger Gloves", type = "LEATHER GLOVES",
+      primarySlot = EquipmentSlot.GAUNTLETS, bonuses = EquipmentBonuses(dexPct = 10),
+      canonRef = CatherineCanon.CANON_REF
+    ),
+    EquipmentDefinition(
+      id = CATHERINE_BOOTS_ID, name = "Midnight Riding Boots", type = "LACED LEATHER BOOTS",
+      primarySlot = EquipmentSlot.FOOTWEAR, bonuses = EquipmentBonuses(agiPct = 10),
+      canonRef = CatherineCanon.CANON_REF
+    ),
+    EquipmentDefinition(
+      id = JANET_BAT_ID, name = "Bayou Belle", type = "BARBED-WIRE WOODEN BASEBALL BAT",
+      primarySlot = EquipmentSlot.WEAPON, weapon = WeaponGameplayStats(24),
+      abilities = listOf(ability("Bayou Swing", "Đòn đánh bồi từ quỹ đạo gậy cận chiến."),
+        ability("Barbed Encore", "Dây thép gai xé qua lớp bảo hộ mềm của mục tiêu.")),
+      restrictions = listOf("Vũ khí vật lý cận chiến: không đánh xuyên tường, không bắn tầm xa.",
+        "Dây thép gai và gỗ có độ bền hữu hạn trong Canon."),
+      canonRef = JanetCanon.CANON_REF
+    ),
+    EquipmentDefinition(
+      id = JANET_VEST_ID, name = "New Island Varsity Vest", type = "1988 COLLEGE VARSITY OUTFIT",
+      primarySlot = EquipmentSlot.OUTFIT, bonuses = EquipmentBonuses(vitPct = 10),
+      restrictions = listOf("Áo vải; không phải áo chống đạn."),
+      canonRef = JanetCanon.CANON_REF
+    ),
+    EquipmentDefinition(
+      id = JANET_GLOVES_ID, name = "Iron Grip Gloves", type = "PADDED LEATHER GLOVES",
+      primarySlot = EquipmentSlot.GAUNTLETS, bonuses = EquipmentBonuses(strPct = 10),
+      canonRef = JanetCanon.CANON_REF
+    ),
+    EquipmentDefinition(
+      id = JANET_BOOTS_ID, name = "Bayou Road Boots", type = "HIGH-LACE LEATHER BOOTS",
+      primarySlot = EquipmentSlot.FOOTWEAR, bonuses = EquipmentBonuses(defPct = 10),
+      canonRef = JanetCanon.CANON_REF
+    ),
+    EquipmentDefinition(
+      id = NAM_PISTOL_ID, name = "Hành Lang 01", type = "FOUND SEMIAUTOMATIC PISTOL",
+      primarySlot = EquipmentSlot.WEAPON,
+      weapon = WeaponGameplayStats(19, "8 + reserve (Canon)", null, listOf("Single")),
+      restrictions = listOf("Vũ khí nhặt trong Backrooms, không mang từ trường học.",
+        "Combat hiện chưa mô phỏng tiêu hao đạn; súng và đạn hữu hạn theo Canon.",
+        "Không bắn xuyên tường, không bắn chính xác từ vô hạn khoảng cách."),
+      canonRef = NguyenQuocNamCanon.CANON_REF
+    ),
+    EquipmentDefinition(
+      id = NAM_SHIRT_ID, name = "Áo Sơ Mi Ca Trực", type = "WHITE LECTURER SHIRT",
+      primarySlot = EquipmentSlot.OUTFIT, bonuses = EquipmentBonuses(vitPct = 10),
+      restrictions = listOf("Không phải áo chống đạn hoặc giáp bảo hộ."),
+      canonRef = NguyenQuocNamCanon.CANON_REF
+    ),
+    EquipmentDefinition(
+      id = NAM_WATCH_ID, name = "Đồng Hồ Lời Hứa", type = "ANALOG WRISTWATCH",
+      primarySlot = EquipmentSlot.WRIST, bonuses = EquipmentBonuses(dexPct = 10),
+      restrictions = listOf("Không đo sinh hiệu, không liên lạc với gia đình hoặc chỉ đường Exit."),
+      canonRef = NguyenQuocNamCanon.CANON_REF
+    ),
+    EquipmentDefinition(
+      id = NAM_SHOES_ID, name = "Giày Hành Lang", type = "BLACK LEATHER SHOES",
+      primarySlot = EquipmentSlot.FOOTWEAR, bonuses = EquipmentBonuses(defPct = 10),
+      canonRef = NguyenQuocNamCanon.CANON_REF
+    ),
+    EquipmentDefinition(
+      id = TRAC_LAM_GEMINI_ID, name = "M-92 Gemini", type = "DUAL-BARREL TACTICAL RIFLE",
+      primarySlot = EquipmentSlot.WEAPON,
+      weapon = WeaponGameplayStats(27, "finite cartridges / no reload simulation", null, listOf("Precision", "Suppressive")),
+      abilities = listOf(ability("Hai nòng độc lập", "Đạn xuyên giáp hoặc chế áp theo cơ chế kỹ năng; không bắn xuyên kết cấu."),
+        ability("Phân loại mục tiêu", "Dùng dữ kiện tác chiến hiện thời; không nhìn xuyên tường hoặc biết trước Entity.")),
+      restrictions = listOf("Đạn hữu hạn theo Canon; combat hiện chưa trừ từng viên."),
+      canonRef = TracLamCanon.CANON_REF
+    ),
+    EquipmentDefinition(
+      id = TRAC_LAM_AEGIS_ID, name = "AEGIS-K4", type = "POWERED TACTICAL ARMOR",
+      primarySlot = EquipmentSlot.ARMOR, bonuses = EquipmentBonuses(defPct = 20, vitPct = 10),
+      restrictions = listOf("Giáp phụ thuộc pin và cảm biến; không chống mọi sát thương."),
+      canonRef = TracLamCanon.CANON_REF
+    ),
+    EquipmentDefinition(
+      id = TRAC_LAM_SCOUT_ID, name = "Bộ Trinh Sát SRU-03", type = "LOCAL SENSOR KIT",
+      primarySlot = EquipmentSlot.SPECIAL, bonuses = EquipmentBonuses(dexPct = 10),
+      restrictions = listOf("Chỉ đo tại chỗ; không cung cấp bản đồ chính xác của Backrooms."),
+      canonRef = TracLamCanon.CANON_REF
+    ),
+    EquipmentDefinition(
+      id = TRAC_LAM_MEDKIT_ID, name = "Bộ Cứu Thương SRU", type = "FIELD MEDKIT",
+      primarySlot = EquipmentSlot.WRIST, bonuses = EquipmentBonuses(),
+      restrictions = listOf("Chỉ sơ cứu thông thường; không tự chữa lành bằng phép."),
+      canonRef = TracLamCanon.CANON_REF
+    ),
+    EquipmentDefinition(
+      id = TIEU_LAN_RIFLE_ID, name = "Trường Xuân", type = "ANTIQUE SINGLE-SHOT RIFLE",
+      primarySlot = EquipmentSlot.WEAPON,
+      weapon = WeaponGameplayStats(25, "1 loaded / finite reserve (Canon)", null, listOf("Single shot")),
+      abilities = listOf(ability("Thước ngắm cơ khí", "Giữ điểm ngắm ở tầm nhìn thực, không phát hiện Exit."),
+        ability("Báng gỗ chạm hoa", "Điểm tựa ổn định khi ngắm bắn, không tăng phạm vi xuyên vật chắn.")),
+      restrictions = listOf("Súng cổ chỉ một phát mỗi lần nạp; đạn hữu hạn trong Canon.",
+        "Combat hiện không mô phỏng nạp và trừ đạn từng lượt; không được suy ra đạn vô hạn.",
+        "Không bắn xuyên tường hoặc tự động ngắm mục tiêu ngoài tầm nhìn."),
+      canonRef = HuaTieuLanCanon.CANON_REF
+    ),
+    EquipmentDefinition(
+      id = TIEU_LAN_AO_DAI_ID, name = "Lam Cúc Áo Dài", type = "BLUE DAISY VIETNAMESE AO DAI",
+      primarySlot = EquipmentSlot.OUTFIT, bonuses = EquipmentBonuses(agiPct = 10),
+      restrictions = listOf("Áo dài có hai tà trước và sau, không phải giáp."),
+      canonRef = HuaTieuLanCanon.CANON_REF
+    ),
+    EquipmentDefinition(
+      id = TIEU_LAN_JADE_ID, name = "Vòng Ngọc Bình An", type = "JADE WRIST BANGLE",
+      primarySlot = EquipmentSlot.WRIST, bonuses = EquipmentBonuses(dexPct = 10),
+      restrictions = listOf("Vật kỷ niệm, không có phép chữa lành hoặc liên lạc gia đình."),
+      canonRef = HuaTieuLanCanon.CANON_REF
+    ),
+    EquipmentDefinition(
+      id = TIEU_LAN_SHOES_ID, name = "Bạch Liên Hài", type = "WHITE LOW HEEL SHOES",
+      primarySlot = EquipmentSlot.FOOTWEAR, bonuses = EquipmentBonuses(defPct = 10),
+      restrictions = listOf("Giày thường, không bay hoặc bước xuyên tường."),
+      canonRef = HuaTieuLanCanon.CANON_REF
     ),
     EquipmentDefinition(
       id = LUCIA_M4A1_ID, name = "M4A1 cá nhân hóa", type = "ASSAULT RIFLE", primarySlot = EquipmentSlot.WEAPON,
@@ -188,13 +341,59 @@ object EquipmentCatalog {
     else -> definitions[itemId]
   }
 
+  /** Only Cao Minh may benefit from his bound Huyết Ma accessories. */
+  fun isUsableBy(itemId: String, characterId: String): Boolean =
+    itemId !in setOf(CAO_MINH_BOOTS_ID, CAO_MINH_GAUNTLETS_ID) ||
+      CharacterStatCore.isCaoMinh(characterId)
+
+  /**
+   * Huyết Ma accessories add their contributions: one piece ×1, both ×2.
+   * With no accessory, the neutral baseline is ×1 (not an extra +1).
+   * Ordinary weapon and basic attacks do not use this factor.
+   */
+  fun equippedSkillDamageMultiplier(state: GameState, characterId: String): Int {
+    val equipmentId = state.characters[characterId]?.equipmentId ?: characterId
+    val slots = state.equipment[equipmentId]?.slots ?: return 1
+    var result = 1
+    var huyetMaContribution = 0
+    for ((slot, itemId) in slots) {
+      val def = definition(itemId) ?: continue
+      if (!isUsableBy(itemId, characterId) || slot != def.primarySlot.key) continue
+      if (itemId == CAO_MINH_BOOTS_ID || itemId == CAO_MINH_GAUNTLETS_ID) {
+        huyetMaContribution += def.skillDamageMultiplier.coerceAtLeast(1)
+      } else {
+        result = (result.toLong() * def.skillDamageMultiplier.coerceAtLeast(1))
+          .coerceAtMost(999L).toInt()
+      }
+    }
+    return (result.toLong() * huyetMaContribution.coerceAtLeast(1))
+      .coerceAtMost(999L).toInt()
+  }
+
   fun startingLoadout(characterId: String): Map<EquipmentSlot, String> = when (characterId) {
     CAO_MINH_ID -> linkedMapOf(
       EquipmentSlot.WEAPON to CAO_MINH_SWORD_ID,
       EquipmentSlot.ARMOR to CAO_MINH_ARMOR_ID,
+      EquipmentSlot.FOOTWEAR to CAO_MINH_BOOTS_ID,
+      EquipmentSlot.GAUNTLETS to CAO_MINH_GAUNTLETS_ID,
     )
     IRIS_ID -> linkedMapOf(EquipmentSlot.WEAPON to IRIS_IVORY_EBONY_SET_ID)
     SYVIAL_ID -> linkedMapOf(EquipmentSlot.WEAPON to SYVIAL_GODKILLER_ID)
+    CATHERINE_ID -> linkedMapOf(EquipmentSlot.WEAPON to CATHERINE_VESPER_ID,
+      EquipmentSlot.OUTFIT to CATHERINE_COAT_ID, EquipmentSlot.GAUNTLETS to CATHERINE_GLOVES_ID,
+      EquipmentSlot.FOOTWEAR to CATHERINE_BOOTS_ID)
+    JANET_ID -> linkedMapOf(EquipmentSlot.WEAPON to JANET_BAT_ID,
+      EquipmentSlot.OUTFIT to JANET_VEST_ID, EquipmentSlot.GAUNTLETS to JANET_GLOVES_ID,
+      EquipmentSlot.FOOTWEAR to JANET_BOOTS_ID)
+    NGUYEN_QUOC_NAM_ID -> linkedMapOf(EquipmentSlot.WEAPON to NAM_PISTOL_ID,
+      EquipmentSlot.OUTFIT to NAM_SHIRT_ID, EquipmentSlot.WRIST to NAM_WATCH_ID,
+      EquipmentSlot.FOOTWEAR to NAM_SHOES_ID)
+    HUA_TIEU_LAN_ID -> linkedMapOf(EquipmentSlot.WEAPON to TIEU_LAN_RIFLE_ID,
+      EquipmentSlot.OUTFIT to TIEU_LAN_AO_DAI_ID, EquipmentSlot.WRIST to TIEU_LAN_JADE_ID,
+      EquipmentSlot.FOOTWEAR to TIEU_LAN_SHOES_ID)
+    TRAC_LAM_ID -> linkedMapOf(EquipmentSlot.WEAPON to TRAC_LAM_GEMINI_ID,
+      EquipmentSlot.ARMOR to TRAC_LAM_AEGIS_ID, EquipmentSlot.SPECIAL to TRAC_LAM_SCOUT_ID,
+      EquipmentSlot.WRIST to TRAC_LAM_MEDKIT_ID)
     AN_NHIEN_ID -> linkedMapOf(EquipmentSlot.OUTFIT to AN_NHIEN_OUTFIT_ID, EquipmentSlot.FOOTWEAR to AN_NHIEN_FOOTWEAR_ID)
     LUCIA_ID -> linkedMapOf(
       EquipmentSlot.WEAPON to LUCIA_M4A1_ID,
@@ -267,11 +466,57 @@ object CharacterStatEngine {
     val character = state.characters[characterId] ?: return state
     val maxHp = effective(state, characterId).maxHp
     val nextHp = hp.coerceIn(0, maxHp)
+    // Ordinary healing first consumes the recoverable portion: rest cannot heal it twice.
+    var healed = (nextHp - character.vitalState.currentHp).coerceAtLeast(0)
+    val p = character.physiology
+    val foodUsed = minOf(healed, p.recoverableFoodHp); healed -= foodUsed
+    val waterUsed = minOf(healed, p.recoverableWaterHp); healed -= waterUsed
+    val sleepUsed = minOf(healed, p.recoverableSleepHp)
+    // The recoverable ledger must never exceed missing HP, including after
+    // equipment changes and explicit HP normalization.
+    var gap = (maxHp - nextHp).coerceAtLeast(0)
+    val foodRemaining = minOf(gap, (p.recoverableFoodHp - foodUsed).coerceAtLeast(0))
+    gap -= foodRemaining
+    val waterRemaining = minOf(gap, (p.recoverableWaterHp - waterUsed).coerceAtLeast(0))
+    gap -= waterRemaining
+    val sleepRemaining = minOf(gap, (p.recoverableSleepHp - sleepUsed).coerceAtLeast(0))
+    val nextPhysiology = p.copy(
+      recoverableFoodHp = foodRemaining,
+      recoverableWaterHp = waterRemaining,
+      recoverableSleepHp = sleepRemaining,
+      restRecoveryMinutes = if (foodRemaining > 0 || waterRemaining > 0 || sleepRemaining > 0)
+        p.restRecoveryMinutes else 0
+    )
     return state.copy(characters = state.characters + (characterId to character.copy(
+      physiology = nextPhysiology,
       vitalState = character.vitalState.copy(
         currentHp = nextHp,
         condition = conditionFor(nextHp, maxHp, character.vitalState.condition, character.presence)
       )
+    )))
+  }
+
+  /** Damage bypasses armor because starvation/dehydration/exhaustion are not physical hits. */
+  fun applySurvivalDamage(state: GameState, characterId: String, amount: Long, source: String): GameState {
+    if (amount <= 0L) return state
+    val c = state.characters[characterId] ?: return state
+    if (c.presence == CharacterPresence.DEAD || c.vitalState.currentHp <= 0) return state
+    val loss = minOf(amount, c.vitalState.currentHp.toLong()).toInt()
+    val damaged = setCurrentHp(state, characterId, c.vitalState.currentHp - loss)
+    val updated = damaged.characters.getValue(characterId)
+    val p = updated.physiology
+    fun plus(value: Int) = (value.toLong() + loss).coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+    val withSource = when (source) {
+      "FOOD" -> p.copy(recoverableFoodHp = plus(p.recoverableFoodHp))
+      "WATER" -> p.copy(recoverableWaterHp = plus(p.recoverableWaterHp))
+      "SLEEP" -> p.copy(recoverableSleepHp = plus(p.recoverableSleepHp))
+      else -> error("survival_damage_source_invalid")
+    }
+    val dead = updated.vitalState.currentHp == 0
+    return damaged.copy(characters = damaged.characters + (characterId to updated.copy(
+      physiology = withSource,
+      presence = if (dead) CharacterPresence.DEAD else updated.presence,
+      vitalState = if (dead) updated.vitalState.copy(condition = CharacterCondition.DEAD) else updated.vitalState
     )))
   }
 
@@ -293,9 +538,11 @@ object CharacterStatEngine {
     val strScaled = CharacterStatCore.basicDamage(
       weaponDamage(state, characterId), effective(state, characterId).str
     )
-    return if (CharacterStatCore.isCaoMinh(characterId)) {
+    val tactical = if (CharacterStatCore.isCaoMinh(characterId)) {
       CharacterStatCore.scaleByPercent(strScaled, CaoMinhCombatPassive.attackPercent(state))
     } else strScaled
+    val multiplier = EquipmentCatalog.equippedSkillDamageMultiplier(state, characterId)
+    return CharacterStatCore.scaleByPercent(tactical, multiplier * 100)
   }
 }
 
@@ -322,14 +569,17 @@ object CharacterEquipmentSystem {
 
   private fun normalizeInternal(source: GameState, seedStarting: Boolean): GameState {
     // Lucia exists in Core state without being forced into Party.
-    val input = LucTramCanon.ensure(LuciaCanon.ensure(source))
+    val balanced = CharacterStatProfiles.rebalanceCurrentFollowers(source)
+    val input = TracLamCanon.ensure(HuaTieuLanCanon.ensure(NguyenQuocNamCanon.ensure(JanetCanon.ensure(CatherineCanon.ensure(LucTramCanon.ensure(LuciaCanon.ensure(balanced)))))))
     val inventories = input.inventories.toMutableMap()
     val equipment = input.equipment.toMutableMap()
     input.characters.keys.forEach { characterId ->
       val inv = inventories[characterId] ?: InventoryState(characterId)
       val eq = equipment[characterId] ?: EquipmentState(characterId)
       val slots = eq.slots.toMutableMap()
-      if (seedStarting) {
+      if (seedStarting || characterId == CAO_MINH_ID) {
+        // Seed new bound Huyết Ma pieces in existing CURRENT-version runs too;
+        // leave manually populated non-empty slots untouched.
         EquipmentCatalog.startingLoadout(characterId).forEach { (slot, itemId) ->
           slots.putIfAbsent(slot.key, itemId)
         }

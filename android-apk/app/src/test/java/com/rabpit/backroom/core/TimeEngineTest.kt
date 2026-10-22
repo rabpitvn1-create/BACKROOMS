@@ -72,6 +72,19 @@ class TimeEngineTest {
     assertEquals(dead.physiology, result.state.characters.getValue(dead.id).physiology)
   }
 
+  @Test fun separatedPartyMemberDoesNotSufferOffscreenAttrition() {
+    val base = GameState.initial()
+    val person = CharacterState("separated", "Separated",
+      presence = CharacterPresence.SEPARATED,
+      physiology = PhysiologyState(minutesSinceFood = 4300L, minutesSinceWater = 2870L, minutesAwake = 2150L))
+    val state = base.copy(characters = base.characters + ("separated" to person),
+      party = base.party.copy(memberIds = listOf(CAO_MINH_ID, "separated")))
+    val result = TimeEngine.execute(state, TimeAdvanceCommand("t-party", null, CAO_MINH_ID,
+      source = CommandSource.SYSTEM, minutes = 60, reason = "walk"))
+    assertTrue(result.applied)
+    assertEquals(person, result.state.characters.getValue("separated"))
+  }
+
   @Test fun physiologyOverflowRejectsWholeTimeAdvance() {
     val caoMinh = GameState.initial().characters.getValue(CAO_MINH_ID).copy(
       physiology = PhysiologyState(minutesSinceFood = Long.MAX_VALUE - 5L, minutesSinceWater = 10L, minutesAwake = 20L)

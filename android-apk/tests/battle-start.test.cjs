@@ -105,14 +105,18 @@ test('pending encounters show no Entity image; confirmed encounter clears a prev
 });
 
 test('the native bridge commits validated GM narration and confirmation never calls submitAction', () => {
-  assert.match(java, /processValidatedCandidate\(\s*before\.toString\(\), state\.toString\(\), action, reply\)/);
-  assert.doesNotMatch(java, /processValidatedCandidate\(\s*before\.toString\(\), state\.toString\(\), action, reply, generated\.toString\(\)\)/);
+  assert.match(java, /private String narrateStagedSceneAction\(JSONObject stagedEvent\)/);
+  assert.match(java, /ProviderResponseContract\.requireWriter\(reply\)/);
+  assert.match(java, /canonBoundary\(sceneNode, reply\.getString\("reply"\)\)/);
+  assert.match(java, /String narration = narrateStagedSceneAction\(stagedEvent\)/);
+  assert.match(java, /commitSceneAction\(id, narration, stateJson\)/);
+  assert.doesNotMatch(java, /processValidatedCandidate/);
   assert.match(java, /@JavascriptInterface public void battleStart\(String stateJson, String encounterId\)/);
   assert.doesNotMatch(source, /submitAction|selectedEntityKey|startCombatState/);
   assert.doesNotMatch(java, /forceEntityEncounterFlag|requireGameCore\(\)\.startCombatState/);
 });
 
-test('pending encounters are included in the inline composer lock', () => {
-  const composer = fs.readFileSync(path.join(assets, 'player-composer.js'), 'utf8');
+test('pending encounters are included in the Explorer lock', () => {
+  const composer = fs.readFileSync(path.join(assets, 'explorer-controls.js'), 'utf8');
   assert.match(composer, /state.pendingEncounter/);
 });

@@ -70,3 +70,41 @@ three-image coverage for every supported node.
 | `area_00__ls_2__reference_snapshot_003.webp` | [1yRk1AzVH6CAXlwp3Xab1k7x8ysD7K6wd](https://drive.google.com/file/d/1yRk1AzVH6CAXlwp3Xab1k7x8ysD7K6wd/view?usp=drivesdk) | 133814 | `51ae37a6ed4c88e98d0eff293779dc02b2152c2029f79b2b3c283c16f35bc12f` |
 | `level_01p2__snapshot_002.webp` | [1VRvtDp4aqopwQMrjYeL9NwTsMC35JzK3](https://drive.google.com/file/d/1VRvtDp4aqopwQMrjYeL9NwTsMC35JzK3/view?usp=drivesdk) | 299616 | `608dfb85817155df549e224fa518fcf9f21412d732003b6f4ef1efdb48b81f6e` |
 | `level_01p2__snapshot_003.webp` | [1AUWDCWxIl9uNAq8qTJceOzQiVnATUEq1](https://drive.google.com/file/d/1AUWDCWxIl9uNAq8qTJceOzQiVnATUEq1/view?usp=drivesdk) | 246532 | `207995b83a4e978a794920a740ebf52d8d2786ed0d917f656b88867c7589ca79` |
+
+
+## Exact AREA environments (2026-10-21, PR #654)
+
+60 distinct generated backgrounds cover every environment in `dullness`,
+`epsilon`, and `ls_2` (20 each). IDs, names, zones and descriptions come unchanged
+from `Level0AreaEnvironments` in `Level0AreaWorldDefinition.kt`; LS-2 follows
+`LS2_PROJECT_CANON_20261021.md`. These illustrations do not add Canon.
+
+All WebPs were uploaded to [Novel / AREA environment snapshots PR654 20261021](https://drive.google.com/drive/folders/1qszG_s-QUWBRCTVF2nbh55GsgrTBi2y2)
+in three node folders before transfer to GitHub. GitHub blobs use the raw Drive
+contents; their Git object hashes must match the prepared assets before the
+branch changes. `area-environments.json` records each Canon environment, Drive
+source, dimensions, byte size, SHA-256 and Git blob SHA. Files retain their
+generated aspect ratios and stay below 275,000 bytes. Existing images remain
+unchanged.
+
+Routing uses the exact node/environment identity for all 60 authored rooms.
+Node-level frames remain only for input without a valid scene environment.
+The existing Level 0 and seven satellite-node mappings are unchanged.
+
+
+### Foreground correction after composition review (2026-10-21)
+
+A visual review of all 60 backgrounds found seven Epsilon bridge/stair views
+with railings or atrium edges crowding the foreground standing zones. LS-2's
+`area_LS_z3_s3` also contained apparent floor openings. Image Gen edited these
+eight backgrounds to retain the environment behind a broad continuous solid
+foreground. Corrected Epsilon IDs: `area_EP_z2`, `area_EP_z2_s1` through
+`area_EP_z2_s4`, `area_EP_z4`, and `area_EP_z4_s3`.
+
+The corrected images were reviewed after cover-cropping to the snapshot
+proportions and compositing representative native left/right character assets.
+Drive files were replaced in place before GitHub import, preserving their IDs,
+names and folders. GitHub blobs again use the raw Drive bytes and verified Git
+object hashes. Only these eight WebPs and source metadata change; routing,
+Canon, character artwork and UI remain unchanged. This visual QA does not
+claim a real Android/WebView playtest.

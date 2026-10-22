@@ -9,7 +9,9 @@ data class PhysiologyCommand(
   val operation: Operation,
   val painState: String? = null,
   val infectionState: String? = null,
-  val thermalState: String? = null
+  val thermalState: String? = null,
+  /** Explicit recovery in equivalent need-minutes; null uses the ordinary portion. */
+  val recoveryMinutes: Long? = null
 ) : GameCommand {
   enum class Operation {
     RECORD_FOOD,

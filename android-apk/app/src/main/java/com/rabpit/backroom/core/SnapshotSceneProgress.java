@@ -20,12 +20,28 @@ public final class SnapshotSceneProgress {
     JSONObject exploration = flags.optJSONObject("exploration");
     if (exploration == null) exploration = new JSONObject();
 
+    // Device/pin-pad input changes only the puzzle state. Even if story
+    // continuity revises visual flags, preserve the same backdrop/character
+    // snapshot until the player actually moves or another visual event occurs.
+    if ("DEVICE".equalsIgnoreCase(actionKind == null ? "" : actionKind.trim())) {
+      exploration.put(STEP_KEY, previous);
+      flags.put("exploration", exploration);
+      if (oldFlags != null && oldFlags.has("visualAreaKey"))
+        flags.put("visualAreaKey", oldFlags.get("visualAreaKey"));
+      else flags.remove("visualAreaKey");
+      next.put("flags", flags);
+      return;
+    }
+
     boolean nodeChanged = !LevelRouteRegistry.currentId(before).equals(LevelRouteRegistry.currentId(next));
     boolean locationChanged = !before.optString("location", "").equals(next.optString("location", ""));
     String oldArea = oldFlags == null ? "" : oldFlags.optString("visualAreaKey", "");
     boolean areaChanged = !oldArea.equals(flags.optString("visualAreaKey", ""));
-    boolean sceneFacing = "EXECUTE".equalsIgnoreCase(actionKind == null ? "" : actionKind.trim())
-        && PhysicalActionDetector.isSceneFacing(actionText == null ? "" : actionText);
+    // This marker is emitted only after Core validates a scene MOVE. Room
+    // labels ("Kho hồ sơ", etc.) do not need to contain movement verbs.
+    boolean sceneFacing = "SCENE_MOVE".equalsIgnoreCase(actionKind == null ? "" : actionKind.trim())
+        || ("EXECUTE".equalsIgnoreCase(actionKind == null ? "" : actionKind.trim())
+            && PhysicalActionDetector.isSceneFacing(actionText == null ? "" : actionText));
     boolean failed = HiddenExitStreak.failedThisTurn(rolls);
 
     // Discovering an Exit is independent from exploring the surroundings.

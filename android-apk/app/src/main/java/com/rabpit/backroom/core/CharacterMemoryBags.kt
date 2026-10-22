@@ -65,7 +65,9 @@ object CharacterMemoryBags {
     val visible = state.characters.values
       .filter { actor ->
         actor.id != CAO_MINH_ID &&
-          (actor.presence == CharacterPresence.ACTIVE ||
+          (actor.presence == CharacterPresence.ACTIVE &&
+            (MiniMapRuntime.STATE !in state.world || !WorldGraphRuntime.active(MiniMapRuntime.progress(state)) ||
+              WorldGraphRuntime.characterPresent(state, actor)) ||
             (actor.id in pendingConfirmed &&
               actor.presence in setOf(CharacterPresence.SEPARATED, CharacterPresence.MISSING))) &&
           (actor.metadata["encountered"] == "true" || actor.id in state.party.memberIds)

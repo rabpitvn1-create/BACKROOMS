@@ -14,11 +14,11 @@ class CharacterFiveStatCombatMathTest {
     val sampled = CharacterStatCore.effective(state, id)
     // +10% intrinsic passive is applied before the bound weapon/armor percentage bonuses.
     // Raw 6 -> passive 7; gear: STR +520%, DEX +130%, AGI +100%, VIT +20%.
-    assertEquals(listOf(43,16,14,8,7), listOf(sampled.str,sampled.dex,sampled.agi,sampled.vit,sampled.eva))
+    assertEquals(listOf(43,30,28,8,7), listOf(sampled.str,sampled.dex,sampled.agi,sampled.vit,sampled.eva))
     assertEquals(CharacterStatCore.maxHp(sampled.vit), sampled.maxHp)
     assertEquals(CharacterStatCore.defense(sampled.vit), sampled.def)
     assertEquals(CharacterProgressionCore.statPercent(sampled.str), sampled.attackPercent)
-    assertEquals(sampled.attackPercent, sampled.skillDamagePercent)
+    assertEquals(sampled.attackPercent * 2, sampled.skillDamagePercent)
     assertEquals(CharacterStatCore.criticalChanceBasisPoints(sampled.agi), sampled.criticalChanceBasisPoints)
     assertEquals(CharacterStatCore.criticalResistanceBasisPoints(sampled.dex), sampled.resCriticalBasisPoints)
     assertEquals(CharacterStatCore.evasionBasisPoints(sampled.eva), sampled.evasionBasisPoints)
@@ -78,7 +78,7 @@ class CharacterFiveStatCombatMathTest {
     assertEquals(setOf("STR", "DEX", "AGI", "VIT", "EVA"), primary.keys().asSequence().toSet())
     val effective = CharacterStatCore.effective(GameState.initial(), CAO_MINH_ID)
     assertEquals(2, effective.def)
-    assertEquals(815, effective.criticalChanceBasisPoints)
+    assertEquals(1355, effective.criticalChanceBasisPoints)
     assertEquals(effective.def, json.getJSONObject("combatStatus").getInt("defense"))
     assertEquals(400, json.getJSONObject("combatStatus").getInt("criticalDamagePercent"))
     assertEquals(effective.criticalChanceBasisPoints / 100.0,

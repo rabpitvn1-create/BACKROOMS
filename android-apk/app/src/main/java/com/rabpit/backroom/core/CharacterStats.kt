@@ -73,8 +73,92 @@ object CharacterStatProfiles {
     "syvial" -> "HIGH-SPEED SWORDSMAN / ASSAULT / COUNTER / EXECUTION"
     "lucia" -> "TACTICAL RIFLEWOMAN / SQUAD LEADER / FOLLOWER"
     LUC_TRAM_ID -> "THIÊN KIẾM MÔN / CHÍNH ĐẠO KIẾM TU"
+    CATHERINE_ID -> "VICTORIAN GUNSLINGER / OCCULT MARKSMAN / COUNTERSHOT"
+    JANET_ID -> "MELEE BRAWLER / BAYOU BATTER / PROTECTIVE FOLLOWER"
+    NGUYEN_QUOC_NAM_ID -> "MEDICAL LECTURER / DEFENSIVE MARKSMAN / FIELD FIRST AID"
+    HUA_TIEU_LAN_ID -> "SAIGON CHOLON RIFLE MARKSWOMAN / COVER / COUNTERSHOT"
+    TRAC_LAM_ID -> "SRU-03 CAPTAIN / TACTICAL MARKSMAN / ANOMALY RESPONSE"
     "an-nhien", "an_nhien", "annhien" -> "PROTECTED FOLLOWER / NON-COMBAT"
     else -> "UNSPECIFIED"
+  }
+
+  // Starting-only balance for the four recently introduced mortal Followers.
+  // The other characters retain their shared 5-stat / 50-HP baseline.
+  private val lowStatFollowers = mapOf(
+    CATHERINE_ID to CharacterStatProfile(
+      baseMaxHp = 26, str = 1, dex = 2, agi = 2, vit = 1, eva = 2,
+      combatRole = role(CATHERINE_ID)
+    ),
+    JANET_ID to CharacterStatProfile(
+      baseMaxHp = 30, str = 2, dex = 1, agi = 2, vit = 2, eva = 1,
+      combatRole = role(JANET_ID)
+    ),
+    NGUYEN_QUOC_NAM_ID to CharacterStatProfile(
+      baseMaxHp = 28, str = 1, dex = 2, agi = 1, vit = 2, eva = 1,
+      combatRole = role(NGUYEN_QUOC_NAM_ID)
+    ),
+    HUA_TIEU_LAN_ID to CharacterStatProfile(
+      baseMaxHp = 25, str = 1, dex = 2, agi = 1, vit = 1, eva = 2,
+      combatRole = role(HUA_TIEU_LAN_ID)
+    ),
+    TRAC_LAM_ID to CharacterStatProfile(
+      baseMaxHp = 30, str = 1, dex = 2, agi = 2, vit = 2, eva = 1,
+      combatRole = role(TRAC_LAM_ID)
+    )
+  )
+
+  fun followerStartingBalance(characterId: String): CharacterStatProfile? =
+    lowStatFollowers[characterId.trim().lowercase()]
+
+  fun minimumStat(characterId: String): Int =
+    if (followerStartingBalance(characterId) != null) 1 else CharacterProgressionCore.BASE_STAT
+
+  /**
+   * Rebalance the four Followers already present in a CURRENT-version run.
+   * Their previously persisted baseline was 5 per stat / 50 HP even at Level 0.
+   * Retain earned stat points, EXP, encounter history and the fraction of HP remaining.
+   * baseMaxHp acts as an idempotent marker; new runs already have the new baseline.
+   * This does not accept or migrate an obsolete save schema.
+   */
+  fun rebalanceCurrentFollowers(input: GameState): GameState {
+    var state = input
+    for ((id, seed) in lowStatFollowers) {
+      val actor = state.characters[id] ?: continue
+      val old = actor.statProfile
+      if (old.schema != CharacterProgressionCore.SCHEMA ||
+          old.baseMaxHp != CharacterProgressionCore.BASE_MAX_HP) continue
+
+      fun adjusted(initial: Int, previous: Int): Int =
+        (initial.toLong() + (previous.toLong() - CharacterProgressionCore.BASE_STAT).coerceAtLeast(0L))
+          .coerceAtMost(CharacterProgressionCore.MAX_STAT.toLong()).toInt()
+
+      val oldMaxHp = CharacterStatCore.maxHp(CharacterStatCore.effective(state, id).vit)
+        .coerceAtLeast(1)
+      val nextProfile = old.copy(
+        baseMaxHp = seed.baseMaxHp,
+        str = adjusted(seed.str, old.str),
+        dex = adjusted(seed.dex, old.dex),
+        agi = adjusted(seed.agi, old.agi),
+        vit = adjusted(seed.vit, old.vit),
+        eva = adjusted(seed.eva, old.eva)
+      )
+      val updated = actor.copy(statProfile = nextProfile)
+      val withProfile = state.copy(characters = state.characters + (id to updated))
+      val newMaxHp = CharacterStatCore.effective(withProfile, id).maxHp
+      val previousHp = actor.vitalState.currentHp.coerceIn(0, oldMaxHp)
+      val nextHp = if (previousHp == 0) 0 else
+        ((previousHp.toLong() * newMaxHp + oldMaxHp - 1) / oldMaxHp)
+          .coerceIn(1L, newMaxHp.toLong()).toInt()
+      state = withProfile.copy(characters = withProfile.characters + (id to updated.copy(
+        vitalState = actor.vitalState.copy(
+          currentHp = nextHp,
+          condition = CharacterStatEngine.conditionFor(
+            nextHp, newMaxHp, actor.vitalState.condition, actor.presence
+          )
+        )
+      )))
+    }
+    return state
   }
 
   private fun energy(id: String): EnergyProfile = when (id.trim().lowercase()) {
@@ -83,8 +167,10 @@ object CharacterStatProfiles {
   }
 
   fun forId(characterId: String): CharacterStatProfile =
-    CharacterStatProfile(combatRole = role(characterId), energy = energy(characterId))
+    followerStartingBalance(characterId) ?: CharacterStatProfile(
+      combatRole = role(characterId), energy = energy(characterId)
+    )
 
   fun initialVitals(characterId: String): CharacterVitalState =
-    CharacterVitalState(currentHp = CharacterProgressionCore.BASE_MAX_HP)
+    CharacterVitalState(currentHp = forId(characterId).baseMaxHp)
 }

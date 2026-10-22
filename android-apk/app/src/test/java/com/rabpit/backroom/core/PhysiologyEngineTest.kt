@@ -23,7 +23,7 @@ class PhysiologyEngineTest {
     thermalState = thermalState
   )
 
-  @Test fun recordFoodWaterAndSleepResetOnlyTheirOwnTimers() {
+  @Test fun recordFoodWaterAndSleepRecoverOnlyTheirOwnNeed() {
     val caoMinh = GameState.initial().characters.getValue(CAO_MINH_ID).copy(
       physiology = PhysiologyState(
         minutesSinceFood = 300L,
@@ -50,7 +50,7 @@ class PhysiologyEngineTest {
     val finalPhysiology = afterSleep.state.characters.getValue(CAO_MINH_ID).physiology
     assertEquals(0L, finalPhysiology.minutesSinceFood)
     assertEquals(0L, finalPhysiology.minutesSinceWater)
-    assertEquals(0L, finalPhysiology.minutesAwake)
+    assertEquals(840L, finalPhysiology.minutesAwake)
     assertEquals("mild", finalPhysiology.painState)
   }
 

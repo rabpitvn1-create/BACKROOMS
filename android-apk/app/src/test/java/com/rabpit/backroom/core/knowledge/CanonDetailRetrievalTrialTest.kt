@@ -44,11 +44,64 @@ class CanonDetailRetrievalTrialTest {
     assertTrue(db.records.size > 89)
     assertTrue(db.records.values.count { it.kind == "authored-detail" } >= 100)
     assertTrue(db.records.values.filter { it.kind == "authored-detail" }.all {
-      it.source.document.startsWith("Google Drive /Novel/Asset/") &&
+      (it.source.document.startsWith("Google Drive /Novel/Asset/") ||
+        it.id.startsWith("LEVEL.00.ZONE.") &&
+          it.source.document in setOf(
+            "android-apk/LEVEL_0_EIGHT_ZONES_CANON.md",
+            "android-apk/LEVEL_0_TWENTY_NINE_SUBZONES_CANON.md")) &&
         it.text.isNotBlank() && it.text.length < 800 &&
         !it.text.contains("[WRITER-SECRET]")
     })
     assertTrue(db.records.containsKey("CHAR.CAO_MINH.AUTHORED"))
+  }
+
+  @Test fun eightZoneCanonAndTwentyNineSubzonesAreIndexedWithAuthorProvenance() {
+    val db = database()
+    val all = db.records.values.filter { it.id.startsWith("LEVEL.00.ZONE.") }
+    val zones = all.filter { !it.id.contains(".SUBZONE.") }
+    val subzones = all.filter { it.id.contains(".SUBZONE.") }
+    assertEquals(16, zones.size) // Two bounded environment passages per zone.
+    assertEquals(29, subzones.size)
+    for (index in 1..8) {
+      val id = "%02d".format(index)
+      assertEquals(2, zones.count { it.id.startsWith("LEVEL.00.ZONE.$id.DETAIL.") })
+      assertEquals(if (index in setOf(2, 4, 6)) 3 else 4,
+        subzones.count { it.id.startsWith("LEVEL.00.ZONE.$id.SUBZONE.") })
+    }
+    assertTrue(all.all { it.authority == "WORLD_CANON" && it.mutability == "IMMUTABLE" &&
+      it.kind == "authored-detail" && it.text.isNotBlank() && it.text.length < 800 &&
+      "detail:environment" in it.tags })
+    assertEquals("android-apk/LEVEL_0_EIGHT_ZONES_CANON.md",
+      db.records.getValue("LEVEL.00.ZONES.OVERVIEW").source.document)
+  }
+
+  @Test fun levelZeroZoneDetailRetrievalRequiresExactCoreConfirmedLocation() {
+    val db = database()
+    fun state(node: String = "0", zone: String? = null, subzone: String? = null): JSONObject {
+      val projected = JSONObject().put("level", JSONObject().put("number", if (node == "0") 0 else 1).put("id", node))
+        .put("scene", JSONObject().put("nodeId", node).put("miniIndex", 1))
+      if (zone != null) projected.getJSONObject("scene").put("zoneId", zone)
+      if (subzone != null) projected.getJSONObject("scene").put("subzoneId", subzone)
+      return projected
+    }
+    fun packetFor(st: JSONObject, action: String = "khám phá môi trường"): String =
+      KnowledgeContextEngine.Builder(db, st, action, JSONObject()).build()
+    val unknown = packetFor(state(), "khám phá Phòng Mốc tại Vàng Úa")
+    assertTrue(unknown.contains("<LEVEL.00.ZONES.OVERVIEW>"))
+    assertFalse(unknown.contains("<LEVEL.00.ZONE.01.DETAIL."))
+    assertFalse(unknown.contains("<LEVEL.00.ZONE.01.SUBZONE."))
+    val identified = packetFor(state(zone = "1", subzone = "1.3"))
+    assertTrue(identified.contains("<LEVEL.00.ZONE.01.DETAIL.ENVIRONMENT.01>"))
+    assertTrue(identified.contains("<LEVEL.00.ZONE.01.SUBZONE.03.DETAIL.ENVIRONMENT.01>"))
+    assertFalse(identified.contains("<LEVEL.00.ZONE.02.DETAIL."))
+    assertFalse(identified.contains("<LEVEL.00.ZONE.01.SUBZONE.02."))
+    val unrelated = packetFor(state(zone = "2", subzone = "1.1"))
+    assertTrue(unrelated.contains("<LEVEL.00.ZONE.02.DETAIL.ENVIRONMENT.01>"))
+    assertFalse(unrelated.contains("<LEVEL.00.ZONE.01.SUBZONE."))
+    val otherLevel = packetFor(state(node = "1", zone = "1", subzone = "1.3"))
+    assertFalse(otherLevel.contains("<LEVEL.00.ZONES.OVERVIEW>"))
+    assertFalse(otherLevel.contains("<LEVEL.00.ZONE.01.DETAIL."))
+    assertFalse(packetFor(state(zone = "9")).contains("<LEVEL.00.ZONE."))
   }
 
   @Test fun supportDocumentsAreIndexedButSpoilerArchiveIsNotRetrievable() {

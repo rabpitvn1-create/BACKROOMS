@@ -1,0 +1,33 @@
+[
+  {
+    "name": "crt-glass-v3",
+    "file": "crt-glass-v3.webp",
+    "width": 768,
+    "height": 557,
+    "bytes": 96882,
+    "sha256": "3f25d8d556210cac51bb5941603e3132309945046ffbe58f3614fe1bbd780256",
+    "sourceSize": {
+      "width": 1473,
+      "height": 1068
+    },
+    "crop": null
+  },
+  {
+    "name": "tracking-v3",
+    "file": "tracking-v3.webp",
+    "width": 1024,
+    "height": 36,
+    "bytes": 25554,
+    "sha256": "f920ed342fec938340be59069e6801ec1f15c633c318b43f19ebad39103e7098",
+    "sourceSize": {
+      "width": 2172,
+      "height": 724
+    },
+    "crop": {
+      "left": 0,
+      "top": 327,
+      "width": 2172,
+      "height": 77
+    }
+  }
+]

@@ -75,21 +75,21 @@ class SouthernSurvivalItemsTest {
     assertEquals("Bánh Tét Nhân Thịt", banhTet.name)
     assertEquals("true", banhTet.metadata["consumable"])
     assertEquals("FOOD", banhTet.metadata["physiologyEffect"])
-    assertEquals("5", banhTet.metadata["healHp"])
+    assertNull(banhTet.metadata["healHp"])
     assertEquals("common", banhTet.metadata["rarity"])
 
     val comTam = OfflineItemRegistry.get(COM_TAM_ID) ?: error("missing $COM_TAM_ID")
     assertEquals("Cơm Tấm Sườn Bì Chả Sài Gòn", comTam.name)
     assertEquals("true", comTam.metadata["consumable"])
     assertEquals("FOOD", comTam.metadata["physiologyEffect"])
-    assertEquals("10", comTam.metadata["healHp"])
+    assertNull(comTam.metadata["healHp"])
     assertEquals("uncommon", comTam.metadata["rarity"])
   }
 
   @Test fun healAmountRecognizesSouthernItems() {
     assertEquals(0, HealingItems.healAmount(stackOf(COCONUT_ID)))
-    assertEquals(5, HealingItems.healAmount(stackOf(BANH_TET_ID)))
-    assertEquals(10, HealingItems.healAmount(stackOf(COM_TAM_ID)))
+    assertEquals(0, HealingItems.healAmount(stackOf(BANH_TET_ID)))
+    assertEquals(0, HealingItems.healAmount(stackOf(COM_TAM_ID)))
   }
 
   @Test fun healingNormalizeDoesNotRenameSouthernItems() {
@@ -125,7 +125,7 @@ class SouthernSurvivalItemsTest {
     )
   }
 
-  @Test fun banhTetResetsFoodTimerAndHealsFive() {
+  @Test fun banhTetRelievesHungerWithoutInstantHPHealing() {
     val before = stateWith(BANH_TET_ID, minutesSinceFood = 240L, minutesSinceWater = 120L, currentHp = 40)
 
     val result = use(BANH_TET_ID, before)
@@ -133,10 +133,10 @@ class SouthernSurvivalItemsTest {
     assertTrue(result.toString(), result.applied)
     assertEquals(0L, physiologyOf(result.state).minutesSinceFood)
     assertEquals("water timer must be untouched", 120L, physiologyOf(result.state).minutesSinceWater)
-    assertEquals(45, hpOf(result.state))
+    assertEquals(40, hpOf(result.state))
   }
 
-  @Test fun banhTetHealCapsAtMaxHp() {
+  @Test fun banhTetDoesNotHealCombatDamageNearMaxHp() {
     val cap = maxHp(stateWith(BANH_TET_ID, currentHp = 40))
     val before = stateWith(BANH_TET_ID, currentHp = cap - 3)
     assertTrue("test needs HP below maxHp", hpOf(before) < cap)
@@ -144,22 +144,22 @@ class SouthernSurvivalItemsTest {
     val result = use(BANH_TET_ID, before)
 
     assertTrue(result.toString(), result.applied)
-    assertEquals("HP must never exceed maxHp", cap, hpOf(result.state))
+    assertEquals("food must not instantly restore HP", cap - 3, hpOf(result.state))
   }
 
-  @Test fun comTamResetsFoodTimerAndHealsTenCappedAtMaxHp() {
+  @Test fun comTamRelievesHungerWithoutInstantHPHealing() {
     val before = stateWith(COM_TAM_ID, minutesSinceFood = 240L, currentHp = 30)
     val cap = maxHp(before)
 
     val fullHeal = use(COM_TAM_ID, before)
     assertTrue(fullHeal.toString(), fullHeal.applied)
     assertEquals(0L, physiologyOf(fullHeal.state).minutesSinceFood)
-    assertEquals(40, hpOf(fullHeal.state))
+    assertEquals(30, hpOf(fullHeal.state))
 
     val nearFull = stateWith(COM_TAM_ID, currentHp = cap - 4)
     val capped = use(COM_TAM_ID, nearFull)
     assertTrue(capped.toString(), capped.applied)
-    assertEquals("HP must never exceed maxHp", cap, hpOf(capped.state))
+    assertEquals("food must not instantly restore HP", cap - 4, hpOf(capped.state))
   }
 
   @Test fun invalidPhysiologyEffectIsRejected() {

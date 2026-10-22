@@ -19,6 +19,47 @@
     syvial:'avatars/Syvial_avatar.jpg',
     an_nhien:'avatars/an_nhien_avatar.png'
   };
+  // Visible alpha bounds, measured from bundled sprites (alpha > 16). Canvas
+  // dimensions alone make Catherine shorter and leave Lucia floating above ground.
+  var partyPortraitBounds={
+    'CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png':[1122,1402,1,0,1122,1385],
+    'CAO_MINH_OVERLAY_EXPLORER_IDLE.png':[1122,1402,54,16,1019,1388],
+    'LUCIA_LUC_OVERLAY.png':[1024,1536,17,9,1013,1494],
+    'Catherine.webp':[941,1672,2,113,941,1611],
+    'Janet.webp':[941,1672,15,2,936,1652],
+    'NguyenQuocNam.webp':[941,1672,33,30,941,1646],
+    'HuaTieuLan.webp':[1024,1536,11,63,1023,1490]
+  };
+  function fitCombatPortrait(image,snapshot){
+    if(!image||!image.style||typeof image.style.setProperty!=='function')return;
+    var name=String(image.src||'').split('/').pop(),b=partyPortraitBounds[name];
+    if(!b&&image.naturalWidth&&image.naturalHeight)b=[image.naturalWidth,image.naturalHeight,0,0,image.naturalWidth,image.naturalHeight];
+    if(!b)return;
+    var rect=snapshot.getBoundingClientRect();
+    var w=snapshot.clientWidth||rect.width,h=snapshot.clientHeight||rect.height;
+    // One target height for every actor, including square avatar fallbacks. Reserve
+    // width for the broadest portrait, so narrow screens do not shrink only one actor.
+    var visibleHeight=Math.min(h*.90,w*.84/1.04),scale=visibleHeight/(b[5]-b[3]);
+    image.style.setProperty('--combat-portrait-height',(b[1]*scale)+'px');
+    image.style.setProperty('--combat-portrait-width',(b[0]*scale)+'px');
+    image.style.setProperty('--combat-portrait-bottom',(h*.05-(b[1]-b[5])*scale)+'px');
+    image.style.setProperty('--combat-portrait-right',(w*.05-(b[0]-b[4])*scale)+'px');
+  }
+  function prepareCombatPortrait(image,snapshot){
+    fitCombatPortrait(image,snapshot);
+    if(!image||image.dataset.combatSizingBound)return;
+    image.dataset.combatSizingBound='true';
+    image.addEventListener('load',function(){
+      if(image.isConnected!==false)fitCombatPortrait(image,snapshot);
+    });
+  }
+  function syncCombatPortraitSizes(snapshot){
+    Array.prototype.forEach.call(snapshot.querySelectorAll('.snapshot-character,.snapshot-lucia,.combat-turn-avatar,.combat-turn-exit'),function(image){prepareCombatPortrait(image,snapshot);});
+  }
+  if(typeof window.ResizeObserver==='function'){
+    var portraitResize=new ResizeObserver(function(){var box=document.getElementById('snapshot');if(box&&activeCombat())syncCombatPortraitSizes(box);});
+    var portraitStage=document.getElementById('snapshot');if(portraitStage)portraitResize.observe(portraitStage);
+  }
   function combatPortraitSource(actorId,snapshot){
     var selector=actorId==='cao_minh'?'.snapshot-character':
       actorId==='lucia'?'.snapshot-lucia':'';
@@ -27,6 +68,11 @@
     var members=state&&state.partyDetails&&Array.isArray(state.partyDetails.members)?
       state.partyDetails.members:[];
     var member=members.find(function(m){return m&&String(m.id)===actorId;});
+    // Scene surfaces prefer the follower's bundled full-body sprite (a transparent
+    // cutout at the assets root, e.g. Catherine.webp) so the character stands in
+    // the scene; the square avatar remains the fallback for members without one.
+    var sprite=String(member&&member.sprite||'');
+    if(/^[A-Za-z0-9_-]+\.webp$/.test(sprite))return sprite;
     var path=String(member&&(member.avatarRef||member.avatar)||knownPortraits[actorId]||'');
     // Only bundled avatar assets are legal here; never render an arbitrary URI from state.
     return /^avatars\/[a-zA-Z0-9_./-]+\.(?:png|jpe?g|webp)$/.test(path)&&
@@ -46,6 +92,7 @@
     portrait.className='combat-turn-avatar';portrait.src=source;portrait.alt='';
     portrait.setAttribute('aria-hidden','true');
     snapshot.appendChild(portrait);
+    prepareCombatPortrait(portrait,snapshot);
   }
   function focusCombatActor(actorId){
     var snapshot=document.getElementById('snapshot');if(!snapshot)return;
@@ -64,6 +111,7 @@
       departing.className='combat-turn-exit';departing.src=oldSource;departing.alt='';
       departing.setAttribute('aria-hidden','true');
       snapshot.appendChild(departing);
+      prepareCombatPortrait(departing,snapshot);
       departing.addEventListener('animationend',function(){departing.remove()},{once:true});
       setTimeout(function(){departing.remove()},reduced?90:800);
     }
@@ -81,6 +129,7 @@
     var snapshot=document.getElementById('snapshot');
     if(!snapshot||!activeCombat())return;
     ensureActiveCombatAvatar(snapshot,String(snapshot.dataset.combatFocus||'cao_minh'));
+    syncCombatPortraitSizes(snapshot);
   };
   function clearCombatFocus(){
     ++partyFocusEpoch;
@@ -143,11 +192,23 @@
     lastPartyActor=String(name||'Cao Minh');
     if(combatPanelMeta)combatPanelMeta.textContent='NOW : '+lastPartyActor;
   }
-  function appendCombatLine(kind,text){
-    text=String(text||'').trim();if(!text)return;
-    if(!ensureCombatPanel()||!combatPanelList)return;
+  // Combat events already contain verified names, skills, statuses and HP values.
+  // Render their typed fields as safe text nodes, never parse arbitrary HTML or guess names.
+  function combatSemantic(kind,text){return {kind:kind,text:String(text==null?'':text)};}
+  function appendCombatLine(kind,parts){
+    var segments=Array.isArray(parts)?parts:[String(parts==null?'':parts)];
+    var full=segments.map(function(p){return typeof p==='string'?p:String(p&&p.text||'');}).join('');
+    if(!full.trim()||!ensureCombatPanel()||!combatPanelList)return;
     var entry=document.createElement('div');entry.className='combat-feedback-entry combat-feedback-entry--'+kind;
-    entry.textContent=text;combatPanelList.appendChild(entry);
+    segments.forEach(function(part){
+      var span=document.createElement('span'),semantic=part&&typeof part==='object';
+      var role=semantic?String(part.kind||''):'';
+      if(!/^(?:character|entity|skill|damage|hp|miss|status-(?:poison|bleed|stun|armor|disorient))$/.test(role))role='';
+      if(role)span.className='combat-semantic combat-semantic--'+role;
+      span.textContent=semantic?String(part.text||''):String(part);
+      entry.appendChild(span);
+    });
+    combatPanelList.appendChild(entry);
     combatPanelList.scrollTop=combatPanelList.scrollHeight;
   }
   function resetCombatPanel(){
@@ -168,7 +229,8 @@
       if(combatPanelList)combatPanelList.textContent='';
       if(turnIndicator)turnIndicator.hidden=true;
       showNow('Cao Minh');focusCombatActor('cao_minh');
-      appendCombatLine('system','Bắt đầu giao chiến với '+prettyEntity(combat.entityName||combat.entityKey)+'.');
+      appendCombatLine('system',['Bắt đầu giao chiến với ',
+        combatSemantic('entity',prettyEntity(combat.entityName||combat.entityKey)),'.']);
     }
     combatPanel.hidden=false;
   }
@@ -189,7 +251,9 @@
   function appendDamageLine(e){
     if(!e||e.target!=='entity')return;
     if(e.outcome==='miss'){
-      appendCombatLine('actor',String(e.sourceName||lastPartyActor)+' tấn công Trượt '+String(e.entityName||'Entity'));return;
+      appendCombatLine('actor',[combatSemantic('character',e.sourceName||lastPartyActor),
+        ' tấn công ',combatSemantic('miss','Trượt'),' ',
+        combatSemantic('entity',e.entityName||'Entity')]);return;
     }
     var match=String(e.text||'').match(/^-([0-9]+) HP$/);
     var damage=match?Number(match[1]):0;if(!damage)return;
@@ -199,8 +263,14 @@
     var hp=Number(e.remainingHp),max=Number(e.maxHp);
     var suffix=e.remainingHp!=null&&e.maxHp!=null&&Number.isFinite(hp)&&max>0?' ['+hp+'/'+max+' HP]':'';
     var status=combatStatusVisual(e.status);
-    appendCombatLine('actor',name+' sử dụng '+(skill==='đánh thường'?'đánh thường':'['+skill+']')+
-      ' gây -'+damage+' HP lên '+target+suffix+(status?' ['+status.label+']':''));
+    var parts=[combatSemantic('character',name),' sử dụng '];
+    if(skill==='đánh thường')parts.push('đánh thường');
+    else parts.push('[',combatSemantic('skill',skill),']');
+    parts.push(' gây ',combatSemantic('damage','-'+damage+' HP'),' lên ',
+      combatSemantic('entity',target));
+    if(suffix)parts.push(' [',combatSemantic('hp',hp+'/'+max+' HP'),']');
+    if(status)parts.push(' [',combatSemantic('status-'+status.key,status.label),']');
+    appendCombatLine('actor',parts);
   }
   function setFeedbackBusy(value){
     window.__combatFeedbackBusy=!!value;
@@ -453,7 +523,8 @@
     if(turnName)turnName.textContent=kind==='actor'?String(cue.actorName||'Cao Minh'):String(cue.entityName||'Entity');
     if(turnDetail)turnDetail.textContent='';
     if(kind==='wave'){
-      appendCombatLine('system','Bắt đầu giao chiến với '+String(cue.entityName||'Entity')+'.');
+      appendCombatLine('system',['Bắt đầu giao chiến với ',
+        combatSemantic('entity',cue.entityName||'Entity'),'.']);
       return;
     }
     var details=Array.isArray(cue.details)?cue.details:[];
@@ -462,9 +533,10 @@
       details.forEach(function(d){
         var line=String(d||'');
         if(/Quăng Đại Cái Gì Đó/.test(line))
-          appendCombatLine('actor','An Nhiên sử dụng [Quăng Đại Cái Gì Đó] hỗ trợ cả nhóm');
+          appendCombatLine('actor',[combatSemantic('character','An Nhiên'),' sử dụng [',
+            combatSemantic('skill','Quăng Đại Cái Gì Đó'),'] hỗ trợ cả nhóm']);
         else if(/An Nhiên thực hiện lệnh TẤN CÔNG theo vai trò hỗ trợ/.test(line)&&!hasSupportSkill)
-          appendCombatLine('actor','An Nhiên hỗ trợ cả nhóm');
+          appendCombatLine('actor',[combatSemantic('character','An Nhiên'),' hỗ trợ cả nhóm']);
       });
     }
   }
@@ -476,11 +548,17 @@
       var skill=details.find(function(v){return / proc:/.test(String(v));});
       var action=skill?String(skill).split(' proc:')[0]:
         details.some(function(v){return /Devils And Gold kích hoạt/.test(String(v));})?'Devils And Gold':'đánh thường';
-      if(hit)appendCombatLine('entity',String(cue.entityName||'Entity')+' sử dụng '+
-        (action==='đánh thường'?'đánh thường':'['+action+']')+' gây -'+hit[1]+
-        ' HP lên cả nhóm ['+hit[2]+'/'+hit[3]+' HP]');
+      if(hit){
+        var parts=[combatSemantic('entity',cue.entityName||'Entity'),' sử dụng '];
+        if(action==='đánh thường')parts.push('đánh thường');
+        else parts.push('[',combatSemantic('skill',action),']');
+        parts.push(' gây ',combatSemantic('damage','-'+hit[1]+' HP'),
+          ' lên cả nhóm [',combatSemantic('hp',hit[2]+'/'+hit[3]+' HP'),']');
+        appendCombatLine('entity',parts);
+      }
     }else if(details.some(function(v){return /không xuyên|hụt đòn/.test(String(v));}))
-      appendCombatLine('entity',String(cue.entityName||'Entity')+' tấn công Trượt cả nhóm');
+      appendCombatLine('entity',[combatSemantic('entity',cue.entityName||'Entity'),
+        ' tấn công ',combatSemantic('miss','Trượt'),' cả nhóm']);
   }
 
   function playTypedTurnTimeline(packet,token,anchors,slots){
@@ -579,6 +657,20 @@
     return Math.max(clock,endTime)+50;
   }
 
+  var lastContinuationId='';
+  function continueAfterVictory(incoming) {
+    if(!incoming||incoming.postCombatContinuation!==true)return;
+    if(!window.Android||typeof Android.continueAfterCombat!=='function')return;
+    var id=incoming.combatFeedback&&incoming.combatFeedback.id;
+    if(!id||id===lastContinuationId)return;
+    lastContinuationId=id;
+    busy=true;
+    if(typeof syncPrimaryActions==='function')syncPrimaryActions();
+    try{Android.continueAfterCombat(JSON.stringify(state));}
+    catch(error){lastContinuationId='';busy=false;if(typeof syncPrimaryActions==='function')syncPrimaryActions();
+      if(typeof statusEl!=='undefined')statusEl.textContent='Chưa tiếp tục được sau giao tranh. Nhấn Retry.';}
+  }
+
   var previousTurn=window.backroomTurn;
   if(typeof previousTurn!=='function')return;
   window.backroomTurn=function(json){
@@ -628,6 +720,7 @@
             previousTurn.call(context,json);
             resetCombatPanel();
             setFeedbackBusy(false);
+            continueAfterVictory(incoming);
           });
         },elapsed===null?0:elapsed);
       });
@@ -641,6 +734,7 @@
       // The Dice and Combat Log close together on combat completion.
       // Never leave the last packet queued behind a hidden panel.
       ++animationToken;stopCombatMotion();resetCombatPanel();setFeedbackBusy(false);
+      continueAfterVictory(incoming);
       return result;
     }
     beginCombatLog(after);

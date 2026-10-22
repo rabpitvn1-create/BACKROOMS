@@ -18,7 +18,7 @@ class CaoMinhSkillsEquipmentTest {
     val equipped = CharacterStatEngine.effective(state, CAO_MINH_ID)
     val bare = CharacterStatEngine.effective(stripped, CAO_MINH_ID)
     assertEquals(listOf(6,6,6,6,6), listOf(bare.str,bare.dex,bare.agi,bare.vit,bare.eva))
-    assertEquals(listOf(37,13,12,7,6), listOf(equipped.str,equipped.dex,equipped.agi,equipped.vit,equipped.eva))
+    assertEquals(listOf(37,25,24,7,6), listOf(equipped.str,equipped.dex,equipped.agi,equipped.vit,equipped.eva))
   }
   @Test fun nonStatSkillKitRemainsPresent() {
     val skills = CompanionSkillCatalog.forCharacter(CAO_MINH_ID)

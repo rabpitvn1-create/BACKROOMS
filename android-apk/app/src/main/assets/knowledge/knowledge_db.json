@@ -1842,14 +1842,14 @@
       "id": "CHAR.TRAC_LAM.AUTHORED",
       "domain": "CHARACTER",
       "kind": "authored-character-card",
-      "text": "Trác Lâm: đội trưởng SRU-03, người Việt từ năm 2099, 28 tuổi vào thời điểm đó, chuyên chỉ huy và ứng phó dị thường. Anh quan sát và phân biệt dữ kiện, suy luận, giả thuyết; không được mặc định anh biết tất cả sự thật Backrooms hay tự động có mặt trong cảnh.",
+      "text": "Trác Lâm, nam 28 tuổi, đội trưởng SRU-03 (Special Response Unit) từ Đà Nẵng, Việt Nam năm 2099, mất liên lạc với đồng đội sau chiến dịch ECHO-17. Cao 182 cm, vóc người rắn chắc, tóc đen dày, mắt xanh lam; giáp chiến thuật AEGIS-K4 đen gắn mảng cơ khí và đèn xanh nhỏ, phù hiệu POLICE/SRU, túi thiết bị quanh hông. Cầm súng chiến đấu hai nòng M-92 Gemini. Bình tĩnh, thận trọng, nói tiếng Việt tự nhiên với câu hoàn chỉnh, phân biệt điều quan sát và giả thuyết. Không biến anh thành robot nói câu cụt, không cho biết sẵn tên Level/Entity, không biến trang bị thành siêu nhiên. Codex có cảnh tham chiếu first contact ở Level 0.7 với Cao Minh và Lục Trầm, nhưng luật gameplay hiện hành cho phép Core xác nhận gặp lần đầu ở bất kỳ Level/sub-level/AREA nào (3% mỗi lượt đủ điều kiện). Khi GM kể, chỉ dùng Level và nhân vật thực sự hiện diện theo Core; không ép cảnh Level 0.7 hoặc tự sinh Lục Trầm nếu cuộc gặp diễn ra nơi khác. Chưa gặp không đồng nghĩa đã gia nhập Party. Lịch sử SRU-03 và số phận năm đồng đội là bí mật hậu trường, không tự tiết lộ. Chỉ số combat, HP, 7 kỹ năng thường và Ultimate lấy từ Core; đạn, pin, y tế vẫn có giới hạn.",
       "source": {
-        "document": "Google Drive /Novel/Asset/01_Character/TRAC_LAM_CODEX.md (1lxfCped3eGNrJq_V69xVxj00hslTCwyu)",
-        "anchor": "HỒ SƠ NHANH / TÍNH CÁCH"
+        "document": "canon/TRAC_LAM_CODEX.md",
+        "anchor": "HỒ SƠ NHANH / NGOẠI HÌNH / GIỌNG NÓI / FIRST CONTACT"
       },
       "authority": "CHARACTER_CANON",
       "mutability": "IMMUTABLE",
-      "priority": 55,
+      "priority": 32,
       "tags": [
         "trác lâm",
         "trac lam"
@@ -1940,6 +1940,329 @@
       "tags": [
         "diep_minh",
         "diệp minh"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "LEVEL.00.ZONES.OVERVIEW",
+      "domain": "LEVEL",
+      "kind": "level-zone-index",
+      "text": "[Level 0 – The Lobby · Canon môi trường] Có 8 khu chính thuộc cùng Level 0 và 29 khu nhỏ: 1 Vàng Úa (4), 2 Đèn Chết (3), 3 Thảm Sũng (4), 4 Lối Câm (3), 5 Trần Rỗng (4), 6 Hồi Ảnh (3), 7 Vòng Lặp (4), 8 Rạn Nứt (4). Tên khu là địa danh, số thứ tự chỉ để tham chiếu; chưa xác nhận vị trí hiện tại, đường nối hay thứ tự di chuyển. Mô tả bóng người và âm thanh không xác nhận Entity/NPC; Rạn Nứt không mặc nhiên mở Level khác.",
+      "source": {
+        "document": "android-apk/LEVEL_0_EIGHT_ZONES_CANON.md",
+        "anchor": "THE EIGHT ZONES · THIẾT KẾ MÔI TRƯỜNG; Tổng thể 8 khu vực"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 53,
+      "tags": [
+        "level 0",
+        "level0:zone-index"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "LEVEL.NODE.ls_2",
+      "domain": "LEVEL",
+      "kind": "level-node-card",
+      "text": "LS-2 (Canon mới do tác giả phê duyệt 2026-10-21): vùng chuyển tiếp gồm Thư Viện Mép Trống với kệ thiếu nhãn, Xưởng Đồng Hồ Rỗng với cấu kiện bánh răng không kim, Hành Lang Sai Số với dấu nền và thước đếm lệch, và Nút Chốt Không Tên với khung chốt vật lý. Nhãn khuyết không tự tạo mật mã; tiếng tích tắc không xác nhận du hành thời gian; không có lối sang Manila Room trừ khi Core xác minh.",
+      "source": {
+        "document": "android-apk/LS2_PROJECT_CANON_20261021.md",
+        "anchor": "Identity and boundaries"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 45,
+      "tags": [
+        "ls_2",
+        "ls-2",
+        "level 0 area"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.926.VISUAL",
+      "domain": "ENTITY",
+      "kind": "visual-card",
+      "text": "[VISUAL] Whistlers (926) là khối cao gầy đen bóng như gân ướt; đầu thon có ba khoang trắng (hai trên, một dưới như miệng mở), tay dài và ngón cong, các chi chống nửa dưới vươn cao gấp khúc.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/NEW_ENTITIES_CODEX_R01.md (1XRoBXISlL61kdIl56w5xzkkCdEOsQdWP)",
+        "anchor": "## ENT-926 — WHISTLERS"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 56,
+      "tags": [
+        "926",
+        "whistlers"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.926.CANON",
+      "domain": "ENTITY",
+      "kind": "entity-canon-card",
+      "text": "Whistlers: Âm Trảo Phá Mạch 40% proc, 130% Basic Attack + Bleed 3 lượt (3% Max HP mỗi lượt). Tiếng Rít Đoạt Hồn 40% proc độc lập, 140% Basic Attack + Stun mất lượt tấn công tiếp. Hai proc có thể cùng xảy ra trên một lần Entity vượt accuracy, tạo hai đòn; nếu cả hai trượt proc thì đánh thường. Chỉ nạn nhân thực sự chịu damage mới có trạng thái. Common Roaming, 440 HP thực chiến Level 0. Năng lực khác UNKNOWN.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/NEW_ENTITIES_CODEX_R01.md (1XRoBXISlL61kdIl56w5xzkkCdEOsQdWP)",
+        "anchor": "## ENT-926 — WHISTLERS"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 43,
+      "tags": [
+        "926",
+        "whistlers"
+      ],
+      "references": [
+        "ENTITY.GLOBAL_HARD_LOCK"
+      ],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.927.VISUAL",
+      "domain": "ENTITY",
+      "kind": "visual-card",
+      "text": "[VISUAL] Entity 927 có khối đầu màu xám thịt ẩm gần như chiếm cả thân trên; một mắt lớn, hàm há rất rộng với răng tam giác nhọn và dịch nhầy; mô mềm rủ hai bên, thân nhỏ nối với ba chân dài mảnh.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/NEW_ENTITIES_CODEX_R01.md (1XRoBXISlL61kdIl56w5xzkkCdEOsQdWP)",
+        "anchor": "## ENT-927 — ENTITY 927"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 56,
+      "tags": [
+        "927",
+        "entity 927"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.927.CANON",
+      "domain": "ENTITY",
+      "kind": "entity-canon-card",
+      "text": "Entity 927: Nanh Độc Xuyên Thịt 40% proc, 135% Basic Attack + Poison 3 lượt (2% Max HP/lượt); Tam Túc Liệt Cốt 40% proc độc lập, 145% Basic Attack + Bleed 3 lượt (3% Max HP/lượt). Có thể kích hoạt đồng thời thành hai đòn; không proc thì đánh thường, mọi đòn chịu EVA/DEF. Common Roaming, stat gốc 320 HP / 60 ATK / 8 Armor / 32 Aggression, 880 HP thực chiến Level 0. Không tự suy nguồn độc từ dịch nhầy; nguồn gốc UNKNOWN.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/NEW_ENTITIES_CODEX_R01.md (1XRoBXISlL61kdIl56w5xzkkCdEOsQdWP)",
+        "anchor": "## ENT-927 — ENTITY 927"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 43,
+      "tags": [
+        "927",
+        "entity 927"
+      ],
+      "references": [
+        "ENTITY.GLOBAL_HARD_LOCK"
+      ],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.LUCKYBEAR.VISUAL",
+      "domain": "ENTITY",
+      "kind": "visual-card",
+      "text": "[VISUAL] LuckyBear là gấu bông vàng kem, đầu tròn to, một mắt mở một mắt như nháy, mõm trắng thêu mặt cười. Bụng có ngôi sao vàng lớn; cổ đeo vòng hạt pastel với mặt dây nhỏ tím, tay ngắn, thân mềm.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/NEW_ENTITIES_CODEX_R01.md (1XRoBXISlL61kdIl56w5xzkkCdEOsQdWP)",
+        "anchor": "## ENT-LB — LUCKYBEAR"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 56,
+      "tags": [
+        "LuckyBear",
+        "luckybear",
+        "gấu vòng hạt"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.LUCKYBEAR.CANON",
+      "domain": "ENTITY",
+      "kind": "entity-canon-card",
+      "text": "LuckyBear trông vô hại nhưng là Entity thù địch theo Project HARD LOCK, không phải thú cưng, NPC hay đồng minh. Core hiện hành tuyệt đối không cho nó tấn công, phản công hoặc gây sát thương: 80 HP gốc / 0 ATK / 2 Armor / 8 Aggression; Level 0 có 220 HP. Common Roaming; không gán Level cư trú hay năng lực may mắn/bẫy. Hạ được nó cho 200 EXP cố định mỗi Party member sống và tham chiến, mỗi encounter một lần; không lộ thưởng trước trong lời kể.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/NEW_ENTITIES_CODEX_R01.md (1XRoBXISlL61kdIl56w5xzkkCdEOsQdWP)",
+        "anchor": "## ENT-LB — LUCKYBEAR"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 43,
+      "tags": [
+        "LuckyBear",
+        "luckybear",
+        "gấu vòng hạt"
+      ],
+      "references": [
+        "ENTITY.GLOBAL_HARD_LOCK"
+      ],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.BROWNIES.VISUAL",
+      "domain": "ENTITY",
+      "kind": "visual-card",
+      "text": "[VISUAL] Brownies là thú bông lai gấu/chó phủ lông xoăn nâu, đầu lớn, một tai xòe dựng và một tai rũ, mắt đen thủy tinh, mũi đen bóng; tay ngắn, chân mềm dài. Không có sao vàng hoặc vòng hạt của LuckyBear.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/NEW_ENTITIES_CODEX_R01.md (1XRoBXISlL61kdIl56w5xzkkCdEOsQdWP)",
+        "anchor": "## ENT-BR — BROWNIES"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 56,
+      "tags": [
+        "Brownies",
+        "brownies",
+        "gấu lông xoăn"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.BROWNIES.CANON",
+      "domain": "ENTITY",
+      "kind": "entity-canon-card",
+      "text": "Brownies có dáng đồ chơi yên lặng nhưng được phân loại Entity thù địch, không thân thiện; không khẳng định cùng loài hoặc có quan hệ với LuckyBear. Core hiện hành không cho tấn công, phản công hoặc gây sát thương: 80 HP gốc / 0 ATK / 2 Armor / 8 Aggression; Level 0 có 220 HP. Common Roaming; không gán Level cư trú, chiêu nguyền rủa hoặc bẫy. Hạ được nó cho 100 EXP cố định mỗi Party member sống và tham chiến, mỗi encounter một lần.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/NEW_ENTITIES_CODEX_R01.md (1XRoBXISlL61kdIl56w5xzkkCdEOsQdWP)",
+        "anchor": "## ENT-BR — BROWNIES"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 43,
+      "tags": [
+        "Brownies",
+        "brownies",
+        "gấu lông xoăn"
+      ],
+      "references": [
+        "ENTITY.GLOBAL_HARD_LOCK"
+      ],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.LUC_TRAM_HAC_HOA.VISUAL",
+      "domain": "ENTITY",
+      "kind": "visual-card",
+      "text": "[VISUAL] Entity Lục Trầm Hắc Hóa hiện hình nữ kiếm tu tóc bạc-trắng dài, mắt đỏ, kiếm quan nhọn, chiến giáp đen-đỏ và vạt áo phân lớp, mang đại kiếm đỏ sáng. Đây là ngoại hình enemy-only, không thay visual canon Follower Lục Trầm.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/NEW_ENTITIES_CODEX_R01.md (1XRoBXISlL61kdIl56w5xzkkCdEOsQdWP)",
+        "anchor": "## ENT-LTH — LỤC TRẦM HẮC HÓA (ENTITY ENCOUNTER)"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 56,
+      "tags": [
+        "luc_tram_hac_hoa",
+        "lục trầm hắc hóa"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "ENTITY.LUC_TRAM_HAC_HOA.CANON",
+      "domain": "ENTITY",
+      "kind": "entity-canon-card",
+      "text": "Lục Trầm Hắc Hóa là Entity đối địch, danh tính/quan hệ thật với Follower Lục Trầm UNKNOWN; không khẳng định hồi sinh dẫn đến hắc hóa hoàn chỉnh hay Tịch Quang đã được xác nhận trang bị. Rare Roaming. HP cùng Diệp Minh (Level 0: 2999), Armor 8, Aggression 9, hồi 30 HP/lượt, ATK gốc 0 nhưng có sát thương kiếm riêng. Sáu kỹ năng phía địch: Thiên Kiếm Linh Tâm, Bạch Hồng Quán Nhật, Nhất Tuyến Phá Vọng xuyên 20% DEF, Tịch Quang Phản Kiếm, Vạn Kiếm Quy Tâm, Thiên Kiếm Định Giới (ward +8 Armor/+20% Evasion hai lượt). Không kế thừa đòn 10% HP, AoE 5% hoặc EXP boss Diệp Minh. Không thay dữ liệu Follower.",
+      "source": {
+        "document": "Google Drive /Novel/Asset/03_Entity/NEW_ENTITIES_CODEX_R01.md (1XRoBXISlL61kdIl56w5xzkkCdEOsQdWP)",
+        "anchor": "## ENT-LTH — LỤC TRẦM HẮC HÓA (ENTITY ENCOUNTER)"
+      },
+      "authority": "ENTITY_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 43,
+      "tags": [
+        "luc_tram_hac_hoa",
+        "lục trầm hắc hóa"
+      ],
+      "references": [
+        "ENTITY.GLOBAL_HARD_LOCK"
+      ],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.CATHERINE.AUTHORED",
+      "domain": "CHARACTER",
+      "kind": "authored-character-card",
+      "text": "Catherine Valeria Ashcombe. Nữ xạ thủ 27 tuổi đến từ Grayhaven (Anh), thất lạc năm 1899. Tóc nâu sẫm dài ánh đỏ; mắt xám lục; sơ mi trắng cổ và tay viền ren, corset da đen, áo khoác dài đen đỏ thêu đồng; quần tối, thắt lưng nhiều ngăn, găng đen, bốt cao. Giữ súng ổ quay nòng dài thép đen Vesper Nocturne. Điềm tĩnh, lịch thiệp, kín tiếng, quan sát dấu vết trước khi tin ai. Khi gặp lần đầu, chỉ tả những gì thấy/nghe, phản ứng dè chừng tự nhiên; danh tính, gia cảnh và lời nguyền chỉ lộ qua lời cô tự giới thiệu hoặc trao đổi hợp lý. Không tự gia nhập Party hoặc nổ súng vô cớ.",
+      "source": {
+        "document": "canon/CATHERINE_CODEX.md",
+        "anchor": "I. Định danh / III. Ngoại hình và trang phục / IV. Tính cách / Lần gặp đầu"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 32,
+      "tags": [
+        "catherine",
+        "ashcombe",
+        "vesper nocturne"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.JANET.AUTHORED",
+      "domain": "CHARACTER",
+      "kind": "authored-character-card",
+      "text": "Janet the Lady. Janet Marie Boudreaux, nữ sinh 19 tuổi người Mỹ năm 1988, quê gần Houma, Louisiana, đang sống và học tại New York. Tóc vàng dày buộc cao bằng dây đỏ; áo thun trắng xước bẩn tay có sọc đỏ và phù hiệu cờ Mỹ, áo varsity đỏ, quần jean ngắn, găng đen, bốt cao buộc dây. Cầm gậy bóng chày gỗ quấn dây thép gai Bayou Belle. Nóng nảy, bộc trực, hấp tấp nhưng cực kỳ bảo vệ bạn bè. Khi gặp lần đầu, mô tả dáng sẵn sàng phòng vệ và phản ứng thận trọng; không mặc định tấn công, biết trước tên người chơi hoặc tự gia nhập Party.",
+      "source": {
+        "document": "canon/JANET_CODEX.md",
+        "anchor": "I. Định danh / III. Ngoại hình và trang phục / IV. Tính cách / Lần gặp đầu"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 32,
+      "tags": [
+        "janet",
+        "the lady",
+        "bayou belle"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.NGUYEN_QUOC_NAM.AUTHORED",
+      "domain": "CHARACTER",
+      "kind": "authored-character-card",
+      "text": "Nguyễn Quốc Nam. Nam giảng viên y khoa Việt Nam 36 tuổi, mất tích ở Thành phố Hồ Chí Minh năm 2001. Tóc đen ngắn hơi rối, đeo kính gọng mảnh; sơ mi trắng ngà xắn tay, quần tây sẫm, thắt lưng, đồng hồ mặt tròn và giày da đen. Hai tay giữ súng ngắn bán tự động Hành Lang 01, nhặt được SAU khi vào Backrooms chứ không mang từ trường học. Bình tĩnh, cẩn trọng, quan sát tình trạng người khác trước. Vợ Nguyễn Hồng Lan và con gái Nguyễn Thùy Dương (6 tuổi năm 2001) ở ngoài Backrooms, không biết anh còn sống hay chết; đây là thông tin riêng chỉ tiết lộ nếu đối thoại có lý do, không tự gọi họ xuất hiện. Không tự tuyển vào Party.",
+      "source": {
+        "document": "canon/NGUYEN_QUOC_NAM_CODEX.md",
+        "anchor": "I. Định danh / III. Ngoại hình và trang phục / IV. Tính cách / Lần gặp đầu"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 32,
+      "tags": [
+        "nguyen quoc nam",
+        "nguyễn quốc nam",
+        "hành lang 01"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
+      "id": "CHAR.HUA_TIEU_LAN.AUTHORED",
+      "domain": "CHARACTER",
+      "kind": "authored-character-card",
+      "text": "Hứa Tiểu Lan. Nữ thiện xạ 18 tuổi sống ở Sài Gòn – Chợ Lớn theo lịch sử THAY THẾ HƯ CẤU, bị lạc đúng sinh nhật năm 1895. Tóc đen búi cao, băng trắng, bông tai ngọc trai; áo dài xanh lam nhạt hai tà hoa cúc trắng, quần trắng, giày trắng gót thấp, vòng ngọc bích. Cầm súng trường cổ một phát Trường Xuân bằng báng gỗ nâu sẫm, chi tiết kim loại đồng. Lễ độ, bình tĩnh, tự trọng, rất giỏi bắn mục tiêu nhưng thiếu kinh nghiệm đối phó Entity. Trong Canon game cô là con gái của Hứa Bổn Hòa; chi tiết này là HƯ CẤU, không phải lịch sử có thật. Không tự biết hiện tượng Backrooms, tên người chơi hoặc gia nhập Party.",
+      "source": {
+        "document": "canon/HUA_TIEU_LAN_CODEX.md",
+        "anchor": "I. Định danh / III. Ngoại hình và trang phục / IV. Tính cách / Lần gặp đầu"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 32,
+      "tags": [
+        "hua tieu lan",
+        "hứa tiểu lan",
+        "trường xuân"
       ],
       "references": [],
       "affordances": []

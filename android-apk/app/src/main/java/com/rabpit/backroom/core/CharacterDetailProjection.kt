@@ -26,6 +26,7 @@ data class CharacterDetailProjection(
   val id: String,
   val name: String,
   val avatarRef: String?,
+  val spriteRef: String? = null,
   val presence: CharacterPresence,
   val isLeader: Boolean,
   val healthState: String?,
@@ -112,6 +113,7 @@ object CharacterDetailProjector {
       val def = EquipmentCatalog.definition(item.itemId)
       val normalizedItem = ItemContentRules.normalize(item)
       val useEffects = buildList {
+        if (item.itemId == STAT_POINT_BOOK_ID) add("Dùng từng cuốn: chọn STR, DEX, AGI, VIT hoặc EVA để cộng +1 điểm gốc vĩnh viễn; giới hạn 999. Không cộng EXP hoặc hồi HP.")
         val healPercent = HealingItems.healMaxHpPercent(normalizedItem)
         val heal = HealingItems.healAmount(normalizedItem)
         if (healPercent > 0) add("Hồi $healPercent% Max HP mỗi vật phẩm (làm tròn xuống), không vượt quá Max HP. Không hồi sinh.")
@@ -119,8 +121,8 @@ object CharacterDetailProjector {
         val physiology = normalizedItem.metadata["physiologyEffect"].orEmpty()
           .split(',', ';', '|').map { it.trim().uppercase() }.filter { it.isNotEmpty() }.toSet()
         if (physiology.all { it in setOf("FOOD", "WATER") }) {
-          if ("FOOD" in physiology) add("Đặt lại bộ đếm thiếu thức ăn về 0 phút.")
-          if ("WATER" in physiology) add("Đặt lại bộ đếm thiếu nước về 0 phút.")
+          if ("FOOD" in physiology) add("Giảm tối đa ${normalizedItem.metadata["foodRecoveryMinutes"] ?: "720"} phút thiếu thức ăn mỗi khẩu phần.")
+          if ("WATER" in physiology) add("Giảm tối đa ${normalizedItem.metadata["waterRecoveryMinutes"] ?: "360"} phút thiếu nước mỗi khẩu phần.")
         }
         if (ItemContentRules.nextAfterUse(normalizedItem) == null) add("Tiêu hao theo số lượng đã chọn khi dùng.")
       }
@@ -143,6 +145,7 @@ object CharacterDetailProjector {
       avatarRef = if (c.id == CAO_MINH_ID) {
         if (equipment["weapon"] == MADGOD_SET_ID) MadGodCanon.AVATAR_ASSET else CAO_MINH_AVATAR_REF
       } else c.avatarRef,
+      spriteRef = c.metadata["spriteRef"],
       presence = c.presence,
       isLeader = normalized.party.leaderId == c.id, healthState = c.healthState,
       currentHp = c.vitalState.currentHp.coerceIn(0, effective.maxHp), maxHp = effective.maxHp,
@@ -175,7 +178,7 @@ object CharacterDetailProjector {
       evasionBasisPoints = effective.evasionBasisPoints,
       criticalResistanceBasisPoints = effective.resCriticalBasisPoints,
       evasionResistanceBasisPoints = effective.resEvasionBasisPoints,
-      injuries = c.injuries.toList(), physiology = PhysiologyStatusPolicy.derive(c.physiology),
+      injuries = c.injuries.toList(), physiology = PhysiologyStatusPolicy.derive(c.physiology, c.metadata["survivalMultiplier"]?.toDoubleOrNull() ?: 1.0),
       inventory = inventory.toList(), inventoryDetails = details,
       inventoryCapacityUsed = InventoryCapacityPolicy.usedSlots(normalized, c.id),
       inventoryCapacityMax = InventoryCapacityPolicy.maxSlots(normalized, c.id),

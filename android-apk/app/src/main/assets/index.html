@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Backroom</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#080a0c;color:#eef1f3;font:15px system-ui,sans-serif}.shell{min-height:100vh;padding:10px;background:radial-gradient(circle at top,#161b20,#07090b 75%)}.game,.card{border:1px solid #2b3137;background:#0e1114;box-shadow:0 20px 60px #0007}.topbar{display:flex;justify-content:space-between;gap:12px;padding:16px;border-bottom:1px solid #2b3137}.eyebrow,.role{color:#8f9aa4;font-size:10px;font-weight:800;letter-spacing:.16em}h1{margin:4px 0 0;font-size:23px}.turn{color:#9aa4ad;font-size:12px;letter-spacing:.1em}.turn strong{font-size:21px;color:white}.snapshot{height:300px;margin:8px 10px 10px;border:1px solid #252b31;display:grid;place-items:center;background:#0b0d0f;color:#69737c;border-radius:10px;overflow:hidden}.snapshot img{width:100%;height:100%;object-fit:cover}.log{height:42vh;overflow:auto;padding:10px;display:grid;gap:10px}.message{border-left:3px solid #454e56;padding:11px;background:#111519}.message.player{border-left-color:#8b949e;background:#15191d}.role{margin-bottom:6px}.text{white-space:pre-wrap;line-height:1.55}.composer{display:grid;gap:8px;padding:10px}textarea,button{font:inherit}textarea{min-height:80px;background:#090c0f;color:white;border:1px solid #30373e;padding:10px}button{border:1px solid #3a4249;background:#1a2025;color:#eff2f4;padding:12px;font-weight:700}.status{border-top:1px solid #252b31;padding:10px;color:#9aa4ad;font-size:12px}.side{display:grid;gap:10px;margin-top:10px}.card{padding:14px}.card h2{font-size:13px;letter-spacing:.1em;margin:0 0 10px}.row{display:grid;grid-template-columns:90px 1fr;padding:6px 0;border-bottom:1px solid #22282d;color:#dce2e5}.row b{color:#78838c;font-weight:400}.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.actions .wide{grid-column:1/-1}.danger{background:#241616;color:#e6b1b1;border-color:#663b3b}.chips{display:flex;flex-wrap:wrap;gap:6px}.chips span{border:1px solid #313940;padding:5px 7px;font-size:12px}.party-time{min-height:16px;margin:-2px 0 9px;color:#78838c;font-size:11px}.party-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.party-member{border:1px solid #313940;background:#111519;padding:7px;display:grid;gap:6px;text-align:center;cursor:pointer;min-width:0}.party-member img,.party-avatar-placeholder{width:100%;aspect-ratio:1/1;object-fit:cover;border:1px solid #333b42;background:#0b0e11}.party-avatar-placeholder{display:grid;place-items:center;color:#78838c;font-size:18px;font-weight:800}.party-member strong{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.party-member .party-state{color:#84909a;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.party-member.empty{cursor:default;opacity:.45}.party-member.empty .party-avatar-placeholder{font-size:11px}.character-inventory-view{position:fixed;inset:0;z-index:50;background:#080a0c;padding:14px;overflow:auto}.character-inventory-head{display:flex;align-items:center;gap:12px;border-bottom:1px solid #2b3137;padding-bottom:12px}.character-inventory-head button{width:auto}.character-inventory-head h2{margin:3px 0 0}.character-profile{display:grid;grid-template-columns:110px 1fr;gap:14px;align-items:center;padding:16px 0}.character-profile img{width:110px;height:110px;object-fit:cover;border:1px solid #3b444c}.character-hp{margin:0 0 14px;max-width:520px}.character-hp-track{position:relative;height:22px;border:2px solid #30383d;background:#090c0d;box-shadow:0 0 0 2px rgba(0,0,0,.45),0 0 8px rgba(80,210,145,.16);overflow:hidden}.character-hp-fill{position:absolute;inset:0 auto 0 0;width:100%;background:linear-gradient(90deg,#a8e4c7 0%,#68c997 35%,#20b978 68%,#008f58 100%);transition:width .2s ease}.character-hp-segments{position:absolute;inset:0;display:grid;grid-template-columns:repeat(5,1fr);pointer-events:none}.character-hp-segments i{border-right:2px solid rgba(8,22,16,.23)}.character-hp-segments i:last-child{border-right:0}.character-hp-value{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:18px;line-height:1}.character-hp-heart{color:#e6394f;font-size:28px;text-shadow:0 1px 2px #000}.character-hp-value strong{font-weight:900;letter-spacing:.02em;color:#dce4e7}.inventory-capacity{font-size:18px;font-weight:800}.inventory-limit{margin-top:5px;color:#8f9aa4;font-size:12px}.character-section{border:1px solid #2b3137;background:#0e1114;padding:14px;margin-top:10px}.character-section h3{margin:0 0 10px;font-size:12px;letter-spacing:.12em;text-transform:uppercase}.equipment-list,.character-status-list{display:grid;gap:7px}.equipment-list > span,.character-status-row{border:1px solid #313940;padding:9px;color:#dce2e5}.character-status-row{display:grid;grid-template-columns:minmax(90px,35%) 1fr;gap:8px}.character-status-row b{color:#78838c;font-weight:400}.status-normal{color:#9aa4ad}.status-warning{color:#d6c28a}.status-danger{color:#df9a9a}.message.gm{border-left-color:#71808a;background:#1a2025}.survival-hud{display:grid;gap:10px;margin:0 0 13px}.survival-meter{border:1px solid #34444d;background:#0b1014;padding:8px 10px;clip-path:polygon(0 12%,4% 0,92% 0,100% 28%,100% 72%,96% 100%,4% 100%,0 88%)}.survival-meter-head{display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:9px;align-items:center;margin-bottom:6px}.survival-icon{display:grid;place-items:center;min-width:36px;height:30px;border:1px solid #4a626d;background:#111a1f;font-weight:900}.survival-label{font-size:11px;font-weight:800;letter-spacing:.08em}.survival-value{font-size:13px;font-weight:900}.survival-track{height:14px;border:1px solid #4b6570;background:#070a0c;padding:2px}.survival-fill{display:block;height:100%;background:linear-gradient(90deg,#5f8290,#b9e8f0);box-shadow:0 0 8px #8ddbe855;transition:width .2s ease}.survival-state{margin-top:5px;color:#87939b;font-size:10px;text-align:right}.survival-meter.unknown .survival-value,.survival-meter.unknown .survival-state{color:#78838c}.survival-meter.unknown .survival-fill{width:0!important}#characterEquipmentList .equipment-badge,#characterInventoryItems .equipment-badge{text-transform:uppercase;letter-spacing:.035em}@media(max-width:520px){.party-grid{grid-template-columns:repeat(4,1fr)}.party-member{padding:4px}.party-member strong{font-size:9px}.party-member .party-state{font-size:8px}}.message.warning{border-left-color:#d99a2b;background:#231a0b}.message.warning .role{color:#e3a83a}.message.warning .text{color:#ffd27a;font-weight:650}
+*{box-sizing:border-box}body{margin:0;background:#080a0c;color:#eef1f3;font:15px Play,sans-serif}.shell{min-height:100vh;padding:10px;background:radial-gradient(circle at top,#161b20,#07090b 75%)}.game,.card{border:1px solid #2b3137;background:#0e1114;box-shadow:0 20px 60px #0007}.topbar{display:flex;justify-content:space-between;gap:12px;padding:16px;border-bottom:1px solid #2b3137}.eyebrow,.role{color:#8f9aa4;font-size:10px;font-weight:800;letter-spacing:.16em}h1{margin:4px 0 0;font-size:23px}.turn{color:#9aa4ad;font-size:12px;letter-spacing:.1em}.turn strong{font-size:21px;color:white}.snapshot{height:300px;margin:8px 10px 10px;border:1px solid #252b31;display:grid;place-items:center;background:#0b0d0f;color:#69737c;border-radius:10px;overflow:hidden}.snapshot img{width:100%;height:100%;object-fit:cover}.log{height:42vh;overflow:auto;padding:10px;display:grid;gap:10px}.message{border-left:3px solid #454e56;padding:11px;background:#111519}.message.player{border-left-color:#8b949e;background:#15191d}.role{margin-bottom:6px}.text{white-space:pre-wrap;line-height:1.55}.composer{display:grid;gap:8px;padding:10px}textarea,button{font:inherit}textarea{min-height:80px;background:#090c0f;color:white;border:1px solid #30373e;padding:10px}button{border:1px solid #3a4249;background:#1a2025;color:#eff2f4;padding:12px;font-weight:700}.status{border-top:1px solid #252b31;padding:10px;color:#9aa4ad;font-size:12px}.side{display:grid;gap:10px;margin-top:10px}.card{padding:14px}.card h2{font-size:13px;letter-spacing:.1em;margin:0 0 10px}.row{display:grid;grid-template-columns:90px 1fr;padding:6px 0;border-bottom:1px solid #22282d;color:#dce2e5}.row b{color:#78838c;font-weight:400}.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.actions .wide{grid-column:1/-1}.danger{background:#241616;color:#e6b1b1;border-color:#663b3b}.chips{display:flex;flex-wrap:wrap;gap:6px}.chips span{border:1px solid #313940;padding:5px 7px;font-size:12px}.party-time{min-height:16px;margin:-2px 0 9px;color:#78838c;font-size:11px}.party-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.party-member{border:1px solid #313940;background:#111519;padding:7px;display:grid;gap:6px;text-align:center;cursor:pointer;min-width:0}.party-member img,.party-avatar-placeholder{width:100%;aspect-ratio:1/1;object-fit:cover;border:1px solid #333b42;background:#0b0e11}.party-avatar-placeholder{display:grid;place-items:center;color:#78838c;font-size:18px;font-weight:800}.party-member strong{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.party-member .party-state{color:#84909a;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.party-member.empty{cursor:default;opacity:.45}.party-member.empty .party-avatar-placeholder{font-size:11px}.character-inventory-view{position:fixed;inset:0;z-index:50;background:#080a0c;padding:14px;overflow:auto}.character-inventory-head{display:flex;align-items:center;gap:12px;border-bottom:1px solid #2b3137;padding-bottom:12px}.character-inventory-head button{width:auto}.character-inventory-head h2{margin:3px 0 0}.character-profile{display:grid;grid-template-columns:110px 1fr;gap:14px;align-items:center;padding:16px 0}.character-profile img{width:110px;height:110px;object-fit:cover;border:1px solid #3b444c}.character-hp{margin:0 0 14px;max-width:520px}.character-hp-track{position:relative;height:22px;border:2px solid #30383d;background:#090c0d;box-shadow:0 0 0 2px rgba(0,0,0,.45),0 0 8px rgba(80,210,145,.16);overflow:hidden}.character-hp-fill{position:absolute;inset:0 auto 0 0;width:100%;background:linear-gradient(90deg,#a8e4c7 0%,#68c997 35%,#20b978 68%,#008f58 100%);transition:width .2s ease}.character-hp-segments{position:absolute;inset:0;display:grid;grid-template-columns:repeat(5,1fr);pointer-events:none}.character-hp-segments i{border-right:2px solid rgba(8,22,16,.23)}.character-hp-segments i:last-child{border-right:0}.character-hp-value{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:18px;line-height:1}.character-hp-heart{color:#e6394f;font-size:28px;text-shadow:0 1px 2px #000}.character-hp-value strong{font-weight:900;letter-spacing:.02em;color:#dce4e7}.inventory-capacity{font-size:18px;font-weight:800}.inventory-limit{margin-top:5px;color:#8f9aa4;font-size:12px}.character-section{border:1px solid #2b3137;background:#0e1114;padding:14px;margin-top:10px}.character-section h3{margin:0 0 10px;font-size:12px;letter-spacing:.12em;text-transform:uppercase}.equipment-list,.character-status-list{display:grid;gap:7px}.equipment-list > span,.character-status-row{border:1px solid #313940;padding:9px;color:#dce2e5}.character-status-row{display:grid;grid-template-columns:minmax(90px,35%) 1fr;gap:8px}.character-status-row b{color:#78838c;font-weight:400}.status-normal{color:#9aa4ad}.status-warning{color:#d6c28a}.status-danger{color:#df9a9a}.message.gm{border-left-color:#71808a;background:#1a2025}.survival-hud{display:grid;gap:10px;margin:0 0 13px}.survival-meter{border:1px solid #34444d;background:#0b1014;padding:8px 10px;clip-path:polygon(0 12%,4% 0,92% 0,100% 28%,100% 72%,96% 100%,4% 100%,0 88%)}.survival-meter-head{display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:9px;align-items:center;margin-bottom:6px}.survival-icon{display:grid;place-items:center;min-width:36px;height:30px;border:1px solid #4a626d;background:#111a1f;font-weight:900}.survival-label{font-size:11px;font-weight:800;letter-spacing:.08em}.survival-value{font-size:13px;font-weight:900}.survival-track{height:14px;border:1px solid #4b6570;background:#070a0c;padding:2px}.survival-fill{display:block;height:100%;background:linear-gradient(90deg,#5f8290,#b9e8f0);box-shadow:0 0 8px #8ddbe855;transition:width .2s ease}.survival-state{margin-top:5px;color:#87939b;font-size:10px;text-align:right}.survival-meter.unknown .survival-value,.survival-meter.unknown .survival-state{color:#78838c}.survival-meter.unknown .survival-fill{width:0!important}#characterEquipmentList .equipment-badge,#characterInventoryItems .equipment-badge{text-transform:uppercase;letter-spacing:.035em}@media(max-width:520px){.party-grid{grid-template-columns:repeat(4,1fr)}.party-member{padding:4px}.party-member strong{font-size:9px}.party-member .party-state{font-size:8px}}.message.warning{border-left-color:#d99a2b;background:#231a0b}.message.warning .role{color:#e3a83a}.message.warning .text{color:#ffd27a;font-weight:650}
 
 .character-role{margin-top:4px;color:#93a0a8;font-size:11px;letter-spacing:.04em}.character-core-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:10px 0}.character-core-stat{border:1px solid #30383d;background:#0a0d0f;padding:9px}.character-core-stat b{display:block;color:#7e8992;font-size:10px;letter-spacing:.12em}.character-core-stat strong{display:block;margin-top:4px;font-size:17px}.equipment-card,.inventory-item-card{display:grid;grid-template-columns:38px 1fr auto;gap:9px;align-items:center;border:1px solid #313940;background:#0b0f12;padding:8px;cursor:pointer}.equipment-card:hover,.inventory-item-card:hover{border-color:#52606a}.equipment-card-icon{width:38px;height:38px;display:grid;place-items:center;border:1px solid #39434a;background:#11171b;font-weight:900;font-size:11px}.equipment-card-main{min-width:0}.equipment-card-main strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.equipment-card-main small{display:block;color:#7f8b93;margin-top:3px}.equipment-badges{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}.equipment-badge{border:1px solid #45515a;padding:3px 5px;font-size:8px;letter-spacing:.08em}.equipment-badge.equipped{border-color:#3c8466;color:#8ed3b1}.equipment-badge.cheat{border-color:#8c7042;color:#e4c07e}.equipment-detail-modal{position:fixed;inset:0;z-index:120;background:rgba(0,0,0,.72);display:flex;align-items:flex-end;justify-content:center}.equipment-detail-modal[hidden]{display:none}.equipment-detail-sheet{position:relative;width:min(720px,100%);max-height:88vh;overflow:auto;background:#0b0e11;border:1px solid #3a444b;border-bottom:0;padding:18px}.equipment-detail-close{position:absolute;right:10px;top:10px;width:38px;height:38px}.equipment-detail-header{display:grid;grid-template-columns:58px 1fr;gap:12px;align-items:center;padding-right:42px}.equipment-detail-icon{width:58px;height:58px;border:1px solid #46525a;display:grid;place-items:center;font-weight:900}.equipment-detail-header h2{margin:3px 0}.equipment-detail-meta{color:#89949c;font-size:11px}.equipment-detail-sheet section{border-top:1px solid #2c3338;margin-top:15px;padding-top:13px}.equipment-detail-sheet section h3{font-size:11px;letter-spacing:.14em;margin:0 0 9px}.equipment-detail-row,.ability-row,.restriction-row{border:1px solid #2e373d;padding:8px;margin-top:6px}.equipment-detail-row{display:flex;justify-content:space-between;gap:12px}.ability-row strong{display:block}.ability-row p{margin:5px 0 0;color:#c0c8cd;font-size:12px}.ability-row em{display:block;margin-top:5px;color:#d0af77;font-style:normal;font-size:11px}.restriction-row{color:#c7b38b;font-size:12px}.stat-delta-positive{color:#8fd2ad}.stat-delta-negative{color:#dc9b9b}@media(max-width:520px){.character-core-stats{grid-template-columns:1fr 1fr}.equipment-detail-sheet{padding:14px}.equipment-card,.inventory-item-card{grid-template-columns:34px 1fr}.equipment-badges{grid-column:2;justify-content:flex-start}}
 
@@ -45,7 +45,7 @@ body.game-menu-open{overflow:hidden}
 
 /* GM_THINKING_LOGO: transient reply placeholder, removed with the pending row. */
 .gm-thinking{display:flex;align-items:center;gap:10px;min-height:44px;padding:4px 0}
-.gm-thinking-name{color:#c8d0d8;font-size:14px;font-weight:600}
+.gm-thinking-name,.gm-thinking-brand{color:#c8d0d8;font-size:14px;font-weight:600}
 .gm-thinking img{display:block;width:36px;height:36px;object-fit:contain;animation:gm-thinking-pulse 1.6s ease-in-out infinite}
 @keyframes gm-thinking-pulse{0%,100%{opacity:.55;transform:scale(.88)}50%{opacity:1;transform:scale(1)}}
 @media(prefers-reduced-motion:reduce){.gm-thinking img{animation:none;opacity:1;transform:none}}
@@ -64,8 +64,8 @@ body.game-menu-open{overflow:hidden}
 .poker-die-shadow{position:absolute;left:16%;right:12%;bottom:24px;height:9px;border-radius:50%;background:#0008;filter:blur(4px);pointer-events:none}
 .poker-die-object{position:relative;width:100%;max-width:84px;aspect-ratio:1;display:grid;place-items:center;transform-origin:50% 65%;z-index:1}
 .poker-die-skin{display:block!important;width:100%!important;height:100%!important;object-fit:contain!important;pointer-events:none;filter:drop-shadow(0 3px 2px #0005)!important}
-.poker-die-unknown{width:78%;aspect-ratio:1;display:grid;place-items:center;border:1px solid #645b49;border-radius:7px;background:linear-gradient(145deg,#25261f,#151816);color:#ad9e79;font:700 24px/1 system-ui,sans-serif}
-.poker-die-hold-seal{position:absolute;bottom:5px;left:50%;transform:translateX(-50%);display:block;visibility:hidden;min-width:0;padding:3px 0;border:0;background:transparent;color:#9be1bc;font:700 9px/1 system-ui,sans-serif;letter-spacing:.04em;pointer-events:none;white-space:nowrap}
+.poker-die-unknown{width:78%;aspect-ratio:1;display:grid;place-items:center;border:1px solid #645b49;border-radius:7px;background:linear-gradient(145deg,#25261f,#151816);color:#ad9e79;font:700 24px/1 Play,sans-serif}
+.poker-die-hold-seal{position:absolute;bottom:5px;left:50%;transform:translateX(-50%);display:block;visibility:hidden;min-width:0;padding:3px 0;border:0;background:transparent;color:#9be1bc;font:700 9px/1 Play,sans-serif;letter-spacing:.04em;pointer-events:none;white-space:nowrap}
 .poker-die.held{--held-glow:#9be1bc;border-color:transparent!important;background:transparent!important;box-shadow:none!important}
 .poker-die.held:after{content:none!important}
 .poker-die.held .poker-die-hold-seal{visibility:visible;color:var(--held-glow);text-shadow:0 0 7px #9be1bc88}
@@ -104,7 +104,8 @@ body.game-menu-open{overflow:hidden}
 .log .message.gm .role,
 .log .message.gm .text,
 .log .message.gm .gm-semantic{font-family:Play!important}
-.log .message.gm .gm-semantic{font-weight:700}
+.log .message.gm .gm-semantic,
+.log .message.core .gm-semantic{font-weight:700}
 </style>
 <link rel="stylesheet" href="ui/ornate-frame-v1.css">
 
@@ -172,19 +173,54 @@ body.game-menu-open{overflow:hidden}
 .equipment-card-icon,.equipment-detail-icon{background:transparent;border:0;overflow:hidden}.equipment-card-icon{width:100%;height:auto;aspect-ratio:1}.item-liquid-icon{display:block;width:100%;height:100%;object-fit:contain;}
 </style>
 <link rel="stylesheet" href="item-presentation.css">
-<link rel="stylesheet" href="player-composer.css">
+<link rel="stylesheet" href="explorer-controls.css">
+<style>
+/* The one-time offer overlays the snapshot and never adds a game-grid row. */
+#prologuePrompt{position:absolute;top:clamp(90px,22%,180px);left:18px;right:18px;z-index:35;
+  border:1px solid #d7b56f;border-radius:999px;background:linear-gradient(135deg,#c59a51,#8b642e 65%,#67451f);
+  box-shadow:0 8px 24px #0008,inset 0 1px 0 #f5dba266;color:#fff2ce}
+#prologuePrompt[hidden]{display:none!important}
+#prologueOpenButton{display:block;width:100%;min-height:64px;padding:16px 64px;border:0;
+  border-radius:999px!important;background:transparent;color:inherit;text-align:center;font-size:18px;font-weight:900;letter-spacing:.14em;touch-action:manipulation}
+#prologueDismissButton{position:absolute;right:7px;top:7px;width:50px;height:50px;min-height:44px;padding:0;
+  border:1px solid #f4d39066;border-radius:50%!important;background:#4b301d55;color:inherit;font-size:28px;line-height:1;touch-action:manipulation}
+#prologueOpenButton:focus-visible,#prologueDismissButton:focus-visible{outline:2px solid #fff2c1;outline-offset:3px}
+#prologueReader:not([open]){display:none!important}
+#prologueReader[open]{display:flex;flex-direction:column}
+#prologueReader{position:fixed;inset:12px;margin:auto;width:min(calc(100vw - 24px),760px);
+  height:min(calc(var(--app-height,100dvh) - 24px),900px);max-width:none;max-height:none;padding:0;
+  border:1px solid #b18a49;border-radius:18px!important;background:#141a1c;color:#e9e1cc;overflow:hidden}
+#prologueReader::backdrop{background:#000c}
+.prologue-reader-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid #8b6a3d}
+.prologue-reader-head h2{margin:0;font-size:18px;letter-spacing:.12em}
+#prologueReaderClose{width:44px;height:44px;padding:0;border-radius:50%!important;font-size:27px;background:#6b4c29;color:#fff0ca;border:1px solid #b18a49}
+#prologueReader .prologue-body{flex:1;min-height:0;overflow:auto;padding:18px;white-space:pre-wrap;line-height:1.7;overscroll-behavior:contain}
+#prologueReaderDone{flex:none;min-height:50px;margin:12px 16px 16px;border-radius:999px!important;border:1px solid #c9a45e;background:#8b642e;color:#fff0ca}
+</style>
+<link rel="stylesheet" href="ui/industrial-crt-v1.css">
+<link rel="stylesheet" href="ui/snapshot-crt.css">
+<link rel="stylesheet" href="dungeon.css">
 </head>
-<body>
+<body class="industrial-ui">
 <main class="shell">
 <section class="game">
-<header class="topbar"><div><div class="eyebrow">BACKROOM TEXT GAME</div><h1 id="title"></h1><span class="turn-runtime">TURN <strong id="turn"></strong></span></div><button class="game-menu-trigger" id="gameMenuOpen" type="button" aria-label="Mở menu game" aria-haspopup="dialog" aria-controls="gameMenuModal" aria-expanded="false">☰</button></header>
+<header class="topbar"><div><div class="eyebrow">BACKROOM TEXT GAME</div><h1 id="title"></h1><span class="turn-runtime">TURN <strong id="turn"></strong></span></div><div class="header-tools"><div class="crt-header-status" aria-hidden="true"><span class="camera-label">CAM 01</span><svg width="16" height="16" viewBox="0 0 20 20"><path d="M2 3h8L6 8v8M6 8v8M10 16v-3M13 16v-6M16 16V7"/></svg><svg width="21" height="13" viewBox="0 0 26 16"><path d="M1 2h21v12H1zM23 6h2v4h-2"/><path d="M4 4v8M7 4v8M10 4v8M13 4v8M16 4v8"/></svg></div><button class="game-menu-trigger" id="gameMenuOpen" type="button" aria-label="Mở menu game" aria-haspopup="dialog" aria-controls="gameMenuModal" aria-expanded="false">☰</button></div></header>
+<div id="prologuePrompt" aria-label="Đọc hoặc bỏ qua mở đầu" hidden>
+  <button type="button" id="prologueOpenButton" aria-haspopup="dialog" aria-controls="prologueReader">PROLOGUE</button>
+  <button type="button" id="prologueDismissButton" aria-label="Bỏ qua Prologue">×</button>
+</div>
+<dialog id="prologueReader" aria-labelledby="prologueReaderTitle">
+  <header class="prologue-reader-head"><h2 id="prologueReaderTitle">PROLOGUE</h2><button type="button" id="prologueReaderClose" aria-label="Đóng Prologue">×</button></header>
+  <div class="prologue-body text" id="prologueBody" tabindex="0" aria-label="Nội dung mở đầu"></div>
+  <button type="button" id="prologueReaderDone">Vào game</button>
+</dialog>
 <div class="snapshot" id="snapshot">SNAPSHOT — Android bản đầu chưa tạo ảnh tự động</div>
 <div class="log" id="log"></div>
 <div class="player-action-bar" id="playerActionBar" aria-label="Hành động của Cao Minh">
 <form class="composer chat-composer" id="form">
   <img class="chat-avatar" src="avatars/CAO_MINH_AVATAR.jpg" alt="Cao Minh" width="44" height="44">
   <div class="primary-action-row chat-glass" id="primaryActionRow">
-    <textarea id="action" aria-label="Hành động của Cao Minh" placeholder="Cao Minh sẽ làm gì?" rows="1"></textarea>
+    <input type="hidden" id="action" value="">
     <button type="submit" class="primary-action chat-send" id="submit" aria-label="Gửi hành động" disabled>
       <svg class="send-plane-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.5 2.5 3 9.8c-.9.4-.9 1 .1 1.3l4.7 1.5L18.7 5.7c.5-.3.9-.1.5.3l-8.8 8-.3 4.9c.4 0 .6-.2.8-.4l2.3-2.2 4.8 3.5c.9.5 1.5.2 1.7-.8l3.1-14.6c.3-1.3-.5-1.9-1.3-1.9Z"></path></svg>
     </button>
@@ -196,9 +232,29 @@ body.game-menu-open{overflow:hidden}
 <div class="game-menu-modal" id="gameMenuModal" hidden aria-hidden="true">
   <div class="game-menu-backdrop" id="gameMenuBackdrop"></div>
   <section class="game-menu-sheet" role="dialog" aria-modal="true" aria-labelledby="gameMenuTitle">
-    <div class="game-menu-head"><h2 id="gameMenuTitle">GAME MENU</h2><button class="game-menu-close" id="gameMenuClose" type="button" aria-label="Đóng">×</button></div>
+    <div class="game-menu-head"><div><h2 id="gameMenuTitle">GAME MENU</h2><p class="menu-kicker">HỒ SƠ SINH TỒN</p></div><button class="game-menu-close" id="gameMenuClose" type="button" aria-label="Đóng">×</button></div>
     <aside class="side">
-<div class="card"><h2>Trạng thái</h2><div class="row"><b>Vị trí</b><span id="location"></span></div><div class="row"><b>Chế độ</b><span id="mode"></span></div><div class="row"><b>Nhân vật</b><span id="player"></span></div></div>
+<section class="card" id="explorerMenuTools" hidden aria-labelledby="explorerMenuToolsTitle">
+  <h2 id="explorerMenuToolsTitle">Khám phá</h2>
+  <section class="explorer-current-objective" id="explorerMenuObjective" hidden aria-label="Mục tiêu hiện tại">
+    <strong>Mục tiêu hiện tại</strong>
+    <p id="explorerCurrentObjective" aria-live="polite"></p>
+  </section>
+  <div class="explorer-dossier-tiles">
+    <button type="button" id="explorerCasebook">Sổ tay</button>
+    <button type="button" id="explorerQuestItems">Vật phẩm nhiệm vụ</button>
+
+  </div>
+</section>
+<section class="card" id="sceneJournal" hidden aria-labelledby="sceneJournalTitle">
+  <h2 id="sceneJournalTitle">Nhật ký khám phá</h2>
+  <p id="sceneJournalRoom"></p>
+  <p id="sceneJournalObjective"></p>
+  <details open><summary>Manh mối và lời khai</summary><div id="sceneJournalRecords"></div></details>
+  <div class="scene-inference"><strong>Suy luận tạm thời</strong><p id="sceneJournalInference" aria-live="polite"></p></div>
+</section>
+<section class="card"><h2>Dungeon</h2><button type="button" id="dungeonOpen">Dungeon · Huấn luyện Follower</button></section>
+<div class="card menu-dossier"><h2>Hồ sơ sinh tồn</h2><div class="row"><b>Nhân vật</b><span id="player"></span></div><div class="row"><b>Vị trí</b><span id="location"></span></div><div class="row"><b>Chế độ</b><span id="mode"></span></div></div>
 <div class="card"><h2>Save / Load</h2><div class="actions"><button type="button" id="saveButton" onclick="save()">Lưu</button><button type="button" id="loadButton" onclick="load()">Tải</button><button type="button" id="newGameButton" class="wide" onclick="resetGame()">Bắt đầu lại từ đầu</button><button type="button" id="deleteSaveButton" class="wide danger" onclick="clearSave()">Xóa save trên máy</button></div></div>
 <div class="card"><h2>Chẩn đoán lỗi</h2>
   <p class="diagnostic-note">Xuất trạng thái Game Core, Combat, lịch sử lượt, lỗi JavaScript và timeline API thành file JSON cho AI phân tích. File chỉ lưu vào vị trí anh chọn.</p>
@@ -227,6 +283,7 @@ body.game-menu-open{overflow:hidden}
   <div class="character-section"><h3>Kho vật phẩm</h3><div class="inventory-capacity" id="characterInventoryCapacity">0 / 9 loại vật phẩm</div><div class="inventory-limit">Số loại vật phẩm đang mang, không tính trang bị</div><div class="chips" id="characterInventoryItems"></div></div>
 </div>
 </aside>
+    <p id="gameMenuFeedback" class="menu-feedback" role="status" aria-live="polite" hidden></p>
   </section>
 </div>
 </main>
@@ -1559,6 +1616,49 @@ Chừng nào hắn còn chưa tận mắt tìm thấy câu trả lời khác, h�
 
 Và hắn sẽ đi tìm.`;
 
+// Optional reader content stays outside state/log, save and all provider payloads.
+function setupPrologue(){
+  const prompt=document.getElementById('prologuePrompt');
+  const open=document.getElementById('prologueOpenButton');
+  const skip=document.getElementById('prologueDismissButton');
+  const reader=document.getElementById('prologueReader');
+  const body=document.getElementById('prologueBody');
+  const close=document.getElementById('prologueReaderClose');
+  const done=document.getElementById('prologueReaderDone');
+  if(!prompt||!open||!skip||!reader||!body||!close||!done)return null;
+  const key='backroom-prologue-offer';
+  let initialized=false,offered=false,dismissed=false,loaded=false;
+  function remember(value){try{localStorage.setItem(key,value);}catch(_){/* Keep the current-session choice if storage is unavailable. */}}
+  function dismiss(){offered=false;dismissed=true;prompt.hidden=true;remember('dismissed');}
+  function refresh(current){
+    if(!initialized){
+      let saved=null;try{saved=localStorage.getItem(key);}catch(_){}
+      dismissed=saved==='dismissed';
+      offered=!dismissed&&(saved==='pending'||(!saved&&current?.turn===1));
+      initialized=true;if(offered)remember('pending');
+    }
+    prompt.hidden=!offered||dismissed;
+  }
+  function reset(){
+    if(reader.open)reader.close();
+    initialized=true;offered=true;dismissed=false;prompt.hidden=false;remember('pending');
+  }
+  open.onclick=()=>{
+    if(prompt.hidden)return;
+    if(!loaded){body.textContent=prologue;loaded=true;}
+    if(!reader.open)reader.showModal();
+    dismiss(); // Choosing to read consumes the offer; closing never restores it.
+  };
+  skip.onclick=dismiss;
+  close.onclick=()=>reader.close();done.onclick=()=>reader.close();
+  reader.addEventListener('close',()=>{
+    const target=document.getElementById('explorerPlayerButton')||document.getElementById('gameMenuOpen');
+    if(target&&!target.disabled&&!target.hidden)target.focus?.();
+  });
+  return {refresh,reset};
+}
+const prologueControls=setupPrologue();
+
 const initial={canonVersion:"KNOWLEDGE-DB-SCHEMA-1",title:"Level 0 – The Lobby",level:{number:0,name:"The Lobby"},turn:1,
   mode:"Single Player: Hard Mode",
   location:"Level 0 / The Lobby — khu phòng vàng ban đầu",
@@ -1567,7 +1667,6 @@ const initial={canonVersion:"KNOWLEDGE-DB-SCHEMA-1",title:"Level 0 – The Lobby
   inventory:[],
   flags:{communication:{},iris:{exists:true,continuity:"UNKNOWN",reunionEligible:true},syvial:{exists:true,continuity:"UNKNOWN",reunionEligible:true},madGod:{spawned:false,acquired:false}},
   log:[
-    {role:"gm",text:"MỞ ĐẦU\n\n"+prologue},
     {role:"gm",text:"LƯỢT 1\n\nCao Minh tỉnh lại một mình tại Level 0. Không có dấu vết của Lục Trầm. Kể từ đây, mọi quyết định chủ ý của Cao Minh thuộc về người chơi."}
   ]
 };
@@ -1576,7 +1675,14 @@ const byId=id=>document.getElementById(id);
 const titleEl=byId("title"),turnEl=byId("turn"),locationEl=byId("location"),modeEl=byId("mode"),playerEl=byId("player"),partyEl=byId("party"),inventoryEl=byId("inventory"),logEl=byId("log"),statusEl=byId("status"),formEl=byId("form"),actionEl=byId("action"),submitEl=byId("submit");
 let state=(()=>{try{const raw=localStorage.getItem("backroom-apk-state");if(!raw)return JSON.parse(JSON.stringify(initial));const parsed=JSON.parse(raw);return parsed&&typeof parsed==="object"&&!Array.isArray(parsed)?parsed:JSON.parse(JSON.stringify(initial));}catch(e){try{localStorage.removeItem("backroom-apk-state");}catch(ignore){}return JSON.parse(JSON.stringify(initial));}})();state.mode="Single Player: Hard Mode";state.canonVersion="KNOWLEDGE-DB-SCHEMA-1";state.flags=state.flags||{};state.flags.iris=state.flags.iris||{exists:true,continuity:"UNKNOWN",reunionEligible:true};state.flags.syvial=state.flags.syvial||{exists:true,continuity:"UNKNOWN",reunionEligible:true};state.flags.madGod=state.flags.madGod||{spawned:false,acquired:false};
 // Core is the only source of gameplay state; localStorage supplies only UI presentation.
+// Reader-only content never travels through the Core bridge or checkpoint log.
+function compactReaderContent(presentation){
+  if(Array.isArray(presentation.log))presentation.log=presentation.log.filter(entry=>
+    !(entry&&entry.role==='gm'&&entry.text==='MỞ ĐẦU\n\n'+prologue));
+  return presentation;
+}
 function syncClientFromCore(presentation) {
+  compactReaderContent(presentation);
   if(!window.Android||typeof Android.currentClientState!=="function")return presentation;
   const core=JSON.parse(Android.currentClientState(JSON.stringify(presentation)));
   if(!core||core.error||!core.partyDetails||!core.coreSystem)throw new Error("Core snapshot unavailable");
@@ -1590,29 +1696,235 @@ function focusLatestGmStart(){requestAnimationFrame(()=>requestAnimationFrame(()
 
 function esc(s){const d=document.createElement("div");d.textContent=s||"";return d.innerHTML}
 function itemDisplayName(x){let n=String((x&&x.name)||"—").replace(/^\s*được\s+/i,"").trim();if(n)n=n.charAt(0).toLocaleUpperCase("vi-VN")+n.slice(1);return n} function chips(items){return items&&items.length?items.map(x=>{if(typeof x==="string")return "<span>"+esc(x)+"</span>";const q=Math.max(1,Number(x.quantity)||1);return "<span>"+esc(itemDisplayName(x))+" ×"+q+"</span>"}).join(""):"<span>Trống.</span>"}
-const SEMANTIC_KINDS=["character","entity","item","skill"];
+const SEMANTIC_KINDS=["character","entity","item","skill","clue","location"];
+const SEMANTIC_CACHE_VERSION=5;
+const SEMANTIC_IGNORED=new Set(["backrooms","game master","level","unknown","chưa khám phá","lối chưa khám phá","trống"]);
 function semanticKind(value){return SEMANTIC_KINDS.includes(value)?value:""}
-function semanticFold(value){return String(value==null?"":value).toLocaleLowerCase("vi-VN")}
-function semanticWordChar(ch){if(!ch)return false;if(/[0-9_]/.test(ch))return true;return ch.toLocaleLowerCase("vi-VN")!==ch.toLocaleUpperCase("vi-VN")}
-function semanticBoundary(source,start,end){if(semanticWordChar(source[start])&&semanticWordChar(source[start-1]))return false;if(semanticWordChar(source[end-1])&&semanticWordChar(source[end]))return false;return true}
-function semanticAddTerm(map,value,kind,priority){const text=String(value==null?"":value).trim();if(!semanticKind(kind)||text.length<2||text.length>160)return;const key=kind+"\u0000"+semanticFold(text),old=map.get(key);if(!old||priority>old.priority)map.set(key,{text,key:semanticFold(text),kind,priority})}
-function semanticAddNamed(map,value,kind,priority){if(typeof value==="string"){semanticAddTerm(map,value,kind,priority);return}if(!value||typeof value!=="object")return;semanticAddTerm(map,value.name||value.displayName||value.label,kind,priority)}
-function semanticCollectContainer(map,value,kind,priority){if(Array.isArray(value)){value.forEach(v=>semanticCollectContainer(map,v,kind,priority));return}if(!value||typeof value!=="object"){semanticAddNamed(map,value,kind,priority);return}if(value.name||value.displayName||value.label){semanticAddNamed(map,value,kind,priority);return}Object.keys(value).forEach(key=>semanticCollectContainer(map,value[key],kind,priority))}
-function semanticCollectMember(map,member,priority){if(!member||typeof member!=="object")return;semanticAddNamed(map,member,"character",priority);semanticCollectContainer(map,member.inventory,"item",priority);semanticCollectContainer(map,member.equipmentItems,"item",priority);semanticCollectContainer(map,member.skills,"skill",priority)}
-function semanticCollectState(map,s,priority){if(!s||typeof s!=="object")return;semanticAddNamed(map,s.player,"character",priority);if(Array.isArray(s.party))s.party.forEach(member=>typeof member==="object"?semanticCollectMember(map,member,priority):semanticAddNamed(map,member,"character",priority));if(s.partyDetails&&Array.isArray(s.partyDetails.members))s.partyDetails.members.forEach(member=>semanticCollectMember(map,member,priority));semanticCollectContainer(map,s.inventory,"item",priority);semanticCollectContainer(map,s.equipmentItems,"item",priority);if(s.flags){semanticCollectContainer(map,s.flags.survivorRegistry,"character",priority);semanticCollectContainer(map,s.flags.survivorsConfirmed,"character",priority);semanticCollectContainer(map,s.flags.entityRegistry,"entity",priority);semanticCollectContainer(map,s.flags.entitiesConfirmedLocal,"entity",priority)}semanticCollectContainer(map,s.encounteredCharacters,"character",priority);if(s.combat)semanticAddTerm(map,s.combat.entityName||s.combat.name||s.combat.displayName,"entity",priority)}
-function semanticNegative(before,after){const set=new Set(["backrooms","game master","black blood","level"]);[before,after].forEach(s=>{if(!s||typeof s!=="object")return;[s.location,s.title,s.level&&s.level.name,s.flags&&s.flags.currentLevel&&s.flags.currentLevel.name].forEach(v=>{const x=semanticFold(v).trim();if(x)set.add(x)})});return set}
-function semanticTerms(before,after){const map=new Map();semanticCollectState(map,before,250);semanticCollectState(map,after,300);return Array.from(map.values())}
-function semanticExactCandidates(source,terms){const lower=semanticFold(source),hits=[];terms.forEach(term=>{let at=0;while((at=lower.indexOf(term.key,at))!==-1){const end=at+term.text.length;if(semanticBoundary(source,at,end))hits.push({start:at,end,kind:term.kind,priority:term.priority,source:"authority"});at+=Math.max(1,term.key.length)}});return hits}
-function semanticUpperWord(word){if(!word)return false;const first=word.charAt(0);return first.toLocaleUpperCase("vi-VN")===first&&first.toLocaleLowerCase("vi-VN")!==first}
-function semanticContextKind(left,right){if(/(?:kỹ năng|chiêu|skill|thi triển|kích hoạt)\s*$/.test(left))return "skill";if(/(?:vật phẩm|trang bị|thanh kiếm|vũ khí|súng|áo giáp|nhẫn|nhặt|cầm|rút)\s*$/.test(left))return "item";if(/(?:entity|thực thể|sinh vật|quái)\s*$/.test(left))return "entity";if(/(?:người sống sót|nhân vật|đồng đội|cô gái|người đàn ông|người phụ nữ|tên)\s*$/.test(left))return "character";if(/^(?:đứng|nhìn|nói|hỏi|đáp|cười|quát|bước|siết|gật|lắc|thở|động|chờ|uống|ngẩng|cúi|lao|xoay|giơ|bật)\b/.test(right.trim()))return "character";return ""}
-function semanticContextCandidates(source,negative){const hits=[],tokens=[],rx=/[A-Za-zÀ-ỹĐđ][A-Za-zÀ-ỹĐđ'’"-]*/g;let m;while((m=rx.exec(source)))tokens.push({text:m[0],start:m.index,end:m.index+m[0].length});for(let i=0;i<tokens.length;i++){if(!semanticUpperWord(tokens[i].text))continue;let j=i;while(j+1<tokens.length&&j-i<3&&source.slice(tokens[j].end,tokens[j+1].start).trim()===""&&semanticUpperWord(tokens[j+1].text))j++;for(let k=j;k>=i;k--){const start=tokens[i].start,end=tokens[k].end,value=source.slice(start,end),key=semanticFold(value);if(negative.has(key)||Array.from(negative).some(value=>value.includes(key)||key.includes(value)))continue;const left=semanticFold(source.slice(Math.max(0,start-72),start)),right=semanticFold(source.slice(end,Math.min(source.length,end+48))),kind=semanticContextKind(left,right);if(kind){hits.push({start,end,kind,priority:80,source:"context"});break}}}return hits}
-function semanticSelect(source,hits){hits.sort((a,b)=>a.start-b.start||(b.end-b.start)-(a.end-a.start)||b.priority-a.priority);const spans=[];let cursor=0;hits.forEach(hit=>{if(hit.start<cursor||hit.start<0||hit.end<=hit.start||hit.end>source.length)return;spans.push({start:hit.start,end:hit.end,kind:hit.kind,source:hit.source});cursor=hit.end});return spans}
-function semanticResolve(source,before,after){const text=String(source||"");const terms=semanticTerms(before,after),hits=semanticExactCandidates(text,terms).concat(semanticContextCandidates(text,semanticNegative(before,after)));return semanticSelect(text,hits)}
-function semanticPrepareNextState(before,json){const next=JSON.parse(json),oldLength=before&&Array.isArray(before.log)?before.log.length:0;if(Array.isArray(next.log))next.log.forEach((entry,index)=>{if(!entry||entry.role==="player"||entry.semanticVersion===3&&Array.isArray(entry.semanticSpans))return;entry.semanticSpans=semanticResolve(entry.text,index<oldLength?null:before,next);entry.semanticVersion=3});return next}
-function normalizedSemanticSpans(entry){if(!entry||entry.role==="player")return [];if(entry.semanticVersion!==3||!Array.isArray(entry.semanticSpans)){entry.semanticSpans=semanticResolve(entry.text,state,state);entry.semanticVersion=3}const source=String(entry.text||""),spans=[];let cursor=0;entry.semanticSpans.forEach(raw=>{const start=Number(raw&&raw.start),end=Number(raw&&raw.end),kind=semanticKind(raw&&raw.kind);if(!kind||!Number.isInteger(start)||!Number.isInteger(end)||start<cursor||end<=start||end>source.length)return;spans.push({start,end,kind});cursor=end});return spans}
-function renderSemanticText(entry){const source=String(entry&&entry.text||"");if(!entry||entry.role==="player")return esc(source);const spans=normalizedSemanticSpans(entry);if(!spans.length)return esc(source);let out="",cursor=0;spans.forEach(span=>{if(span.start>cursor)out+=esc(source.slice(cursor,span.start));out+="<span class='gm-semantic gm-semantic-"+span.kind+"' data-semantic-kind='"+span.kind+"'>"+esc(source.slice(span.start,span.end))+"</span>";cursor=span.end});if(cursor<source.length)out+=esc(source.slice(cursor));return out}
+function semanticFold(value){return String(value==null?"":value).normalize("NFC").toLocaleLowerCase("vi-VN")}
+function semanticWordChar(ch){return !!ch&&/[\p{L}\p{N}\p{M}_]/u.test(ch)}
+function semanticBoundary(source,start,end){return !(semanticWordChar(source[start-1])&&semanticWordChar(source[start]))&&!(semanticWordChar(source[end-1])&&semanticWordChar(source[end]))}
+function semanticAddTerm(map,value,kind,priority){
+  const name=String(value==null?"":value).trim(),key=semanticFold(name);
+  if(!semanticKind(kind)||name.length<2||name.length>120||SEMANTIC_IGNORED.has(key))return;
+  if(kind==="location"&&/^(?:phòng|khu vực|hành lang|lối đi)$/i.test(name))return;
+  const id=kind+"\u0000"+key,old=map.get(id);
+  if(!old||priority>old.priority)map.set(id,{name,key,kind,priority});
+}
+function semanticAddNamed(map,value,kind,priority){
+  if(typeof value==="string"){semanticAddTerm(map,value,kind,priority);return}
+  if(!value||typeof value!=="object")return;
+  semanticAddTerm(map,value.name||value.displayName||value.label,kind,priority);
+  if(Array.isArray(value.aliases))value.aliases.slice(0,8).forEach(alias=>semanticAddTerm(map,alias,kind,priority-5));
+}
+function semanticCollectContainer(map,value,kind,priority){
+  if(Array.isArray(value)){value.forEach(v=>semanticCollectContainer(map,v,kind,priority));return}
+  if(!value||typeof value!=="object"){semanticAddNamed(map,value,kind,priority);return}
+  if(value.name||value.displayName||value.label){semanticAddNamed(map,value,kind,priority);return}
+  Object.keys(value).forEach(key=>semanticCollectContainer(map,value[key],kind,priority));
+}
+function semanticCollectAbilities(map,items,priority){
+  if(!items)return;
+  const list=Array.isArray(items)?items:Object.values(items);
+  list.forEach(item=>{
+    if(!item||typeof item!=="object")return;
+    // CharacterDetailJson encodes item-granted abilities on each inventory/equipment item.
+    semanticCollectContainer(map,item.abilities,"skill",priority);
+  });
+}
+function semanticCollectMember(map,member,priority){
+  if(!member||typeof member!=="object")return;
+  semanticAddNamed(map,member,"character",priority);
+  semanticCollectContainer(map,member.inventory,"item",priority);
+  semanticCollectContainer(map,member.equipmentItems,"item",priority);
+  semanticCollectContainer(map,member.equipment,"item",priority);
+  semanticCollectContainer(map,member.skills,"skill",priority);
+  semanticCollectContainer(map,member.abilities,"skill",priority);
+  semanticCollectAbilities(map,member.inventory,priority);
+  semanticCollectAbilities(map,member.equipmentItems,priority);
+}
+function semanticCollectLocations(map,s,priority){
+  if(!s||typeof s!=="object")return;
+  semanticAddTerm(map,s.level&&s.level.name,"location",priority);
+  semanticAddTerm(map,s.flags&&s.flags.currentLevel&&s.flags.currentLevel.name,"location",priority);
+  const where=String(s.location||"").split(/\s+[—–]\s+/)[0];
+  where.split(/\s*\/\s*/).forEach(part=>semanticAddTerm(map,part,"location",priority-10));
+  const scene=s.scene;
+  if(!scene||typeof scene!=="object")return;
+  semanticAddTerm(map,scene.nodeTitle,"location",priority);
+  semanticAddNamed(map,scene.environment,"location",priority+10);
+  semanticAddNamed(map,scene.room,"location",priority+10);
+  const known=scene.map&&scene.map.rooms;
+  if(Array.isArray(known))known.forEach(room=>{
+    if(room&&room.visited===true)semanticAddNamed(map,room,"location",priority);
+  });
+}
+function semanticCollectClues(map,s,priority){
+  const records=s&&s.scene&&s.scene.records;
+  if(!Array.isArray(records))return;
+  const worldGraph=s.scene.runtime==="world-graph-v3";
+  records.forEach(record=>{
+    if(!record)return;
+    // World Graph records are only committed after successful exploration.
+    // Mini-map records also contain failed trials, which must not become facts.
+    const allowed=worldGraph?["FIELD_NOTE","EVIDENCE"]:["CLUE","EVIDENCE","HINT"];
+    if(!allowed.includes(record.kind)||(!worldGraph&&record.confirmed!==true))return;
+    // These labels are released by the Core projection, never guessed from prose.
+    semanticAddTerm(map,record.label,"clue",priority);
+    if(Array.isArray(record.aliases))record.aliases.slice(0,8).forEach(alias=>
+      semanticAddTerm(map,alias,"clue",priority-5));
+  });
+}
+function semanticCollectState(map,s,priority){
+  if(!s||typeof s!=="object")return;
+  semanticAddNamed(map,s.player,"character",priority+20);
+  if(Array.isArray(s.party))s.party.forEach(m=>typeof m==="object"?semanticCollectMember(map,m,priority+10):semanticAddNamed(map,m,"character",priority+10));
+  if(s.partyDetails&&Array.isArray(s.partyDetails.members))s.partyDetails.members.forEach(m=>semanticCollectMember(map,m,priority+10));
+  semanticCollectContainer(map,s.inventory,"item",priority);
+  semanticCollectContainer(map,s.equipmentItems,"item",priority);
+  semanticCollectContainer(map,s.equipment,"item",priority);
+  semanticCollectAbilities(map,s.inventory,priority);
+  semanticCollectAbilities(map,s.equipmentItems,priority);
+  semanticCollectAbilities(map,s.equipment,priority);
+  if(s.gmQuestItems&&Array.isArray(s.gmQuestItems.items)){
+    s.gmQuestItems.items.forEach(item=>{
+      if(item&&item.status==="held")semanticAddNamed(map,item,"item",priority);
+    });
+  }
+  if(s.scene&&Array.isArray(s.scene.npcs)){
+    // Script-generated characters must actually be present in the current room.
+    s.scene.npcs.forEach(npc=>semanticAddNamed(map,npc,"character",priority+10));
+  }
+  if(s.flags){
+    semanticCollectContainer(map,s.flags.survivorRegistry,"character",priority);
+    semanticCollectContainer(map,s.flags.survivorsConfirmed,"character",priority);
+    semanticCollectContainer(map,s.flags.entityRegistry,"entity",priority);
+    semanticCollectContainer(map,s.flags.entitiesConfirmedLocal,"entity",priority);
+  }
+  semanticCollectContainer(map,s.encounteredCharacters,"character",priority);
+  if(s.combat)semanticAddTerm(map,s.combat.entityName||s.combat.name||s.combat.displayName,"entity",priority+20);
+  if(s.pendingEncounter)semanticAddTerm(map,s.pendingEncounter.entityName||s.pendingEncounter.name,"entity",priority+20);
+  semanticCollectLocations(map,s,priority+10);
+  semanticCollectClues(map,s,priority+30);
+}
+function semanticTerms(before,after){
+  const terms=new Map();
+  semanticCollectState(terms,before,300);
+  semanticCollectState(terms,after,400);
+  return Array.from(terms.values());
+}
+function semanticIndex(source){
+  const parts=[],starts=[],ends=[];
+  for(let i=0;i<source.length;){
+    const start=i,base=String.fromCodePoint(source.codePointAt(i));let cluster=base;
+    i+=base.length;
+    while(i<source.length){
+      const ch=String.fromCodePoint(source.codePointAt(i));
+      if(!/\p{M}/u.test(ch))break;
+      cluster+=ch;i+=ch.length;
+    }
+    const fold=semanticFold(cluster);
+    parts.push(fold);
+    for(let j=0;j<fold.length;j++){starts.push(start);ends.push(i)}
+  }
+  return {text:parts.join(""),starts,ends};
+}
+function semanticExactCandidates(source,terms){
+  const index=semanticIndex(source),hits=[];
+  terms.forEach(term=>{
+    let at=0;
+    while((at=index.text.indexOf(term.key,at))!==-1){
+      const start=index.starts[at],end=index.ends[at+term.key.length-1];
+      if(start!=null&&end!=null&&semanticBoundary(source,start,end)){
+        hits.push({start,end,kind:term.kind,priority:term.priority});
+      }
+      at+=Math.max(1,term.key.length);
+    }
+  });
+  return hits;
+}
+function semanticSelect(source,hits){
+  // Longest confirmed name wins; if the exact same phrase names multiple kinds,
+  // stable entity identity outranks scene-evidence labels (e.g. "Phòng Đảo").
+  const kindRank={character:6,entity:5,location:4,skill:3,item:2,clue:1};
+  hits.sort((a,b)=>(b.end-b.start)-(a.end-a.start)||
+    kindRank[b.kind]-kindRank[a.kind]||b.priority-a.priority||a.start-b.start);
+  const chosen=[];
+  hits.forEach(hit=>{
+    if(hit.start<0||hit.end<=hit.start||hit.end>source.length)return;
+    if(chosen.every(existing=>hit.end<=existing.start||hit.start>=existing.end))chosen.push(hit);
+  });
+  chosen.sort((a,b)=>a.start-b.start);
+  return chosen.map(({start,end,kind})=>({start,end,kind}));
+}
+function semanticResolve(source,before,after){
+  const text=String(source||"");
+  return semanticSelect(text,semanticExactCandidates(text,semanticTerms(before,after)));
+}
+function semanticHash(source){
+  let hash=2166136261;
+  for(let i=0;i<source.length;i++)hash=Math.imul(hash^source.charCodeAt(i),16777619)>>>0;
+  return source.length+":"+hash.toString(16);
+}
+function semanticValidCache(entry){
+  if(!entry||entry.role==="player"||entry.semanticVersion!==SEMANTIC_CACHE_VERSION||!Array.isArray(entry.semanticSpans))return false;
+  const text=String(entry.text||"");
+  if(entry.semanticHash!==semanticHash(text))return false;
+  let cursor=0;
+  for(const span of entry.semanticSpans){
+    const start=span&&span.start,end=span&&span.end;
+    if(!semanticKind(span&&span.kind)||!Number.isInteger(start)||!Number.isInteger(end)||start<cursor||end<=start||end>text.length)return false;
+    cursor=end;
+  }
+  return true;
+}
+function semanticAnnotate(entry,before,after){
+  const text=String(entry.text||"");
+  entry.semanticSpans=semanticResolve(text,before,after);
+  entry.semanticVersion=SEMANTIC_CACHE_VERSION;
+  entry.semanticHash=semanticHash(text);
+}
+function semanticPrepareNextState(before,json){
+  const next=JSON.parse(json);
+  // Core can remove and reorder mini-map log entries when changing scenes.
+  // Array indices are not a reliable test of whether narration is new.
+  const previous=new Set((before&&Array.isArray(before.log)?before.log:[])
+    .filter(entry=>entry&&entry.role!=="player")
+    .map(entry=>entry.role+"\u0000"+String(entry.text||"")));
+  if(Array.isArray(next.log))next.log.forEach(entry=>{
+    if(!entry||entry.role==="player"||semanticValidCache(entry))return;
+    const existed=previous.has(entry.role+"\u0000"+String(entry.text||""));
+    semanticAnnotate(entry,existed?null:before,next);
+  });
+  return next;
+}
+function normalizedSemanticSpans(entry){
+  if(!entry||entry.role==="player")return [];
+  if(!semanticValidCache(entry))semanticAnnotate(entry,state,state);
+  return entry.semanticSpans;
+}
+function renderSemanticText(entry){
+  const source=String(entry&&entry.text||"");
+  if(!entry||entry.role==="player")return esc(source);
+  // Render the four final recommendation lines as ACTUAL buttons in the GM
+  // card (explorer-controls.js), rather than duplicated non-clickable prose.
+  // Semantic spans remain computed over the original authoritative narration.
+  const match=entry.role==="gm"&&source.match(/(?:^|\n)GỢI Ý HÀNH ĐỘNG:\r?\n((?:[1-4]\. [^\r\n]+\r?\n?){4})\s*$/);
+  const rows=match&&match[1].trim().split(/\r?\n/);
+  const hasChoices=rows&&rows.length===4&&rows.every((line,i)=>line.startsWith((i+1)+". "));
+  const shown=hasChoices?source.slice(0,match.index).trimEnd():source;
+  const spans=normalizedSemanticSpans(entry).filter(span=>span.end<=shown.length);
+  if(!spans.length)return esc(shown);
+  let out="",cursor=0;
+  spans.forEach(span=>{
+    if(span.start>cursor)out+=esc(shown.slice(cursor,span.start));
+    out+="<span class='gm-semantic gm-semantic-"+span.kind+"' data-semantic-kind='"+span.kind+"'>"+esc(shown.slice(span.start,span.end))+"</span>";
+    cursor=span.end;
+  });
+  if(cursor<shown.length)out+=esc(shown.slice(cursor));
+  return out;
+}
 
-function levelHeader(s){if(s&&s.level&&s.level.name){const id=s.level.id!=null?s.level.id:s.level.number;if(s.level.kind==="AREA"||s.level.kind==="SPECIAL"||s.level.name==="Level "+id)return s.level.name;return "Level "+id+" – "+s.level.name;}const where=String(s&&s.location||"")+" "+String(s&&s.title||"");const m=where.match(/Level\s*([^\s\/—–-]+)\s*(?:\/|—|–|-)\s*([^—–\n]+?)(?:\s+[—–]\s+|$)/i);if(m)return "Level "+m[1]+" – "+m[2].trim();return s&&s.title||"Backrooms"}function render(){titleEl.textContent=levelHeader(state);turnEl.textContent=state.turn;locationEl.textContent=state.location;modeEl.textContent=state.mode;playerEl.textContent=state.player?.name||"Cao Minh";partyEl.innerHTML=chips(state.party);if(inventoryEl)inventoryEl.innerHTML=chips(state.inventory);logEl.innerHTML=(state.log||[]).map(x=>{const w=x.role!=="player"&&String(x.text||"").trim().startsWith("[Warning]");return "<article class='message "+(x.role==="player"?"player":"gm")+(w?" warning":"")+"'><div class='role'>"+(x.role==="player"?"BẠN":"GAME MASTER")+"</div><div class='text'>"+renderSemanticText(x)+"</div></article>"}).join("");logEl.scrollTop=logEl.scrollHeight;if(window.backroomRenderBattleStart)window.backroomRenderBattleStart();if(window.backroomRenderEncounteredCharacters)window.backroomRenderEncounteredCharacters()}
+function levelHeader(s){if(s&&s.level&&s.level.name){const id=s.level.id!=null?s.level.id:s.level.number;if(s.level.kind==="AREA"||s.level.kind==="SPECIAL"||s.level.name==="Level "+id)return s.level.name;return "Level "+id+" – "+s.level.name;}const where=String(s&&s.location||"")+" "+String(s&&s.title||"");const m=where.match(/Level\s*([^\s\/—–-]+)\s*(?:\/|—|–|-)\s*([^—–\n]+?)(?:\s+[—–]\s+|$)/i);if(m)return "Level "+m[1]+" – "+m[2].trim();return s&&s.title||"Backrooms"}function render(){prologueControls?.refresh(state);const readingOffset=logEl.scrollTop;titleEl.textContent=levelHeader(state);turnEl.textContent=state.turn;locationEl.textContent=state.location;modeEl.textContent=state.mode;playerEl.textContent=state.player?.name||"Cao Minh";partyEl.innerHTML=chips(state.party);if(inventoryEl)inventoryEl.innerHTML=chips(state.inventory);logEl.innerHTML=(state.log||[]).map(x=>{const w=x.role!=="player"&&String(x.text||"").trim().startsWith("[Warning]");return "<article class='message "+(x.role==="player"?"player":x.role==="core"?"core":"gm")+(w?" warning":"")+"'><div class='role'>"+(x.role==="player"?"BẠN":x.role==="core"?"CORE · KẾT QUẢ ĐÃ XÁC NHẬN":"GAME MASTER")+"</div><div class='text'>"+renderSemanticText(x)+"</div>"+(x.actionStatus?"<div class='action-status'>"+esc(x.actionStatus)+"</div>":"")+"</article>"}).join("");if(state.scene&&state.scene.runtime==='world-graph-v3')logEl.scrollTop=Math.min(readingOffset,logEl.scrollHeight);else logEl.scrollTop=logEl.scrollHeight;if(window.backroomRenderBattleStart)window.backroomRenderBattleStart();if(window.backroomRenderEncounteredCharacters)window.backroomRenderEncounteredCharacters()}
 const SAVE_KEY="backroom-apk-state";
 const SNAPSHOT_KEY="backroom-apk-snapshot";
 let destructiveAction="";
@@ -1682,8 +1994,10 @@ function resetGame(){
       if(response&&response.ok===true&&response.data)fresh.partyDetails=response.data;
       else throw new Error((response&&response.message)||'Core reset failed');
       state=fresh;
+      prologueControls?.reset();
       localStorage.removeItem(SNAPSHOT_KEY);
     }catch(e){statusEl.textContent="NEW GAME Core lỗi: "+(e&&e.message?e.message:"bridge error");return}
+    document.getElementById('gameMenuClose')?.click();
     render();
     if(persistPresentation())statusEl.textContent="NEW GAME đã tạo ở Turn 1. Nhấn Lưu để tạo điểm lưu thủ công.";
   });
@@ -1692,6 +2006,7 @@ function clearSave(){
   armDestructive("delete-save","Xóa save trên máy",()=>{
     if(!clearAuthoritativeCore())return;
     state=freshInitial();
+    prologueControls?.reset();
     try{localStorage.removeItem(SAVE_KEY);localStorage.removeItem(SNAPSHOT_KEY)}
     catch(e){statusEl.textContent="Core đã xóa; xóa bộ đệm giao diện thất bại: "+(e&&e.message?e.message:"storage error");render();return}
     render();
@@ -1713,7 +2028,7 @@ formEl.addEventListener("submit",e=>{
 function syncPrimaryActions(){
   const hasText=!!(actionEl&&actionEl.value.trim());
   if(submitEl)submitEl.disabled=busy||coreUnavailable||!!state.pendingEncounter||!hasText;
-  if(typeof window.backroomSyncComposer==="function")window.backroomSyncComposer();
+  if(typeof window.backroomSyncExplorer==="function")window.backroomSyncExplorer();
 }
 function appendActionPending(label){
   if(!logEl)return;
@@ -1723,7 +2038,7 @@ function appendActionPending(label){
   player.querySelector(".text").textContent=label;logEl.appendChild(player);
   const gm=document.createElement("article");
   gm.className="message gm pending";gm.setAttribute("data-pending","1");
-  gm.innerHTML="<div class='role'>GAME MASTER</div><div class='text'><div class='gm-thinking' role='status' aria-label='Gemini 4.0 Argon đang chuẩn bị câu trả lời'><img src='provider-logos/gemini.svg' alt='' aria-hidden='true'><span class='gm-thinking-name' aria-hidden='true'>Gemini 4.0 Argon</span></div></div>";
+  gm.innerHTML="<div class='role'>GAME MASTER</div><div class='text'><div class='gm-thinking' role='status' aria-label='Đang chờ phản hồi'><img src='provider-logos/gemini.svg' alt='' aria-hidden='true'><span class='gm-thinking-brand'>Gemini 4.0 Argon</span></div></div>";
   logEl.appendChild(gm);logEl.scrollTop=logEl.scrollHeight;
 }
 if(actionEl)actionEl.addEventListener("input",syncPrimaryActions);
@@ -1743,7 +2058,9 @@ window.backroomError=message=>{
   row.className="message gm warning";
   const role=document.createElement("div");role.className="role";role.textContent="GAME MASTER · LỖI";
   const body=document.createElement("div");body.className="text";
-  body.textContent=reason+"\nLượt này chưa được xác nhận. Anh có thể thử lại.";
+  body.textContent=state.playerAction?.recoverable
+    ? reason
+    : reason+"\nLượt này chưa được xác nhận. Anh có thể thử lại.";
   row.appendChild(role);row.appendChild(body);logEl.appendChild(row);
   statusEl.textContent="Lỗi xử lý lượt: "+reason;
   syncPrimaryActions();focusLatestGmStart();
@@ -2071,7 +2388,7 @@ function selected(){const id=view&&view.dataset.characterId||'cao_minh';return m
 </script>
 
 <style>
-.character-skills-button{width:100%;margin:10px 0;border:1px solid #39434a;background:#12171b;color:#dce4e7;padding:10px 12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.character-skills-modal{position:fixed;inset:0;z-index:140;background:rgba(3,5,6,.92);padding:14px;overflow:auto}.character-skills-modal[hidden]{display:none}.character-skills-sheet{max-width:720px;margin:0 auto;border:1px solid #343d44;background:#0b0f12;padding:14px}.character-skills-head{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid #2b3137;padding-bottom:12px}.character-skills-head h2{margin:3px 0 0}.character-skills-head button{width:auto}.character-skills-list{display:grid;gap:9px;margin-top:12px}.character-skill-card{border:1px solid #2d363d;background:#101519;padding:11px}.character-skill-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.character-skill-name{font-weight:900}.character-skill-kind{border:1px solid #3a454d;padding:2px 6px;color:#9eabb4;font-size:9px;letter-spacing:.08em}.character-skill-trigger{margin-top:5px;color:#8e9aa3;font-size:11px}.character-skill-effect{margin-top:7px;line-height:1.45}.character-skill-note{margin-top:7px;color:#c5ad7b;font-size:11px;line-height:1.4}
+.character-skills-button{width:100%;margin:10px 0;border:1px solid #39434a;background:#12171b;color:#dce4e7;padding:10px 12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.character-skills-modal{position:fixed;inset:0;z-index:140;background:rgba(3,5,6,.92);padding:14px;overflow:auto}.character-skills-modal[hidden]{display:none}.character-skills-sheet{max-width:720px;margin:0 auto;border:1px solid #343d44;background:#0b0f12;padding:14px}.character-skills-head{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid #2b3137;padding-bottom:12px}.character-skills-head h2{margin:3px 0 0}.character-skills-head button{width:auto}.character-skills-list{display:grid;gap:9px;margin-top:12px}.character-skill-card{border:1px solid #2d363d;background:#101519;padding:11px}.character-skill-card.is-locked{border-style:dashed}.character-skill-card.is-locked .character-skill-content{opacity:.42;filter:grayscale(1)}.character-skill-lock{display:flex;gap:6px;align-items:center;color:#d5bb7c;font-weight:700;font-size:12px;margin-bottom:8px}.character-skill-lock-icon{width:14px;height:14px;flex:0 0 14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.character-skill-unlock{margin-top:7px;color:#8e9aa3;font-size:11px}.character-skill-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.character-skill-name{font-weight:900}.character-skill-kind{border:1px solid #3a454d;padding:2px 6px;color:#9eabb4;font-size:9px;letter-spacing:.08em}.character-skill-trigger{margin-top:5px;color:#8e9aa3;font-size:11px}.character-skill-effect{margin-top:7px;line-height:1.45}.character-skill-note{margin-top:7px;color:#c5ad7b;font-size:11px;line-height:1.4}
 </style>
 <div id="characterSkillsModal" class="character-skills-modal" hidden>
   <div class="character-skills-sheet" role="dialog" aria-modal="true" aria-labelledby="characterSkillsTitle">
@@ -2102,12 +2419,22 @@ function selected(){const id=view&&view.dataset.characterId||'cao_minh';return m
     }
     const current=skills();button.hidden=current.length===0;button.textContent=current.length?'Kỹ năng · '+current.length+' ▾':'Kỹ năng';button.setAttribute('aria-haspopup','dialog');button.setAttribute('aria-controls','characterSkillsModal');button.setAttribute('aria-expanded',String(!modal.hidden));
   }
-  function openSkills(){
+  function renderSkills(){
     const member=selected();const current=skills();
     title.textContent=(member&&member.name?member.name+' · ':'')+'Kỹ năng';
-    list.innerHTML=current.length?current.map(skill=>'<div class="character-skill-card"><div class="character-skill-top"><div class="character-skill-name">'+escapeHtml(skill.name||'Kỹ năng')+'</div><span class="character-skill-kind">'+escapeHtml(skill.kind||'SKILL')+'</span></div><div class="character-skill-trigger">'+escapeHtml(skill.trigger||'')+'</div><div class="character-skill-effect">'+escapeHtml(skill.effect||'')+'</div>'+(skill.note?'<div class="character-skill-note">'+escapeHtml(skill.note)+'</div>':'')+'</div>').join(''):'<div class="character-skill-card">Chưa có kỹ năng được ghi nhận.</div>';
-    modal.hidden=false;ensureButton();
+    list.innerHTML=current.length?current.map(skill=>{
+      const locked=skill.kind!=='PASSIVE'&&skill.locked!==false;
+      const required=Number.isInteger(skill.unlockLevel)&&skill.unlockLevel>=0?skill.unlockLevel:null;
+      const requirement=required===null?'Chưa có điều kiện mở khóa':'Mở ở cấp '+required;
+      return '<div class="character-skill-card'+(locked?' is-locked':'')+'" aria-disabled="'+locked+'">'+
+        (locked?'<div class="character-skill-lock"><svg class="character-skill-lock-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M7 10V7a5 5 0 0 1 10 0v3M12 14v3"/></svg>Đang khóa · '+escapeHtml(requirement)+'</div>':'')+
+        '<div class="character-skill-content"><div class="character-skill-top"><div class="character-skill-name">'+escapeHtml(skill.name||'Kỹ năng')+'</div><span class="character-skill-kind">'+escapeHtml(skill.kind||'SKILL')+'</span></div><div class="character-skill-trigger">'+escapeHtml(skill.trigger||'')+'</div><div class="character-skill-effect">'+escapeHtml(skill.effect||'')+'</div>'+(skill.note?'<div class="character-skill-note">'+escapeHtml(skill.note)+'</div>':'')+'</div>'+
+        (!locked?'<div class="character-skill-unlock">'+(skill.kind==='PASSIVE'?'Nội tại · luôn mở':required===0?'Đã mở từ đầu':'Đã mở · cấp '+required)+'</div>':'')+'</div>';
+    }).join(''):'<div class="character-skill-card">Chưa có kỹ năng được ghi nhận.</div>';
   }
+  function openSkills(){renderSkills();modal.hidden=false;ensureButton()}
+  const previousRenderCharacter=window.renderCharacterStatusEquipment;
+  if(typeof previousRenderCharacter==='function')window.renderCharacterStatusEquipment=function(){const result=previousRenderCharacter.apply(this,arguments);ensureButton();if(!modal.hidden)renderSkills();return result};
   close.addEventListener('click',()=>{modal.hidden=true;ensureButton()});
   modal.addEventListener('click',event=>{if(event.target===modal){modal.hidden=true;ensureButton()}});
   new MutationObserver(ensureButton).observe(view,{attributes:true,attributeFilter:['data-character-id']});
@@ -2158,11 +2485,16 @@ function selected(){const id=view&&view.dataset.characterId||'cao_minh';return m
 </script>
 
 
-<script src="player-composer.js"></script>
+<script src="explorer-controls.js"></script>
 <script>
 (function(){
   "use strict";
   var menu=document.getElementById("gameMenuModal"),open=document.getElementById("gameMenuOpen");
+  // Surface the existing confirmation/error text inside the menu that owns these actions.
+  var feedback=document.getElementById("gameMenuFeedback"),status=document.getElementById("status");
+  function syncMenuFeedback(){feedback.textContent=status.textContent;feedback.hidden=!feedback.textContent.trim();}
+  new MutationObserver(syncMenuFeedback).observe(status,{childList:true,subtree:true,characterData:true});
+  syncMenuFeedback();
   function closeMenu(){
     menu.hidden=true;menu.setAttribute("aria-hidden","true");open.setAttribute("aria-expanded","false");document.body.classList.remove("game-menu-open");
   }
@@ -2371,10 +2703,19 @@ body.poker-dice-open .game>.log{display:none!important}
 </script>
 
 
+<section id="dungeonModal" hidden role="dialog" aria-modal="true" aria-labelledby="dungeonTitle">
+  <div class="dungeon-sheet">
+    <header class="dungeon-header"><div><small>HUẤN LUYỆN FOLLOWER</small><h2 id="dungeonTitle">DUNGEON</h2></div><button id="dungeonClose" type="button" aria-label="Đóng Dungeon">×</button></header>
+    <div class="dungeon-content"><p class="dungeon-intro">Mỗi phút train nhận 4 EXP từ một Entity. Follower không thể chết và vẫn train khi đóng game. Follower đang train tạm rời Party; mỗi lượt tự dừng khi hết thời gian.</p><div id="dungeonSlots" class="dungeon-slots"></div><p id="dungeonStatus" role="status" aria-live="polite"></p></div>
+    <footer class="dungeon-footer"><p id="dungeonBooksNote">Sách + Stats: tổng 3% mỗi Entity. Sách rơi vào kho Cao Minh.</p><button id="dungeonRefresh" type="button">Cập nhật</button></footer>
+  </div>
+</section>
+<script src="dungeon.js"></script>
 <script src="item-detail-actions.js"></script>
 <script src="combat-feedback-1193a.js"></script>
 <script src="battle-start.js"></script>
 <script src="exploration-transition.js"></script>
+<script src="ui/snapshot-tv.js"></script>
 </body>
 </html>
 

@@ -12,10 +12,10 @@ const literal=line.match(/^\s*("(?:[^"\\]|\\.)*")\s*\+/);
 assert.ok(literal,'Embedded Entity renderer must remain parseable');
 const renderer=JSON.parse(literal[1]);
 const assets=path.join(dir,'../app/src/main/assets');
-const supported=['hound','clump','duller','deathmoth','hostile_faceling','false_puddle',
+const supported=['926','927','LuckyBear','Brownies','hound','clump','duller','deathmoth','hostile_faceling','false_puddle',
  'paintings','smiler','skin-stealer','predatory_window','biological_pipeline','wretch',
  'cable_mimic','the_beast_of_level_5','hotel_corpse_lure','jeff_the_killer',
- 'jane_the_killer','slenderman','diep_minh','blackroot_sentinel','sinew_strider','hollow_grasper'];
+ 'jane_the_killer','slenderman','diep_minh','luc_tram_hac_hoa','blackroot_sentinel','sinew_strider','hollow_grasper'];
 
 function runtime(key){
  let children=[],syncCalls=0,bridgeCalls=0;
@@ -98,6 +98,106 @@ test('stale Entity image completion cannot modify new wave visual state',()=>{
  assert.equal(r.syncCalls(),0);
  r.imgs()[0].onload();
  assert.equal(r.syncCalls(),1);
+});
+
+test('Entity 926 has grounded alpha bounds from its bundled transparent WebP',()=>{
+ const parts=java.split('\n').filter(row=>row.includes('__entityVisualBounds=')||row.includes('function normalizeEntityVisual('))
+  .map(row=>JSON.parse(row.match(/^\s*("(?:[^"\\]|\\.)*")\s*\+/)[1]));
+ const ctx={__entityOverlay:{key:'926'}};
+ vm.createContext(ctx);vm.runInContext(parts.join('\n'),ctx);
+ // 926.webp 1086x1448, alpha >=16 bbox (323,5)-(1006,1438).
+ for(const snapshotHeight of [200,300,450]){
+  const h=snapshotHeight*.97,w=h*1086/1448;
+  const img={alt:'926',style:{},getBoundingClientRect:()=>({width:w,height:h})};
+  ctx.normalizeEntityVisual(img);
+  const [,x,y,scale]=img.style.transform.match(/translate\(([-\d.]+)px,([-\d.]+)px\) scale\(([-\d.]+)\)/).map(Number);
+  const visibleHeight=((1438-5)/1448)*h*scale;
+  // The normalizer does not shrink a near-full-height sprite below scale=1.
+  assert.ok(scale>=1 && scale<=2.2);
+  assert.ok(visibleHeight>=snapshotHeight*.94-.5);
+  assert.ok(visibleHeight<=snapshotHeight*.97+.5);
+  assert.ok(Math.abs(y-(1-1438/1448)*h*scale)<.5);
+  assert.ok(Math.abs(x+(323/1086)*w*scale)<.5);
+ }
+});
+
+test('LuckyBear filename matches its canonical mixed-case Entity key and has alpha bounds',()=>{
+ const keyLine=java.split('\n').find(row=>row.includes('var __entityKeys='));
+ const normalizeLine=java.split('\n').find(row=>row.includes('function normalizeEntityKey(v)'));
+ const boundsLine=java.split('\n').find(row=>row.includes('__entityVisualBounds='));
+ const normalizerLine=java.split('\n').find(row=>row.includes('function normalizeEntityVisual('));
+ const extract=row=>JSON.parse(row.match(/^\s*("(?:[^"\\]|\\.)*")\s*\+/)[1]);
+ const ctx={__entityOverlay:{key:'LuckyBear'}};
+ vm.createContext(ctx);
+ vm.runInContext([keyLine,normalizeLine,boundsLine,normalizerLine].map(extract).join('\n'),ctx);
+ assert.equal(ctx.normalizeEntityKey('LuckyBear'),'LuckyBear');
+ assert.equal(ctx.normalizeEntityKey('luckybear'),'LuckyBear');
+ assert.equal(ctx.normalizeEntityKey('../LuckyBear'),'');
+ const r=runtime('LuckyBear');r.context.appendEntityOverlay();
+ assert.equal(r.imgs()[0].src,'file:///android_asset/entity/LuckyBear.webp');
+ for(const sh of [200,300,450]){
+  const h=sh*.97,w=h*900/1200;
+  const img={alt:'LuckyBear',style:{},getBoundingClientRect:()=>({width:w,height:h})};
+  ctx.normalizeEntityVisual(img);
+  const match=img.style.transform.match(/translate\(([-\d.]+)px,([-\d.]+)px\) scale\(([-\d.]+)\)/);
+  assert.ok(match);
+  const [,x,y,scale]=match.map(Number);
+  const visH=(1160-24)/1200;
+  assert.ok(Math.abs(visH*h*scale-sh*.94)<.5);
+  assert.ok(Math.abs(y-(1-1160/1200)*h*scale)<.5);
+  assert.ok(Math.abs(x+(111/900)*w*scale)<.5);
+ }
+});
+
+test('Brownies key preserves mixed case and resolves its bundled WebP',()=>{
+ const r=runtime('Brownies');r.context.appendEntityOverlay();
+ assert.equal(r.imgs()[0].src,'file:///android_asset/entity/Brownies.webp');
+ const keyLine=java.split('\n').find(row=>row.includes('var __entityKeys='));
+ const normalLine=java.split('\n').find(row=>row.includes('function normalizeEntityKey(v)'));
+ const extract=row=>JSON.parse(row.match(/^\s*("(?:[^"\\]|\\.)*")\s*\+/)[1]);
+ const ctx={};vm.createContext(ctx);vm.runInContext([keyLine,normalLine].map(extract).join('\n'),ctx);
+ assert.equal(ctx.normalizeEntityKey('brownies'),'Brownies');
+ assert.equal(ctx.normalizeEntityKey('Brownies'),'Brownies');
+ assert.equal(ctx.normalizeEntityKey('../Brownies'),'');
+});
+
+test('Entity 927 sprite uses measured alpha bounds and remains grounded',()=>{
+ const parts=java.split('\n').filter(row=>row.includes('__entityVisualBounds=')||row.includes('function normalizeEntityVisual('))
+  .map(row=>JSON.parse(row.match(/^\s*("(?:[^"\\]|\\.)*")\s*\+/)[1]));
+ const ctx={__entityOverlay:{key:'927'}};
+ vm.createContext(ctx);vm.runInContext(parts.join('\n'),ctx);
+ // 927.webp 1086x1448, alpha >16 bbox (135,21)-(1060,1420).
+ for(const sh of [200,300,450]){
+  const h=sh*.97,w=h*1086/1448;
+  const img={alt:'927',style:{},getBoundingClientRect:()=>({width:w,height:h})};
+  ctx.normalizeEntityVisual(img);
+  const match=img.style.transform.match(/translate\(([-\d.]+)px,([-\d.]+)px\) scale\(([-\d.]+)\)/);
+  assert.ok(match);
+  const [,x,y,scale]=match.map(Number);
+  assert.ok(Math.abs(((1420-21)/1448)*h*scale-sh*.94)<.5);
+  assert.ok(Math.abs(y-(1-1420/1448)*h*scale)<.5);
+  assert.ok(Math.abs(x+(135/1086)*w*scale)<.5);
+ }
+});
+
+test('Lục Trầm Hắc Hóa overlay aligns at ground and is fully bundled',()=>{
+ const line=java.split('\n').find(row=>row.includes('__entityVisualBounds='));
+ const normalize=java.split('\n').find(row=>row.includes('function normalizeEntityVisual('));
+ const extract=row=>JSON.parse(row.match(/^\s*("(?:[^"\\]|\\.)*")\s*\+/)[1]);
+ const ctx={__entityOverlay:{key:'luc_tram_hac_hoa'}};
+ vm.createContext(ctx);vm.runInContext([extract(line),extract(normalize)].join('\n'),ctx);
+ for(const height of [200,300,450]){
+   const eh=height*.97,ew=eh*820/1457;
+   const img={alt:'luc_tram_hac_hoa',style:{},
+     getBoundingClientRect:()=>({width:ew,height:eh})};
+   ctx.normalizeEntityVisual(img);
+   const match=img.style.transform.match(/translate\(([-\d.]+)px,([-\d.]+)px\) scale\(([-\d.]+)\)/);
+   assert.ok(match);
+   const [,x,y,scale]=match.map(Number);
+   assert.ok(scale>=1);
+   assert.ok(Math.abs(x+2/820*ew*scale)<.5);
+   assert.ok(Math.abs(y-(1-1441/1457)*eh*scale)<.5);
+ }
 });
 
 test('Hound alpha normalization fits its current artwork and keeps its feet on the ground',()=>{

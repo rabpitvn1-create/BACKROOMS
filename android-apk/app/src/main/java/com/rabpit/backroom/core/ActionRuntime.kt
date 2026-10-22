@@ -72,7 +72,10 @@ object ActionRuntime {
   ): ActionRuntimeResult {
     if (sessionId.isBlank()) return ActionRuntimeResult(state, applied = false, error = "action_session_id_required")
     if (turnId.isBlank()) return ActionRuntimeResult(state, applied = false, error = "action_turn_id_required")
-    if (actorId !in state.characters) return ActionRuntimeResult(state, applied = false, error = "action_actor_unknown")
+    val actor = state.characters[actorId]
+      ?: return ActionRuntimeResult(state, applied = false, error = "action_actor_unknown")
+    if (actor.presence == CharacterPresence.DEAD || actor.vitalState.currentHp <= 0)
+      return ActionRuntimeResult(state, applied = false, error = "action_actor_unavailable")
     if (activeSession(state) != null) return ActionRuntimeResult(state, applied = false, error = "action_session_already_active")
     if (plannedMinutes != null && plannedMinutes <= 0) return ActionRuntimeResult(state, applied = false, error = "action_planned_minutes_invalid")
     if (kind != ActionKind.SEARCH && searchDepth != null) return ActionRuntimeResult(state, applied = false, error = "search_depth_non_search_action")
@@ -121,7 +124,14 @@ object ActionRuntime {
         actorId = session.actorId,
         source = CommandSource.SYSTEM,
         minutes = minutes,
-        reason = "action_${session.kind.name.lowercase()}"
+        reason = "action_${session.kind.name.lowercase()}",
+        activity = when {
+          RestActionPolicy.activity(session.input) != TimeActivity.NORMAL -> RestActionPolicy.activity(session.input)
+          Regex("(?:^|\\s)(?:chạy|chay|leo|bò|bo|run|sprint|fight|attack|bắn|ban)(?:\\s|$)", RegexOption.IGNORE_CASE).containsMatchIn(session.input) -> TimeActivity.EXERTION
+          else -> TimeActivity.NORMAL
+        },
+        restTargets = RestActionPolicy.targets(state, session.input).toSet(),
+        targetActivities = RestActionPolicy.activities(state, session.input)
       )
     )
     if (!timeResult.applied) return ActionRuntimeResult(state, session, applied = false, error = timeResult.validation.reason ?: "action_time_rejected")

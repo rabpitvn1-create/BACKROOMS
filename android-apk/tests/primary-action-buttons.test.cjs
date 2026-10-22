@@ -5,9 +5,11 @@ const path=require('node:path');
 const vm=require('node:vm');
 const html=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/index.html'),'utf8');
 
-test('inline composer contains one send button and Cao Minh avatar',()=>{
+test('combat retains its direct submit control and Explorer has no text input',()=>{
   const row=html.match(/<div class="primary-action-row chat-glass" id="primaryActionRow">([\s\S]*?)<\/div>/);
   assert.ok(row);
+  assert.doesNotMatch(html, /<textarea/);
+  assert.match(html, /<input type="hidden" id="action"/);
   assert.deepEqual([...row[1].matchAll(/<button\b[^>]*\bid="([^"]+)"/g)].map(m=>m[1]),['submit']);
   assert.doesNotMatch(html,/searchActionButton/);
   assert.doesNotMatch(html,/exploreActionButton|submitMacroAction|footprint-icon/);
@@ -16,7 +18,7 @@ test('inline composer contains one send button and Cao Minh avatar',()=>{
   assert.match(row[1],/id="submit" aria-label="Gửi hành động"/);
 });
 
-test('composer submits EXECUTE directly and combat blocks form submissions',()=>{
+test('combat submits EXECUTE directly and combat blocks form submissions',()=>{
   assert.match(html,/window\.Android\.submitAction\(JSON\.stringify\(state\),"EXECUTE",a\)/);
   assert.match(html,/if\(combatActive\(\)\)\{ev\.preventDefault\(\);ev\.stopImmediatePropagation\(\);\}/);
   assert.match(html,/window\.__combatBusy\|\|window\.__combatDiceBusy\|\|window\.__combatFeedbackBusy/);

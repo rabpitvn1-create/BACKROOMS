@@ -36,20 +36,32 @@ object EntityExpRewards {
     }
   }
 
+  /** Reward tiers remain tied to Backrooms Level, independently of power. */
+  fun rankForWorld(state: GameState): Long {
+    val level = org.json.JSONObject(state.world["levelJson"] ?: "{\"number\":0}").getInt("number")
+    require(level in 0..6) { "unknown_level:$level" }
+    return level * EntityPowerScaling.RANK_PER_STEP
+  }
+
   fun expForRank(progressionRank: Long): Int {
     val rank = EntityPowerScaling.requireRank(progressionRank)
-    val worldLevel = rank / EntityPowerScaling.RANK_PER_FULL_LEVEL
+    val worldLevel = rank / EntityPowerScaling.RANK_PER_STEP
     return (BASE_EXP.toLong() + EXP_PER_BACKROOMS_LEVEL.toLong() * worldLevel).toInt()
   }
 
-  fun award(state: GameState, entityInstanceId: String, progressionRank: Long, multiplier: Int = 1): Reward {
-    require(multiplier in 1..9) { "entity_exp_multiplier_invalid" }
+  fun award(
+    state: GameState, entityInstanceId: String, progressionRank: Long,
+    multiplier: Int = 1, fixedExp: Int? = null
+  ): Reward {
+    require(multiplier in 1..24) { "entity_exp_multiplier_invalid" }
+    require(fixedExp == null || fixedExp > 0) { "entity_fixed_exp_invalid" }
     require(entityInstanceId.isNotBlank()) { "Entity instance ID required for EXP." }
     val marker = AWARDED_PREFIX + entityInstanceId
     if (marker in state.metadata) return Reward(state, 0, emptyList(), emptyMap(), false)
 
-    val amount = (expForRank(progressionRank).toLong() * multiplier)
-      .coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+    val amount = fixedExp?.also { EntityPowerScaling.requireRank(progressionRank) }
+      ?: (expForRank(progressionRank).toLong() * multiplier)
+        .coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
     val recipients = PartyCombatHealth.actingMembers(state)
     var next = state
     val levels = linkedMapOf<String, Int>()

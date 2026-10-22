@@ -30,6 +30,16 @@ private fun parsePhysiologyEffects(raw: String?): Set<String>? {
   return effects.toSet()
 }
 
+/** Strictly validate per-serving values; never consume an item if its recovery data is invalid. */
+private fun commandRecoveryMinutes(state: GameState, command: ItemCommand, key: String, defaultMinutes: Long): Long? {
+  val stack = state.inventories[command.actorId]?.items?.get(command.itemId) ?: return null
+  val raw = stack.metadata[key]
+  val perItem = if (raw == null) defaultMinutes else raw.toLongOrNull() ?: return null
+  if (perItem !in 1L..10080L) return null
+  val total = perItem * command.quantity.toLong()
+  return total.takeIf { it in 1L..(10080L * 100L) }
+}
+
 private fun finishItemUse(
   originalState: GameState,
   inventoryResult: ExecutionResult,
@@ -47,13 +57,19 @@ private fun finishItemUse(
       "FOOD" -> PhysiologyCommand.Operation.RECORD_FOOD
       else -> return ExecutionResult(originalState, false, validation = ValidationResult(false, "physiology_effect_invalid"))
     }
+    val perItem = when (effect) {
+      "FOOD" -> commandRecoveryMinutes(originalState, command, "foodRecoveryMinutes", 720L)
+      "WATER" -> commandRecoveryMinutes(originalState, command, "waterRecoveryMinutes", 360L)
+      else -> null
+    } ?: return ExecutionResult(originalState, false, validation = ValidationResult(false, "physiology_recovery_invalid"))
     val physiology = PhysiologyEngine.execute(current, PhysiologyCommand(
       commandId = "${command.commandId}:PHYS:$index",
       turnId = command.turnId,
       actorId = command.actorId,
       targetId = command.actorId,
       source = CommandSource.SYSTEM,
-      operation = operation
+      operation = operation,
+      recoveryMinutes = perItem
     ))
     if (!physiology.applied) return ExecutionResult(originalState, false, validation = physiology.validation)
     current = physiology.state
@@ -76,6 +92,7 @@ private fun useItem(state: GameState, source: InventoryState, command: ItemComma
   val ownedRaw = source.items[command.itemId] ?: return invalid(state, "item_not_owned")
   if (ownedRaw.quantity < command.quantity) return invalid(state, "insufficient_item_quantity")
   val owned = ItemContentRules.normalize(ownedRaw)
+  if (owned.itemId == STAT_POINT_BOOK_ID) return StatPointBook.use(state, command)
   val physiologyEffects = parsePhysiologyEffects(owned.metadata["physiologyEffect"])
     ?: return invalid(state, "physiology_effect_invalid")
   val healingAmount = if (HealingItems.healMaxHpPercent(owned) > 0) {
@@ -99,12 +116,12 @@ private fun useItem(state: GameState, source: InventoryState, command: ItemComma
 }
 
 object InventoryEngine {
-  internal fun grantDrop(state: GameState, itemId: String): GameState? {
+  internal fun grantDrop(state: GameState, itemId: String, origin: String = "ENTITY_DROP"): GameState? {
     val definition = OfflineItemRegistry.get(itemId) ?: return null
     val inventory = state.inventories[CAO_MINH_ID] ?: InventoryState(CAO_MINH_ID)
     val item = ItemContentRules.normalize(ItemStack(
       definition.id, definition.name, 1,
-      metadata = definition.metadata + ("itemOrigin" to "ENTITY_DROP")
+      metadata = definition.metadata + ("itemOrigin" to origin)
     ))
     if (InventoryPolicy.validateAddition(state, CAO_MINH_ID, inventory, item, 1) != null) return null
     return state.copy(inventories = state.inventories + (CAO_MINH_ID to addItem(inventory, item)))
@@ -146,6 +163,7 @@ object InventoryEngine {
 object PartyEngine {
   fun execute(state: GameState, command: PartyCommand): ExecutionResult = when (command.operation) {
     PartyCommand.Operation.ADD -> {
+      if (DungeonRuntime.isTraining(state, command.targetId)) return invalid(state, "follower_in_dungeon")
       if (!state.characters.containsKey(command.targetId)) return invalid(state, "target_unknown")
       if (!command.targetPresent) return invalid(state, "target_not_present")
       if (!command.consentConfirmed) return invalid(state, "join_not_confirmed")
@@ -208,21 +226,34 @@ object TimeEngine {
     val elapsed = state.time.elapsedSubjectiveMinutes
     if (elapsed > Long.MAX_VALUE - delta) return invalid(state, "time_overflow")
 
-    val nextCharacters = linkedMapOf<String, CharacterState>()
-    state.characters.forEach { (id, character) ->
-      if (character.presence == CharacterPresence.DEAD) {
-        nextCharacters[id] = character
-        return@forEach
+    val resting = command.activity == TimeActivity.REST || command.activity == TimeActivity.SLEEP ||
+      command.targetActivities.values.any { it == TimeActivity.REST || it == TimeActivity.SLEEP }
+    // Rest is resolved at the existing 30-minute recovery tick, regardless of
+    // whether the caller commits one long interval or several checkpoints.
+    // Reject implausibly long rest commands to bound the number of slices.
+    if (resting && delta > 7L * 24L * 60L) return invalid(state, "rest_duration_too_long")
+    var advanced = state
+    var remaining = delta
+    while (remaining > 0L) {
+      // Keep the tick aligned with each character's already accrued rest time.
+      // Otherwise 40 minutes in one command can heal differently from 20 + 20.
+      val untilCredit = if (resting) state.party.memberIds.asSequence()
+        .filter { it in command.restTargets || command.targetActivities[it] in setOf(TimeActivity.REST, TimeActivity.SLEEP) }
+        .mapNotNull { id -> advanced.characters[id]
+          ?.takeIf { it.presence == CharacterPresence.ACTIVE }
+          ?.physiology?.restRecoveryMinutes }
+        .map { 30 - it }
+        .minOrNull() ?: 30 else 30
+      val slice = if (resting) minOf(remaining, untilCredit.toLong()) else remaining
+      for ((id, character) in advanced.characters) {
+        // Only living, present party members consume resources on this clock.
+        if (id !in state.party.memberIds || character.presence != CharacterPresence.ACTIVE) continue
+        val activity = command.targetActivities[id] ?: if (id in command.restTargets) command.activity else
+          if (resting) TimeActivity.NORMAL else command.activity
+        advanced = PhysiologyEngine.advance(advanced, id, slice, activity)
+          ?: return invalid(state, "physiology_time_overflow")
       }
-      val physiology = character.physiology
-      val food = advanceKnownCounter(physiology.minutesSinceFood, delta) ?: if (physiology.minutesSinceFood != null) return invalid(state, "physiology_time_overflow") else null
-      val water = advanceKnownCounter(physiology.minutesSinceWater, delta) ?: if (physiology.minutesSinceWater != null) return invalid(state, "physiology_time_overflow") else null
-      val awake = advanceKnownCounter(physiology.minutesAwake, delta) ?: if (physiology.minutesAwake != null) return invalid(state, "physiology_time_overflow") else null
-      nextCharacters[id] = character.copy(physiology = physiology.copy(
-        minutesSinceFood = food,
-        minutesSinceWater = water,
-        minutesAwake = awake
-      ))
+      remaining -= slice
     }
 
     val nextTime = state.time.copy(
@@ -230,14 +261,9 @@ object TimeEngine {
       lastAdvanceMinutes = command.minutes,
       lastAdvanceReason = reason
     )
-    return changed(state.copy(time = nextTime, characters = nextCharacters), "time_advanced")
+    return changed(advanced.copy(time = nextTime), "time_advanced")
   }
 
-  private fun advanceKnownCounter(value: Long?, delta: Long): Long? {
-    if (value == null) return null
-    if (value < 0L || value > Long.MAX_VALUE - delta) return null
-    return value + delta
-  }
 }
 
 internal fun invalid(state: GameState, reason: String) = ExecutionResult(state, false, validation = ValidationResult(false, reason))

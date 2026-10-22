@@ -12,6 +12,7 @@ class GameCoreFacade private constructor(
   private val rules = RuleIntentInterpreter()
   private val resolver = CommandResolver()
   private val spawnRng = SecureRandom()
+  private var dungeonNow: () -> Long = { System.currentTimeMillis() }
   /** One-shot exit authorization from determineExitDestination, consumed by processValidatedCandidate. */
   private var exitAuthorization: ExitAuthorization? = null
 
@@ -45,6 +46,421 @@ class GameCoreFacade private constructor(
     @JvmStatic fun create(context: Context, debugLogging: Boolean = false): GameCoreFacade = GameCoreFacade(
       SharedPreferencesSaveRepository(context.applicationContext), AndroidGamePipelineLogger(debugLogging)
     )
+  }
+
+  /** Native-owned presentation checkpoint; no gameplay/RNG/time changes. */
+  @Synchronized fun beginPlayerPresentation(id: String, text: String, clientJson: String): String {
+    val core = loadCurrentState()
+    require(MiniMapRuntime.PENDING !in core.world && !MiniMapRuntime.blocked(core)) { "scene_busy" }
+    val active = PlayerActionPresentation.journal(core)
+    require(active == null || active.optString("status") == "complete" ||
+      active.optString("status") == "stopped" || active.getJSONArray("events").length() == 0) { "player_narration_retry_required" }
+    // An unchanged draft after a zero-step planner failure is a retry of the
+    // same utterance. A completed turn or edited draft is a new deliberate turn.
+    val retryId = active?.takeIf {
+      it.getJSONArray("events").length() == 0 && it.optString("status") in setOf("failed", "running") &&
+        it.optString("playerText") == text
+    }?.getString("id") ?: id
+    val next = PlayerActionPresentation.begin(core, retryId, text)
+    repository.save(next)
+    return clientSnapshot(JSONObject(clientJson), next).toString()
+  }
+  @Synchronized fun playerPresentationContext(): String {
+    val state = loadCurrentState()
+    val batch = PlayerActionPresentation.journal(state) ?: error("player_action_missing")
+    state.world[MiniMapRuntime.PENDING]?.let { raw ->
+      val pending = JSONObject(raw)
+      if (pending.optString("playerActionId") == batch.getString("id"))
+        batch.put("pendingActionId", pending.getString("actionId"))
+    }
+    return batch.toString()
+  }
+
+  @Synchronized fun setPlayerRequestCount(requested: Int) {
+    require(requested in 1..12) { "player_action_count" }
+    repository.save(PlayerActionPresentation.update(loadCurrentState()) { it.put("requested", requested) })
+  }
+  /** Improvised non-puzzle actions still advance a real turn and reserve Core RNG.
+   * Free text can affect narration but never author gameplay rewards or routes. */
+  @Synchronized fun executePlayerFreeStep(text: String, playerText: String, clientJson: String): String {
+    require(text.isNotBlank() && text.length <= 500 &&
+      text.none { it.code < 32 && it != '\n' }) { "player_free_invalid" }
+    val state = loadCurrentState()
+    val batch = PlayerActionPresentation.journal(state) ?: error("player_action_missing")
+    require(batch.optString("status") == "running" && batch.optString("playerText") == playerText) {
+      "player_action_not_running"
+    }
+    val command = MiniMapRuntime.freeCommand(state)
+    check(!JSONObject(beginSceneAction(command.toString(), playerText, text)).optBoolean("committed")) {
+      "player_free_duplicate"
+    }
+    val event = JSONObject(sceneNarrationContext())
+    val view = JSONObject(commitSceneAction(command.getString("actionId"), event.getString("result"), clientJson))
+    val interrupted = view.optBoolean("actionInterrupted", false)
+    if (interrupted) event.put("result", view.getString("actionInterruptReason")).put("interrupted", true)
+    return JSONObject().put("state", view)
+      .put("event", JSONObject().put("kind", "FREE").put("text", text).put("event", event))
+      .put("interrupted", interrupted)
+      .put("encounter", view.has("pendingEncounter")).toString()
+  }
+  @Synchronized fun finishPlayerPresentation(requested: Int, interrupted: Boolean, message: String,
+                                            reply: String, failure: String, retryable: Boolean) {
+    val next = PlayerActionPresentation.update(loadCurrentState()) {
+      it.put("requested", requested).put("interrupted", interrupted).put("message", message)
+      it.put("failure", failure).put("retryable", retryable)
+      it.put("status", if (reply.isNotBlank()) (if (interrupted) "stopped" else "complete") else "failed")
+      if (reply.isNotBlank()) it.put("reply", reply.replace("\r\n", "\n").trim())
+    }
+    repository.save(next)
+  }
+
+  /** A hint request never starts an action, consumes RNG or modifies a save. */
+  @Synchronized fun sceneHint(tier: Int): String =
+    WorldGraphRuntime.hint(loadCurrentState(), tier).toString()
+
+  @Synchronized fun sceneGenerationRequest(): String = MiniMapRuntime.generationRequest(loadCurrentState()).toString()
+
+  @Synchronized fun acceptSceneGeneration(token: String, raw: String): String {
+    val next = MiniMapRuntime.acceptGeneration(loadCurrentState(), token, raw)
+    repository.save(next)
+    return clientSnapshot(JSONObject(), next).toString()
+  }
+
+  /** The planner sees only the same explored map and Core-offered action labels
+   * that the player can see. Never serialize private scenario rooms or SEARCH
+   * interactions in rooms the player has not reached. */
+  @Synchronized fun scenePlayerActionContext(): String {
+    val state = loadCurrentState()
+    val view = MiniMapRuntime.publicView(state)
+    val map = view.optJSONObject("map") ?: error("scene_not_ready")
+    val rooms = MiniMapScenario.objects(map.getJSONArray("rooms"))
+    val discovered = rooms.filter { it.optBoolean("visited", false) }.map { it.getString("id") }.toSet()
+    return JSONObject().put("currentRoomId", map.getString("currentRoomId"))
+      .put("nodeId", view.getString("nodeId"))
+      .put("miniIndex", view.getInt("miniIndex"))
+      .put("rooms", map.getJSONArray("rooms"))
+      .put("availableActions", JSONArray().apply {
+        MiniMapScenario.objects(view.getJSONArray("availableActions")).forEach { action ->
+          if (action.getString("kind") !in setOf("MOVE", "SEARCH", "INTERACT", "TALK")) return@forEach
+          val targetId = action.getString("targetId")
+          val label = if (action.getString("kind") == "MOVE" && targetId.startsWith("room:") &&
+            targetId.removePrefix("room:") !in discovered) "Lối sang khu vực chưa khám phá"
+            else action.getString("label")
+          put(JSONObject().put("kind", action.getString("kind"))
+            .put("targetId", targetId).put("label", label))
+        }
+      }).toString()
+  }
+
+  @Synchronized fun sceneNarrationContext(): String {
+    val state = loadCurrentState()
+    return JSONObject(state.world[MiniMapRuntime.PENDING] ?: error("scene_pending_missing")).getJSONObject("public").toString()
+  }
+
+  /** Validate -> stage -> reserve once -> persist. Gehihi failure leaves this intact. */
+  /** The optional verbatim player utterance is presentation-only. It must never
+   * modify the Core command, target, narration event or gameplay consequences. */
+  @JvmOverloads
+  @Synchronized fun beginSceneAction(raw: String, playerText: String? = null, freeText: String? = null): String =
+    beginSceneActionInternal(raw, playerText, freeText, false)
+
+  private fun beginSceneActionInternal(raw: String, playerText: String?, freeText: String?, automaticContinuation: Boolean): String {
+    require(raw.length <= 1200) { "scene_command_too_large" }
+    require(playerText == null || (playerText.isNotBlank() && playerText.length <= 900)) {
+      "scene_player_text_invalid"
+    }
+    val command = JSONObject(raw)
+    var state = loadCurrentState()
+    val actionId = command.getString("actionId")
+    // A persisted FREE pending command must remain retryable after process death.
+    val savedFreeText = state.world[MiniMapRuntime.PENDING]?.let(::JSONObject)?.takeIf {
+      it.optString("actionId") == actionId && it.getJSONObject("command").optString("kind") == "FREE"
+    }?.optJSONObject("public")?.optString("freeText")?.takeIf(String::isNotBlank)
+    val effectiveFreeText = freeText ?: savedFreeText
+    require((command.optString("kind") == "FREE") == (effectiveFreeText != null)) { "scene_free_text_required" }
+    if (effectiveFreeText != null) require(effectiveFreeText.isNotBlank() && effectiveFreeText.length <= 500 &&
+      effectiveFreeText.none { it.code < 32 && it != '\n' }) { "scene_free_text_invalid" }
+    state.world[MiniMapRuntime.RECEIPT]?.let { receipt ->
+      if (JSONObject(receipt).getString("actionId") == actionId)
+        return JSONObject().put("committed", true).toString()
+    }
+    state.world[MiniMapRuntime.PENDING]?.let { pending ->
+      val saved = JSONObject(pending)
+      require(saved.getJSONObject("command").toString().let { savedCommand ->
+        val c = JSONObject(savedCommand)
+        c.keys().asSequence().toSet() == command.keys().asSequence().toSet() && c.keys().asSequence().all { c.get(it) == command.get(it) }
+      }) { "scene_another_action_pending" }
+      return JSONObject().put("committed", false).toString()
+    }
+    check(!MiniMapRuntime.blocked(state)) { "scene_busy" }
+    val staged = MiniMapRuntime.stage(state, command) // no RNG before this point
+    if (effectiveFreeText != null) staged.event
+      .put("freeText", effectiveFreeText)
+      .put("interaction", effectiveFreeText)
+      .put("result", "Người chơi thực hiện hành động: " + effectiveFreeText)
+    if (automaticContinuation) staged.event
+      .put("automaticContinuation", true)
+      .put("result", "Giao tranh vừa kết thúc. Cao Minh vẫn ở vị trí hiện tại; diễn biến xung quanh tiếp tục.")
+    val deviceControl = MiniMapRuntime.isMechanismControl(state, command.getString("targetId"))
+    val turnId = nextTurnId(state)
+    val input = effectiveFreeText ?: "${command.getString("kind")}:$actionId"
+    // Ordinary FREE narration has always cost one minute. Only explicit durations
+    // or genuine rest/sleep may reserve longer intervals.
+    val timedFree = effectiveFreeText != null &&
+      (RestActionPolicy.activity(effectiveFreeText) != TimeActivity.NORMAL ||
+        TimeCostPolicy.explicitMinutes(effectiveFreeText) != null)
+    val plannedMinutes = if (timedFree) TimeCostPolicy.estimateMinutes(effectiveFreeText!!)
+      else if (command.getString("kind") == "SEARCH" && !deviceControl) 5 else 1
+    // A long rest beyond TimeEngine's supported window must be rejected before
+    // creating a pending scene; otherwise its later commit can never succeed.
+    require(RestActionPolicy.activity(input) == TimeActivity.NORMAL || plannedMinutes <= 10080) {
+      "rest_duration_too_long"
+    }
+    val started = ActionRuntime.start(state, actionId, turnId, CAO_MINH_ID, ActionKind.EXECUTE,
+      input, staged.nodeId, plannedMinutes)
+    check(started.applied) { "scene_session_failed" }
+    val target = LevelRouteRegistry.node(staged.nodeId)
+    val atTarget = started.state.copy(world = started.state.world + mapOf(
+      "levelJson" to target.asJson().toString(), "location" to target.location(), "title" to target.title()))
+    // A confirmed cross-Level departure is not a room encounter or a spawn roll.
+    // Other gameplay actions retain the existing Core encounter policy.
+    val isWorldExit = staged.event.optBoolean("transition", false)
+    var roll = if (isWorldExit) null
+      else SpawnMechanism.rollSceneSpawns(atTarget, command.getString("kind")) { spawnRng.nextInt(it) }
+    var interruptedAt = 0
+    // Existing extreme thermal states can interrupt sleep even without an
+    // Entity. A 30-minute wake-up uses only the current physiology data.
+    val extremeSleepEnvironment = RestActionPolicy.activities(atTarget, input).any { (id, mode) ->
+      mode == TimeActivity.SLEEP &&
+        (atTarget.characters[id]?.physiology?.thermalState?.trim()?.lowercase()
+          ?.let { it in setOf("overheated", "freezing") } == true)
+    }
+    val environmentInterrupted = !isWorldExit && roll?.entityKey == null &&
+      extremeSleepEnvironment && plannedMinutes > 30
+    if (environmentInterrupted) interruptedAt = 30
+    // The ordinary turn roll checks the moment sleep begins. Pre-reserve any
+    // later interruption on 60-minute checks so retry/restart NEVER rerolls it.
+    // Persist the first interruption time with the same pending action.
+    if (!isWorldExit && !environmentInterrupted &&
+        RestActionPolicy.activity(input) in setOf(TimeActivity.REST, TimeActivity.SLEEP) &&
+        plannedMinutes > 60 && roll?.entityKey == null &&
+        JSONObject(atTarget.world["flagsJson"] ?: "{}").optBoolean("entityEncountersAllowed", true)) {
+      for (minute in 60 until plannedMinutes step 60) {
+        val entity = EntitySpawnPool.rollEntity(staged.nodeId) { spawnRng.nextInt(it) }
+        if (entity != null) {
+          roll = SpawnResult(entity, emptyList())
+          interruptedAt = minute
+          break
+        }
+      }
+    }
+    var reserved = if (roll != null) SpawnMechanism.prepareSpawns(atTarget, roll) else atTarget
+    if (roll?.entityKey != null) {
+      reserved = CombatRuntime.prepareEncounter(reserved, roll.entityKey, "scene:$actionId:${roll.entityKey}")
+      reserved = SpawnMechanism.discardPendingNpcEncounters(reserved)
+    }
+    // Pending reserves encounters, but committed world/room stay at the previous receipt.
+    val reservedFlags = reserved.world["flagsJson"]
+    reserved = reserved.copy(world = started.state.world + ("flagsJson" to (reservedFlags ?: "{}")),
+      metadata = reserved.metadata + (SPAWN_ENCOUNTER_OWNER to actionId))
+    val public = staged.event
+    if (interruptedAt > 0) public.put("result",
+      if (environmentInterrupted) "Giấc ngủ bị gián đoạn sau $interruptedAt phút vì nhiệt độ môi trường cực đoan."
+      else "Nghỉ/ngủ bị gián đoạn sau $interruptedAt phút vì có thực thể xuất hiện.")
+    CombatRuntime.pending(reserved)?.let {
+      public.put("encounter", JSONObject().put("entityKey", it.entityKey).put("entityName", CombatRuntime.entityName(it.entityKey)).put("encounterId", it.encounterId))
+    }
+    public.put("npcEncounters", JSONArray().apply {
+      SpawnMechanism.pendingNpcEncounters(reserved).forEach { put(JSONObject().put("characterId", it.characterId).put("name", SpawnMechanism.npcDisplayName(it.characterId))) }
+    })
+    val pending = JSONObject().put("automaticContinuation", automaticContinuation)
+      .put("actionId", actionId).put("command", command)
+      .put("sleepInterruptAfterMinutes", interruptedAt)
+      .put("sleepEnvironmentInterrupted", environmentInterrupted)
+      .put("progress", staged.progress).put("discardKeys", JSONArray(staged.discardKeys.toList()))
+      .put("nodeId", staged.nodeId).put("label", staged.label)
+      .put("public", public).apply {
+        if (playerText != null) {
+          put("playerText", playerText)
+          PlayerActionPresentation.journal(state)?.takeIf {
+            it.optString("status") == "running" && it.optString("playerText") == playerText
+          }?.let { put("playerActionId", it.getString("id")) }
+        }
+      }
+    repository.save(reserved.copy(world = reserved.world + (MiniMapRuntime.PENDING to pending.toString())))
+    return JSONObject().put("committed", false).toString()
+  }
+
+  /** Core owns counted footsteps. Each step saves a distinct receipt and roll.
+   * No AI planner call; halt before another step if an Entity is pending. */
+  @Synchronized fun executePlayerFootsteps(playerText: String, count: Int, clientJson: String): String {
+    require(count in 1..12) { "player_footstep_count" }
+    val batch = PlayerActionPresentation.journal(loadCurrentState()) ?: error("player_action_missing")
+    require(batch.optString("status") == "running" && batch.optString("playerText") == playerText &&
+      batch.getJSONArray("events").length() == 0) { "player_footstep_batch_invalid" }
+    require(WorldGraphRuntime.active(MiniMapRuntime.progress(loadCurrentState()))) { "player_footstep_world_only" }
+    setPlayerRequestCount(count)
+    var presentation = clientJson
+    var executed = 0
+    var fatal = false
+    val events = JSONArray()
+    while (executed < count) {
+      val state = loadCurrentState()
+      if (MiniMapRuntime.blocked(state)) break
+      val command = WorldGraphRuntime.footstepCommand(MiniMapRuntime.progress(state))
+      check(!JSONObject(beginSceneAction(command.toString(), playerText)).optBoolean("committed")) {
+        "player_footstep_duplicate"
+      }
+      val event = JSONObject(sceneNarrationContext())
+      presentation = commitSceneAction(command.getString("actionId"), event.getString("result"), presentation)
+      val resultView = JSONObject(presentation)
+      fatal = resultView.optBoolean("actionInterrupted", false)
+      if (fatal) event.put("result", resultView.getString("actionInterruptReason")).put("interrupted", true)
+      events.put(JSONObject().put("kind", "CORE").put("event", event))
+      executed++
+      if (fatal || CombatRuntime.pending(loadCurrentState()) != null) break
+    }
+    return JSONObject().put("executed", executed).put("requested", count)
+      .put("interrupted", fatal || executed < count)
+      .put("interruptionReason", if (fatal) "survival_death" else "encounter")
+      .put("events", events)
+      .put("state", JSONObject(currentClientState(presentation))).toString()
+  }
+
+  @Synchronized fun retrySceneAction(): String = JSONObject(loadCurrentState().world[MiniMapRuntime.PENDING]
+    ?: error("scene_pending_missing")).getJSONObject("command").toString()
+
+  /** Exactly one Core save commits scene/time/encounter/reward and narration receipt. */
+  @Synchronized fun commitSceneAction(actionId: String, reply: String, clientJson: String): String {
+    require(reply.isNotBlank() && reply.length <= 12000) { "scene_narration_invalid" }
+    val core = loadCurrentState()
+    core.world[MiniMapRuntime.RECEIPT]?.let { receipt ->
+      if (JSONObject(receipt).getString("actionId") == actionId) return clientSnapshot(JSONObject(clientJson), core).toString()
+    }
+    val pending = JSONObject(core.world[MiniMapRuntime.PENDING] ?: error("scene_pending_missing"))
+    require(pending.getString("actionId") == actionId) { "scene_action_mismatch" }
+    val session = requireNotNull(ActionRuntime.activeSession(core))
+    val turnId = nextTurnId(core)
+    val turn = TurnCoordinator.createPending(core, turnId, session.input, true)
+    check(turn.error == null) { turn.error ?: "scene_pending_failed" }
+    // An encounter reserved before sleep/rest interrupts the planned interval immediately.
+    val restInterrupted = RestActionPolicy.activity(session.input) != TimeActivity.NORMAL &&
+      (CombatRuntime.pending(turn.state) != null || pending.optBoolean("sleepEnvironmentInterrupted", false))
+    val actualMinutes = if (restInterrupted)
+      pending.optInt("sleepInterruptAfterMinutes", 0).takeIf { it > 0 } ?: 1
+      else (session.plannedMinutes ?: 1)
+    val progressed = ActionRuntime.advance(turn.state, session.sessionId, "scene_commit", actualMinutes)
+    check(progressed.applied || progressed.duplicate) { progressed.error ?: "scene_time_failed" }
+    // Time was already advanced by ActionRuntime: do not execute a second TimeAdvanceCommand.
+    val committed = TurnCoordinator.commit(progressed.state, emptyList())
+    check(committed.error == null) { committed.error ?: "scene_commit_failed" }
+    val finished = ActionRuntime.complete(committed.state, session.sessionId)
+    check(finished.applied) { finished.error ?: "scene_session_failed" }
+    if (finished.state.characters[CAO_MINH_ID]?.presence == CharacterPresence.DEAD) {
+      // Time and fatal physiology are committed, but the action's staged graph,
+      // evidence, exit and rewards must not be committed after the actor dies.
+      val interrupted = "Hành động bị ngắt vì Cao Minh đã tử vong do suy kiệt."
+      val canceled = JSONObject(pending.toString()).apply {
+        getJSONObject("public").put("result", interrupted).put("interrupted", true).remove("encounter")
+      }
+      val deathReceipt = JSONObject().put("automaticContinuation", pending.optBoolean("automaticContinuation"))
+        .put("actionId", actionId)
+        .put("label", pending.getString("label")).put("reply", interrupted)
+        .put("interrupted", true).apply {
+          if (pending.has("playerText")) put("playerText", pending.getString("playerText"))
+        }
+      var terminal = SpawnMechanism.discardPendingNpcEncounters(CombatRuntime.clear(finished.state))
+      val flagsAfterDeath = JSONObject(terminal.world["flagsJson"] ?: "{}")
+        .put("entityEncounterKey", "")
+      terminal = terminal.copy(
+        world = (terminal.world - MiniMapRuntime.PENDING) + mapOf(
+          MiniMapRuntime.RECEIPT to deathReceipt.toString(),
+          "flagsJson" to flagsAfterDeath.toString()),
+        metadata = terminal.metadata - SPAWN_ENCOUNTER_OWNER
+      )
+      terminal = CoreClientProjection.advance(terminal)
+      terminal = PlayerActionPresentation.receipt(terminal, canceled)
+      repository.save(terminal)
+      return clientSnapshot(JSONObject(clientJson), terminal)
+        .put("actionInterrupted", true).put("actionInterruptReason", interrupted).toString()
+    }
+    val node = LevelRouteRegistry.node(pending.getString("nodeId"))
+    val flags = JSONObject(finished.state.world["flagsJson"] ?: "{}").apply {
+      remove("exploration"); remove("hiddenExitStreak"); remove("exitReady"); remove("lastRolls")
+      put("currentLevel", node.asJson())
+    }
+    val receipt = JSONObject().put("automaticContinuation", pending.optBoolean("automaticContinuation"))
+      .put("actionId", actionId).put("label", pending.getString("label")).put("reply", reply).apply {
+      // Persist exactly what the player submitted, including punctuation/case.
+      // A retry uses the original saved utterance, never an AI paraphrase.
+      if (pending.has("playerText")) put("playerText", pending.getString("playerText"))
+    }
+    // Finish a mini-map by atomically dropping its puzzle script and evidence.
+    // A pending narration failure leaves the old state untouched for retry.
+    val discarded = MiniMapScenario.strings(pending.getJSONArray("discardKeys")).toSet()
+    require(discarded.all { it.startsWith("scene.script.") || it.startsWith("scene.outline.") }) { "scene_discard_keys" }
+    var next = finished.state.copy(world = (finished.state.world - MiniMapRuntime.PENDING - discarded) + mapOf(
+      MiniMapRuntime.STATE to pending.getJSONObject("progress").toString(),
+      MiniMapRuntime.RECEIPT to receipt.toString(),
+      "levelJson" to node.asJson().toString(), "title" to node.title(), "location" to node.location(), "flagsJson" to flags.toString()),
+      metadata = finished.state.metadata - SPAWN_ENCOUNTER_OWNER)
+    // Persist the source progress in pending until the receipt commits, then
+    // create the target graph within that same Core transaction. Pending save
+    // validation still sees the original graph and cannot be forged into a teleport.
+    if (pending.getJSONObject("public").optBoolean("transition", false)) {
+      val previous = MiniMapRuntime.progress(core)
+      val targetId = node.id
+      require(LevelRouteRegistry.canMove(previous.getString("nodeId"), targetId) &&
+        WorldGraphRuntime.exitUnlocked(previous)) { "world_exit_locked" }
+      val definition = WorldDefinitions.require(targetId)
+      val prepared = next.copy(world = next.world - MiniMapRuntime.STATE)
+      next = WorldGraphRuntime.initialize(prepared, definition = definition)
+    }
+    next = SpawnMechanism.commitPendingNpcEncounters(next)
+    if (WorldGraphRuntime.active(MiniMapRuntime.progress(next))) {
+      val location = MiniMapRuntime.progress(next).getString("roomId")
+      next = next.copy(characters = next.characters.mapValues { (id, character) ->
+        if (character.metadata["encountered"] == "true" && core.characters[id]?.metadata?.get("encountered") != "true")
+          character.copy(metadata = character.metadata + mapOf("world.roomId" to location, "world.nodeId" to MiniMapRuntime.progress(next).getString("nodeId"))) else character
+      })
+    }
+    next = separateNonPartyNpcsAfterParentTransition(core, next)
+    CombatRuntime.pending(next)?.let {
+      next = next.copy(metadata = next.metadata + ("combat.encounterNarrative" to JSONObject()
+        .put("role", "gm").put("text", reply).put("encounterId", it.encounterId)
+        .apply { if (pending.optBoolean("automaticContinuation")) put("sceneActionId", actionId) }.toString()))
+    }
+    val beforeView = clientSnapshot(JSONObject(), core)
+    val afterView = clientSnapshot(JSONObject(), next)
+    val sceneKind = pending.getJSONObject("command").getString("kind")
+    val deviceControl = pending.getJSONObject("public").optBoolean("mechanismStep", false)
+    val actionText = (when (sceneKind) {
+      "MOVE", "STEP" -> "Di chuyển: "
+      "SEARCH" -> "Tìm kiếm: "
+      "FREE" -> "Hành động: "
+      "INTERACT" -> "Thao tác: "
+      else -> "Giao tiếp: "
+    }) + (if (sceneKind == "FREE") pending.getJSONObject("public").optString("freeText") else pending.getString("label"))
+    val continued = JSONObject(com.rabpit.backroom.core.knowledge.StoryContinuityReducer.apply(beforeView.toString(), afterView.toString(), actionText))
+    val visualRolls = JSONObject()
+    if (CombatRuntime.pending(next) != null) visualRolls.put("entityEncounter", JSONObject().put("eligible", true).put("success", true))
+    // Core has already checked the MOVE command against the actual scene graph.
+    // Do not infer room transitions from text like "Di chuyển: Kho hồ sơ".
+    SnapshotSceneProgress.apply(beforeView, continued, visualRolls,
+      if (deviceControl) "DEVICE" else if (sceneKind == "MOVE" || sceneKind == "STEP") "SCENE_MOVE" else "EXECUTE",
+      if (deviceControl) "" else actionText)
+    next = next.copy(world = next.world + ("flagsJson" to continued.getJSONObject("flags").toString()))
+    next = CoreClientProjection.advance(CharacterMemoryBags.recordCommitted(core, next))
+    next = PlayerActionPresentation.receipt(next, pending)
+    repository.save(next)
+    return clientSnapshot(JSONObject(clientJson), next).toString()
+  }
+
+  @Synchronized fun takeSceneAmbientEvent(): Boolean {
+    val state = loadCurrentState()
+    val rolled = SpawnMechanism.ambientNpcRolled(state)
+    if (rolled) repository.save(SpawnMechanism.clearAmbientNpcMarker(state))
+    return rolled
   }
 
   /** Fast deterministic pass. Gemini is never called from this method. */
@@ -190,6 +606,7 @@ class GameCoreFacade private constructor(
   @Synchronized fun beginAction(clientStateJson: String, kindRaw: String, action: String): String {
     val client = JSONObject(clientStateJson)
     val state = loadCurrentState()
+    if (MiniMapRuntime.STATE in state.world) return actionStartResponse(false, null, "scene_ui_required")
     val reserved = CombatRuntime.pending(state)
     if (reserved != null) {
       val active = ActionRuntime.activeSession(state)
@@ -298,6 +715,7 @@ class GameCoreFacade private constructor(
     exitAuthorization = null
     if (!repository.exists()) return false
     val state = repository.load()
+    if (MiniMapRuntime.PENDING in state.world) return false
     val active = ActionRuntime.activeSession(state) ?: return false
     // P0-2: discard deferred NPC encounters. A failed/aborted turn must NOT consume
     // the once-only first meeting — the NPC may roll again on a later turn.
@@ -467,6 +885,20 @@ class GameCoreFacade private constructor(
     }
   }
 
+  /** All timestamps and rewards are native-owned; the WebView submits only IDs. */
+  @Synchronized fun dungeonView(): String =
+    DungeonRuntime.view(loadCurrentState(), dungeonNow()).toString()
+
+  @Synchronized fun dungeonAction(slot: Int, followerId: String, expectedRunId: Long, release: Boolean): String {
+    val current = loadCurrentState()
+    require(!MiniMapRuntime.blocked(current)) { "dungeon_game_busy" }
+    val next = if (release) DungeonRuntime.release(current, slot, expectedRunId, dungeonNow())
+      else DungeonRuntime.start(current, slot, followerId, dungeonNow())
+    DungeonRuntime.validate(next)
+    repository.save(CharacterMemoryBags.recordCommitted(current, next))
+    return DungeonRuntime.view(next, dungeonNow()).toString()
+  }
+
   @Synchronized fun currentCoreState(): String = GameStateCodec.encode(repository.load())
 
   /** Prompt-only memory for Core-confirmed actors in the current scene. */
@@ -477,7 +909,11 @@ class GameCoreFacade private constructor(
     val pending = if (ActionRuntime.activeSession(state) != null)
       SpawnMechanism.pendingNpcEncounters(state).map { it.characterId }.toSet()
     else emptySet()
-    val present = CharacterMemoryBags.sceneContext(state, pending)
+    val memoryState = state.world[MiniMapRuntime.PENDING]?.let { raw ->
+      val staged = JSONObject(raw).getJSONObject("progress")
+      if (WorldGraphRuntime.active(staged)) state.copy(world = state.world + (MiniMapRuntime.STATE to staged.toString())) else state
+    } ?: state
+    val present = CharacterMemoryBags.sceneContext(memoryState, pending)
     // An explicit recollection can reference Cao Minh's own past events without
     // loading or activating any absent character's bag.
     val recalled = CharacterMemoryBags.playerRecallContext(state, action)
@@ -496,6 +932,18 @@ class GameCoreFacade private constructor(
     return JSONObject().put("ok", true).put("state", view).toString()
   }
 
+  /** Preview a complete current-version checkpoint without modifying gameplay state.
+   * Only used by the native bridge to validate non-Core presentation domains. */
+  @Synchronized fun previewManualCheckpoint(): String {
+    val current = repository.load()
+    if (!current.metadata.containsKey("loadError") &&
+      (current.turn.pending != null || ActionRuntime.activeSession(current) != null))
+      return checkpointError("turn_in_progress")
+    val saved = repository.loadCheckpoint() ?: return checkpointError("checkpoint_missing")
+    val restored = CoreClientProjection.project(saved.presentation, saved.core)
+    return JSONObject().put("ok", true).put("state", restored).toString()
+  }
+
   /** Decode and validate the complete slot before changing the current Core state. */
   @Synchronized fun loadManualCheckpoint(): String {
     val current = repository.load()
@@ -504,7 +952,7 @@ class GameCoreFacade private constructor(
     val saved = repository.loadCheckpoint() ?: return checkpointError("checkpoint_missing")
     val loaded = saved.core
     repository.save(loaded)
-    val restored = CoreClientProjection.project(saved.presentation, loaded)
+    val restored = CoreClientProjection.project(saved.presentation, loadCurrentState())
     return JSONObject().put("ok", true).put("state", restored).toString()
   }
 
@@ -620,6 +1068,7 @@ class GameCoreFacade private constructor(
     val before = JSONObject(beforeJson)
     val candidate = JSONObject(candidateJson)
     val core = loadCurrentState()
+    if (MiniMapRuntime.STATE in core.world) return response(false, clientSnapshot(before, core), "scene_ui_required", "scene_ui_required")
     val reserved = CombatRuntime.pending(core)
     val session = ActionRuntime.activeSession(core)
     val ownedNarration = reserved != null && session != null &&
@@ -785,13 +1234,16 @@ class GameCoreFacade private constructor(
     if (CombatRuntime.pending(current) != null || CombatRuntime.active(current) != null ||
       current.turn.pending != null || ActionRuntime.activeSession(current) != null) return reject("turn_in_progress")
     val character = current.characters[characterId] ?: return reject("target_unknown")
-    if (character.metadata["encountered"] != "true") return reject("follower_not_encountered")
+    if (character.metadata["encountered"] != "true" && character.metadata["dungeon.unlocked"] != "true")
+      return reject("follower_not_encountered")
     if (characterId in current.party.memberIds)
       return response(true, clientSnapshot(client, current), null, "already_in_party", "${character.name} đã ở trong Party.")
     val command = PartyCommand("JOIN:${character.metadata["encounterId"]}:$characterId",
       current.turn.currentTurnId, CAO_MINH_ID, characterId, CommandSource.UI, PartyCommand.Operation.ADD,
       consentConfirmed = character.metadata["joinEligible"] == "true" && character.metadata["followsPlayer"] == "true",
-      targetPresent = character.presence == CharacterPresence.ACTIVE)
+      targetPresent = character.presence == CharacterPresence.ACTIVE &&
+        (MiniMapRuntime.STATE !in current.world || !WorldGraphRuntime.active(MiniMapRuntime.progress(current)) ||
+          WorldGraphRuntime.characterPresent(current, character)))
     val result = PartyEngine.execute(current, command)
     if (!result.applied) return reject(result.validation.reason ?: "recruitment_failed")
     var next = result.state
@@ -829,7 +1281,8 @@ class GameCoreFacade private constructor(
       actorId = CAO_MINH_ID,
       source = CommandSource.SYSTEM,
       minutes = 1,
-      reason = "combat_action"
+      reason = "combat_action",
+      activity = TimeActivity.EXERTION
     ))
     if (time.applied) next = time.state
     next = CharacterStatEngine.applyCompletedTurnRegen(next, "COMBAT_TURN_${CoreClientProjection.turnIndex(current)}")
@@ -849,7 +1302,15 @@ class GameCoreFacade private constructor(
     // Combat resolves its own rounds; Explorer Turn advances only on Explorer actions.
     repository.save(CharacterMemoryBags.recordCommitted(current, next))
 
-    val output = clientSnapshot(client, next)
+    // One automatic at-rest scene turn after final victory. Reserve and save its
+    // RNG before presentation; writer retries reuse this exact pending command.
+    val continueScene = resolution.entityDestroyed && MiniMapRuntime.STATE in next.world &&
+      next.characters[CAO_MINH_ID]?.presence != CharacterPresence.DEAD &&
+      (next.characters[CAO_MINH_ID]?.vitalState?.currentHp ?: 0) > 0
+    if (continueScene) beginSceneActionInternal(MiniMapRuntime.freeCommand(next).toString(),
+      null, "Diễn biến tại chỗ sau giao tranh", true)
+    val output = clientSnapshot(client, if (continueScene) loadCurrentState() else next)
+    if (continueScene) output.put("postCombatContinuation", true)
     val combatReply = resolution.reply
     output.put("combatFeedback", JSONObject().apply {
       put("id", "${activeCombat.encounterId}:${activeCombat.eventCounter + 1}")
@@ -884,7 +1345,10 @@ class GameCoreFacade private constructor(
 
   /** New-run initialization: no Milestone planning, no story checkpoint seeding. */
   private fun newStoryRun(state: GameState): GameState {
-    return CoreClientProjection.initialize(state)
+    val ready = CoreClientProjection.initialize(state)
+    val definition = WorldDefinitions.forNode(MiniMapRuntime.node(ready).id)
+    return if (definition != null) WorldGraphRuntime.initialize(ready, definition = definition)
+      else MiniMapRuntime.initialize(ready)
   }
 
   private fun characterFlagKey(id: String): String? = when (id) {
@@ -893,6 +1357,10 @@ class GameCoreFacade private constructor(
     SYVIAL_ID -> "syvial"
     LUCIA_ID -> "lucia"
     LUC_TRAM_ID -> "lucTram"
+    CATHERINE_ID -> "catherine"
+    JANET_ID -> "janet"
+    NGUYEN_QUOC_NAM_ID -> "nguyenQuocNam"
+    HUA_TIEU_LAN_ID -> "huaTieuLan"
     else -> null
   }
 
@@ -903,8 +1371,9 @@ class GameCoreFacade private constructor(
     val normalized = normalizeVisualPresence(CoreClientProjection.initialize(loaded))
     // New runs are initialized without any Milestone planning or story checkpoint seeding.
     val ready = if (existed) normalized else newStoryRun(normalized)
-    if (!existed) repository.save(ready)
-    return ready
+    val settled = DungeonRuntime.settle(ready, dungeonNow())
+    if (!existed || settled != ready) repository.save(settled)
+    return settled
   }
 
   /** UI state is presentation only; gameplay fields are always reprojected from Core. */
@@ -973,6 +1442,7 @@ class GameCoreFacade private constructor(
   private fun eventReply(events: List<String>): String {
     val last = events.lastOrNull { it != "time_advanced" }
     return when {
+      last != null && last.startsWith("stat_book_used:") -> "Đã dùng một Sách + Stats: +1 " + last.substringAfter(":") + "."
       last == "item_consumed" -> "Đã sử dụng vật phẩm và áp dụng hiệu ứng có sẵn."
       last == "item_used" -> "Đã sử dụng vật phẩm."
       last == "inventory_remove" -> "Vật phẩm đã được loại khỏi Inventory theo hành động của Cao Minh."
@@ -996,6 +1466,10 @@ class GameCoreFacade private constructor(
       "madgod_equipment_permanent" -> "MadGod đã khóa vĩnh viễn sau khi trang bị; không thể tháo hoặc đổi."
       "insufficient_item_quantity", "item_not_owned" -> "Cao Minh không có đủ vật phẩm cần thiết cho hành động này."
       "item_action_resolution_required" -> "Không thể xác thực hành động vật phẩm này từ state hiện tại; Inventory không thay đổi."
+      "stat_book_selection_required" -> "Hãy chọn STR, DEX, AGI, VIT hoặc EVA trước khi dùng sách."
+      "stat_book_one_at_a_time" -> "Mỗi lần chỉ sử dụng một cuốn Sách + Stats."
+      "stat_book_stat_capped" -> "Chỉ số gốc đã đạt 999; sách không bị tiêu hao."
+      "stat_book_actor_unavailable" -> "Nhân vật phải còn sống và ở trong Party để dùng sách."
       "party_full" -> "Party đã đủ tối đa bốn thành viên."
       "join_not_confirmed" -> "Yêu cầu gia nhập chưa đủ điều kiện hoặc chưa được NPC xác nhận."
       else -> "Hành động này không khả dụng trong trạng thái hiện tại."
@@ -1035,10 +1509,11 @@ class GameCoreFacade private constructor(
     // Inventory commands are atomic Core actions, not Explorer Turns.
     val command = ItemCommand(commandId = "UI:ITEM:${java.util.UUID.randomUUID()}", turnId = null, actorId = actorId,
       targetId = if (operation == ItemCommand.Operation.TRANSFER) targetId else null, source = CommandSource.UI,
-      operation = operation, itemId = item.itemId, itemName = item.name, quantity = quantity)
+      operation = operation, itemId = item.itemId, itemName = item.name, quantity = quantity, metadata = if (operation == ItemCommand.Operation.USE && item.itemId == STAT_POINT_BOOK_ID)
+        mapOf("targetStat" to request.optString("targetStat")) else emptyMap())
     val execution = StateReducer.execute(state, command)
     if (!execution.applied) return reject(execution.validation.reason ?: "item_action_resolution_required")
-    val next = OfflineEntityLoot.collectPending(execution.state)
+    val next = StatPointBook.collectPending(OfflineEntityLoot.collectPending(execution.state))
     repository.save(next)
     val result = clientSnapshot(client, next)
     val reply = eventReply(execution.events)

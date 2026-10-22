@@ -42,8 +42,8 @@ object CoreClientProjection {
     val state = initialize(rawState)
     val out = JSONObject(client.toString())
     for (key in arrayOf("turn", "saveVersion", "inventory", "party", "partyDetails",
-      "equipment", "player", "coreSystem", "combat", "combatFeedback", "gameTime",
-      "location", "title", "level", "flags", "story", "pendingEncounter", "encounteredCharacters")) out.remove(key)
+      "equipment", "player", "coreSystem", "combat", "combatFeedback", "postCombatContinuation", "gameTime",
+      "location", "title", "level", "flags", "story", "pendingEncounter", "encounteredCharacters", "scene", "dungeon")) out.remove(key)
     out.put("turn", turnIndex(state))
     out.put("saveVersion", CURRENT_SAVE_VERSION)
     out.put("location", state.world.getValue("location"))
@@ -75,12 +75,14 @@ object CoreClientProjection {
       }
     })
     out.put("encounteredCharacters", JSONArray().apply {
-      state.characters.values.filter { it.metadata["encountered"] == "true" }.forEach { character ->
+      state.characters.values.filter { it.metadata["encountered"] == "true" || it.metadata["dungeon.unlocked"] == "true" }.forEach { character ->
         put(JSONObject().put("id", character.id).put("name", character.name)
           .put("kind", character.metadata["encounterKind"])
           .put("encounterId", character.metadata["encounterId"])
           .put("turn", character.metadata["encounterTurn"]?.toIntOrNull())
-          .put("present", character.presence == CharacterPresence.ACTIVE)
+          .put("present", character.presence == CharacterPresence.ACTIVE &&
+            (MiniMapRuntime.STATE !in state.world || !WorldGraphRuntime.active(MiniMapRuntime.progress(state)) ||
+              WorldGraphRuntime.characterPresent(state, character)))
           .put("inParty", character.id in state.party.memberIds)
           .put("joinEligible", character.metadata["joinEligible"] == "true"))
       }
@@ -92,7 +94,75 @@ object CoreClientProjection {
       PokerDiceCore.diceJson(state)?.let { combat.put("diceState", it) }
       out.put("combat", combat)
     }
-    CombatRuntime.pendingJson(state)?.let { out.put("pendingEncounter", it) }
+    if (MiniMapRuntime.PENDING !in state.world) CombatRuntime.pendingJson(state)?.let { out.put("pendingEncounter", it) }
+    if (MiniMapRuntime.STATE in state.world) {
+      val progress = MiniMapRuntime.progress(state)
+      val currentMap = "${progress.getString("nodeId")}:${progress.getInt("index")}"
+      val endingComplete = progress.optBoolean("endingComplete", false)
+      // Presentation owns its log, but completed puzzle dialogue must not travel
+      // into another mini-map. Preserve untagged global/canonical narration.
+      out.optJSONArray("log")?.let { oldLog ->
+        val kept = JSONArray()
+        for (i in 0 until oldLog.length()) {
+          val entry = oldLog.optJSONObject(i)
+          if (entry != null && (!entry.has("sceneMap") ||
+              (!endingComplete && entry.optString("sceneMap") == currentMap)))
+            kept.put(entry)
+        }
+        out.put("log", kept)
+      }
+      out.put("scene", MiniMapRuntime.publicView(state))
+      PlayerActionPresentation.project(out, state)
+      if (!endingComplete) state.world[MiniMapRuntime.RECEIPT]?.let { receipt ->
+        val r = JSONObject(receipt)
+        val log = out.optJSONArray("log") ?: JSONArray().also { out.put("log", it) }
+        val pendingLine = (0 until log.length()).firstOrNull { index ->
+          log.optJSONObject(index)?.let { it.optString("sceneActionId") == r.getString("actionId") &&
+            it.optBoolean("pendingSceneAction") } == true
+        }
+        if (pendingLine != null) {
+          val entry = log.getJSONObject(pendingLine)
+          entry.remove("pendingSceneAction"); entry.remove("actionStatus")
+          val updated = JSONArray()
+          for (i in 0 until log.length()) {
+            updated.put(log.get(i))
+            if (i == pendingLine && CombatRuntime.pending(state) == null) updated.put(JSONObject().put("role", "gm")
+              .put("text", r.getString("reply")).put("sceneMap", currentMap)
+              .apply { if (r.optBoolean("automaticContinuation")) put("sceneActionId", r.getString("actionId")) })
+          }
+          out.put("log", updated)
+        }
+        if ((0 until log.length()).none { index ->
+          val entry = log.optJSONObject(index)
+          entry?.optString("sceneActionId") == r.getString("actionId") ||
+            entry?.optJSONArray("sceneBatchActions")?.let { ids ->
+              (0 until ids.length()).any { ids.optString(it) == r.getString("actionId") }
+            } == true
+        }) {
+          if (!r.optBoolean("automaticContinuation")) log.put(JSONObject().put("role", "player").put("text", r.optString("playerText", r.getString("label")))
+            .put("sceneMap", currentMap).put("sceneActionId", r.getString("actionId")))
+          if (CombatRuntime.pending(state) == null) log.put(JSONObject().put("role", "gm")
+            .put("text", r.getString("reply")).put("sceneMap", currentMap)
+              .apply { if (r.optBoolean("automaticContinuation")) put("sceneActionId", r.getString("actionId")) })
+        }
+      }
+    }
+    // A staged direct choice remains visible even if the writer/network fails.
+    // Batch-owned pending commands are already represented by their utterance.
+    state.world[MiniMapRuntime.PENDING]?.let { raw ->
+      val pending = JSONObject(raw)
+      if (!pending.has("playerActionId") && !pending.optBoolean("automaticContinuation")) {
+        val log = out.optJSONArray("log") ?: JSONArray().also { out.put("log", it) }
+        val id = pending.getString("actionId")
+        if ((0 until log.length()).none { log.optJSONObject(it)?.optString("sceneActionId") == id }) {
+          val scene = out.getJSONObject("scene")
+          log.put(JSONObject().put("role", "player").put("text", pending.optString("playerText", pending.getString("label")))
+            .put("sceneMap", scene.getString("nodeId") + ":" + scene.getInt("miniIndex"))
+            .put("sceneActionId", id).put("pendingSceneAction", true)
+            .put("actionStatus", "Core đang giữ bước chờ; GM chưa hoàn tất. Nhấn Retry để tiếp tục bước này."))
+        }
+      }
+    }
     state.metadata["combat.encounterNarrative"]?.let { raw ->
       val entry = JSONObject(raw)
       val log = out.optJSONArray("log") ?: JSONArray().also { out.put("log", it) }

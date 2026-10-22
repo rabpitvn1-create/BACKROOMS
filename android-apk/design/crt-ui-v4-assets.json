@@ -1,0 +1,137 @@
+{
+  "reference": "566.png",
+  "reference_sha256": "b0df8709f00a8f38806da52ff06b483866fa42f00af34068236d493f59083bf4",
+  "assets": [
+    {
+      "file": "gm-frame-v4.webp",
+      "width": 1024,
+      "height": 427,
+      "bytes": 51694,
+      "sha256": "4ef731e731e4398fd0db878b4b099bd3b276f08f32431d8467539046e525da8f"
+    },
+    {
+      "file": "button-steel-v4.webp",
+      "width": 512,
+      "height": 186,
+      "bytes": 32806,
+      "sha256": "2602f4dfae0f177b3ab6b162ea557419d9efc8a017129092a5d92af2e6737a14",
+      "source": {
+        "format": "raw",
+        "width": 1962,
+        "height": 801,
+        "channels": 4,
+        "depth": "uchar",
+        "premultiplied": false,
+        "hasAlpha": true,
+        "size": 6286248
+      },
+      "crop": {
+        "left": 44,
+        "top": 60,
+        "width": 1875,
+        "height": 681
+      }
+    },
+    {
+      "file": "button-hazard-v4.webp",
+      "width": 1024,
+      "height": 205,
+      "bytes": 75028,
+      "sha256": "e9d07edbfffb340e3e2ebe26b7899835e3270f7e80fbaa41b990700bf168d132",
+      "source": {
+        "format": "raw",
+        "width": 1900,
+        "height": 828,
+        "channels": 4,
+        "depth": "uchar",
+        "premultiplied": false,
+        "hasAlpha": true,
+        "size": 6292800
+      },
+      "crop": {
+        "left": 8,
+        "top": 218,
+        "width": 1884,
+        "height": 378
+      }
+    }
+  ],
+  "terminal_font": {
+    "file": "fonts/VT323-Regular.ttf",
+    "bytes": 153116,
+    "sha256": "cf4de751ada78ceac033dbe16a687742939995b77bc2a052ae17a4957958594d",
+    "source": "https://github.com/google/fonts/tree/main/ofl/vt323",
+    "git_blob_sha": "afa69098f15bf64849d397f133d9467486904053",
+    "license": "fonts/OFL-VT323.txt"
+  },
+  "generation": {
+    "mode": "built-in image_gen",
+    "reference": "566.png",
+    "prompts": {
+      "frame": "Use case: background-extraction. Reference image: supplied 566.png, specifically ONLY the border of the GAME MASTER panel near the lower middle. Produce a production UI frame asset matching that exact panel: a rounded rectangular, worn dull oxidized steel border with small irregular rust flecks; black/yellow diagonal caution tape runs along MOST of the TOP and BOTTOM rails; left/right rails are plain tarnished steel, with no caution stripes there. NO screws, NO bolts, NO rivets anywhere. It is NOT the shiny bolted industrial frame in later screenshots. Front-on orthographic. Landscape frame approximately 2.4:1 opening, narrow rails around 18px on a 1024px width image, softly rounded corners radius 18px. All interior and everything outside the frame is real transparency: do not include the dark panel surface, text, content, character, room, symbols, labels, decorative protrusions, glow or shadow outside. Frame tightly fills canvas, no large transparent margins. Preserve worn photographic metal texture and faded mustard hazard stripes from reference, muted low contrast, not bright orange. Make clean continuous straight rail segments suitable for CSS nine-slice with preserved corner caps and tiled rails. Output one complete empty hollow rounded rectangle frame on actual alpha transparency.",
+      "steel": "Use case: background-extraction. Input reference: 566.png. Recreate ONLY the blank steel button skin from the bottom row MAP / Area Log / Giao tiếp of this exact reference. Single landscape rounded rectangle, width to height 2.45:1. Weathered dull grey-green dark steel face, softly rounded metal outer edge, thin pale worn inset rectangular outline, rust speckles at the corners and surface scratches. Soft raised bevel, dark shadow. No screws, no bolts, no rivets, no labels/text/symbols. The reference is dark desaturated petrol green metal, not silver aluminium or brown shiny wood. Front-on flat orthographic UI asset, tightly fills transparent canvas. Real alpha transparency outside rounded button only. Interior completely opaque metal, no letters and no hazard stripes. Match the reference button material, rust pattern density, bevel weight and contrast closely; do not invent ornaments.",
+      "hazard": "Use case: background-extraction. Reference: attached 566.png, bottom-most Player Action button. Reconstruct ONLY its blank button skin with actual transparent outside and no text/icon. Very wide landscape rounded rectangle about 6.8:1. Match reference exactly in material/composition: a dark desaturated olive green inset center plate, dramatic wide black-and-faded-mustard diagonal caution stripes crossing the left 30 percent and right 22 percent of the face, leaving a calm dark olive center for a live HTML label; thin weathered gold/steel edge, dark bevel and soft corners, small rust/scratches but no screws/bolts/rivets. Stripe bands are broad, diagonal slash direction same as reference. The whole center is NOT solid orange or bright yellow, and hazard tape is NOT restricted only to a thin outer frame. No spark/star icon, no label, no lettering, no black background outside the rounded object, no extra ornaments. Front-on UI production asset, fits canvas tightly, no large margins. Opaque metal face with transparent exterior only."
+    }
+  },
+  "comparison": {
+    "mode": "manual visual comparison plus DOM rectangle measurements, not pixel identity",
+    "reference_pixels": {
+      "header": [
+        0,
+        0,
+        691,
+        94
+      ],
+      "snapshot": [
+        7,
+        210,
+        676,
+        490
+      ],
+      "gm": [
+        7,
+        1012,
+        677,
+        290
+      ],
+      "controls": [
+        0,
+        1317,
+        691,
+        219
+      ]
+    },
+    "render_rectangles": {
+      ".topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 691.0000169277191,
+        "height": 93.90513050556183
+      },
+      "#prologuePrompt": {
+        "x": 14.174359321594238,
+        "y": 108.07948982715607,
+        "width": 662.6512982845306,
+        "height": 81.50256609916687
+      },
+      "#snapshot": {
+        "x": 7.087179660797119,
+        "y": 210.8435949087143,
+        "width": 676.8256576061249,
+        "height": 490.42729566805065
+      },
+      ".message.gm": {
+        "x": 7.087179660797119,
+        "y": 1015.1277492269874,
+        "width": 676.8256576061249,
+        "height": 287.1415134444833
+      },
+      "#explorerControls": {
+        "x": 0,
+        "y": 1316.4436219930649,
+        "width": 691.0000169277191,
+        "height": 219.7025694847107
+      }
+    }
+  }
+}

@@ -74,6 +74,7 @@ object AnNhienCanon {
   fun matchesPartyCheatCode(action: String): Boolean = action.trim() == PARTY_CHEAT_CODE
 
   fun forceIntoParty(state: GameState): Pair<GameState, String?> {
+    if (DungeonRuntime.isTraining(state, AN_NHIEN_ID)) return state to "follower_in_dungeon"
     val ensured = ensure(state)
     if (AN_NHIEN_ID in ensured.party.memberIds) return ensured to null
     if (ensured.party.memberIds.size >= ensured.party.maxMembers) return ensured to "party_full"

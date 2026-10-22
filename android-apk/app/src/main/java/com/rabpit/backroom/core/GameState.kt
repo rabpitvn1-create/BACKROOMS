@@ -1,10 +1,13 @@
 package com.rabpit.backroom.core
 
-const val CURRENT_SAVE_VERSION = 5
+const val CURRENT_SAVE_VERSION = 15
+const val STAT_POINT_BOOK_ID = "training:stat-point-book"
 const val CAO_MINH_ID = "cao_minh"
 const val CAO_MINH_AVATAR_REF = "avatars/CAO_MINH_AVATAR.jpg"
 const val CAO_MINH_SWORD_ID = "cao_minh:huyet-ma-kiem"
 const val CAO_MINH_ARMOR_ID = "cao_minh:huyet-ma-chien-khai"
+const val CAO_MINH_BOOTS_ID = "cao_minh:huyet-ma-boots"
+const val CAO_MINH_GAUNTLETS_ID = "cao_minh:huyet-ma-gauntlets"
 
 object CaoMinhStartingEquipment {
   const val WEAPON_NAME = "Huyết Ma Kiếm"
@@ -13,6 +16,8 @@ object CaoMinhStartingEquipment {
   val slots: Map<String, String> = linkedMapOf(
     "weapon" to CAO_MINH_SWORD_ID,
     "armor" to CAO_MINH_ARMOR_ID,
+    "footwear" to CAO_MINH_BOOTS_ID,
+    "gauntlets" to CAO_MINH_GAUNTLETS_ID,
   )
 
 
@@ -49,7 +54,12 @@ data class PhysiologyState(
   val painState: String? = null,
   val infectionState: String? = null,
   val thermalState: String? = null,
-  val metadata: Map<String, String> = emptyMap()
+  val metadata: Map<String, String> = emptyMap(),
+  /** Rest-eligible survival damage; only HP itself remains authoritative. */
+  val recoverableFoodHp: Int = 0,
+  val recoverableWaterHp: Int = 0,
+  val recoverableSleepHp: Int = 0,
+  val restRecoveryMinutes: Int = 0
 ) {
   companion object {
     /** Simulation baseline for a fresh run: needs begin satisfied at Backrooms entry. */
@@ -113,7 +123,8 @@ data class GameState(
   val time: GameTimeState = GameTimeState(),
   val world: Map<String, String> = emptyMap(),
   val saveVersion: Int = CURRENT_SAVE_VERSION,
-  val metadata: Map<String, String> = emptyMap()
+  val metadata: Map<String, String> = emptyMap(),
+  val dungeon: DungeonState = DungeonState()
 ) {
   companion object {
     fun initial(): GameState = CharacterEquipmentSystem.seedFresh(GameState(
@@ -128,21 +139,36 @@ data class GameState(
         AN_NHIEN_ID to AnNhienCanon.character(),
         LUC_TRAM_ID to LucTramCanon.character(),
         IRIS_ID to SpecialFollowersCanon.irisCharacter(),
-        SYVIAL_ID to SpecialFollowersCanon.syvialCharacter()
+        SYVIAL_ID to SpecialFollowersCanon.syvialCharacter(),
+        CATHERINE_ID to CatherineCanon.character(),
+        JANET_ID to JanetCanon.character(),
+        NGUYEN_QUOC_NAM_ID to NguyenQuocNamCanon.character(),
+        HUA_TIEU_LAN_ID to HuaTieuLanCanon.character(),
+        TRAC_LAM_ID to TracLamCanon.character()
       ),
       inventories = mapOf(
         CAO_MINH_ID to InventoryState(CAO_MINH_ID),
         AN_NHIEN_ID to AnNhienCanon.inventory(),
         LUC_TRAM_ID to InventoryState(LUC_TRAM_ID),
         IRIS_ID to InventoryState(IRIS_ID),
-        SYVIAL_ID to InventoryState(SYVIAL_ID)
+        SYVIAL_ID to InventoryState(SYVIAL_ID),
+        CATHERINE_ID to InventoryState(CATHERINE_ID),
+        JANET_ID to InventoryState(JANET_ID),
+        NGUYEN_QUOC_NAM_ID to InventoryState(NGUYEN_QUOC_NAM_ID),
+        HUA_TIEU_LAN_ID to InventoryState(HUA_TIEU_LAN_ID),
+        TRAC_LAM_ID to InventoryState(TRAC_LAM_ID)
       ),
       equipment = mapOf(
         CAO_MINH_ID to EquipmentState(CAO_MINH_ID, CaoMinhStartingEquipment.slots),
         AN_NHIEN_ID to AnNhienCanon.equipment(),
         LUC_TRAM_ID to EquipmentState(LUC_TRAM_ID),
         IRIS_ID to EquipmentState(IRIS_ID, SpecialFollowersCanon.irisEquipmentSlots),
-        SYVIAL_ID to EquipmentState(SYVIAL_ID, SpecialFollowersCanon.syvialEquipmentSlots)
+        SYVIAL_ID to EquipmentState(SYVIAL_ID, SpecialFollowersCanon.syvialEquipmentSlots),
+        CATHERINE_ID to EquipmentState(CATHERINE_ID, CatherineCanon.equipmentSlots),
+        JANET_ID to EquipmentState(JANET_ID, JanetCanon.equipmentSlots),
+        NGUYEN_QUOC_NAM_ID to EquipmentState(NGUYEN_QUOC_NAM_ID, NguyenQuocNamCanon.equipmentSlots),
+        HUA_TIEU_LAN_ID to EquipmentState(HUA_TIEU_LAN_ID, HuaTieuLanCanon.equipmentSlots),
+        TRAC_LAM_ID to EquipmentState(TRAC_LAM_ID, TracLamCanon.equipmentSlots)
       )
     ))
   }

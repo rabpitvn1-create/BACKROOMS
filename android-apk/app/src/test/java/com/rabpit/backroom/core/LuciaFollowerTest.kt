@@ -5,8 +5,14 @@ import org.junit.Test
 
 class LuciaFollowerTest {
   @Test fun luciaUltimateUsesOnlyFinalizedSsfAndFsfWithSixtyShots() {
-    val initial = LuciaCanon.ensure(GameState.initial())
-    val ready = CombatRuntime.start(initial.copy(party = PartyState(memberIds = listOf(CAO_MINH_ID, LUCIA_ID))), "diep_minh")
+    val initial = LuciaCanon.ensure(GameState.initial()).withUnlockedSkills(LUCIA_ID)
+    val starting = CombatRuntime.start(initial.copy(
+      party = PartyState(memberIds = listOf(CAO_MINH_ID, LUCIA_ID))), "diep_minh")
+    // Target durability is a test fixture, not a production balance change:
+    // keep Lucia alive for her SSF/FSF assertion after Cao Minh's x9 Ultimate.
+    val ready = starting.copy(metadata = starting.metadata + mapOf(
+      "combat.entityHp" to "100000", "combat.entityMaxHp" to "100000"
+    ))
     val encounter = CombatRuntime.active(ready)!!.encounterId
     val action = PokerDiceCore.DIRECT_COMBAT_ACTION
     fun withHand(hand: String): GameState = ready.copy(metadata = ready.metadata + mapOf(
@@ -39,7 +45,7 @@ class LuciaFollowerTest {
   }
 
   @Test fun luciaBurstsProcIndependentlyOnlyAfterAHit() {
-    val initial = LuciaCanon.ensure(GameState.initial())
+    val initial = LuciaCanon.ensure(GameState.initial()).withUnlockedSkills(LUCIA_ID)
     val ready = CombatRuntime.start(initial.copy(party = PartyState(memberIds = listOf(CAO_MINH_ID, LUCIA_ID))), "diep_minh")
     val expected = setOf("Toxic Burst", "Armor-Piercing Burst", "Concussive Burst", "Rending Burst", "Corrosive Burst")
     val triggered = mutableSetOf<String>()

@@ -29,22 +29,16 @@ object TurnCoordinator {
     val pending = state.turn.pending ?: return TurnResult(state, error = "pending_turn_missing")
     if (pending.turnId in state.turn.completedTurnIds) return TurnResult(state, error = "turn_already_completed")
     if (commands.any { it.turnId != pending.turnId }) return TurnResult(state, error = "command_turn_mismatch")
-    val restCommands = if (
-      commands.any { it is TimeAdvanceCommand } &&
-      commands.none { it is PhysiologyCommand && it.operation == PhysiologyCommand.Operation.RECORD_SLEEP }
-    ) {
-      RestActionPolicy.targets(state, pending.input).mapIndexed { index, targetId ->
-        PhysiologyCommand(
-          commandId = "${pending.turnId}:SYSTEM:REST:$index",
-          turnId = pending.turnId,
-          actorId = CAO_MINH_ID,
-          targetId = targetId,
-          source = CommandSource.SYSTEM,
-          operation = PhysiologyCommand.Operation.RECORD_SLEEP
-        )
-      }
-    } else emptyList()
-    val authoritativeCommands = commands + restCommands
+    // A rest is a time interval, not a post-turn instant reset.
+    // Direct time commands receive the same context as ActionRuntime checkpoints.
+    val mode = RestActionPolicy.activity(pending.input)
+    val perActor = RestActionPolicy.activities(state, pending.input)
+    val restTargets = perActor.keys
+    val authoritativeCommands = commands.map { command ->
+      if (command is TimeAdvanceCommand && mode != TimeActivity.NORMAL &&
+          command.activity == TimeActivity.NORMAL) command.copy(activity = mode, restTargets = restTargets, targetActivities = perActor)
+      else command
+    }
     val executing = state.copy(turn = state.turn.copy(pending = pending.copy(
       status = PendingTurnStatus.EXECUTING,
       commandIds = authoritativeCommands.map { it.commandId }

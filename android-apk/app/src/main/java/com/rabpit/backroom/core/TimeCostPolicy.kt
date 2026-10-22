@@ -30,7 +30,9 @@ object TimeCostPolicy {
     if (text.isEmpty()) return 1
 
     return when {
-      Regex("\\b(?:ngủ|ngu|sleep|nghỉ|nghi|rest|chờ|cho|đợi|doi|wait)\\b", RegexOption.IGNORE_CASE).containsMatchIn(text) -> 30
+      RestActionPolicy.activity(text) != TimeActivity.NORMAL ||
+        Regex("(?<![\\p{L}\\p{N}])(?:chờ|cho|đợi|doi|wait)(?![\\p{L}\\p{N}])",
+          RegexOption.IGNORE_CASE).containsMatchIn(text) -> 30
       Regex("\\b(?:đi|di chuyển|di chuyen|tiến|tien|khám phá|kham pha|tìm đường|tim duong|walk|travel|move|explore)\\b", RegexOption.IGNORE_CASE).containsMatchIn(text) -> 10
       Regex("\\b(?:tìm|tim|lục|luc|kiểm tra|kiem tra|quan sát|quan sat|search|inspect|examine)\\b", RegexOption.IGNORE_CASE).containsMatchIn(text) -> 5
       Regex("\\b(?:bắn|ban|đánh|danh|né|ne|chạy|chay|attack|shoot|fight|dodge|run)\\b", RegexOption.IGNORE_CASE).containsMatchIn(text) -> 1

@@ -2,6 +2,7 @@ package com.rabpit.backroom.core
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.fail
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -15,7 +16,7 @@ class CombatRuntimeTest {
     action: String = PokerDiceCore.DIRECT_COMBAT_ACTION
   ): GameState {
     val encounterId = CombatRuntime.active(state)!!.encounterId
-    return state.copy(metadata = state.metadata + mapOf(
+    return state.withUnlockedSkills().copy(metadata = state.metadata + mapOf(
       "poker.dice.encounter" to encounterId,
       "poker.dice.action" to action,
       "poker.dice.values" to when (hand) {
@@ -34,8 +35,8 @@ class CombatRuntimeTest {
     val combat = CombatRuntime.active(started)
     assertNotNull(combat)
     assertEquals("hound", combat!!.entityKey)
-    assertEquals(110, combat.entityMaxHp)
-    assertEquals(110, combat.entityHp)
+    assertEquals(220, combat.entityMaxHp)
+    assertEquals(220, combat.entityHp)
     val initial = GameState.initial()
     val expectedMaxHp = CharacterStatEngine.effective(initial, CAO_MINH_ID).maxHp
     val expectedHp = initial.characters.getValue(CAO_MINH_ID).vitalState.currentHp
@@ -48,6 +49,19 @@ class CombatRuntimeTest {
     assertEquals("hound", CombatRuntime.active(duplicate)!!.entityKey)
   }
 
+
+  @Test fun persistedOngoingEncounterDoesNotMultiplyHpAgain() {
+    val started = CombatRuntime.start(GameState.initial(), "hound")
+    val damaged = started.copy(metadata = started.metadata + ("combat.entityHp" to "75"))
+    val reloaded = GameStateCodec.decode(GameStateCodec.encode(damaged))
+    val first = CombatRuntime.active(reloaded)!!
+    val second = CombatRuntime.active(reloaded)!!
+    assertEquals(220, first.entityMaxHp)
+    assertEquals(75, first.entityHp)
+    assertEquals(first, second)
+    val boss = CombatRuntime.active(CombatRuntime.start(GameState.initial(), "diep_minh"))!!
+    assertEquals(2999, boss.entityMaxHp)
+  }
 
   @Test fun successiveEncountersInSameTurnCannotReuseRewardIdentity() {
     val first = CombatRuntime.start(GameState.initial(), "hound")
@@ -70,6 +84,113 @@ class CombatRuntimeTest {
     }
     assertTrue("Entity must be destroyable by authoritative combat resolution", destroyed)
     assertNull(CombatRuntime.active(state))
+  }
+
+  @Test fun luckyBearHasHoundDurabilityButCannotDealAnyDamage() {
+    val lucky = CombatRuntime.active(CombatRuntime.start(GameState.initial(), "LuckyBear"))!!
+    val hound = CombatRuntime.active(CombatRuntime.start(GameState.initial(), "hound"))!!
+    assertEquals("LuckyBear", lucky.entityName)
+    assertEquals(hound.entityMaxHp, lucky.entityMaxHp)
+    var state = CombatRuntime.start(GameState.initial(), "LuckyBear")
+    repeat(8) {
+      val beforeHp = PartyCombatHealth.currentHp(state)
+      val turn = CombatRuntime.resolve(state, "SEARCH", "quan sát LuckyBear")
+      assertTrue(turn.handled)
+      assertFalse(turn.feedback.any { it.target == "actor" && it.phase == "entity" && it.amount > 0 })
+      assertTrue(PartyCombatHealth.currentHp(turn.state) >= beforeHp)
+      state = turn.state
+    }
+  }
+
+  @Test fun browniesMatchesHoundDurabilityAndNeverAttacks() {
+    val brownies = CombatRuntime.active(CombatRuntime.start(GameState.initial(), "Brownies"))!!
+    val hound = CombatRuntime.active(CombatRuntime.start(GameState.initial(), "hound"))!!
+    assertEquals(hound.entityMaxHp, brownies.entityMaxHp)
+    var state = CombatRuntime.start(GameState.initial(), "Brownies")
+    repeat(8) {
+      val beforeHp = PartyCombatHealth.currentHp(state)
+      val turn = CombatRuntime.resolve(state, "SEARCH", "quan sát Brownies")
+      assertTrue(turn.handled)
+      assertFalse(turn.feedback.any { it.target == "actor" && it.phase == "entity" && it.amount > 0 })
+      assertTrue(PartyCombatHealth.currentHp(turn.state) >= beforeHp)
+      state = turn.state
+    }
+  }
+
+  @Test fun lucTramEnemyUsesDiepMinhDurabilityAndOwnSixSwordArts() {
+    val base = GameState.initial()
+    val enemy = CombatRuntime.active(CombatRuntime.start(base, "luc_tram_hac_hoa"))!!
+    val boss = CombatRuntime.active(CombatRuntime.start(base, "diep_minh"))!!
+    assertEquals(2999, enemy.entityMaxHp)
+    assertEquals(boss.entityMaxHp, enemy.entityMaxHp)
+    assertEquals("Lục Trầm Hắc Hóa", enemy.entityName)
+    var state = CombatRuntime.start(base, "luc_tram_hac_hoa")
+    val logs = mutableListOf<String>()
+    repeat(6) { index ->
+      val before = CombatRuntime.active(state)!!
+      val injured = if (index == 0) state.copy(metadata = state.metadata +
+        ("combat.entityHp" to (before.entityMaxHp - 60).toString())) else state
+      val intent = if (index == 2) "Cả Party phòng thủ" else "quan sát chuyển động"
+      val result = CombatRuntime.resolve(injured, if (index == 2) "EXECUTE" else "SEARCH", intent)
+      assertTrue(result.handled)
+      assertFalse(result.reply.contains("Devils And Gold"))
+      assertTrue(result.feedback.none { it.skill == "Devils And Gold" })
+      state = result.state
+      logs += result.reply
+    }
+    assertTrue(logs.any { it.contains("Thiên Kiếm Linh Tâm") })
+    assertTrue(logs.any { it.contains("Bạch Hồng Quán Nhật") })
+    assertTrue(logs.any { it.contains("Nhất Tuyến Phá Vọng") })
+    assertTrue(logs.any { it.contains("Vạn Kiếm Quy Tâm") })
+    assertTrue(logs.any { it.contains("Thiên Kiếm Định Giới") })
+    assertTrue(logs.any { it.contains("hồi +30 HP") })
+    assertEquals(1, state.metadata.keys.count { it == "combat.lucTramEnemyDomainWave" })
+    assertEquals(6, CombatRuntime.active(state)!!.eventCounter)
+  }
+
+  @Test fun lucTramEnemyDomainPersistsThroughSaveAndClearsOnWaveHandoff() {
+    var state = CombatRuntime.start(GameState.initial(), "luc_tram_hac_hoa")
+    repeat(5) {
+      state = CombatRuntime.resolve(state, "SEARCH", "quan sát chuyển động").state
+    }
+    assertNotNull(state.metadata["combat.lucTramEnemyDomainWave"])
+    val reloaded = GameStateCodec.decode(GameStateCodec.encode(state))
+    val next = CombatRuntime.resolve(reloaded, "SEARCH", "quan sát chuyển động")
+    assertTrue(next.handled)
+    assertFalse(next.reply.contains("Thiên Kiếm Định Giới"))
+    assertEquals(1, next.state.metadata["combat.lucTramEnemyWardTurns"]?.toInt())
+    val wave = CombatRuntime.startWaves(GameState.initial(), listOf("luc_tram_hac_hoa", "hound"))
+    val defeated = CombatRuntime.resolve(wave.copy(metadata = wave.metadata +
+      ("combat.entityHp" to "0") + ("combat.lucTramEnemyWardTurns" to "2") +
+      ("combat.lucTramEnemyFocus" to "3") + ("combat.lucTramEnemyDomainWave" to "fake")),
+      "SEARCH", "quan sát")
+    assertNull(defeated.state.metadata["combat.lucTramEnemyWardTurns"])
+    assertNull(defeated.state.metadata["combat.lucTramEnemyFocus"])
+    assertNull(defeated.state.metadata["combat.lucTramEnemyDomainWave"])
+    assertEquals("hound", CombatRuntime.active(defeated.state)!!.entityKey)
+  }
+
+  @Test fun lucTramEnemyCounterUsesMissedPartyAttackAndNotFollowerEquipment() {
+    // A Stun legitimately cancels the entire enemy response, including its counter.
+    var counterObserved = false
+    for (salt in 1..128) {
+      val initial = CombatRuntime.start(GameState.initial(), "luc_tram_hac_hoa")
+      val attempted = initial.copy(metadata = initial.metadata + ("combat.seed" to salt.toString()))
+      val result = CombatRuntime.resolve(attempted, "EXECUTE", "Cả Party tấn công")
+      val partyMissed = result.feedback.any {
+        it.target == "entity" && it.phase == "actor" && it.outcome == "miss"
+      }
+      if (!partyMissed) continue
+      val stunned = result.reply.contains("bị Stun và mất lượt phản ứng")
+      if (stunned) {
+        assertFalse(result.reply.contains("Tịch Quang Phản Kiếm: Lục Trầm Hắc Hóa phản kiếm"))
+        continue
+      }
+      assertTrue(result.reply, result.reply.contains("Tịch Quang Phản Kiếm: Lục Trầm Hắc Hóa phản kiếm"))
+      counterObserved = true
+      break
+    }
+    assertTrue("No eligible missed Party attack caused an enemy counter", counterObserved)
   }
 
   @Test fun combatMovementIsNotAnotherEncounter() {
@@ -144,17 +265,21 @@ class CombatRuntimeTest {
     assertTrue(after.entityHp <= after.entityMaxHp)
   }
 
-  @Test fun allEntityProfilesReceiveThirtyBonusHp() {
+  @Test fun everyNonDiepMinhEntityDoublesItsPreviousScaledHp() {
     val expected = mapOf(
-      "hound" to 110, "clump" to 135, "duller" to 120, "deathmoth" to 95,
+      "926" to 220, "927" to 440, "LuckyBear" to 110, "Brownies" to 110, "hound" to 110, "clump" to 135, "duller" to 120, "deathmoth" to 95,
       "hostile_faceling" to 105, "false_puddle" to 125, "paintings" to 100,
       "smiler" to 115, "skin-stealer" to 130, "predatory_window" to 145,
       "biological_pipeline" to 150, "wretch" to 115, "cable_mimic" to 130,
       "the_beast_of_level_5" to 175, "hotel_corpse_lure" to 140,
-      "jeff_the_killer" to 150, "jane_the_killer" to 150, "slenderman" to 190
+      "jeff_the_killer" to 150, "jane_the_killer" to 150, "slenderman" to 190,
+      "blackroot_sentinel" to 134, "sinew_strider" to 134, "hollow_grasper" to 134
     )
+    assertEquals(CombatRuntime.supportedEntityKeys().toSet() - setOf("diep_minh", "luc_tram_hac_hoa"), expected.keys)
     expected.forEach { (key, hp) ->
-      assertEquals("+30 HP must apply to $key", hp, CombatRuntime.active(CombatRuntime.start(GameState.initial(), key))!!.entityMaxHp)
+      val entity = CombatRuntime.active(CombatRuntime.start(GameState.initial(), key))!!
+      assertEquals("Full current HP of $key must double", hp * 2, entity.entityMaxHp)
+      assertEquals(entity.entityMaxHp, entity.entityHp)
     }
   }
 
@@ -163,8 +288,8 @@ class CombatRuntimeTest {
     val started = CombatRuntime.start(GameState.initial(), "diep_minh")
     val state = started.copy(metadata = started.metadata + mapOf(
       "combat.eventCounter" to "2",
-      "combat.entityHp" to "2000",
-      "combat.entityMaxHp" to "2999"
+      "combat.entityHp" to "50000",
+      "combat.entityMaxHp" to "50000"
     ))
     val noHand = CombatRuntime.resolve(state, "EXECUTE", action)
     val ordinary = CombatRuntime.resolve(withUltimateHand(state, "TWO PAIR"), "EXECUTE", action)
@@ -175,7 +300,8 @@ class CombatRuntimeTest {
       assertFalse(result.reply, result.reply.contains("Huyết Ma Nhị Thập Tứ Trảm"))
     }
 
-    val slashDamage = CharacterStatEngine.skillBaseDamage(state, CAO_MINH_ID) * 115 / 100
+    val slashDamage = CharacterStatCore.scaleByPercent(
+      CharacterStatEngine.skillBaseDamage(state, CAO_MINH_ID), 115)
     for (hand in listOf("SSF", "FSF")) {
       val result = CombatRuntime.resolve(withUltimateHand(state, hand), "EXECUTE", action)
       assertTrue(result.handled)
@@ -208,7 +334,10 @@ class CombatRuntimeTest {
       // 12th turn is a former automatic trigger for Iris/Syvial. Lục Trầm
       // additionally has a confirmed sword and opening 2.
       val state = started.copy(metadata = started.metadata + mapOf(
-        "combat.eventCounter" to "11", "combat.opening" to "2"
+        "combat.eventCounter" to "11", "combat.opening" to "2",
+        // Keep the target alive long enough to verify every Party member's
+        // finalized Ultimate after Cao Minh's new x9 skill-only multiplier.
+        "combat.entityHp" to "50000", "combat.entityMaxHp" to "50000"
       ))
       for (without in listOf(state, withUltimateHand(state, "TWO PAIR"),
           withUltimateHand(state, "SSF", finalized = false))) {
@@ -227,14 +356,15 @@ class CombatRuntimeTest {
   @Test fun guiltyCrownOverrideAppliesTwentyFourStrScaledHitsBeforeNormalRegen() {
     var state = CombatRuntime.start(GameState.initial(), "diep_minh")
     state = state.copy(metadata = state.metadata + mapOf(
-      "combat.entityHp" to "2000",
-      "combat.entityMaxHp" to "2999",
+      "combat.entityHp" to "50000",
+      "combat.entityMaxHp" to "50000",
       "combat.eventCounter" to "2"
     ))
 
     val third = CombatRuntime.resolve(withUltimateHand(state, "SSF"), "EXECUTE", PokerDiceCore.DIRECT_COMBAT_ACTION)
     assertTrue(third.handled)
-    val slashDamage = CharacterStatEngine.skillBaseDamage(state, CAO_MINH_ID) * 115 / 100
+    val slashDamage = CharacterStatCore.scaleByPercent(
+      CharacterStatEngine.skillBaseDamage(state, CAO_MINH_ID), 115)
     assertTrue(third.reply.contains("tổng -${24 * slashDamage} HP"))
     assertTrue(third.reply.contains("Accuracy 200%"))
     assertTrue(third.reply.contains("bỏ qua toàn bộ hiệu ứng né"))
@@ -285,7 +415,7 @@ class CombatRuntimeTest {
     val seen = mutableSetOf<String>()
     for (counter in 0..240) {
       if (seen.size == 4) break
-      var state = CombatRuntime.start(GameState.initial(), "diep_minh")
+      var state = CombatRuntime.start(GameState.initial(), "diep_minh").withUnlockedSkills(CAO_MINH_ID)
       state = state.copy(metadata = state.metadata + ("combat.eventCounter" to counter.toString()))
       val result = CombatRuntime.resolve(state, "EXECUTE", "Cả Party cùng tấn công")
       if (result.reply.contains("Huyết Ma Tứ Liên tự động kích hoạt")) seen += "requiem"
@@ -321,7 +451,7 @@ class CombatRuntimeTest {
     var verified = false
     for (counter in 0..240) {
       if (verified) break
-      var state = CombatRuntime.start(GameState.initial(), "diep_minh")
+      var state = CombatRuntime.start(GameState.initial(), "diep_minh").withUnlockedSkills(CAO_MINH_ID)
       state = state.copy(metadata = state.metadata + ("combat.eventCounter" to counter.toString()))
       val result = CombatRuntime.resolve(state, "EXECUTE", "Cả Party cùng tấn công")
       if (!result.reply.contains("Ma Tâm Trấn Hồn tự động kích hoạt")) continue
@@ -337,7 +467,7 @@ class CombatRuntimeTest {
     var verified = false
     for (counter in 0..240) {
       if (verified) break
-      var state = CombatRuntime.start(GameState.initial(), "diep_minh")
+      var state = CombatRuntime.start(GameState.initial(), "diep_minh").withUnlockedSkills(CAO_MINH_ID)
       state = state.copy(metadata = state.metadata + ("combat.eventCounter" to counter.toString()))
       val result = CombatRuntime.resolve(state, "EXECUTE", "Cả Party cùng né tránh")
       if (!result.reply.contains("Thiên Ma Bộ tự động kích hoạt")) continue
@@ -389,11 +519,59 @@ class CombatRuntimeTest {
   }
 
 
+  @Test fun newRoamingEntitiesHaveIndependent40PercentSkillProcsAndPersistEffects() {
+    val skills = mapOf(
+      "926" to listOf("Âm Trảo Phá Mạch" to 130, "Tiếng Rít Đoạt Hồn" to 140),
+      "927" to listOf("Nanh Độc Xuyên Thịt" to 135, "Tam Túc Liệt Cốt" to 145)
+    )
+    for ((key, specs) in skills) {
+      val observed = mutableMapOf<String, Int>()
+      var both = 0
+      for (counter in 0..300) {
+        val initial = CombatRuntime.start(GameState.initial(), key)
+        val state = initial.copy(metadata = initial.metadata +
+          ("combat.eventCounter" to counter.toString()))
+        val result = CombatRuntime.resolve(state, "SEARCH", "quan sát")
+        val procCount = specs.count { (name, percent) ->
+          val found = result.reply.contains("$name proc: $percent% Basic Attack")
+          if (found) observed[name] = (observed[name] ?: 0) + 1
+          found
+        }
+        if (procCount == 2) both++
+      }
+      assertEquals(2, observed.size)
+      for ((name, count) in observed) {
+        assertTrue("$name proc frequency is out of range: $count", count in 60..150)
+      }
+      assertTrue("$key two independent procs should overlap", both > 4)
+    }
+    val initial = CombatRuntime.start(GameState.initial(), "926")
+    val state = initial.copy(metadata = initial.metadata + mapOf(
+      "combat.roamingBleed.$CAO_MINH_ID" to "2",
+      "combat.roamingPoison.$CAO_MINH_ID" to "2",
+      "combat.roamingStun.$CAO_MINH_ID" to "1"
+    ))
+    val loaded = GameStateCodec.decode(GameStateCodec.encode(state))
+    val result = CombatRuntime.resolve(loaded, "EXECUTE", "Cả Party tấn công")
+    assertTrue(result.reply.contains("bị Choáng và mất lượt tấn công"))
+    assertEquals("1", result.state.metadata["combat.roamingBleed.$CAO_MINH_ID"])
+    assertEquals("1", result.state.metadata["combat.roamingPoison.$CAO_MINH_ID"])
+    assertFalse(result.state.metadata.containsKey("combat.roamingStun.$CAO_MINH_ID"))
+    assertTrue(result.feedback.any { it.actorId == CAO_MINH_ID &&
+      it.outcome == "tick" && it.status == CombatRuntime.FeedbackStatus.BLEED })
+    assertTrue(result.feedback.any { it.actorId == CAO_MINH_ID &&
+      it.outcome == "tick" && it.status == CombatRuntime.FeedbackStatus.POISON })
+    assertEquals(CombatRuntime.active(initial)!!.entityMaxHp, CombatRuntime.active(result.state)!!.entityHp)
+    assertTrue(CombatRuntime.clear(result.state).metadata.keys.none {
+      it.startsWith("combat.roaming")
+    })
+  }
+
   @Test fun lifeformTrioUsesOnePointThreeHoundBaseBeforeSharedDurability() {
     for (key in listOf("blackroot_sentinel", "sinew_strider", "hollow_grasper")) {
       val active = CombatRuntime.active(CombatRuntime.start(GameState.initial(), key))!!
-      assertEquals(134, active.entityMaxHp)
-      assertEquals(134, active.entityHp)
+      assertEquals(268, active.entityMaxHp)
+      assertEquals(268, active.entityHp)
     }
   }
 

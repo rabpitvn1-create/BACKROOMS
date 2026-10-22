@@ -55,6 +55,45 @@ public class SnapshotSceneProgressTest {
     assertEquals(8, step(safe));
   }
 
+  @Test public void deviceInputsPreserveCurrentSnapshotEvenIfActionLooksLikeExploration() throws Exception {
+    JSONObject before = state("0", "Level 0 / Hall", "panel_area", 7);
+    JSONObject next = state("0", "Level 0 / Hall", "different_area", 99);
+    SnapshotSceneProgress.apply(before, next, new JSONObject(), "DEVICE", "Khảo sát bảng điều khiển");
+    assertEquals(7, step(next));
+    assertEquals("panel_area", next.getJSONObject("flags").getString("visualAreaKey"));
+    assertEquals(7, step(before));
+    // A later normal scene-facing action must still advance as before.
+    JSONObject moved = new JSONObject(next.toString());
+    SnapshotSceneProgress.apply(next, moved, new JSONObject(), "EXECUTE", "khảo sát hành lang");
+    assertEquals(8, step(moved));
+  }
+
+  @Test public void coreConfirmedRoomMoveAdvancesWithoutMovementWordsButNotDuringEncounter() throws Exception {
+    JSONObject before = state("0", "Level 0 / The Lobby", "room_a", 9);
+    JSONObject adjacent = state("0", "Level 0 / The Lobby", "room_a", 0);
+    // The Level and public location stay constant between rooms of a mini-map.
+    SnapshotSceneProgress.apply(before, adjacent, new JSONObject(), "SCENE_MOVE", "Kho hồ sơ");
+    assertEquals(10, step(adjacent));
+    assertEquals(9, step(before));
+
+    // The same label is not a movement when it is merely mentioned by GM.
+    JSONObject plainText = new JSONObject(before.toString());
+    SnapshotSceneProgress.apply(before, plainText, new JSONObject(), "EXECUTE", "Kho hồ sơ");
+    assertEquals(9, step(plainText));
+
+    // If an entity interrupts the move, preserve the previous Snapshot.
+    JSONObject blocked = new JSONObject(before.toString());
+    JSONObject encounter = new JSONObject().put("entityEncounter",
+        new JSONObject().put("eligible", true).put("success", true));
+    SnapshotSceneProgress.apply(before, blocked, encounter, "SCENE_MOVE", "Kho hồ sơ");
+    assertEquals(9, step(blocked));
+
+    // Device controls in the same room still cannot rotate the artwork.
+    JSONObject device = new JSONObject(before.toString());
+    SnapshotSceneProgress.apply(before, device, new JSONObject(), "DEVICE", "Gạt cầu dao");
+    assertEquals(9, step(device));
+  }
+
   @Test public void searchDoesNotAdvanceButGameplayExecuteDoes() throws Exception {
     JSONObject before = state("1", "Level 1 / Parking", "", 4);
     JSONObject next = state("1", "Level 1 / Parking", "", 999);

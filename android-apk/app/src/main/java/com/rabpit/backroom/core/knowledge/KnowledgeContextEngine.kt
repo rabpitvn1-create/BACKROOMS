@@ -165,6 +165,7 @@ object KnowledgeContextEngine {
       resolvePresence()
       addMandatory()
       addCurrentLevel()
+      addCurrentZoneCanon()
       addPresentRuntimeCards()
       addAuthoredDetails()
       addRelationships()
@@ -214,9 +215,22 @@ object KnowledgeContextEngine {
       // Keep the compact provenance classification for the GM's Canon boundary.
       append("<").append(record.id).append("> ")
         .append(record.text.replace('\n', ' ')).append('\n')
+      // Direct author-confirmed sources are traceable to the checked-in zone
+      // documents. Do not promote unrelated legacy records by their authority.
+      val approvedLevelZeroSource =
+        (record.id == "LEVEL.00.ZONES.OVERVIEW" &&
+          record.source.document == "android-apk/LEVEL_0_EIGHT_ZONES_CANON.md") ||
+        (record.id.startsWith("LEVEL.00.ZONE.") &&
+          record.source.document in setOf(
+            "android-apk/LEVEL_0_EIGHT_ZONES_CANON.md",
+            "android-apk/LEVEL_0_TWENTY_NINE_SUBZONES_CANON.md"))
+      val approvedLs2Source =
+        record.id == "LEVEL.NODE.ls_2" &&
+          record.source.document == "android-apk/LS2_PROJECT_CANON_20261021.md"
       append("  provenance=").append(
         if (record.source.document.startsWith("Google Drive /Novel/Asset/") ||
-          record.source.document.startsWith("https://")) "TRACEABLE"
+          record.source.document.startsWith("https://") || approvedLevelZeroSource ||
+          approvedLs2Source) "TRACEABLE"
         else "LEGACY_UNVERIFIED")
         .append("; authority=").append(record.authority)
         .append("; mutability=").append(record.mutability).append('\n')
@@ -250,6 +264,35 @@ object KnowledgeContextEngine {
         .trim()
       if (node.matches(Regex("[a-z0-9_.-]{1,48}"))) {
         add("LEVEL.NODE.$node", "exact current environment node")
+      }
+      if (number == 0 && node == "0")
+        add("LEVEL.00.ZONES.OVERVIEW", "author-approved Level 0 zone index")
+    }
+
+    /**
+     * Details are indexed in the APK, but zone numbers are not mini-map indices.
+     * Only Core-confirmed scene.zoneId / scene.subzoneId may select them.
+     * Neither a player's mention nor a generated room name proves location.
+     */
+    private fun addCurrentZoneCanon() {
+      val level = state.optJSONObject("level") ?: return
+      val scene = state.optJSONObject("scene") ?: return
+      if (level.optInt("number", -1) != 0 || level.optString("id") != "0" ||
+          scene.optString("nodeId") != "0") return
+      val zone = scene.optString("zoneId")
+      if (!zone.matches(Regex("[1-8]"))) return
+      val zoneKey = zone.padStart(2, '0')
+      db.tagIndex["level0:zone:$zoneKey"].orEmpty().sorted().forEach { id ->
+        if (id.startsWith("LEVEL.00.ZONE.$zoneKey.DETAIL."))
+          add(id, "Core-confirmed Level 0 zone")
+      }
+      val subzone = scene.optString("subzoneId")
+      val allowedCount = if (zone in setOf("2", "4", "6")) 3 else 4
+      if (!Regex(Regex.escape(zone) + """\.[1-$allowedCount]""").matches(subzone)) return
+      val subKey = subzone.substringAfter('.').padStart(2, '0')
+      db.tagIndex["level0:zone:$zoneKey:subzone:$subKey"].orEmpty().sorted().forEach { id ->
+        if (id.startsWith("LEVEL.00.ZONE.$zoneKey.SUBZONE.$subKey.DETAIL."))
+          add(id, "Core-confirmed Level 0 subzone")
       }
     }
 
@@ -461,7 +504,7 @@ object KnowledgeContextEngine {
         pendingEntity != null -> pendingEntity.optString("entityKey", "")
         else -> flags?.optString("entityEncounterKey", "").orEmpty()
       }
-      return key.takeIf { it.matches(Regex("[a-z0-9_-]{1,80}")) }
+      return key.takeIf { it.matches(Regex("[A-Za-z0-9_-]{1,80}")) }
         ?.uppercase(Locale.ROOT)?.replace('-', '_')?.let { "ENTITY.$it.VISUAL" }
     }
 
@@ -512,6 +555,10 @@ object KnowledgeContextEngine {
         when {
           it.id == "CHAR.CAO_MINH.AUTHORED" -> 31
           it.id.endsWith(".AUTHORED") -> 32
+          // Compact Level 0 index precedes contextual passages, never all 29 details.
+          it.id == "LEVEL.00.ZONES.OVERVIEW" -> 33
+          // Once Core confirms a zone, its local environment outranks generic R2.
+          it.id.startsWith("LEVEL.00.ZONE.") -> 33
           it.kind == "authored-detail" && it.id.startsWith("SUPPORT.") -> 33
           it.kind == "authored-detail" -> 34
           else -> it.priority
@@ -548,8 +595,26 @@ object KnowledgeContextEngine {
       reasons.putIfAbsent(id, reason)
     }
 
+    /** A first-meeting's short authored description is mandatory in the same GM turn. */
+    private fun firstMeetingIds(): Set<String> {
+      val ids = linkedSetOf<String>()
+      fun read(events: JSONArray?) {
+        if (events == null) return
+        for (i in 0 until events.length()) {
+          val id = events.optJSONObject(i)?.optString("characterId", "").orEmpty()
+          if (id in setOf("catherine", "janet", "nguyen_quoc_nam", "hua_tieu_lan", "trac_lam")) ids += id
+        }
+      }
+      read(state.optJSONArray("pendingNpcEncounters"))
+      read(rolls.optJSONArray("pendingNpcEncounters"))
+      return ids
+    }
+
     /** The current encounter's identity/visual card cannot be dropped as optional context. */
     private fun mandatory(record: Record): Boolean = record.priority <= 30 ||
+      (record.id.endsWith(".AUTHORED") &&
+        record.id.removePrefix("CHAR.").substringBefore('.')
+          .lowercase(Locale.ROOT) in firstMeetingIds()) ||
       record.id == "SUPPORT.LINH_KHI.DETAIL.ENVIRONMENT.0002.01" ||
       record.id == confirmedEntityVisualId() ||
       (record.id == "CHAR.LUCIA.AUTHORED" && "lucia" in presentActors) ||

@@ -89,6 +89,95 @@ object CompanionSkillCatalog {
       "Đúng 60 phát M4A1; mỗi phát 100% current DMG +15% bonus; FSF x200%. Bỏ qua Evasion và Critical phụ.")
   )
 
+  private val catherine = listOf(
+    s("Đồng Tử Hổ Phách", "PASSIVE", "Catherine ACTIVE và Party TẤN CÔNG",
+      "+10 điểm phần trăm Accuracy cho phát bắn thường; vẫn kiểm tra Evasion của Entity.", "Không phải tự động trúng hoặc nhìn xuyên tường."),
+    s("Khúc Đạn Hồi Âm", "AUTO", "30% sau phát thường trúng; không trong lượt Ultimate",
+      "Phát bồi gây 125% current Weapon DMG, trừ Armor."),
+    s("Hoa Hồng Xuyên Giáp", "AUTO", "25% sau phát thường trúng; không trong lượt Ultimate",
+      "Viên đạn trừ tà gây 155% current Weapon DMG, bỏ qua 30% Armor."),
+    s("Valse Đỏ", "UTILITY", "Catherine ACTIVE; Party chọn NÉ TRÁNH",
+      "Dịch chuyển theo nhịp chân làm Entity giảm 15 điểm phần trăm Accuracy trong phản ứng hiện tại."),
+    s("Phản Xạ Màn Nhung", "COUNTER", "20% sau khi Entity hụt phản công và Catherine ACTIVE",
+      "Phản đạn gây 110% current Weapon DMG, trừ Armor; không chiếm lượt tấn công mới."),
+    s("Dạ Khúc Mười Ba Phát", "ULTIMATE", "Poker Dice SSF hoặc FSF; Catherine ACTIVE và Party TẤN CÔNG",
+      "13 quỹ đạo đạn được chuẩn bị, tổng 325% current Weapon DMG, trừ Armor một lần; bỏ qua Evasion, không cộng Critical phụ.", "Một lần kích hoạt trong lượt Ultimate; không tạo đạn vô hạn.")
+  )
+
+  private val janet = listOf(
+    s("Ragin' Cajun", "PASSIVE", "Janet ACTIVE; Party chọn TẤN CÔNG",
+      "+10 điểm phần trăm Accuracy cho đòn gậy thường, vẫn kiểm tra Evasion; cận chiến không bắn từ xa."),
+    s("Bayou Swing", "AUTO", "30% sau đòn gậy thường trúng; không kích hoạt từ Ultimate",
+      "Quét gậy thêm lần nữa, 125% current Weapon DMG, trừ Armor."),
+    s("Barbed Encore", "AUTO", "25% sau đòn gậy thường trúng; không kích hoạt từ Ultimate",
+      "Đánh dây gai 140% current Weapon DMG, bỏ qua 20% Armor cho đòn này."),
+    s("Redline Sidestep", "UTILITY", "Janet ACTIVE; Party chọn NÉ TRÁNH",
+      "+12 Escape Progress, không tự miễn mọi đòn đánh."),
+    s("Ride or Die", "DEFENSE", "Janet ACTIVE; Party chọn PHÒNG THỦ",
+      "Entity -15 điểm phần trăm Accuracy trong phản ứng hiện tại."),
+    s("Last Inning // Bayou Thunder", "ULTIMATE", "Poker Dice SSF hoặc FSF; Janet ACTIVE và Party TẤN CÔNG",
+      "Cú đánh cận chiến 330% Weapon DMG, trừ Armor một lần, bỏ qua Evasion; không kèm proc/crit.",
+      "Không đánh xuyên vách, không tự thắng boss hay tạo năng lượng vô hạn.")
+  )
+
+  private val nguyenQuocNam = listOf(
+    s("Quan Sát Lâm Sàng", "PASSIVE", "Quốc Nam ACTIVE; Party TẤN CÔNG",
+      "+8 điểm phần trăm Accuracy cho cú bắn thường, vẫn có phép kiểm tra Evasion."),
+    s("Phát Bắn Kiềm Chế", "AUTO", "25% sau phát thường trúng, không dùng trong Ultimate",
+      "Một phát bồi gây 120% Weapon DMG, trừ Armor; không gây proc dây chuyền."),
+    s("Sơ Cứu Tại Chỗ", "UTILITY", "Quốc Nam ACTIVE; Party PHÒNG THỦ; tối đa một lần mỗi encounter",
+      "Hồi tối đa 12% Max HP cho một đồng đội còn sống bị thương nặng nhất theo tỷ lệ; không hồi sinh."),
+    s("Giữ Khoảng Cách", "DEFENSE", "Quốc Nam ACTIVE; Party NÉ TRÁNH",
+      "Entity -12 điểm phần trăm Accuracy trong phản ứng hiện tại."),
+    s("Đánh Giá Nguy Cơ", "UTILITY", "Quốc Nam ACTIVE; Party QUAN SÁT",
+      "Thêm 1 Opening, tuân thủ mức tối đa hiện hành; không tiết lộ Exit."),
+    s("Lời Hứa Trở Về", "ULTIMATE", "Poker Dice SSF hoặc FSF; Quốc Nam ACTIVE và Party TẤN CÔNG",
+      "Một phát bắn chuẩn xác 285% Weapon DMG, trừ Armor một lần và bỏ qua Evasion.",
+      "Không cộng Critical hoặc Phát Bắn Kiềm Chế; không liên lạc với gia đình.")
+  )
+
+  private val huaTieuLan = listOf(
+    s("Tĩnh Tâm Ngắm Bắn", "PASSIVE", "Tiểu Lan ACTIVE; Party chọn TẤN CÔNG",
+      "+12 điểm phần trăm Accuracy cho phát bắn thường; Entity vẫn có thể né; giới hạn 99%."),
+    s("Một Phát Định Đoạt", "AUTO", "25% sau cú bắn thường trúng, không kích hoạt khi Ultimate",
+      "Sát thương bổ sung 150% current Weapon DMG, bỏ qua 20% Armor cho riêng hiệu ứng.",
+      "Một viên đạn trúng điểm yếu, không phải bắn thêm một viên không tồn tại."),
+    s("Bộ Pháp Tà Lụa", "DEFENSE", "Tiểu Lan ACTIVE; Party chọn NÉ TRÁNH",
+      "Entity -12 điểm phần trăm Accuracy trong phản ứng hiện tại."),
+    s("Ngắm Qua Hoa Cúc", "UTILITY", "Tiểu Lan ACTIVE; Party QUAN SÁT",
+      "+1 Opening trong giới hạn Core, không nhìn xuyên tường hay biết vị trí Exit."),
+    s("Tài Bắn Phản Xạ", "COUNTER", "20% sau Entity hụt đòn và Tiểu Lan ACTIVE",
+      "Phản kích 110% current Weapon DMG, trừ Armor; không thêm lượt tấn công.",
+      "Phát bắn dự phòng; giới hạn nạp/đạn trong Canon không được Core mô phỏng."),
+    s("Bách Hoa Nhất Tiễn", "ULTIMATE", "Poker Dice SSF hoặc FSF, Tiểu Lan ACTIVE, Party TẤN CÔNG",
+      "Một phát súng trường 320% current Weapon DMG, trừ Armor một lần, bỏ qua Evasion.",
+      "Không cộng Critical hay proc Một Phát Định Đoạt, không tạo đạn vô hạn.")
+  )
+
+  /** Canon concepts from Trác Lâm's SRU-03 dossier, with balanced runtime coefficients.
+   * Seven regular abilities: one passive, three active tactics, three RNG procs.
+   */
+  private val tracLam = listOf(
+    s("Kỷ Luật SRU-03", "PASSIVE", "Trác Lâm ACTIVE, tấn công thường",
+      "+8 điểm phần trăm Accuracy từ luyện tập kiểm soát đường bắn.", "Không nhận dạng Entity chưa quan sát."),
+    s("Khóa Mục Tiêu", "ACTIVE", "Party chọn TẤN CÔNG, Trác Lâm ACTIVE",
+      "+10 điểm phần trăm Accuracy cho phát bắn M-92; vẫn có Evasion gate."),
+    s("Hỏa Lực Chế Áp", "ACTIVE", "Party chọn NÉ TRÁNH, Trác Lâm ACTIVE",
+      "Giảm 12 điểm phần trăm Accuracy của Entity trong phản ứng hiện tại.",
+      "Không bảo đảm né đòn, không tạo đạn vô hạn."),
+    s("Đánh Giá Dị Thường", "ACTIVE", "Party chọn QUAN SÁT, Trác Lâm ACTIVE",
+      "+1 Opening trong giới hạn Core; chỉ từ dấu hiệu thực tế, không biết Exit."),
+    s("Song Nòng Tiếp Ứng", "PROC", "30% sau phát súng thường trúng, không ở lượt Ultimate",
+      "Phát bồi gây 120% Weapon DMG sau Armor; không gây proc dây chuyền."),
+    s("Đạn Xuyên Tuyến", "PROC", "25% sau phát thường trúng, không ở lượt Ultimate",
+      "Đạn tập trung 135% Weapon DMG, bỏ qua 25% Armor cho riêng phát bồi."),
+    s("Chặn Đường Tiến", "PROC", "20% sau phát thường trúng, không ở lượt Ultimate",
+      "Chế áp góc tiến khiến Entity -10 điểm phần trăm Accuracy trong phản ứng hiện tại."),
+    s("ECHO-17: Phá Tuyến", "ULTIMATE", "Poker Dice SSF/FSF khi Party TẤN CÔNG và Trác Lâm ACTIVE",
+      "Một loạt Gemini 320% Weapon DMG, trừ Armor một lần, bỏ qua Evasion.",
+      "Không xuyên tường hoặc triệu hồi SRU-03; đạn vẫn hữu hạn trong Canon.")
+  )
+
   fun forCharacter(characterId: String): List<CharacterSkillDefinition> = when (characterId) {
     CAO_MINH_ID -> caoMinh
     IRIS_ID -> iris
@@ -96,6 +185,11 @@ object CompanionSkillCatalog {
     AN_NHIEN_ID -> anNhien
     LUCIA_ID -> lucia
     LUC_TRAM_ID -> lucTram
+    CATHERINE_ID -> catherine
+    JANET_ID -> janet
+    NGUYEN_QUOC_NAM_ID -> nguyenQuocNam
+    HUA_TIEU_LAN_ID -> huaTieuLan
+    TRAC_LAM_ID -> tracLam
     else -> emptyList()
   }
 }

@@ -20,6 +20,29 @@ class RestActionPolicyTest {
     )
   }
 
+  @Test fun restAndSleepAreDistinctEvenWithPunctuation() {
+    assertEquals(TimeActivity.SLEEP, RestActionPolicy.activity("Tôi ngủ."))
+    assertEquals(TimeActivity.REST, RestActionPolicy.activity("Tôi nghỉ."))
+    assertEquals(TimeActivity.NORMAL, RestActionPolicy.activity("Tôi đứng chờ."))
+  }
+
+  @Test fun negatedSleepOrRestDoesNotRestoreNeed() {
+    val state = partyState()
+    assertEquals(TimeActivity.NORMAL, RestActionPolicy.activity("Tôi không ngủ, chỉ đứng canh."))
+    assertEquals(TimeActivity.NORMAL, RestActionPolicy.activity("Tôi chưa muốn nghỉ."))
+    assertEquals(TimeActivity.NORMAL, RestActionPolicy.activity("Đừng ngủ!"))
+    assertEquals(TimeActivity.REST, RestActionPolicy.activity("Tôi không ngủ, chỉ nghỉ ngơi."))
+    assertEquals(TimeActivity.SLEEP, RestActionPolicy.activity("Tôi không ngủ trước đó, giờ tôi ngủ."))
+    assertTrue(RestActionPolicy.targets(state, "Tôi không ngủ, chỉ đứng canh.").isEmpty())
+  }
+
+  @Test fun namedCompanionSleepingDoesNotAccidentallyRecoverPlayer() {
+    val state = partyState()
+    assertEquals(listOf("lucia"), RestActionPolicy.targets(state, "Lucia ngủ, tôi canh gác"))
+    assertEquals(listOf(CAO_MINH_ID), RestActionPolicy.targets(state, "Tôi ngủ, Lucia đứng canh"))
+    assertEquals(listOf(CAO_MINH_ID, "lucia"), RestActionPolicy.targets(state, "Tôi ngủ, Lucia ngủ"))
+  }
+
   @Test fun ordinaryCaoMinhRestOnlyTargetsCaoMinh() {
     val state = partyState()
     assertEquals(listOf(CAO_MINH_ID), RestActionPolicy.targets(state, "Tôi chợp mắt một lúc"))
@@ -28,6 +51,21 @@ class RestActionPolicyTest {
   @Test fun explicitShiftRestTargetsActiveParty() {
     val state = partyState()
     assertEquals(listOf(CAO_MINH_ID, "lucia"), RestActionPolicy.targets(state, "Cả hai chia ca nghỉ ngơi và chợp mắt"))
+  }
+
+  @Test fun mixedPartyIntentsGiveSleepOnlyToTheActualSleeper() {
+    val state = partyState()
+    val text = "Tôi ngủ 2 giờ, Lucia chỉ nghỉ ngơi."
+    assertEquals(mapOf(CAO_MINH_ID to TimeActivity.SLEEP, "lucia" to TimeActivity.REST),
+      RestActionPolicy.activities(state, text))
+    val cmd = TimeAdvanceCommand("mixed", "TURN_1", CAO_MINH_ID,
+      source = CommandSource.SYSTEM, minutes = 60, reason = "rest",
+      activity = TimeActivity.SLEEP, restTargets = setOf(CAO_MINH_ID, "lucia"),
+      targetActivities = RestActionPolicy.activities(state, text))
+    val advanced = TimeEngine.execute(state, cmd)
+    assertTrue(advanced.applied)
+    assertEquals(1780L, advanced.state.characters.getValue(CAO_MINH_ID).physiology.minutesAwake)
+    assertEquals(1960L, advanced.state.characters.getValue("lucia").physiology.minutesAwake)
   }
 
   @Test fun unrelatedWaitingDoesNotFakeSleepRecovery() {
@@ -52,12 +90,12 @@ class RestActionPolicyTest {
     assertNull(result.error)
     val caoMinh = result.state.characters.getValue(CAO_MINH_ID).physiology
     val lucia = result.state.characters.getValue("lucia").physiology
-    assertEquals(0L, caoMinh.minutesAwake)
+    assertEquals(1780L, caoMinh.minutesAwake)
     assertEquals(1960L, lucia.minutesAwake)
     assertEquals(1060L, caoMinh.minutesSinceFood)
     assertEquals(1060L, caoMinh.minutesSinceWater)
-    assertEquals(100, PhysiologyStatusPolicy.restPercent(caoMinh.minutesAwake))
-    assertTrue("TURN_REST:SYSTEM:REST:0" in result.state.turn.executedCommandIds)
+    assertTrue(PhysiologyStatusPolicy.restPercent(caoMinh.minutesAwake)!! < 100)
+    assertFalse("sleep must no longer synthesize reset commands", result.state.turn.executedCommandIds.any { it.contains(":SYSTEM:REST:") })
   }
 
   @Test fun coordinatorSharedShiftRestRecoversCaoMinhAndLucia() {
@@ -75,9 +113,8 @@ class RestActionPolicyTest {
     val result = TurnCoordinator.commit(pending, listOf(time))
 
     assertNull(result.error)
-    assertEquals(0L, result.state.characters.getValue(CAO_MINH_ID).physiology.minutesAwake)
-    assertEquals(0L, result.state.characters.getValue("lucia").physiology.minutesAwake)
-    assertTrue("TURN_SHIFT:SYSTEM:REST:0" in result.state.turn.executedCommandIds)
-    assertTrue("TURN_SHIFT:SYSTEM:REST:1" in result.state.turn.executedCommandIds)
+    assertEquals(1780L, result.state.characters.getValue(CAO_MINH_ID).physiology.minutesAwake)
+    assertEquals(1780L, result.state.characters.getValue("lucia").physiology.minutesAwake)
+    assertFalse(result.state.turn.executedCommandIds.any { it.contains(":SYSTEM:REST:") })
   }
 }
