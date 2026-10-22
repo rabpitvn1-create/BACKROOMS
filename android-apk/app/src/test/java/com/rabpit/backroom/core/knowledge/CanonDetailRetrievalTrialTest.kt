@@ -230,7 +230,8 @@ class CanonDetailRetrievalTrialTest {
     }
     assertTrue(newRecords.size >= 10)
     assertTrue(newRecords.all {
-      it.source.document.startsWith("Google Drive /Novel/Asset/") &&
+      (it.source.document.startsWith("Google Drive /Novel/Asset/") ||
+        it.source.document == "canon/STORY_VAN_GIOI_TAN_MONG_R07.md") &&
         it.text.isNotBlank() && !it.text.contains("Vô Lượng", ignoreCase = true) &&
         !it.text.contains("WRITER-SECRET") && !it.text.contains("100 tiểu cảnh giới")
     })

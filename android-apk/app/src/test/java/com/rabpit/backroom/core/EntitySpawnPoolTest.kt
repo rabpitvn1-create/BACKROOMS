@@ -338,4 +338,33 @@ class EntitySpawnPoolTest {
     }
     assertFalse("Dialogue-only action must not trigger physical NPC encounters", physicalNpcFound)
   }
+  @Test fun hostileLucTramExcludedWhenRecruitmentMakesHerAnAlly() {
+    val all = (1..EntitySpawnPool.TOTAL_BP)
+      .map { EntitySpawnPool.pickForSuccessfulRoll("0", it) }
+    assertTrue(all.contains("luc_tram_hac_hoa"))
+    val withoutLuc = (1..EntitySpawnPool.TOTAL_BP)
+      .map { EntitySpawnPool.pickForSuccessfulRoll("0", it, setOf("luc_tram_hac_hoa")) }
+    assertFalse(withoutLuc.contains("luc_tram_hac_hoa"))
+    assertTrue(withoutLuc.all { it in EntitySpawnPool.ROAMING })
+    assertNotNull(EntitySpawnPool.rollEntity("0", setOf("luc_tram_hac_hoa")) { 0 })
+    assertNull(EntitySpawnPool.rollEntity("0", setOf("luc_tram_hac_hoa")) { 9999 })
+  }
+
+  @Test fun lethalStoryDefeatsBlockBothRoamingAndFriendlyResurrection() {
+    val base = GameState.initial()
+    val dead = base.copy(metadata = base.metadata + mapOf(
+      "story.permanentDefeat.diep_minh" to "true",
+      "story.permanentDefeat.luc_tram_hac_hoa" to "true"
+    ))
+    for (entity in listOf("diep_minh", "luc_tram_hac_hoa")) {
+      val ticket = (1..EntitySpawnPool.TOTAL_BP)
+        .first { EntitySpawnPool.pickForSuccessfulRoll("0", it) == entity }
+      val result = SpawnMechanism.rollSpawns(dead, ActionKind.EXECUTE, "đi") { ticket - 1 }
+      assertNotEquals(entity, result.entityKey)
+      assertNotNull("35% Entity encounter must remain available", result.entityKey)
+    }
+    val npc = NpcSpawnTable.rollNpcs(dead, ActionKind.EXECUTE, "đi khám phá", 4) { 0 }
+    assertTrue(npc.none { it.characterId == LUC_TRAM_ID })
+  }
+
 }

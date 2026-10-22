@@ -309,5 +309,24 @@ class KnowledgeContextEngineTest {
     assertTrue(recruited.contains("IN_PARTY — recruited Party member"))
     assertFalse(recruited.contains("Lucia is present, NOT recruited"))
   }
+ 
+  @Test fun r07StoryCardsRequireConfirmedEntityEncounter() {
+    val raw = listOf(
+      File("src/main/assets/knowledge/knowledge_db.json"),
+      File("app/src/main/assets/knowledge/knowledge_db.json")
+    ).first { it.isFile }.readText()
+    val db = KnowledgeContextEngine.parseDatabase(raw)
+    fun packetFor(state: String, action: String): String =
+      KnowledgeContextEngine.Builder(db, JSONObject(state), action, JSONObject()).build()
+    val absent = packetFor("{}", "Tìm Diệp Minh và Lục Trầm Hắc Hóa")
+    assertFalse(absent.contains("<STORY.DIEP_MINH.SCENE_R07>"))
+    assertFalse(absent.contains("<STORY.LUC_TRAM_HAC_HOA.SCENE_R07>"))
+    val diep = packetFor("""{"pendingEntityEncounter":{"entityKey":"diep_minh"}}""", "khám phá")
+    assertTrue(diep.contains("<STORY.DIEP_MINH.SCENE_R07>"))
+    assertFalse(diep.contains("<STORY.LUC_TRAM_HAC_HOA.SCENE_R07>"))
+    val tram = packetFor("""{"combat":{"active":true,"entityKey":"luc_tram_hac_hoa"}}""", "chiến đấu")
+    assertTrue(tram.contains("<STORY.LUC_TRAM_HAC_HOA.SCENE_R07>"))
+    assertFalse(tram.contains("<STORY.DIEP_MINH.SCENE_R07>"))
+  }
 
 }

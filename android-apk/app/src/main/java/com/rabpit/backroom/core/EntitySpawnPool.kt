@@ -94,9 +94,10 @@ object EntitySpawnPool {
    * Reusing this ticket preserves the single encounter roll and NPC RNG order.
    * Pool size and rarity cannot increase/decrease the 3,500 successful tickets.
    */
-  fun pickForSuccessfulRoll(levelId: String, roll: Int): String {
+  fun pickForSuccessfulRoll(levelId: String, roll: Int, excluded: Set<String> = emptySet()): String {
     require(roll in 1..TOTAL_BP) { "roll must be 1..$TOTAL_BP, got $roll" }
-    val pool = poolForLevel(levelId)
+    val pool = poolForLevel(levelId).filterNot { it in excluded }
+    require(pool.isNotEmpty()) { "No eligible Entity species" }
     val totalWeight = pool.sumOf { weight(it) }
     var ticket = (roll - 1) * totalWeight / TOTAL_BP
     for (entity in pool) {
@@ -107,9 +108,9 @@ object EntitySpawnPool {
   }
 
   /** One d10000 roll per eligible turn: exactly 35%, including roaming fallback. */
-  fun rollEntity(levelId: String, nextInt: (Int) -> Int): String? {
+  fun rollEntity(levelId: String, excluded: Set<String> = emptySet(), nextInt: (Int) -> Int): String? {
     val roll = nextInt(10000) + 1
-    return if (roll <= TOTAL_BP) pickForSuccessfulRoll(levelId, roll) else null
+    return if (roll <= TOTAL_BP) pickForSuccessfulRoll(levelId, roll, excluded) else null
   }
 }
 
@@ -333,7 +334,8 @@ object NpcSpawnTable {
     }
 
     // Luc Tram: 0.25% on Level 4+ physical, once-only
-    if (isPhysical && level >= 4 && !lucTramAlreadyMet(flags, partyMemberIds)) {
+    if (isPhysical && level >= 4 && !lucTramAlreadyMet(flags, partyMemberIds) &&
+        state.metadata["story.permanentDefeat.luc_tram_hac_hoa"] != "true") {
       if (nextInt(10000) + 1 <= LUC_TRAM_THRESHOLD) {
         encounters += NpcEncounter(LUC_TRAM_ID, "lucTram")
       }
@@ -396,6 +398,14 @@ object SpawnMechanism {
   /** Number of complete turns without a random Follower meeting after one is confirmed. */
   const val FOLLOWER_SPACING_TURNS = 10
   const val LAST_FOLLOWER_MEETING_TURN = "spawn.lastFollowerMeetingTurn"
+  /** Unique storyline antagonists cannot reappear after a confirmed lethal loss. */
+  private fun excludedStoryEntities(state: GameState): Set<String> = listOfNotNull(
+    if (LUC_TRAM_ID in state.party.memberIds ||
+      state.metadata["story.permanentDefeat.luc_tram_hac_hoa"] == "true")
+      "luc_tram_hac_hoa" else null,
+    if (state.metadata["story.permanentDefeat.diep_minh"] == "true")
+      "diep_minh" else null
+  ).toSet()
 
   fun followerCooldownActive(state: GameState): Boolean {
     val last = state.metadata[LAST_FOLLOWER_MEETING_TURN]?.toIntOrNull() ?: return false
@@ -444,7 +454,10 @@ object SpawnMechanism {
     val entityAllowed = flags.optBoolean("entityEncountersAllowed", true)
     var entityTicket: Int? = null
     val entityKey = if (entityEncounterAction && entityAllowed) {
-      EntitySpawnPool.rollEntity(currentLevelId(state)) { bound ->
+      EntitySpawnPool.rollEntity(
+        currentLevelId(state),
+        excluded = excludedStoryEntities(state)
+      ) { bound ->
         nextInt(bound).also { entityTicket = it }
       }
     } else {
@@ -459,7 +472,9 @@ object SpawnMechanism {
 
     // Archived: free-roaming ephemeral crowd NPCs never spawn.
     // Canon first meetings and combat encounters remain unchanged.
-    return SpawnResult(entityKey, npcEncounters)
+    val consistentNpcs = if (entityKey == "luc_tram_hac_hoa")
+      npcEncounters.filterNot { it.characterId == LUC_TRAM_ID } else npcEncounters
+    return SpawnResult(entityKey, consistentNpcs)
   }
 
   /** Called only AFTER Core validates a typed scene target. No text classification. */
@@ -471,13 +486,18 @@ object SpawnMechanism {
     val flags = JSONObject(state.world["flagsJson"] ?: "{}")
     var entityTicket: Int? = null
     val entity = if (flags.optBoolean("entityEncountersAllowed", true))
-      EntitySpawnPool.rollEntity(currentLevelId(state)) { bound ->
+      EntitySpawnPool.rollEntity(
+        currentLevelId(state),
+        excluded = excludedStoryEntities(state)
+      ) { bound ->
         nextInt(bound).also { entityTicket = it }
       } else null
     val npcs = NpcSpawnTable.rollNpcsWithPhysical(state, ActionKind.EXECUTE, "",
       currentLevelNumber(state), nextInt, physicalOverride = true, catherineTicket = entityTicket)
     // The Entity and Catherine windows are disjoint, so neither gets dropped.
-    return SpawnResult(entity, npcs)
+    val consistentNpcs = if (entity == "luc_tram_hac_hoa")
+      npcs.filterNot { it.characterId == LUC_TRAM_ID } else npcs
+    return SpawnResult(entity, consistentNpcs)
   }
 
   /**

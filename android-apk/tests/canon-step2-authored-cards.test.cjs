@@ -51,7 +51,11 @@ test('all five new Entities have independently traceable visual and Canon cards'
   }
   assert.match(records.get('ENTITY.LUCKYBEAR.CANON').text,/200 EXP/);
   assert.match(records.get('ENTITY.BROWNIES.CANON').text,/100 EXP/);
-  assert.match(records.get('ENTITY.LUC_TRAM_HAC_HOA.CANON').text,/UNKNOWN/);
+  assert.match(records.get('ENTITY.LUC_TRAM_HAC_HOA.CANON').text,/CHÍNH LÀ Lục Trầm/);
+  assert.doesNotMatch(records.get('ENTITY.DIEP_MINH.CANON').text,/Vô Lượng/);
+  assert.match(records.get('STORY.DIEP_MINH.SCENE_R07').text,/tông môn/);
+  assert.ok(records.has('STORY.DIEP_MINH.SCENE_R07'));
+  assert.ok(records.has('STORY.LUC_TRAM_HAC_HOA.SCENE_R07'));
 });
 
 test('eleven authored level cards and four exact authored nodes are indexed without resolving conflicts', () => {
@@ -72,9 +76,12 @@ test('authored character identities stay separate and source traceable', () => {
   for (const person of ['CAO_MINH', 'LUC_TRAM', 'LUCIA', 'TRAC_LAM']) {
     const r = records.get('CHAR.' + person + '.AUTHORED');
     assert.ok(r, person);
-    assert.ok(/^Google Drive \/Novel\/Asset\/01_Character\//.test(r.source.document) ||
-      (person === 'TRAC_LAM' && r.source.document === 'canon/TRAC_LAM_CODEX.md'),
-      `${person}: authorized source provenance missing`);
+    if (person === 'TRAC_LAM') {
+      // Trác Lâm's current authority is the bundled in-repository Codex.
+      assert.equal(r.source.document, 'canon/TRAC_LAM_CODEX.md');
+    } else {
+      assert.match(r.source.document, /^Google Drive \/Novel\/Asset\/01_Character\//);
+    }
   }
   assert.notEqual(records.get('CHAR.LUC_TRAM.AUTHORED').text, records.get('CHAR.LUCIA.AUTHORED').text);
   // Detailed revival/memory continuity belongs to the confirmed-actor firewall,
@@ -127,20 +134,51 @@ test('legacy provenance is labeled, not silently promoted into author Canon', ()
   const approved = db.records.filter(r => r.id === 'LEVEL.00.ZONES.OVERVIEW' &&
     r.source.document === 'android-apk/LEVEL_0_EIGHT_ZONES_CANON.md');
   assert.equal(approved.length, 1, 'author-approved in-repository Canon has separate provenance');
-  // Five author-approved local Follower Codex mirrors and the LS2 authored
-  // project document were added after this baseline was established.
-  // Neither provenance is unverified legacy content.
+  // Local character mirrors, LS2 and R07 are all author-approved, not legacy.
   const localApproved = db.records.filter(r =>
     /^CHAR\.(TRAC_LAM|CATHERINE|JANET|NGUYEN_QUOC_NAM|HUA_TIEU_LAN)\.AUTHORED$/.test(r.id) &&
     /^canon\/.+_CODEX\.md$/.test(r.source.document));
   const ls2Approved = db.records.filter(r =>
     r.source.document === 'android-apk/LS2_PROJECT_CANON_20261021.md');
+  const storyApproved = db.records.filter(r =>
+    r.source.document === 'canon/STORY_VAN_GIOI_TAN_MONG_R07.md');
   assert.equal(localApproved.length, 5);
   assert.equal(ls2Approved.length, 1);
+  assert.equal(storyApproved.length, 7);
   const legacy = db.records.filter(r =>
     !r.source.document.startsWith('Google Drive /Novel/Asset/') &&
-    !approved.includes(r) && !localApproved.includes(r) && !ls2Approved.includes(r));
-  assert.equal(legacy.length, 42, 'the existing unverified records remain unchanged');
+    !approved.includes(r) && !localApproved.includes(r) &&
+    !ls2Approved.includes(r) && !storyApproved.includes(r));
+  // R07 upgrades three former local legacy cards to approved story provenance.
+  assert.ok(legacy.some(r => r.id === 'WORLD.CORE' &&
+    r.source.document === '01_WORLD/world.md'));
+  assert.ok(storyApproved.some(r => r.id === 'STORY.DIEP_MINH.SCENE_R07' &&
+    r.source.document === 'canon/STORY_VAN_GIOI_TAN_MONG_R07.md'));
+  assert.match(reader, /approvedStorySource/);
+  assert.equal(legacy.length, 39, "39 untouched old legacy cards remain classified separately");
   assert.ok(reader.includes('LEGACY_UNVERIFIED'));
   assert.ok(reader.includes('provenance='));
+});
+
+// The new author storyline is packaged and story cards are Core-encounter gated.
+test('R07 plot and both GM narrative cards are present and guarded by Entity confirmation', () => {
+  const canon = fs.readFileSync(path.join(root, 'app/src/main/assets/canon/STORY_VAN_GIOI_TAN_MONG_R07.md'), 'utf8');
+  assert.match(canon, /lớp trì lưu/);
+  assert.match(canon, /tự rời/);
+  assert.match(canon, /Nửa bước Chân Tiên/);
+  const expected = [
+    ['DIEP_MINH', 'diep_minh'],
+    ['LUC_TRAM_HAC_HOA', 'luc_tram_hac_hoa']
+  ];
+  for(const [upper,key] of expected) {
+    const r=records.get('STORY.'+upper+'.SCENE_R07');
+    assert.ok(r,key+' story card');
+    assert.equal(r.domain,'STORY');
+    assert.equal(r.kind,'story-scene-card');
+    assert.equal(r.source.document,'canon/STORY_VAN_GIOI_TAN_MONG_R07.md');
+    assert.match(r.text,/GM-ONLY/);
+    assert.ok(reader.includes('"ENTITY.'+upper+'.VISUAL"'),key+' confirmed entity');
+    assert.ok(reader.includes('add("STORY.'+upper+'.SCENE_R07"'),key+' retrieval');
+  }
+  assert.ok(reader.includes('val confirmedVisual = confirmedEntityVisualId()'));
 });

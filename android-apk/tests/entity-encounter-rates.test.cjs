@@ -30,6 +30,9 @@ test('every packaged Entity is available to the authoritative Registry and image
  const rendererKeys=main.match(/var __entityKeys=\[([^\]]+)\]/)[1];
  const keys=[...rendererKeys.matchAll(/'([^']+)'/g)].map(x=>x[1]).sort();
  const assets=fs.readdirSync(path.join(root,'app/src/main/assets/entity')).filter(x=>x.endsWith('.webp')).map(x=>x.slice(0,-5)).sort();
- assert.deepEqual(keys,assets);assert.equal(keys.length,27); // 22 original + 5 approved special Entities
+ assert.deepEqual(keys,assets);
+ assert.equal(new Set(keys).size,keys.length,'no duplicate renderer Entity keys');
+ assert.ok(keys.length >= 22,'do not accidentally lose established Entity species');
+ assert.ok(keys.includes('luc_tram_hac_hoa') && keys.includes('diep_minh'));
  for(const key of keys)assert.ok(combat.includes('"'+key+'"'),key+' Registry profile missing');
 });

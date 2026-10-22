@@ -1848,19 +1848,25 @@ object CombatRuntime {
         else -> null
       })
     val loot = OfflineEntityLoot.award(exp.state, instanceId, c.seed)
+    // R07: unlike generic roaming species, these are unique, mortal people.
+    // A Core-confirmed lethal defeat must persist across future encounters.
+    val settledState = if (c.entityKey in setOf(DIEP_MINH_KEY, LUC_TRAM_ENEMY_KEY))
+      loot.state.copy(metadata = loot.state.metadata +
+        ("story.permanentDefeat.${c.entityKey}" to "true"))
+    else loot.state
     val defeatNarrative = "${c.entityName} đã không còn sinh khí ngã xuống. Backrooms nuốt chửng lấy tử thi của nó vào nền."
     val resultText = "$log $defeatNarrative ${exp.text} ${loot.text}".trim()
     if (index + 1 == queue.size) {
-      return Resolution(clearCombatOnly(loot.state), true, resultText, entityDestroyed = true,
+      return Resolution(clearCombatOnly(settledState), true, resultText, entityDestroyed = true,
         feedback = feedback, completionNarrative = defeatNarrative)
     }
 
     val nextIndex = index + 1
     val nextProfile = profiles.getValue(queue[nextIndex])
-    val nextRank = EntityPowerScaling.rankFor(loot.state)
+    val nextRank = EntityPowerScaling.rankFor(settledState)
     val maxHp = entityMaxHp(nextProfile, nextRank)
     val nextSeed = mix(c.seed, nextIndex)
-    val clean = clearTargetEffects(loot.state)
+    val clean = clearTargetEffects(settledState)
     val leaderHp = clean.characters[CAO_MINH_ID]?.vitalState?.currentHp ?: c.playerHp
     val next = c.copy(
       entityKey = nextProfile.key, entityName = nextProfile.displayName, progressionRank = nextRank,
