@@ -7,7 +7,7 @@
     "intro": [
       {
         "speaker": "lucia",
-        "text": "Đứng lại một chút. Tôi chưa biết anh là ai. Đừng đến gần khẩu súng."
+        "text": "Đứng lại. Tôi chưa biết anh là ai. Giữ khoảng cách đã."
       },
       {
         "speaker": "cao_minh",
