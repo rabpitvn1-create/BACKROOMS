@@ -151,7 +151,7 @@ test('legacy provenance is labeled, not silently promoted into author Canon', ()
   // R07 upgrades three former local legacy cards to approved story provenance.
   assert.ok(legacy.some(r => r.id === 'WORLD.CORE' &&
     r.source.document === '01_WORLD/world.md'));
-  assert.ok(legacy.some(r => r.id === 'STORY.DIEP_MINH.SCENE_R07' &&
+  assert.ok(storyApproved.some(r => r.id === 'STORY.DIEP_MINH.SCENE_R07' &&
     r.source.document === 'canon/STORY_VAN_GIOI_TAN_MONG_R07.md'));
   assert.match(reader, /approvedStorySource/);
   assert.equal(legacy.length, 39, "39 untouched old legacy cards remain classified separately");
