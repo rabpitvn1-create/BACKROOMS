@@ -25,13 +25,28 @@
         'Ngày sinh nhật mười tám tuổi, tôi lạc vào nơi này. Không biết người nhà có còn chờ tôi không.'
       ]
     },
-    luc_tram:{ambient:['Ta vẫn đang quan sát tình hình.'],story:[],past:[]},
-    trac_lam:{ambient:['Có việc gì cần bàn sao?'],story:[],past:[]}
+    luc_tram:{
+      intro:[{speaker:'luc_tram',text:'Ta là Lục Trầm, đệ tử chân truyền Thiên Kiếm Môn.'},
+        {speaker:'luc_tram',text:'Nếu phải cùng đi, trước hết đừng để bất cẩn làm hại cả nhóm.'}],
+      ambient:['Ta vẫn đang quan sát tình hình.','Tịch Quang vẫn ở bên ta.'],
+      past:['Ta vốn tu hành tại Thiên Kiếm Môn, đi theo con đường kiếm đạo.'],
+      story:[[{speaker:'luc_tram',text:'Tịch Quang là bản mệnh kiếm của ta. Ta từng dành nhiều năm để rèn luyện kiếm đạo.'}]]
+    },
+    trac_lam:{
+      intro:[{speaker:'trac_lam',text:'Tôi là Trác Lâm, đội trưởng SRU-03.'},
+        {speaker:'trac_lam',text:'Nếu hợp tác, điều đầu tiên cần làm là giữ đội hình và xác nhận những gì chúng ta thật sự quan sát được.'}],
+      ambient:['Có việc gì cần bàn sao?','Cần xác định đường rút trước khi tiến vào khu vực chưa kiểm tra.'],
+      past:['Tôi đến từ Đà Nẵng, năm 2099. Trước đây tôi công tác trong lực lượng phản ứng dị thường SRU.'],
+      story:[
+        [{speaker:'trac_lam',text:'Năm 2094, ở Cảng Đông Hải, chúng tôi từng xử lý một khu kho vận có hiện tượng lặp không gian. Tôi đã cùng đội đưa được mười một dân thường ra ngoài.'}],
+        [{speaker:'trac_lam',text:'Trước khi lạc vào đây, tôi chỉ huy tổ SRU-03. Hiện tôi vẫn chưa liên lạc được với đồng đội của mình.'}]
+      ]
+    }
   };
   global.BackroomSpecialEntityDialogue={
     diep_minh:{name:'Diệp Minh',overlay:'entity/diep_minh.webp',
-      encounter:['Ngươi định đối đầu với ta sao?'],story:[]},
+      encounter:['Ngươi định đối đầu với ta sao?','Nếu bước tiếp, ngươi phải tự chịu lấy hậu quả.'],story:[]},
     luc_tram_hac_hoa:{name:'Lục Trầm Hắc Hóa',overlay:'entity/luc_tram_hac_hoa.webp',
-      encounter:['Đừng mong ta nhường đường.'],story:[]}
+      encounter:['Đừng mong ta nhường đường.','Muốn đi tiếp thì tự chứng minh bản lĩnh của ngươi.'],story:[]}
   };
 })(window);
