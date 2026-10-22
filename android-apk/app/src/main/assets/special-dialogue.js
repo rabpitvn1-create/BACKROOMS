@@ -79,7 +79,7 @@
     const route=saved&&saved.routeKind;
     const index=saved&&Number.isInteger(saved.routeIndex)?saved.routeIndex:0;
     function scene(kind,n){
-      const source=kind==='episode'?episodes:kind==='cross'?[d.cross]:repeat;
+      const source=kind==='episode'?episodes:kind==='cross'?d.cross:repeat;
       const picked=source[n];
       if(!Array.isArray(picked)||!picked.length)return null;
       return {routeKind:kind,routeIndex:n,lines:picked};
@@ -90,10 +90,14 @@
     }
     const beat=Math.max(0,Number(p.entityBeats[id]||0));
     const other=id==='diep_minh'?'luc_tram_hac_hoa':'diep_minh';
-    // Once the player has met both rivals, allow the linked clue on the
-    // next encounter instead of requiring five victories/escapes first.
-    if(beat>0&&Array.isArray(d.cross)&&d.cross.length&&
-      Number(p.entityBeats[other]||0)>0&&!p.entityCross[id])return scene('cross',0);
+    const otherBeat=Math.max(0,Number(p.entityBeats[other]||0));
+    const crossIndex=Math.max(0,Number(p.entityCross[id]||0));
+    // Every interlude requires encounters with BOTH rivals. Later interludes
+    // require richer context, but never certify a clue or restore memories.
+    const crossThresholds=[1,3,6];
+    if(Array.isArray(d.cross)&&crossIndex<d.cross.length&&
+      beat>=crossThresholds[crossIndex]&&otherBeat>=crossThresholds[crossIndex])
+      return scene('cross',crossIndex);
     if(beat<episodes.length)return scene('episode',beat);
     if(repeat.length)return scene('repeat',Math.max(0,Number(p.entityRepeats[id]||0))%repeat.length);
     return {routeKind:'fallback',routeIndex:0,
@@ -108,7 +112,8 @@
       p.shownEncounters[active.encounterId]=true;
       if(active.routeKind==='episode')p.entityBeats[active.id]=Math.max(
         Number(p.entityBeats[active.id]||0),active.routeIndex+1);
-      if(active.routeKind==='cross')p.entityCross[active.id]=true;
+      if(active.routeKind==='cross')p.entityCross[active.id]=Math.max(
+        Number(p.entityCross[active.id]||0),active.routeIndex+1);
       if(active.routeKind==='repeat')p.entityRepeats[active.id]=
         Math.max(0,Number(p.entityRepeats[active.id]||0))+1;
       const keys=Object.keys(p.shownEncounters);
