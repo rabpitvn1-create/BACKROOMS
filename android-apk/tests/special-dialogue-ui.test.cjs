@@ -428,3 +428,86 @@ test('authored encounters have distinct natural voices without a dump of author-
     }
   }
 });
+
+
+test('Catherine, Janet and Nguyễn Quốc Nam each receive their authored first-encounter popup',()=>{
+  const cases=[
+    ['catherine','Catherine Valeria Ashcombe','avatars/Catherine_avatar.webp',
+      /tiếng chuông/, 'catherine-intro-r01'],
+    ['janet','Janet the Lady','avatars/Janet_avatar.webp',
+      /Mia/, 'janet-intro-r01'],
+    ['nguyen_quoc_nam','Nguyễn Quốc Nam','avatars/NguyenQuocNam_avatar.webp',
+      /bị thương/, 'nguyen-quoc-nam-intro-r01']
+  ];
+  for(const [id,name,avatar,opening,revision] of cases){
+    const x=env({state:{party:[],partyDetails:{members:[]},encounteredCharacters:[]}});
+    const next=JSON.parse(JSON.stringify(x.ctx.state));
+    next.encounteredCharacters=[{id,name,avatar,present:true,inParty:false,joinEligible:true}];
+    x.ctx.backroomTurn(JSON.stringify(next));
+    assert.equal(x.dialog.hidden,false,id+' popup must open after Core confirmation');
+    assert.match(x.parts['#specialDialogueText'].textContent,opening);
+    assert.equal(x.parts['#specialDialogueAvatar'].children[0].src,avatar);
+    assert.equal(x.parts['#specialDialogueProgress'].textContent,'1 / 9');
+    assert.equal(x.ctx.invited,undefined);
+    assert.equal(x.ctx.state.party.length,0);
+    for(let i=0;i<8;i++)x.parts['#specialDialogueActions'].children[0].click();
+    const actions=x.parts['#specialDialogueActions'].children.map(b=>b.textContent);
+    assert.ok(actions.includes('Mời vào Party'),id+' may be invited but not automatically recruited');
+    x.parts['#specialDialogueActions'].children.at(-1).click();
+    assert.equal(x.dialog.hidden,true);
+    assert.equal(x.ctx.state.specialDialogueProgress.introduced[id],true);
+    assert.equal(x.ctx.state.specialDialogueProgress.introRevisions[id],revision);
+    assert.equal(x.ctx.invited,undefined);
+    assert.equal(x.ctx.state.party.length,0,'intro never mutates Core party');
+    x.ctx.SpecialDialogue.offerEntity();
+    assert.equal(x.dialog.hidden,true,'completed introduction must not reopen');
+  }
+});
+
+test('a previously generic greeting does not swallow the newly authored first meetings',()=>{
+  for(const id of ['catherine','janet','nguyen_quoc_nam']){
+    const x=env({state:{party:[],partyDetails:{members:[]},
+      encounteredCharacters:[{id,name:id,present:true,joinEligible:true,inParty:false}],
+      specialDialogueProgress:{introduced:{[id]:true},introRevisions:{},
+        chapters:{},shownEncounters:{},pending:null,lastRollTurn:4}}});
+    assert.equal(x.dialog.hidden,false,id+' receives authored dialogue after fallback greeting');
+    finishModal(x);
+    const snapshot=JSON.parse(JSON.stringify(x.ctx.state));
+    const reloaded=env({state:snapshot});
+    assert.equal(reloaded.dialog.hidden,true,id+' authored meeting must only play once');
+  }
+});
+
+test('three new Follower narratives remain hidden until Core presence and expose backstory gradually',()=>{
+  const catalog=env({state:{party:[],partyDetails:{members:[]},encounteredCharacters:[]}})
+    .ctx.BackroomSpecialDialogueData;
+  const cases=[
+    ['catherine','Catherine Valeria Ashcombe','avatars/Catherine_avatar.webp',/dấu chân/],
+    ['janet','Janet the Lady','avatars/Janet_avatar.webp',/radio/],
+    ['nguyen_quoc_nam','Nguyễn Quốc Nam','avatars/NguyenQuocNam_avatar.webp',/xây xát/]
+  ];
+  for(const [id,name,avatar,firstChapter] of cases){
+    const d=catalog[id];
+    assert.equal(d.story.length,4);
+    assert.ok(d.story.every(scene=>scene.length>=3&&scene.some(x=>x.speaker==='cao_minh')));
+    const unseen=env({state:{party:[],partyDetails:{members:[]},encounteredCharacters:[],
+      log:[{role:'gm',text:'Đã nhìn thấy '+name}]}});
+    assert.equal(unseen.dialog.hidden,true,'GM text is not a Core-confirmed encounter');
+    const intro=env({state:{party:[],partyDetails:{members:[]},
+      encounteredCharacters:[{id,name,avatar,present:true,joinEligible:true,inParty:false}]}});
+    assert.equal(intro.dialog.hidden,false);
+    finishModal(intro);
+    const next=JSON.parse(JSON.stringify(intro.ctx.state));
+    next.party=[{id,name,avatar,presence:'ACTIVE'}];
+    next.partyDetails={members:[{id,name,avatar,presence:'ACTIVE'}]};
+    next.encounteredCharacters=[{id,name,avatar,present:true,joinEligible:true,inParty:true}];
+    next.turn=5;
+    next.log=[{role:'player',text:'Di chuyển kiểm tra hành lang'}];
+    intro.ctx.backroomTurn(JSON.stringify(next));
+    assert.equal(intro.dialog.hidden,false,'first chapter should trigger after a committed exploration turn');
+    assert.match(intro.parts['#specialDialogueText'].textContent,firstChapter);
+    assert.equal(intro.ctx.state.specialDialogueProgress.chapters[id],undefined);
+    finishModal(intro);
+    assert.equal(intro.ctx.state.specialDialogueProgress.chapters[id],1);
+  }
+});
