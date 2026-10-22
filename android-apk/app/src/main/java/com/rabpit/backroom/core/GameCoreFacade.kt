@@ -390,6 +390,7 @@ class GameCoreFacade private constructor(
       put("currentLevel", node.asJson())
     }
     val receipt = JSONObject().put("automaticContinuation", pending.optBoolean("automaticContinuation"))
+      .put("specialDialogueTalk", pending.getJSONObject("command").optString("kind") == "TALK")
       .put("actionId", actionId).put("label", pending.getString("label")).put("reply", reply).apply {
       // Persist exactly what the player submitted, including punctuation/case.
       // A retry uses the original saved utterance, never an AI paraphrase.
