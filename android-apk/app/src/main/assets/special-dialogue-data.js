@@ -49,12 +49,12 @@
       "Tôi vừa chỉnh lại ổ quay. Phần còn lại, ta nên dành cho việc tìm đường."
     ],
     "past": [
-      "Tôi đến từ Grayhaven, một thị trấn cảng ở Anh. Những chiếc đồng hồ ở đó ít khi làm người ta mất ngủ như ở đây.",
-      "Tôi từng hiệu chỉnh đồng hồ và điều tra những vụ mất tích. Công việc thứ hai không có nhiều khách hàng biết cảm ơn.",
-      "Vesper Nocturne là khẩu súng tôi tự hoàn thiện. Có những câu chuyện gắn với nó mà tôi chưa sẵn lòng kể.",
-      "Mẹ tôi thường mở sổ ghi chép trước khi nghe những câu chuyện về ma quỷ. Bà bảo dấu mực đáng tin hơn lời đồn, dù chính người viết cũng có thể lầm.",
-      "Cha tôi có thể dành hàng giờ chỉ để sửa một bánh răng lệch. Tôi thừa hưởng tính kiên nhẫn đó, nhưng không thừa hưởng cách ông giữ im lặng.",
-      "Có lần tôi nghĩ nghe lại tiếng chuông ấy sẽ giúp mọi chuyện sáng tỏ. Giờ tôi không còn chắc mình muốn biết câu trả lời đến đâu."
+      "Tôi từng sửa đồng hồ ở Grayhaven, thành phố cảng nơi tôi lớn lên. Người ta vẫn nghĩ công việc ấy buồn tẻ.",
+      "Tôi thường kiểm tra bản lề, bụi và dấu chân trước khi tin lời kể về một cánh cửa biến mất.",
+      "Mẹ tôi luôn giữ sổ ghi chép. Một vài trang trong đó vẫn là điều tôi chưa giải thích được.",
+      "Cha tôi theo đuổi một công trình đồng hồ bí mật. Tôi vừa muốn gặp lại, vừa muốn hỏi ông vì sao giấu nó.",
+      "Vesper Nocturne là khẩu súng tôi tự hoàn thiện; với tôi, biết mình bắn vào đâu quan trọng hơn bóp cò nhanh.",
+      "Mỗi khi nhớ Grayhaven, tôi nghe thấy tiếng chuông đã đưa mình tới đây. Tôi chưa biết nên sợ hay nên đi tìm nó."
     ],
     "story": [
       [
@@ -267,12 +267,12 @@
       "Nếu có ai tụt lại, gọi tôi. Tôi không để người ta đi mất lần nữa."
     ],
     "past": [
-      "Tôi lớn lên gần Houma, Louisiana. Sau đó lên New York học đại học. Ở nhà giờ chắc ai cũng tưởng tôi chỉ đang bận học.",
-      "Tên đầy đủ là Janet Marie Boudreaux. Cái tên 'the Lady' ban đầu là trò trêu trong đội thể thao, chẳng có gì quý tộc đâu.",
-      "Bayou Belle là cây gậy tập của tôi. Dây thép gai thì tôi quấn thêm sau khi lạc vào nơi này.",
-      "Cha tôi sửa xuồng ở quê, mẹ làm thư viện. Tôi quen nghe cả tiếng máy nổ lẫn tiếng người bảo phải nói nhỏ.",
-      "Em trai Noah từng bị bắt nạt. Tôi hay xông vào bảo vệ nó, rồi cả hai cùng bị mẹ mắng.",
-      "Tôi nhớ một chiếc radio đang phát dở và cầu thang ký túc xá tối om. Tôi vẫn không biết Mia đã đi về phía nào."
+      "Tôi từ vùng gần Houma, Louisiana, rồi lên New York học. Radio và sân bóng là hai thứ tôi nhớ nhất.",
+      "Tôi còn nợ bài luận ở New Island. Ngày trước cứ nghĩ đó là rắc rối lớn nhất.",
+      "Em trai tôi tên Noah. Tôi hay bênh nó, đôi khi nóng quá làm nó sợ luôn cả chị mình.",
+      "Mia đi cùng tôi xuống cầu thang dịch vụ hôm mất điện. Tôi chưa tìm lại được cô ấy.",
+      "Cái tên Janet the Lady là do bọn trong đội bóng trêu. Tôi không thấy có gì quý tộc cả.",
+      "Bayou Belle từng chỉ là gậy tập. Dây thép gai tôi nhặt ở đây quấn thêm để tự bảo vệ."
     ],
     "story": [
       [
@@ -481,12 +481,12 @@
       "Súng chỉ là phương án cuối. Còn một đường tránh thì nên dùng đường tránh."
     ],
     "past": [
-      "Tôi dạy ở Trường Đại học Y Dược Thành phố Hồ Chí Minh. Tôi mất dấu đường về vào năm 2001.",
-      "Ở nhà, vợ và con gái đang chờ tôi. Tôi không biết ngoài ấy đã trôi qua bao nhiêu thời gian.",
-      "Khẩu súng này tôi tìm được trong một ngăn tủ ở đây. Trước khi lạc vào, tôi chỉ mang cặp tài liệu.",
-      "Hồng Lan thường nhắc tôi đừng mang cả ca trực về bàn ăn. Có những tối tôi làm được, có những tối thì không.",
-      "Thùy Dương từng tập xem giờ trên chiếc đồng hồ này. Con bé cứ hỏi khi nào ba về; hồi ấy câu trả lời dễ biết hơn bây giờ.",
-      "Tôi có một tờ giấy gấp trong túi áo, nét vẽ của con gái. Tôi giữ nó kỹ hơn khẩu súng nhặt được ở đây."
+      "Tôi dạy ở Trường Đại học Y Dược Thành phố Hồ Chí Minh. Tôi quen hỏi người khác có thấy khó chịu ở đâu không.",
+      "Ở trường, tôi luôn dặn sinh viên: chưa đủ dữ kiện thì phải hỏi tiếp, không đoán thay người bệnh.",
+      "Con gái tôi tên Thùy Dương. Con bé mới sáu tuổi khi tôi đi, rất thích tập xem đồng hồ.",
+      "Tôi tìm được khẩu súng trong một ngăn tủ ở đây. Trước lúc mất tích, tôi không mang thứ vũ khí ấy.",
+      "Tôi luôn nhớ lời nhắc của đồng nghiệp: chữa được đến đâu thì nói đến đó, đừng hứa quá sức mình.",
+      "Hồng Lan từng phải đợi cơm vì tôi hay về trễ. Tôi muốn có dịp xin lỗi vì những lần ấy."
     ],
     "story": [
       [
@@ -703,12 +703,12 @@
       "Nếu còn lối về nhà, tôi sẽ tìm cho ra. Nhưng trước tiên phải qua được chỗ này."
     ],
     "past": [
-      "Hứa Thuý Mai là tên trong giấy tờ. Ở nhà tôi là con gái thứ ba họ Hứa, còn trong đơn vị thì cứ gọi Lucia là được.",
-      "Nhà tôi làm kinh doanh ở Sài Gòn. Tôi đi lính vì mê súng từ bé. Chẳng có câu chuyện bi tráng nào đằng sau cả.",
-      "Lần cuối tôi nhớ là đang hành quân ở Đồng bằng sông Cửu Long. Tôi vẫn chưa hiểu làm sao mình rơi vào đây.",
-      "Ở nhà người ta nhắc chuyện kinh doanh suốt. Tôi trốn ra sân tập thì vui hơn. Là con gái thứ ba cũng không có nghĩa ai sẽ hiểu mình ngay.",
-      "Tôi từng tin người có súng thì kiểm soát được tình huống. Vào đây rồi mới biết ánh đèn tắt còn đáng sợ hơn tiếng nổ.",
-      "Có khi tôi vẫn nhớ mùi đất ẩm trong những chuyến hành quân. Tôi không chắc đến bao giờ mới được nghe tiếng đồng đội gọi mình nữa."
+      "Lucia là tên tôi dùng trong đơn vị. Tên thật của tôi là Hứa Thuý Mai, người nhà gọi theo họ Hứa.",
+      "Tôi từng đọc về Backrooms trên Internet. Giờ ở trong này, tôi chẳng dám nhận những bài ấy đều đúng.",
+      "Nhà tôi làm kinh doanh tại Sài Gòn. Tôi không ghét công việc ấy, chỉ thật sự muốn đi lính.",
+      "Tôi là con gái thứ ba họ Hứa. Hồi ở nhà, nhiều người cứ nhìn họ của tôi trước khi hỏi tôi thích gì.",
+      "Tôi thích súng, nhưng càng cầm lâu càng thấy không được bóp cò chỉ vì nghe tiếng động.",
+      "Trước khi lạc vào đây, tôi đang hành quân ở Đồng bằng sông Cửu Long. Tôi không biết vì sao mọi thứ đổi khác."
     ],
     "story": [
       [
@@ -1038,11 +1038,11 @@
       ]
     ],
     "past": [
-      "Tôi là con gái thứ tư của Hứa gia, người nhà vẫn gọi là Tứ tiểu thư.",
-      "Hôm sinh nhật mười tám tuổi, tôi lạc tới nơi này. Tôi sợ nhất là người nhà cứ đợi mãi mà không biết tôi ở đâu.",
-      "Ở Hứa phủ, người ta hay nhắc tôi giữ khuôn phép. Hồi bé tôi thấy vậy thật phiền, lớn lên mới hiểu có những lời nên nghĩ kỹ rồi mới nói.",
-      "Chiếc vòng ngọc khiến tôi nhớ nhà. Nhưng có lúc chỉ cần nghe tiếng bước chân ngoài cửa, tôi đã giật mình tưởng người thân tới đón.",
-      "Tôi không mong có thể quay lại ngày ấy để sửa mọi chuyện. Tôi chỉ muốn, nếu còn cơ hội, lần này mình biết lắng nghe."
+      "Người trong Hứa phủ gọi tôi là Tứ tiểu thư. Hồi nhỏ, tôi cứ muốn được bước qua cổng nhà mà không có ai theo.",
+      "Tôi từng trách nhầm Anh Tý vì thấy chàng nhận bạc. Số tiền ấy vốn để cứu người gặp nạn.",
+      "Mẫu thân kể rõ việc ấy. Tôi đã đi tìm chàng để xin lỗi, nhưng tới lúc nghe tin thì muộn rồi.",
+      "Tôi nhớ Chợ Lớn và người nhà. Sinh nhật mười tám tuổi là lần cuối tôi còn thấy họ.",
+      "Tôi không muốn Cao công tử phải sống thay một người giống mình. Tôi đang học cách nhìn người trước mắt cho đúng."
     ]
   },
   "luc_tram": {
@@ -1074,10 +1074,10 @@
       "Ta nghe thấy tiếng động phía trước. Chưa rõ là gì."
     ],
     "past": [
-      "Thiên Kiếm Môn đã dạy ta cầm kiếm vì điều gì. Ở đây, ngay cả điều đó cũng không phải lúc nào cũng dễ giữ.",
-      "Ở Thiên Kiếm Môn, ta học cách giữ tay kiếm thật vững trước khi học ra chiêu nhanh. Có những ngày ta nghĩ mình sẽ chẳng qua được bài tập đầu tiên.",
-      "Tịch Quang không phải vật để khoe. Ta quý nó vì những lần suýt buông kiếm mà cuối cùng vẫn giữ được.",
-      "Ta nhớ gió trên sân luyện kiếm rõ hơn nhiều lời dạy. Có lẽ khi trở về, thứ đầu tiên ta muốn làm chỉ là đứng im ở đó một lúc."
+      "Ta luyện kiếm ở Thiên Kiếm Môn. Những ngày đầu, cầm kiếm lâu một chút là tay đã mỏi.",
+      "Tịch Quang ở bên ta qua rất nhiều lần luyện tập, cả những lần ta thiếu bình tĩnh.",
+      "Ta từng ngã trước mặt đồng môn. Điều khiến ta đứng dậy lại là lời rủ ngày mai tập tiếp.",
+      "Ta vẫn giữ một vết xước nhỏ gần chuôi Tịch Quang để nhớ rằng mình có thể sai."
     ],
     "story": [
       [
@@ -1199,11 +1199,11 @@
       "Không có dữ kiện mới. Tạm giữ đội hình."
     ],
     "past": [
-      "Tôi đến từ Đà Nẵng, năm 2099. Trước đây chỉ huy tổ SRU-03.",
-      "Tôi không còn bắt được tín hiệu của đội. Chừng nào chưa có chứng cứ, tôi sẽ không kết luận họ đã chết.",
-      "Cha tôi làm cứu hộ công trình, mẹ làm cấp cứu. Từ nhỏ tôi đã nghe hai người tranh luận xem cứu ai trước khi đường vào chỉ còn một lối.",
-      "Năm 2094 ở Cảng Đông Hải, chúng tôi đưa mười một dân thường ra ngoài. Tôi nhớ tiếng họ thở hơn nhớ buổi báo cáo sau đó.",
-      "SRU-03 có sáu người. Tôi vẫn giữ thói quen đếm đủ đội hình, dù lúc này chẳng có ai trả lời qua bộ đàm."
+      "Tôi sinh ra ở Đà Nẵng. Cha làm cứu hộ công trình, mẹ làm cấp cứu. Ở nhà tôi hiếm khi nghe ai kể chuyện anh hùng.",
+      "Năm 2094 tại Cảng Đông Hải, chúng tôi đưa được mười một dân thường ra khỏi một khu kho vận có đường đi lặp lại.",
+      "SRU-03 có sáu người. Tôi còn nhớ giọng từng người, nhưng bây giờ vẫn chưa bắt được tín hiệu thật của họ.",
+      "Tôi được đào tạo để đánh giá đường rút trước khi dùng hỏa lực. Không phải vì tôi không dám nổ súng.",
+      "Chiến dịch ECHO-17 là lần cuối tôi còn biết chắc đội mình có đủ người. Phần sau đó tôi chưa được phép kết luận thay bằng phỏng đoán."
     ],
     "story": [
       [
@@ -1356,93 +1356,101 @@
       "Nếu nghe tiếng súng, cúi thấp người trước đã. Hỏi sau cũng được."
     ],
     "past": [
-      "Tôi đã cầm Ivory và Ebony đủ lâu để phân biệt từng tiếng cơ cấu vận hành. Thứ khiến tôi tin chúng không phải tên gọi.",
-      "Có những lần tôi phải chọn không bóp cò. Người ngoài thường chỉ nhớ những lần nghe tiếng súng.",
-      "Tôi không kể chuyện đời mình cho người mới gặp. Nếu muốn biết, cứ nhìn cách tôi giữ lời khi có chuyện xảy ra."
+      "Ivory và Ebony đã theo tôi qua nhiều lần luyện tập. Hai khẩu súng cùng lúc đòi hỏi nhiều kiên nhẫn hơn người ta nghĩ.",
+      "Tôi từng muốn bắn thật nhanh. Bây giờ tôi muốn mỗi phát bắn đều có lý do.",
+      "Không phải chuyện quá khứ nào tôi cũng kể được ngay. Có người không có mặt để tự nói phần của họ."
     ],
     "story": [
       [
         {
           "speaker": "iris",
-          "text": "Hồi mới tập phối hợp hai tay, tôi cứ muốn bắn nhanh hơn."
+          "text": "Người mới tập bắn thường muốn nghe tiếng súng trước khi nhìn trúng đích."
         },
         {
           "speaker": "cao_minh",
-          "text": "Không hiệu quả?"
+          "text": "Còn cô thì sao?"
         },
         {
           "speaker": "iris",
-          "text": "Nhanh thì dễ. Để cả hai phát cùng đi đúng chỗ mới khó."
+          "text": "Tôi từng như thế. Sau này phải học cách nghe cả khoảng lặng giữa hai phát bắn."
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô luyện bao lâu?"
+          "text": "Ivory với Ebony có khác nhau?"
         },
         {
           "speaker": "iris",
-          "text": "Đủ lâu để thôi lấy tiếng súng làm thước đo bản lĩnh."
+          "text": "Khác đủ để tôi biết tay nào vừa lệch. Còn người đứng trước nòng súng thì không nên chịu lỗi ấy."
         }
       ],
       [
         {
           "speaker": "iris",
-          "text": "Người ta thường hỏi Ivory hay Ebony mạnh hơn."
+          "text": "Có người hỏi tôi khẩu nào mạnh hơn, Ivory hay Ebony."
         },
         {
           "speaker": "cao_minh",
-          "text": "Và cô trả lời sao?"
+          "text": "Cô trả lời sao?"
         },
         {
           "speaker": "iris",
-          "text": "Tôi hỏi họ đang đứng ở đâu khi phải bắn. Một khẩu súng tốt không sửa được quyết định tồi."
+          "text": "Hỏi lại xem họ định bắn vào đâu. Không có mục tiêu thì khẩu nào cũng chỉ làm ồn."
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô có từng quyết định sai?"
+          "text": "Cô không thích biểu diễn?"
         },
         {
           "speaker": "iris",
-          "text": "Có. Nhưng tôi sẽ không đem người khác ra làm ví dụ cho anh nghe."
+          "text": "Thích chứ. Khi không có ai phải gánh hậu quả vì một màn biểu diễn."
         }
       ],
       [
         {
           "speaker": "iris",
-          "text": "Có lần tôi đứng canh một hành lang rất lâu, đến mức chỉ còn nghe nhịp thở của mình."
+          "text": "Có lần tôi nghe tiếng động sau một cánh cửa và suýt rút cả hai súng."
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô đã gặp thứ gì?"
+          "text": "Cô đã nhìn thấy gì?"
         },
         {
           "speaker": "iris",
-          "text": "Chuyện đáng nhớ không phải thứ xuất hiện. Mà là tôi đã không nổ súng khi chưa nhìn rõ."
+          "text": "Không thấy gì đủ để bắn. Tôi đứng đợi thêm, cuối cùng bước tránh sang lối khác."
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô xem đó là một chiến thắng?"
+          "text": "Cô xem đó là nhát gan?"
         },
         {
           "speaker": "iris",
-          "text": "Tôi xem đó là lý do mình còn bình tĩnh được vào lần sau."
+          "text": "Không. Tôi xem đó là một lần mình không bắt người khác trả giá cho nỗi sợ."
         }
       ],
       [
         {
           "speaker": "cao_minh",
-          "text": "Cô luôn giữ khoảng cách với mọi người?"
+          "text": "Cô không kể nhiều về những người từng đi cùng mình."
         },
         {
           "speaker": "iris",
-          "text": "Với người chưa quen. Với đồng đội thì tôi giữ đường rút."
+          "text": "Tôi nhớ họ. Chỉ không muốn lấy tên người khác làm cách khiến anh tin tôi."
         },
         {
           "speaker": "cao_minh",
-          "text": "Khác nhau ở đâu?"
+          "text": "Ta có thể tự quan sát."
         },
         {
           "speaker": "iris",
-          "text": "Đến lúc nguy hiểm anh sẽ thấy. Tôi không đứng sau lưng ai chỉ để bỏ chạy một mình."
+          "text": "Tốt. Nếu có chuyện, anh cứ nhìn xem tôi giữ đường rút cho ai."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ta sẽ nhớ."
+        },
+        {
+          "speaker": "iris",
+          "text": "Đừng chỉ nhớ. Lúc cần, cũng phải tự tìm đường rút cho mình."
         }
       ]
     ]
@@ -1485,97 +1493,97 @@
       "Thanh kiếm lớn không có nghĩa phải vung hết sức trong một hành lang hẹp."
     ],
     "past": [
-      "Tôi thuộc trực hệ Lucifer. Đó là nguồn gốc của tôi, không phải cái cớ để người khác quyết định tôi phải trở thành ai.",
-      "Ở SRU, tôi quen việc bảo vệ đồng đội hơn nghe những bài diễn văn về sức mạnh.",
-      "Có một người tên Kai khiến tôi nhớ rằng những lời trêu đùa chỉ vui khi người nghe thật sự muốn cười. Chuyện giữa chúng tôi, tôi sẽ tự kể khi thấy thích hợp."
+      "Tôi thuộc trực hệ Lucifer. Nhưng đó chỉ là một phần con người tôi, không phải toàn bộ tính nết.",
+      "Ở SRU, tôi quen việc phối hợp trước khi sử dụng sức mạnh. Cứ mạnh là phá thì chẳng cần đồng đội.",
+      "Kai có thói quen lảng tránh vài câu hỏi bằng chuyện đùa. Tôi nhớ cả những lúc anh ấy không muốn đùa nữa."
     ],
     "story": [
       [
         {
           "speaker": "syvial",
-          "text": "Anh có bao giờ bị người khác nhìn một cái rồi đoán hết tính nết không?"
+          "text": "Có lần người ta thấy quỷ tính của tôi, liền hỏi liệu tôi có đang nói bằng giọng của chính mình không."
         },
         {
           "speaker": "cao_minh",
-          "text": "Không ít."
+          "text": "Cô đáp sao?"
         },
         {
           "speaker": "syvial",
-          "text": "Thấy quỷ tính là nghĩ tôi sẽ mất kiểm soát. Tôi nghe đủ rồi."
+          "text": "Tôi hỏi họ có muốn nghe tôi nói to hơn không."
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô vẫn là người điều khiển sức mạnh của mình."
+          "text": "Chắc họ không thấy buồn cười."
         },
         {
           "speaker": "syvial",
-          "text": "Ít nhất anh không hỏi xem trong tôi còn con quỷ nào khác đang nói hộ."
+          "text": "Tốt. Tôi đâu có nhiệm vụ giúp người vô lễ thấy dễ chịu."
         }
       ],
       [
         {
           "speaker": "syvial",
-          "text": "Ở SRU, tôi không phải người duy nhất đủ sức phá một cánh cửa."
+          "text": "Hồi còn làm nhiệm vụ với SRU, tôi từng phải đứng nhìn cả đội loay hoay với một cánh cửa."
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô được giao làm gì?"
+          "text": "Cô không thể phá nó?"
         },
         {
           "speaker": "syvial",
-          "text": "Đảm bảo sau khi cửa mở, người của mình còn đường trở ra. Phần ấy mới cần suy nghĩ."
+          "text": "Có thể. Nhưng bên kia có người, tôi không thể đoán bừa mình sẽ phá trúng chỗ nào."
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô không thích làm theo lệnh?"
+          "text": "Thế cô làm gì?"
         },
         {
           "speaker": "syvial",
-          "text": "Tôi không thích những lệnh chẳng có lý do."
+          "text": "Nghe họ báo vị trí, rồi mới hành động. Dùng sức mạnh đúng lúc đỡ phải nói lời xin lỗi."
         }
       ],
       [
         {
           "speaker": "syvial",
-          "text": "Có người tôi từng quan tâm hay bỏ quên những chuyện lặt vặt, rồi giả vờ không biết."
+          "text": "Kai có thói quen giả vờ quên những chuyện nhỏ, nhất là khi biết tôi đang nhìn."
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô có nhắc không?"
+          "text": "Và cô làm gì?"
         },
         {
           "speaker": "syvial",
-          "text": "Nhắc chứ. Còn trêu nữa."
+          "text": "Nhắc một lần. Lần hai thì chọc cho anh ấy không giả vờ được nữa."
         },
         {
           "speaker": "cao_minh",
-          "text": "Rồi sao?"
+          "text": "Cô không sợ làm người khác khó chịu?"
         },
         {
           "speaker": "syvial",
-          "text": "Rồi tôi học cách để họ tự chọn. Quan tâm không có nghĩa giữ người khác trong tay."
+          "text": "Có chứ. Nên tôi cũng biết dừng. Thương ai không có nghĩa được quyền ép họ đáp lại."
         }
       ],
       [
         {
           "speaker": "syvial",
-          "text": "GodKiller nặng hơn vẻ ngoài của nó nhiều."
+          "text": "Tôi từng nghĩ mang một thanh kiếm to như GodKiller thì chẳng cần học kiềm chế."
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô muốn ta thử nhấc?"
+          "text": "Đó là một suy nghĩ lạ."
         },
         {
           "speaker": "syvial",
-          "text": "Không cần. Tôi chỉ muốn anh hiểu mỗi lần tôi rút nó đều là một lựa chọn."
+          "text": "Tôi bảo 'từng nghĩ', không bảo 'từng làm'. Anh nghe thiếu một chữ rồi đấy."
         },
         {
           "speaker": "cao_minh",
-          "text": "Và hôm nay?"
+          "text": "Ta nghe rồi. Cô rút kiếm khi cần."
         },
         {
           "speaker": "syvial",
-          "text": "Hôm nay chúng ta nói chuyện. Thế đã đủ rồi."
+          "text": "Và cất đi khi không cần. Thấy chưa, chúng ta đã hiểu nhau thêm được một chút."
         }
       ]
     ]
@@ -1618,97 +1626,97 @@
       "Nếu có đồ ăn, con xin một ít thôi. Con không cần nhiều."
     ],
     "past": [
-      "Con nhớ có lần ngồi đếm những ô gạch dưới chân, nhưng ở đây đếm hoài cứ thấy giống nhau.",
-      "Con thích màu hồng. Nhìn xuống đôi dép, con đỡ sợ hơn một chút.",
-      "Có nhiều chuyện con không nhớ rõ. Con không muốn đoán bừa rồi làm chú đi lạc."
+      "Con tên An Nhiên. Con thích màu hồng, nhất là đôi dép của con.",
+      "Con nhớ tiếng mưa ở nhà. Nước nhỏ ở đây nghe khác lắm.",
+      "Con từng đếm bước chân cho đỡ sợ. Con hay đếm sai nên lại bắt đầu từ một."
     ],
     "story": [
       [
         {
           "speaker": "an-nhien",
-          "text": "Hồi ở nhà, con thích nghe tiếng mưa ngoài cửa sổ."
+          "text": "Con nhớ có lần ngồi nghe mưa rơi ngoài cửa sổ. Mưa thật có mùi khác nước nhỏ từ trần nhà."
         },
         {
           "speaker": "cao_minh",
-          "text": "Ở đây cũng có tiếng nước nhỏ."
+          "text": "Con nhớ được mùi mưa à?"
         },
         {
           "speaker": "an-nhien",
-          "text": "Nhưng tiếng này nghe lạnh hơn. Con muốn nghe tiếng mưa thật cơ."
+          "text": "Dạ. Mùi đất ướt. Ở đây con chỉ ngửi thấy mùi khó chịu thôi."
         },
         {
           "speaker": "cao_minh",
-          "text": "Ta hiểu."
+          "text": "Vậy mình tìm chỗ nghỉ đỡ ngột ngạt hơn."
         },
         {
           "speaker": "an-nhien",
-          "text": "Chú có nhớ tiếng mưa ở nhà không?"
+          "text": "Nhưng chú đừng bảo con nhắm mắt tưởng tượng mưa nhé. Con làm rồi, chẳng giống chút nào."
         }
       ],
       [
         {
           "speaker": "an-nhien",
-          "text": "Con từng đếm bước chân để biết mình đi xa chưa."
+          "text": "Con từng thi đếm bước với một bạn. Con đếm đến tám mươi thì bạn ấy chạy mất."
         },
         {
           "speaker": "cao_minh",
-          "text": "Con đếm được bao nhiêu?"
+          "text": "Rồi con làm sao?"
         },
         {
           "speaker": "an-nhien",
-          "text": "Đến một trăm thì quên, lại đếm từ đầu."
+          "text": "Con đứng đợi, vì tưởng bạn sẽ quay lại. Hồi đó đợi chút xíu thôi."
         },
         {
           "speaker": "cao_minh",
-          "text": "Vậy con không cần đếm một mình."
+          "text": "Giờ con không cần phải đứng đợi một mình."
         },
         {
           "speaker": "an-nhien",
-          "text": "Thật ạ? Chú đếm cùng con nhé."
+          "text": "Chú nói thật chứ? Thế cho con đi cạnh chú nhé."
         }
       ],
       [
         {
           "speaker": "an-nhien",
-          "text": "Con sợ nhất là khi gọi mà không có ai trả lời."
+          "text": "Có khi con gọi nhỏ quá nên chẳng ai nghe."
         },
         {
           "speaker": "cao_minh",
-          "text": "Ta đang nghe đây."
+          "text": "Vậy con gọi to hơn được không?"
         },
         {
           "speaker": "an-nhien",
-          "text": "Con biết. Chỉ là đôi khi đèn kêu to quá, con tưởng tiếng mình biến mất."
+          "text": "Con sợ gọi to sẽ có thứ khác nghe thấy."
         },
         {
           "speaker": "cao_minh",
-          "text": "Nếu cần, con cứ gọi thêm lần nữa."
+          "text": "Nếu sợ, con nói đủ cho ta nghe thôi."
         },
         {
           "speaker": "an-nhien",
-          "text": "Vâng. Con sẽ gọi."
+          "text": "Dạ. Con thử nhé... Chú Cao Minh ơi."
         }
       ],
       [
         {
           "speaker": "an-nhien",
-          "text": "Chú có nghĩ về nhà rồi mọi thứ sẽ như cũ không?"
+          "text": "Nếu về được nhà, con muốn ăn cơm nóng."
         },
         {
           "speaker": "cao_minh",
-          "text": "Ta không biết."
+          "text": "Chỉ vậy thôi?"
         },
         {
           "speaker": "an-nhien",
-          "text": "Con cũng không biết. Nhưng con muốn được ngồi ăn một bữa mà không phải nhìn cửa mãi."
+          "text": "Với ngồi ở chỗ có đèn không kêu rè rè. Ăn xong con còn muốn đi ngủ nữa."
         },
         {
           "speaker": "cao_minh",
-          "text": "Trước hết chúng ta tìm chỗ an toàn đã."
+          "text": "Ước muốn không quá khó."
         },
         {
           "speaker": "an-nhien",
-          "text": "Dạ. Con nhớ rồi."
+          "text": "Ở đây thì khó ạ. Chú cứ đi chậm với con là được."
         }
       ]
     ]
