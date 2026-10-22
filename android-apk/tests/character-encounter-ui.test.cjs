@@ -48,5 +48,5 @@ test('Explorer uses typed commands and does not execute the retired exit-streak 
  assert.doesNotMatch(java,/makeGameplayRolls|determineExitDestination|HiddenExitStreak|beginAction\(currentView/);
  const spawner=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/core/EntitySpawnPool.kt'),'utf8');
  assert.match(spawner,/fun rollSceneSpawns/);
- assert.match(spawner,/kind != "MOVE" && kind != "SEARCH"/);
+ assert.match(spawner,/if \(kind !in setOf\("MOVE", "SEARCH", "STEP", "FREE", "INTERACT", "TALK"\)\)/);
 });
