@@ -49,12 +49,14 @@
       "Tôi vừa chỉnh lại ổ quay. Phần còn lại, ta nên dành cho việc tìm đường."
     ],
     "past": [
-      "Tôi từng sửa đồng hồ ở Grayhaven, thành phố cảng nơi tôi lớn lên. Người ta vẫn nghĩ công việc ấy buồn tẻ.",
-      "Tôi thường kiểm tra bản lề, bụi và dấu chân trước khi tin lời kể về một cánh cửa biến mất.",
-      "Mẹ tôi luôn giữ sổ ghi chép. Một vài trang trong đó vẫn là điều tôi chưa giải thích được.",
-      "Cha tôi theo đuổi một công trình đồng hồ bí mật. Tôi vừa muốn gặp lại, vừa muốn hỏi ông vì sao giấu nó.",
-      "Vesper Nocturne là khẩu súng tôi tự hoàn thiện; với tôi, biết mình bắn vào đâu quan trọng hơn bóp cò nhanh.",
-      "Mỗi khi nhớ Grayhaven, tôi nghe thấy tiếng chuông đã đưa mình tới đây. Tôi chưa biết nên sợ hay nên đi tìm nó."
+      "Tôi từng hiệu chỉnh đồng hồ ở Grayhaven. Nghe có vẻ tẻ nhạt, nhưng nghề ấy dạy tôi biết nhìn lâu vào một sai lệch nhỏ.",
+      "Thấy dấu chân thì cứ lần theo, nhưng phải đủ bình tĩnh quay lại nếu bằng chứng tự mâu thuẫn.",
+      "Mẹ tôi đã mất tích sau một cánh cửa khóa kín. Tôi chưa thể chấp nhận lời bảo rằng bà tự bỏ đi.",
+      "Cha tôi để lại những bản vẽ và những câu hỏi chưa có lời giải. Tôi còn giận ông vì thế.",
+      "Vesper Nocturne là khẩu súng tôi tự hoàn thiện. Nó không có quyền thay tôi quyết định ai đáng chết.",
+      "Tôi còn giữ thói quen so hai trang ghi chép khác nhau, như mẹ từng dạy.",
+      "Tôi nhớ cha có những lúc rất dịu dàng. Ký ức ấy khiến việc giận ông khó hơn.",
+      "Tại Grayhaven, tôi đã nghe tiếng chuông thứ mười ba trước khi lạc vào đây. Tôi chưa biết nó có nghĩa gì."
     ],
     "story": [
       [
@@ -267,12 +269,14 @@
       "Nếu có ai tụt lại, gọi tôi. Tôi không để người ta đi mất lần nữa."
     ],
     "past": [
-      "Tôi từ vùng gần Houma, Louisiana, rồi lên New York học. Radio và sân bóng là hai thứ tôi nhớ nhất.",
-      "Tôi còn nợ bài luận ở New Island. Ngày trước cứ nghĩ đó là rắc rối lớn nhất.",
-      "Em trai tôi tên Noah. Tôi hay bênh nó, đôi khi nóng quá làm nó sợ luôn cả chị mình.",
-      "Mia đi cùng tôi xuống cầu thang dịch vụ hôm mất điện. Tôi chưa tìm lại được cô ấy.",
-      "Cái tên Janet the Lady là do bọn trong đội bóng trêu. Tôi không thấy có gì quý tộc cả.",
-      "Bayou Belle từng chỉ là gậy tập. Dây thép gai tôi nhặt ở đây quấn thêm để tự bảo vệ."
+      "Tôi đến từ Louisiana, sau đó lên New York học. Ở nhà chẳng ai gọi tôi là một quý cô cho đúng nghĩa.",
+      "Ở New Island có cả bài luận tôi chưa nộp. Tôi thèm một ngày được lo chuyện vớ vẩn như vậy.",
+      "Em trai Noah không thích bị bắt nạt. Càng không thích nhìn chị nó chịu phạt thay.",
+      "Mia đi cùng tôi trên cầu thang hôm mất điện. Tôi chưa biết cô ấy đã đi đâu.",
+      "Biệt danh 'the Lady' bắt đầu từ đội bóng. Họ gọi thế để trêu tôi, không phải phong tước.",
+      "Cha tôi từng bắt tôi nhặt từng chiếc ốc vít trên sàn xưởng sửa xuồng.",
+      "Mẹ dạy tôi biết xin lỗi sau khi nổi nóng. Tôi làm vẫn còn dở.",
+      "Bayou Belle vốn là gậy tập. Tôi quấn dây thép gai sau khi lạc vào đây để tự bảo vệ."
     ],
     "story": [
       [
@@ -481,12 +485,14 @@
       "Súng chỉ là phương án cuối. Còn một đường tránh thì nên dùng đường tránh."
     ],
     "past": [
-      "Tôi dạy ở Trường Đại học Y Dược Thành phố Hồ Chí Minh. Tôi quen hỏi người khác có thấy khó chịu ở đâu không.",
-      "Ở trường, tôi luôn dặn sinh viên: chưa đủ dữ kiện thì phải hỏi tiếp, không đoán thay người bệnh.",
-      "Con gái tôi tên Thùy Dương. Con bé mới sáu tuổi khi tôi đi, rất thích tập xem đồng hồ.",
-      "Tôi tìm được khẩu súng trong một ngăn tủ ở đây. Trước lúc mất tích, tôi không mang thứ vũ khí ấy.",
-      "Tôi luôn nhớ lời nhắc của đồng nghiệp: chữa được đến đâu thì nói đến đó, đừng hứa quá sức mình.",
-      "Hồng Lan từng phải đợi cơm vì tôi hay về trễ. Tôi muốn có dịp xin lỗi vì những lần ấy."
+      "Tôi dạy y ở Thành phố Hồ Chí Minh. Tôi quen hỏi người đối diện có ổn không trước khi hỏi họ tên gì.",
+      "Một vết xây xát nhỏ vẫn cần được để ý, nhưng tôi không thể xem ai cũng là bệnh nhân của mình.",
+      "Thùy Dương từng học xem giờ trên chiếc đồng hồ của tôi. Con bé mới sáu tuổi khi tôi mất tích.",
+      "Tôi thường nhắc sinh viên rằng điều chưa biết phải được nói là chưa biết.",
+      "Khẩu súng tôi dùng là thứ nhặt được tại Backrooms, không phải thứ mang theo từ trường.",
+      "Không phải ca nào cũng có thể hứa kết quả tốt. Tôi vẫn phải làm hết phần có thể làm.",
+      "Hồng Lan từng chờ cơm vì tôi mải làm việc. Lúc đó tôi luôn tưởng ngày mai sẽ có thời gian bù.",
+      "Tôi có một tờ giấy Dương vẽ cả nhà nắm tay nhau. Tôi giữ nó trong túi áo."
     ],
     "story": [
       [
@@ -703,12 +709,13 @@
       "Nếu còn lối về nhà, tôi sẽ tìm cho ra. Nhưng trước tiên phải qua được chỗ này."
     ],
     "past": [
-      "Lucia là tên tôi dùng trong đơn vị. Tên thật của tôi là Hứa Thuý Mai, người nhà gọi theo họ Hứa.",
-      "Tôi từng đọc về Backrooms trên Internet. Giờ ở trong này, tôi chẳng dám nhận những bài ấy đều đúng.",
-      "Nhà tôi làm kinh doanh tại Sài Gòn. Tôi không ghét công việc ấy, chỉ thật sự muốn đi lính.",
-      "Tôi là con gái thứ ba họ Hứa. Hồi ở nhà, nhiều người cứ nhìn họ của tôi trước khi hỏi tôi thích gì.",
-      "Tôi thích súng, nhưng càng cầm lâu càng thấy không được bóp cò chỉ vì nghe tiếng động.",
-      "Trước khi lạc vào đây, tôi đang hành quân ở Đồng bằng sông Cửu Long. Tôi không biết vì sao mọi thứ đổi khác."
+      "Hứa Thuý Mai là tên thật. Trong đơn vị mọi người quen gọi tôi là Lucia.",
+      "Tôi từng đọc về Backrooms trên mạng, nhưng không dám xem những bài viết ấy là bản đồ.",
+      "Nhà tôi làm kinh doanh ở Sài Gòn. Tôi chọn quân ngũ vì thật sự yêu thích súng.",
+      "Có thời gian tôi đề phòng Cao Minh đến mức luôn quan sát tay anh ấy. Bây giờ vẫn cẩn thận, chỉ bớt căng hơn.",
+      "Làm con gái thứ ba họ Hứa không có nghĩa tôi muốn ai cũng biết gia đình trước khi biết tôi.",
+      "Tôi đã có lúc định bóp cò vì một tiếng động không rõ nguồn. Nghĩ lại vẫn thấy lạnh người.",
+      "Tôi lạc vào đây trong một chuyến hành quân tại Đồng bằng sông Cửu Long. Chuyện gì xảy ra với đồng đội, tôi chưa biết."
     ],
     "story": [
       [
@@ -1038,11 +1045,14 @@
       ]
     ],
     "past": [
-      "Người trong Hứa phủ gọi tôi là Tứ tiểu thư. Hồi nhỏ, tôi cứ muốn được bước qua cổng nhà mà không có ai theo.",
-      "Tôi từng trách nhầm Anh Tý vì thấy chàng nhận bạc. Số tiền ấy vốn để cứu người gặp nạn.",
-      "Mẫu thân kể rõ việc ấy. Tôi đã đi tìm chàng để xin lỗi, nhưng tới lúc nghe tin thì muộn rồi.",
-      "Tôi nhớ Chợ Lớn và người nhà. Sinh nhật mười tám tuổi là lần cuối tôi còn thấy họ.",
-      "Tôi không muốn Cao công tử phải sống thay một người giống mình. Tôi đang học cách nhìn người trước mắt cho đúng."
+      "Tôi là Tứ tiểu thư Hứa gia ở Sài Gòn – Chợ Lớn. Hồi bé cứ mong được một mình bước qua cổng.",
+      "Tôi từng buông lời rất nặng với Anh Tý. Chàng đã không được giải thích hết.",
+      "Tôi hiểu nhầm số bạc chàng nhận từ người Hứa phủ. Đó là tiền giúp dân gặp nạn.",
+      "Mẫu thân kể lại sự thật. Tôi chạy đi tìm chàng và cứ tưởng ngày mai vẫn còn.",
+      "Anh Tý gặp nạn trên đường về. Tôi chưa kịp nói lời xin lỗi.",
+      "Ngày sinh nhật mười tám tuổi, tôi lạc khỏi người nhà. Giờ tôi chỉ mong lại được nghe tiếng họ gọi.",
+      "Tôi từng đặt thể diện lên trước lời giải thích. Tôi không muốn lại làm thế.",
+      "Cao công tử không phải Anh Tý. Tôi phải học cách nhìn đúng người đang ở trước mặt."
     ]
   },
   "luc_tram": {
@@ -1074,10 +1084,11 @@
       "Ta nghe thấy tiếng động phía trước. Chưa rõ là gì."
     ],
     "past": [
-      "Ta luyện kiếm ở Thiên Kiếm Môn. Những ngày đầu, cầm kiếm lâu một chút là tay đã mỏi.",
-      "Tịch Quang ở bên ta qua rất nhiều lần luyện tập, cả những lần ta thiếu bình tĩnh.",
-      "Ta từng ngã trước mặt đồng môn. Điều khiến ta đứng dậy lại là lời rủ ngày mai tập tiếp.",
-      "Ta vẫn giữ một vết xước nhỏ gần chuôi Tịch Quang để nhớ rằng mình có thể sai."
+      "Ta tu luyện tại Thiên Kiếm Môn. Khi còn nhỏ, chỉ giữ đúng thế kiếm cũng mất rất nhiều ngày.",
+      "Tịch Quang theo ta đã lâu. Giữ chuôi kiếm vững không có nghĩa siết đến tê cả tay.",
+      "Ta nhớ một đồng môn nhỏ tuổi từng đưa kiếm giúp mình đứng dậy sau buổi tập.",
+      "Ta vẫn tin vào chính đạo, nhưng không muốn dùng hai chữ ấy để khỏi phải suy nghĩ.",
+      "Có một vết xước gần chuôi Tịch Quang. Ta đã không mài đi."
     ],
     "story": [
       [
@@ -1199,11 +1210,12 @@
       "Không có dữ kiện mới. Tạm giữ đội hình."
     ],
     "past": [
-      "Tôi sinh ra ở Đà Nẵng. Cha làm cứu hộ công trình, mẹ làm cấp cứu. Ở nhà tôi hiếm khi nghe ai kể chuyện anh hùng.",
-      "Năm 2094 tại Cảng Đông Hải, chúng tôi đưa được mười một dân thường ra khỏi một khu kho vận có đường đi lặp lại.",
-      "SRU-03 có sáu người. Tôi còn nhớ giọng từng người, nhưng bây giờ vẫn chưa bắt được tín hiệu thật của họ.",
-      "Tôi được đào tạo để đánh giá đường rút trước khi dùng hỏa lực. Không phải vì tôi không dám nổ súng.",
-      "Chiến dịch ECHO-17 là lần cuối tôi còn biết chắc đội mình có đủ người. Phần sau đó tôi chưa được phép kết luận thay bằng phỏng đoán."
+      "Tôi từ Đà Nẵng. Cha làm cứu hộ công trình, mẹ làm cấp cứu.",
+      "Năm 2094 ở Cảng Đông Hải, chúng tôi đưa được mười một dân thường ra khỏi khu kho vận có đường đi lặp lại.",
+      "SRU-03 có sáu người. Tôi mất liên lạc với họ, nhưng chưa có bằng chứng về số phận từng người.",
+      "Tôi nhớ những lần cha về nhà phủ đầy bụi, chỉ hỏi xem cả nhà đã ăn tối chưa.",
+      "Ở SRU, tôi học cách chọn phương án có thể bảo vệ đội, không phải phương án nghe oai nhất.",
+      "ECHO-17 là chiến dịch cuối tôi còn nhớ mình điểm danh đủ cả sáu người."
     ],
     "story": [
       [
@@ -1356,9 +1368,11 @@
       "Nếu nghe tiếng súng, cúi thấp người trước đã. Hỏi sau cũng được."
     ],
     "past": [
-      "Ivory và Ebony đã theo tôi qua nhiều lần luyện tập. Hai khẩu súng cùng lúc đòi hỏi nhiều kiên nhẫn hơn người ta nghĩ.",
-      "Tôi từng muốn bắn thật nhanh. Bây giờ tôi muốn mỗi phát bắn đều có lý do.",
-      "Không phải chuyện quá khứ nào tôi cũng kể được ngay. Có người không có mặt để tự nói phần của họ."
+      "Ivory và Ebony là hai khẩu súng tôi đã luyện với nhau lâu đến mức biết cả nhịp lệch nhỏ.",
+      "Tôi từng chỉ lo bắn nhanh. Bây giờ tôi muốn biết mình bắn vì điều gì.",
+      "Biểu diễn thì được, miễn không bắt người vô can hứng hậu quả.",
+      "Có những lúc không bắn là quyết định khó hơn. Tôi chẳng thấy xấu hổ vì điều đó.",
+      "Chuyện những người từng đi cùng tôi, tôi chưa sẵn sàng thay họ kể lại."
     ],
     "story": [
       [
@@ -1493,9 +1507,11 @@
       "Thanh kiếm lớn không có nghĩa phải vung hết sức trong một hành lang hẹp."
     ],
     "past": [
-      "Tôi thuộc trực hệ Lucifer. Nhưng đó chỉ là một phần con người tôi, không phải toàn bộ tính nết.",
-      "Ở SRU, tôi quen việc phối hợp trước khi sử dụng sức mạnh. Cứ mạnh là phá thì chẳng cần đồng đội.",
-      "Kai có thói quen lảng tránh vài câu hỏi bằng chuyện đùa. Tôi nhớ cả những lúc anh ấy không muốn đùa nữa."
+      "Tôi mang huyết thống Lucifer. Chẳng ai được phép lấy đó làm cớ nói thay tôi.",
+      "Đùa vui thì được. Còn lấy quỷ tính của tôi làm lý do để nghi tôi không có ý chí thì thôi.",
+      "Ở SRU, tôi đã quen kiểm tra vị trí đồng đội trước khi phá thứ gì đó.",
+      "Kai là người tôi rất quan tâm. Tôi nhớ cả lúc anh ấy đùa lẫn lúc anh ấy không muốn đùa.",
+      "GodKiller đáng sợ thật. Nhưng rút kiếm hay cất đi vẫn là việc tôi lựa chọn."
     ],
     "story": [
       [
@@ -1626,9 +1642,11 @@
       "Nếu có đồ ăn, con xin một ít thôi. Con không cần nhiều."
     ],
     "past": [
-      "Con tên An Nhiên. Con thích màu hồng, nhất là đôi dép của con.",
-      "Con nhớ tiếng mưa ở nhà. Nước nhỏ ở đây nghe khác lắm.",
-      "Con từng đếm bước chân cho đỡ sợ. Con hay đếm sai nên lại bắt đầu từ một."
+      "Con là An Nhiên. Con thích đôi dép màu hồng của con.",
+      "Con nhớ mùi đất sau cơn mưa ở nhà. Ở đây không giống.",
+      "Con từng chơi đếm bước với bạn. Con hay đếm nhầm.",
+      "Có lúc con muốn gọi to nhưng lại sợ có thứ lạ nghe thấy.",
+      "Con nhớ cơm nóng và một cái đèn không kêu rè rè. Con không cần gì hơn lúc này."
     ],
     "story": [
       [
