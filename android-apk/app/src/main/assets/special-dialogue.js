@@ -25,7 +25,7 @@
     if(!state.specialDialogueProgress||typeof state.specialDialogueProgress!=='object')
       state.specialDialogueProgress={introduced:{},chapters:{},lastRollTurn:state.turn,shownEncounters:{},pending:null};
     const p=state.specialDialogueProgress;
-    for(const k of ['introduced','chapters','shownEncounters','entityBeats','entityCross','entityRepeats'])
+    for(const k of ['introduced','introRevisions','chapters','shownEncounters','entityBeats','entityCross','entityRepeats'])
       if(!p[k]||typeof p[k]!=='object')p[k]={};
     return p;
   }
@@ -70,6 +70,16 @@
     const c=(state.encounteredCharacters||[]).find(x=>x.id===id);
     return c&&c.present&&c.joinEligible&&!c.inParty&&!state.pendingEncounter;
   }
+  const LUCIA_INTRO_REVISION='lucia-intro-r01';
+  function coreConfirmedNpc(id){
+    // Do not create encounters from old names, GM prose, or historical roster.
+    return (state.encounteredCharacters||[]).some(c=>c.id===id&&c.present===true)||
+      (state.party||[]).some(c=>c.id===id&&c.presence!=='DEAD'&&c.presence!=='SEPARATED');
+  }
+  function needsIntro(id,p){
+    // Lucia's previous generic hello was not her authored first-meeting story.
+    return !p.introduced[id]||(id==='lucia'&&p.introRevisions.lucia!==LUCIA_INTRO_REVISION);
+  }
   // The Core encounter confirms *who is present*. Presentation can track
   // conversation beats, but encounter count alone never proves a story secret.
   function entityScene(id, p, saved){
@@ -106,7 +116,10 @@
   function finish(){
     if(!active)return;
     const p=progress();
-    if(active.kind==='intro')p.introduced[active.id]=true;
+    if(active.kind==='intro'){
+      p.introduced[active.id]=true;
+      if(active.id==='lucia')p.introRevisions.lucia=LUCIA_INTRO_REVISION;
+    }
     if(active.kind==='story')p.chapters[active.id]=Math.max(Number(p.chapters[active.id]||0),active.chapter+1);
     if(active.kind==='entity'){
       p.shownEncounters[active.encounterId]=true;
@@ -197,7 +210,7 @@
       return true;
     }
     const p=progress();
-    if(!p.introduced[id]){
+    if(needsIntro(id,p)){
       const d=catalog[id];
       const intro=d&&Array.isArray(d.intro)&&d.intro.length?d.intro:
         [{speaker:id,text:'Xin chào. Có điều gì muốn trao đổi với tôi không?'}];
@@ -236,6 +249,7 @@
     if(p.pending&&p.pending.kind){
       const saved=p.pending;
       if(saved.kind==='entity'&&!state.pendingEncounter&&!(state.combat&&state.combat.active))p.pending=null;
+      else if(saved.kind==='intro'&&!coreConfirmedNpc(saved.id))p.pending=null;
       else {
         const d=catalog[saved.id]||{};
         const entityRoute=saved.kind==='entity'?entityScene(saved.id,p,saved):null;
@@ -257,8 +271,12 @@
       open(pending.entityKey,'entity',selected.lines,{encounterId:pending.encounterId,
         routeKind:selected.routeKind,routeIndex:selected.routeIndex});return;
     }
-    const before=new Set((old&&old.encounteredCharacters||[]).map(c=>String(c.id)));
-    const newcomer=(state.encounteredCharacters||[]).find(c=>c.present&&!before.has(String(c.id))&&!p.introduced[c.id]);
+    // The encounter might have been committed before the UI registered the
+    // callback (reload, Android projection, or first render). Core presence +
+    // an unfinished introduction are the authority, not a roster diff.
+    const newcomer=(state.encounteredCharacters||[]).find(c=>
+      c.present===true&&needsIntro(c.id,p)&&coreConfirmedNpc(c.id))||
+      (state.party||[]).find(c=>coreConfirmedNpc(c.id)&&needsIntro(c.id,p));
     if(newcomer){
       const d=catalog[newcomer.id];
       open(newcomer.id,'intro',d&&d.intro||[{speaker:newcomer.id,text:'Xin chào. Có điều gì muốn trao đổi không?'}]);return;
@@ -303,7 +321,9 @@
   const previousRender=global.render;
   if(typeof previousRender==='function')global.render=function(){
     const result=previousRender.apply(this,arguments);
-    if(!active&&progress().pending)applyIncoming(state);
+    // Also recover a first encounter that became present before this render,
+    // even when there is no persisted modal cursor yet.
+    if(!active)applyIncoming(state);
     return result;
   };
   root.addEventListener('keydown',event=>{
