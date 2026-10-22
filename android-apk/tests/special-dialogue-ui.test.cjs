@@ -207,3 +207,22 @@ test('enemy route dialogue is observation and belief, never automatic disclosure
   assert.match(serialized,/Vô Lượng/);
   assert.equal(x.ctx.state.specialDialogueProgress.entityBeats.diep_minh,undefined);
 });
+
+test('cross-route appears early after both actual encounters and does not skip individual episodes',()=>{
+  const x=env({state:{party:[],partyDetails:{members:[]},encounteredCharacters:[]}});
+  encounter(x,'diep_minh','r07-early-d1');
+  finishModal(x);
+  encounter(x,'luc_tram_hac_hoa','r07-early-l1');
+  finishModal(x);
+  encounter(x,'diep_minh','r07-early-d2');
+  assert.match(x.parts['#specialDialogueText'].textContent,/không phải người duy nhất/);
+  assert.equal(x.ctx.state.specialDialogueProgress.entityBeats.diep_minh,1);
+  finishModal(x);
+  assert.equal(x.ctx.state.specialDialogueProgress.entityCross.diep_minh,true);
+  assert.equal(x.ctx.state.specialDialogueProgress.entityBeats.diep_minh,1,
+    'cross encounter must not consume the independent lore episode');
+  encounter(x,'diep_minh','r07-early-d3');
+  assert.match(x.parts['#specialDialogueText'].textContent,/đã ở chốn này bao lâu/);
+  finishModal(x);
+  assert.equal(x.ctx.state.specialDialogueProgress.entityBeats.diep_minh,2);
+});
