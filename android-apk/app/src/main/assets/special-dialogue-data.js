@@ -981,7 +981,7 @@
       [
         {
           "speaker": "luc_tram_hac_hoa",
-          "text": "Ta đã hỏi Diệp Minh lần nữa. Hắn không phủ nhận mình từng đứng về phía Vô Lượng."
+          "text": "Ta vẫn nhớ Diệp Minh đứng bên Vô Lượng. Hắn chưa từng khiến ký ức ấy bớt đáng ngờ."
         },
         {
           "speaker": "cao_minh",
