@@ -34,7 +34,7 @@ function element(){
 function env(options={}){
   const root=element(),body=element(),classes=new Set();
   body.classList={add:s=>classes.add(s),remove:s=>classes.delete(s),contains:s=>classes.has(s)};
-  const document={body,createElement(name){const e=element();e.tag=name;return e;}};
+  const document={body,createElement(name){const e=element();e.tag=name;return e;},getElementById(){return null;}};
   document.body.appendChild=(n)=>{if(n.id==='specialDialogue')root.nodes=n.nodes;document.dialog=n;return n;};
   const character={id:'lucia',name:'Lucia "Lục"',avatar:'avatars/lucia_avatar.jpg',presence:'ACTIVE'};
   const state=Object.assign({turn:4,scene:{availableActions:[]},party:[character],
