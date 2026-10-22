@@ -177,7 +177,7 @@ test('Lục Trầm is autonomous; both confirmed adversaries unlock one cross-en
   assert.match(x.parts['#specialDialogueText'].textContent,/Diệp Minh đã đứng cạnh Vô Lượng/);
   assert.equal(x.ctx.state.specialDialogueProgress.entityCross.luc_tram_hac_hoa,undefined);
   finishModal(x);
-  assert.equal(x.ctx.state.specialDialogueProgress.entityCross.luc_tram_hac_hoa,true);
+  assert.equal(x.ctx.state.specialDialogueProgress.entityCross.luc_tram_hac_hoa,1);
   encounter(x,'luc_tram_hac_hoa','r07-tram-after-cross');
   assert.match(x.parts['#specialDialogueText'].textContent,/Tại sao ngươi luôn gọi ta/);
   finishModal(x);
@@ -218,7 +218,7 @@ test('cross-route appears early after both actual encounters and does not skip i
   assert.match(x.parts['#specialDialogueText'].textContent,/không phải người duy nhất/);
   assert.equal(x.ctx.state.specialDialogueProgress.entityBeats.diep_minh,1);
   finishModal(x);
-  assert.equal(x.ctx.state.specialDialogueProgress.entityCross.diep_minh,true);
+  assert.equal(x.ctx.state.specialDialogueProgress.entityCross.diep_minh,1);
   assert.equal(x.ctx.state.specialDialogueProgress.entityBeats.diep_minh,1,
     'cross encounter must not consume the independent lore episode');
   encounter(x,'diep_minh','r07-early-d3');
