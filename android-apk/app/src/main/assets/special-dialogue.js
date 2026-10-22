@@ -140,7 +140,8 @@
     if(mode==='hint'){
       if(!open(id,'hint',[{speaker:id,text:'Đang xem xét manh mối tại khu vực hiện tại…'}]))return false;
       actions.replaceChildren();
-      const talk=(state.scene&&state.scene.availableActions||[]).find(a=>a.kind==='TALK'&&String(a.targetId)===String(id));
+      const talk=(state.scene&&state.scene.availableActions||[]).find(a=>a.kind==='TALK'&&
+        (String(a.targetId)===String(id)||String(a.targetId||'').startsWith('character:'+id+':')));
       if(talk&&global.Android&&typeof Android.requestDialogueTalk==='function'){
         const command={actionId:talk.actionId,sceneVersion:talk.sceneVersion,roomId:talk.roomId,kind:talk.kind,targetId:talk.targetId};
         Android.requestDialogueTalk(JSON.stringify(state),JSON.stringify(command),id);
