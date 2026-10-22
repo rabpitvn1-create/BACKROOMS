@@ -172,7 +172,7 @@
     if(!unique.some(n=>input.includes(n)))return false;
     if(!Array.isArray(state.log))state.log=[];
     state.log.push({role:'gm',text:'HÀNH ĐỘNG KHÔNG HỢP LỆ! Vui lòng tương tác với nhân vật khác qua [Giao Tiếp].'});
-    if(typeof render==='function')render();
+    if(typeof global.render==='function')global.render();
     store();return true;
   }
   function applyIncoming(old){
@@ -229,11 +229,6 @@
     const before=state&&JSON.parse(JSON.stringify(state));
     const result=previousTurn.call(this,json);
     applyIncoming(before);return result;
-  };
-  // New Game should not reuse a cursor from a previous run.
-  const oldReset=global.resetGame;
-  if(typeof oldReset==='function')global.resetGame=function(){
-    const result=oldReset.apply(this,arguments);return result;
   };
   progress();
   if(progress().pending)applyIncoming(state);
