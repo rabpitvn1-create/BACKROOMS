@@ -682,12 +682,26 @@ test('obsolete evidence journal is hidden; Area Log only reads sanitized events'
   assert.doesNotMatch(js,/inference\.textContent=scene\.temporaryInference/);
   assert.doesNotMatch(js,/scene\.facts/);
 });
-test('Core-confirmed Lucia enables communication even without a scenario NPC topic',()=>{
-  const r=runtime({availableActions:[{actionId:'r:0:8:TALK:character:lucia:introduce',sceneVersion:8,roomId:'hall',kind:'TALK',targetId:'character:lucia:introduce',label:'Lucia "Lục" · Giới thiệu và hỏi tên'}]});
-  assert.equal(r.buttons[2].disabled,false);r.buttons[2].onclick();
+test('Giao tiếp opens three choices and passes Core-confirmed NPC id to the centered dialogue',()=>{
+  const r=runtime({availableActions:[{actionId:'r:0:8:TALK:character:lucia:introduce',
+    sceneVersion:8,roomId:'hall',kind:'TALK',
+    targetId:'character:lucia:introduce',label:'Lucia "Lục" · Giới thiệu và hỏi tên'}]});
+  const started=[];
+  r.ctx.SpecialDialogue={
+    isOpen:()=>false,
+    openCharacter:(id,mode)=>{started.push({id,mode});return true;}
+  };
+  assert.equal(r.buttons[2].disabled,false);
+  r.buttons[2].onclick();
   assert.ok(r.dialog.children[1].children[0].textContent.includes('Lucia'));
   r.dialog.children[1].children[0].onclick();
-  const command=JSON.parse(r.calls[0][1]);assert.equal(command.kind,'TALK');assert.equal(command.targetId,'character:lucia:introduce');
+  const choices=r.dialog.children[1].children.map(b=>b.textContent);
+  assert.deepEqual(choices.slice(1),['Nói chuyện','Gợi ý manh mối','Hỏi về quá khứ']);
+  r.dialog.children[1].children[2].onclick();
+  assert.equal(started.length,1);
+  assert.equal(started[0].id,'character:lucia:introduce');
+  assert.equal(started[0].mode,'hint');
+  assert.equal(r.calls.length,0,'Selecting Giao Tiếp must not silently call the remote GM or commit a turn');
 });
 
 test('world MAP only shows Core-confirmed marks, no secret names or generation',()=>{
