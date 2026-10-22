@@ -1790,6 +1790,29 @@ public class MainActivity extends Activity {
       });
     }
 
+    private String dialogueNormalize(String raw) {
+      return java.text.Normalizer.normalize(String.valueOf(raw), java.text.Normalizer.Form.NFD)
+        .replaceAll("\\p{M}", "").toLowerCase(java.util.Locale.ROOT);
+    }
+
+    private boolean directNpcConversation(String action, JSONObject view) {
+      String normalized = dialogueNormalize(action);
+      if (!java.util.regex.Pattern.compile("\\b(hoi|noi|chao|tro chuyen|tam su|bat chuyen|ke chuyen|xin goi y|to tinh|nhan tin)\\b")
+          .matcher(normalized).find()) return false;
+      for (String scope : new String[] {"party", "encounteredCharacters"}) {
+        JSONArray actors = view.optJSONArray(scope);
+        for (int i = 0; actors != null && i < actors.length(); i++) {
+          JSONObject actor = actors.optJSONObject(i);
+          if (actor == null) continue;
+          String person = dialogueNormalize(actor.optString("name")).replace('"', ' ').trim();
+          if (person.length() >= 4 && normalized.contains(person)) return true;
+          String[] words = person.split("\\s+");
+          for (String word : words) if (word.length() >= 4 && normalized.contains(word)) return true;
+        }
+      }
+      return false;
+    }
+
     @JavascriptInterface public void submitPlayerAction(String clientJson, String rawAction) {
       submitPlayerActionInternal(clientJson, rawAction, 0);
     }
@@ -1824,6 +1847,10 @@ public class MainActivity extends Activity {
           if (suggestedIndex > 0) {
             failureCode = "gm_suggestion_invalid";
             playerText = GmNarrativeOptionResolver.resolve(suggestedIndex, initialView);
+          }
+          if (directNpcConversation(playerText, initialView)) {
+            emit("backroomDialogueInvalidAction", "HÀNH ĐỘNG KHÔNG HỢP LỆ! Vui lòng tương tác với nhân vật khác qua [Giao Tiếp].");
+            return;
           }
           projection = requireGameCore().beginPlayerPresentation(java.util.UUID.randomUUID().toString(), playerText, projection);
           presentationStarted = true;
