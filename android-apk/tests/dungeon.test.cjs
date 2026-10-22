@@ -82,6 +82,35 @@ test('unsafe image sources and HTML names are not interpreted as markup',()=>{
  assert.match(card.querySelector('strong').textContent,/<img src=x/);
 });
 
+for(const slotStatus of ['training','complete']) test('Lucia Dungeon '+slotStatus+' displays the bundled overlay instead of her avatar',()=>{
+ const r=boot();r.open();const model=training(r.data()),slot=model.slots[0];
+ slot.status=slotStatus;
+ slot.follower={id:'lucia',name:'Lucia "Lục"',level:4,
+  sprite:'LUCIA_LUC_OVERLAY.png',avatar:'avatars/lucia_avatar.jpg'};
+ r.respond(model);
+ const card=r.ids.dungeonSlots.children[0],portrait=card.querySelector('.dungeon-follower');
+ assert.ok(portrait,'training and completed slots must retain the follower image');
+ assert.equal(portrait.src,'LUCIA_LUC_OVERLAY.png');
+ assert.equal(portrait.alt,'Lucia "Lục"');
+ assert.equal(card.querySelectorAll('.dungeon-follower').length,1);
+ assert.equal(card.querySelectorAll('img').length,2,'one environment and one follower');
+ assert.equal(card.querySelector('button').textContent,slotStatus==='complete'?'Hoàn tất · Đưa về':'Đưa về sớm');
+ const overlay=fs.readFileSync(path.join(assets,portrait.src));
+ assert.equal(overlay.subarray(0,8).toString('hex'),'89504e470d0a1a0a','overlay path must resolve to the packaged PNG');
+});
+
+test('Lucia-like unsafe sprite paths cannot bypass the bundled image allowlist',()=>{
+ for(const sprite of ['https://example.com/LUCIA_LUC_OVERLAY.png','file:///android_asset/LUCIA_LUC_OVERLAY.png',
+  '../LUCIA_LUC_OVERLAY.png','avatars/../LUCIA_LUC_OVERLAY.png','LUCIA_LUC_OVERLAY.png?remote=1','javascript:alert(1)']){
+  const r=boot();r.open();const model=training(r.data());
+  model.slots[0].follower={id:'lucia',name:'Lucia "Lục"',level:4,sprite,avatar:'avatars/lucia_avatar.jpg'};
+  r.respond(model);
+  const portrait=r.ids.dungeonSlots.children[0].querySelector('.dungeon-follower');
+  assert.ok(portrait,'an invalid sprite should still permit the safe bundled avatar');
+  assert.equal(portrait.src,'avatars/lucia_avatar.jpg',sprite);
+ }
+});
+
 test('new UI assets are wired into HTML, byte verification and APK extraction',()=>{
  const html=fs.readFileSync(path.join(assets,'index.html'),'utf8');assert.match(html,/id="dungeonOpen"/);assert.match(html,/id="dungeonModal" hidden role="dialog"/);
  assert.match(html,/src="dungeon.js"/);assert.match(html,/href="dungeon.css"/);
