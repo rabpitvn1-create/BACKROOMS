@@ -338,4 +338,16 @@ class EntitySpawnPoolTest {
     }
     assertFalse("Dialogue-only action must not trigger physical NPC encounters", physicalNpcFound)
   }
+  @Test fun hostileLucTramExcludedWhenRecruitmentMakesHerAnAlly() {
+    val all = (1..EntitySpawnPool.TOTAL_BP)
+      .map { EntitySpawnPool.pickForSuccessfulRoll("0", it) }
+    assertTrue(all.contains("luc_tram_hac_hoa"))
+    val withoutLuc = (1..EntitySpawnPool.TOTAL_BP)
+      .map { EntitySpawnPool.pickForSuccessfulRoll("0", it, setOf("luc_tram_hac_hoa")) }
+    assertFalse(withoutLuc.contains("luc_tram_hac_hoa"))
+    assertTrue(withoutLuc.all { it in EntitySpawnPool.ROAMING })
+    assertNotNull(EntitySpawnPool.rollEntity("0", setOf("luc_tram_hac_hoa")) { 0 })
+    assertNull(EntitySpawnPool.rollEntity("0", setOf("luc_tram_hac_hoa")) { 9999 })
+  }
+
 }
