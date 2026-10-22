@@ -2472,6 +2472,106 @@ public class MainActivity extends Activity {
       });
     }
 
+
+    /** Scripted TALK uses the existing Core command and never calls a narrator.
+     * Dialogue is returned to the centered overlay instead of the GM log. */
+    @JavascriptInterface public void requestDialogueTalk(String stateJson, String commandJson, String characterId) {
+      io.execute(() -> {
+        try {
+          JSONObject view = new JSONObject(requireGameCore().currentClientState(stateJson));
+          JSONObject command = new JSONObject(commandJson);
+          if (!"TALK".equals(command.optString("kind")) ||
+              !characterId.equals(command.optString("targetId"))) throw new IllegalArgumentException("dialogue_target_invalid");
+          JSONObject scene = view.optJSONObject("scene");
+          JSONArray available = scene == null ? null : scene.optJSONArray("availableActions");
+          boolean allowed = false;
+          for (int i = 0; available != null && i < available.length(); i++) {
+            JSONObject action = available.optJSONObject(i);
+            if (action != null && "TALK".equals(action.optString("kind")) &&
+                command.optString("actionId").equals(action.optString("actionId")) &&
+                characterId.equals(action.optString("targetId"))) { allowed = true; break; }
+          }
+          if (!allowed) throw new IllegalArgumentException("dialogue_not_available");
+          JSONObject started = new JSONObject(requireGameCore().beginSceneAction(commandJson));
+          String resultText = "Cuộc trò chuyện này đã được ghi nhận.";
+          if (!started.optBoolean("committed")) {
+            JSONObject staged = new JSONObject(requireGameCore().sceneNarrationContext());
+            resultText = staged.getString("result");
+            requireGameCore().commitSceneAction(command.getString("actionId"), resultText, stateJson);
+          }
+          JSONObject updated = new JSONObject(attachGmItems(requireGameCore().currentClientState(stateJson)));
+          emit("backroomDialogueHint", new JSONObject().put("id", characterId)
+            .put("text", resultText).put("state", updated).toString());
+        } catch (Exception error) {
+          DiagnosticLog.record("dialogue.talk.failed", error.getClass().getSimpleName());
+          emit("backroomDialogueHint", new JSONObject().put("id", characterId)
+            .put("text", "Không thể thực hiện cuộc trò chuyện này lúc này.").toString());
+        }
+      });
+    }
+
+    /** Only this category invokes GM. Context is deliberately limited to public
+     * scene observations: no character backstory, inventory, Canon or hidden map. */
+    @JavascriptInterface public void requestDialogueHint(String stateJson, String characterId) {
+      io.execute(() -> {
+        try {
+          JSONObject view = new JSONObject(requireGameCore().currentClientState(stateJson));
+          JSONObject scene = view.optJSONObject("scene");
+          if (scene == null || view.has("pendingEncounter") ||
+              view.optJSONObject("combat") != null) throw new IllegalStateException("dialogue_hint_unavailable");
+          boolean available = false;
+          String speaker = "";
+          for (String key : new String[] {"party", "encounteredCharacters"}) {
+            JSONArray actors = view.optJSONArray(key);
+            for (int i = 0; actors != null && i < actors.length(); i++) {
+              JSONObject actor = actors.optJSONObject(i);
+              if (actor != null && characterId.equals(actor.optString("id")) &&
+                  (!key.equals("encounteredCharacters") || actor.optBoolean("present"))) {
+                available = true;
+                speaker = actor.optString("name", characterId);
+                break;
+              }
+            }
+          }
+          JSONArray npcs = scene.optJSONArray("npcs");
+          for (int i = 0; npcs != null && i < npcs.length(); i++) {
+            JSONObject npc = npcs.optJSONObject(i);
+            if (npc != null && characterId.equals(npc.optString("id", npc.optString("characterId")))) {
+              available = true;
+              speaker = npc.optString("name", characterId);
+            }
+          }
+          if (!available) throw new IllegalArgumentException("dialogue_hint_target_missing");
+          JSONObject publicFacts = new JSONObject();
+          publicFacts.put("room", scene.optJSONObject("room"));
+          publicFacts.put("environment", scene.optJSONObject("environment"));
+          publicFacts.put("objective", scene.optString("objective"));
+          JSONArray publicActions = scene.optJSONArray("availableActions");
+          JSONArray labels = new JSONArray();
+          for (int i = 0; publicActions != null && i < publicActions.length() && i < 20; i++) {
+            JSONObject action = publicActions.optJSONObject(i);
+            if (action != null) labels.put(action.optString("label"));
+          }
+          publicFacts.put("possibleActions", labels);
+          String prompt = "Bạn đóng vai " + speaker + " để trả lời một lời hỏi về manh mối. " +
+            "Chỉ dựa trên dữ kiện công khai sau; không được bịa lối thoát, bằng chứng, bí mật, " +
+            "không xác nhận đáp án chưa quan sát, không tiết lộ giải pháp puzzle. " +
+            "Trả lời tiếng Việt gọn trong 1–3 câu, ở ngôi thứ nhất, KHÔNG JSON. " +
+            "Không dùng chuyện riêng hay quá khứ NPC. DỮ LIỆU CÔNG KHAI: " +
+            publicFacts.toString().substring(0, Math.min(4000, publicFacts.toString().length()));
+          String answer = generateText(prompt);
+          emit("backroomDialogueHint", new JSONObject().put("id", characterId)
+            .put("text", answer == null || answer.trim().isEmpty() ?
+              "Tôi chưa thấy đủ manh mối để đưa ra kết luận." :
+              answer.substring(0, Math.min(answer.length(), 950))).toString());
+        } catch (Exception error) {
+          DiagnosticLog.record("dialogue.hint.failed", error.getClass().getSimpleName());
+          emit("backroomDialogueHint", new JSONObject().put("id", characterId)
+            .put("text", "Tôi chưa thể đưa ra gợi ý đáng tin cậy lúc này.").toString());
+        }
+      });
+    }
+
     @JavascriptInterface public void recruitFollower(String stateJson, String characterId) {
       io.execute(() -> {
         try { emit("backroomRecruitment", requireGameCore().recruitFollower(stateJson, characterId)); }
