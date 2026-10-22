@@ -2,6 +2,36 @@
 (function(global){
   'use strict';
   global.BackroomSpecialDialogueData={
+    lucia:{
+      // First encounter: Core-confirmed Lucia, separate from Lục Trầm.
+      // Only establish facts she can know; no free recruit or fabricated exit.
+      intro:[
+        {speaker:'lucia',text:'Đứng lại đã. Tôi chưa biết anh là ai, nên tốt nhất chúng ta nói chuyện rõ ràng trước.'},
+        {speaker:'cao_minh',text:'Ta là Cao Minh. Cô là ai?'},
+        {speaker:'lucia',text:'Lucia “Lục”. Tên thật là Hứa Thuý Mai. Tôi 19 tuổi, binh nhì. Tôi là quân nhân.'},
+        {speaker:'cao_minh',text:'Một quân nhân? Sao cô lại ở trong những hành lang này?'},
+        {speaker:'lucia',text:'Tôi đang hành quân ở Đồng bằng sông Cửu Long thì đột nhiên lạc vào đây. Tôi chưa xác định được nguyên nhân.'},
+        {speaker:'cao_minh',text:'Cô có biết đây là nơi nào không?'},
+        {speaker:'lucia',text:'Tôi từng đọc về Backrooms trên Internet. Nhưng đọc tin khác xa với tìm đường sống ở đây. Tôi không dám coi những gì đã đọc là chắc chắn.'},
+        {speaker:'lucia',text:'Tôi định lấy tường làm điểm tựa, đánh dấu bằng phấn và dùng laser kiểm tra mặt sàn. Đường đi ở đây rất dễ khiến người ta chủ quan.'},
+        {speaker:'cao_minh',text:'Ta cũng đang tìm lối thoát.'},
+        {speaker:'lucia',text:'Mục tiêu trước mắt của tôi là tìm đường tới Level 1, sau đó là về nhà. Nếu cùng đi, chúng ta phải kiểm chứng từng bước. Tôi tôn trọng anh, nhưng chưa thể tin anh ngay.'}
+      ],
+      ambient:[
+        'Đừng đoán mò. Chúng ta nên xác nhận được đường đi rồi mới quyết định.',
+        'Đánh dấu điểm đã đi qua là cần thiết, nhưng ở đây không thể mặc định dấu cũ luôn dẫn về cùng một chỗ.',
+        'Tôi muốn tìm đường về nhà, nhưng phải sống sót qua hành lang trước đã.'
+      ],
+      past:[
+        'Tôi tên thật là Hứa Thuý Mai. Tôi sinh ra trong một gia đình họ Hứa ở Sài Gòn và nhập ngũ vì thật sự thích súng ống.',
+        'Tôi đang hành quân ở Đồng bằng sông Cửu Long trước khi rơi vào Backrooms. Còn vì sao lại như vậy thì tôi chưa biết.'
+      ],
+      story:[
+        [{speaker:'lucia',text:'Tôi từng đọc các bài báo về Backrooms. Đến khi tự mình bị kẹt ở đây, tôi mới hiểu thông tin trên mạng không thay được việc quan sát.'}],
+        [{speaker:'lucia',text:'Tôi muốn tìm đường tới Level 1. Nhưng đường xa hơn vẫn là về nhà. Có những lúc tôi thấy hai mục tiêu ấy cách nhau vô tận.'}],
+        [{speaker:'lucia',text:'Ban đầu tôi rất cảnh giác với anh. Tôi vẫn vậy, nhưng ít nhất bây giờ tôi muốn nhìn cách anh hành động trước khi phán đoán.'}]
+      ]
+    },
     hua_tieu_lan:{
       intro:[
         {speaker:'hua_tieu_lan',text:'Anh Tý... Anh Tý!'},
