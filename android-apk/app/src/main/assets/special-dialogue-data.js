@@ -1,343 +1,1096 @@
-/* Locally authored dialogue. Never send this catalog to the GM. */
+/* Authored local encounter dialogue. Never send this catalog to the GM.
+   Each line is a character's point of view, not a proven game-world fact. */
 (function(global){
   'use strict';
   global.BackroomSpecialDialogueData={
-    lucia:{
-      // First encounter: Core-confirmed Lucia, separate from Lục Trầm.
-      // Only establish facts she can know; no free recruit or fabricated exit.
-      intro:[
-        {speaker:'lucia',text:'Đứng lại đã. Tôi chưa biết anh là ai, nên tốt nhất chúng ta nói chuyện rõ ràng trước.'},
-        {speaker:'cao_minh',text:'Ta là Cao Minh. Cô là ai?'},
-        {speaker:'lucia',text:'Lucia “Lục”. Tên thật là Hứa Thuý Mai. Tôi 19 tuổi, binh nhì. Tôi là quân nhân.'},
-        {speaker:'cao_minh',text:'Một quân nhân? Sao cô lại ở trong những hành lang này?'},
-        {speaker:'lucia',text:'Tôi đang hành quân ở Đồng bằng sông Cửu Long thì đột nhiên lạc vào đây. Tôi chưa xác định được nguyên nhân.'},
-        {speaker:'cao_minh',text:'Cô có biết đây là nơi nào không?'},
-        {speaker:'lucia',text:'Tôi từng đọc về Backrooms trên Internet. Nhưng đọc tin khác xa với tìm đường sống ở đây. Tôi không dám coi những gì đã đọc là chắc chắn.'},
-        {speaker:'lucia',text:'Tôi định lấy tường làm điểm tựa, đánh dấu bằng phấn và dùng laser kiểm tra mặt sàn. Đường đi ở đây rất dễ khiến người ta chủ quan.'},
-        {speaker:'cao_minh',text:'Ta cũng đang tìm lối thoát.'},
-        {speaker:'lucia',text:'Mục tiêu trước mắt của tôi là tìm đường tới Level 1, sau đó là về nhà. Nếu cùng đi, chúng ta phải kiểm chứng từng bước. Tôi tôn trọng anh, nhưng chưa thể tin anh ngay.'}
+  "lucia": {
+    "intro": [
+      {
+        "speaker": "lucia",
+        "text": "Đứng lại một chút. Tôi chưa biết anh là ai. Đừng đến gần khẩu súng."
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Nếu ta có ý gây chuyện, cô đã không kịp hỏi tên."
+      },
+      {
+        "speaker": "lucia",
+        "text": "Tôi không cược mạng vào một câu nói. Lucia “Lục”, binh nhì. Tên thật là Hứa Thuý Mai. Còn anh?"
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Cao Minh. Cô cũng bị lạc tới đây?"
+      },
+      {
+        "speaker": "lucia",
+        "text": "Cách đây không lâu tôi còn đang hành quân ở Đồng bằng sông Cửu Long. Chớp mắt một cái, đồng đội biến mất, trước mặt chỉ còn tường vàng."
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Cô biết đây là đâu?"
+      },
+      {
+        "speaker": "lucia",
+        "text": "Tôi từng đọc về Backrooms trên mạng. Hồi ấy còn nghĩ người ta bịa chuyện cho vui. Giờ thì chẳng thấy buồn cười nữa."
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Cô định lần đường bằng cách nào?"
+      },
+      {
+        "speaker": "lucia",
+        "text": "Bám theo một bức tường, đánh dấu bằng phấn, dùng laser soi chỗ khuất. Nhưng nếu tường cũng đánh lừa mình thì phải đổi cách."
+      },
+      {
+        "speaker": "lucia",
+        "text": "Tôi muốn tới Level 1, rồi tìm đường về nhà. Anh có thể đi cùng, nhưng tôi cần thấy anh hành động thế nào trước đã. Đồng ý chứ?"
+      }
+    ],
+    "ambient": [
+      "Đợi đã. Đoạn này trông giống hệt chỗ chúng ta vừa đi qua.",
+      "Tôi giữ hướng này. Anh nhìn phía sau giúp tôi.",
+      "Không nghe thấy gì mới đáng lo. Cứ quan sát thêm đã.",
+      "Nếu còn lối về nhà, tôi sẽ tìm cho ra. Nhưng trước tiên phải qua được chỗ này."
+    ],
+    "past": [
+      "Hứa Thuý Mai là tên trong giấy tờ. Ở nhà tôi là con gái thứ ba họ Hứa, còn trong đơn vị thì cứ gọi Lucia là được.",
+      "Nhà tôi làm kinh doanh ở Sài Gòn. Tôi đi lính vì mê súng từ bé. Chẳng có câu chuyện bi tráng nào đằng sau cả.",
+      "Lần cuối tôi nhớ là đang hành quân ở Đồng bằng sông Cửu Long. Tôi vẫn chưa hiểu làm sao mình rơi vào đây."
+    ],
+    "story": [
+      [
+        {
+          "speaker": "lucia",
+          "text": "Trước đây đọc mấy bài về Backrooms, tôi toàn soi xem chỗ nào viết sai. Giờ muốn tìm lại một bài còn chẳng có mạng."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Cô nhớ được gì hữu ích?"
+        },
+        {
+          "speaker": "lucia",
+          "text": "Những thứ chưa kiểm chứng thì đừng đặt cược mạng vào. Chừng ấy cũng đủ hữu ích rồi."
+        }
       ],
-      ambient:[
-        'Đừng đoán mò. Chúng ta nên xác nhận được đường đi rồi mới quyết định.',
-        'Đánh dấu điểm đã đi qua là cần thiết, nhưng ở đây không thể mặc định dấu cũ luôn dẫn về cùng một chỗ.',
-        'Tôi muốn tìm đường về nhà, nhưng phải sống sót qua hành lang trước đã.'
+      [
+        {
+          "speaker": "lucia",
+          "text": "Tôi cứ tưởng sang được Level 1 sẽ bớt bí đường. Nghĩ kỹ lại, đó mới chỉ là một cái tên."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Cô nhớ nhà?"
+        },
+        {
+          "speaker": "lucia",
+          "text": "Có. Nhưng nhớ đến mấy cũng không thể nhắm mắt mà chạy."
+        }
       ],
-      past:[
-        'Tôi tên thật là Hứa Thuý Mai. Tôi sinh ra trong một gia đình họ Hứa ở Sài Gòn và nhập ngũ vì thật sự thích súng ống.',
-        'Tôi đang hành quân ở Đồng bằng sông Cửu Long trước khi rơi vào Backrooms. Còn vì sao lại như vậy thì tôi chưa biết.'
-      ],
-      story:[
-        [{speaker:'lucia',text:'Tôi từng đọc các bài báo về Backrooms. Đến khi tự mình bị kẹt ở đây, tôi mới hiểu thông tin trên mạng không thay được việc quan sát.'}],
-        [{speaker:'lucia',text:'Tôi muốn tìm đường tới Level 1. Nhưng đường xa hơn vẫn là về nhà. Có những lúc tôi thấy hai mục tiêu ấy cách nhau vô tận.'}],
-        [{speaker:'lucia',text:'Ban đầu tôi rất cảnh giác với anh. Tôi vẫn vậy, nhưng ít nhất bây giờ tôi muốn nhìn cách anh hành động trước khi phán đoán.'}]
+      [
+        {
+          "speaker": "lucia",
+          "text": "Hồi mới gặp, tôi luôn để mắt đến anh."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Bây giờ thì sao?"
+        },
+        {
+          "speaker": "lucia",
+          "text": "Vẫn để mắt. Chỉ là không còn vì cùng một lý do."
+        }
       ]
-    },
-    hua_tieu_lan:{
-      intro:[
-        {speaker:'hua_tieu_lan',text:'Anh Tý... Anh Tý!'},
-        {speaker:'cao_minh',text:'Cô là ai? Xin giữ khoảng cách.'},
-        {speaker:'hua_tieu_lan',text:'Tôi xin lỗi, Cao công tử. Công tử rất giống một người tôi từng yêu.'},
-        {speaker:'hua_tieu_lan',text:'Nếu công tử không phiền, xin cho tôi được đồng hành. Tôi không mong công tử phải nhớ điều gì.'}
+    ]
+  },
+  "hua_tieu_lan": {
+    "intro": [
+      {
+        "speaker": "hua_tieu_lan",
+        "text": "Anh Tý...?"
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Cô nhận nhầm người rồi."
+      },
+      {
+        "speaker": "hua_tieu_lan",
+        "text": "...Phải. Xin thất lễ, Cao công tử. Người ấy có đôi mắt rất giống công tử."
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Cô đang tìm người thất lạc sao?"
+      },
+      {
+        "speaker": "hua_tieu_lan",
+        "text": "Tôi từng có cơ hội gặp lại chàng. Chính tôi đã bỏ lỡ. Nay giữa chốn này, trông thấy công tử khiến lòng tôi rối loạn."
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Cô có nơi nào để đi không?"
+      },
+      {
+        "speaker": "hua_tieu_lan",
+        "text": "Chưa có. Nếu công tử thuận lòng, tôi xin đi cùng một đoạn. Tôi sẽ không gọi nhầm tên nữa."
+      }
+    ],
+    "ambient": [
+      "Cao công tử, nơi góc hành lang kia tối quá. Xin đi chậm một chút.",
+      "Tôi không giúp được nhiều, nhưng có thể canh chừng phía sau.",
+      "Có tiếng gì đó phía trước... hay chỉ là tiếng đèn, tôi cũng chẳng rõ."
+    ],
+    "story": [
+      [
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Có lần tôi nói những lời không thể thu lại với một người đối đãi cùng tôi rất tử tế."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Nàng đã nói lời xin lỗi chưa?"
+        },
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Chưa. Đến giờ tôi vẫn nhớ mình đã quay lưng nhanh thế nào."
+        }
       ],
-      ambient:[
-        'Cao công tử, xin cẩn trọng. Nơi này không giống bất cứ chốn nào tôi từng biết.',
-        'Nếu công tử cần người trông chừng phía sau, tôi sẽ giúp.',
-        'Tôi sẽ quan sát hành lang phía trước.'
+      [
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Tôi bắt gặp chàng nhận bạc từ gia nhân Hứa phủ. Lòng nghi ngờ nổi lên, tôi chẳng chịu nghe chàng giải thích."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Rồi nàng biết số bạc ấy dùng vào việc gì?"
+        },
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Cứu dân gặp nạn. Người sai là tôi."
+        }
       ],
-      story:[
-        [{speaker:'hua_tieu_lan',text:'Tôi từng nói những lời rất cay nghiệt với một người thật lòng thương tôi. Đến giờ tôi vẫn không quên.'}],
-        [{speaker:'hua_tieu_lan',text:'Ngày ấy, tôi thấy chàng nhận tiền của gia nhân Hứa gia và tưởng chàng tiếp cận tôi vì tiền bạc. Tôi đã trách nhầm chàng.'}],
-        [{speaker:'hua_tieu_lan',text:'Mẹ tôi sau đó nói khoản tiền ấy là để cứu giúp những người gặp nạn vì thiên tai. Tôi vội đi tìm chàng để xin lỗi.'}],
-        [{speaker:'hua_tieu_lan',text:'Nhưng chàng đã gặp nạn trên đường về nhà. Tôi không kịp nói một lời xin lỗi. Cao công tử... xin thứ lỗi vì đã khiến công tử nghe chuyện buồn.'}]
+      [
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Mẫu thân kể rõ sự tình, tôi liền đi tìm chàng."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Nàng đã gặp được?"
+        },
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Nếu gặp được, có lẽ tôi đã không phải kể chuyện này với công tử."
+        }
       ],
-      past:[
-        'Tôi là con gái thứ tư của Hứa gia ở Sài Gòn – Chợ Lớn. Người nhà thường gọi tôi là Tứ tiểu thư.',
-        'Ngày sinh nhật mười tám tuổi, tôi lạc vào nơi này. Không biết người nhà có còn chờ tôi không.'
+      [
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Trên đường về, chàng gặp nạn. Tôi còn chưa kịp gọi một tiếng."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Có những điều không thể sửa lại."
+        },
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Tôi biết. Chỉ mong mình đừng đem lỗi lầm ấy làm khổ người khác thêm lần nữa."
+        }
       ]
-    },
-    luc_tram:{
-      intro:[{speaker:'luc_tram',text:'Ta là Lục Trầm, đệ tử chân truyền Thiên Kiếm Môn.'},
-        {speaker:'luc_tram',text:'Nếu phải cùng đi, trước hết đừng để bất cẩn làm hại cả nhóm.'}],
-      ambient:['Ta vẫn đang quan sát tình hình.','Tịch Quang vẫn ở bên ta.'],
-      past:['Ta vốn tu hành tại Thiên Kiếm Môn, đi theo con đường kiếm đạo.'],
-      story:[[{speaker:'luc_tram',text:'Tịch Quang là bản mệnh kiếm của ta. Ta từng dành nhiều năm để rèn luyện kiếm đạo.'}]]
-    },
-    trac_lam:{
-      intro:[{speaker:'trac_lam',text:'Tôi là Trác Lâm, đội trưởng SRU-03.'},
-        {speaker:'trac_lam',text:'Nếu hợp tác, điều đầu tiên cần làm là giữ đội hình và xác nhận những gì chúng ta thật sự quan sát được.'}],
-      ambient:['Có việc gì cần bàn sao?','Cần xác định đường rút trước khi tiến vào khu vực chưa kiểm tra.'],
-      past:['Tôi đến từ Đà Nẵng, năm 2099. Trước đây tôi công tác trong lực lượng phản ứng dị thường SRU.'],
-      story:[
-        [{speaker:'trac_lam',text:'Năm 2094, ở Cảng Đông Hải, chúng tôi từng xử lý một khu kho vận có hiện tượng lặp không gian. Tôi đã cùng đội đưa được mười một dân thường ra ngoài.'}],
-        [{speaker:'trac_lam',text:'Trước khi lạc vào đây, tôi chỉ huy tổ SRU-03. Hiện tôi vẫn chưa liên lạc được với đồng đội của mình.'}]
+    ],
+    "past": [
+      "Tôi là con gái thứ tư của Hứa gia, người nhà vẫn gọi là Tứ tiểu thư.",
+      "Hôm sinh nhật mười tám tuổi, tôi lạc tới nơi này. Tôi sợ nhất là người nhà cứ đợi mãi mà không biết tôi ở đâu."
+    ]
+  },
+  "luc_tram": {
+    "intro": [
+      {
+        "speaker": "luc_tram",
+        "text": "Đừng tiến thêm. Ta là Lục Trầm, đệ tử Thiên Kiếm Môn."
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Nàng không nhận ra ta?"
+      },
+      {
+        "speaker": "luc_tram",
+        "text": "Ta nên nhận ra sao?"
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "...Không. Chỉ là ta đã từng nghe cái tên ấy."
+      },
+      {
+        "speaker": "luc_tram",
+        "text": "Vậy hãy để kiếm trong vỏ. Có điều gì cần nói, chúng ta nói trên đường."
+      }
+    ],
+    "ambient": [
+      "Tịch Quang không yên. Chậm lại một chút.",
+      "Đừng nhìn ta. Hãy nhìn lối rẽ bên trái.",
+      "Ta nghe thấy tiếng động phía trước. Chưa rõ là gì."
+    ],
+    "past": [
+      "Thiên Kiếm Môn đã dạy ta cầm kiếm vì điều gì. Ở đây, ngay cả điều đó cũng không phải lúc nào cũng dễ giữ."
+    ],
+    "story": [
+      [
+        {
+          "speaker": "luc_tram",
+          "text": "Tịch Quang theo ta nhiều năm. Chỉ cần đặt tay lên chuôi, ta biết mình có còn giữ được bình tĩnh hay không."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Và lúc này?"
+        },
+        {
+          "speaker": "luc_tram",
+          "text": "Ta đang cố."
+        }
       ]
-    }
-  };
-  // R07: episode order is presentation progress, not proof that a character has
-  // recovered memories or that any investigation/quest has been completed.
-  // cross is eligible only when BOTH Entity identities were Core-confirmed in
-  // prior encounters; no secret fact is narrated without in-world evidence.
+    ]
+  },
+  "trac_lam": {
+    "intro": [
+      {
+        "speaker": "trac_lam",
+        "text": "Dừng ở đó. Trác Lâm, SRU-03. Tôi cần biết anh có bị thương không."
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Không. Anh là người của nơi này?"
+      },
+      {
+        "speaker": "trac_lam",
+        "text": "Không. Và nếu anh có đường ra thì tôi đang cần nó."
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Chưa tìm thấy."
+      },
+      {
+        "speaker": "trac_lam",
+        "text": "Vậy ta có cùng một vấn đề. Tôi đi trước kiểm tra góc khuất, anh giữ phía sau. Chưa rõ nguy hiểm thì đừng tách đội."
+      }
+    ],
+    "ambient": [
+      "Góc chết bên phải. Tôi quan sát trước.",
+      "Nếu đường phía trước không an toàn, quay lại ngay. Đừng cố thêm một bước.",
+      "Không có dữ kiện mới. Tạm giữ đội hình."
+    ],
+    "past": [
+      "Tôi đến từ Đà Nẵng, năm 2099. Trước đây chỉ huy tổ SRU-03.",
+      "Tôi không còn bắt được tín hiệu của đội. Chừng nào chưa có chứng cứ, tôi sẽ không kết luận họ đã chết."
+    ],
+    "story": [
+      [
+        {
+          "speaker": "trac_lam",
+          "text": "Năm 2094, ở Cảng Đông Hải, kho vận cứ lặp lại một dãy hành lang. Đội tôi đưa được mười một người ra ngoài."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Còn những người ở lại?"
+        },
+        {
+          "speaker": "trac_lam",
+          "text": "Chúng tôi quay vào tìm tiếp. Tôi không thích biến con số mười một thành lời khoe chiến tích."
+        }
+      ],
+      [
+        {
+          "speaker": "trac_lam",
+          "text": "Lần cuối tôi nhận lệnh, SRU-03 vẫn còn nguyên đội hình."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Giờ anh biết họ ở đâu không?"
+        },
+        {
+          "speaker": "trac_lam",
+          "text": "Không. Nên tôi vẫn nghe ngóng mọi tần số, dù chẳng có tín hiệu nào trả lời."
+        }
+      ]
+    ]
+  }
+};
+  // R07: only Core-confirmed Entity encounters can display these scenes.
+  // Episode progress is not evidence, memory recovery, or a world-state change.
   global.BackroomSpecialEntityDialogue={
-    diep_minh:{
-      name:'Diệp Minh',overlay:'entity/diep_minh.webp',
-      episodes:[
-        [
-          {speaker:'diep_minh',text:'Ta từng nghĩ chuyện Cao gia đã chấm dứt từ lâu.'},
-          {speaker:'cao_minh',text:'Hơn bốn trăm mạng người. Ngươi gọi đó là một chuyện đã chấm dứt?'},
-          {speaker:'diep_minh',text:'Người chết không trở về đòi nợ. Ta chỉ không ngờ còn sót lại ngươi.'},
-          {speaker:'diep_minh',text:'Sai lầm ấy, ta sẽ không lặp lại.'}
-        ],
-        [
-          {speaker:'cao_minh',text:'Ngươi đã ở chốn này bao lâu?'},
-          {speaker:'diep_minh',text:'Đủ lâu để biết linh khí nơi đây không thuộc về bất kỳ tông môn nào của thế giới cũ.'},
-          {speaker:'cao_minh',text:'Vậy ngươi định chiếm lấy nó?'},
-          {speaker:'diep_minh',text:'Một nguồn lực lớn đến thế mà không có chủ nhân. Ngươi không thấy lãng phí sao?'}
-        ],
-        [
-          {speaker:'diep_minh',text:'Ngươi nhìn nửa thân này như thể ta đã trả giá quá đắt.'},
-          {speaker:'cao_minh',text:'Sinh Mệnh Đạo của ngươi cũng để lại thứ hình hài ấy?'},
-          {speaker:'diep_minh',text:'Kẻ không dám trả giá thì đừng bàn đến trường sinh.'},
-          {speaker:'diep_minh',text:'Còn ngươi, Cao Minh, đã đánh mất bao nhiêu thứ để đến được đây?'}
-        ],
-        [
-          {speaker:'diep_minh',text:'Một tông môn không nhất thiết phải mọc lên trên tiên sơn. Chỉ cần người đời muốn bước qua cửa của nó.'},
-          {speaker:'cao_minh',text:'Ngươi còn tưởng những hành lang này sẽ phục tùng mình?'},
-          {speaker:'diep_minh',text:'Đường đi có thể biến mất. Thứ nắm được tri thức về đường đi thì không.'},
-          {speaker:'diep_minh',text:'Đó là điều ta phải học trong một quãng thời gian rất dài.'}
-        ],
-        [
-          {speaker:'cao_minh',text:'Giết sạch Cao gia vẫn chưa đủ cho ngươi sao?'},
-          {speaker:'diep_minh',text:'Ta không cần thêm một cuộc huyết tẩy. Ta cần không còn một kẻ họ Cao nào có thể phá hỏng việc ta đang làm.'},
-          {speaker:'cao_minh',text:'Chừng nào ta còn sống, ngươi sẽ không được yên.'},
-          {speaker:'diep_minh',text:'Chính vì vậy, ta mới luôn mang kiếm.'}
-        ],
-        [
-          {"speaker":"diep_minh","text":"Ngươi có bao giờ nghĩ vì sao những kẻ lạc vào đây cứ tranh giành một lối đi, trong khi linh khí nằm ngay dưới chân?"},
-          {"speaker":"cao_minh","text":"Không phải ai cũng xem chốn này là động phủ."},
-          {"speaker":"diep_minh","text":"Chính vì thế mới có người tìm đường về, còn có người hiểu mình vừa gặp một cơ duyên."},
-          {"speaker":"diep_minh","text":"Cùng một hành lang. Kẻ nhìn thấy nhà tù, kẻ nhìn thấy một triều đại chưa có vua."},
-        ],
-        [
-          {"speaker":"cao_minh","text":"Ngươi từng dùng kiếm ý đánh dấu đường đi?"},
-          {"speaker":"diep_minh","text":"Đã thử. Có những nơi tìm lại được, có những nơi chỉ còn dấu kiếm mà không còn con đường."},
-          {"speaker":"cao_minh","text":"Vậy mà ngươi vẫn muốn lập tông?"},
-          {"speaker":"diep_minh","text":"Ngươi lầm. Sơn môn không nhất thiết là một cánh cổng. Có khi nó là tri thức mà người khác buộc phải đến xin."},
-          {"speaker":"diep_minh","text":"Nắm được đường đi còn hơn chiếm một bức tường."},
-        ],
-        [
-          {"speaker":"diep_minh","text":"Ngươi nhớ ngày ta tới Cao gia, nhưng hẳn không biết ta đã nghĩ gì khi quay lưng."},
-          {"speaker":"cao_minh","text":"Ta chỉ cần nhớ ngươi đã làm gì."},
-          {"speaker":"diep_minh","text":"Ta tin rằng mọi mầm báo thù đều đã tắt. Tin ấy hóa ra quá sớm."},
-          {"speaker":"cao_minh","text":"Ngươi tính cả tính mạng một đứa trẻ vào phép toán của mình?"},
-          {"speaker":"diep_minh","text":"Ta tính mọi khả năng gây ra hậu họa. Ngươi là khả năng duy nhất ta không loại bỏ được."},
-          {"speaker":"cao_minh","text":"Và ngươi vẫn gọi đó là tính toán."},
-        ],
-        [
-          {"speaker":"cao_minh","text":"Hoàng Thiên Mộc Kiếm của ngươi khác trước."},
-          {"speaker":"diep_minh","text":"Đời người tu đạo đâu chỉ có một lần thay kiếm."},
-          {"speaker":"cao_minh","text":"Thứ khí tức ấy không còn thuần túy như ở thế giới cũ."},
-          {"speaker":"diep_minh","text":"Sống qua một lần trả giá, thân và kiếm tất phải mang dấu vết."},
-          {"speaker":"diep_minh","text":"Ta chưa từng nói rằng tiến cảnh của mình không để lại thương tổn."},
-        ],
-        [
-          {"speaker":"diep_minh","text":"Một thế giới có linh khí mà không có tông quy. Ngươi biết điều ấy dẫn tới đâu chứ?"},
-          {"speaker":"cao_minh","text":"Ngươi muốn đặt ra tông quy cho tất cả?"},
-          {"speaker":"diep_minh","text":"Kẻ đủ sức nắm đường tu luyện sẽ định nghĩa thế nào là quy củ."},
-          {"speaker":"cao_minh","text":"Ngươi gọi sự phục tùng là trật tự."},
-          {"speaker":"diep_minh","text":"Còn ngươi gọi sức mạnh của mình là tự do. Chúng ta chỉ khác ở cách đặt tên."},
-        ],
-        [
-          {"speaker":"cao_minh","text":"Ngươi từng theo đuổi chính đạo. Rốt cuộc còn điều gì trong ngươi không biến thành thứ để đánh đổi?"},
-          {"speaker":"diep_minh","text":"Ta chưa từng coi con đường mình đi là cuộc thi xem ai nhân từ hơn."},
-          {"speaker":"cao_minh","text":"Một đạo lý phải xây bằng hơn bốn trăm xác người?"},
-          {"speaker":"diep_minh","text":"Ngươi có thể căm hận ta đến tận cùng. Điều ấy không làm những người kia sống lại."},
-          {"speaker":"cao_minh","text":"Nhưng chừng nào ta còn cầm kiếm, ngươi sẽ phải đối diện với việc mình đã làm."},
-        ]
+  "diep_minh": {
+    "name": "Diệp Minh",
+    "overlay": "entity/diep_minh.webp",
+    "episodes": [
+      [
+        {
+          "speaker": "diep_minh",
+          "text": "Ta ngỡ Cao gia đã không còn ai."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ngươi đã giết hơn bốn trăm người. Còn muốn đếm ai nữa?"
+        },
+        {
+          "speaker": "diep_minh",
+          "text": "Ta đã kiểm tra rất kỹ. Vẫn bỏ sót ngươi."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Vậy hôm nay nhìn cho rõ."
+        }
       ],
-      cross:[
-        [
-          {speaker:'diep_minh',text:'Ngươi không phải người duy nhất mang mối thù bước vào những hành lang này.'},
-          {speaker:'cao_minh',text:'Ngươi đang ám chỉ ai?'},
-          {speaker:'diep_minh',text:'Có những thanh kiếm chỉ cần tin rằng mình đang bảo vệ chính đạo là đủ sắc bén.'},
-          {speaker:'diep_minh',text:'Nếu một ngày chúng quay về phía ngươi, đừng hỏi ta vì sao.'}
-        ],
-        [
-          {"speaker":"diep_minh","text":"Ngươi gọi tên một thanh kiếm cũ với vẻ rất khác khi gọi tên ta."},
-          {"speaker":"cao_minh","text":"Đừng đem nàng vào chuyện giữa chúng ta."},
-          {"speaker":"diep_minh","text":"Ta chẳng cần gọi tên. Ngươi đã tự nói cho ta biết mình sợ điều gì."},
-          {"speaker":"diep_minh","text":"Một người quen có thể trở nên xa lạ nhanh hơn cả đường đi nơi này."},
-        ],
-        [
-          {"speaker":"cao_minh","text":"Ngươi từng đứng cạnh Lục Trầm?"},
-          {"speaker":"diep_minh","text":"Ngươi hỏi như thể chỉ cần biết ai đã đứng cạnh nàng thì mọi lời nàng tin sẽ tự tan."},
-          {"speaker":"cao_minh","text":"Ngươi đã nói gì?"},
-          {"speaker":"diep_minh","text":"Chính câu hỏi ấy cho thấy ngươi vẫn chưa hiểu. Người ta có thể nghe một lời, nhưng cầm kiếm là quyết định của họ."},
-        ]
+      [
+        {
+          "speaker": "cao_minh",
+          "text": "Ngươi đã ở chốn này bao lâu?"
+        },
+        {
+          "speaker": "diep_minh",
+          "text": "Lâu hơn ngươi nghĩ. Đủ để một lần bế quan biến thành nhiều lần."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Nơi này cho ngươi thứ gì?"
+        },
+        {
+          "speaker": "diep_minh",
+          "text": "Thứ ở quê nhà ta phải tranh giành cả đời. Nhưng có được linh khí vẫn phải tự biết cách dùng nó."
+        }
       ],
-      repeat:[
-        [
-          {speaker:'diep_minh',text:'Đường đi đổi hướng, linh khí vẫn chảy. Ta càng ở lâu, càng thấy nơi này đáng giá.'},
-          {speaker:'cao_minh',text:'Ngươi nói như thể nó đã thuộc về ngươi.'},
-          {speaker:'diep_minh',text:'Chưa. Bởi vậy ta vẫn đang ở đây.'}
-        ],
-        [
-          {speaker:'diep_minh',text:'Ngươi lẽ ra không nên sống sót sau ngày ấy.'},
-          {speaker:'cao_minh',text:'Ngươi lẽ ra không nên động đến Cao gia.'},
-          {speaker:'diep_minh',text:'Vậy giữa chúng ta, chỉ có kiếm là còn đủ lời để nói.'}
-        ],
-        [
-          {speaker:'cao_minh',text:'Ngươi mạnh hơn trước, nhưng vẫn chẳng thể bước ra ngoài.'},
-          {speaker:'diep_minh',text:'Ngươi lầm rồi. Ta không vội rời khỏi một nơi còn quá nhiều thứ chưa lấy được.'},
-          {speaker:'diep_minh',text:'Và ngươi là thứ phiền toái ta cần giải quyết trước.'}
-        ],
-        [
-          {"speaker":"diep_minh","text":"Người khác sợ lạc đường. Ta sợ bỏ phí một nơi có thể khiến cảnh giới thay đổi."},
-          {"speaker":"cao_minh","text":"Vì thế ngươi đánh đổi cả thân thể?"},
-          {"speaker":"diep_minh","text":"Nếu cần, ta sẽ tìm cách chịu một cái giá khác. Nhưng chưa bao giờ là vô giá."},
-        ],
-        [
-          {"speaker":"cao_minh","text":"Ngươi có định đưa cả những kẻ đi theo mình ra khỏi Backrooms?"},
-          {"speaker":"diep_minh","text":"Nếu ngày ấy đến, ta sẽ chọn ai đủ tư cách bước theo."},
-          {"speaker":"cao_minh","text":"Vậy trước ngày ấy, họ chỉ là công cụ?"},
-          {"speaker":"diep_minh","text":"Một tông môn phải có lợi ích và kỷ luật. Ngươi có thể ghét từ ngữ ấy."},
-        ],
-        [
-          {"speaker":"diep_minh","text":"Đã lâu ta không thấy ai nhìn kiếm của mình mà vẫn nhắc chuyện huyết án."},
-          {"speaker":"cao_minh","text":"Ngày nào ngươi còn sống, ta còn nhắc."},
-          {"speaker":"diep_minh","text":"Vậy hãy giữ giọng nói ấy. Nó nhắc ta không được để sót ngươi lần nữa."},
-        ]
+      [
+        {
+          "speaker": "diep_minh",
+          "text": "Ngươi cứ nhìn nửa thân thể này."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ta nhớ Sinh Mệnh Đạo của ngươi không có màu ấy."
+        },
+        {
+          "speaker": "diep_minh",
+          "text": "Có những bình cảnh không chịu mở, dù người ta gõ cửa bằng cả mạng sống."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Lần này ngươi trả bằng chính mình. Đáng tiếc ta chẳng thấy công bằng hơn."
+        }
+      ],
+      [
+        {
+          "speaker": "diep_minh",
+          "text": "Một tông môn không nhất thiết phải dựng lên từ đá và ngói."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ngươi định lập tông trong một mê cung không giữ nổi đường đi?"
+        },
+        {
+          "speaker": "diep_minh",
+          "text": "Kẻ biết đường đi sẽ có người tìm đến. Kẻ giữ được người mới có quyền gọi nơi ấy là sơn môn."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ngươi nói như thể người khác sinh ra để cúi đầu trước ngươi."
+        }
+      ],
+      [
+        {
+          "speaker": "cao_minh",
+          "text": "Ngươi có từng nhớ đến người Cao gia đã chết?"
+        },
+        {
+          "speaker": "diep_minh",
+          "text": "Có. Khi cần nhắc mình đừng bỏ sót lần nữa."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ngươi gọi đó là một câu trả lời?"
+        },
+        {
+          "speaker": "diep_minh",
+          "text": "Ta biết ngươi muốn nghe lời sám hối. Ta không có lời ấy."
+        }
+      ],
+      [
+        {
+          "speaker": "diep_minh",
+          "text": "Ngươi có bao giờ nghĩ: người ta mải tìm cửa ra, mà chẳng ai hỏi vì sao linh khí ở đây dồi dào đến thế?"
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ngươi đã tìm được câu trả lời?"
+        },
+        {
+          "speaker": "diep_minh",
+          "text": "Chưa. Nhưng ta có thời gian để tìm."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Thế thì đừng vội tự xưng là chủ nhân nơi này."
+        }
+      ],
+      [
+        {
+          "speaker": "cao_minh",
+          "text": "Ngươi từng dùng kiếm ý đánh dấu đường đi?"
+        },
+        {
+          "speaker": "diep_minh",
+          "text": "Một lần ta theo dấu kiếm của chính mình, rồi đứng trước một bức tường không có vết chém."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Vậy dấu kiếm đâu?"
+        },
+        {
+          "speaker": "diep_minh",
+          "text": "Ta không biết. Chính vì không biết, ta mới chưa rời khỏi chốn này."
+        }
+      ],
+      [
+        {
+          "speaker": "diep_minh",
+          "text": "Ngày ta rời Cao gia, trời còn chưa sáng."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ta không cần nghe ngươi kể lại ngày ấy."
+        },
+        {
+          "speaker": "diep_minh",
+          "text": "Ta chỉ nhớ mình đã tự tin đến mức nào."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ngươi đi trên máu người nhà ta. Đó không phải chuyện để hoài niệm."
+        },
+        {
+          "speaker": "diep_minh",
+          "text": "Đúng. Với ta, đó là một tính toán sai. Với ngươi, là cả một đời."
+        }
+      ],
+      [
+        {
+          "speaker": "cao_minh",
+          "text": "Hoàng Thiên Mộc Kiếm đã khác xưa."
+        },
+        {
+          "speaker": "diep_minh",
+          "text": "Người cũ, kiếm cũ, đường tu lại dài thêm. Chuyện thường thôi."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Nửa người ngươi không nghĩ thế."
+        },
+        {
+          "speaker": "diep_minh",
+          "text": "Thân xác biết đau, nhưng nó không được quyền quyết định ta dừng ở đâu."
+        }
+      ],
+      [
+        {
+          "speaker": "diep_minh",
+          "text": "Ở đây không có trưởng lão, không có tông quy. Chỉ có kẻ sống sót."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Và ngươi muốn bắt họ gọi mình là chưởng môn."
+        },
+        {
+          "speaker": "diep_minh",
+          "text": "Nếu ta có thể đưa họ qua những con đường họ không dám bước, một số người sẽ tự tìm đến."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Đừng nhầm kẻ tuyệt vọng với môn đồ."
+        }
+      ],
+      [
+        {
+          "speaker": "cao_minh",
+          "text": "Ngươi đã cướp thần vật Cao gia. Rốt cuộc được gì?"
+        },
+        {
+          "speaker": "diep_minh",
+          "text": "Ngươi đứng trước mặt ta, đã thành Vạn Giới Ma Tôn. Ngươi hẳn hiểu cái giá của sức mạnh."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Đừng đặt hai chuyện ấy cạnh nhau."
+        },
+        {
+          "speaker": "diep_minh",
+          "text": "Ta không xin ngươi tha thứ. Chỉ muốn biết ngươi còn chịu mất đến đâu để giết ta."
+        }
       ]
-    },
-    luc_tram_hac_hoa:{
-      name:'Lục Trầm Hắc Hóa',overlay:'entity/luc_tram_hac_hoa.webp',
-      episodes:[
-        [
-          {speaker:'luc_tram_hac_hoa',text:'Ma khí trong kinh mạch ta... tại sao lại giống hệt khí tức của ngươi?'},
-          {speaker:'cao_minh',text:'Lục Trầm? Nàng không nhận ra ta sao?'},
-          {speaker:'luc_tram_hac_hoa',text:'Ta nhận ra ma khí. Còn ngươi, ta không nhớ đã từng gặp.'},
-          {speaker:'luc_tram_hac_hoa',text:'Đừng lấy tên ta để đổi lấy một khắc sơ hở.'}
-        ],
-        [
-          {speaker:'luc_tram_hac_hoa',text:'Ta nhớ Lôi Thiên Vực. Nhớ kiếm quang và những người đã ngã xuống.'},
-          {speaker:'cao_minh',text:'Vậy nàng còn nhớ chuyện gì đã xảy ra với chính mình?'},
-          {speaker:'luc_tram_hac_hoa',text:'Có một khoảng trống. Ta không biết ai đã lấy nó đi.'},
-          {speaker:'luc_tram_hac_hoa',text:'Đừng mong dùng điều ta không nhớ để ép ta tin ngươi.'}
-        ],
-        [
-          {speaker:'luc_tram_hac_hoa',text:'Có người nói chính ngươi đã giết sạch các tu sĩ Chính Đạo ở Lôi Thiên Vực.'},
-          {speaker:'cao_minh',text:'Ai đã nói với nàng điều đó?'},
-          {speaker:'luc_tram_hac_hoa',text:'Ta từng thấy những người ngã xuống. Nhưng ta cũng không tin hoàn toàn kẻ đã kể chuyện ấy.'},
-          {speaker:'cao_minh',text:'Vậy nàng còn nhớ điều gì dẫn đến trận chiến?'},
-          {speaker:'luc_tram_hac_hoa',text:'Ta nhớ rất nhiều. Chỉ có một khoảng trống mà ta không giải thích được.'}
-        ],
-        [
-          {speaker:'luc_tram_hac_hoa',text:'Ngươi biết Tịch Quang. Ngươi biết cả cách ta chuyển kiếm trước khi xuất chiêu.'},
-          {speaker:'cao_minh',text:'Ta đã ở bên nàng lâu hơn nàng tưởng.'},
-          {speaker:'luc_tram_hac_hoa',text:'Nếu thế, tại sao trong trí nhớ của ta không có lấy một lần ngươi xuất hiện?'},
-          {speaker:'luc_tram_hac_hoa',text:'Nói thật đi. Ngươi đã làm gì với ta?'}
-        ],
-        [
-          {speaker:'luc_tram_hac_hoa',text:'Ta không thích cách ngươi nhìn ta. Như thể ta vừa trở về từ cõi chết.'},
-          {speaker:'cao_minh',text:'Có những chuyện ta không thể giải thích chỉ bằng vài câu.'},
-          {speaker:'luc_tram_hac_hoa',text:'Vậy đừng bắt ta phải tin vào vài câu ấy.'},
-          {speaker:'luc_tram_hac_hoa',text:'Chừng nào chưa biết sự thật, thanh kiếm này vẫn hướng về ngươi.'}
-        ],
-        [
-          {"speaker":"luc_tram_hac_hoa","text":"Diệp Minh biết tên ngươi trước cả khi ta hỏi."},
-          {"speaker":"cao_minh","text":"Hắn không chỉ biết tên ta."},
-          {"speaker":"luc_tram_hac_hoa","text":"Ta biết hắn là kẻ chẳng đáng tin. Nhưng vì sao mỗi lần nhắc đến Cao gia, hắn lại im lặng?"},
-          {"speaker":"cao_minh","text":"Nàng biết Cao gia đã xảy ra chuyện gì không?"},
-          {"speaker":"luc_tram_hac_hoa","text":"Không. Và ta sẽ không nhận câu trả lời của chỉ một phía làm kết luận."},
-        ],
-        [
-          {"speaker":"cao_minh","text":"Nàng còn nhớ những ai đứng cùng mình tại Lôi Thiên Vực?"},
-          {"speaker":"luc_tram_hac_hoa","text":"Ta nhớ rất nhiều khuôn mặt. Ta nhớ Diệp Minh đã đứng cạnh Vô Lượng."},
-          {"speaker":"cao_minh","text":"Vậy vì sao ký ức ấy còn mà nàng lại chẳng nhớ ta?"},
-          {"speaker":"luc_tram_hac_hoa","text":"Đó cũng là điều ta phải tự hỏi. Đừng nghĩ ngươi có quyền trả lời thay ta."},
-          {"speaker":"luc_tram_hac_hoa","text":"Ta nhớ mình đã nâng kiếm. Nhưng phần tiếp theo của trận chiến không thể ráp thành một ký ức liền mạch."},
-        ],
-        [
-          {"speaker":"luc_tram_hac_hoa","text":"Mỗi lần đến gần ngươi, ma nguyên trong ta đều khiến ta bất an."},
-          {"speaker":"cao_minh","text":"Nàng muốn ta tránh xa?"},
-          {"speaker":"luc_tram_hac_hoa","text":"Ta muốn biết vì sao một thứ xa lạ lại có cảm giác như đã ở trong mình từ rất lâu."},
-          {"speaker":"cao_minh","text":"Không phải thứ gì quen thuộc cũng dễ nhớ lại."},
-          {"speaker":"luc_tram_hac_hoa","text":"Đừng nói với ta như người đã biết tất cả. Ta không chịu được giọng ấy."},
-        ],
-        [
-          {"speaker":"luc_tram_hac_hoa","text":"Có kẻ nói người đứng đối diện ta là ma đầu tàn sát Chính Đạo."},
-          {"speaker":"cao_minh","text":"Còn nàng tin điều gì?"},
-          {"speaker":"luc_tram_hac_hoa","text":"Ta tin thương vong ở Lôi Thiên Vực là thật. Nhưng lời kể về thủ phạm không thể chỉ dựa trên một miệng người."},
-          {"speaker":"cao_minh","text":"Vậy nàng sẽ thôi chĩa kiếm vào ta?"},
-          {"speaker":"luc_tram_hac_hoa","text":"Chưa. Ngươi cũng chưa trả lời hết những gì ta hỏi."},
-        ],
-        [
-          {"speaker":"cao_minh","text":"Ta từng biết lúc nào nàng sẽ đổi thế với Tịch Quang."},
-          {"speaker":"luc_tram_hac_hoa","text":"Điều đó không chứng minh chúng ta từng đồng hành."},
-          {"speaker":"cao_minh","text":"Ta biết."},
-          {"speaker":"luc_tram_hac_hoa","text":"Nhưng cũng không phải điều một người mới gặp thường có thể nói ra."},
-          {"speaker":"luc_tram_hac_hoa","text":"Ta sẽ nhớ lấy chi tiết này. Chỉ là ta chưa biết nên hiểu nó như thế nào."},
-        ],
-        [
-          {"speaker":"luc_tram_hac_hoa","text":"Nếu những gì ngươi nói là thật, vì sao ta tỉnh dậy mà không có ngươi trong ký ức?"},
-          {"speaker":"cao_minh","text":"Ta tỉnh lại mà chẳng còn thấy nàng bên cạnh."},
-          {"speaker":"luc_tram_hac_hoa","text":"Rời khỏi ngươi? Ngươi nói như thể chúng ta từng cùng đi qua một nơi nào đó."},
-          {"speaker":"cao_minh","text":"Ta không thể ép nàng nhớ."},
-          {"speaker":"luc_tram_hac_hoa","text":"Vậy đừng ép ta tin. Hãy để điều đã xảy ra tự chứng minh chính nó."},
-        ]
+    ],
+    "cross": [
+      [
+        {
+          "speaker": "diep_minh",
+          "text": "Ngươi không phải người duy nhất mang thù hận tới đây."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ngươi đang nói tới ai?"
+        },
+        {
+          "speaker": "diep_minh",
+          "text": "Có thanh kiếm từng hướng về phía kẻ khác. Nay người cầm nó lại nghe những lời mới."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Nếu ngươi đã động đến Lục Trầm..."
+        }
       ],
-      cross:[
-        [
-          {speaker:'luc_tram_hac_hoa',text:'Ta còn nhớ Diệp Minh đã đứng cạnh Vô Lượng ở Lôi Thiên Vực.'},
-          {speaker:'cao_minh',text:'Vậy nàng còn tin những gì hắn nói?'},
-          {speaker:'luc_tram_hac_hoa',text:'Ta chưa từng nói mình tin hắn hoàn toàn.'},
-          {speaker:'luc_tram_hac_hoa',text:'Nhưng sự đáng ngờ của hắn không đủ để chứng minh ngươi vô tội.'}
-        ],
-        [
-          {"speaker":"luc_tram_hac_hoa","text":"Diệp Minh từng nói với ta về cái giá của sinh mạng. Hắn nói như thể mọi thứ đều có thể đem ra cân."},
-          {"speaker":"cao_minh","text":"Hắn đã đối xử với Cao gia như vậy."},
-          {"speaker":"luc_tram_hac_hoa","text":"Ta chưa biết hết chuyện Cao gia. Nhưng giờ ta hiểu vì sao ngươi không thể nhắc đến hắn mà bình thản."},
-          {"speaker":"luc_tram_hac_hoa","text":"Điều ấy chưa trả lời được chuyện Lôi Thiên Vực. Nhưng ít nhất đã có thêm một điều cần kiểm chứng."},
-        ],
-        [
-          {"speaker":"luc_tram_hac_hoa","text":"Ta đã hỏi Diệp Minh về chuyện những tu sĩ Chính Đạo ngã xuống. Hắn chỉ kể những phần có lợi cho lời buộc tội."},
-          {"speaker":"cao_minh","text":"Nàng bắt đầu nghi hắn?"},
-          {"speaker":"luc_tram_hac_hoa","text":"Ta nghi từ trước. Giờ ta nghi cả cách hắn chọn điều để nói."},
-          {"speaker":"luc_tram_hac_hoa","text":"Nhưng nghi ngờ một kẻ nói dối chưa đủ để ta tin ngay người đối diện."},
-        ]
+      [
+        {
+          "speaker": "diep_minh",
+          "text": "Ngươi gọi tên nàng như thể nàng phải quay đầu chỉ vì tiếng gọi ấy."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Đừng dùng nàng để uy hiếp ta."
+        },
+        {
+          "speaker": "diep_minh",
+          "text": "Ta chẳng cần uy hiếp. Ngươi đã tự thấy ánh mắt nàng rồi."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ánh mắt ấy không cho ngươi quyền nói thay nàng."
+        }
       ],
-      repeat:[
-        [
-          {speaker:'luc_tram_hac_hoa',text:'Cùng một luồng ma khí. Ngươi có thể phủ nhận mọi lời, nhưng không thể phủ nhận điều ấy.'},
-          {speaker:'cao_minh',text:'Ta chưa từng phủ nhận.'},
-          {speaker:'luc_tram_hac_hoa',text:'Vậy ta càng phải tìm ra nó từ đâu mà có.'}
-        ],
-        [
-          {speaker:'luc_tram_hac_hoa',text:'Tại sao ngươi luôn gọi ta bằng giọng ấy?'},
-          {speaker:'cao_minh',text:'Bởi ta biết người đang đứng trước mặt mình là ai.'},
-          {speaker:'luc_tram_hac_hoa',text:'Còn ta chỉ biết mình không thể buông kiếm lúc này.'}
-        ],
-        [
-          {speaker:'luc_tram_hac_hoa',text:'Ta không nhớ ngươi, Cao Minh. Điều đó không đồng nghĩa ta sẽ nghe theo bất cứ ai.'},
-          {speaker:'cao_minh',text:'Vậy hãy tự tìm sự thật.'},
-          {speaker:'luc_tram_hac_hoa',text:'Ta sẽ làm thế. Nhưng hôm nay, chúng ta vẫn đứng ở hai đầu lưỡi kiếm.'}
-        ],
-        [
-          {"speaker":"luc_tram_hac_hoa","text":"Khi nghe tên Cao Minh, ta không thấy ký ức. Chỉ thấy một khoảng trống mà mình muốn tránh."},
-          {"speaker":"cao_minh","text":"Ta không muốn nàng phải ép mình."},
-          {"speaker":"luc_tram_hac_hoa","text":"Vậy hãy đứng yên khi ta hỏi. Đừng lấy sự quen thuộc làm bằng chứng."},
-        ],
-        [
-          {"speaker":"cao_minh","text":"Tịch Quang vẫn nhận ra kiếm ý của nàng."},
-          {"speaker":"luc_tram_hac_hoa","text":"Kiếm không nói được quá khứ thay cho người cầm nó."},
-          {"speaker":"cao_minh","text":"Ta hiểu."},
-          {"speaker":"luc_tram_hac_hoa","text":"Nếu hiểu, đừng bắt ta chọn một lời giải trước khi thấy sự thật."},
-        ],
-        [
-          {"speaker":"luc_tram_hac_hoa","text":"Có lúc ta tự hỏi điều gì đáng sợ hơn: tin nhầm một người, hay giết nhầm một người."},
-          {"speaker":"cao_minh","text":"Nàng không cần quyết định ngay lúc này."},
-          {"speaker":"luc_tram_hac_hoa","text":"Nhưng chần chừ giữa chiến trận cũng có cái giá của nó. Ta vẫn phải chọn cách đứng vững."},
-        ]
+      [
+        {
+          "speaker": "cao_minh",
+          "text": "Ngươi từng đứng cạnh Lục Trầm. Ngươi đã kể nàng nghe những gì?"
+        },
+        {
+          "speaker": "diep_minh",
+          "text": "Một phần những điều ta biết."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Phần còn lại?"
+        },
+        {
+          "speaker": "diep_minh",
+          "text": "Ngươi hẳn cũng đang chọn lời để nói với nàng. Ta khác ngươi ở chỗ nào?"
+        }
       ]
-    }
-  };
+    ],
+    "repeat": [
+      [
+        {
+          "speaker": "diep_minh",
+          "text": "Đường đi đổi hướng. Ta vẫn chưa gặp hai lần cùng một chỗ."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Có lẽ nơi này không muốn ai làm chủ."
+        },
+        {
+          "speaker": "diep_minh",
+          "text": "Nó không cần muốn. Ta cũng không cần xin phép."
+        }
+      ],
+      [
+        {
+          "speaker": "diep_minh",
+          "text": "Ngươi không nên sống sót sau ngày ấy."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Vậy mà ta vẫn còn đây."
+        },
+        {
+          "speaker": "diep_minh",
+          "text": "Cho nên ta vẫn phải mang kiếm."
+        }
+      ],
+      [
+        {
+          "speaker": "cao_minh",
+          "text": "Ngươi còn tìm cửa ra?"
+        },
+        {
+          "speaker": "diep_minh",
+          "text": "Ta tìm cách mở cửa khi mình muốn, không phải khi có kẻ cho phép."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Khác nhau nhiều lắm sao?"
+        },
+        {
+          "speaker": "diep_minh",
+          "text": "Đối với người phải đi theo kẻ khác, khác một đời."
+        }
+      ],
+      [
+        {
+          "speaker": "diep_minh",
+          "text": "Người khác sợ lạc đường. Ta sợ trở về tay trắng."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Đến cái thân thể ấy còn chưa đủ dạy ngươi sợ?"
+        },
+        {
+          "speaker": "diep_minh",
+          "text": "Nó dạy ta phải cẩn thận hơn, không phải dừng lại."
+        }
+      ],
+      [
+        {
+          "speaker": "cao_minh",
+          "text": "Nếu có kẻ theo ngươi, ngươi sẽ đưa họ ra khỏi nơi này?"
+        },
+        {
+          "speaker": "diep_minh",
+          "text": "Nếu tìm được đường. Ta không bán lời hứa khi chưa có cửa."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Lần đầu ta nghe ngươi nói thật."
+        },
+        {
+          "speaker": "diep_minh",
+          "text": "Ngươi chưa từng muốn nghe."
+        }
+      ],
+      [
+        {
+          "speaker": "diep_minh",
+          "text": "Lần nào gặp cũng là ánh mắt ấy."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ta còn nhớ từng gương mặt trong Cao gia."
+        },
+        {
+          "speaker": "diep_minh",
+          "text": "Ta không nhớ hết. Đó là điều ngươi sẽ không bao giờ tha thứ."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ta đâu cần ngươi nhớ để đòi nợ."
+        }
+      ]
+    ]
+  },
+  "luc_tram_hac_hoa": {
+    "name": "Lục Trầm Hắc Hóa",
+    "overlay": "entity/luc_tram_hac_hoa.webp",
+    "episodes": [
+      [
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Đứng lại. Ma khí trong kinh mạch ta đang phản ứng với ngươi."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "...Lục Trầm?"
+        },
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Ngươi biết tên ta?"
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Nàng thực sự không nhớ sao?"
+        },
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Ta chỉ nhớ chưa từng cho phép kẻ lạ gọi mình thân mật như vậy."
+        }
+      ],
+      [
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Lôi Thiên Vực. Ta vẫn nhớ những tiếng kiếm va nhau."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Thế còn sau trận chiến?"
+        },
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Có một quãng trống. Cứ cố nghĩ, đầu ta lại đau."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Nàng đừng ép mình."
+        },
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Ta tự biết giới hạn của mình. Ngươi không cần ra lệnh."
+        }
+      ],
+      [
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Có người bảo ngươi đã giết sạch tu sĩ Chính Đạo ở Lôi Thiên Vực."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ai nói với nàng?"
+        },
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Một kẻ từng đứng cạnh Vô Lượng. Ta không định coi lời hắn là thánh chỉ."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Vậy vì sao nàng vẫn chĩa kiếm vào ta?"
+        },
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Vì ta đã thấy người chết. Còn ngươi xuất hiện cùng thứ ma khí này. Ta cần câu trả lời."
+        }
+      ],
+      [
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Ngươi biết cách ta giữ Tịch Quang khi chuyển từ thủ sang công."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ta đã thấy nàng luyện kiếm nhiều lần."
+        },
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Đừng kể những chuyện ta không thể kiểm chứng."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Vậy nàng muốn ta nói gì?"
+        },
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Điều ngươi biết, không phải điều ngươi muốn ta tin."
+        }
+      ],
+      [
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Ngươi nhìn ta như nhìn một người vừa mất đi rồi được tìm thấy."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ta tưởng sẽ không còn được nghe giọng nàng nữa."
+        },
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Ta không nhớ đã nói gì với ngươi. Đừng nhìn ta như thể ta vừa thất hứa."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ta biết nàng không cố ý."
+        },
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Ngươi biết điều gì? Ngươi chưa kể cho ta nghe điều gì cả."
+        }
+      ],
+      [
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Diệp Minh cứ tránh trả lời khi ta hỏi về Cao gia."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Hắn có lý do."
+        },
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Ngươi định để ta tự đoán, hay sẽ nói?"
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Người nhà ta chết dưới kiếm hắn. Hơn bốn trăm người."
+        },
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "...Ta sẽ không quên lời ấy. Nhưng ta còn phải tự kiểm chứng."
+        }
+      ],
+      [
+        {
+          "speaker": "cao_minh",
+          "text": "Nàng còn nhớ Diệp Minh đứng ở đâu trong trận chiến?"
+        },
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Bên cạnh Vô Lượng. Ta nhớ rất rõ."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Vậy nàng cũng nhớ hắn không phải kẻ đứng ngoài cuộc."
+        },
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Phải. Ta chưa từng quên điều đó."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Thế mà hắn vẫn nói với nàng về chính đạo."
+        },
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Hắn nói. Ta nghe. Hai việc ấy chưa bao giờ là một."
+        }
+      ],
+      [
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Mỗi lần đến gần ngươi, ma nguyên trong người ta lại dậy lên."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ta có thể lùi lại."
+        },
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Đừng. Ta cần biết nó phản ứng với thứ gì."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Nàng đang run."
+        },
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Ta vẫn cầm vững kiếm. Ngươi hãy trả lời câu hỏi."
+        }
+      ],
+      [
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Ta đã nghĩ rất nhiều về lời buộc tội ở Lôi Thiên Vực."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Và?"
+        },
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Người chết là thật. Nhưng 'tất cả đều do một người giết' là lời của Diệp Minh, không phải điều ta tận mắt thấy."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Nàng đã nhận ra điểm ấy."
+        },
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Đừng vội mừng. Ta chỉ bắt đầu hỏi đúng câu."
+        }
+      ],
+      [
+        {
+          "speaker": "cao_minh",
+          "text": "Nàng lại đổi tay trước khi rút Tịch Quang."
+        },
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Ngươi đã nói chuyện đó lần trước."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Nàng làm thế khi muốn giấu một vết đau."
+        },
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "...Ta vẫn làm vậy từ rất lâu. Sao ngươi biết?"
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ta không thể chứng minh quá khứ chỉ bằng một thói quen."
+        },
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Ít nhất lần này ngươi nói được một câu đáng nghe."
+        }
+      ],
+      [
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Nếu những gì ngươi nói là thật... đã có lúc ta tin ngươi?"
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Có."
+        },
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Ta không cảm thấy điều ấy. Chỉ thấy khoảng trống, và một cơn đau mỗi lần ngươi đến gần."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ta đã tỉnh dậy ở đây mà không thấy nàng nữa. Ta cũng không biết chuyện gì xảy ra sau đó."
+        },
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Vậy chúng ta đang giữ hai nửa của một câu chuyện. Ta vẫn chưa hạ kiếm."
+        }
+      ]
+    ],
+    "cross": [
+      [
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Ta nhớ Diệp Minh đã đứng cạnh Vô Lượng ở Lôi Thiên Vực."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Nàng cũng đã gặp hắn ở đây?"
+        },
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Có. Hắn nói ngươi là ma đầu đã giết hết người Chính Đạo."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Hắn đã giết cả người nhà ta."
+        },
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Ta chưa biết chuyện đó. Nhưng giờ ta có thêm lý do để không tin hắn tuyệt đối."
+        }
+      ],
+      [
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Diệp Minh nói người chết là cái giá phải trả. Hắn nói rất bình thản."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Hắn luôn như vậy."
+        },
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Lời hắn kể về Lôi Thiên Vực cũng bình thản quá mức."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Nàng đang nghi hắn?"
+        },
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Ta đang hỏi vì sao kẻ đó biết rõ một phần mà lại im lặng về phần còn lại."
+        }
+      ],
+      [
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Ta đã hỏi Diệp Minh lần nữa. Hắn không phủ nhận mình từng đứng về phía Vô Lượng."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Hắn cũng chẳng thể chối."
+        },
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Nhưng hắn muốn ta chỉ nhìn vào ma khí trên người ngươi."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Còn nàng nhìn thấy gì?"
+        },
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Một người biết chuyện ta đã quên. Và một người khác rất muốn ta không hỏi thêm."
+        }
+      ]
+    ],
+    "repeat": [
+      [
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Cùng một luồng ma khí. Ta không thể xem đó là trùng hợp."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ta cũng không nói đó là trùng hợp."
+        },
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Vậy lần tới, đừng tránh câu hỏi của ta."
+        }
+      ],
+      [
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Tại sao ngươi luôn gọi ta bằng giọng ấy?"
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ta không nhận ra mình đã gọi khác đi."
+        },
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Ta nghe rất rõ. Và chính điều ấy làm ta không yên."
+        }
+      ],
+      [
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Ta vẫn không nhớ ngươi, Cao Minh."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ta biết."
+        },
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Đừng coi đó là bằng chứng ta sẽ mãi đứng về phía ai."
+        }
+      ],
+      [
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Khi nghe tên Cao Minh, ta chỉ thấy một khoảng trống."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Nàng không cần lấp nó bằng lời ta."
+        },
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Ta sẽ tự tìm. Nhưng đừng mong ta bỏ kiếm chỉ vì ngươi kiên nhẫn."
+        }
+      ],
+      [
+        {
+          "speaker": "cao_minh",
+          "text": "Tịch Quang vẫn như xưa."
+        },
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Ngươi đã từng thấy nó trước đây. Ta không phủ nhận nữa."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Vậy là đủ cho hôm nay."
+        },
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Chưa. Chỉ là ta có thêm một điều cần nghĩ."
+        }
+      ],
+      [
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Ta có thể giết nhầm người. Cũng có thể thả một kẻ đáng chết."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ta sẽ không xin nàng tin ta bằng lời."
+        },
+        {
+          "speaker": "luc_tram_hac_hoa",
+          "text": "Tốt. Ta cũng không muốn quyết định chỉ vì một lời."
+        }
+      ]
+    ]
+  }
+};
 })(window);
