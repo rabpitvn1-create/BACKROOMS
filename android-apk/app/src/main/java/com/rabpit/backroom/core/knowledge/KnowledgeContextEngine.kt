@@ -520,6 +520,14 @@ object KnowledgeContextEngine {
         // a name in player text. Absent siblings remain a no-op.
         add(confirmedVisual.removeSuffix(".VISUAL") + ".CANON",
           "confirmed active Entity authored canon")
+        // Narrative R07 is selected by the same Core-confirmed Entity identity,
+        // never by a player merely mentioning Diệp Minh or Lục Trầm.
+        when (confirmedVisual) {
+          "ENTITY.DIEP_MINH.VISUAL" ->
+            add("STORY.DIEP_MINH.SCENE_R07", "confirmed Diệp Minh story")
+          "ENTITY.LUC_TRAM_HAC_HOA.VISUAL" ->
+            add("STORY.LUC_TRAM_HAC_HOA.SCENE_R07", "confirmed Lục Trầm story")
+        }
       }
       val confirmedEntities = flags?.optInt("entitiesConfirmedLocal", 0) ?: 0
       if (confirmedEntities > 0 || hasAny(sceneText, "entity", "thực thể", "quái", "hound", "smiler", "skin-stealer", "jeff")) {
@@ -555,6 +563,7 @@ object KnowledgeContextEngine {
         when {
           it.id == "CHAR.CAO_MINH.AUTHORED" -> 31
           it.id.endsWith(".AUTHORED") -> 32
+          it.kind == "story-scene-card" -> 33
           // Compact Level 0 index precedes contextual passages, never all 29 details.
           it.id == "LEVEL.00.ZONES.OVERVIEW" -> 33
           // Once Core confirms a zone, its local environment outranks generic R2.
