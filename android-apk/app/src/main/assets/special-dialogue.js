@@ -240,6 +240,17 @@
     const result=previousTurn.call(this,json);
     applyIncoming(before);return result;
   };
+  const previousRender=global.render;
+  if(typeof previousRender==='function')global.render=function(){
+    const result=previousRender.apply(this,arguments);
+    if(!active&&progress().pending)applyIncoming(state);
+    return result;
+  };
+  root.addEventListener('keydown',event=>{
+    if(event.key!=='Escape'||!active)return;
+    event.preventDefault();
+    if(active.kind==='talk'||active.kind==='past'||active.kind==='hint')finish();
+  });
   progress();
-  if(progress().pending)applyIncoming(state);
+  applyIncoming(state);
 })(window);
