@@ -132,7 +132,7 @@ test('offline story trigger consumes the next unheard chapter only after a commi
   next.turn=5;next.log=[{role:'player',text:'Di chuyển qua hành lang'}];
   x.ctx.backroomTurn(JSON.stringify(next));
   assert.equal(x.dialog.hidden,false);
-  assert.match(x.parts['#specialDialogueText'].textContent,/cay nghiệt/);
+  assert.match(x.parts['#specialDialogueText'].textContent,/lời không thể thu lại/);
   x.parts['#specialDialogueActions'].children.at(-1).click();
   assert.equal(x.ctx.state.specialDialogueProgress.chapters.hua_tieu_lan,1);
   x.ctx.SpecialDialogue.offerEntity();
@@ -201,7 +201,7 @@ test('reload resumes the exact persisted encounter route and line before consumi
   const y=env({state:saved});
   assert.equal(y.dialog.hidden,false);
   assert.equal(y.parts['#specialDialogueName'].textContent,'Cao Minh');
-  assert.equal(y.parts['#specialDialogueProgress'].textContent,'2 / 4');
+  assert.equal(y.parts['#specialDialogueProgress'].textContent,'2 / 5');
   finishModal(y);
   assert.equal(y.ctx.state.specialDialogueProgress.entityBeats.luc_tram_hac_hoa,1);
   y.ctx.SpecialDialogue.offerEntity();
@@ -282,7 +282,7 @@ test('three cross-interludes are gated by confirmed history on both storylines',
   assert.equal(insufficient.ctx.state.specialDialogueProgress.entityCross.diep_minh,1);
   const second=seeded(3,3,1);
   encounter(second,'diep_minh','r07-cross-two');
-  assert.match(second.parts['#specialDialogueText'].textContent,/Ngươi gọi tên một thanh kiếm cũ/);
+  assert.match(second.parts['#specialDialogueText'].textContent,/Ngươi gọi tên nàng/);
   finishModal(second);
   assert.equal(second.ctx.state.specialDialogueProgress.entityCross.diep_minh,2);
   encounter(second,'diep_minh','r07-resume-episode');
@@ -398,4 +398,33 @@ test('Lucia authored intro resumes at the same line on reload',()=>{
   assert.match(y.parts['#specialDialogueText'].textContent,/Hứa Thuý Mai/);
   finishModal(y);
   assert.equal(y.ctx.state.specialDialogueProgress.introRevisions.lucia,'lucia-intro-r01');
+});
+
+test('authored encounters have distinct natural voices without a dump of author-only history',()=>{
+  const x=env({state:{party:[],partyDetails:{members:[]},encounteredCharacters:[]}});
+  const people=x.ctx.BackroomSpecialDialogueData;
+  const foes=x.ctx.BackroomSpecialEntityDialogue;
+  const speech=(seq)=>seq.map(line=>line.text).join(' ');
+  const lucia=speech(people.lucia.intro);
+  const diep=speech(foes.diep_minh.episodes[0]);
+  const tram=speech(foes.luc_tram_hac_hoa.episodes[0]);
+  assert.match(lucia,/Đồng bằng sông Cửu Long/);
+  assert.match(lucia,/Hứa Thuý Mai/);
+  assert.match(lucia,/Tôi chưa biết anh là ai/);
+  assert.doesNotMatch(lucia,/Vạn Giới|Lôi Thiên Vực|ma nguyên|Lục Trầm/);
+  assert.match(diep,/Cao gia/);
+  assert.match(diep,/bỏ sót ngươi/);
+  assert.match(tram,/Ma khí trong kinh mạch/);
+  assert.match(tram,/Ngươi biết tên ta/);
+  assert.doesNotMatch(tram,/tự rời đi|lớp trì lưu|tỉnh trước ngươi|hồi sinh/);
+  assert.match(speech(people.hua_tieu_lan.intro),/Anh Tý/);
+  assert.match(speech(people.trac_lam.intro),/SRU-03/);
+  assert.match(speech(people.luc_tram.intro),/Thiên Kiếm Môn/);
+  for(const entry of Object.values(foes)){
+    for(const scene of [...entry.episodes,...entry.cross,...entry.repeat]){
+      assert.ok(scene.length>=3&&scene.length<=6);
+      assert.ok(scene.every(line=>line.text.trim().length>0));
+      assert.ok(scene.some(line=>line.speaker==='cao_minh'));
+    }
+  }
 });
