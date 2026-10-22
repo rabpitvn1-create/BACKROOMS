@@ -51,6 +51,20 @@ function env(options={}){
   vm.createContext(ctx);scripts.forEach(s=>vm.runInContext(s,ctx));
   return {ctx,dialog:document.dialog,parts:document.dialog.nodes,classes};
 }
+function finishModal(x) {
+  for(let step=0;step<12&&!x.dialog.hidden;step++){
+    const buttons=x.parts['#specialDialogueActions'].children;
+    assert.ok(buttons.length,'dialogue should remain navigable');
+    buttons.at(-1).click();
+  }
+  assert.equal(x.dialog.hidden,true,'dialogue must reach its final line');
+}
+function encounter(x,id,encounterId){
+  const next=JSON.parse(JSON.stringify(x.ctx.state));
+  next.pendingEncounter={entityKey:id,encounterId};
+  x.ctx.backroomTurn(JSON.stringify(next));
+  assert.equal(x.dialog.hidden,false,'Core encounter must open dialogue');
+}
 test('script and stylesheet are mounted without altering the CRT or the GM panel',()=>{
   assert.match(index,/special-dialogue\.css/);
   assert.match(index,/special-dialogue-data\.js/);
@@ -98,9 +112,8 @@ test('Entity portraits reuse cropped encounter overlays and never need new asset
   assert.equal(x.dialog.hidden,false);
   assert.equal(x.parts['#specialDialogueAvatar'].children[0].src,'entity/diep_minh.webp');
   assert.equal(x.parts['#specialDialogueAvatar'].children[0].className,'special-dialogue-entity');
-  const buttons=x.parts['#specialDialogueActions'];
-  buttons.children[0].click();
-  buttons.children.at(-1).click();
+  assert.match(x.parts['#specialDialogueText'].textContent,/Cao gia/);
+  finishModal(x);
   assert.equal(x.ctx.state.specialDialogueProgress.shownEncounters['entity-1'],true);
   x.ctx.SpecialDialogue.offerEntity();
   assert.equal(x.dialog.hidden,true);
@@ -119,4 +132,78 @@ test('offline story trigger consumes the next unheard chapter only after a commi
   assert.equal(x.ctx.state.specialDialogueProgress.chapters.hua_tieu_lan,1);
   x.ctx.SpecialDialogue.offerEntity();
   assert.equal(x.dialog.hidden,true);
+});
+
+test('R07 encounters have consecutive authored beats, repeat safely and never spawn on name mentions',()=>{
+  const x=env({state:{party:[],partyDetails:{members:[]},encounteredCharacters:[]}});
+  assert.equal(x.dialog.hidden,true,'mere presence of catalog does not create Entity');
+  encounter(x,'diep_minh','r07-diep-1');
+  assert.match(x.parts['#specialDialogueText'].textContent,/Cao gia/);
+  assert.equal(x.parts['#specialDialogueName'].textContent,'Diệp Minh');
+  x.parts['#specialDialogueActions'].children[0].click();
+  assert.equal(x.parts['#specialDialogueName'].textContent,'Cao Minh');
+  assert.equal(x.ctx.state.specialDialogueProgress.entityBeats.diep_minh||0,0,
+    'a partly read encounter cannot consume a chapter');
+  finishModal(x);
+  assert.equal(x.ctx.state.specialDialogueProgress.entityBeats.diep_minh,1);
+  encounter(x,'diep_minh','r07-diep-2');
+  assert.match(x.parts['#specialDialogueText'].textContent,/ở chốn này bao lâu/);
+  finishModal(x);
+  assert.equal(x.ctx.state.specialDialogueProgress.entityBeats.diep_minh,2);
+  for(let n=3;n<=5;n++){encounter(x,'diep_minh','r07-diep-'+n);finishModal(x);}
+  assert.equal(x.ctx.state.specialDialogueProgress.entityBeats.diep_minh,5);
+  encounter(x,'diep_minh','r07-diep-6');
+  assert.match(x.parts['#specialDialogueText'].textContent,/Đường đi đổi hướng/);
+  finishModal(x);
+  assert.equal(x.ctx.state.specialDialogueProgress.entityRepeats.diep_minh,1);
+  encounter(x,'diep_minh','r07-diep-7');
+  assert.match(x.parts['#specialDialogueText'].textContent,/không nên sống sót/);
+  finishModal(x);
+  assert.equal(x.ctx.state.specialDialogueProgress.entityRepeats.diep_minh,2);
+});
+test('Lục Trầm is autonomous; both confirmed adversaries unlock one cross-encounter dialogue',()=>{
+  const x=env({state:{party:[],partyDetails:{members:[]},encounteredCharacters:[]}});
+  encounter(x,'luc_tram_hac_hoa','r07-tram-1');
+  assert.match(x.parts['#specialDialogueText'].textContent,/Ma khí trong kinh mạch/);
+  finishModal(x);
+  assert.equal(x.ctx.state.specialDialogueProgress.entityBeats.luc_tram_hac_hoa,1);
+  for(let n=2;n<=5;n++){encounter(x,'luc_tram_hac_hoa','r07-tram-'+n);finishModal(x);}
+  encounter(x,'luc_tram_hac_hoa','r07-tram-6');
+  assert.match(x.parts['#specialDialogueText'].textContent,/Cùng một luồng ma khí/);
+  finishModal(x);
+  encounter(x,'diep_minh','r07-diep-cross-pre');
+  finishModal(x);
+  encounter(x,'luc_tram_hac_hoa','r07-tram-cross');
+  assert.match(x.parts['#specialDialogueText'].textContent,/Diệp Minh đã đứng cạnh Vô Lượng/);
+  assert.equal(x.ctx.state.specialDialogueProgress.entityCross.luc_tram_hac_hoa,undefined);
+  finishModal(x);
+  assert.equal(x.ctx.state.specialDialogueProgress.entityCross.luc_tram_hac_hoa,true);
+  encounter(x,'luc_tram_hac_hoa','r07-tram-after-cross');
+  assert.match(x.parts['#specialDialogueText'].textContent,/Tại sao ngươi luôn gọi ta/);
+  finishModal(x);
+});
+test('reload resumes the exact persisted encounter route and line before consuming progress',()=>{
+  const x=env({state:{party:[],partyDetails:{members:[]},encounteredCharacters:[],
+    pendingEncounter:{entityKey:'luc_tram_hac_hoa',encounterId:'persisted-r07'}}});
+  x.parts['#specialDialogueActions'].children[0].click();
+  const saved=JSON.parse(JSON.stringify(x.ctx.state));
+  assert.equal(saved.specialDialogueProgress.pending.index,1);
+  assert.equal(saved.specialDialogueProgress.pending.routeKind,'episode');
+  assert.equal(saved.specialDialogueProgress.pending.routeIndex,0);
+  const y=env({state:saved});
+  assert.equal(y.dialog.hidden,false);
+  assert.equal(y.parts['#specialDialogueName'].textContent,'Cao Minh');
+  assert.equal(y.parts['#specialDialogueProgress'].textContent,'2 / 4');
+  finishModal(y);
+  assert.equal(y.ctx.state.specialDialogueProgress.entityBeats.luc_tram_hac_hoa,1);
+  y.ctx.SpecialDialogue.offerEntity();
+  assert.equal(y.dialog.hidden,true);
+});
+test('enemy route dialogue is observation and belief, never automatic disclosure of R07 writer secrets',()=>{
+  const x=env({state:{party:[],partyDetails:{members:[]},encounteredCharacters:[]}});
+  const serialized=JSON.stringify(x.ctx.BackroomSpecialEntityDialogue);
+  assert.doesNotMatch(serialized,/lớp trì lưu|tự rời đi|tự bỏ đi|ta hồi sinh nàng|chủ mưu bí mật/);
+  assert.match(serialized,/Sinh Mệnh Đạo/);
+  assert.match(serialized,/Vô Lượng/);
+  assert.equal(x.ctx.state.specialDialogueProgress.entityBeats.diep_minh,undefined);
 });
