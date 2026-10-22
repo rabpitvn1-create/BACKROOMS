@@ -52,7 +52,8 @@ test('all five new Entities have independently traceable visual and Canon cards'
   assert.match(records.get('ENTITY.LUCKYBEAR.CANON').text,/200 EXP/);
   assert.match(records.get('ENTITY.BROWNIES.CANON').text,/100 EXP/);
   assert.match(records.get('ENTITY.LUC_TRAM_HAC_HOA.CANON').text,/CHÍNH LÀ Lục Trầm/);
-  assert.match(records.get('ENTITY.DIEP_MINH.CANON').text,/tông môn/);
+  assert.doesNotMatch(records.get('ENTITY.DIEP_MINH.CANON').text,/Vô Lượng/);
+  assert.match(records.get('STORY.DIEP_MINH.SCENE_R07').text,/tông môn/);
   assert.ok(records.has('STORY.DIEP_MINH.SCENE_R07'));
   assert.ok(records.has('STORY.LUC_TRAM_HAC_HOA.SCENE_R07'));
 });
