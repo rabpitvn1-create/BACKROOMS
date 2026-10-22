@@ -434,7 +434,7 @@ test('counted footsteps bypass the Gemini planner, save per-step Core receipts a
   assert.match(facade,/if \(fatal \|\| CombatRuntime\.pending\(loadCurrentState\(\)\) != null\) break/);
   assert.match(facade,/commitSceneAction\(command\.getString\("actionId"\), event\.getString\("result"\), presentation\)/);
   assert.match(graph,/fun footstepCommand\(p: JSONObject\)/);
-  assert.match(spawn,/kind !in setOf\("MOVE", "SEARCH", "STEP", "FREE", "INTERACT", "TALK"\)/);
+  assert.match(spawn,/kind == "TALK" \|\| kind !in setOf\("MOVE", "SEARCH", "STEP", "FREE", "INTERACT"\)/);
 });
 
 test('mechanism button presses use local Core narration, not a remote GM call',()=>{
