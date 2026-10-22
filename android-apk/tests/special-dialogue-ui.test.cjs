@@ -45,6 +45,7 @@ function env(options={}){
     persistPresentation(){ctx.saved=JSON.parse(JSON.stringify(ctx.state));},
     render(){ctx.rendered=true;},
     backroomTurn(json){ctx.state=JSON.parse(json);},
+    backroomPlayerActionFinished(raw){ctx.finished=JSON.parse(raw);},
     Android:{requestDialogueHint(json,id){ctx.hintId=id},recruitFollower(){ctx.invited=true}}};
   ctx.window=ctx;
   vm.createContext(ctx);scripts.forEach(s=>vm.runInContext(s,ctx));
