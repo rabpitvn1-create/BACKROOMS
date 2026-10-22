@@ -122,10 +122,11 @@
           {speaker:'luc_tram_hac_hoa',text:'Đừng mong dùng điều ta không nhớ để ép ta tin ngươi.'}
         ],
         [
-          {speaker:'cao_minh',text:'Ai nói với nàng rằng ta giết sạch tu sĩ Chính Đạo?'},
-          {speaker:'luc_tram_hac_hoa',text:'Ta đã nghe một lời cáo buộc. Nhưng ta cũng từng tận mắt thấy những người ngã xuống.'},
-          {speaker:'cao_minh',text:'Nghe một lời rồi quyết định giết ta?'},
-          {speaker:'luc_tram_hac_hoa',text:'Ta chưa tin kẻ kể chuyện. Ta cũng chưa có lý do để tin ngươi.'}
+          {speaker:'luc_tram_hac_hoa',text:'Có người nói chính ngươi đã giết sạch các tu sĩ Chính Đạo ở Lôi Thiên Vực.'},
+          {speaker:'cao_minh',text:'Ai đã nói với nàng điều đó?'},
+          {speaker:'luc_tram_hac_hoa',text:'Ta từng thấy những người ngã xuống. Nhưng ta cũng không tin hoàn toàn kẻ đã kể chuyện ấy.'},
+          {speaker:'cao_minh',text:'Vậy nàng còn nhớ điều gì dẫn đến trận chiến?'},
+          {speaker:'luc_tram_hac_hoa',text:'Ta nhớ rất nhiều. Chỉ có một khoảng trống mà ta không giải thích được.'}
         ],
         [
           {speaker:'luc_tram_hac_hoa',text:'Ngươi biết Tịch Quang. Ngươi biết cả cách ta chuyển kiếm trước khi xuất chiêu.'},
