@@ -1004,10 +1004,10 @@
       "id": "CHAR.LUC_TRAM.REVIVAL_R06",
       "domain": "CHARACTER",
       "kind": "history-firewall",
-      "text": "R06 xác nhận: trước Backrooms Lục Trầm và Cao Minh tuy công khai đối địch nhưng thực tế đã đồng hành, tin cậy và có tình cảm. Ở Lôi Thiên Vực cô hy sinh trong đại trận; Cao Minh truyền tu vi, đạo hạnh và ma khí cứu cô hồi sinh. Sau đó cô BẮT ĐẦU nhập ma (không thành Ma tu toàn phần) và QUÊN TẤT CẢ VỀ CAO MINH (không mất toàn bộ ký ức). Lục Trầm không tự nhớ hắn, mối thù, tình cảm hay cách xưng hô cũ; Cao Minh không mặc định biết cô sống hoặc mất ký ức. Ký ức Cao Minh và lịch sử đã xảy ra không bị xóa khỏi canon; ý thức chủ quan hai phía là khác nhau.",
+      "text": "R07 nối tiếp R06: Lục Trầm hy sinh ở Lôi Thiên Vực. Cao Minh nghịch chuyển Vạn Quỷ Ma Tâm, truyền tu vi và ma nguyên cứu nàng. Ma hóa mới khởi phát; nàng QUÊN TẤT CẢ VỀ CAO MINH, không quên mọi ký ức. Tàn dư đại trận giữ cả hai trong lớp trì lưu khiến Diệp Minh đến Backrooms từ rất lâu trước. Lục Trầm tỉnh trước Cao Minh, không nhận ra hắn, tự bỏ đi; Cao Minh tỉnh một mình, KHÔNG BIẾT nàng đã tỉnh hay mất ký ức. Đây là lịch sử nền cho GM, không tự là kiến thức của nhân vật.",
       "source": {
-        "document": "canon/LUC_TRAM_CODEX.md",
-        "anchor": "R06; 00A.D; 03; 14-20"
+        "document": "canon/STORY_VAN_GIOI_TAN_MONG_R07.md",
+        "anchor": "CHAR.LUC_TRAM.REVIVAL_R06"
       },
       "authority": "CHARACTER_CANON_R06",
       "mutability": "IMMUTABLE",
@@ -1028,10 +1028,10 @@
       "id": "CHAR.LUC_TRAM.OPEN_R06",
       "domain": "CHARACTER",
       "kind": "continuity-firewall",
-      "text": "HẬU HỒI SINH / OPEN: chưa khóa địa điểm cô thức tỉnh, vị trí, thời điểm, hiện trạng Tịch Quang/Kiếm Khải/Thiên Kiếm Linh Tâm, tốc độ nhập ma, khả năng phục hồi ký ức và cuộc tái ngộ Cao Minh. Không tự gặp trước Level 4. User override 2026-10-11: từ Level 4 trở đi, chỉ roll 0,25% hợp lệ mới cho phép xuất hiện; gia nhập Party nếu còn chỗ (nếu đầy thì chờ). Không tự nhận ra Cao Minh, tái lập thù hận/tình yêu hoặc phục hồi ký ức. Không biến bản canon thành state; chỉ authority của sự kiện và game state được xác thực mới quyết định. Kiếm Các và Táng Kiếm Cốc là CÙNG một biến cố, không phải hai biến cố; cảnh uống rượu trên núi/đỉnh thành của prologue cũ đã bị tác giả hủy.",
+      "text": "R07 đã giải quyết sự thật lịch sử từng OPEN: Lục Trầm tự rời Cao Minh khi hắn bất tỉnh, gặp Diệp Minh và bị dẫn dắt qua những sự thật chọn lọc để tin lời cáo buộc sai. Nàng truy sát vì tự phán xét, không bị điều khiển tinh thần. Hiện trạng sống/chết, vị trí, thương tích, niềm tin, hồi ức đã nhớ lại và quan hệ trong mỗi save vẫn DYNAMIC, phải lấy từ Core/continuity. Gặp Follower 0,25% Level 4+ là hệ NPC riêng và không quyết định việc Entity truy sát xuất hiện. Không tự cho nhân vật hòa giải hay gia nhập Party.",
       "source": {
-        "document": "canon/LUC_TRAM_CODEX.md",
-        "anchor": "R06; A-20261011-CLARIFICATION; 14-17; 23"
+        "document": "canon/STORY_VAN_GIOI_TAN_MONG_R07.md",
+        "anchor": "CHAR.LUC_TRAM.OPEN_R06"
       },
       "authority": "CHARACTER_CANON_R06",
       "mutability": "IMMUTABLE",
@@ -1049,10 +1049,10 @@
       "id": "REL.CAO_MINH.LUC_TRAM.HISTORY_R06",
       "domain": "RELATIONSHIP",
       "kind": "relationship-history",
-      "text": "Lịch sử Cao Minh và Lục Trầm: từng truy sát/giao chiến, về sau trở thành đồng minh tin cậy và có tình cảm TRƯỚC Backrooms, dù danh nghĩa vẫn đối địch. Lục Trầm đứng cạnh Cao Minh ở Lôi Thiên Vực nên Chính Đạo xem cô là địch, nhưng không có nghĩa cô phản tông hoặc từ bỏ Chính Đạo. Sau hồi sinh cô KHÔNG NHỚ Cao Minh; tình cảm/mối thù cũ không là cảm xúc đương nhiên khi tái ngộ. Sự tin tưởng, cách gọi, diễn tiến mới phải do continuity quyết định. Kiếm Các=Táng Kiếm Cốc (cùng một biến cố).",
+      "text": "Cao Minh và Lục Trầm từng ngoài mặt đối địch rồi cùng nhau đồng hành và có tình cảm trước Backrooms. Sau khi được cứu sống, nàng chỉ mất ký ức liên quan Cao Minh; Diệp Minh lợi dụng sự thiếu hụt để nàng tin hắn là kẻ gây thảm sát tại Lôi Thiên Vực. Nàng có thể liên tục truy sát Cao Minh nhưng các trải nghiệm thực tế có thể dần làm niềm tin ấy rạn nứt. Tình yêu có thể khơi nghi vấn, không tự phục hồi trí nhớ hoặc xóa trách nhiệm; sự thay đổi lấy từ continuity.",
       "source": {
-        "document": "canon/LUC_TRAM_CODEX.md",
-        "anchor": "R06; 03; 13-20"
+        "document": "canon/STORY_VAN_GIOI_TAN_MONG_R07.md",
+        "anchor": "REL.CAO_MINH.LUC_TRAM.HISTORY_R06"
       },
       "authority": "CHARACTER_CANON_R06",
       "mutability": "HISTORY",
@@ -1908,10 +1908,10 @@
       "id": "CHAR.DIEP_MINH.AUTHORED",
       "domain": "CHARACTER",
       "kind": "authored-character-card",
-      "text": "Diệp Minh là kiếm tu danh môn Chính Đạo, phong thái nhã nhặn nhưng quyết đoán tàn nhẫn; từng trực tiếp huyết tẩy Cao gia để đoạt bảo vật rồi diệt cả người không tham chiến nhằm xóa hậu họa. Cao Minh nhận ra kiếm ý Diệp Minh, mang thù diệt tộc. Hắn sử dụng Kiếm đạo Sinh Mệnh; Thiên Mộc Kiếm về sau tiến hóa thành Hoàng Thiên Mộc Kiếm. Tu vi thế giới cũ: Nguyên Anh; sau thời gian dài ở Backrooms Level 0: Nửa bước Chân Tiên. Chỉ dùng nhận thức nhân vật khi có nguồn biết hợp lệ.",
+      "text": "Diệp Minh là kiếm tu Sinh Mệnh Đạo, thủ phạm huyết tẩy hơn 400 người Cao gia và đồng minh cũ của Vô Lượng. Nguyên Anh tại thế giới nguyên sinh, đến Backrooms trước Cao Minh rất lâu, đạt Nửa bước Chân Tiên; Thiên Mộc Kiếm tiến hóa thành Hoàng Thiên Mộc Kiếm. Hắn muốn độc chiếm linh khí, lập tông môn, nghiên cứu xuyên vạn giới để vượt Vô Lượng. Hắn muốn diệt mọi người họ Cao vì đã bỏ sót Cao Minh, một biến số nguy hiểm. Mưu đồ và diễn biến hậu trường không tự là điều Cao Minh biết. Chưa xác nhận hắn xây xong tông môn hoặc xuyên giới theo ý muốn.",
       "source": {
-        "document": "Google Drive /Novel/Asset/01_Character/DIEP_MINH_CODEX",
-        "anchor": "I. HỒ SƠ ĐỊNH DANH; XII–XVI. Huyết án, Level 0"
+        "document": "canon/STORY_VAN_GIOI_TAN_MONG_R07.md",
+        "anchor": "CHAR.DIEP_MINH.AUTHORED"
       },
       "authority": "CHARACTER_CANON",
       "mutability": "IMMUTABLE",
@@ -1929,10 +1929,10 @@
       "id": "ENTITY.DIEP_MINH.CANON",
       "domain": "ENTITY",
       "kind": "entity-canon-card",
-      "text": "Diệp Minh (khi Core xác nhận encounter): kiếm tu Sinh Mệnh Đạo, thường điềm tĩnh và nhã nhặn nhưng ra tay tàn nhẫn. Thiên Mộc Kiếm tại Cao gia về sau tiến hóa thành Hoàng Thiên Mộc Kiếm phát kim quang. Có thể dùng kiếm ý điều khiển rễ, dây leo; huyết dịch/sinh lực làm dưỡng chất thúc đẩy thực vật biến dị, không phải điều kiện bắt buộc để thi triển. Sau thời gian dài tu luyện ở Level 0 với linh khí dồi dào, tu vi đạt Nửa bước Chân Tiên (từ Nguyên Anh). Không tự suy diễn mức HP, sát thương hay cảnh giới hiện hành từ Canon; không tự tiết lộ hậu cảnh mà Cao Minh chưa biết.",
+      "text": "R07: Diệp Minh là tu sĩ Sinh Mệnh Đạo, Nguyên Anh ở thế giới cũ, Nửa bước Chân Tiên sau thời gian dài ở Backrooms; Hoàng Thiên Mộc Kiếm là Thiên Mộc Kiếm đã tiến hóa. Hắn muốn độc chiếm nguồn linh khí để lập tông môn, tìm cách đi xuyên vạn giới và vượt Vô Lượng. Hắn vẫn truy sát Cao Minh để xóa hậu họa họ Cao và một đối thủ đe dọa đại kế. Nửa thân ma thể là hậu quả tự tái tạo bằng Sinh Mệnh Đạo sau phản phệ lúc đột phá, không bị chiếm hồn. Đây là bí mật nền để GM giữ logic; KHÔNG biến thành tri thức Cao Minh hoặc lời tự thú. Không cấp combat buff, route, spawn, bất tử hay năng lực xuyên giới.",
       "source": {
-        "document": "Google Drive /Novel/Asset/01_Character/DIEP_MINH_CODEX",
-        "anchor": "V–VIII. Ngoại hình, kiếm, đạo; XV–XVII. Tu vi"
+        "document": "canon/STORY_VAN_GIOI_TAN_MONG_R07.md",
+        "anchor": "ENTITY.DIEP_MINH.CANON"
       },
       "authority": "ENTITY_CANON",
       "mutability": "IMMUTABLE",
@@ -2170,10 +2170,10 @@
       "id": "ENTITY.LUC_TRAM_HAC_HOA.CANON",
       "domain": "ENTITY",
       "kind": "entity-canon-card",
-      "text": "Lục Trầm Hắc Hóa là Entity đối địch, danh tính/quan hệ thật với Follower Lục Trầm UNKNOWN; không khẳng định hồi sinh dẫn đến hắc hóa hoàn chỉnh hay Tịch Quang đã được xác nhận trang bị. Rare Roaming. HP cùng Diệp Minh (Level 0: 2999), Armor 8, Aggression 9, hồi 30 HP/lượt, ATK gốc 0 nhưng có sát thương kiếm riêng. Sáu kỹ năng phía địch: Thiên Kiếm Linh Tâm, Bạch Hồng Quán Nhật, Nhất Tuyến Phá Vọng xuyên 20% DEF, Tịch Quang Phản Kiếm, Vạn Kiếm Quy Tâm, Thiên Kiếm Định Giới (ward +8 Armor/+20% Evasion hai lượt). Không kế thừa đòn 10% HP, AoE 5% hoặc EXP boss Diệp Minh. Không thay dữ liệu Follower.",
+      "text": "R07: Entity Lục Trầm Hắc Hóa CHÍNH LÀ Lục Trầm thật, đang bắt đầu ma hóa, mất trí nhớ RIÊNG VỀ CAO MINH, và bị Diệp Minh dẫn dắt bằng lời cáo buộc sai rằng Cao Minh giết sạch tu sĩ Chính Đạo ở Lôi Thiên Vực. Đó là BELIEF, KHÔNG PHẢI FACT. Nàng tỉnh trước khi Cao Minh thức, tự rời đi vì không nhận ra người cứu mình. Ma nguyên gây nghi ngờ chính là thứ hắn truyền để hồi sinh nàng. Nàng vẫn có kiếm tâm và tự phán xét, không bị thôi miên. Visual Entity đen-đỏ, Follower trắng-bạc-vàng riêng; một người không được vừa là enemy vừa ở trong Party. Rare Roaming; HP, skill và kết quả trận tuân Core, không tự phục sinh/hòa giải/đổi spawn.",
       "source": {
-        "document": "Google Drive /Novel/Asset/03_Entity/NEW_ENTITIES_CODEX_R01.md (1XRoBXISlL61kdIl56w5xzkkCdEOsQdWP)",
-        "anchor": "## ENT-LTH — LỤC TRẦM HẮC HÓA (ENTITY ENCOUNTER)"
+        "document": "canon/STORY_VAN_GIOI_TAN_MONG_R07.md",
+        "anchor": "ENTITY.LUC_TRAM_HAC_HOA.CANON"
       },
       "authority": "ENTITY_CANON",
       "mutability": "IMMUTABLE",
@@ -2266,6 +2266,40 @@
       ],
       "references": [],
       "affordances": []
+    },
+    {
+      "id": "STORY.DIEP_MINH.SCENE_R07",
+      "domain": "STORY",
+      "kind": "story-scene-card",
+      "text": "[GM-ONLY / CORE-CONFIRMED Diệp Minh] Động cơ: chiếm linh khí Backrooms, lập tông môn, nghiên cứu xuyên vạn giới để vượt Vô Lượng; diệt sạch hậu duệ họ Cao vì bỏ sót Cao Minh sau huyết án. Diệp Minh đến trước do Cao Minh và Lục Trầm bị trì lưu trong tàn dư đại trận; nửa thân dị hóa do phản phệ khi đột phá và Sinh Mệnh Đạo tái tạo. Đây là bí mật hậu trường để giữ logic, KHÔNG tiết lộ lớp trì lưu, nguồn dị hóa, tham vọng hay vai trò Vô Lượng nếu Cao Minh chưa thấy chứng cứ. Hắn không toàn tri, không bất tử, không tự mở cổng xuyên giới hay áp đặt lối đi.",
+      "authority": "STORY_CANON_R07",
+      "mutability": "IMMUTABLE",
+      "priority": 34,
+      "tags": [
+        "story:diep_minh"
+      ],
+      "references": [],
+      "source": {
+        "document": "canon/STORY_VAN_GIOI_TAN_MONG_R07.md",
+        "anchor": "2;4;5;6;12"
+      }
+    },
+    {
+      "id": "STORY.LUC_TRAM_HAC_HOA.SCENE_R07",
+      "domain": "STORY",
+      "kind": "story-scene-card",
+      "text": "[GM-ONLY / CORE-CONFIRMED Lục Trầm Hắc Hóa] Đây là Lục Trầm thật, không phải bản sao. Nàng mất ký ức riêng Cao Minh sau khi được cứu bằng ma nguyên, tự bỏ đi lúc hắn bất tỉnh. Diệp Minh dùng thương vong có thật, tên Vạn Giới Ma Tôn và ma khí trong nàng để dựng lời vu cáo Cao Minh diệt sạch Chính Đạo. Nàng truy sát vì tin điều đó, có lý trí và vẫn nghi Diệp Minh; không bị thôi miên. Chỉ cho biểu hiện nội tâm qua hành vi có thể quan sát; KHÔNG kể trực tiếp bí mật người cứu mình, nàng tự rời đi hay tình yêu xưa trước khi có bằng chứng, không ép hồi ức, thắng trận hay gia nhập Party.",
+      "authority": "STORY_CANON_R07",
+      "mutability": "IMMUTABLE",
+      "priority": 34,
+      "tags": [
+        "story:luc_tram_hac_hoa"
+      ],
+      "references": [],
+      "source": {
+        "document": "canon/STORY_VAN_GIOI_TAN_MONG_R07.md",
+        "anchor": "3;7;8;9;12"
+      }
     }
   ]
 }
