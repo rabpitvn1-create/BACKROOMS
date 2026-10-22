@@ -236,6 +236,9 @@
     if(typeof global.render==='function')global.render();
     const log=document.getElementById('log');if(log)log.scrollTop=log.scrollHeight;
     store();
+    // Native pre-planner rejection must release the Explorer batch lock.
+    if(typeof global.backroomPlayerActionFinished==='function')
+      global.backroomPlayerActionFinished(JSON.stringify({executed:0,completed:true}));
   };
   global.SpecialDialogue={openCharacter,isOpen:()=>!!active,rejectPlayerAction:invalidateAction,
     offerEntity:()=>applyIncoming(null)};
