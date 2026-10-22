@@ -78,6 +78,9 @@ test('NPC dialogue typed into Player Action is rejected without consuming a turn
   assert.equal(x.ctx.SpecialDialogue.rejectPlayerAction('Cao Minh quay qua hỏi Lucia hôm nay ăn gì chưa.'),true);
   assert.match(x.ctx.state.log.at(-1).text,/\[Giao Tiếp\]/);
   assert.equal(x.ctx.state.turn,before);
+  x.ctx.backroomDialogueInvalidAction('HÀNH ĐỘNG KHÔNG HỢP LỆ! Vui lòng tương tác qua [Giao Tiếp].');
+  assert.equal(x.ctx.finished.completed,true,'native rejection must unlock Explorer instead of leaving it busy');
+  assert.equal(x.ctx.finished.executed,0);
   assert.equal(x.ctx.SpecialDialogue.rejectPlayerAction('Cao Minh cùng Lucia kiểm tra cánh cửa'),false);
   assert.equal(x.ctx.state.turn,before);
   assert.match(explorer,/rejectPlayerAction/);
