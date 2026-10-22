@@ -123,17 +123,19 @@ Profile **80 HP / 0 ATK / 2 Armor / 8 Aggression**, HP thực chiến tương đ
 
 **Canonical key:** `luc_tram_hac_hoa` · **Tên hiển thị:** Lục Trầm Hắc Hóa · **Nhóm:** Rare / Roaming · **Asset:** `entity/luc_tram_hac_hoa.webp`.
 
-### Ranh giới danh tính tuyệt đối
+### Danh tính thống nhất — tác giả chốt R07
 
-**Đây là hồ sơ một Entity đối địch do Core xác nhận, không phải hồ sơ nhân vật Follower Lục Trầm.** Sự giống nhau về tên, khuôn mặt, tóc và kiếm kỹ **không chứng minh** nó chính là Lục Trầm ở trạng thái hiện tại, một bản sao, ảo ảnh, phân thân, viễn cảnh tương lai hay bằng chứng cô đã nhập ma hoàn chỉnh. Ontology và việc hai bên có thể đồng thời tồn tại là OPEN. Không thay `CharacterState`, không tự sửa ký ức, quan hệ Cao Minh–Lục Trầm, trang bị hoặc vị trí của Follower. Character Codex R05/R06 vẫn điều khiển Follower: hồi sinh xong quên Cao Minh, bắt đầu nhập ma chứ chưa phải ma tu hoàn chỉnh, tình trạng Tịch Quang và Kiếm Khải sau hồi sinh chưa được xác nhận.
+**AUTHOR OVERRIDE R07:** `luc_tram_hac_hoa` là chính **Lục Trầm thật** trong giai đoạn ma nguyên làm thay đổi biểu hiện và nàng bị dẫn dắt bởi lời buộc tội của Diệp Minh, **không phải một sinh thể thứ hai** hay một bản sao chỉ giống ngoại hình. Nàng được Cao Minh cứu sống ở Lôi Thiên Vực, mất duy nhất những ký ức liên quan đến hắn, rồi tự rời đi khi hắn bất tỉnh. Sau đó, Diệp Minh lợi dụng lời buộc tội sai rằng Cao Minh giết sạch tu sĩ Chính Đạo để khiến nàng tự quyết định truy sát hắn. Nàng còn trí tuệ, đạo tâm, ký ức không liên quan Cao Minh và quyền tự quyết.
+
+Một người không thể đồng thời ở trong Party với vai Follower và trong cùng hiện trạng là Entity đối địch. Visual Entity đen-đỏ chỉ thuộc giai đoạn hắc hóa; visual trắng-bạc-vàng-điểm-lam của Follower giữ nguyên, không đổi tài nguyên ảnh hoặc trang bị qua lại. Cơ chế NPC Lục Trầm 0,25% độc lập với những lần Entity truy sát, không làm điều kiện xuất hiện của Entity. GM không tự bịa gặp gỡ, hồi ức, hồi sinh hay hòa giải. Xem `canon/STORY_VAN_GIOI_TAN_MONG_R07.md`.
 
 ### Ngoại hình và nhận diện
 
-Hình biểu hiện mang dáng nữ kiếm tu tóc bạc-trắng dài, gương mặt sắc lạnh, mắt ánh đỏ. Kiếm quan nhọn và bộ kiếm giáp pha **đen, đỏ thẫm và kim loại sáng**, những mảnh giáp gai bọc cánh tay, vai và cẳng chân; vạt chiến bào đỏ-đen phân lớp kéo dài về sau. Một đại kiếm chạm trổ có lõi đỏ phát quang nằm chếch sau vai. Hình ảnh này **khác palette trắng–bạc–vàng điểm lam của Follower Canon R02**; đây là thiết kế của Entity encounter, **không phải** retcon Visual Lock của Follower. Không được coi thanh kiếm trong ảnh là **Tịch Quang bản mệnh chính chủ** khi chưa có nguồn độc lập chứng minh.
+Hình biểu hiện mang dáng nữ kiếm tu tóc bạc-trắng dài, gương mặt sắc lạnh, mắt ánh đỏ. Kiếm quan nhọn và bộ kiếm giáp pha **đen, đỏ thẫm và kim loại sáng**, những mảnh giáp gai bọc cánh tay, vai và cẳng chân; vạt chiến bào đỏ-đen phân lớp kéo dài về sau. Một đại kiếm chạm trổ có lõi đỏ phát quang nằm chếch sau vai. Hình ảnh này **khác palette trắng–bạc–vàng điểm lam của Follower Canon R02**; đây là thiết kế của Entity encounter, **không phải** retcon Visual Lock của Follower. R07 xác nhận đây là Lục Trầm ở trạng thái hắc hóa, nhưng hình ảnh không tự thay đổi inventory hoặc trang bị Follower; tên Tịch Quang trong kỹ năng vẫn tuân Core.
 
 ### Hành vi và ý đồ giao chiến
 
-Sự nguy hiểm đến từ nhịp kiếm có chủ đích: đối thủ quan sát thế đứng, tạo áp lực cự ly, chớp lúc đội hình hụt đòn, hoặc tạm bỏ đòn đánh để khép kiếm vực phòng thủ. Trong narration chỉ gọi tên kỹ thuật khi hiệu ứng tương ứng được Core thực thi; đừng tường thuật trước lựa chọn bí mật bằng tri thức người viết. Không mặc định nó nhận ra Cao Minh, biết lịch sử tình cảm, muốn cứu ai hoặc có chung ký ức với Follower. Không gán Kiếm Vực năng lực sửa hình học Backrooms.
+Sự nguy hiểm đến từ nhịp kiếm có chủ đích: đối thủ quan sát thế đứng, tạo áp lực cự ly, chớp lúc đội hình hụt đòn, hoặc tạm bỏ đòn đánh để khép kiếm vực phòng thủ. Trong narration chỉ gọi tên kỹ thuật khi hiệu ứng tương ứng được Core thực thi; đừng tường thuật trước lựa chọn bí mật bằng tri thức người viết. Nàng không nhớ Cao Minh và những năm tháng từng có tình cảm với hắn, nhưng tin lời vu cáo của Diệp Minh đủ để tự quyết truy sát. Những hồi ức mới chỉ có thể đến từ sự kiện hợp lệ. Không gán Kiếm Vực năng lực sửa hình học Backrooms.
 
 ### Sáu kiếm kỹ đối địch (đã có cơ chế Core)
 
@@ -148,9 +150,9 @@ Sự nguy hiểm đến từ nhịp kiếm có chủ đích: đối thủ quan s
 
 Profile giống boss Diệp Minh: **2999 HP gốc, 0 ATK gốc (sát thương từ bộ kiếm kỹ riêng), 8 Armor, 9 Aggression**. Max HP được scale theo progression rank bằng cùng nhánh boss Diệp Minh, **không áp dụng x2 durability phổ thông**. Entity hồi **30 HP mỗi lượt sống sót** (không hồi từ 0 HP). Sát thương kiếm cơ bản trong nhánh riêng là **20 theo scale Level**, qua kiểm tra khả năng trúng và phòng thủ Party. **Không** sở hữu đòn 10% Max HP, Ultimate 5% AoE toàn Party hoặc thưởng 24× EXP của Diệp Minh. EXP/loot sử dụng luật Entity thường, trừ khi Core có override rõ ràng khác.
 
-**Giới hạn và tri thức OPEN:** Không xác định nơi ra đời, ai đã tạo, quan hệ nhân quả với hồi sinh của Follower, liệu nó là sinh thể hay biểu hiện, trạng thái linh lực, ý thức và khả năng truy đuổi qua Level. Nét mặt, kiếm ý và ngoại hình không chứng minh danh tính hoặc ký ức. Một encounter kết thúc không xóa vai trò/vị trí Follower trong continuity.
+**Giới hạn sau R07:** Danh tính và động cơ hắc hóa đã được xác nhận; vị trí hiện hành, thương tích, tốc độ ma hóa, ký ức được phục hồi, khả năng sống sót sau trận chiến và quan hệ trong từng save đều DYNAMIC. Một kết quả combat xác nhận chết không thể bị tự viết lại; không đồng thời Follower và Entity đối địch.
 
-**Gợi ý miêu tả GM:** Nhấn phản quang đỏ trên lưỡi kiếm, áo giáp đỏ-đen và nhịp đổi thế có tính toán. Chỉ kể điều kiện chiến đấu đã xảy ra; tránh những câu khẳng định “Lục Trầm thật đã hắc hóa” hoặc “Cao Minh nhận ra nàng” khi Core/continuity chưa xác nhận.
+**Gợi ý miêu tả GM:** Nhấn phản quang đỏ, giáp đen-đỏ, nhịp kiếm có chủ đích. Khi Core đã xác nhận encounter, tường thuật nàng truy sát vì tin Cao Minh là ma đầu sát hại Chính Đạo, nhưng không nâng niềm tin thành sự thật và không cho nàng nhớ lại ngay.
 
 ## 07. Luồng Core ↔ Knowledge ↔ GM
 
@@ -159,7 +161,7 @@ Profile giống boss Diệp Minh: **2999 HP gốc, 0 ATK gốc (sát thương t�
 - Khi chưa xác nhận: GM có thể miêu tả chi tiết nhìn/nghe thấy **nếu** scene thực sự cung cấp dấu hiệu, nhưng không biết chắc tên hoặc cơ chế. Sau xác nhận: thẻ visual giúp nhất quán ngoại hình; thẻ canon giới hạn tập tính và tuyệt đối không cho GM sửa kết quả combat.
 - **Không áp resident vào Level:** phân bố dùng `EntitySpawnPool` hiện hành. Không ép spawn bằng lời kể hay tự đổi encounter rate 35% của Core.
 - **Không học kỹ năng bừa:** chỉ `luc_tram_hac_hoa` có sáu kiếm kỹ địch; `926`/`927` có đúng hai kỹ năng proc được khóa ở R02 trên mỗi loài, LuckyBear/Brownies tuyệt đối không gây sát thương. Không trao skill của Follower cho hai phiên bản gấu.
-- **Còn UNKNOWN phải giữ UNKNOWN:** mọi truyền thuyết, báo cáo nguồn gốc hay quan hệ giữa các Entity do NPC kể lại chỉ là lời kể/chứng cứ ở mức tương ứng cho đến khi gameplay/canon mới xác minh.
+- **Danh tính Lục Trầm Hắc Hóa đã được R07 xác nhận:** Các truyền thuyết khác vẫn phải phân biệt FACT/BELIEF/UNKNOWN; người chơi và nhân vật không tự biết bí mật chỉ vì người viết đã khóa.
 
 ## 08. Nguồn có thể kiểm tra
 
