@@ -106,6 +106,8 @@
         button(active.kind==='intro'?'Không mời / Kết thúc':'Kết thúc',finish);
       }
     }else{showSpeaker(active.id);text.textContent='';counter.textContent='';actions.replaceChildren();button('Đóng',finish);}
+    const first=actions.querySelectorAll('button')[0];
+    if(first&&typeof first.focus==='function')first.focus();
   }
   function open(id,kind,lines,opts){
     if(active)return false;
@@ -177,6 +179,7 @@
     if(!Array.isArray(state.log))state.log=[];
     state.log.push({role:'gm',text:'HÀNH ĐỘNG KHÔNG HỢP LỆ! Vui lòng tương tác với nhân vật khác qua [Giao Tiếp].'});
     if(typeof global.render==='function')global.render();
+    const log=document.getElementById('log');if(log)log.scrollTop=log.scrollHeight;
     store();return true;
   }
   function applyIncoming(old){
@@ -230,6 +233,7 @@
     if(!Array.isArray(state.log))state.log=[];
     state.log.push({role:'gm',text:String(message||'HÀNH ĐỘNG KHÔNG HỢP LỆ! Vui lòng sử dụng [Giao Tiếp].')});
     if(typeof global.render==='function')global.render();
+    const log=document.getElementById('log');if(log)log.scrollTop=log.scrollHeight;
     store();
   };
   global.SpecialDialogue={openCharacter,isOpen:()=>!!active,rejectPlayerAction:invalidateAction,
