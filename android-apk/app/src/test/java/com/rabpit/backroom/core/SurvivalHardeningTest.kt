@@ -61,7 +61,10 @@ class SurvivalHardeningTest {
     assertEquals(3, c.physiology.recoverableFoodHp)
     assertEquals(0, c.physiology.recoverableWaterHp)
     val later = advance(rested, 60)
-    assertEquals(42, later.characters.getValue(CAO_MINH_ID).vitalState.currentHp)
+    // Food deprivation crosses its 180-minute damage boundary at minute 1620.
+    // Normal movement must not heal the remaining food debt; it causes 1 new HP loss.
+    assertEquals(41, later.characters.getValue(CAO_MINH_ID).vitalState.currentHp)
+    assertEquals(4, later.characters.getValue(CAO_MINH_ID).physiology.recoverableFoodHp)
   }
 
   @Test fun ordinaryHealingConsumesRestEligibilitySoItCannotDoubleHeal() {
