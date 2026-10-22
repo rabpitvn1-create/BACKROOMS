@@ -25,7 +25,7 @@
     if(!state.specialDialogueProgress||typeof state.specialDialogueProgress!=='object')
       state.specialDialogueProgress={introduced:{},chapters:{},lastRollTurn:state.turn,shownEncounters:{},pending:null};
     const p=state.specialDialogueProgress;
-    for(const k of ['introduced','introRevisions','chapters','shownEncounters','entityBeats','entityCross','entityRepeats'])
+    for(const k of ['introduced','introRevisions','chapters','pastVisits','shownEncounters','entityBeats','entityCross','entityRepeats'])
       if(!p[k]||typeof p[k]!=='object')p[k]={};
     return p;
   }
@@ -76,7 +76,10 @@
     lucia:'lucia-intro-r01',
     catherine:'catherine-intro-r01',
     janet:'janet-intro-r01',
-    nguyen_quoc_nam:'nguyen-quoc-nam-intro-r01'
+    nguyen_quoc_nam:'nguyen-quoc-nam-intro-r01',
+    iris:'iris-intro-r01',
+    syvial:'syvial-intro-r01',
+    'an-nhien':'an-nhien-intro-r01'
   };
   function coreConfirmedNpc(id){
     // Do not create encounters from old names, GM prose, or historical roster.
@@ -193,10 +196,15 @@
     if(kind==='past'){
       const chapter=Number(progress().chapters[id]||0);
       const base=Array.isArray(d.past)?d.past:[];
-      // Previously revealed story facts only, never unlock a chapter by pressing "Quá khứ".
-      const revealed=(d.story||[]).slice(0,chapter).flat().filter(x=>x&&x.text).map(x=>x.text);
-      const options=base.concat(revealed);
-      return [{speaker:id,text:options.length?options[(chapter+base.length-1)%options.length]:'Tôi chưa muốn nhắc đến chuyện trước kia.'}];
+      // Reveal no more than one new recollection for each finished story
+      // chapter. The Past button never grants progression or reads a future
+      // chapter; repeated requests cycle through the currently known memories.
+      const unlocked=base.slice(0,Math.min(base.length,1+chapter));
+      const visits=Math.max(0,Number(progress().pastVisits[id]||0));
+      const memory=unlocked.length?unlocked[visits%unlocked.length]:'Tôi chưa muốn nhắc đến chuyện trước kia.';
+      progress().pastVisits[id]=visits+1;
+      store();
+      return [{speaker:id,text:memory}];
     }
     const ambient=Array.isArray(d.ambient)&&d.ambient.length?d.ambient:
       ['Tôi đang nghe. Có điều gì cần trao đổi không?','Chúng ta nên cẩn trọng khi di chuyển ở đây.'];
