@@ -25,7 +25,8 @@
     if(!state.specialDialogueProgress||typeof state.specialDialogueProgress!=='object')
       state.specialDialogueProgress={introduced:{},chapters:{},lastRollTurn:state.turn,shownEncounters:{},pending:null};
     const p=state.specialDialogueProgress;
-    for(const k of ['introduced','chapters','shownEncounters'])if(!p[k]||typeof p[k]!=='object')p[k]={};
+    for(const k of ['introduced','chapters','shownEncounters','entityBeats','entityCross','entityRepeats'])
+      if(!p[k]||typeof p[k]!=='object')p[k]={};
     return p;
   }
   function store(){if(typeof persistPresentation==='function')persistPresentation();}
@@ -39,7 +40,10 @@
         .map(c=>({id:c.targetId,name:c.targetName||c.label}))
         .find(c=>String(c.id)===String(id))||null;
   }
-  function label(id){const c=visibleCharacter(id);return c&&c.name||entityCatalog[id]&&entityCatalog[id].name||id;}
+  function label(id){
+    if(id==='cao_minh')return state.player&&state.player.name||'Cao Minh';
+    const c=visibleCharacter(id);return c&&c.name||entityCatalog[id]&&entityCatalog[id].name||id;
+  }
   function avatar(id){
     if(id==='cao_minh')return 'avatars/CAO_MINH_AVATAR.jpg';
     if(entityCatalog[id])return entityCatalog[id].overlay;
@@ -66,6 +70,33 @@
     const c=(state.encounteredCharacters||[]).find(x=>x.id===id);
     return c&&c.present&&c.joinEligible&&!c.inParty&&!state.pendingEncounter;
   }
+  // The Core encounter confirms *who is present*. Presentation can track
+  // conversation beats, but encounter count alone never proves a story secret.
+  function entityScene(id, p, saved){
+    const d=entityCatalog[id]||{};
+    const episodes=Array.isArray(d.episodes)?d.episodes:[];
+    const repeat=Array.isArray(d.repeat)?d.repeat:[];
+    const route=saved&&saved.routeKind;
+    const index=saved&&Number.isInteger(saved.routeIndex)?saved.routeIndex:0;
+    function scene(kind,n){
+      const source=kind==='episode'?episodes:kind==='cross'?[d.cross]:repeat;
+      const picked=source[n];
+      if(!Array.isArray(picked)||!picked.length)return null;
+      return {routeKind:kind,routeIndex:n,lines:picked};
+    }
+    if(route){
+      const restored=scene(route,index);
+      if(restored)return restored;
+    }
+    const beat=Math.max(0,Number(p.entityBeats[id]||0));
+    if(beat<episodes.length)return scene('episode',beat);
+    const other=id==='diep_minh'?'luc_tram_hac_hoa':'diep_minh';
+    if(Array.isArray(d.cross)&&d.cross.length&&
+      Number(p.entityBeats[other]||0)>0&&!p.entityCross[id])return scene('cross',0);
+    if(repeat.length)return scene('repeat',Math.max(0,Number(p.entityRepeats[id]||0))%repeat.length);
+    return {routeKind:'fallback',routeIndex:0,
+      lines:(d.encounter||[]).map(text=>({speaker:id,text}))};
+  }
   function finish(){
     if(!active)return;
     const p=progress();
@@ -73,6 +104,11 @@
     if(active.kind==='story')p.chapters[active.id]=Math.max(Number(p.chapters[active.id]||0),active.chapter+1);
     if(active.kind==='entity'){
       p.shownEncounters[active.encounterId]=true;
+      if(active.routeKind==='episode')p.entityBeats[active.id]=Math.max(
+        Number(p.entityBeats[active.id]||0),active.routeIndex+1);
+      if(active.routeKind==='cross')p.entityCross[active.id]=true;
+      if(active.routeKind==='repeat')p.entityRepeats[active.id]=
+        Math.max(0,Number(p.entityRepeats[active.id]||0))+1;
       const keys=Object.keys(p.shownEncounters);
       if(keys.length>24)keys.slice(0,keys.length-24).forEach(key=>delete p.shownEncounters[key]);
     }
@@ -112,9 +148,12 @@
   function open(id,kind,lines,opts){
     if(active)return false;
     const typed=(lines||[]).filter(x=>x&&typeof x.text==='string'&&x.text.trim());
-    active={id,kind,lines:typed,index:0,chapter:opts&&opts.chapter||0,encounterId:opts&&opts.encounterId||''};
+    active={id,kind,lines:typed,index:0,chapter:opts&&opts.chapter||0,
+      encounterId:opts&&opts.encounterId||'',
+      routeKind:opts&&opts.routeKind||'',routeIndex:opts&&opts.routeIndex||0};
     if(kind==='intro'||kind==='story'||kind==='entity'){
-      progress().pending={id,kind,index:0,chapter:active.chapter,encounterId:active.encounterId};
+      progress().pending={id,kind,index:0,chapter:active.chapter,
+        encounterId:active.encounterId,routeKind:active.routeKind,routeIndex:active.routeIndex};
       store();
     }
     root.hidden=false;document.body.classList.add('special-dialogue-active');
@@ -192,18 +231,24 @@
       if(saved.kind==='entity'&&!state.pendingEncounter&&!(state.combat&&state.combat.active))p.pending=null;
       else {
         const d=catalog[saved.id]||{};
+        const entityRoute=saved.kind==='entity'?entityScene(saved.id,p,saved):null;
         const seq=saved.kind==='intro'?(d.intro||[{speaker:saved.id,text:'Xin chào.'}]):
           saved.kind==='story'?(d.story||[])[saved.chapter]||[]:
-          (entityCatalog[saved.id]&&entityCatalog[saved.id].encounter||[]).map(text=>({speaker:saved.id,text}));
-        if(open(saved.id,saved.kind,seq,{chapter:saved.chapter,encounterId:saved.encounterId})){
-          active.index=Math.min(Math.max(0,saved.index||0),active.lines.length-1);render();return;
+          entityRoute&&entityRoute.lines||[];
+        if(open(saved.id,saved.kind,seq,{chapter:saved.chapter,encounterId:saved.encounterId,
+          routeKind:entityRoute&&entityRoute.routeKind,routeIndex:entityRoute&&entityRoute.routeIndex})){
+          active.index=Math.min(Math.max(0,saved.index||0),active.lines.length-1);
+          if(p.pending)p.pending.index=active.index;
+          render();return;
         }
       }
     }
     const pending=state.pendingEncounter;
     const entity=pending&&entityCatalog[pending.entityKey];
     if(entity&&pending.encounterId&&!p.shownEncounters[pending.encounterId]){
-      open(pending.entityKey,'entity',entity.encounter.map(text=>({speaker:pending.entityKey,text})),{encounterId:pending.encounterId});return;
+      const selected=entityScene(pending.entityKey,p);
+      open(pending.entityKey,'entity',selected.lines,{encounterId:pending.encounterId,
+        routeKind:selected.routeKind,routeIndex:selected.routeIndex});return;
     }
     const before=new Set((old&&old.encounteredCharacters||[]).map(c=>String(c.id)));
     const newcomer=(state.encounteredCharacters||[]).find(c=>c.present&&!before.has(String(c.id))&&!p.introduced[c.id]);
