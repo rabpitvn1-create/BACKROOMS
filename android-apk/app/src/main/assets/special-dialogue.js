@@ -89,10 +89,12 @@
       if(restored)return restored;
     }
     const beat=Math.max(0,Number(p.entityBeats[id]||0));
-    if(beat<episodes.length)return scene('episode',beat);
     const other=id==='diep_minh'?'luc_tram_hac_hoa':'diep_minh';
-    if(Array.isArray(d.cross)&&d.cross.length&&
+    // Once the player has met both rivals, allow the linked clue on the
+    // next encounter instead of requiring five victories/escapes first.
+    if(beat>0&&Array.isArray(d.cross)&&d.cross.length&&
       Number(p.entityBeats[other]||0)>0&&!p.entityCross[id])return scene('cross',0);
+    if(beat<episodes.length)return scene('episode',beat);
     if(repeat.length)return scene('repeat',Math.max(0,Number(p.entityRepeats[id]||0))%repeat.length);
     return {routeKind:'fallback',routeIndex:0,
       lines:(d.encounter||[]).map(text=>({speaker:id,text}))};
