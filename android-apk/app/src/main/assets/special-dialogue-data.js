@@ -3,6 +3,417 @@
 (function(global){
   'use strict';
   global.BackroomSpecialDialogueData={
+  "catherine": {
+  "intro": [
+    {
+      "speaker": "catherine",
+      "text": "Ngài cũng nghe thấy tiếng chuông vừa rồi, hay chỉ mình tôi?"
+    },
+    {
+      "speaker": "cao_minh",
+      "text": "Ở đây có đồng hồ sao?"
+    },
+    {
+      "speaker": "catherine",
+      "text": "Tôi chưa thấy cái nào. Chính vì thế mới đáng ngại. Xin đừng tiến lại gần, tôi cần nhìn rõ tay ngài."
+    },
+    {
+      "speaker": "cao_minh",
+      "text": "Ta không định động thủ. Cô cũng có vẻ chưa muốn nổ súng."
+    },
+    {
+      "speaker": "catherine",
+      "text": "Tôi chỉ bóp cò khi biết viên đạn sẽ đi đâu. Catherine Valeria Ashcombe. Còn ngài?"
+    },
+    {
+      "speaker": "cao_minh",
+      "text": "Cao Minh. Cô đang tìm thứ phát ra tiếng chuông?"
+    },
+    {
+      "speaker": "catherine",
+      "text": "Tôi đang tìm một lời giải thích đủ tốt để không phải tin vào chuyện hoang đường."
+    },
+    {
+      "speaker": "cao_minh",
+      "text": "Vậy có lẽ chúng ta sẽ cùng đi một đoạn."
+    },
+    {
+      "speaker": "catherine",
+      "text": "Có lẽ. Nhưng xin thứ lỗi, thưa ngài Cao Minh, tôi thường tin việc người ta làm hơn điều người ta hứa."
+    }
+  ],
+  "ambient": [
+    "Ngài thấy dấu xước trên mép cửa chứ? Tôi muốn nhìn kỹ trước khi bước qua.",
+    "Xin giữ một khoảng trống ở phía trước. Súng của tôi không thể phân biệt bạn và địch thay tôi.",
+    "Một hành lang yên tĩnh không nhất thiết là một hành lang an toàn.",
+    "Tôi vừa chỉnh lại ổ quay. Phần còn lại, ta nên dành cho việc tìm đường."
+  ],
+  "past": [
+    "Tôi đến từ Grayhaven, một thị trấn cảng ở Anh. Những chiếc đồng hồ ở đó ít khi làm người ta mất ngủ như ở đây.",
+    "Tôi từng hiệu chỉnh đồng hồ và điều tra những vụ mất tích. Công việc thứ hai không có nhiều khách hàng biết cảm ơn.",
+    "Vesper Nocturne là khẩu súng tôi tự hoàn thiện. Có những câu chuyện gắn với nó mà tôi chưa sẵn lòng kể."
+  ],
+  "story": [
+    [
+      {
+        "speaker": "catherine",
+        "text": "Có một điều kỳ lạ: dấu chân đi qua đây, nhưng bụi trên mép tường vẫn nguyên."
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Có thể lối đi đã thay đổi."
+      },
+      {
+        "speaker": "catherine",
+        "text": "Có thể. Hoặc chúng ta đang nhìn sai dấu vết. Tôi chưa muốn quyết định thay cho bằng chứng."
+      }
+    ],
+    [
+      {
+        "speaker": "cao_minh",
+        "text": "Cô cứ nhìn đồng hồ như chờ nó ngừng chạy."
+      },
+      {
+        "speaker": "catherine",
+        "text": "Tôi lớn lên giữa những tiếng tích tắc. Đến một ngày, có chiếc đồng hồ điểm một nhịp không nên tồn tại."
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Rồi sao?"
+      },
+      {
+        "speaker": "catherine",
+        "text": "Hai người trong gia đình tôi lần lượt biến mất. Tôi chỉ còn những vết tích họ để lại."
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Cô vẫn đang tìm họ."
+      },
+      {
+        "speaker": "catherine",
+        "text": "Tìm câu trả lời trước đã. Tôi sợ mình sẽ làm điều ngu xuẩn nếu để nỗi nhớ dẫn đường."
+      }
+    ],
+    [
+      {
+        "speaker": "catherine",
+        "text": "Tôi từng nghĩ chỉ cần hiểu khóa và bản lề thì không cánh cửa nào giấu được bí mật mãi."
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Ở đây, đến bức tường cũng chẳng chịu đứng yên."
+      },
+      {
+        "speaker": "catherine",
+        "text": "Thật bất lịch sự với một người thợ máy, phải không?"
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Cô vẫn muốn thử?"
+      },
+      {
+        "speaker": "catherine",
+        "text": "Muốn. Nhưng không đến mức đổi mạng người khác lấy một câu trả lời."
+      }
+    ],
+    [
+      {
+        "speaker": "cao_minh",
+        "text": "Cô đã hạ súng trước khi ta nói hết."
+      },
+      {
+        "speaker": "catherine",
+        "text": "Ngài đã đứng tránh khỏi đường ngắm. Tôi ghi nhận điều đó."
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Chỉ vậy thôi?"
+      },
+      {
+        "speaker": "catherine",
+        "text": "Lòng tin không đến cùng một phát súng, thưa ngài. Nhưng cũng có thể bắt đầu từ một cử chỉ."
+      }
+    ]
+  ]
+},
+  "janet": {
+  "intro": [
+    {
+      "speaker": "janet",
+      "text": "Này! Đứng đó. Anh có thấy một cô gái tên Mia đi qua không?"
+    },
+    {
+      "speaker": "cao_minh",
+      "text": "Ta chưa gặp ai tên ấy."
+    },
+    {
+      "speaker": "janet",
+      "text": "Chết tiệt... Xin lỗi. Tôi tìm cô ấy mãi. Anh cũng bị mắc kẹt ở đây à?"
+    },
+    {
+      "speaker": "cao_minh",
+      "text": "Có vẻ thế. Cô định đánh người lạ bằng cây gậy ấy sao?"
+    },
+    {
+      "speaker": "janet",
+      "text": "Nếu họ lao vào tôi thì có. Còn anh đang đứng yên, nên chưa cần."
+    },
+    {
+      "speaker": "cao_minh",
+      "text": "Ta là Cao Minh."
+    },
+    {
+      "speaker": "janet",
+      "text": "Janet. Janet Marie Boudreaux. Bạn tôi gọi là Janet the Lady, nhưng anh đừng vội cười."
+    },
+    {
+      "speaker": "cao_minh",
+      "text": "Ta không cười. Cô đang đi một mình?"
+    },
+    {
+      "speaker": "janet",
+      "text": "Từ lúc lạc mất Mia thì phải. Nếu anh biết đường ra, tôi sẽ nghe. Còn nếu không, ít nhất đừng bỏ ai lại phía sau."
+    }
+  ],
+  "ambient": [
+    "Cái góc kia hẹp quá. Bayou Belle mà mắc vào tường thì tôi chẳng đánh được gì.",
+    "Có tiếng động. Anh nghe không? Đừng bảo tôi lại tưởng tượng nhé.",
+    "Tôi ghét những cánh cửa mở ra đúng một hành lang khác.",
+    "Nếu có ai tụt lại, gọi tôi. Tôi không để người ta đi mất lần nữa."
+  ],
+  "past": [
+    "Tôi lớn lên gần Houma, Louisiana. Sau đó lên New York học đại học. Ở nhà giờ chắc ai cũng tưởng tôi chỉ đang bận học.",
+    "Tên đầy đủ là Janet Marie Boudreaux. Cái tên 'the Lady' ban đầu là trò trêu trong đội thể thao, chẳng có gì quý tộc đâu.",
+    "Bayou Belle là cây gậy tập của tôi. Dây thép gai thì tôi quấn thêm sau khi lạc vào nơi này."
+  ],
+  "story": [
+    [
+      {
+        "speaker": "janet",
+        "text": "Tôi cứ nghe như có tiếng radio vang ở cuối hành lang. Hồi ở trường, thứ ấy lúc nào cũng mở."
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Cô đi học ở đâu?"
+      },
+      {
+        "speaker": "janet",
+        "text": "New Island, New York. Tôi còn nợ một bài luận. Giờ nghĩ tới lại thấy buồn cười."
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Cô muốn trở lại?"
+      },
+      {
+        "speaker": "janet",
+        "text": "Muốn chứ. Nhưng tôi phải tìm Mia trước đã."
+      }
+    ],
+    [
+      {
+        "speaker": "janet",
+        "text": "Tôi từng thấy em trai bị bắt nạt. Khi ấy tôi chẳng nghĩ gì, cứ lao vào trước."
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Cô có hối hận?"
+      },
+      {
+        "speaker": "janet",
+        "text": "Vì cứu nó thì không. Vì để nó thấy chị mình làm loạn thì... có một chút."
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Vậy lần sau cô sẽ nghĩ kỹ hơn?"
+      },
+      {
+        "speaker": "janet",
+        "text": "Tôi sẽ cố. Đừng bắt tôi hứa ngay bây giờ."
+      }
+    ],
+    [
+      {
+        "speaker": "cao_minh",
+        "text": "Mia là người đi cùng cô khi lạc vào đây?"
+      },
+      {
+        "speaker": "janet",
+        "text": "Chúng tôi xuống cầu thang dịch vụ lúc mất điện. Tôi quay đầu đúng một lần."
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Rồi không thấy cô ấy nữa."
+      },
+      {
+        "speaker": "janet",
+        "text": "Ừ. Tôi còn chẳng biết mình nên sợ cô ấy bị thương hay sợ cô ấy cũng đang tìm tôi."
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Chúng ta chưa có bằng chứng cô ấy gặp chuyện."
+      },
+      {
+        "speaker": "janet",
+        "text": "Tôi biết. Nên tôi vẫn tìm."
+      }
+    ],
+    [
+      {
+        "speaker": "janet",
+        "text": "Hồi mới gặp, tôi suýt lấy gậy dọa anh."
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Cô đã lấy nó dọa rồi."
+      },
+      {
+        "speaker": "janet",
+        "text": "Ờ, công nhận. Nhưng anh cũng chẳng có vẻ sợ."
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Ta chỉ không muốn đánh nhau vì một câu chào."
+      },
+      {
+        "speaker": "janet",
+        "text": "Vậy từ giờ tôi thử chào như người bình thường. Không hứa lúc nào cũng làm được đâu."
+      }
+    ]
+  ]
+},
+  "nguyen_quoc_nam": {
+  "intro": [
+    {
+      "speaker": "nguyen_quoc_nam",
+      "text": "Anh đứng yên một chút. Có bị thương chỗ nào không?"
+    },
+    {
+      "speaker": "cao_minh",
+      "text": "Không. Vì sao anh hỏi?"
+    },
+    {
+      "speaker": "nguyen_quoc_nam",
+      "text": "Nhìn cách anh bước, tôi tưởng chân trái bị đau. Có lẽ tôi nhìn nhầm. Xin lỗi."
+    },
+    {
+      "speaker": "cao_minh",
+      "text": "Anh là thầy thuốc?"
+    },
+    {
+      "speaker": "nguyen_quoc_nam",
+      "text": "Tôi là Nguyễn Quốc Nam, giảng viên y khoa. Ở nơi này, biết sơ cứu cũng chưa chắc giúp được bao nhiêu."
+    },
+    {
+      "speaker": "cao_minh",
+      "text": "Khẩu súng kia không giống dụng cụ của người dạy học."
+    },
+    {
+      "speaker": "nguyen_quoc_nam",
+      "text": "Tôi nhặt được nó sau khi lạc vào đây. Tôi chỉ mong không phải dùng."
+    },
+    {
+      "speaker": "cao_minh",
+      "text": "Ta là Cao Minh. Anh đang tìm đường ra?"
+    },
+    {
+      "speaker": "nguyen_quoc_nam",
+      "text": "Phải. Tôi còn người nhà đang chờ. Nếu anh không phiền, chúng ta có thể đi cùng, nhưng có dấu hiệu nguy hiểm thì đừng cố tiến."
+    }
+  ],
+  "ambient": [
+    "Nếu thấy chóng mặt hoặc khó thở, cứ nói ngay. Ở đây chủ quan rất dễ trả giá.",
+    "Đứng chậm lại một chút. Tôi muốn kiểm tra lối rẽ trước khi cả nhóm bước vào.",
+    "Tôi không biết đồng hồ ở đây còn đáng tin không. Nhưng vẫn giữ thói quen xem giờ.",
+    "Súng chỉ là phương án cuối. Còn một đường tránh thì nên dùng đường tránh."
+  ],
+  "past": [
+    "Tôi dạy ở Trường Đại học Y Dược Thành phố Hồ Chí Minh. Tôi mất dấu đường về vào năm 2001.",
+    "Ở nhà, vợ và con gái đang chờ tôi. Tôi không biết ngoài ấy đã trôi qua bao nhiêu thời gian.",
+    "Khẩu súng này tôi tìm được trong một ngăn tủ ở đây. Trước khi lạc vào, tôi chỉ mang cặp tài liệu."
+  ],
+  "story": [
+    [
+      {
+        "speaker": "nguyen_quoc_nam",
+        "text": "Anh bị xây xát ở tay. Nếu có nước sạch, nên rửa và che vết thương."
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Chỉ là vết nhỏ."
+      },
+      {
+        "speaker": "nguyen_quoc_nam",
+        "text": "Tôi biết. Nhưng một vết nhỏ bị bỏ mặc cũng có thể thành chuyện lớn. Thói quen nghề nghiệp thôi."
+      }
+    ],
+    [
+      {
+        "speaker": "cao_minh",
+        "text": "Anh thường nhìn đồng hồ sau mỗi đoạn đường."
+      },
+      {
+        "speaker": "nguyen_quoc_nam",
+        "text": "Con gái tôi từng tập xem giờ trên chiếc đồng hồ này. Cứ hỏi mãi khi nào ba về."
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Anh có con?"
+      },
+      {
+        "speaker": "nguyen_quoc_nam",
+        "text": "Một bé gái. Thùy Dương. Hôm tôi đi, cháu mới sáu tuổi."
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Anh nhớ nhà."
+      },
+      {
+        "speaker": "nguyen_quoc_nam",
+        "text": "Có. Nhưng tôi phải giữ đầu óc tỉnh táo thì mới còn cơ hội trở về."
+      }
+    ],
+    [
+      {
+        "speaker": "nguyen_quoc_nam",
+        "text": "Ở trường, tôi luôn dặn sinh viên đừng đoán bệnh chỉ qua một triệu chứng."
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Còn ở đây?"
+      },
+      {
+        "speaker": "nguyen_quoc_nam",
+        "text": "Càng phải nhớ điều ấy. Một hành lang giống hành lang cũ chưa chắc dẫn tới cùng một chỗ."
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Anh ghi lại từng lần đi qua?"
+      },
+      {
+        "speaker": "nguyen_quoc_nam",
+        "text": "Những gì tôi thấy được. Còn điều chưa biết, tôi để trống."
+      }
+    ],
+    [
+      {
+        "speaker": "cao_minh",
+        "text": "Anh không quen chiến đấu, đúng không?"
+      },
+      {
+        "speaker": "nguyen_quoc_nam",
+        "text": "Không. Súng giúp tôi giữ khoảng cách, không biến tôi thành người lính."
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Vậy vì sao anh vẫn đi tiếp?"
+      },
+      {
+        "speaker": "nguyen_quoc_nam",
+        "text": "Vì đứng yên cũng không đưa tôi về nhà. Tôi chỉ cố chọn rủi ro mà mình còn có thể kiểm soát."
+      }
+    ]
+  ]
+},
   "lucia": {
     "intro": [
       {
