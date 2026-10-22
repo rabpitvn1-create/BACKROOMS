@@ -2536,8 +2536,8 @@ public class MainActivity extends Activity {
             .put("text", resultText).put("state", updated).toString());
         } catch (Exception error) {
           DiagnosticLog.record("dialogue.talk.failed", error.getClass().getSimpleName());
-          emit("backroomDialogueHint", new JSONObject().put("id", characterId)
-            .put("text", "Không thể thực hiện cuộc trò chuyện này lúc này.").toString());
+          emit("backroomDialogueHint", "{\"id\":" + JSONObject.quote(characterId)
+            + ",\"text\":" + JSONObject.quote("Không thể thực hiện cuộc trò chuyện này lúc này.") + "}");
         }
       });
     }
@@ -2599,8 +2599,8 @@ public class MainActivity extends Activity {
               answer.substring(0, Math.min(answer.length(), 950))).toString());
         } catch (Exception error) {
           DiagnosticLog.record("dialogue.hint.failed", error.getClass().getSimpleName());
-          emit("backroomDialogueHint", new JSONObject().put("id", characterId)
-            .put("text", "Tôi chưa thể đưa ra gợi ý đáng tin cậy lúc này.").toString());
+          emit("backroomDialogueHint", "{\"id\":" + JSONObject.quote(characterId)
+            + ",\"text\":" + JSONObject.quote("Tôi chưa thể đưa ra gợi ý đáng tin cậy lúc này.") + "}");
         }
       });
     }
