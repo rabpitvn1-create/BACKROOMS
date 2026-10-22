@@ -226,3 +226,91 @@ test('cross-route appears early after both actual encounters and does not skip i
   finishModal(x);
   assert.equal(x.ctx.state.specialDialogueProgress.entityBeats.diep_minh,2);
 });
+
+test('R07 late encounters add six episodes and six varied repeat scenes per antagonist',()=>{
+  const x=env({state:{party:[],partyDetails:{members:[]},encounteredCharacters:[],
+    specialDialogueProgress:{introduced:{},chapters:{},shownEncounters:{},pending:null,
+      entityBeats:{diep_minh:5},entityCross:{},entityRepeats:{},lastRollTurn:1}}});
+  const catalog=x.ctx.BackroomSpecialEntityDialogue;
+  for(const id of ['diep_minh','luc_tram_hac_hoa']){
+    const entry=catalog[id];
+    assert.equal(entry.episodes.length,11);
+    assert.equal(entry.cross.length,3);
+    assert.equal(entry.repeat.length,6);
+    for(const lines of [...entry.episodes,...entry.cross,...entry.repeat]){
+      assert.ok(lines.length>=3,'substantial original exchange');
+      for(const line of lines){
+        assert.ok(['cao_minh',id].includes(line.speaker),'only present antagonists and Cao Minh speak');
+        assert.ok(typeof line.text==='string'&&line.text.length>20);
+      }
+    }
+  }
+  encounter(x,'diep_minh','r07-late-d6');
+  assert.match(x.parts['#specialDialogueText'].textContent,/Ngươi có bao giờ nghĩ/);
+  finishModal(x);
+  assert.equal(x.ctx.state.specialDialogueProgress.entityBeats.diep_minh,6);
+  for(let n=7;n<=11;n++){encounter(x,'diep_minh','r07-late-d'+n);finishModal(x);}
+  assert.equal(x.ctx.state.specialDialogueProgress.entityBeats.diep_minh,11);
+  encounter(x,'diep_minh','r07-late-repeat-1');
+  assert.match(x.parts['#specialDialogueText'].textContent,/Đường đi đổi hướng/);
+  finishModal(x);
+  x.ctx.state.specialDialogueProgress.entityRepeats.diep_minh=3;
+  encounter(x,'diep_minh','r07-late-repeat-4');
+  assert.match(x.parts['#specialDialogueText'].textContent,/Người khác sợ lạc đường/);
+  finishModal(x);
+  assert.equal(x.ctx.state.specialDialogueProgress.entityRepeats.diep_minh,4);
+});
+test('three cross-interludes are gated by confirmed history on both storylines',()=>{
+  function seeded(diepBeat,lucBeat,crossCount){
+    return env({state:{party:[],partyDetails:{members:[]},encounteredCharacters:[],
+      specialDialogueProgress:{introduced:{},chapters:{},shownEncounters:{},pending:null,lastRollTurn:1,
+        entityBeats:{diep_minh:diepBeat,luc_tram_hac_hoa:lucBeat},
+        entityCross:{diep_minh:crossCount},entityRepeats:{}}}});
+  }
+  const insufficient=seeded(3,2,1);
+  encounter(insufficient,'diep_minh','r07-cross-gate-insufficient');
+  assert.match(insufficient.parts['#specialDialogueText'].textContent,/Một tông môn không nhất thiết/);
+  finishModal(insufficient);
+  assert.equal(insufficient.ctx.state.specialDialogueProgress.entityCross.diep_minh,1);
+  const second=seeded(3,3,1);
+  encounter(second,'diep_minh','r07-cross-two');
+  assert.match(second.parts['#specialDialogueText'].textContent,/Ngươi gọi tên một thanh kiếm cũ/);
+  finishModal(second);
+  assert.equal(second.ctx.state.specialDialogueProgress.entityCross.diep_minh,2);
+  encounter(second,'diep_minh','r07-resume-episode');
+  assert.match(second.parts['#specialDialogueText'].textContent,/Một tông môn không nhất thiết/);
+  finishModal(second);
+  const third=seeded(6,6,2);
+  encounter(third,'diep_minh','r07-cross-three');
+  assert.match(third.parts['#specialDialogueText'].textContent,/Ngươi từng đứng cạnh Lục Trầm/);
+  third.parts['#specialDialogueActions'].children[0].click();
+  const persisted=JSON.parse(JSON.stringify(third.ctx.state));
+  assert.equal(persisted.specialDialogueProgress.pending.routeKind,'cross');
+  assert.equal(persisted.specialDialogueProgress.pending.routeIndex,2);
+  const loaded=env({state:persisted});
+  assert.equal(loaded.parts['#specialDialogueProgress'].textContent,'2 / 4');
+  finishModal(loaded);
+  assert.equal(loaded.ctx.state.specialDialogueProgress.entityCross.diep_minh,3);
+  encounter(loaded,'diep_minh','r07-after-three-crosses');
+  assert.match(loaded.parts['#specialDialogueText'].textContent,/Ngươi có bao giờ nghĩ/);
+  finishModal(loaded);
+  assert.equal(loaded.ctx.state.specialDialogueProgress.entityBeats.diep_minh,7);
+});
+test('Lục Trầm late encounters do not claim she remembers Cao Minh, is recruited, or is reconciled',()=>{
+  const x=env({state:{party:[],partyDetails:{members:[]},encounteredCharacters:[],
+    specialDialogueProgress:{introduced:{},chapters:{},shownEncounters:{},pending:null,lastRollTurn:1,
+      entityBeats:{luc_tram_hac_hoa:10},entityCross:{},entityRepeats:{}}}});
+  encounter(x,'luc_tram_hac_hoa','r07-late-l11');
+  assert.match(x.parts['#specialDialogueText'].textContent,/Nếu những gì ngươi nói là thật/);
+  finishModal(x);
+  assert.equal(x.ctx.state.specialDialogueProgress.entityBeats.luc_tram_hac_hoa,11);
+  assert.equal(x.ctx.state.party.length,0);
+  encounter(x,'luc_tram_hac_hoa','r07-late-repeat-l1');
+  assert.match(x.parts['#specialDialogueText'].textContent,/Cùng một luồng ma khí/);
+  finishModal(x);
+  x.ctx.state.specialDialogueProgress.entityRepeats.luc_tram_hac_hoa=3;
+  encounter(x,'luc_tram_hac_hoa','r07-late-repeat-l4');
+  assert.match(x.parts['#specialDialogueText'].textContent,/Khi nghe tên Cao Minh/);
+  finishModal(x);
+  assert.equal(x.ctx.state.specialDialogueProgress.entityRepeats.luc_tram_hac_hoa,4);
+});
