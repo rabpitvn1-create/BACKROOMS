@@ -225,7 +225,9 @@ class GameCoreFacade private constructor(
     // A confirmed cross-Level departure is not a room encounter or a spawn roll.
     // Other gameplay actions retain the existing Core encounter policy.
     val isWorldExit = staged.event.optBoolean("transition", false)
-    var roll = if (isWorldExit) null
+    // Mechanical puzzle controls are not physical exploration encounters.
+    // Keep RNG unchanged while players operate the current room device.
+    var roll = if (isWorldExit || deviceControl) null
       else SpawnMechanism.rollSceneSpawns(atTarget, command.getString("kind")) { spawnRng.nextInt(it) }
     var interruptedAt = 0
     // Existing extreme thermal states can interrupt sleep even without an
@@ -390,6 +392,7 @@ class GameCoreFacade private constructor(
       put("currentLevel", node.asJson())
     }
     val receipt = JSONObject().put("automaticContinuation", pending.optBoolean("automaticContinuation"))
+      .put("specialDialogueTalk", pending.getJSONObject("command").optString("kind") == "TALK")
       .put("actionId", actionId).put("label", pending.getString("label")).put("reply", reply).apply {
       // Persist exactly what the player submitted, including punctuation/case.
       // A retry uses the original saved utterance, never an AI paraphrase.

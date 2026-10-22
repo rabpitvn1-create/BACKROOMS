@@ -479,7 +479,8 @@ object SpawnMechanism {
 
   /** Called only AFTER Core validates a typed scene target. No text classification. */
   fun rollSceneSpawns(state: GameState, kind: String, nextInt: (Int) -> Int): SpawnResult {
-    if (kind !in setOf("MOVE", "SEARCH", "STEP", "FREE", "INTERACT", "TALK")) return SpawnResult(null, emptyList())
+    // TALK is presentation-only dialogue, never a physical exploration roll.
+    if (kind == "TALK" || kind !in setOf("MOVE", "SEARCH", "STEP", "FREE", "INTERACT")) return SpawnResult(null, emptyList())
     if (CombatRuntime.active(state) != null || CombatRuntime.pending(state) != null)
       return SpawnResult(null, emptyList())
     val flags = JSONObject(state.world["flagsJson"] ?: "{}")

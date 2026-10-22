@@ -135,7 +135,7 @@ class EntitySpawnPoolTest {
 
   @Test fun `legacy crowd NPC never rolls from any freeform action`() {
     val state = GameState.initial().copy(world = mapOf(
-      "flagsJson" to """{"entityEncountersAllowed":false,"lucia":{"spawned":true},"catherine":{"spawned":true}}"""
+      "flagsJson" to """{"entityEncountersAllowed":false,"lucia":{"spawned":true},"catherine":{"spawned":true},"janet":{"spawned":true},"nguyenQuocNam":{"spawned":true},"huaTieuLan":{"spawned":true},"tracLam":{"spawned":true},"lucTram":{"spawned":true}}"""
     ))
     var calls = 0
     for (action in listOf("đi khám phá", "quan sát xung quanh", "tìm đường", "hỏi tiếp")) {
@@ -151,7 +151,7 @@ class EntitySpawnPoolTest {
 
   @Test fun `typed explorer movement search and dialogue never roll ambient NPC`() {
     val state = GameState.initial().copy(world = mapOf(
-      "flagsJson" to """{"entityEncountersAllowed":false,"lucia":{"spawned":true},"catherine":{"spawned":true}}"""
+      "flagsJson" to """{"entityEncountersAllowed":false,"lucia":{"spawned":true},"catherine":{"spawned":true},"janet":{"spawned":true},"nguyenQuocNam":{"spawned":true},"huaTieuLan":{"spawned":true},"tracLam":{"spawned":true},"lucTram":{"spawned":true}}"""
     ))
     var calls = 0
     for (kind in listOf("MOVE", "SEARCH", "TALK")) {

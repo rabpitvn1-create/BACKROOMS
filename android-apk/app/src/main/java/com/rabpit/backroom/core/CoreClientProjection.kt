@@ -78,6 +78,7 @@ object CoreClientProjection {
       state.characters.values.filter { it.metadata["encountered"] == "true" || it.metadata["dungeon.unlocked"] == "true" }.forEach { character ->
         put(JSONObject().put("id", character.id).put("name", character.name)
           .put("kind", character.metadata["encounterKind"])
+          .apply { character.avatarRef?.let { put("avatar", it) } }
           .put("encounterId", character.metadata["encounterId"])
           .put("turn", character.metadata["encounterTurn"]?.toIntOrNull())
           .put("present", character.presence == CharacterPresence.ACTIVE &&
@@ -126,7 +127,7 @@ object CoreClientProjection {
           val updated = JSONArray()
           for (i in 0 until log.length()) {
             updated.put(log.get(i))
-            if (i == pendingLine && CombatRuntime.pending(state) == null) updated.put(JSONObject().put("role", "gm")
+            if (i == pendingLine && CombatRuntime.pending(state) == null && !r.optBoolean("specialDialogueTalk")) updated.put(JSONObject().put("role", "gm")
               .put("text", r.getString("reply")).put("sceneMap", currentMap)
               .apply { if (r.optBoolean("automaticContinuation")) put("sceneActionId", r.getString("actionId")) })
           }
@@ -139,9 +140,9 @@ object CoreClientProjection {
               (0 until ids.length()).any { ids.optString(it) == r.getString("actionId") }
             } == true
         }) {
-          if (!r.optBoolean("automaticContinuation")) log.put(JSONObject().put("role", "player").put("text", r.optString("playerText", r.getString("label")))
+          if (!r.optBoolean("automaticContinuation") && !r.optBoolean("specialDialogueTalk")) log.put(JSONObject().put("role", "player").put("text", r.optString("playerText", r.getString("label")))
             .put("sceneMap", currentMap).put("sceneActionId", r.getString("actionId")))
-          if (CombatRuntime.pending(state) == null) log.put(JSONObject().put("role", "gm")
+          if (CombatRuntime.pending(state) == null && !r.optBoolean("specialDialogueTalk")) log.put(JSONObject().put("role", "gm")
             .put("text", r.getString("reply")).put("sceneMap", currentMap)
               .apply { if (r.optBoolean("automaticContinuation")) put("sceneActionId", r.getString("actionId")) })
         }

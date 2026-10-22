@@ -133,16 +133,28 @@ test('legacy provenance is labeled, not silently promoted into author Canon', ()
   const approved = db.records.filter(r => r.id === 'LEVEL.00.ZONES.OVERVIEW' &&
     r.source.document === 'android-apk/LEVEL_0_EIGHT_ZONES_CANON.md');
   assert.equal(approved.length, 1, 'author-approved in-repository Canon has separate provenance');
+  // Local character mirrors, LS2 and R07 are all author-approved, not legacy.
+  const localApproved = db.records.filter(r =>
+    /^CHAR\.(TRAC_LAM|CATHERINE|JANET|NGUYEN_QUOC_NAM|HUA_TIEU_LAN)\.AUTHORED$/.test(r.id) &&
+    /^canon\/.+_CODEX\.md$/.test(r.source.document));
+  const ls2Approved = db.records.filter(r =>
+    r.source.document === 'android-apk/LS2_PROJECT_CANON_20261021.md');
+  const storyApproved = db.records.filter(r =>
+    r.source.document === 'canon/STORY_VAN_GIOI_TAN_MONG_R07.md');
+  assert.equal(localApproved.length, 5);
+  assert.equal(ls2Approved.length, 1);
+  assert.equal(storyApproved.length, 7);
   const legacy = db.records.filter(r =>
     !r.source.document.startsWith('Google Drive /Novel/Asset/') &&
-    !approved.includes(r));
-  // The registry now contains more approved in-repo sources and R07 story cards.
-  // Verify old unverified material is still registered without freezing its count.
+    !approved.includes(r) && !localApproved.includes(r) &&
+    !ls2Approved.includes(r) && !storyApproved.includes(r));
+  // R07 upgrades three former local legacy cards to approved story provenance.
   assert.ok(legacy.some(r => r.id === 'WORLD.CORE' &&
     r.source.document === '01_WORLD/world.md'));
   assert.ok(legacy.some(r => r.id === 'STORY.DIEP_MINH.SCENE_R07' &&
     r.source.document === 'canon/STORY_VAN_GIOI_TAN_MONG_R07.md'));
   assert.match(reader, /approvedStorySource/);
+  assert.equal(legacy.length, 39, "39 untouched old legacy cards remain classified separately");
   assert.ok(reader.includes('LEGACY_UNVERIFIED'));
   assert.ok(reader.includes('provenance='));
 });

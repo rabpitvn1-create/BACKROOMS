@@ -25,11 +25,16 @@ class CharacterCombatResolutionTest {
   }
 
   @Test fun dexReducesCriticalChanceAndCriticalDamageUsesFourHundredPercent() {
-    val base = GameState.initial()
-    val highDex = boosted(base) { it.copy(dex = 100) }
+    // Cao Minh's bound gear raises base DEX enough to resist an ordinary 5%
+    // Entity critical; use an unarmored mortal to exercise the resistance curve.
+    val start = GameState.initial()
+    val base = start.copy(party = PartyState(leaderId = CATHERINE_ID, memberIds = listOf(CATHERINE_ID)))
+    val actor = base.characters.getValue(CATHERINE_ID)
+    val highDex = base.copy(characters = base.characters +
+      (CATHERINE_ID to actor.copy(statProfile = actor.statProfile.copy(dex = 100))))
     val critical = hit(base, damage = 10, critRoll = 200)
     val resisted = hit(highDex, damage = 10, critRoll = 200)
-    assertEquals(listOf(CAO_MINH_ID), critical.criticalIds)
+    assertEquals(listOf(CATHERINE_ID), critical.criticalIds)
     assertTrue(critical.appliedDamage > resisted.appliedDamage)
     assertTrue(resisted.criticalIds.isEmpty())
     assertEquals(400, CharacterStatCore.CRITICAL_DAMAGE_PERCENT)

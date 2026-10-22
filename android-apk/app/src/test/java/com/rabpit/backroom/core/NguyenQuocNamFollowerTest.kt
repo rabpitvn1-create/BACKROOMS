@@ -119,6 +119,9 @@ class NguyenQuocNamFollowerTest {
     }
     assertTrue(CombatRuntime.resolve(state, "EXECUTE", "Party né tránh").reply.contains("Giữ Khoảng Cách"))
     assertTrue(CombatRuntime.resolve(state, "SEARCH", "quan sát").reply.contains("Đánh Giá Nguy Cơ"))
-    assertTrue(CombatRuntime.resolve(state, "EXECUTE", "Party tấn công").reply.contains("Quan Sát Lâm Sàng"))
+    val assault = CombatRuntime.resolve(state, "EXECUTE", "Party tấn công")
+    // The skill is attempted even when the Entity dodges; hit feedback is RNG-dependent.
+    assertTrue(assault.feedback.any { it.actorId == NGUYEN_QUOC_NAM_ID &&
+      it.skill == "Quan Sát Lâm Sàng" })
   }
 }
