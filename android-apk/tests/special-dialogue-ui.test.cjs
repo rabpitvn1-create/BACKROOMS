@@ -317,3 +317,80 @@ test('Lục Trầm late encounters do not claim she remembers Cao Minh, is recru
   finishModal(x);
   assert.equal(x.ctx.state.specialDialogueProgress.entityRepeats.luc_tram_hac_hoa,4);
 });
+
+test('Lucia Lục Core-confirmed first encounter opens authored popup and never auto-recruits',()=>{
+  const x=env({state:{party:[],partyDetails:{members:[]},encounteredCharacters:[]}});
+  assert.equal(x.dialog.hidden,true);
+  const next=JSON.parse(JSON.stringify(x.ctx.state));
+  next.turn=5;
+  next.encounteredCharacters=[{id:'lucia',name:'Lucia "Lục"',
+    avatar:'avatars/lucia_avatar.jpg',present:true,inParty:false,joinEligible:true}];
+  x.ctx.backroomTurn(JSON.stringify(next));
+  assert.equal(x.dialog.hidden,false,'committed first meeting must open popup automatically');
+  assert.match(x.parts['#specialDialogueText'].textContent,/Tôi chưa biết anh là ai/);
+  assert.equal(x.parts['#specialDialogueProgress'].textContent,'1 / 10');
+  assert.equal(x.parts['#specialDialogueAvatar'].children[0].src,'avatars/lucia_avatar.jpg');
+  assert.equal(x.ctx.state.specialDialogueProgress.introduced.lucia,undefined);
+  assert.equal(x.ctx.invited,undefined);
+  for(let i=0;i<9;i++)x.parts['#specialDialogueActions'].children[0].click();
+  const names=x.parts['#specialDialogueActions'].children.map(b=>b.textContent);
+  assert.ok(names.includes('Mời vào Party'));
+  assert.equal(x.ctx.invited,undefined,'invitation remains the player choice');
+  x.parts['#specialDialogueActions'].children.at(-1).click();
+  assert.equal(x.dialog.hidden,true);
+  assert.equal(x.ctx.state.specialDialogueProgress.introduced.lucia,true);
+  assert.equal(x.ctx.state.specialDialogueProgress.introRevisions.lucia,'lucia-intro-r01');
+  assert.equal(x.ctx.state.party.length,0,'intro must not change authoritative Party');
+  x.ctx.SpecialDialogue.offerEntity();
+  assert.equal(x.dialog.hidden,true,'finished intro must not reopen on render');
+});
+test('Lucia first meeting is recovered after app launch, old generic greeting and a missed roster diff',()=>{
+  const lucia={id:'lucia',name:'Lucia "Lục"',
+    avatar:'avatars/lucia_avatar.jpg',present:true,inParty:false,joinEligible:true};
+  const old=env({state:{party:[],partyDetails:{members:[]},
+    encounteredCharacters:[lucia],
+    specialDialogueProgress:{introduced:{lucia:true},chapters:{},
+      shownEncounters:{},pending:null,lastRollTurn:4}}});
+  assert.equal(old.dialog.hidden,false,'old generic greeting must not silently consume authored story');
+  assert.match(old.parts['#specialDialogueText'].textContent,/Tôi chưa biết anh là ai/);
+  finishModal(old);
+  const restored=JSON.parse(JSON.stringify(old.ctx.state));
+  const reloaded=env({state:restored});
+  assert.equal(reloaded.dialog.hidden,true,'read Lucia intro must not be replayed after load');
+  const unpresent=env({state:{party:[],partyDetails:{members:[]},
+    encounteredCharacters:[{...lucia,present:false}]}});
+  assert.equal(unpresent.dialog.hidden,true,'historical encounter does not mean current presence');
+  const present=JSON.parse(JSON.stringify(unpresent.ctx.state));
+  present.encounteredCharacters=[lucia];
+  unpresent.ctx.backroomTurn(JSON.stringify(present));
+  assert.equal(unpresent.dialog.hidden,false,'transition from absent to present must trigger even if ID was already recorded');
+});
+test('Lucia popup requires Core presence; delayed rendering can recover it without another turn',()=>{
+  const x=env({state:{party:[],partyDetails:{members:[]},encounteredCharacters:[],
+    log:[{role:'gm',text:'Lucia xuất hiện cạnh Cao Minh.'}]}});
+  assert.equal(x.dialog.hidden,true,'GM prose alone cannot confirm an NPC');
+  x.ctx.state.encounteredCharacters=[{id:'lucia',name:'Lucia "Lục"',present:true,
+    inParty:false,joinEligible:true,avatar:'avatars/lucia_avatar.jpg'}];
+  x.ctx.render();
+  assert.equal(x.dialog.hidden,false,'Core-projected presence triggers even without new backroomTurn');
+  finishModal(x);
+  const p=x.ctx.state.specialDialogueProgress;
+  assert.equal(p.introRevisions.lucia,'lucia-intro-r01');
+  x.ctx.render();
+  assert.equal(x.dialog.hidden,true);
+});
+test('Lucia authored intro resumes at the same line on reload',()=>{
+  const x=env({state:{party:[],partyDetails:{members:[]},
+    encounteredCharacters:[{id:'lucia',name:'Lucia "Lục"',present:true,inParty:false}]}});
+  assert.equal(x.dialog.hidden,false);
+  x.parts['#specialDialogueActions'].children[0].click();
+  x.parts['#specialDialogueActions'].children[0].click();
+  const saved=JSON.parse(JSON.stringify(x.ctx.state));
+  assert.equal(saved.specialDialogueProgress.pending.index,2);
+  const y=env({state:saved});
+  assert.equal(y.dialog.hidden,false);
+  assert.equal(y.parts['#specialDialogueProgress'].textContent,'3 / 10');
+  assert.match(y.parts['#specialDialogueText'].textContent,/Hứa Thuý Mai/);
+  finishModal(y);
+  assert.equal(y.ctx.state.specialDialogueProgress.introRevisions.lucia,'lucia-intro-r01');
+});
