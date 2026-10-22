@@ -2591,7 +2591,8 @@ public class MainActivity extends Activity {
             "Trả lời tiếng Việt gọn trong 1–3 câu, ở ngôi thứ nhất, KHÔNG JSON. " +
             "Không dùng chuyện riêng hay quá khứ NPC. DỮ LIỆU CÔNG KHAI: " +
             publicFacts.toString().substring(0, Math.min(4000, publicFacts.toString().length()));
-          String answer = generateText(prompt);
+          // Clue-only response is plain text; generateText() expects questItem JSON.
+          String answer = gehihiText(prompt, 512, "gm.http");
           emit("backroomDialogueHint", new JSONObject().put("id", characterId)
             .put("text", answer == null || answer.trim().isEmpty() ?
               "Tôi chưa thấy đủ manh mối để đưa ra kết luận." :
