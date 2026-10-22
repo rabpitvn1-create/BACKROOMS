@@ -70,15 +70,22 @@
     const c=(state.encounteredCharacters||[]).find(x=>x.id===id);
     return c&&c.present&&c.joinEligible&&!c.inParty&&!state.pendingEncounter;
   }
-  const LUCIA_INTRO_REVISION='lucia-intro-r01';
+  // These characters previously only had a generic fallback greeting. Track
+  // authored introductions without affecting other followers' current progress.
+  const AUTHORED_INTRO_REVISIONS={
+    lucia:'lucia-intro-r01',
+    catherine:'catherine-intro-r01',
+    janet:'janet-intro-r01',
+    nguyen_quoc_nam:'nguyen-quoc-nam-intro-r01'
+  };
   function coreConfirmedNpc(id){
     // Do not create encounters from old names, GM prose, or historical roster.
     return (state.encounteredCharacters||[]).some(c=>c.id===id&&c.present===true)||
       (state.party||[]).some(c=>c.id===id&&c.presence!=='DEAD'&&c.presence!=='SEPARATED');
   }
   function needsIntro(id,p){
-    // Lucia's previous generic hello was not her authored first-meeting story.
-    return !p.introduced[id]||(id==='lucia'&&p.introRevisions.lucia!==LUCIA_INTRO_REVISION);
+    const revision=AUTHORED_INTRO_REVISIONS[id];
+    return !p.introduced[id]||(revision&&p.introRevisions[id]!==revision);
   }
   // The Core encounter confirms *who is present*. Presentation can track
   // conversation beats, but encounter count alone never proves a story secret.
@@ -118,7 +125,8 @@
     const p=progress();
     if(active.kind==='intro'){
       p.introduced[active.id]=true;
-      if(active.id==='lucia')p.introRevisions.lucia=LUCIA_INTRO_REVISION;
+      const revision=AUTHORED_INTRO_REVISIONS[active.id];
+      if(revision)p.introRevisions[active.id]=revision;
     }
     if(active.kind==='story')p.chapters[active.id]=Math.max(Number(p.chapters[active.id]||0),active.chapter+1);
     if(active.kind==='entity'){
