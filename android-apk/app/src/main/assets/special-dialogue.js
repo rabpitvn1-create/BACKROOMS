@@ -71,7 +71,11 @@
     const p=progress();
     if(active.kind==='intro')p.introduced[active.id]=true;
     if(active.kind==='story')p.chapters[active.id]=Math.max(Number(p.chapters[active.id]||0),active.chapter+1);
-    if(active.kind==='entity')p.shownEncounters[active.encounterId]=true;
+    if(active.kind==='entity'){
+      p.shownEncounters[active.encounterId]=true;
+      const keys=Object.keys(p.shownEncounters);
+      if(keys.length>24)keys.slice(0,keys.length-24).forEach(key=>delete p.shownEncounters[key]);
+    }
     p.pending=null;
     active=null;root.hidden=true;document.body.classList.remove('special-dialogue-active');
     store();
@@ -209,7 +213,7 @@
     // Story rolls only after a committed Explorer action. No roll on render, TALK or meta panels.
     const entries=state.log||[];
     const latest=[...entries].reverse().find(e=>e&&e.role==='player');
-    if(!latest||!/(?:^|[\s])(?:Di chuyển|Tìm kiếm|Hành động|Thao tác):/i.test(latest.text||'')){store();return;}
+    if(!latest||!/(?:di chuy[eể]n|bước|đi qua|đi tới|đi đến|tìm kiếm|tìm hiểu|quan sát|kiểm tra|khám phá|thao tác|tiến vào|băng qua)/i.test(latest.text||'')){store();return;}
     const eligible=(state.party||[]).filter(c=>{
       const d=catalog[c.id];return d&&Array.isArray(d.story)&&
         Number(p.chapters[c.id]||0)<d.story.length&&p.introduced[c.id];
@@ -222,6 +226,12 @@
     store();
   }
   global.backroomDialogueHint=handleHint;
+  global.backroomDialogueInvalidAction=function(message){
+    if(!Array.isArray(state.log))state.log=[];
+    state.log.push({role:'gm',text:String(message||'HÀNH ĐỘNG KHÔNG HỢP LỆ! Vui lòng sử dụng [Giao Tiếp].')});
+    if(typeof global.render==='function')global.render();
+    store();
+  };
   global.SpecialDialogue={openCharacter,isOpen:()=>!!active,rejectPlayerAction:invalidateAction,
     offerEntity:()=>applyIncoming(null)};
   const previousTurn=global.backroomTurn;
