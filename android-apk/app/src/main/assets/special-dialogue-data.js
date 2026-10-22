@@ -60,147 +60,163 @@
       [
         {
           "speaker": "catherine",
-          "text": "Có một điều kỳ lạ: dấu chân đi qua đây, nhưng bụi trên mép tường vẫn nguyên."
+          "text": "Có lần tôi theo dấu chân trên lớp bụi suốt một hành lang. Đến cuối đường, chúng biến mất trước một bức tường kín."
         },
         {
           "speaker": "cao_minh",
-          "text": "Có thể lối đi đã thay đổi."
+          "text": "Cô đã làm gì?"
         },
         {
           "speaker": "catherine",
-          "text": "Có thể. Hoặc chúng ta đang nhìn sai dấu vết. Tôi chưa muốn quyết định thay cho bằng chứng."
+          "text": "Quay lại kiểm tra xem mình có bỏ sót cửa nào không. Tôi không định gọi một điều chưa hiểu là phép màu."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Cô luôn bình tĩnh như thế?"
+        },
+        {
+          "speaker": "catherine",
+          "text": "Không. Chỉ là hoảng sợ chẳng giúp tôi nhìn rõ dấu chân hơn."
         }
       ],
       [
         {
           "speaker": "cao_minh",
-          "text": "Cô cứ nhìn đồng hồ như chờ nó ngừng chạy."
+          "text": "Cô giữ những mẩu giấy ấy cẩn thận hơn cả đạn."
         },
         {
           "speaker": "catherine",
-          "text": "Tôi lớn lên giữa những tiếng tích tắc. Đến một ngày, có chiếc đồng hồ điểm một nhịp không nên tồn tại."
+          "text": "Sổ của mẹ tôi. Bà hay gạch chân những khoản tiền có người cố tình ghi mập mờ."
         },
         {
           "speaker": "cao_minh",
-          "text": "Rồi sao?"
+          "text": "Một người thận trọng."
         },
         {
           "speaker": "catherine",
-          "text": "Hai người trong gia đình tôi lần lượt biến mất. Tôi chỉ còn những vết tích họ để lại."
+          "text": "Thận trọng đến mức không ai tin bà có thể tự ý bỏ đi mà không nhắn một lời."
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô vẫn đang tìm họ."
+          "text": "Cô vẫn chưa biết bà đã đi đâu."
         },
         {
           "speaker": "catherine",
-          "text": "Tìm câu trả lời trước đã. Tôi sợ mình sẽ làm điều ngu xuẩn nếu để nỗi nhớ dẫn đường."
+          "text": "Không. Tôi chỉ biết cánh cửa phòng bà khi ấy vẫn khóa từ bên trong."
         }
       ],
       [
         {
           "speaker": "catherine",
-          "text": "Tôi từng nghĩ chỉ cần hiểu khóa và bản lề thì không cánh cửa nào giấu được bí mật mãi."
+          "text": "Cha tôi có thể ngồi hàng giờ bên một bánh răng lỗi. Ông không chịu nổi thứ gì đi lệch nhịp."
         },
         {
           "speaker": "cao_minh",
-          "text": "Ở đây, đến bức tường cũng chẳng chịu đứng yên."
+          "text": "Vậy mà chính ông để lại một chiếc đồng hồ không ai hiểu."
         },
         {
           "speaker": "catherine",
-          "text": "Thật bất lịch sự với một người thợ máy, phải không?"
+          "text": "Một bản thiết kế dở dang và những khoản nợ. Càng đến gần lời giải, ông càng ít nói với tôi."
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô vẫn muốn thử?"
+          "text": "Cô giận ông."
         },
         {
           "speaker": "catherine",
-          "text": "Muốn. Nhưng không đến mức đổi mạng người khác lấy một câu trả lời."
+          "text": "Có. Nhưng nếu gặp lại, tôi muốn hỏi vì sao ông sợ đến mức phải giấu cả con gái mình."
         }
       ],
       [
         {
           "speaker": "cao_minh",
-          "text": "Cô đã hạ súng trước khi ta nói hết."
+          "text": "Cô chưa từng đặt súng lên bàn, ngay cả lúc nói chuyện."
         },
         {
           "speaker": "catherine",
-          "text": "Ngài đã đứng tránh khỏi đường ngắm. Tôi ghi nhận điều đó."
+          "text": "Vesper Nocturne từng là một khối kim loại chưa hoàn thiện. Tôi đã sửa nó bằng tay mình."
         },
         {
           "speaker": "cao_minh",
-          "text": "Chỉ vậy thôi?"
+          "text": "Cô xem nó là vật kỷ niệm?"
         },
         {
           "speaker": "catherine",
-          "text": "Lòng tin không đến cùng một phát súng, thưa ngài. Nhưng cũng có thể bắt đầu từ một cử chỉ."
+          "text": "Một phần. Phần còn lại nhắc tôi phải biết viên đạn sẽ bay đến đâu trước khi bóp cò."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ta không định thử xem cô có bắn trúng không."
+        },
+        {
+          "speaker": "catherine",
+          "text": "Cảm ơn ngài. Một cuộc trò chuyện yên ổn cũng hiếm hoi lắm rồi."
         }
       ],
       [
         {
           "speaker": "catherine",
-          "text": "Mẹ tôi thường giữ lại những tờ giấy người khác vứt đi."
+          "text": "Mẹ tôi từng đặt hai bản ghi chép cạnh nhau rồi bảo: 'Hãy nhìn chỗ chúng khác nhau.'"
         },
         {
           "speaker": "cao_minh",
-          "text": "Để làm gì?"
+          "text": "Người ghi chép có thể nói dối."
         },
         {
           "speaker": "catherine",
-          "text": "Để xem người ta đã thay đổi câu chuyện ở đâu. Tôi học được thói quen ấy trước cả khi biết dùng súng."
+          "text": "Vâng. Mà người muốn tin một câu chuyện cũng rất giỏi tự lừa mình."
         },
         {
           "speaker": "cao_minh",
-          "text": "Nó có giúp cô tìm mẹ không?"
+          "text": "Cô đã tìm thấy điều gì giữa các bản ghi?"
         },
         {
           "speaker": "catherine",
-          "text": "Tôi đã tìm thấy rất nhiều dấu vết. Nhưng chưa tìm được bà."
+          "text": "Những ngày tháng không khớp. Chưa đủ để kết luận, nhưng đủ để tôi không bỏ cuộc."
         }
       ],
       [
         {
           "speaker": "catherine",
-          "text": "Cha tôi từng bảo một chiếc đồng hồ hỏng hiếm khi vô cớ chạy sai."
+          "text": "Nhà Ashcombe giàu lên nhờ những thứ đo lường chính xác. Vậy mà cuối cùng chúng tôi chẳng đo được cái giá của một bí mật."
         },
         {
           "speaker": "cao_minh",
-          "text": "Ông ấy làm đồng hồ?"
+          "text": "Cô nghĩ cha mình đã chọn công trình ấy thay cho gia đình?"
         },
         {
           "speaker": "catherine",
-          "text": "Cả gia đình tôi sống giữa bánh răng, bản vẽ và các khoản nợ. Về sau ông theo đuổi một công trình mà tôi chưa thể hiểu hết."
+          "text": "Có lúc tôi nghĩ thế. Rồi lại nhớ ông từng ngồi suốt đêm sửa chiếc đồng hồ nhỏ của mẹ, chỉ vì bà không nỡ bỏ."
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô có giận ông?"
+          "text": "Hai ký ức khó đặt cạnh nhau."
         },
         {
           "speaker": "catherine",
-          "text": "Có những ngày tôi giận. Có những ngày tôi chỉ muốn hỏi ông đã sợ điều gì."
+          "text": "Tôi sẽ giữ cả hai. Không muốn biến ông thành kẻ tội đồ chỉ để mình dễ giận hơn."
         }
       ],
       [
         {
           "speaker": "catherine",
-          "text": "Đêm ở Grayhaven, tôi nghe một tiếng chuông không thuộc về bất kỳ chiếc đồng hồ nào mình biết."
+          "text": "Đêm cuối ở Grayhaven, tôi nghe tiếng chuông thứ mười ba. Tôi đã đếm lại, hai lần."
         },
         {
           "speaker": "cao_minh",
-          "text": "Rồi cô bước theo nó."
+          "text": "Cô bước theo tiếng chuông?"
         },
         {
           "speaker": "catherine",
-          "text": "Vâng. Tôi từng coi đó là lựa chọn dũng cảm."
+          "text": "Tôi bước vào kho lưu trữ. Sau lưng tôi, cánh cửa vẫn ở đó; trước mặt thì chiều sâu căn phòng đổi khác."
         },
         {
           "speaker": "cao_minh",
-          "text": "Còn bây giờ?"
+          "text": "Cô muốn tìm đường quay lại đêm ấy?"
         },
         {
           "speaker": "catherine",
-          "text": "Tôi tự hỏi mình đã bước theo chứng cứ, hay bước theo hy vọng được gặp lại người thân."
+          "text": "Muốn. Nhưng nếu phải để một người khác mắc kẹt thay mình, tôi thà tiếp tục tìm cách khác."
         }
       ]
     ]
@@ -262,159 +278,159 @@
       [
         {
           "speaker": "janet",
-          "text": "Tôi cứ nghe như có tiếng radio vang ở cuối hành lang. Hồi ở trường, thứ ấy lúc nào cũng mở."
+          "text": "Ở New Island, bọn tôi thường bật radio thật to sau buổi tập. Giờ chỉ cần nhớ tiếng rè cũng thấy nhớ trường."
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô đi học ở đâu?"
+          "text": "Cô vừa học vừa chơi thể thao?"
         },
         {
           "speaker": "janet",
-          "text": "New Island, New York. Tôi còn nợ một bài luận. Giờ nghĩ tới lại thấy buồn cười."
+          "text": "Ừ. Bóng mềm. Tôi còn nợ một bài luận môn truyền thông, tin được không?"
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô muốn trở lại?"
+          "text": "Ta không biết bài luận đáng sợ đến đâu."
         },
         {
           "speaker": "janet",
-          "text": "Muốn chứ. Nhưng tôi phải tìm Mia trước đã."
+          "text": "Trước kia thì đáng sợ. Bây giờ tôi chỉ muốn được than phiền về nó với Mia lần nữa."
         }
       ],
       [
         {
           "speaker": "janet",
-          "text": "Tôi từng thấy em trai bị bắt nạt. Khi ấy tôi chẳng nghĩ gì, cứ lao vào trước."
+          "text": "Hồi Noah còn bé, có mấy đứa hay kiếm chuyện với nó. Tôi thường xuất hiện trước khi thầy cô kịp tới."
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô có hối hận?"
+          "text": "Rồi chúng thôi?"
         },
         {
           "speaker": "janet",
-          "text": "Vì cứu nó thì không. Vì để nó thấy chị mình làm loạn thì... có một chút."
+          "text": "Thôi, nhưng Noah lại khóc vì tôi bị phạt. Thằng nhóc cứ nghĩ đó là lỗi của nó."
         },
         {
           "speaker": "cao_minh",
-          "text": "Vậy lần sau cô sẽ nghĩ kỹ hơn?"
+          "text": "Cô đã nói sao?"
         },
         {
           "speaker": "janet",
-          "text": "Tôi sẽ cố. Đừng bắt tôi hứa ngay bây giờ."
-        }
-      ],
-      [
-        {
-          "speaker": "cao_minh",
-          "text": "Mia là người đi cùng cô khi lạc vào đây?"
-        },
-        {
-          "speaker": "janet",
-          "text": "Chúng tôi xuống cầu thang dịch vụ lúc mất điện. Tôi quay đầu đúng một lần."
-        },
-        {
-          "speaker": "cao_minh",
-          "text": "Rồi không thấy cô ấy nữa."
-        },
-        {
-          "speaker": "janet",
-          "text": "Ừ. Tôi còn chẳng biết mình nên sợ cô ấy bị thương hay sợ cô ấy cũng đang tìm tôi."
-        },
-        {
-          "speaker": "cao_minh",
-          "text": "Chúng ta chưa có bằng chứng cô ấy gặp chuyện."
-        },
-        {
-          "speaker": "janet",
-          "text": "Tôi biết. Nên tôi vẫn tìm."
+          "text": "Tôi bảo nó chẳng nợ tôi một lời xin lỗi nào. Nghĩ lại, tôi nên nói câu ấy sớm hơn."
         }
       ],
       [
         {
           "speaker": "janet",
-          "text": "Hồi mới gặp, tôi suýt lấy gậy dọa anh."
+          "text": "Hôm mất điện ở ký túc, Mia đi ngay sau tôi trên cầu thang dịch vụ."
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô đã lấy nó dọa rồi."
+          "text": "Cô đã làm gì khi không nghe tiếng cô ấy nữa?"
         },
         {
           "speaker": "janet",
-          "text": "Ờ, công nhận. Nhưng anh cũng chẳng có vẻ sợ."
+          "text": "Tôi gọi, rồi chạy ngược lên. Bậc thang dẫn tới một hành lang lạ hoắc."
         },
         {
           "speaker": "cao_minh",
-          "text": "Ta chỉ không muốn đánh nhau vì một câu chào."
+          "text": "Cô có nhìn thấy Mia ở đó?"
         },
         {
           "speaker": "janet",
-          "text": "Vậy từ giờ tôi thử chào như người bình thường. Không hứa lúc nào cũng làm được đâu."
+          "text": "Không. Tôi không biết cô ấy rẽ đâu. Điều ấy làm tôi phát điên hơn mọi tiếng động ở đây."
+        }
+      ],
+      [
+        {
+          "speaker": "cao_minh",
+          "text": "Sao mọi người lại gọi cô là 'the Lady'?"
+        },
+        {
+          "speaker": "janet",
+          "text": "Trong đội bóng, có lần tôi đỡ một bạn bị xô ngã, rồi mắng kẻ gây chuyện đến đỏ cả mặt."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Nghe không giống một quý cô."
+        },
+        {
+          "speaker": "janet",
+          "text": "Bởi vậy họ mới gọi thế. Tôi từng ghét, sau lại thấy cũng buồn cười."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Cô vẫn hay lao vào trước."
+        },
+        {
+          "speaker": "janet",
+          "text": "Vẫn. Nhưng tôi đang học cách nhìn xem bạn mình có cần tôi lao vào không."
         }
       ],
       [
         {
           "speaker": "janet",
-          "text": "Hồi ở Louisiana, cha tôi sửa máy xuồng. Tôi cứ lẻn vào xưởng rồi làm rơi cả đống ốc vít."
+          "text": "Ở quê, cha tôi sửa xuồng. Hễ tôi làm rơi ốc vít xuống sàn xưởng là ông bắt nhặt đủ."
         },
         {
           "speaker": "cao_minh",
-          "text": "Ông ấy có giận không?"
+          "text": "Không được bỏ lại một chiếc nào?"
         },
         {
           "speaker": "janet",
-          "text": "Có chứ. Nhưng lần nào cũng bắt tôi nhặt đủ rồi mới được chạy đi chơi."
+          "text": "Không. Ông bảo thiếu một con ốc, máy nổ ngoài sông có thể chết giữa chừng."
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô nhớ nhà."
+          "text": "Cô nhớ lời ấy."
         },
         {
           "speaker": "janet",
-          "text": "Ừ. Nhớ cả tiếng ông càu nhàu nữa."
+          "text": "Có. Kỳ lạ thật, ở đây tôi cũng cứ đếm xem có bỏ sót ai sau lưng không."
         }
       ],
       [
         {
           "speaker": "janet",
-          "text": "Mẹ làm ở thư viện. Bà luôn bảo trước khi giơ nắm đấm, thử nói cho rõ đã."
+          "text": "Mẹ tôi giữ thư viện cộng đồng. Bà dạy tôi đừng dùng nắm đấm thay câu trả lời."
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô có nghe lời?"
+          "text": "Cô nghe theo được chứ?"
         },
         {
           "speaker": "janet",
-          "text": "Được vài lần. Đừng nhìn tôi kiểu đó."
+          "text": "Không thường xuyên. Nhưng bà còn dạy chuyện khác: nổi nóng xong phải biết quay lại xin lỗi."
         },
         {
           "speaker": "cao_minh",
-          "text": "Ta chưa nói gì."
+          "text": "Cô đã xin lỗi ai gần đây chưa?"
         },
         {
           "speaker": "janet",
-          "text": "Tốt. Cũng nhờ bà mà tôi còn biết nhận mình sai."
+          "text": "Nếu có dịp gặp lại những người bị tôi quát oan, chắc tôi phải xếp hàng dài. Anh đứng cuối nhé."
         }
       ],
       [
         {
           "speaker": "janet",
-          "text": "Cầu thang hôm ấy tối như mực. Radio ở cuối hành lang cứ phát mãi một đoạn."
+          "text": "Bayou Belle vốn chỉ là gậy tập. Đoạn dây gai này tôi kiếm được sau khi rơi vào nơi đây."
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô đi cùng Mia?"
+          "text": "Cô định giữ nó đến khi tìm được Mia?"
         },
         {
           "speaker": "janet",
-          "text": "Phải. Tôi còn quay lại gọi cô ấy. Chỉ một lần quay đầu mà chẳng thấy ai nữa."
+          "text": "Không biết. Tôi quấn dây vì có lần chẳng đủ chỗ chạy, không phải vì muốn đánh nhau cả đời."
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô không biết cô ấy đang ở đâu."
+          "text": "Cô biết lúc nào nên hạ gậy?"
         },
         {
           "speaker": "janet",
-          "text": "Không biết. Nhưng nếu Mia cũng đang tìm tôi, tôi muốn cô ấy biết tôi chưa bỏ cuộc."
+          "text": "Tôi đang tập. Nếu Mia thấy tôi bây giờ, chắc cô ấy sẽ bảo tôi trước hết phải thở đều."
         }
       ]
     ]
@@ -476,147 +492,163 @@
       [
         {
           "speaker": "nguyen_quoc_nam",
-          "text": "Anh bị xây xát ở tay. Nếu có nước sạch, nên rửa và che vết thương."
+          "text": "Nếu có vết xây xát, anh đừng coi thường. Tìm được nước sạch và vật che phủ phù hợp vẫn hơn để mặc."
         },
         {
           "speaker": "cao_minh",
-          "text": "Chỉ là vết nhỏ."
+          "text": "Anh quen nhìn người khác như bệnh nhân."
         },
         {
           "speaker": "nguyen_quoc_nam",
-          "text": "Tôi biết. Nhưng một vết nhỏ bị bỏ mặc cũng có thể thành chuyện lớn. Thói quen nghề nghiệp thôi."
+          "text": "Tôi đang cố bỏ thói quen ấy khi nói chuyện. Nhưng ở nơi này, một vết thương nhỏ đôi khi cũng khiến người ta gặp khó."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Anh không cần chẩn bệnh cho ta."
+        },
+        {
+          "speaker": "nguyen_quoc_nam",
+          "text": "Phải. Tôi chỉ nhắc điều mình có thể chắc chắn."
         }
       ],
       [
         {
           "speaker": "cao_minh",
-          "text": "Anh thường nhìn đồng hồ sau mỗi đoạn đường."
+          "text": "Anh thường chạm vào mặt đồng hồ mà chẳng nhìn giờ."
         },
         {
           "speaker": "nguyen_quoc_nam",
-          "text": "Con gái tôi từng tập xem giờ trên chiếc đồng hồ này. Cứ hỏi mãi khi nào ba về."
+          "text": "Con gái tôi tập xem giờ trên chiếc này. Dương cứ xoay cổ tay tôi, bắt ba đứng yên để đếm kim."
         },
         {
           "speaker": "cao_minh",
-          "text": "Anh có con?"
+          "text": "Con bé bao nhiêu tuổi?"
         },
         {
           "speaker": "nguyen_quoc_nam",
-          "text": "Một bé gái. Thùy Dương. Hôm tôi đi, cháu mới sáu tuổi."
+          "text": "Sáu, khi tôi đi. Lâu lắm rồi tôi mới dám nói thành tiếng con số ấy."
         },
         {
           "speaker": "cao_minh",
-          "text": "Anh nhớ nhà."
+          "text": "Anh không biết ở ngoài đã trôi qua bao lâu."
         },
         {
           "speaker": "nguyen_quoc_nam",
-          "text": "Có. Nhưng tôi phải giữ đầu óc tỉnh táo thì mới còn cơ hội trở về."
+          "text": "Không. Nên tôi cố nhớ giọng con rõ hơn là đoán."
         }
       ],
       [
         {
           "speaker": "nguyen_quoc_nam",
-          "text": "Ở trường, tôi luôn dặn sinh viên đừng đoán bệnh chỉ qua một triệu chứng."
+          "text": "Ở trường, tôi hay đưa sinh viên một ca bệnh mà dữ kiện cố ý còn thiếu."
         },
         {
           "speaker": "cao_minh",
-          "text": "Còn ở đây?"
+          "text": "Để xem họ đoán đúng không?"
         },
         {
           "speaker": "nguyen_quoc_nam",
-          "text": "Càng phải nhớ điều ấy. Một hành lang giống hành lang cũ chưa chắc dẫn tới cùng một chỗ."
+          "text": "Để xem ai đủ kiên nhẫn hỏi thêm. Chẩn đoán vội có khi nguy hiểm hơn việc nói 'tôi chưa biết'."
         },
         {
           "speaker": "cao_minh",
-          "text": "Anh ghi lại từng lần đi qua?"
+          "text": "Anh đem cả bài giảng vào mê cung."
         },
         {
           "speaker": "nguyen_quoc_nam",
-          "text": "Những gì tôi thấy được. Còn điều chưa biết, tôi để trống."
+          "text": "Có lẽ. Đây là thứ ít ỏi tôi còn dùng được mà không cần thiết bị."
         }
       ],
       [
         {
           "speaker": "cao_minh",
-          "text": "Anh không quen chiến đấu, đúng không?"
+          "text": "Khẩu súng ấy không hợp với đôi tay người giảng dạy."
         },
         {
           "speaker": "nguyen_quoc_nam",
-          "text": "Không. Súng giúp tôi giữ khoảng cách, không biến tôi thành người lính."
+          "text": "Tôi tìm thấy nó trong một ngăn tủ bỏ quên sau khi đã lạc vào đây."
         },
         {
           "speaker": "cao_minh",
-          "text": "Vậy vì sao anh vẫn đi tiếp?"
+          "text": "Anh đã biết bắn từ trước?"
         },
         {
           "speaker": "nguyen_quoc_nam",
-          "text": "Vì đứng yên cũng không đưa tôi về nhà. Tôi chỉ cố chọn rủi ro mà mình còn có thể kiểm soát."
+          "text": "Không đủ để tự nhận thành thạo. Tôi học từng chút để giữ người khác cách xa nguy hiểm, nếu buộc phải làm thế."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Anh mong không phải dùng."
+        },
+        {
+          "speaker": "nguyen_quoc_nam",
+          "text": "Tôi mong có thể tìm đường tránh trước."
         }
       ],
       [
         {
           "speaker": "nguyen_quoc_nam",
-          "text": "Hồi còn dạy học, tôi hay hỏi sinh viên: nếu chưa biết người bệnh đang gặp gì, việc đầu tiên là gì?"
+          "text": "Có lần một sinh viên hỏi tôi làm sao chắc chắn mình sẽ cứu được người trước mặt."
         },
         {
           "speaker": "cao_minh",
-          "text": "Anh muốn nghe câu trả lời của ta?"
+          "text": "Anh trả lời sao?"
         },
         {
           "speaker": "nguyen_quoc_nam",
-          "text": "Nhìn và lắng nghe. Nghe có vẻ đơn giản, nhưng nhiều người vội nói trước khi quan sát."
+          "text": "Tôi bảo em ấy đừng hứa điều không thuộc quyền mình. Hãy làm đúng phần mình biết, rồi gọi thêm người giúp."
         },
         {
           "speaker": "cao_minh",
-          "text": "Ở đây cũng thế."
+          "text": "Một câu trả lời không dễ nghe."
         },
         {
           "speaker": "nguyen_quoc_nam",
-          "text": "Ở đây, sai một lần có thể không còn cơ hội sửa."
+          "text": "Nhưng thật hơn lời bảo đảm. Tôi cũng phải tự nhắc mình điều ấy ở đây."
         }
       ],
       [
         {
           "speaker": "nguyen_quoc_nam",
-          "text": "Vợ tôi từng bảo tôi sống theo kim đồng hồ."
+          "text": "Hồng Lan bảo tôi cứ hẹn 'mười phút nữa về' rồi để cơm nguội trên bàn."
         },
         {
           "speaker": "cao_minh",
-          "text": "Vì anh hay xem giờ?"
+          "text": "Anh thường về muộn?"
         },
         {
           "speaker": "nguyen_quoc_nam",
-          "text": "Vì tôi luôn hẹn 'mười phút nữa về' rồi trễ cả tiếng. Con bé Dương thì nhớ từng lần."
+          "text": "Thường. Hồi ấy cứ tưởng ngày mai còn nhiều thời gian để bù."
         },
         {
           "speaker": "cao_minh",
-          "text": "Anh sẽ làm gì nếu được trở về?"
+          "text": "Nếu được gặp lại chị ấy..."
         },
         {
           "speaker": "nguyen_quoc_nam",
-          "text": "Tôi sẽ cố đừng hẹn điều mình không chắc làm được."
+          "text": "Tôi sẽ ngồi xuống ăn trước khi kể về công việc. Một điều bé xíu, mà giờ nghĩ tới thấy xa quá."
         }
       ],
       [
         {
           "speaker": "nguyen_quoc_nam",
-          "text": "Có một bức vẽ con gái tôi gấp vào túi áo trước lúc tôi đi."
+          "text": "Tôi giữ một tờ giấy gấp trong túi áo. Dương vẽ cả nhà nắm tay nhau."
         },
         {
           "speaker": "cao_minh",
-          "text": "Anh vẫn giữ?"
+          "text": "Anh không sợ nó rách sao?"
         },
         {
           "speaker": "nguyen_quoc_nam",
-          "text": "Vẫn. Ba người nắm tay nhau, vẽ bằng những nét rất vụng."
+          "text": "Sợ chứ. Có hôm chỉ dám mở ra một góc, nhìn màu bút sáp rồi gấp lại."
         },
         {
           "speaker": "cao_minh",
-          "text": "Anh không biết ngoài kia đã qua bao lâu."
+          "text": "Anh có nghĩ họ đang đợi?"
         },
         {
           "speaker": "nguyen_quoc_nam",
-          "text": "Đúng. Tôi chỉ biết mình còn trách nhiệm tìm đường về, và không bỏ mặc người đang cần giúp đỡ trên đường."
+          "text": "Tôi không biết ngoài kia xảy ra chuyện gì. Nhưng chừng nào còn đi được, tôi chưa muốn từ bỏ cơ hội trở về."
         }
       ]
     ]
@@ -682,109 +714,133 @@
       [
         {
           "speaker": "lucia",
-          "text": "Trước đây đọc mấy bài về Backrooms, tôi toàn soi xem chỗ nào viết sai. Giờ muốn tìm lại một bài còn chẳng có mạng."
+          "text": "Tôi từng đọc những chuyện về Backrooms trên mạng. Có bài khiến người ta mất ngủ, có bài rõ là bịa."
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô nhớ được gì hữu ích?"
+          "text": "Giờ cô tin bài nào?"
         },
         {
           "speaker": "lucia",
-          "text": "Những thứ chưa kiểm chứng thì đừng đặt cược mạng vào. Chừng ấy cũng đủ hữu ích rồi."
+          "text": "Chưa biết. Thực tế khác với màn hình. Tôi chỉ tin đoạn đường mình vừa kiểm tra được."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Vậy ít ra những bài ấy cho cô một cái tên."
+        },
+        {
+          "speaker": "lucia",
+          "text": "Một cái tên thôi. Nó chẳng chỉ hộ tôi cửa ra."
         }
       ],
       [
         {
           "speaker": "lucia",
-          "text": "Tôi cứ tưởng sang được Level 1 sẽ bớt bí đường. Nghĩ kỹ lại, đó mới chỉ là một cái tên."
+          "text": "Ở nhà mọi người bàn chuyện kinh doanh. Tôi nghe một lát là muốn ra ngoài tập bắn."
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô nhớ nhà?"
+          "text": "Cô không thích gia nghiệp?"
         },
         {
           "speaker": "lucia",
-          "text": "Có. Nhưng nhớ đến mấy cũng không thể nhắm mắt mà chạy."
+          "text": "Tôi thương gia đình. Nhưng thương họ không có nghĩa phải sống đúng đời họ chọn cho mình."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Vậy cô chọn quân ngũ."
+        },
+        {
+          "speaker": "lucia",
+          "text": "Phải. Tôi thích súng và thích tự luyện cho giỏi, chẳng cần một bi kịch làm lý do."
         }
       ],
       [
         {
           "speaker": "lucia",
-          "text": "Hồi mới gặp, tôi luôn để mắt đến anh."
+          "text": "Lúc mới gặp anh, tôi luôn đứng sao cho có thể nhìn thấy hai tay anh."
         },
         {
           "speaker": "cao_minh",
-          "text": "Bây giờ thì sao?"
+          "text": "Ta đã nhận ra."
         },
         {
           "speaker": "lucia",
-          "text": "Vẫn để mắt. Chỉ là không còn vì cùng một lý do."
+          "text": "Đến giờ tôi vẫn chú ý. Chỉ là không còn tính đường rút mỗi khi anh lên tiếng."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Cô tin ta rồi?"
+        },
+        {
+          "speaker": "lucia",
+          "text": "Tôi tin anh sẽ nói khi thấy nguy hiểm. Những chuyện khác cứ để thời gian trả lời."
         }
       ],
       [
         {
           "speaker": "lucia",
-          "text": "Hồi còn ở Sài Gòn, tôi nghe chuyện làm ăn của nhà mình đến thuộc cả các câu mở đầu."
+          "text": "Ở Sài Gòn, tôi là con gái thứ ba nhà họ Hứa. Đi đâu cũng có người biết bố mẹ mình làm gì."
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô không thích cuộc sống ấy?"
+          "text": "Cô thấy phiền?"
         },
         {
           "speaker": "lucia",
-          "text": "Không ghét. Chỉ là mỗi lần tới thao trường, tôi thấy mình được quyết định một điều gì đó bằng chính đôi tay."
+          "text": "Đôi lúc. Tôi muốn nghe gọi tên mình, không phải cái họ đứng trước."
         },
         {
           "speaker": "cao_minh",
-          "text": "Rồi cô chọn vào quân ngũ."
+          "text": "Trong đơn vị thì sao?"
         },
         {
           "speaker": "lucia",
-          "text": "Ừ. Đơn giản vậy thôi. Người ta cứ muốn tìm một bi kịch đằng sau quyết định ấy."
+          "text": "Người ta nhìn xem tôi làm được gì. Có bị phạt thì cũng là vì chính tôi làm sai."
         }
       ],
       [
         {
           "speaker": "lucia",
-          "text": "Có lúc tôi định nổ súng vào một góc tối, chỉ vì nghe tiếng cào trên tường."
+          "text": "Tôi từng nghe tiếng động trong lúc canh gác và gần như bóp cò trước khi nhìn rõ."
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô đã thấy gì?"
+          "text": "Rồi cô thấy gì?"
         },
         {
           "speaker": "lucia",
-          "text": "Chẳng thấy gì cả. Tôi ghét phải thừa nhận mình sợ, nhưng bóp cò khi chưa thấy mục tiêu còn đáng xấu hổ hơn."
+          "text": "Không có mục tiêu. Chỉ có nỗi sợ tự phóng to mọi tiếng động."
         },
         {
           "speaker": "cao_minh",
-          "text": "Biết dừng tay cũng là bản lĩnh."
+          "text": "Cô đã giữ súng."
         },
         {
           "speaker": "lucia",
-          "text": "Anh nói được câu đấy thì tôi ghi nhận."
+          "text": "Và tôi muốn lần sau vẫn làm được. Bắn nhanh chẳng đáng tự hào nếu bắn nhầm."
         }
       ],
       [
         {
           "speaker": "lucia",
-          "text": "Trước chuyến hành quân, tôi vẫn nghĩ mình sẽ về đúng bữa cơm kế tiếp."
+          "text": "Trước chuyến hành quân ở Đồng bằng sông Cửu Long, tôi vẫn nghĩ mình sẽ về đúng giờ ăn."
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô đã kể cho người nhà biết mình đi đâu?"
+          "text": "Cô có mang theo gì từ nhà?"
         },
         {
           "speaker": "lucia",
-          "text": "Chuyện một quân nhân có thể nói thì tôi đã nói. Còn chuyện biến mất giữa hành lang vàng... ai mà biết để báo trước."
+          "text": "Những thứ được phép mang theo. Còn lại chỉ là tiếng người quen nhắc đừng quên gọi về."
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô vẫn muốn trở về."
+          "text": "Nếu tìm được đường, cô sẽ gọi ai trước?"
         },
         {
           "speaker": "lucia",
-          "text": "Muốn. Nhưng tôi không để nỗi nhớ nhà khiến mình bỏ qua người đang đứng cạnh."
+          "text": "Người nhà. Nhưng trước lúc ấy, tôi không định bỏ ai lại chỉ vì sốt ruột được về."
         }
       ]
     ]
@@ -829,123 +885,155 @@
       [
         {
           "speaker": "hua_tieu_lan",
-          "text": "Có lần tôi nói những lời không thể thu lại với một người đối đãi cùng tôi rất tử tế."
+          "text": "Có một câu tôi đã nói lúc giận dữ. Chàng đứng rất yên, còn tôi lại tưởng mình vừa thắng."
         },
         {
           "speaker": "cao_minh",
-          "text": "Nàng đã nói lời xin lỗi chưa?"
+          "text": "Nàng muốn rút lại?"
         },
         {
           "speaker": "hua_tieu_lan",
-          "text": "Chưa. Đến giờ tôi vẫn nhớ mình đã quay lưng nhanh thế nào."
+          "text": "Muốn. Không phải vì sợ bị ghét, mà vì tôi đã không cho chàng giải thích."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Người ấy là Anh Tý?"
+        },
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Vâng. Đó là lần đầu tôi nhận ra lời nói cũng có thể khiến người khác không trở lại."
         }
       ],
       [
         {
           "speaker": "hua_tieu_lan",
-          "text": "Tôi bắt gặp chàng nhận bạc từ gia nhân Hứa phủ. Lòng nghi ngờ nổi lên, tôi chẳng chịu nghe chàng giải thích."
+          "text": "Tôi nhìn thấy Anh Tý nhận bạc của gia nhân Hứa phủ."
         },
         {
           "speaker": "cao_minh",
-          "text": "Rồi nàng biết số bạc ấy dùng vào việc gì?"
+          "text": "Nàng nghĩ chàng nhận tiền để gần gũi mình."
         },
         {
           "speaker": "hua_tieu_lan",
-          "text": "Cứu dân gặp nạn. Người sai là tôi."
+          "text": "Tôi đã nghĩ thế, rồi buông lời nhục mạ ngay trước mặt người khác."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Nàng chưa hỏi người đưa tiền?"
+        },
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Không. Tôi chỉ hỏi điều gì khiến mình có cớ giận chàng."
         }
       ],
       [
         {
           "speaker": "hua_tieu_lan",
-          "text": "Mẫu thân kể rõ sự tình, tôi liền đi tìm chàng."
+          "text": "Mẫu thân thấy tôi khóc, mới kể rằng khoản bạc ấy dùng để cứu những nhà gặp thiên tai."
         },
         {
           "speaker": "cao_minh",
-          "text": "Nàng đã gặp được?"
+          "text": "Rồi nàng đi tìm chàng?"
         },
         {
           "speaker": "hua_tieu_lan",
-          "text": "Nếu gặp được, có lẽ tôi đã không phải kể chuyện này với công tử."
+          "text": "Tôi chạy vội đến mức quên cả thay giày. Nhưng lần đầu tiên trong đời, tôi đến muộn không phải vì người ta đợi mình."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Nàng đã không gặp được."
+        },
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Chưa. Lúc ấy tôi vẫn nghĩ ngày mai còn có thể nói."
         }
       ],
       [
         {
           "speaker": "hua_tieu_lan",
-          "text": "Trên đường về, chàng gặp nạn. Tôi còn chưa kịp gọi một tiếng."
+          "text": "Đến khi nghe tin Anh Tý gặp nạn trên đường về, tôi cứ nghĩ người báo tin đã nghe nhầm."
         },
         {
           "speaker": "cao_minh",
-          "text": "Có những điều không thể sửa lại."
+          "text": "Nàng không thể nói lời xin lỗi."
         },
         {
           "speaker": "hua_tieu_lan",
-          "text": "Tôi biết. Chỉ mong mình đừng đem lỗi lầm ấy làm khổ người khác thêm lần nữa."
+          "text": "Vâng. Mấy ngày đầu tôi còn giận chàng... vì sao không chờ tôi thêm một chút."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Nàng giận chính mình."
+        },
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Có lẽ. Nhưng chàng chẳng đáng phải nhận cả nỗi giận ấy."
         }
       ],
       [
         {
           "speaker": "hua_tieu_lan",
-          "text": "Hồi nhỏ tôi thích đứng ở hành lang nhìn người ta đưa hàng về Hứa phủ."
+          "text": "Ở Hứa phủ, tôi từng đứng sau song cửa nhìn người đi chợ. Ai cũng có vẻ biết mình phải đi đâu."
         },
         {
           "speaker": "cao_minh",
-          "text": "Sao không ra ngoài chơi?"
+          "text": "Nàng không được ra ngoài sao?"
         },
         {
           "speaker": "hua_tieu_lan",
-          "text": "Tứ tiểu thư thì đi đâu cũng có người theo. Tôi cứ tưởng chỉ cần bước qua cánh cổng ấy là được tự do."
+          "text": "Được, nhưng luôn có người hầu theo sát. Khi ấy tôi thấy mình chẳng tự do."
         },
         {
           "speaker": "cao_minh",
-          "text": "Giờ nàng còn nghĩ thế?"
+          "text": "Còn bây giờ?"
         },
         {
           "speaker": "hua_tieu_lan",
-          "text": "Giờ tôi chỉ mong thấy một cánh cổng dẫn về nhà."
+          "text": "Giờ được đi bất cứ đâu trong những hành lang này, tôi chỉ muốn trở về đúng cánh cửa cũ."
         }
       ],
       [
         {
           "speaker": "hua_tieu_lan",
-          "text": "Có lần tôi đứng trước mặt một người mà không chịu nghe hết câu."
+          "text": "Người nhà dạy tôi phải giữ thể diện, nhất là trước người ngoài."
         },
         {
           "speaker": "cao_minh",
-          "text": "Nàng vẫn đang nói về Anh Tý?"
+          "text": "Nàng từng đặt thể diện cao hơn một lời giải thích."
         },
         {
           "speaker": "hua_tieu_lan",
-          "text": "Vâng. Tôi từng nghĩ mình bị lừa nên lời nào nói ra cũng sắc như dao."
+          "text": "Vâng. Tôi sợ bị cười vì tin nhầm người, nên lại làm tổn thương người đáng tin nhất."
         },
         {
           "speaker": "cao_minh",
-          "text": "Nàng đã biết mình sai."
+          "text": "Nàng có muốn thôi kể chuyện ấy?"
         },
         {
           "speaker": "hua_tieu_lan",
-          "text": "Biết rồi vẫn không thể xin lỗi. Đó là điều tôi đau nhất."
+          "text": "Chưa. Nhưng tôi muốn học cách kể mà không biến Anh Tý thành một tội lỗi chỉ thuộc về tôi."
         }
       ],
       [
         {
           "speaker": "hua_tieu_lan",
-          "text": "Công tử có ghét khi người khác kể mãi một chuyện buồn không?"
+          "text": "Cao công tử, đôi khi tôi sợ mình chỉ đang nói chuyện với một bóng hình giống Anh Tý."
         },
         {
           "speaker": "cao_minh",
-          "text": "Nếu nàng cần nói, ta nghe."
+          "text": "Ta không phải người ấy."
         },
         {
           "speaker": "hua_tieu_lan",
-          "text": "Tôi không muốn công tử thay thế người đã mất. Chỉ là mỗi lần có ai chịu lắng nghe, tôi lại nhớ mình đã từng không chịu làm thế."
+          "text": "Tôi biết. Công tử có con đường của mình; tôi không có quyền mượn nó để sống thay phần đời đã mất."
         },
         {
           "speaker": "cao_minh",
-          "text": "Vậy nàng có thể bắt đầu lại từ hôm nay."
+          "text": "Nàng vẫn có thể bước tiếp."
         },
         {
           "speaker": "hua_tieu_lan",
-          "text": "Tôi sẽ cố, thưa công tử."
+          "text": "Vậy xin để tôi đi bằng tên của mình, không phải bằng một lời xin lỗi chưa kịp nói."
         }
       ]
     ],
@@ -995,81 +1083,89 @@
       [
         {
           "speaker": "luc_tram",
-          "text": "Tịch Quang theo ta nhiều năm. Chỉ cần đặt tay lên chuôi, ta biết mình có còn giữ được bình tĩnh hay không."
+          "text": "Ở Thiên Kiếm Môn, ngày đầu cầm Tịch Quang, ta cứ giữ chuôi kiếm chặt đến tê cả tay."
         },
         {
           "speaker": "cao_minh",
-          "text": "Và lúc này?"
+          "text": "Vì sợ đánh rơi?"
         },
         {
           "speaker": "luc_tram",
-          "text": "Ta đang cố."
+          "text": "Vì sợ mình không xứng. Sau này mới biết cầm quá chặt thì cổ tay chẳng thể chuyển thế."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Nàng học cách buông lỏng."
+        },
+        {
+          "speaker": "luc_tram",
+          "text": "Buông lỏng tay, chứ không buông điều mình đã chọn."
         }
       ],
       [
         {
           "speaker": "luc_tram",
-          "text": "Hồi mới vào Thiên Kiếm Môn, tay ta phồng rộp sau mỗi buổi luyện kiếm."
+          "text": "Thuở mới luyện kiếm, ta từng ngã trước mặt các sư huynh."
         },
         {
           "speaker": "cao_minh",
-          "text": "Nàng vẫn luyện tiếp?"
+          "text": "Nàng có giận vì bị nhìn thấy?"
         },
         {
           "speaker": "luc_tram",
-          "text": "Tất nhiên. Nhưng không phải vì ta chưa từng muốn bỏ cuộc."
+          "text": "Có. Nhưng rồi một đệ tử nhỏ hơn nhặt kiếm giúp ta, còn nói ngày mai sẽ tập lại cùng."
         },
         {
           "speaker": "cao_minh",
-          "text": "Vì sao nàng ở lại?"
+          "text": "Nàng nhớ người ấy."
         },
         {
           "speaker": "luc_tram",
-          "text": "Vì có lần ta thấy một đệ tử nhỏ hơn đứng dậy sau khi ngã. Ta xấu hổ nếu mình bỏ kiếm trước người ấy."
+          "text": "Ta nhớ lời hẹn đó. Đôi khi người khiến ta đứng dậy không phải người mạnh hơn."
         }
       ],
       [
         {
           "speaker": "luc_tram",
-          "text": "Sư môn từng dạy: kiếm rút ra phải biết để làm gì."
+          "text": "Sư môn dạy ta rút kiếm vì người cần được che chở."
         },
         {
           "speaker": "cao_minh",
-          "text": "Thế khi không biết đâu là đúng?"
+          "text": "Nếu hai người đều tự cho mình là đúng?"
         },
         {
           "speaker": "luc_tram",
-          "text": "Đó là lúc phải chậm lại, không phải chém nhanh hơn."
+          "text": "Khi ấy càng phải hỏi xem lưỡi kiếm sẽ rơi vào ai. Ta từng tưởng chính đạo là chuyện không cần do dự."
         },
         {
           "speaker": "cao_minh",
-          "text": "Nàng vẫn tin mình làm được?"
+          "text": "Giờ nàng nghĩ khác?"
         },
         {
           "speaker": "luc_tram",
-          "text": "Ta hy vọng thế. Tin và làm được là hai chuyện."
+          "text": "Ta vẫn giữ đạo của mình. Chỉ không muốn dùng hai chữ ấy để khỏi phải tự xét lại."
         }
       ],
       [
         {
           "speaker": "luc_tram",
-          "text": "Tịch Quang có một vết xước rất nhỏ gần chuôi."
+          "text": "Gần chuôi Tịch Quang có một vết xước cũ."
         },
         {
           "speaker": "cao_minh",
-          "text": "Ta chưa từng thấy nàng sửa nó."
+          "text": "Nàng chưa từng mài cho mất."
         },
         {
           "speaker": "luc_tram",
-          "text": "Nó nhắc ta rằng kiếm sắc đến mấy cũng có ngày sai lệch."
+          "text": "Ngày ấy ta đổi thế quá sớm, lưỡi kiếm va vào bậc đá. Ta đã giấu nó rất lâu."
         },
         {
           "speaker": "cao_minh",
-          "text": "Nàng không muốn quên lỗi lầm."
+          "text": "Sau đó?"
         },
         {
           "speaker": "luc_tram",
-          "text": "Ta sợ nhất là quên vì sao mình đã rút kiếm."
+          "text": "Ta thôi giấu. Một vết xước không đáng sợ bằng thói quen giả vờ mình chưa từng sai."
         }
       ]
     ]
@@ -1113,95 +1209,111 @@
       [
         {
           "speaker": "trac_lam",
-          "text": "Năm 2094, ở Cảng Đông Hải, kho vận cứ lặp lại một dãy hành lang. Đội tôi đưa được mười một người ra ngoài."
+          "text": "Năm 2094, kho vận ở Cảng Đông Hải có những lối đi đưa các tổ cứu hộ về cùng một hành lang."
         },
         {
           "speaker": "cao_minh",
-          "text": "Còn những người ở lại?"
+          "text": "Anh đã đưa người ra bằng cách nào?"
         },
         {
           "speaker": "trac_lam",
-          "text": "Chúng tôi quay vào tìm tiếp. Tôi không thích biến con số mười một thành lời khoe chiến tích."
+          "text": "Ngừng chia đội. Tôi giữ liên lạc và cho từng nhóm rút qua con đường còn kiểm soát được."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Mười một người ra ngoài."
+        },
+        {
+          "speaker": "trac_lam",
+          "text": "Phải. Tôi nhớ tiếng họ đáp khi điểm danh hơn cả con số trong báo cáo."
         }
       ],
       [
         {
           "speaker": "trac_lam",
-          "text": "Lần cuối tôi nhận lệnh, SRU-03 vẫn còn nguyên đội hình."
+          "text": "Trong hồ sơ cuối trước lúc mất liên lạc, SRU-03 vẫn đủ sáu người."
         },
         {
           "speaker": "cao_minh",
-          "text": "Giờ anh biết họ ở đâu không?"
+          "text": "Anh còn liên lạc được với họ?"
         },
         {
           "speaker": "trac_lam",
-          "text": "Không. Nên tôi vẫn nghe ngóng mọi tần số, dù chẳng có tín hiệu nào trả lời."
+          "text": "Không. Có lần tôi suýt nghe thấy tiếng gọi qua nhiễu, rồi phát hiện chỉ là âm phản lại từ bộ đàm."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Anh có tiếp tục gọi?"
+        },
+        {
+          "speaker": "trac_lam",
+          "text": "Có, nhưng tôi ghi cả lần nhầm ấy vào nhật ký. Nhớ đồng đội không giúp tín hiệu giả thành thật."
         }
       ],
       [
         {
           "speaker": "trac_lam",
-          "text": "Cha tôi từng về nhà sau một đợt cứu hộ, áo vẫn còn mùi bụi bê tông."
+          "text": "Cha tôi làm cứu hộ công trình. Sau những đợt bão lớn, ông thường về nhà trong bộ quần áo còn bám bụi."
         },
         {
           "speaker": "cao_minh",
-          "text": "Ông ấy nói gì với anh?"
+          "text": "Ông kể cho anh nghe những chuyện gì?"
         },
         {
           "speaker": "trac_lam",
-          "text": "Ông hỏi tôi đã ăn tối chưa. Lúc ấy tôi thấy ông tránh chuyện công việc."
+          "text": "Phần lớn chỉ hỏi tôi đã ăn chưa. Mẹ tôi làm cấp cứu, hai người đều biết khi nào nên im lặng."
         },
         {
           "speaker": "cao_minh",
-          "text": "Còn bây giờ?"
+          "text": "Anh học được điều gì?"
         },
         {
           "speaker": "trac_lam",
-          "text": "Bây giờ tôi hiểu có những ngày, về đến nhà đã là điều đáng kể nhất."
+          "text": "Đưa được người về nhà quan trọng hơn việc kể mình đã gan dạ thế nào."
         }
       ],
       [
         {
           "speaker": "trac_lam",
-          "text": "Ở Cảng Đông Hải, tôi từng đứng trước hai hành lang nhìn giống hệt nhau."
+          "text": "Hồi huấn luyện SRU, có bài tập đặt mục tiêu giả ở một đầu hành lang, người bị nạn ở đầu còn lại."
         },
         {
           "speaker": "cao_minh",
-          "text": "Anh chọn lối nào?"
+          "text": "Anh được chọn một?"
         },
         {
           "speaker": "trac_lam",
-          "text": "Lối còn nghe tiếng người gọi. Sau đó tôi mới biết ba tổ cứu hộ đã quay lại cùng một điểm nhiều lần."
+          "text": "Chúng tôi phải quyết định dựa trên khả năng đưa người ra, không phải chọn phần nghe vẻ anh hùng hơn."
         },
         {
           "speaker": "cao_minh",
-          "text": "Mười một người đã được đưa ra ngoài."
+          "text": "Anh đã chọn thế nào?"
         },
         {
           "speaker": "trac_lam",
-          "text": "Đúng. Nhưng tôi không muốn một con số thay thế tên từng người."
+          "text": "Có lần tôi chọn sai thứ tự. Từ đó tôi bắt đầu hỏi cả người đứng cuối đội hình họ nhìn thấy gì."
         }
       ],
       [
         {
           "speaker": "trac_lam",
-          "text": "Trước chiến dịch ECHO-17, tôi kiểm tra danh sách sáu người trong tổ đến hai lần."
+          "text": "Trước chiến dịch ECHO-17, tôi kiểm tra lại tên cả sáu người trong tổ."
         },
         {
           "speaker": "cao_minh",
-          "text": "Giờ anh còn nhớ đủ tên họ?"
+          "text": "Giờ anh còn nhớ giọng họ?"
         },
         {
           "speaker": "trac_lam",
-          "text": "Không cần nhìn danh sách. Điều tôi chưa biết là họ đang ở đâu."
+          "text": "Có. Nhưng một giọng nói trong đầu không phải tín hiệu cứu hộ."
         },
         {
           "speaker": "cao_minh",
-          "text": "Anh nghĩ họ còn sống?"
+          "text": "Anh định tiếp tục tìm?"
         },
         {
           "speaker": "trac_lam",
-          "text": "Tôi muốn tin. Nhưng tôi sẽ đi tìm dấu vết, không để điều mình muốn tin thành mệnh lệnh cho người khác."
+          "text": "Tôi sẽ tìm những dấu hiệu có thể kiểm chứng. Nếu còn đường đưa họ ra, tôi phải nhận ra nó khi đến lúc."
         }
       ]
     ]
