@@ -641,7 +641,10 @@
     if(inference)inference.textContent='';
     buttons.MAP.disabled=!scene.map;
     buttons.AREA_LOG.disabled=!scene.map;
-    buttons.TALK.disabled=locked()||!(scene.availableActions||[]).some(a=>a.kind==='TALK');
+    buttons.TALK.disabled=locked()||!(scene.availableActions||[]).some(a=>a.kind==='TALK')&&
+      !(state.party||[]).some(c=>c.presence!=='SEPARATED'&&c.presence!=='DEAD')&&
+      !(state.encounteredCharacters||[]).some(c=>c.present&&!c.inParty)&&
+      !(scene.npcs||[]).length;
     casebook.disabled=!scene.map;
     questItems.disabled=false;
     // Invalid input/planner failures leave Player Action editable.
