@@ -1205,6 +1205,401 @@
         }
       ]
     ]
+  },
+  "iris": {
+    "intro": [
+      {
+        "speaker": "iris",
+        "text": "Đứng ở đó. Tôi muốn chắc anh không định tiến lại sau lưng tôi."
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Ta không có ý đó. Cô là ai?"
+      },
+      {
+        "speaker": "iris",
+        "text": "Iris. Nếu anh đã nhìn thấy hai khẩu súng thì cũng nên biết tôi chưa định dùng chúng."
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Ivory và Ebony?"
+      },
+      {
+        "speaker": "iris",
+        "text": "Anh quan sát khá kỹ đấy. Nhưng đừng tưởng biết tên súng là biết người cầm."
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Ta là Cao Minh. Cô đang tìm gì ở đây?"
+      },
+      {
+        "speaker": "iris",
+        "text": "Một đường đi không buộc tôi phải quay lại cùng một chỗ. Nếu anh tìm được, tôi sẵn sàng nghe."
+      }
+    ],
+    "ambient": [
+      "Tôi nghe thấy một nhịp động ở phía trước. Đợi tôi nhìn góc khuất đã.",
+      "Ivory bên trái, Ebony bên phải. Thói quen thôi, không phải màn biểu diễn.",
+      "Đường bắn đang trống. Cố giữ nó như vậy.",
+      "Nếu nghe tiếng súng, cúi thấp người trước đã. Hỏi sau cũng được."
+    ],
+    "past": [
+      "Tôi đã cầm Ivory và Ebony đủ lâu để phân biệt từng tiếng cơ cấu vận hành. Thứ khiến tôi tin chúng không phải tên gọi.",
+      "Có những lần tôi phải chọn không bóp cò. Người ngoài thường chỉ nhớ những lần nghe tiếng súng.",
+      "Tôi không kể chuyện đời mình cho người mới gặp. Nếu muốn biết, cứ nhìn cách tôi giữ lời khi có chuyện xảy ra."
+    ],
+    "story": [
+      [
+        {
+          "speaker": "iris",
+          "text": "Hồi mới tập phối hợp hai tay, tôi cứ muốn bắn nhanh hơn."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Không hiệu quả?"
+        },
+        {
+          "speaker": "iris",
+          "text": "Nhanh thì dễ. Để cả hai phát cùng đi đúng chỗ mới khó."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Cô luyện bao lâu?"
+        },
+        {
+          "speaker": "iris",
+          "text": "Đủ lâu để thôi lấy tiếng súng làm thước đo bản lĩnh."
+        }
+      ],
+      [
+        {
+          "speaker": "iris",
+          "text": "Người ta thường hỏi Ivory hay Ebony mạnh hơn."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Và cô trả lời sao?"
+        },
+        {
+          "speaker": "iris",
+          "text": "Tôi hỏi họ đang đứng ở đâu khi phải bắn. Một khẩu súng tốt không sửa được quyết định tồi."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Cô có từng quyết định sai?"
+        },
+        {
+          "speaker": "iris",
+          "text": "Có. Nhưng tôi sẽ không đem người khác ra làm ví dụ cho anh nghe."
+        }
+      ],
+      [
+        {
+          "speaker": "iris",
+          "text": "Có lần tôi đứng canh một hành lang rất lâu, đến mức chỉ còn nghe nhịp thở của mình."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Cô đã gặp thứ gì?"
+        },
+        {
+          "speaker": "iris",
+          "text": "Chuyện đáng nhớ không phải thứ xuất hiện. Mà là tôi đã không nổ súng khi chưa nhìn rõ."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Cô xem đó là một chiến thắng?"
+        },
+        {
+          "speaker": "iris",
+          "text": "Tôi xem đó là lý do mình còn bình tĩnh được vào lần sau."
+        }
+      ],
+      [
+        {
+          "speaker": "cao_minh",
+          "text": "Cô luôn giữ khoảng cách với mọi người?"
+        },
+        {
+          "speaker": "iris",
+          "text": "Với người chưa quen. Với đồng đội thì tôi giữ đường rút."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Khác nhau ở đâu?"
+        },
+        {
+          "speaker": "iris",
+          "text": "Đến lúc nguy hiểm anh sẽ thấy. Tôi không đứng sau lưng ai chỉ để bỏ chạy một mình."
+        }
+      ]
+    ]
+  },
+  "syvial": {
+    "intro": [
+      {
+        "speaker": "syvial",
+        "text": "Đừng nhìn thanh kiếm như thể nó sắp tự nhảy vào anh. Tôi vẫn đang giữ nó đấy."
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Thanh kiếm của cô không giống thứ ta từng thấy."
+      },
+      {
+        "speaker": "syvial",
+        "text": "GodKiller. Tên nghe dữ dằn, nhưng không phải cái cớ để tôi chém người mới gặp."
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Còn cô?"
+      },
+      {
+        "speaker": "syvial",
+        "text": "Syvial. Anh có thể gọi vậy. Tôi đang tìm cách hiểu nơi này không tuân theo quy tắc nào."
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Ta là Cao Minh. Nếu cô đã mạnh như thế, sao không tự phá đường?"
+      },
+      {
+        "speaker": "syvial",
+        "text": "Vì mạnh và biết mình đang phá cái gì là hai chuyện. Anh có định bước tiếp không?"
+      }
+    ],
+    "ambient": [
+      "Cứ đi bình thường. Tôi chỉ đang để mắt đến những chỗ có thể bị đánh úp.",
+      "Nếu tôi nói lùi lại thì làm ngay. Tôi không muốn giải thích trong lúc tường đang sập.",
+      "Một nơi cứ thay đường đi thế này đúng là biết cách khiến người ta mất kiên nhẫn.",
+      "Thanh kiếm lớn không có nghĩa phải vung hết sức trong một hành lang hẹp."
+    ],
+    "past": [
+      "Tôi thuộc trực hệ Lucifer. Đó là nguồn gốc của tôi, không phải cái cớ để người khác quyết định tôi phải trở thành ai.",
+      "Ở SRU, tôi quen việc bảo vệ đồng đội hơn nghe những bài diễn văn về sức mạnh.",
+      "Có một người tên Kai khiến tôi nhớ rằng những lời trêu đùa chỉ vui khi người nghe thật sự muốn cười. Chuyện giữa chúng tôi, tôi sẽ tự kể khi thấy thích hợp."
+    ],
+    "story": [
+      [
+        {
+          "speaker": "syvial",
+          "text": "Anh có bao giờ bị người khác nhìn một cái rồi đoán hết tính nết không?"
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Không ít."
+        },
+        {
+          "speaker": "syvial",
+          "text": "Thấy quỷ tính là nghĩ tôi sẽ mất kiểm soát. Tôi nghe đủ rồi."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Cô vẫn là người điều khiển sức mạnh của mình."
+        },
+        {
+          "speaker": "syvial",
+          "text": "Ít nhất anh không hỏi xem trong tôi còn con quỷ nào khác đang nói hộ."
+        }
+      ],
+      [
+        {
+          "speaker": "syvial",
+          "text": "Ở SRU, tôi không phải người duy nhất đủ sức phá một cánh cửa."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Cô được giao làm gì?"
+        },
+        {
+          "speaker": "syvial",
+          "text": "Đảm bảo sau khi cửa mở, người của mình còn đường trở ra. Phần ấy mới cần suy nghĩ."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Cô không thích làm theo lệnh?"
+        },
+        {
+          "speaker": "syvial",
+          "text": "Tôi không thích những lệnh chẳng có lý do."
+        }
+      ],
+      [
+        {
+          "speaker": "syvial",
+          "text": "Có người tôi từng quan tâm hay bỏ quên những chuyện lặt vặt, rồi giả vờ không biết."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Cô có nhắc không?"
+        },
+        {
+          "speaker": "syvial",
+          "text": "Nhắc chứ. Còn trêu nữa."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Rồi sao?"
+        },
+        {
+          "speaker": "syvial",
+          "text": "Rồi tôi học cách để họ tự chọn. Quan tâm không có nghĩa giữ người khác trong tay."
+        }
+      ],
+      [
+        {
+          "speaker": "syvial",
+          "text": "GodKiller nặng hơn vẻ ngoài của nó nhiều."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Cô muốn ta thử nhấc?"
+        },
+        {
+          "speaker": "syvial",
+          "text": "Không cần. Tôi chỉ muốn anh hiểu mỗi lần tôi rút nó đều là một lựa chọn."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Và hôm nay?"
+        },
+        {
+          "speaker": "syvial",
+          "text": "Hôm nay chúng ta nói chuyện. Thế đã đủ rồi."
+        }
+      ]
+    ]
+  },
+  "an-nhien": {
+    "intro": [
+      {
+        "speaker": "an-nhien",
+        "text": "Chú ơi... chú có biết lối ra ở đâu không?"
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Ta chưa biết. Con ở đây một mình sao?"
+      },
+      {
+        "speaker": "an-nhien",
+        "text": "Con không thấy ai quen cả. Đèn cứ kêu rè rè, con sợ."
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Con tên gì?"
+      },
+      {
+        "speaker": "an-nhien",
+        "text": "Con là An Nhiên. Con bảy tuổi. Dép con màu hồng, chú nhìn thấy không?"
+      },
+      {
+        "speaker": "cao_minh",
+        "text": "Thấy rồi. Con có bị đau chỗ nào không?"
+      },
+      {
+        "speaker": "an-nhien",
+        "text": "Không ạ. Nhưng con đói. Chú có biết chỗ nào sáng hơn không?"
+      }
+    ],
+    "ambient": [
+      "Chú đi chậm thôi, dép con cứ kêu lẹp xẹp.",
+      "Cái đèn kia làm con nhớ tiếng ve. Nhưng ve đâu có ở trong phòng.",
+      "Con sẽ không chạy trước đâu. Chú đừng đi xa quá nhé.",
+      "Nếu có đồ ăn, con xin một ít thôi. Con không cần nhiều."
+    ],
+    "past": [
+      "Con nhớ có lần ngồi đếm những ô gạch dưới chân, nhưng ở đây đếm hoài cứ thấy giống nhau.",
+      "Con thích màu hồng. Nhìn xuống đôi dép, con đỡ sợ hơn một chút.",
+      "Có nhiều chuyện con không nhớ rõ. Con không muốn đoán bừa rồi làm chú đi lạc."
+    ],
+    "story": [
+      [
+        {
+          "speaker": "an-nhien",
+          "text": "Hồi ở nhà, con thích nghe tiếng mưa ngoài cửa sổ."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ở đây cũng có tiếng nước nhỏ."
+        },
+        {
+          "speaker": "an-nhien",
+          "text": "Nhưng tiếng này nghe lạnh hơn. Con muốn nghe tiếng mưa thật cơ."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ta hiểu."
+        },
+        {
+          "speaker": "an-nhien",
+          "text": "Chú có nhớ tiếng mưa ở nhà không?"
+        }
+      ],
+      [
+        {
+          "speaker": "an-nhien",
+          "text": "Con từng đếm bước chân để biết mình đi xa chưa."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Con đếm được bao nhiêu?"
+        },
+        {
+          "speaker": "an-nhien",
+          "text": "Đến một trăm thì quên, lại đếm từ đầu."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Vậy con không cần đếm một mình."
+        },
+        {
+          "speaker": "an-nhien",
+          "text": "Thật ạ? Chú đếm cùng con nhé."
+        }
+      ],
+      [
+        {
+          "speaker": "an-nhien",
+          "text": "Con sợ nhất là khi gọi mà không có ai trả lời."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ta đang nghe đây."
+        },
+        {
+          "speaker": "an-nhien",
+          "text": "Con biết. Chỉ là đôi khi đèn kêu to quá, con tưởng tiếng mình biến mất."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Nếu cần, con cứ gọi thêm lần nữa."
+        },
+        {
+          "speaker": "an-nhien",
+          "text": "Vâng. Con sẽ gọi."
+        }
+      ],
+      [
+        {
+          "speaker": "an-nhien",
+          "text": "Chú có nghĩ về nhà rồi mọi thứ sẽ như cũ không?"
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ta không biết."
+        },
+        {
+          "speaker": "an-nhien",
+          "text": "Con cũng không biết. Nhưng con muốn được ngồi ăn một bữa mà không phải nhìn cửa mãi."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Trước hết chúng ta tìm chỗ an toàn đã."
+        },
+        {
+          "speaker": "an-nhien",
+          "text": "Dạ. Con nhớ rồi."
+        }
+      ]
+    ]
   }
 };
   // R07: only Core-confirmed Entity encounters can display these scenes.
