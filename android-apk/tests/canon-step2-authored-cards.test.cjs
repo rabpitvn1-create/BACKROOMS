@@ -51,7 +51,10 @@ test('all five new Entities have independently traceable visual and Canon cards'
   }
   assert.match(records.get('ENTITY.LUCKYBEAR.CANON').text,/200 EXP/);
   assert.match(records.get('ENTITY.BROWNIES.CANON').text,/100 EXP/);
-  assert.match(records.get('ENTITY.LUC_TRAM_HAC_HOA.CANON').text,/UNKNOWN/);
+  assert.match(records.get('ENTITY.LUC_TRAM_HAC_HOA.CANON').text,/CHÍNH LÀ Lục Trầm/);
+  assert.match(records.get('ENTITY.DIEP_MINH.CANON').text,/tông môn/);
+  assert.ok(records.has('STORY.DIEP_MINH.SCENE_R07'));
+  assert.ok(records.has('STORY.LUC_TRAM_HAC_HOA.SCENE_R07'));
 });
 
 test('eleven authored level cards and four exact authored nodes are indexed without resolving conflicts', () => {
@@ -131,4 +134,27 @@ test('legacy provenance is labeled, not silently promoted into author Canon', ()
   assert.equal(legacy.length, 42, 'the existing unverified records remain unchanged');
   assert.ok(reader.includes('LEGACY_UNVERIFIED'));
   assert.ok(reader.includes('provenance='));
+});
+
+// The new author storyline is packaged and story cards are Core-encounter gated.
+test('R07 plot and both GM narrative cards are present and guarded by Entity confirmation', () => {
+  const canon = fs.readFileSync(path.join(root, 'app/src/main/assets/canon/STORY_VAN_GIOI_TAN_MONG_R07.md'), 'utf8');
+  assert.match(canon, /lớp trì lưu/);
+  assert.match(canon, /tự rời/);
+  assert.match(canon, /Nửa bước Chân Tiên/);
+  const expected = [
+    ['DIEP_MINH', 'diep_minh'],
+    ['LUC_TRAM_HAC_HOA', 'luc_tram_hac_hoa']
+  ];
+  for(const [upper,key] of expected) {
+    const r=records.get('STORY.'+upper+'.SCENE_R07');
+    assert.ok(r,key+' story card');
+    assert.equal(r.domain,'STORY');
+    assert.equal(r.kind,'story-scene-card');
+    assert.equal(r.source.document,'canon/STORY_VAN_GIOI_TAN_MONG_R07.md');
+    assert.match(r.text,/GM-ONLY/);
+    assert.ok(reader.includes('"ENTITY.'+upper+'.VISUAL"'),key+' confirmed entity');
+    assert.ok(reader.includes('add("STORY.'+upper+'.SCENE_R07"'),key+' retrieval');
+  }
+  assert.ok(reader.includes('val confirmedVisual = confirmedEntityVisualId()'));
 });
