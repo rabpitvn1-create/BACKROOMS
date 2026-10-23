@@ -1747,7 +1747,7 @@
       [
         {
           "speaker": "diep_minh",
-          "text": "Ta ngỡ Cao gia đã không còn ai."
+          "text": "Bản Tiên ngỡ Cao gia đã không còn ai."
         },
         {
           "speaker": "cao_minh",
@@ -1755,7 +1755,7 @@
         },
         {
           "speaker": "diep_minh",
-          "text": "Ta đã kiểm tra rất kỹ. Vẫn bỏ sót ngươi."
+          "text": "Bản Tiên đã kiểm tra rất kỹ. Vẫn bỏ sót ngươi."
         },
         {
           "speaker": "cao_minh",
@@ -1777,7 +1777,7 @@
         },
         {
           "speaker": "diep_minh",
-          "text": "Thứ ở quê nhà ta phải tranh giành cả đời. Nhưng có được linh khí vẫn phải tự biết cách dùng nó."
+          "text": "Thứ ở quê nhà Bản Tiên phải tranh giành cả đời. Nhưng có được linh khí vẫn phải tự biết cách dùng nó."
         }
       ],
       [
@@ -1831,7 +1831,7 @@
         },
         {
           "speaker": "diep_minh",
-          "text": "Ta biết ngươi muốn nghe lời sám hối. Ta không có lời ấy."
+          "text": "Bản Tiên biết ngươi muốn nghe lời sám hối. Nhưng không có lời ấy."
         }
       ],
       [
@@ -1845,7 +1845,7 @@
         },
         {
           "speaker": "diep_minh",
-          "text": "Chưa. Nhưng ta có thời gian để tìm."
+          "text": "Chưa. Nhưng Bản Tiên có thời gian để tìm."
         },
         {
           "speaker": "cao_minh",
@@ -1859,7 +1859,7 @@
         },
         {
           "speaker": "diep_minh",
-          "text": "Một lần ta theo dấu kiếm của chính mình, rồi đứng trước một bức tường không có vết chém."
+          "text": "Một lần Bản Tiên theo dấu kiếm của chính mình, rồi đứng trước một bức tường không có vết chém."
         },
         {
           "speaker": "cao_minh",
@@ -1867,13 +1867,13 @@
         },
         {
           "speaker": "diep_minh",
-          "text": "Ta không biết. Chính vì không biết, ta mới chưa rời khỏi chốn này."
+          "text": "Bản Tiên không biết. Chính vì chưa tìm ra lời giải, nên vẫn chưa rời khỏi chốn này."
         }
       ],
       [
         {
           "speaker": "diep_minh",
-          "text": "Ngày ta rời Cao gia, trời còn chưa sáng."
+          "text": "Ngày Bản Tiên rời Cao gia, trời còn chưa sáng."
         },
         {
           "speaker": "cao_minh",
@@ -1881,7 +1881,7 @@
         },
         {
           "speaker": "diep_minh",
-          "text": "Ta chỉ nhớ mình đã tự tin đến mức nào."
+          "text": "Bản Tiên chỉ nhớ mình đã tự tin đến mức nào."
         },
         {
           "speaker": "cao_minh",
@@ -1889,7 +1889,7 @@
         },
         {
           "speaker": "diep_minh",
-          "text": "Đúng. Với ta, đó là một tính toán sai. Với ngươi, là cả một đời."
+          "text": "Đúng. Với Bản Tiên, đó là một tính toán sai. Với ngươi, là cả một đời."
         }
       ],
       [
@@ -1907,7 +1907,7 @@
         },
         {
           "speaker": "diep_minh",
-          "text": "Thân xác biết đau, nhưng nó không được quyền quyết định ta dừng ở đâu."
+          "text": "Thân xác biết đau, nhưng nó không được quyền quyết định Bản Tiên dừng ở đâu."
         }
       ],
       [
@@ -1921,7 +1921,7 @@
         },
         {
           "speaker": "diep_minh",
-          "text": "Nếu ta có thể đưa họ qua những con đường họ không dám bước, một số người sẽ tự tìm đến."
+          "text": "Nếu Bản Tiên có thể đưa họ qua những con đường họ không dám bước, một số người sẽ tự tìm đến."
         },
         {
           "speaker": "cao_minh",
@@ -1935,7 +1935,7 @@
         },
         {
           "speaker": "diep_minh",
-          "text": "Ngươi đứng trước mặt ta, đã thành Vạn Giới Ma Tôn. Ngươi hẳn hiểu cái giá của sức mạnh."
+          "text": "Ngươi đứng trước mặt Bản Tiên, đã thành Vạn Giới Ma Tôn. Ngươi hẳn hiểu cái giá của sức mạnh."
         },
         {
           "speaker": "cao_minh",
@@ -1943,7 +1943,7 @@
         },
         {
           "speaker": "diep_minh",
-          "text": "Ta không xin ngươi tha thứ. Chỉ muốn biết ngươi còn chịu mất đến đâu để giết ta."
+          "text": "Bản Tiên không xin ngươi tha thứ. Chỉ muốn biết ngươi còn chịu mất đến đâu để giết Bản Tiên."
         }
       ]
     ],
@@ -1977,7 +1977,7 @@
         },
         {
           "speaker": "diep_minh",
-          "text": "Ta chẳng cần uy hiếp. Ngươi đã tự thấy ánh mắt nàng rồi."
+          "text": "Bản Tiên chẳng cần uy hiếp. Ngươi đã tự thấy ánh mắt nàng rồi."
         },
         {
           "speaker": "cao_minh",
@@ -1991,7 +1991,7 @@
         },
         {
           "speaker": "diep_minh",
-          "text": "Một phần những điều ta biết."
+          "text": "Một phần những điều Bản Tiên biết."
         },
         {
           "speaker": "cao_minh",
@@ -1999,7 +1999,7 @@
         },
         {
           "speaker": "diep_minh",
-          "text": "Ngươi hẳn cũng đang chọn lời để nói với nàng. Ta khác ngươi ở chỗ nào?"
+          "text": "Ngươi hẳn cũng đang chọn lời để nói với nàng. Bản Tiên khác ngươi ở chỗ nào?"
         }
       ]
     ],
@@ -2007,7 +2007,7 @@
       [
         {
           "speaker": "diep_minh",
-          "text": "Đường đi đổi hướng. Ta vẫn chưa gặp hai lần cùng một chỗ."
+          "text": "Đường đi đổi hướng. Bản Tiên vẫn chưa gặp hai lần cùng một chỗ."
         },
         {
           "speaker": "cao_minh",
@@ -2015,7 +2015,7 @@
         },
         {
           "speaker": "diep_minh",
-          "text": "Nó không cần muốn. Ta cũng không cần xin phép."
+          "text": "Nó không cần muốn. Bản Tiên cũng không cần xin phép."
         }
       ],
       [
@@ -2029,7 +2029,7 @@
         },
         {
           "speaker": "diep_minh",
-          "text": "Cho nên ta vẫn phải mang kiếm."
+          "text": "Cho nên Bản Tiên vẫn phải mang kiếm."
         }
       ],
       [
@@ -2039,7 +2039,7 @@
         },
         {
           "speaker": "diep_minh",
-          "text": "Ta tìm cách mở cửa khi mình muốn, không phải khi có kẻ cho phép."
+          "text": "Bản Tiên tìm cách mở cửa khi mình muốn, không phải khi có kẻ cho phép."
         },
         {
           "speaker": "cao_minh",
@@ -2053,7 +2053,7 @@
       [
         {
           "speaker": "diep_minh",
-          "text": "Người khác sợ lạc đường. Ta sợ trở về tay trắng."
+          "text": "Người khác sợ lạc đường. Bản Tiên sợ trở về tay trắng."
         },
         {
           "speaker": "cao_minh",
@@ -2061,7 +2061,7 @@
         },
         {
           "speaker": "diep_minh",
-          "text": "Nó dạy ta phải cẩn thận hơn, không phải dừng lại."
+          "text": "Nó dạy Bản Tiên phải cẩn thận hơn, không phải dừng lại."
         }
       ],
       [
@@ -2071,7 +2071,7 @@
         },
         {
           "speaker": "diep_minh",
-          "text": "Nếu tìm được đường. Ta không bán lời hứa khi chưa có cửa."
+          "text": "Nếu tìm được đường. Bản Tiên không bán lời hứa khi chưa có cửa."
         },
         {
           "speaker": "cao_minh",
@@ -2093,7 +2093,7 @@
         },
         {
           "speaker": "diep_minh",
-          "text": "Ta không nhớ hết. Đó là điều ngươi sẽ không bao giờ tha thứ."
+          "text": "Bản Tiên không nhớ hết. Đó là điều ngươi sẽ không bao giờ tha thứ."
         },
         {
           "speaker": "cao_minh",
