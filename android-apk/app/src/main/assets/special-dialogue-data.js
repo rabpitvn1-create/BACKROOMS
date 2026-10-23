@@ -664,7 +664,7 @@
       },
       {
         "speaker": "cao_minh",
-        "text": "Được, ta đứng đây. Ta tên Cao Minh. Cô hạ nòng súng xuống một chút được không? Ta cũng chưa biết cô là ai."
+        "text": "Được, Bổn Tôn không tiến lại gần. Tên là Cao Minh. Cô cũng hạ nòng súng xuống một chút được không?"
       },
       {
         "speaker": "lucia",
@@ -672,7 +672,7 @@
       },
       {
         "speaker": "cao_minh",
-        "text": "Ta không thuộc quân đội. Ta dùng kiếm, thế thôi. Cô không cần tin ngay, nhưng cứ chĩa súng thế này thì nói chuyện cũng khó."
+        "text": "Bổn Tôn không thuộc quân đội nào cả, chỉ quen dùng kiếm. Cô chưa cần tin ngay, nhưng cứ chĩa súng thế này thì nói chuyện cũng khó."
       },
       {
         "speaker": "lucia",
@@ -688,7 +688,7 @@
       },
       {
         "speaker": "cao_minh",
-        "text": "Ta cũng đang tìm đường ra. Cô có biết gì về nơi này không?"
+        "text": "Bổn Tôn cũng đang tìm đường ra. Cô có biết gì về nơi này không?"
       },
       {
         "speaker": "lucia",
@@ -752,7 +752,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Vậy ta đoán sai rồi. Ta cứ nghĩ cô đang trốn việc nhà."
+          "text": "Vậy Bổn Tôn đoán sai rồi. Cứ tưởng cô đang trốn việc nhà."
         },
         {
           "speaker": "lucia",
@@ -766,7 +766,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Ta có thấy. Cô còn để ý cả lúc ta đặt tay ra sau lưng."
+          "text": "Bổn Tôn có thấy. Vừa đưa tay ra sau lưng, cô đã nhìn theo rồi."
         },
         {
           "speaker": "lucia",
@@ -774,7 +774,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Phải. Ta cũng chẳng mong người vừa gặp mình sẽ lập tức tin lời."
+          "text": "Phải. Bổn Tôn cũng chẳng mong người vừa gặp đã lập tức tin lời."
         },
         {
           "speaker": "lucia",
@@ -788,7 +788,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô vừa giới thiệu cả họ tên với ta lần đầu gặp mà."
+          "text": "Ngay lần đầu gặp, cô đã giới thiệu cả họ tên cho Bổn Tôn mà."
         },
         {
           "speaker": "lucia",
@@ -796,7 +796,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Giờ thì ta hiểu vì sao cô thích được gọi là Lucia."
+          "text": "Giờ thì Bổn Tôn hiểu vì sao cô thích được gọi là Lucia."
         },
         {
           "speaker": "lucia",
@@ -810,7 +810,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Nếu gặp chỗ khuất tầm nhìn, để ta xem trước. Cô giữ lối phía sau giúp ta."
+          "text": "Nếu gặp chỗ khuất tầm nhìn, Bổn Tôn sẽ xem trước. Cô canh lối phía sau nhé."
         },
         {
           "speaker": "lucia",
@@ -818,7 +818,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Ta sẽ báo. Còn cô, nếu thấy gì không ổn thì nói ngay, đừng tự ép mình phải xử lý hết."
+          "text": "Bổn Tôn sẽ báo. Còn cô, nếu thấy gì không ổn thì nói ngay, đừng tự xử lý một mình."
         },
         {
           "speaker": "lucia",
@@ -840,7 +840,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Ta không biết bên ngoài đã qua bao lâu. Nếu có lối ra, trước hết cứ tìm cho chắc."
+          "text": "Bổn Tôn cũng không biết bên ngoài đã qua bao lâu. Nếu có lối ra, trước hết cứ tìm cho chắc."
         },
         {
           "speaker": "lucia",
