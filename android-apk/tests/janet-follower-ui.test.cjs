@@ -40,7 +40,7 @@ test('Janet has five skill entries plus one Ultimate and four distinct equipment
 
 
 test('Janet encounter temporarily shows Cao Minh on the left, then restores him immediately on the right',()=>{
-  const line=java.split('\n').find(source=>source.includes('SNAPSHOT_PARTY_LAYOUT_R04'));
+  const line=java.split('\n').find(source=>source.includes('SNAPSHOT_PARTY_LAYOUT_R05'));
   assert.ok(line,'Follower encounter layout must exist');
   const injected=JSON.parse(line.trim().replace(/\s*\+\s*$/,''));
   const createLayout=new Function('window','document','state','renderSnapshot',injected+
@@ -72,6 +72,18 @@ test('Janet encounter temporarily shows Cao Minh on the left, then restores him 
   assert.equal(hero.style.width,'auto');
   assert.equal(hero.style.maxWidth,'100%');
   assert.equal(janet.style.left,'3%');
+  // Later authored chapters keep the same two-shot with joined Follower.
+  state.encounteredCharacters[0].present=false;
+  state.party=[{id:'janet',presence:'ACTIVE'}];
+  state.specialDialogueProgress.pending={id:'janet',kind:'story'};
+  layout();
+  assert.equal(box.dataset.partyLayout,'encounter');
+  assert.equal(hero.style.left,'6%');
+  assert.equal(janet.style.left,'50%');
+  state.specialDialogueProgress.pending=null;
+  layout();
+  assert.equal(box.dataset.partyLayout,'exploration');
+  assert.equal(hero.style.right,'0');
   // An Entity encounter cannot be mistaken for a Follower first contact.
   state.pendingEncounter={entityKey:'diep_minh',encounterId:'entity-1'};
   layout();
