@@ -250,8 +250,15 @@ class CanonDetailRetrievalTrialTest {
     }
     assertTrue(newRecords.size >= 10)
     assertTrue(newRecords.all {
+      val diePMinhVoiceOverride =
+        it.id == "CHAR.DIEP_MINH.DETAIL.DIALOGUE.001.02" &&
+        it.source.document == "https://github.com/rabpitvn1-create/BACKROOMS/pull/657" &&
+        it.source.anchor == "Diệp Minh Bản Tiên · Author override 23/10/2026" &&
+        it.text.contains("AUTHOR OVERRIDE 2026-10-23") &&
+        it.text.contains("Bản Tiên")
       (it.source.document.startsWith("Google Drive /Novel/Asset/") ||
-        it.source.document == "canon/STORY_VAN_GIOI_TAN_MONG_R07.md") &&
+        it.source.document == "canon/STORY_VAN_GIOI_TAN_MONG_R07.md" ||
+        diePMinhVoiceOverride) &&
         it.text.isNotBlank() && !it.text.contains("Vô Lượng", ignoreCase = true) &&
         !it.text.contains("WRITER-SECRET") && !it.text.contains("100 tiểu cảnh giới")
     })
