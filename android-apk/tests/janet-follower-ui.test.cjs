@@ -85,7 +85,7 @@ test('Janet encounter temporarily shows Cao Minh on the left, then restores him 
 
 
 test('Lucia first-contact overlay uses packaged full-body image outside combat',()=>{
-  assert.match(java,/if\(!luciaCombatVisible\(\)&&snapshotFirstContactId\(\)!=='lucia'\)return/);
+  assert.match(java,/if\(!luciaCombatVisible\(\)&&!\(typeof snapshotFirstContactId==='function'&&snapshotFirstContactId\(\)==='lucia'\)\)return/);
   assert.match(java,/img\.className='snapshot-lucia'/);
   assert.ok(fs.statSync(path.join(main,'assets/LUCIA_LUC_OVERLAY.png')).size>1000);
   assert.match(java,/window\.backroomRefreshSnapshotVisuals=function\(\)\{renderSnapshot\(\);\}/);
