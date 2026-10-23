@@ -10,7 +10,7 @@ trap '
   adb pull /sdcard/Android/data/com.rabpit.backroom/files/emulator-smoke emulator-evidence/playthrough >/dev/null 2>&1 || true
 ' EXIT
 
-app_path="emulator-artifacts/game/Backroom-1.2.0.0.38.apk"
+app_path="emulator-artifacts/game/Backroom-1.2.0.0.39.apk"
 test_path="emulator-artifacts/instrumentation/app-debug-androidTest.apk"
 test -s "$app_path"
 test -s "$test_path"
