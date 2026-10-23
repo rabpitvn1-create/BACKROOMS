@@ -845,3 +845,88 @@ test('Diệp Minh self-address stays Bản Tiên across all authored routes with
   assert.match(record.text,/Nửa bước Chân Tiên/);
   assert.equal(record.source.document,'https://github.com/rabpitvn1-create/BACKROOMS/pull/657');
 });
+
+function entityEnv(options={}){
+  return env({state:{party:[],partyDetails:{members:[]},encounteredCharacters:[],...options.state}});
+}
+function finishDialogue(x){
+  const lines=[];
+  for(let i=0;!x.dialog.hidden&&i<20;i++){
+    lines.push({speaker:x.parts['#specialDialogueName'].textContent,text:x.parts['#specialDialogueText'].textContent});
+    x.parts['#specialDialogueActions'].children.at(-1).click();
+  }
+  assert.equal(x.dialog.hidden,true,'dialogue must finish without restarting');
+  return lines;
+}
+const darkTram={entityKey:'luc_tram_hac_hoa',encounterId:'tram-1'};
+test('Lục Trầm confrontation and R07 story open for pending and auto-confirmed Core encounters',()=>{
+  for(const encounter of [{pendingEncounter:darkTram},{combat:{...darkTram,active:true,waveNumber:1}}]){
+    const x=entityEnv({state:encounter});
+    assert.equal(x.dialog.hidden,false);
+    assert.equal(x.parts['#specialDialogueName'].textContent,'Lục Trầm Hắc Hóa');
+    assert.equal(x.parts['#specialDialogueAvatar'].children[0].src,'entity/luc_tram_hac_hoa.webp');
+    x.parts['#specialDialogueActions'].children[0].click();
+    assert.equal(x.parts['#specialDialogueAvatar'].children[0].src,'avatars/CAO_MINH_AVATAR.jpg');
+    const heard=finishDialogue(x).map(line=>line.text).join('\n');
+    assert.ok(heard.length>0);
+    assert.equal(x.ctx.state.specialDialogueProgress.entityBeats.luc_tram_hac_hoa,1);
+    assert.equal(x.ctx.state.specialDialogueProgress.shownEncounters['tram-1'],true);
+    assert.equal(x.ctx.invited,undefined,'enemy dialogue must not recruit the Follower');
+    assert.equal(x.ctx.hintId,undefined,'authored encounter must not depend on a GM request');
+    x.ctx.render();
+    assert.equal(x.dialog.hidden,true);
+  }
+});
+test('Core state delivered through render opens the encounter and confirmation does not repeat it',()=>{
+  const x=entityEnv();
+  x.ctx.state.pendingEncounter=darkTram;x.ctx.render();
+  assert.equal(x.dialog.hidden,false);
+  finishDialogue(x);
+  const next=JSON.parse(JSON.stringify(x.ctx.state));
+  delete next.pendingEncounter;
+  next.combat={...darkTram,active:true,waveNumber:1,entityInstanceId:'tram-1:wave:0'};
+  x.ctx.backroomTurn(JSON.stringify(next));
+  assert.equal(x.dialog.hidden,true);
+  next.combat={...next.combat,encounterId:'tram-2',entityInstanceId:'tram-2:wave:0'};
+  x.ctx.backroomTurn(JSON.stringify(next));
+  assert.equal(x.dialog.hidden,false,'a new Core encounter must still open');
+});
+test('saved entity story resumes at its current line and stale encounters are discarded',()=>{
+  const x=entityEnv({state:{pendingEncounter:darkTram}});
+  for(let i=0;i<3;i++)x.parts['#specialDialogueActions'].children[0].click();
+  const saved=JSON.parse(JSON.stringify(x.ctx.state));
+  const resumed=entityEnv({state:saved});
+  assert.equal(resumed.parts['#specialDialogueText'].textContent,x.parts['#specialDialogueText'].textContent);
+  const resumedAgain=entityEnv({state:JSON.parse(JSON.stringify(resumed.ctx.saved))});
+  assert.equal(resumedAgain.parts['#specialDialogueText'].textContent,x.parts['#specialDialogueText'].textContent);
+  delete saved.pendingEncounter;
+  saved.combat={active:true,entityKey:'hound',encounterId:'other'};
+  const stale=entityEnv({state:saved});
+  assert.equal(stale.dialog.hidden,true);
+  assert.equal(stale.ctx.state.specialDialogueProgress.pending,null);
+  assert.equal(stale.ctx.state.specialDialogueProgress.shownEncounters['tram-1'],undefined);
+});
+test('an entity encounter waits for a character modal and later combat waves get their own dialogue',()=>{
+  const x=env();finishModal(x);x.ctx.SpecialDialogue.openCharacter('lucia','talk');
+  x.ctx.state.pendingEncounter=darkTram;x.ctx.render();
+  assert.equal(x.parts['#specialDialogueName'].textContent,'Lucia "Lục"');
+  x.parts['#specialDialogueActions'].children.at(-1).click();
+  assert.equal(x.dialog.hidden,false);
+  assert.equal(x.ctx.state.specialDialogueProgress.pending.kind,'entity');
+  finishDialogue(x);
+  delete x.ctx.state.pendingEncounter;
+  x.ctx.state.combat={...darkTram,active:true,waveNumber:2,entityInstanceId:'tram-1:wave:1'};
+  x.ctx.render();
+  assert.equal(x.dialog.hidden,false);
+  finishDialogue(x);
+  assert.equal(x.ctx.state.specialDialogueProgress.shownEncounters['tram-1:wave:1'],true);
+});
+test('narrative mentions cannot spawn dialogue and a departing entity cannot leave its modal open',()=>{
+  const x=entityEnv({state:{log:[{role:'gm',text:'Lục Trầm Hắc Hóa xuất hiện.'}]}});
+  assert.equal(x.dialog.hidden,true);
+  x.ctx.state.pendingEncounter=darkTram;x.ctx.render();
+  assert.equal(x.dialog.hidden,false);
+  delete x.ctx.state.pendingEncounter;x.ctx.render();
+  assert.equal(x.dialog.hidden,true);
+  assert.equal(x.ctx.state.specialDialogueProgress.shownEncounters['tram-1'],undefined);
+});

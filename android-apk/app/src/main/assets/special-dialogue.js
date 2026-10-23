@@ -44,6 +44,16 @@
     if(id==='cao_minh')return state.player&&state.player.name||'Cao Minh';
     const c=visibleCharacter(id);return c&&c.name||entityCatalog[id]&&entityCatalog[id].name||id;
   }
+  function entityEncounter(){
+    const combat=state.combat;
+    const encounter=combat&&combat.active===true?combat:state.pendingEncounter;
+    if(!encounter||!entityCatalog[encounter.entityKey]||!encounter.encounterId)return null;
+    // Pending confirmation and the first combat wave share one dialogue receipt.
+    // Later waves have their own Core instance identity, even in the same battle.
+    const wave=Number(encounter.waveNumber||1);
+    return {entityKey:encounter.entityKey,encounterId:wave>1?
+      encounter.entityInstanceId||encounter.encounterId+':wave:'+(wave-1):encounter.encounterId};
+  }
   function avatar(id){
     if(id==='cao_minh')return 'avatars/CAO_MINH_AVATAR.jpg';
     if(entityCatalog[id])return entityCatalog[id].overlay;
@@ -156,6 +166,8 @@
         global.backroomRefreshSnapshotPartyLayout();
     }
     if(typeof global.backroomSyncExplorer==='function')global.backroomSyncExplorer();
+    // Core may deliver an Entity while a Follower modal is still open.
+    applyIncoming(state);
   }
   function invite(){
     if(!active||!eligibleInvite(active.id)||!global.Android||typeof Android.recruitFollower!=='function')return;
@@ -275,11 +287,17 @@
   }
   function applyIncoming(old){
     const p=progress();
+    const encounter=entityEncounter();
+    if(active&&active.kind==='entity'&&(!encounter||active.id!==encounter.entityKey||
+        active.encounterId!==encounter.encounterId)){
+      active=null;p.pending=null;root.hidden=true;document.body.classList.remove('special-dialogue-active');store();
+    }
     if(active)return;
     // Resume persisted modal after reload. Its state is stored with the current-version presentation.
     if(p.pending&&p.pending.kind){
       const saved=p.pending;
-      if(saved.kind==='entity'&&!state.pendingEncounter&&!(state.combat&&state.combat.active))p.pending=null;
+      if(saved.kind==='entity'&&(!encounter||saved.id!==encounter.entityKey||
+          saved.encounterId!==encounter.encounterId||p.shownEncounters[saved.encounterId])){p.pending=null;store();}
       else if(saved.kind==='intro'&&!coreConfirmedNpc(saved.id))p.pending=null;
       else {
         const d=catalog[saved.id]||{};
@@ -291,15 +309,13 @@
           routeKind:entityRoute&&entityRoute.routeKind,routeIndex:entityRoute&&entityRoute.routeIndex})){
           active.index=Math.min(Math.max(0,saved.index||0),active.lines.length-1);
           if(p.pending)p.pending.index=active.index;
-          render();return;
+          store();render();return;
         }
       }
     }
-    const pending=state.pendingEncounter;
-    const entity=pending&&entityCatalog[pending.entityKey];
-    if(entity&&pending.encounterId&&!p.shownEncounters[pending.encounterId]){
-      const selected=entityScene(pending.entityKey,p);
-      open(pending.entityKey,'entity',selected.lines,{encounterId:pending.encounterId,
+    if(encounter&&!p.shownEncounters[encounter.encounterId]){
+      const selected=entityScene(encounter.entityKey,p);
+      open(encounter.entityKey,'entity',selected.lines,{encounterId:encounter.encounterId,
         routeKind:selected.routeKind,routeIndex:selected.routeIndex});return;
     }
     // The encounter might have been committed before the UI registered the
@@ -360,7 +376,7 @@
     const result=previousRender.apply(this,arguments);
     // Also recover a first encounter that became present before this render,
     // even when there is no persisted modal cursor yet.
-    if(!active)applyIncoming(state);
+    applyIncoming(state);
     return result;
   };
   root.addEventListener('keydown',event=>{

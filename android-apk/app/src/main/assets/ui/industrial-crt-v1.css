@@ -136,18 +136,17 @@ body.industrial-ui{
 .industrial-ui .menu-dossier .row{grid-template-columns:76px minmax(0,1fr);border-bottom:1px solid #6a503a40;color:#30251b}
 .industrial-ui .menu-dossier .row b{color:#604b32}
 .industrial-ui .menu-dossier #player{font-size:17px;font-weight:800}
-/* Style menu action groups together so new dossier tools inherit the same steel controls. */
 .industrial-ui .game-menu-sheet .actions button,
-.industrial-ui #explorerMenuTools .explorer-dossier-tiles button,
-.industrial-ui .game-menu-sheet #dungeonOpen{
+.industrial-ui .game-menu-sheet .card>button,
+.industrial-ui #explorerMenuTools .explorer-dossier-tiles>button{
   min-height:52px;padding:5px 8px;border:10px solid transparent;
   border-image:var(--industrial-steel) 70 fill / 12px / 0 stretch;
-  background:transparent;color:#fff0bf;text-align:center;text-shadow:0 1px 3px #000;
-  min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere
+  border-radius:8px!important;background:transparent;color:#fff0bf;
+  min-width:0;max-width:100%;white-space:normal;
+  text-align:center;text-shadow:0 1px 3px #000;overflow-wrap:anywhere
 }
-.industrial-ui .game-menu-sheet .actions button:disabled,
-.industrial-ui #explorerMenuTools .explorer-dossier-tiles button:disabled,
-.industrial-ui .game-menu-sheet #dungeonOpen:disabled{opacity:.45;cursor:default}
+.industrial-ui .game-menu-sheet .card>button{max-width:100%}
+.industrial-ui .game-menu-sheet button:disabled{opacity:.45;cursor:default}
 @media(hover:hover){
   .industrial-ui .game-menu-sheet .actions button:hover:not(:disabled),
   .industrial-ui #explorerMenuTools .explorer-dossier-tiles button:hover:not(:disabled),
@@ -156,6 +155,7 @@ body.industrial-ui{
 .industrial-ui .game-menu-sheet .actions button:active:not(:disabled),
 .industrial-ui #explorerMenuTools .explorer-dossier-tiles button:active:not(:disabled),
 .industrial-ui .game-menu-sheet #dungeonOpen:active:not(:disabled){filter:brightness(.9)}
+
 .industrial-ui .game-menu-sheet .diagnostic-note{font-size:13px;line-height:1.6;color:#d1c3a3}
 .industrial-ui .diagnostic-consent{color:#d3c19a;line-height:1.5}
 .industrial-ui .diagnostic-consent input{accent-color:#d9b75b;min-width:22px;min-height:22px}
@@ -171,12 +171,17 @@ body.industrial-ui{
 .industrial-ui #explorerChoices.explorer-map-mode{border-width:14px;padding:6px}
 .industrial-ui #explorerChoices.explorer-map-mode .explorer-map-zoom button::after{content:none}
 .industrial-ui #explorerChoices.explorer-map-mode .explorer-map-zoom button{border:8px solid transparent;border-image:var(--industrial-steel) 70 fill / 10px / 0 stretch;padding:2px 7px}
-/* The reader and action composer share the menu's tiled industrial rails.
-   Keep the one-time Prologue offer gold, rounded and independently dismissible. */
+/* The offer keeps its gold identity, with the same steel rails and close
+   control as the reader. Leave room for the independent dismiss hit target. */
 .industrial-ui #prologuePrompt{
-  background-color:#8b642e;
+  border:0;border-radius:14px;background:transparent;box-shadow:0 5px 12px #0009
+}
+.industrial-ui #prologueOpenButton{
+  min-height:64px;padding:10px 60px;border:10px solid transparent;
+  border-image:var(--industrial-steel) 70 / 12px / 0 stretch;
+  border-radius:14px!important;background-color:#8b642e;
   background-image:linear-gradient(135deg,#c59a51dd,#8b642ecc 65%,#67451fe6),var(--industrial-crt);
-  background-size:auto,512px 512px
+  background-size:auto,512px 512px;color:#fff2ce;text-shadow:0 1px 3px #38210c
 }
 .industrial-ui #explorerPlayerAction{
   border:12px solid transparent;border-image:var(--industrial-frame) 80 / 12px / 0 repeat;
@@ -201,12 +206,14 @@ body.industrial-ui{
   flex:none;min-width:0;padding:10px 12px;margin:0;border-bottom:1px solid #726343;
   background:#11150f var(--industrial-crt) center/512px 512px;color:#f3c576
 }
-.industrial-ui #prologueReaderClose,
+.industrial-ui #prologueDismissButton,.industrial-ui #prologueReaderClose,
+.industrial-ui #explorerChoices .explorer-dialog-header button,
 .industrial-ui #explorerPlayerAction .explorer-dialog-header button{
   flex:none;width:44px;height:44px;min-height:44px;padding:0;
   border:8px solid transparent;border-image:var(--industrial-steel) 70 fill / 9px / 0 stretch;
   border-radius:8px!important;background:transparent;color:#ffedb3;font-size:25px;line-height:1
 }
+.industrial-ui #prologueDismissButton{top:10px;right:10px}
 .industrial-ui #prologueReader .prologue-body{padding:16px;overflow-wrap:anywhere}
 .industrial-ui #prologueReaderDone,.industrial-ui #explorerPlayerAction #explorerActionText+button{
   min-height:52px;padding:6px 12px;border:10px solid transparent;
