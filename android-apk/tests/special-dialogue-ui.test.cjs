@@ -769,6 +769,17 @@ test('Cao Minh keeps Bổn Tôn/ta register with every Follower; only other-worl
   assert.doesNotMatch(JSON.stringify(rivals.luc_tram_hac_hoa),/tự động nhớ lại Cao Minh/);
 });
 
+test('modern Follower speech keeps its own register; An Nhiên is addressed as a child',()=>{
+  const c=env({state:{party:[],partyDetails:{members:[]},encounteredCharacters:[]}}).ctx.BackroomSpecialDialogueData;
+  const text=id=>c[id].intro.map(line=>line.text).join(' ');
+  assert.match(text('trac_lam'),/Nếu hợp tác, chúng ta thống nhất tín hiệu trước/);
+  assert.match(text('syvial'),/Giờ đi tiếp chứ\\?/);
+  const childLines=c['an-nhien'].story.flat().filter(line=>line.speaker==='cao_minh');
+  assert.ok(childLines.length>0);
+  assert.ok(childLines.every(line=>!/(^|\\s)ngươi(\\s|[,.!?]|$)/iu.test(line.text)),
+    'Cao Minh must respect An Nhiên asking not to be called ngươi');
+});
+
 test('author voice override remains present both in GM generation policy and knowledge authority',()=>{
   const policy=fs.readFileSync(path.join(__dirname,
     '../app/src/main/java/com/rabpit/backroom/core/knowledge/GmNarrativeVoicePolicy.kt'),'utf8');
