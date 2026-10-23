@@ -2704,6 +2704,24 @@
       "affordances": []
     },
     {
+      "id": "CHAR.DIEP_MINH.DETAIL.DIALOGUE.001.02",
+      "domain": "CHARACTER",
+      "kind": "authored-detail",
+      "text": "[XƯNG HÔ DIỆP MINH — AUTHOR OVERRIDE 2026-10-23] Trong lời thoại trực tiếp, Diệp Minh khi tự xưng ngôi thứ nhất dùng 'Bản Tiên', không dùng 'ta', 'tôi' hay 'Bổn Tôn'. Có thể lược chủ ngữ thay vì lặp danh xưng. Giữ thái độ bình thản, lịch thiệp nhưng tàn nhẫn; gọi Cao Minh là 'ngươi' khi thích hợp. 'Bản Tiên' là cách tự xưng, không chứng minh hắn đã đạt Chân Tiên; tu vi hiện xác lập ở Backrooms là Nửa bước Chân Tiên. Người kể ngôi thứ ba vẫn gọi Diệp Minh/hắn; không áp danh xưng này cho nhân vật khác.",
+      "source": {
+        "document": "https://github.com/rabpitvn1-create/BACKROOMS/pull/657",
+        "anchor": "Diệp Minh Bản Tiên · Author override 23/10/2026"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 65,
+      "tags": [
+        "detail:dialogue"
+      ],
+      "references": [],
+      "affordances": []
+    },
+    {
       "id": "CHAR.DIEP_MINH.DETAIL.PROFILE.001.03",
       "domain": "CHARACTER",
       "kind": "authored-detail",
