@@ -857,3 +857,14 @@ test('MAP pinch zoom preserves midpoint, allows continued single-finger pan and 
   r.pointer('pointerdown',3,80,90);r.pointer('pointerup',3,80,90);sc.listeners.click(click);
   assert.equal(prevented,1,'an ordinary node tap is still delivered');assert.equal(r.calls.length,0);
 });
+
+
+test('snapshot is repainted once after Core commit releases a frozen camera',()=>{
+  const r=runtime();
+  let painted=0;
+  r.ctx.backroomFreezeSnapshot=true;
+  r.ctx.backroomRefreshSnapshotVisuals=()=>{painted++;assert.equal(r.ctx.backroomFreezeSnapshot,false);};
+  r.ctx.backroomTurn(JSON.stringify({...r.ctx.state,turn:5}));
+  assert.equal(r.ctx.backroomFreezeSnapshot,false);
+  assert.equal(painted,1,'the final Follower/Entity overlay must be rendered without a second turn');
+});
