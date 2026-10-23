@@ -47,6 +47,18 @@
     diep_minh:{name:'Diệp Minh',overlay:'entity/diep_minh.webp',
       encounter:['Ngươi định đối đầu với ta sao?','Nếu bước tiếp, ngươi phải tự chịu lấy hậu quả.'],story:[]},
     luc_tram_hac_hoa:{name:'Lục Trầm Hắc Hóa',overlay:'entity/luc_tram_hac_hoa.webp',
-      encounter:['Đừng mong ta nhường đường.','Muốn đi tiếp thì tự chứng minh bản lĩnh của ngươi.'],story:[]}
+      encounter:[
+        {speaker:'cao_minh',text:'Lục Trầm… Nàng còn sống?'},
+        {speaker:'luc_tram_hac_hoa',text:'Ngươi là Cao Minh, Vạn Giới Ma Tôn?'}
+      ],
+      // R07, stage 2 Core-confirmed confrontation: accusations are her belief.
+      // Do not reveal the revival, Diệp Minh's deception or restore her memories.
+      story:[
+        {speaker:'luc_tram_hac_hoa',text:'Diệp Minh nói ngươi đã giết sạch tu sĩ Chính Đạo ở Lôi Thiên Vực. Ta muốn nghe ngươi trả lời.'},
+        {speaker:'cao_minh',text:'Nàng không tin ta cũng được. Nhưng đừng tin chỉ vì có ai đó kể lại.'},
+        {speaker:'luc_tram_hac_hoa',text:'Ta chưa từng tin hết lời Diệp Minh. Nhưng ma khí trong người ta giống hệt ngươi. Ngươi đã làm gì ta?'},
+        {speaker:'cao_minh',text:'Ta cứu nàng.'},
+        {speaker:'luc_tram_hac_hoa',text:'Vậy tại sao ta chẳng nhớ nổi một lần nào ta từng tin ngươi?'}
+      ]}
   };
 })(window);
