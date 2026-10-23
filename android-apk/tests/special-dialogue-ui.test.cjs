@@ -689,3 +689,19 @@ test('later Follower story chapters repaint the two-shot on open and restore it 
   assert.deepEqual(events,['story','exploration']);
   assert.equal(x.ctx.state.specialDialogueProgress.chapters.janet,1);
 });
+
+
+test('unavailable Party Follower does not start a story with no matching overlay',()=>{
+  const member={id:'janet',name:'Janet the Lady',presence:'ACTIVE',
+    currentHp:0,avatar:'avatars/Janet_avatar.webp'};
+  const x=env({state:{party:[{id:'janet',name:member.name,presence:'ACTIVE'}],
+    partyDetails:{members:[member]},
+    encounteredCharacters:[{id:'janet',present:false,inParty:true}],
+    specialDialogueProgress:{introduced:{janet:true},introRevisions:{janet:'janet-intro-r01'},
+      chapters:{janet:0},shownEncounters:{},pending:null,lastRollTurn:4}}});
+  const next=JSON.parse(JSON.stringify(x.ctx.state));
+  next.turn=5;next.log=[{role:'player',text:'Đi qua hành lang'}];
+  x.ctx.backroomTurn(JSON.stringify(next));
+  assert.equal(x.dialog.hidden,true);
+  assert.equal(x.ctx.state.specialDialogueProgress.pending,null);
+});
