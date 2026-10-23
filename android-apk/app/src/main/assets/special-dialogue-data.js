@@ -227,214 +227,210 @@
     "intro": [
       {
         "speaker": "janet",
-        "text": "Này! Đứng đó. Anh có thấy một cô gái tên Mia đi qua không?"
+        "text": "Khoan! Đừng tiến thêm. Anh có gặp cô gái nào tên Mia không?"
       },
       {
         "speaker": "cao_minh",
-        "text": "Ta chưa gặp ai tên ấy."
+        "text": "Chưa. Nhưng cô có thể hạ cây gậy xuống rồi hỏi."
       },
       {
         "speaker": "janet",
-        "text": "Chết tiệt... Xin lỗi. Tôi tìm cô ấy mãi. Anh cũng bị mắc kẹt ở đây à?"
+        "text": "Tôi đã phải cảnh giác với đủ thứ ở đây. Xin lỗi... Anh là người thật, đúng không?"
       },
       {
         "speaker": "cao_minh",
-        "text": "Có vẻ thế. Cô định đánh người lạ bằng cây gậy ấy sao?"
+        "text": "Ta là Cao Minh. Còn cô?"
       },
       {
         "speaker": "janet",
-        "text": "Nếu họ lao vào tôi thì có. Còn anh đang đứng yên, nên chưa cần."
+        "text": "Janet Boudreaux. Cây gậy chỉ để giữ khoảng cách. Tôi không định đánh anh."
       },
       {
         "speaker": "cao_minh",
-        "text": "Ta là Cao Minh."
+        "text": "Cô và Mia đi lạc cùng nhau?"
       },
       {
         "speaker": "janet",
-        "text": "Janet. Janet Marie Boudreaux. Bạn tôi gọi là Janet the Lady, nhưng anh đừng vội cười."
+        "text": "Cô ấy đi ngay sau tôi. Tôi quay lại thì không còn ai nữa. Chỉ có cái hành lang chết tiệt này."
       },
       {
         "speaker": "cao_minh",
-        "text": "Ta không cười. Cô đang đi một mình?"
+        "text": "Ta chưa thấy cô ấy. Nếu có tin, ta sẽ nói."
       },
       {
         "speaker": "janet",
-        "text": "Từ lúc lạc mất Mia thì phải. Nếu anh biết đường ra, tôi sẽ nghe. Còn nếu không, ít nhất đừng bỏ ai lại phía sau."
+        "text": "Được. Tôi sẽ tự tìm tiếp. Nếu anh nghe ai kêu cứu, làm ơn đừng bỏ mặc họ."
       }
     ],
     "ambient": [
-      "Cái góc kia hẹp quá. Bayou Belle mà mắc vào tường thì tôi chẳng đánh được gì.",
-      "Có tiếng động. Anh nghe không? Đừng bảo tôi lại tưởng tượng nhé.",
-      "Tôi ghét những cánh cửa mở ra đúng một hành lang khác.",
-      "Nếu có ai tụt lại, gọi tôi. Tôi không để người ta đi mất lần nữa."
+      "Khoan đi sát quá. Tôi cần chỗ vung gậy, còn anh chắc cũng muốn giữ nguyên đầu mình.",
+      "Nghe thấy tiếng gì lạ thì báo tôi. Đừng tự dưng chạy theo nó.",
+      "Tôi biết mình nói hơi to. Ở đây im lặng lâu quá còn đáng sợ hơn.",
+      "Nếu phải quay lại, cứ nói. Tôi sẽ canh phía sau."
     ],
     "past": [
-      "Tôi đến từ Louisiana, sau đó lên New York học. Ở nhà chẳng ai gọi tôi là một quý cô cho đúng nghĩa.",
-      "Ở New Island có cả bài luận tôi chưa nộp. Tôi thèm một ngày được lo chuyện vớ vẩn như vậy.",
-      "Em trai Noah không thích bị bắt nạt. Càng không thích nhìn chị nó chịu phạt thay.",
-      "Mia đi cùng tôi trên cầu thang hôm mất điện. Tôi chưa biết cô ấy đã đi đâu.",
-      "Biệt danh 'the Lady' bắt đầu từ đội bóng. Họ gọi thế để trêu tôi, không phải phong tước.",
-      "Cha tôi từng bắt tôi nhặt từng chiếc ốc vít trên sàn xưởng sửa xuồng.",
-      "Mẹ dạy tôi biết xin lỗi sau khi nổi nóng. Tôi làm vẫn còn dở.",
-      "Bayou Belle vốn là gậy tập. Tôi quấn dây thép gai sau khi lạc vào đây để tự bảo vệ."
+      "Hồi ở Louisiana, mùi dầu máy bám trên áo cha tôi còn quen hơn cả mùi bùn ngoài sông.",
+      "Ở New Island, tôi chơi bóng mềm và học truyền thông. Tôi từng nghĩ nộp bài muộn là thảm họa lớn nhất đời mình.",
+      "Noah, em trai tôi, hay giả vờ không sao khi bị bắt nạt. Tôi nổi nóng thay nó, nhiều khi còn khiến nó sợ thêm.",
+      "Tôi nhớ Mia đi phía sau trên cầu thang dịch vụ. Sau lúc đèn tắt, tôi không thể chắc cô ấy đã đi đâu.",
+      "Đội bóng gọi tôi là 'the Lady' để chọc quê. Tôi giữ lại, một phần vì thích làm họ bực mình.",
+      "Cha tôi bắt nhặt đủ từng con ốc vít rơi trên sàn xưởng. Đến giờ tôi vẫn hay nhìn xuống chân theo thói quen.",
+      "Mẹ không sợ tôi nổi giận. Bà chỉ bảo tôi bình tĩnh rồi nói lại cho tử tế.",
+      "Nếu được về sân bóng, tôi muốn dùng Bayou Belle để đánh bóng, không phải mang theo đống dây thép gai này."
     ],
     "story": [
       [
         {
           "speaker": "janet",
-          "text": "Ở New Island, bọn tôi thường bật radio thật to sau buổi tập. Giờ chỉ cần nhớ tiếng rè cũng thấy nhớ trường."
+          "text": "Ở ký túc xá, phòng bên cạnh bật radio rè suốt đêm. Tôi từng sang đập cửa bắt họ tắt."
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô vừa học vừa chơi thể thao?"
+          "text": "Giờ cô lại nhớ tiếng ồn ấy?"
         },
         {
           "speaker": "janet",
-          "text": "Ừ. Bóng mềm. Tôi còn nợ một bài luận môn truyền thông, tin được không?"
+          "text": "Nhớ. Cả bài luận chưa nộp nữa. Hồi đó tôi chỉ lo làm sao qua được học kỳ."
         },
         {
           "speaker": "cao_minh",
-          "text": "Ta không biết bài luận đáng sợ đến đâu."
+          "text": "Nếu trở về, cô sẽ làm gì trước?"
         },
         {
           "speaker": "janet",
-          "text": "Trước kia thì đáng sợ. Bây giờ tôi chỉ muốn được than phiền về nó với Mia lần nữa."
+          "text": "Nộp bài. Rồi cãi nhau với đám bạn vì cái radio. Không nhất thiết theo thứ tự đó."
         }
       ],
       [
         {
           "speaker": "janet",
-          "text": "Hồi Noah còn bé, có mấy đứa hay kiếm chuyện với nó. Tôi thường xuất hiện trước khi thầy cô kịp tới."
+          "text": "Noah, em trai tôi, cứ giả vờ không sao mỗi lần bị bắt nạt. Nhìn mặt nó là tôi biết ngay."
         },
         {
           "speaker": "cao_minh",
-          "text": "Rồi chúng thôi?"
+          "text": "Cô đã đứng ra bênh nó."
         },
         {
           "speaker": "janet",
-          "text": "Thôi, nhưng Noah lại khóc vì tôi bị phạt. Thằng nhóc cứ nghĩ đó là lỗi của nó."
+          "text": "Tôi làm ầm cả sân trường. Bọn kia chạy mất, còn Noah khóc vì giáo viên phạt tôi."
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô đã nói sao?"
+          "text": "Nó tưởng mình làm cô gặp rắc rối."
         },
         {
           "speaker": "janet",
-          "text": "Tôi bảo nó chẳng nợ tôi một lời xin lỗi nào. Nghĩ lại, tôi nên nói câu ấy sớm hơn."
+          "text": "Phải. Còn tôi chỉ mải tức giận, đến ôm nó một cái cũng quên. Giá mà hồi đó tôi biết im miệng sớm hơn."
         }
       ],
       [
         {
           "speaker": "janet",
-          "text": "Hôm mất điện ở ký túc, Mia đi ngay sau tôi trên cầu thang dịch vụ."
+          "text": "Tôi nhớ tiếng bước chân Mia phía sau. Rồi đèn tắt, và chẳng còn tiếng gì nữa."
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô đã làm gì khi không nghe tiếng cô ấy nữa?"
+          "text": "Cô quay lại tìm ngay?"
         },
         {
           "speaker": "janet",
-          "text": "Tôi gọi, rồi chạy ngược lên. Bậc thang dẫn tới một hành lang lạ hoắc."
+          "text": "Tôi chạy ngược lên. Cầu thang dịch vụ biến thành một lối đi xa lạ. Gọi khản giọng cũng không ai đáp."
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô có nhìn thấy Mia ở đó?"
+          "text": "Vậy cô không biết Mia đang ở đây hay đã thoát ra ngoài."
         },
         {
           "speaker": "janet",
-          "text": "Không. Tôi không biết cô ấy rẽ đâu. Điều ấy làm tôi phát điên hơn mọi tiếng động ở đây."
-        }
-      ],
-      [
-        {
-          "speaker": "cao_minh",
-          "text": "Sao mọi người lại gọi cô là 'the Lady'?"
-        },
-        {
-          "speaker": "janet",
-          "text": "Trong đội bóng, có lần tôi đỡ một bạn bị xô ngã, rồi mắng kẻ gây chuyện đến đỏ cả mặt."
-        },
-        {
-          "speaker": "cao_minh",
-          "text": "Nghe không giống một quý cô."
-        },
-        {
-          "speaker": "janet",
-          "text": "Bởi vậy họ mới gọi thế. Tôi từng ghét, sau lại thấy cũng buồn cười."
-        },
-        {
-          "speaker": "cao_minh",
-          "text": "Cô vẫn hay lao vào trước."
-        },
-        {
-          "speaker": "janet",
-          "text": "Vẫn. Nhưng tôi đang học cách nhìn xem bạn mình có cần tôi lao vào không."
+          "text": "Không. Tôi không dám nghĩ cô ấy đã chết. Nhưng cũng chẳng có bằng chứng nào rằng cô ấy an toàn."
         }
       ],
       [
         {
           "speaker": "janet",
-          "text": "Ở quê, cha tôi sửa xuồng. Hễ tôi làm rơi ốc vít xuống sàn xưởng là ông bắt nhặt đủ."
+          "text": "Anh cứ nhìn tôi rồi nhìn cây gậy. Đang thắc mắc sao người ta gọi tôi là 'the Lady' chứ gì?"
         },
         {
           "speaker": "cao_minh",
-          "text": "Không được bỏ lại một chiếc nào?"
+          "text": "Ta chưa hỏi mà."
         },
         {
           "speaker": "janet",
-          "text": "Không. Ông bảo thiếu một con ốc, máy nổ ngoài sông có thể chết giữa chừng."
+          "text": "Mặt anh hỏi hộ rồi. Trong đội bóng, tôi từng đỡ một bạn bị xô ngã, sau đó mắng kẻ gây chuyện một trận."
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô nhớ lời ấy."
+          "text": "Thế là họ gọi cô là quý cô?"
         },
         {
           "speaker": "janet",
-          "text": "Có. Kỳ lạ thật, ở đây tôi cũng cứ đếm xem có bỏ sót ai sau lưng không."
+          "text": "Để chọc tôi đấy. Tôi giữ luôn cái tên đó. Ít nhất nó còn là chuyện của tôi, không phải của cái nơi quái quỷ này."
         }
       ],
       [
         {
           "speaker": "janet",
-          "text": "Mẹ tôi giữ thư viện cộng đồng. Bà dạy tôi đừng dùng nắm đấm thay câu trả lời."
+          "text": "Thấy tôi hay nhìn xuống nền nhà không? Thói quen cha tôi tập cho đấy."
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô nghe theo được chứ?"
+          "text": "Để tìm gì?"
         },
         {
           "speaker": "janet",
-          "text": "Không thường xuyên. Nhưng bà còn dạy chuyện khác: nổi nóng xong phải biết quay lại xin lỗi."
+          "text": "Ốc vít. Ông sửa máy xuồng. Tôi đánh rơi con nào là phải nhặt cho bằng được."
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô đã xin lỗi ai gần đây chưa?"
+          "text": "Ở đây đâu còn xưởng của ông."
         },
         {
           "speaker": "janet",
-          "text": "Nếu có dịp gặp lại những người bị tôi quát oan, chắc tôi phải xếp hàng dài. Anh đứng cuối nhé."
+          "text": "Tôi biết. Chỉ là... có những tiếng ông cằn nhằn mà giờ tôi muốn nghe lại."
         }
       ],
       [
         {
           "speaker": "janet",
-          "text": "Bayou Belle vốn chỉ là gậy tập. Đoạn dây gai này tôi kiếm được sau khi rơi vào nơi đây."
+          "text": "Mẹ tôi làm ở thư viện. Bà ghét nhất chuyện tôi gào lên trước khi chịu nghe người khác nói."
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô định giữ nó đến khi tìm được Mia?"
+          "text": "Ta có thể hiểu bà."
         },
         {
           "speaker": "janet",
-          "text": "Không biết. Tôi quấn dây vì có lần chẳng đủ chỗ chạy, không phải vì muốn đánh nhau cả đời."
+          "text": "Này! ...Được rồi, tôi hiểu. Mỗi lần thế bà đều bắt tôi bình tĩnh rồi nói lại từ đầu."
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô biết lúc nào nên hạ gậy?"
+          "text": "Cô vẫn có thể thử."
         },
         {
           "speaker": "janet",
-          "text": "Tôi đang tập. Nếu Mia thấy tôi bây giờ, chắc cô ấy sẽ bảo tôi trước hết phải thở đều."
+          "text": "Được. Chuyện tôi chĩa gậy vào anh lúc mới gặp, tôi xin lỗi. Đừng bắt tôi nhắc lại hai lần."
+        }
+      ],
+      [
+        {
+          "speaker": "janet",
+          "text": "Lúc đầu Bayou Belle chỉ là gậy tập. Anh nhìn xem tôi đã biến nó thành thứ gì."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Cô quấn dây thép gai sau khi tới đây?"
+        },
+        {
+          "speaker": "janet",
+          "text": "Sau một lần bị dồn vào góc, tôi phải dùng gậy mở đường. Thoát rồi mà tay vẫn run mãi."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Có ngày cô sẽ tháo chúng ra chứ?"
+        },
+        {
+          "speaker": "janet",
+          "text": "Có chứ. Tôi vẫn muốn cầm cây gậy này để chơi bóng một trận tử tế. Nghe xa xỉ quá nhỉ?"
         }
       ]
     ]
