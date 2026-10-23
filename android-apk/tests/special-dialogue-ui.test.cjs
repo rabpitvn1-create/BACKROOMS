@@ -647,3 +647,23 @@ test('edited follower history respects dynamic Core state and does not assert in
     assert.ok(d.past.every(t=>typeof t==='string'&&t.trim().length>15));
   }
 });
+
+
+test('Follower intro recomposes snapshot on open and finish without another Core turn',()=>{
+  const x=env({state:{party:[],partyDetails:{members:[]},encounteredCharacters:[]}});
+  const states=[];
+  x.ctx.backroomRefreshSnapshotVisuals=()=>states.push({
+    pending:x.ctx.state.specialDialogueProgress.pending&&x.ctx.state.specialDialogueProgress.pending.id,
+    stillPresent:x.ctx.state.encounteredCharacters.some(c=>c.id==='janet'&&c.present)
+  });
+  const next=JSON.parse(JSON.stringify(x.ctx.state));
+  next.encounteredCharacters=[{id:'janet',name:'Janet the Lady',
+    avatar:'avatars/Janet_avatar.webp',present:true,joinEligible:true,inParty:false}];
+  x.ctx.backroomTurn(JSON.stringify(next));
+  assert.equal(x.dialog.hidden,false);
+  assert.deepEqual(states,[{pending:'janet',stillPresent:true}]);
+  finishModal(x);
+  assert.deepEqual(states,[{pending:'janet',stillPresent:true},{pending:null,stillPresent:true}],
+    'closing first-contact must repaint even while Core keeps Janet physically present');
+  assert.equal(x.ctx.state.specialDialogueProgress.introduced.janet,true);
+});
