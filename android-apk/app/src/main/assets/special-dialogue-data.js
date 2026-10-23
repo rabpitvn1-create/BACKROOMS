@@ -660,191 +660,191 @@
     "intro": [
       {
         "speaker": "lucia",
-        "text": "Đứng lại. Tôi chưa biết anh là ai. Giữ khoảng cách đã."
+        "text": "Đứng lại. Tôi chưa biết anh là ai. Làm ơn đứng yên chỗ đó để tôi nhìn rõ đã."
       },
       {
         "speaker": "cao_minh",
-        "text": "Bổn Tôn không đến để giao chiến với ngươi, nữ binh."
+        "text": "Được, ta đứng đây. Ta tên Cao Minh. Cô hạ nòng súng xuống một chút được không? Ta cũng chưa biết cô là ai."
       },
       {
         "speaker": "lucia",
-        "text": "'Bổn Tôn'? Anh thuộc đơn vị nào? Bộ giáp và thanh kiếm kia cũng chẳng phải quân trang."
+        "text": "Anh thuộc đơn vị nào? Bộ giáp và thanh kiếm đó tôi chưa thấy bao giờ."
       },
       {
         "speaker": "cao_minh",
-        "text": "Cao Minh. Bổn Tôn là kiếm tu, không thuộc đơn vị nào của ngươi."
+        "text": "Ta không thuộc quân đội. Ta dùng kiếm, thế thôi. Cô không cần tin ngay, nhưng cứ chĩa súng thế này thì nói chuyện cũng khó."
       },
       {
         "speaker": "lucia",
-        "text": "Kiếm tu? Tôi là Lucia Lục, tên thật Hứa Thuý Mai, binh nhì. Anh đang thử phản ứng của tôi sao?"
+        "text": "Tôi là binh nhì Hứa Thuý Mai, còn gọi là Lucia Lục. Xin lỗi, tôi vừa gặp chuyện rất khó giải thích nên phải cẩn thận."
       },
       {
         "speaker": "cao_minh",
-        "text": "Bổn Tôn không cần ngươi tin ngay. Trước đó ngươi ở đâu?"
+        "text": "Cô không cần xin lỗi vì đã đề phòng. Trước khi đến đây, cô đang ở đâu?"
       },
       {
         "speaker": "lucia",
-        "text": "Tôi đang hành quân ở Đồng bằng sông Cửu Long thì lạc vào đây. Trước mắt chỉ còn những bức tường vàng."
+        "text": "Đồng bằng sông Cửu Long. Tôi đang hành quân, chẳng hiểu sao lại lọt vào cái chỗ toàn tường vàng này. Tôi vẫn chưa biết đồng đội ở đâu."
       },
       {
         "speaker": "cao_minh",
-        "text": "Ngươi biết nơi này là gì không?"
+        "text": "Ta cũng đang tìm đường ra. Cô có biết gì về nơi này không?"
       },
       {
         "speaker": "lucia",
-        "text": "Tôi từng đọc về Backrooms trên mạng, nhưng chưa kiểm chứng được điều gì. Tôi tính đánh dấu bằng phấn, dùng laser soi góc khuất."
+        "text": "Tôi từng đọc về Backrooms trên mạng. Nhưng hồi đó ai mà nghĩ có ngày phải tự kiểm chứng chứ. Tôi định dùng phấn đánh dấu đường, rồi dùng laser kiểm tra các góc."
       },
       {
         "speaker": "lucia",
-        "text": "Tôi muốn tìm Level 1 rồi về nhà. Nếu cùng đi, anh cứ gọi tôi là Lucia. Và báo trước khi định dùng... kiếm thuật nhé."
+        "text": "Tôi muốn tìm đường sang Level 1, sau đó tìm cách về nhà. Nếu anh cùng hướng thì đi một đoạn cũng được. Có định làm gì với thanh kiếm ấy, anh báo tôi trước nhé."
       }
     ],
     "ambient": [
-      "Đợi đã. Đoạn này trông giống hệt chỗ chúng ta vừa đi qua.",
-      "Tôi giữ hướng này. Anh nhìn phía sau giúp tôi.",
-      "Không nghe thấy gì mới đáng lo. Cứ quan sát thêm đã.",
-      "Nếu còn lối về nhà, tôi sẽ tìm cho ra. Nhưng trước tiên phải qua được chỗ này."
+      "Tôi muốn kiểm lại góc tường này. Nó giống đoạn vừa đi qua quá.",
+      "Cao Minh, anh nhìn giúp phía sau. Tôi kiểm bên trái.",
+      "Đèn ở đây làm tôi khó nhìn khoảng cách. Cứ giữ nhau trong tầm mắt.",
+      "Chuyện về nhà tôi chưa quên đâu. Nhưng trước hết phải tìm được đường qua khu này đã."
     ],
     "past": [
-      "Hứa Thuý Mai là tên thật. Trong đơn vị mọi người quen gọi tôi là Lucia.",
-      "Tôi từng đọc về Backrooms trên mạng, nhưng không dám xem những bài viết ấy là bản đồ.",
-      "Nhà tôi làm kinh doanh ở Sài Gòn. Tôi chọn quân ngũ vì thật sự yêu thích súng.",
-      "Có thời gian tôi đề phòng Cao Minh đến mức luôn quan sát tay anh ấy. Bây giờ vẫn cẩn thận, chỉ bớt căng hơn.",
-      "Làm con gái thứ ba họ Hứa không có nghĩa tôi muốn ai cũng biết gia đình trước khi biết tôi.",
-      "Tôi đã có lúc định bóp cò vì một tiếng động không rõ nguồn. Nghĩ lại vẫn thấy lạnh người.",
-      "Tôi lạc vào đây trong một chuyến hành quân tại Đồng bằng sông Cửu Long. Chuyện gì xảy ra với đồng đội, tôi chưa biết."
+      "Đầy đủ là Hứa Thuý Mai. Anh gọi Lucia cũng được, tôi quen nghe tên đó.",
+      "Hồi ở nhà, tôi có đọc vài bài về Backrooms trên mạng. Lúc ấy chỉ nghĩ đó là mấy câu chuyện kỳ quái.",
+      "Gia đình tôi làm kinh doanh ở Sài Gòn. Còn tôi vào quân đội vì thích súng, đơn giản vậy thôi.",
+      "Ngày đầu gặp Cao Minh, tôi không đoán được anh ấy đã học dùng kiếm ở đâu. Đến giờ tôi vẫn chưa hiểu hết.",
+      "Tôi là con gái thứ ba nhà họ Hứa. Mấy chuyện kinh doanh trong nhà tôi biết, chứ đam mê của tôi vẫn là quân ngũ.",
+      "Người cầm súng phải nhìn rõ trước khi bóp cò. Ở chỗ này, nhiều lúc phân biệt được tiếng động gì đã là khó.",
+      "Trước khi đến đây tôi đang hành quân ở Đồng bằng sông Cửu Long. Tôi vẫn không biết đồng đội tôi ra sao."
     ],
     "story": [
       [
         {
           "speaker": "lucia",
-          "text": "Tôi từng đọc những chuyện về Backrooms trên mạng. Có bài khiến người ta mất ngủ, có bài rõ là bịa."
+          "text": "Tôi cứ nhìn mấy bức tường này lại nhớ những bài Backrooms từng đọc trên mạng. Trong đó người ta kể như thể đã đo từng lối đi rồi."
         },
         {
           "speaker": "cao_minh",
-          "text": "Nữ binh họ Hứa, giờ ngươi tin bài viết nào?"
+          "text": "Họ đã từng đến đây hay chỉ kể lại chuyện người khác?"
         },
         {
           "speaker": "lucia",
-          "text": "Chưa biết. Thực tế khác với màn hình. Tôi chỉ tin đoạn đường mình vừa kiểm tra được."
+          "text": "Chịu. Hồi ấy tôi đọc cho biết thôi. Bây giờ mới thấy khó chịu vì chẳng nhớ nổi bài nào nói cái gì."
         },
         {
           "speaker": "cao_minh",
-          "text": "Bổn Tôn thấy ít ra chúng cho ngươi một cái tên để gọi nơi này."
+          "text": "Vậy cứ làm theo cách của cô. Đánh dấu đường đã đi, rồi xem có chỗ nào không khớp."
         },
         {
           "speaker": "lucia",
-          "text": "Một cái tên thôi. Nó chẳng chỉ hộ tôi cửa ra."
+          "text": "Tôi cũng đang nghĩ thế. Anh đợi tôi đánh dấu chỗ rẽ này đã, đừng đi khuất."
         }
       ],
       [
         {
           "speaker": "lucia",
-          "text": "Ở nhà mọi người bàn chuyện kinh doanh. Tôi nghe một lát là muốn ra ngoài tập bắn."
+          "text": "Ở nhà, mỗi lần họ hàng bàn giá đất với hợp đồng là tôi lại tìm cớ ra sân tập."
         },
         {
           "speaker": "cao_minh",
-          "text": "Ngươi không muốn nối nghiệp gia đình?"
+          "text": "Cô chưa từng muốn học nghề của gia đình?"
         },
         {
           "speaker": "lucia",
-          "text": "Tôi thương gia đình. Nhưng thương họ không có nghĩa phải sống đúng đời họ chọn cho mình."
+          "text": "Không phải thứ tôi thích. Nhưng cũng không có ai bắt tôi phải làm cả."
         },
         {
           "speaker": "cao_minh",
-          "text": "Thế nên ngươi chọn quân ngũ."
+          "text": "Vậy ta đoán sai rồi. Ta cứ nghĩ cô đang trốn việc nhà."
         },
         {
           "speaker": "lucia",
-          "text": "Phải. Tôi thích súng và thích tự luyện cho giỏi, chẳng cần một bi kịch làm lý do."
+          "text": "Trốn mấy cuộc nói chuyện về hợp đồng thì có. Còn vào quân đội là vì tôi thích cầm súng, thật đấy."
         }
       ],
       [
         {
           "speaker": "lucia",
-          "text": "Hồi mới gặp, nghe anh tự xưng Bổn Tôn, tôi còn tưởng gặp người đang diễn. Giờ thì tôi bớt để ý lời nói, nhưng vẫn quan sát tay anh."
+          "text": "Lúc mới gặp, tôi nhìn thanh kiếm của anh suốt. Tôi không biết anh định làm gì với nó."
         },
         {
           "speaker": "cao_minh",
-          "text": "Bổn Tôn nhận ra từ lần đầu gặp."
+          "text": "Ta có thấy. Cô còn để ý cả lúc ta đặt tay ra sau lưng."
         },
         {
           "speaker": "lucia",
-          "text": "Đến giờ tôi vẫn chú ý. Chỉ là không còn tính đường rút mỗi khi anh lên tiếng."
+          "text": "Thì anh mặc giáp, đeo kiếm rồi nói chuyện như từ một thời khác bước ra. Tôi thận trọng cũng phải."
         },
         {
           "speaker": "cao_minh",
-          "text": "Vậy nữ binh, ngươi đã bớt nghi ngờ Bổn Tôn chưa?"
+          "text": "Phải. Ta cũng chẳng mong người vừa gặp mình sẽ lập tức tin lời."
         },
         {
           "speaker": "lucia",
-          "text": "Tôi tin anh sẽ nói khi thấy nguy hiểm. Những chuyện khác cứ để thời gian trả lời."
+          "text": "Tôi vẫn sẽ để ý đấy. Nếu tiếp tục đi cùng, anh cứ báo trước lúc định rẽ. Tôi cũng sẽ làm thế."
         }
       ],
       [
         {
           "speaker": "lucia",
-          "text": "Ở Sài Gòn, tôi là con gái thứ ba nhà họ Hứa. Đi đâu cũng có người biết bố mẹ mình làm gì."
+          "text": "Ở Sài Gòn, nhắc đến họ Hứa là có người hỏi chuyện nhà đất ngay. Lúc mới nhập ngũ tôi chỉ muốn người ta nhớ tên tôi."
         },
         {
           "speaker": "cao_minh",
-          "text": "Ngươi thấy điều ấy phiền sao?"
+          "text": "Cô vừa giới thiệu cả họ tên với ta lần đầu gặp mà."
         },
         {
           "speaker": "lucia",
-          "text": "Đôi lúc. Tôi muốn nghe gọi tên mình, không phải cái họ đứng trước."
+          "text": "Giới thiệu cho rõ khác với việc muốn nghe hỏi giá một khu đất, anh hiểu chứ?"
         },
         {
           "speaker": "cao_minh",
-          "text": "Trong quân ngũ thì khác chứ?"
+          "text": "Giờ thì ta hiểu vì sao cô thích được gọi là Lucia."
         },
         {
           "speaker": "lucia",
-          "text": "Người ta nhìn xem tôi làm được gì. Có bị phạt thì cũng là vì chính tôi làm sai."
+          "text": "Cũng không hẳn. Tôi thích tên đó, thế thôi. Anh đừng tự suy diễn thêm."
         }
       ],
       [
         {
           "speaker": "lucia",
-          "text": "Tôi từng nghe tiếng động trong lúc canh gác và gần như bóp cò trước khi nhìn rõ."
+          "text": "Thứ khó nhất ở đây là có tiếng động mà chẳng thấy nguồn. Tôi ghét cái cảm giác tay mình muốn bóp cò trước cả khi nghĩ xong."
         },
         {
           "speaker": "cao_minh",
-          "text": "Rồi ngươi thực sự thấy gì?"
+          "text": "Nếu gặp chỗ khuất tầm nhìn, để ta xem trước. Cô giữ lối phía sau giúp ta."
         },
         {
           "speaker": "lucia",
-          "text": "Không có mục tiêu. Chỉ có nỗi sợ tự phóng to mọi tiếng động."
+          "text": "Tôi vẫn phải biết anh định làm gì. Lỡ thấy gì chuyển động, tôi không muốn nhầm người đi cùng với mục tiêu."
         },
         {
           "speaker": "cao_minh",
-          "text": "Bổn Tôn thấy ngươi đã kịp giữ tay."
+          "text": "Ta sẽ báo. Còn cô, nếu thấy gì không ổn thì nói ngay, đừng tự ép mình phải xử lý hết."
         },
         {
           "speaker": "lucia",
-          "text": "Và tôi muốn lần sau vẫn làm được. Bắn nhanh chẳng đáng tự hào nếu bắn nhầm."
+          "text": "Tôi biết. Anh xem phía trước đi, tôi để ý phía sau."
         }
       ],
       [
         {
           "speaker": "lucia",
-          "text": "Trước chuyến hành quân ở Đồng bằng sông Cửu Long, tôi vẫn nghĩ mình sẽ về đúng giờ ăn."
+          "text": "Lúc còn ở Đồng bằng sông Cửu Long, tôi nghĩ xong chuyến hành quân là về, có gì đâu. Giờ mới thấy mình đã nghĩ đơn giản quá."
         },
         {
           "speaker": "cao_minh",
-          "text": "Ngươi có mang kỷ vật gì từ nhà?"
+          "text": "Cô còn liên lạc được với ai ở ngoài không?"
         },
         {
           "speaker": "lucia",
-          "text": "Những thứ được phép mang theo. Còn lại chỉ là tiếng người quen nhắc đừng quên gọi về."
+          "text": "Không. Đồng đội tôi ở đâu còn chẳng biết, nói gì tới người nhà. Tôi cứ nghĩ mãi chuyện họ có đi tìm mình không."
         },
         {
           "speaker": "cao_minh",
-          "text": "Nếu tìm được đường, ngươi sẽ gọi ai trước?"
+          "text": "Ta không biết bên ngoài đã qua bao lâu. Nếu có lối ra, trước hết cứ tìm cho chắc."
         },
         {
           "speaker": "lucia",
-          "text": "Người nhà. Nhưng trước lúc ấy, tôi không định bỏ ai lại chỉ vì sốt ruột được về."
+          "text": "Tôi biết. Anh đi trước đi, tôi kiểm tra lại đoạn tường này đã. Tôi không muốn vì sốt ruột mà chúng ta đi vòng thêm."
         }
       ]
     ]
