@@ -66,7 +66,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô đã làm gì?"
+          "text": "Cô nương đã kiểm tra bức tường ấy ra sao?"
         },
         {
           "speaker": "catherine",
@@ -74,7 +74,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô luôn bình tĩnh như thế?"
+          "text": "Bổn Tôn thấy ngươi vẫn giữ được bình tĩnh. Có thật là thế?"
         },
         {
           "speaker": "catherine",
@@ -84,7 +84,7 @@
       [
         {
           "speaker": "cao_minh",
-          "text": "Cô giữ những mẩu giấy ấy cẩn thận hơn cả đạn."
+          "text": "Ngươi giữ những tờ giấy ấy còn kỹ hơn đạn."
         },
         {
           "speaker": "catherine",
@@ -92,7 +92,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Một người thận trọng."
+          "text": "Bổn Tôn đoán mẫu thân ngươi rất thận trọng."
         },
         {
           "speaker": "catherine",
@@ -100,7 +100,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô vẫn chưa biết bà đã đi đâu."
+          "text": "Vậy ngươi vẫn chưa tìm được bà?"
         },
         {
           "speaker": "catherine",
@@ -114,7 +114,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Vậy mà chính ông để lại một chiếc đồng hồ không ai hiểu."
+          "text": "Thế mà ông ấy để lại một chiếc đồng hồ không ai hiểu."
         },
         {
           "speaker": "catherine",
@@ -122,7 +122,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô giận ông."
+          "text": "Bổn Tôn nghe giọng ngươi có chút oán trách."
         },
         {
           "speaker": "catherine",
@@ -132,7 +132,7 @@
       [
         {
           "speaker": "cao_minh",
-          "text": "Cô chưa từng đặt súng lên bàn, ngay cả lúc nói chuyện."
+          "text": "Ngươi chưa từng buông khẩu súng ngay cả khi trò chuyện."
         },
         {
           "speaker": "catherine",
@@ -140,7 +140,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô xem nó là vật kỷ niệm?"
+          "text": "Bổn Tôn tưởng đó là vật ngươi quý nhất."
         },
         {
           "speaker": "catherine",
@@ -148,7 +148,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Ta không định thử xem cô có bắn trúng không."
+          "text": "Ta không định thử xem ngươi có bắn trúng không."
         },
         {
           "speaker": "catherine",
@@ -162,7 +162,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Người ghi chép có thể nói dối."
+          "text": "Bổn Tôn cũng biết giấy mực có thể nói dối."
         },
         {
           "speaker": "catherine",
@@ -170,7 +170,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô đã tìm thấy điều gì giữa các bản ghi?"
+          "text": "Ngươi tìm thấy điều gì khi đối chiếu chúng?"
         },
         {
           "speaker": "catherine",
@@ -184,7 +184,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô nghĩ cha mình đã chọn công trình ấy thay cho gia đình?"
+          "text": "Ngươi nghĩ phụ thân chọn công trình ấy thay cho gia đình?"
         },
         {
           "speaker": "catherine",
@@ -192,7 +192,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Hai ký ức khó đặt cạnh nhau."
+          "text": "Hai ký ức ấy không dễ dung hòa."
         },
         {
           "speaker": "catherine",
@@ -206,7 +206,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô bước theo tiếng chuông?"
+          "text": "Bổn Tôn nghe ngươi nói có tiếng chuông thứ mười ba."
         },
         {
           "speaker": "catherine",
@@ -214,7 +214,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô muốn tìm đường quay lại đêm ấy?"
+          "text": "Ngươi muốn quay lại đêm ấy để tìm câu trả lời?"
         },
         {
           "speaker": "catherine",
@@ -287,7 +287,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Giờ cô lại nhớ tiếng ồn ấy?"
+          "text": "Bổn Tôn còn nhớ ngươi đòi người ta tắt radio. Giờ lại nhớ tiếng ồn ấy sao?"
         },
         {
           "speaker": "janet",
@@ -295,7 +295,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Còn những người ở trường?"
+          "text": "Còn bạn bè ở học đường của ngươi?"
         },
         {
           "speaker": "janet",
@@ -309,7 +309,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô đã làm gì?"
+          "text": "Tiểu cô nương cầm gậy, ngươi đã làm gì?"
         },
         {
           "speaker": "janet",
@@ -317,7 +317,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Vậy sao cô vẫn nhớ chuyện ấy?"
+          "text": "Vậy tại sao ngươi vẫn day dứt chuyện ấy?"
         },
         {
           "speaker": "janet",
@@ -331,7 +331,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Điện thoại hỏng mà vẫn có cuộc gọi?"
+          "text": "Điện thoại đã hỏng mà còn đổ chuông?"
         },
         {
           "speaker": "janet",
@@ -339,7 +339,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Mia cũng ở đó?"
+          "text": "Mia cũng xuống đó cùng ngươi?"
         },
         {
           "speaker": "janet",
@@ -349,19 +349,19 @@
       [
         {
           "speaker": "janet",
-          "text": "Ở trường họ gọi tôi là 'the Lady'. Đừng tưởng đó là vì tôi dịu dàng nhé."
+          "text": "Ở trường họ gọi tôi 'the Lady'. Lúc đầu cứ tưởng anh cũng đang trêu tôi khi tự xưng Bổn Tôn."
         },
         {
           "speaker": "cao_minh",
-          "text": "Ta cũng chưa nghĩ thế."
+          "text": "Bổn Tôn tưởng 'the Lady' là tôn hiệu của ngươi."
         },
         {
           "speaker": "janet",
-          "text": "Tôi hay nói 'ladies first' rồi nhường đường cho bạn. Một lần thấy người ta xô bạn ngã, tôi quay sang mắng đến đỏ mặt."
+          "text": "Tôi hay nói 'ladies first' rồi nhường đường cho bạn. Có lần quay sang mắng kẻ xô bạn ngã, thế là cả đội gọi tôi như vậy."
         },
         {
           "speaker": "cao_minh",
-          "text": "Thế là biệt danh ra đời."
+          "text": "Hóa ra biệt danh ấy theo ngươi từ đó."
         },
         {
           "speaker": "janet",
@@ -375,7 +375,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Một con ốc nhỏ đến thế sao?"
+          "text": "Chỉ một con ốc cũng không được bỏ qua?"
         },
         {
           "speaker": "janet",
@@ -383,7 +383,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô nhớ ông ấy."
+          "text": "Ngươi nhớ phụ thân mình."
         },
         {
           "speaker": "janet",
@@ -397,7 +397,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Vì cô nói quá to?"
+          "text": "Vì ngươi thường lớn tiếng trước khi nghe hết sao?"
         },
         {
           "speaker": "janet",
@@ -405,7 +405,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô đã xin lỗi rồi."
+          "text": "Ngươi đã xin lỗi Bổn Tôn rồi. Không cần nhắc nữa."
         },
         {
           "speaker": "janet",
@@ -419,7 +419,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô kiếm số dây ấy ở đây?"
+          "text": "Ngươi lấy dây thép gai ở nơi này?"
         },
         {
           "speaker": "janet",
@@ -427,7 +427,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô vẫn muốn mang nó về?"
+          "text": "Vậy cô nương vẫn muốn mang cây gậy về sân bóng?"
         },
         {
           "speaker": "janet",
@@ -499,7 +499,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Anh quen nhìn người khác như bệnh nhân."
+          "text": "Y sư, ngươi quen quan sát mọi người như bệnh nhân sao?"
         },
         {
           "speaker": "nguyen_quoc_nam",
@@ -507,7 +507,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Anh không cần chẩn bệnh cho ta."
+          "text": "Bổn Tôn chưa cần chẩn bệnh. Cứ nói điều ngươi chắc chắn."
         },
         {
           "speaker": "nguyen_quoc_nam",
@@ -517,7 +517,7 @@
       [
         {
           "speaker": "cao_minh",
-          "text": "Anh thường chạm vào mặt đồng hồ mà chẳng nhìn giờ."
+          "text": "Ngươi hay chạm vào đồng hồ mà chẳng xem giờ."
         },
         {
           "speaker": "nguyen_quoc_nam",
@@ -525,7 +525,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Con bé bao nhiêu tuổi?"
+          "text": "Tiểu nữ nhi của ngươi khi ấy bao nhiêu tuổi?"
         },
         {
           "speaker": "nguyen_quoc_nam",
@@ -533,7 +533,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Anh không biết ở ngoài đã trôi qua bao lâu."
+          "text": "Bổn Tôn hiểu. Ngươi không biết thời gian ngoài kia đã trôi qua bao lâu."
         },
         {
           "speaker": "nguyen_quoc_nam",
@@ -547,7 +547,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Để xem họ đoán đúng không?"
+          "text": "Để xem những học trò ấy có hấp tấp không?"
         },
         {
           "speaker": "nguyen_quoc_nam",
@@ -555,7 +555,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Anh đem cả bài giảng vào mê cung."
+          "text": "Ngươi vẫn mang bài học ấy vào mê cung."
         },
         {
           "speaker": "nguyen_quoc_nam",
@@ -565,7 +565,7 @@
       [
         {
           "speaker": "cao_minh",
-          "text": "Khẩu súng ấy không hợp với đôi tay người giảng dạy."
+          "text": "Khẩu súng ấy chẳng hợp với đôi tay dạy y."
         },
         {
           "speaker": "nguyen_quoc_nam",
@@ -573,7 +573,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Anh đã biết bắn từ trước?"
+          "text": "Ngươi đã biết bắn trước khi tới đây?"
         },
         {
           "speaker": "nguyen_quoc_nam",
@@ -581,7 +581,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Anh mong không phải dùng."
+          "text": "Bổn Tôn thấy ngươi chẳng muốn phải dùng nó."
         },
         {
           "speaker": "nguyen_quoc_nam",
@@ -595,7 +595,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Anh trả lời sao?"
+          "text": "Ngươi đã trả lời học trò thế nào?"
         },
         {
           "speaker": "nguyen_quoc_nam",
@@ -603,7 +603,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Một câu trả lời không dễ nghe."
+          "text": "Một câu trả lời khó nghe, nhưng thật."
         },
         {
           "speaker": "nguyen_quoc_nam",
@@ -617,7 +617,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Anh thường về muộn?"
+          "text": "Ngươi thường khiến người nhà phải đợi cơm sao?"
         },
         {
           "speaker": "nguyen_quoc_nam",
@@ -625,7 +625,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Nếu được gặp lại chị ấy..."
+          "text": "Nếu trở về gặp được nàng ấy..."
         },
         {
           "speaker": "nguyen_quoc_nam",
@@ -639,7 +639,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Anh không sợ nó rách sao?"
+          "text": "Bổn Tôn thấy ngươi giữ tờ giấy rất cẩn thận."
         },
         {
           "speaker": "nguyen_quoc_nam",
@@ -647,7 +647,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Anh có nghĩ họ đang đợi?"
+          "text": "Ngươi có nghĩ họ vẫn đang đợi?"
         },
         {
           "speaker": "nguyen_quoc_nam",
@@ -722,7 +722,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Giờ cô tin bài nào?"
+          "text": "Nữ binh họ Hứa, giờ ngươi tin bài viết nào?"
         },
         {
           "speaker": "lucia",
@@ -730,7 +730,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Vậy ít ra những bài ấy cho cô một cái tên."
+          "text": "Bổn Tôn thấy ít ra chúng cho ngươi một cái tên để gọi nơi này."
         },
         {
           "speaker": "lucia",
@@ -744,7 +744,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô không thích gia nghiệp?"
+          "text": "Ngươi không muốn nối nghiệp gia đình?"
         },
         {
           "speaker": "lucia",
@@ -752,7 +752,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Vậy cô chọn quân ngũ."
+          "text": "Thế nên ngươi chọn quân ngũ."
         },
         {
           "speaker": "lucia",
@@ -762,11 +762,11 @@
       [
         {
           "speaker": "lucia",
-          "text": "Lúc mới gặp anh, tôi luôn đứng sao cho có thể nhìn thấy hai tay anh."
+          "text": "Hồi mới gặp, nghe anh tự xưng Bổn Tôn, tôi còn tưởng gặp người đang diễn. Giờ thì tôi bớt để ý lời nói, nhưng vẫn quan sát tay anh."
         },
         {
           "speaker": "cao_minh",
-          "text": "Ta đã nhận ra."
+          "text": "Bổn Tôn nhận ra từ lần đầu gặp."
         },
         {
           "speaker": "lucia",
@@ -774,7 +774,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô tin ta rồi?"
+          "text": "Vậy nữ binh, ngươi đã bớt nghi ngờ Bổn Tôn chưa?"
         },
         {
           "speaker": "lucia",
@@ -788,7 +788,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô thấy phiền?"
+          "text": "Ngươi thấy điều ấy phiền sao?"
         },
         {
           "speaker": "lucia",
@@ -796,7 +796,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Trong đơn vị thì sao?"
+          "text": "Trong quân ngũ thì khác chứ?"
         },
         {
           "speaker": "lucia",
@@ -810,7 +810,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Rồi cô thấy gì?"
+          "text": "Rồi ngươi thực sự thấy gì?"
         },
         {
           "speaker": "lucia",
@@ -818,7 +818,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô đã giữ súng."
+          "text": "Bổn Tôn thấy ngươi đã kịp giữ tay."
         },
         {
           "speaker": "lucia",
@@ -832,7 +832,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô có mang theo gì từ nhà?"
+          "text": "Ngươi có mang kỷ vật gì từ nhà?"
         },
         {
           "speaker": "lucia",
@@ -840,7 +840,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Nếu tìm được đường, cô sẽ gọi ai trước?"
+          "text": "Nếu tìm được đường, ngươi sẽ gọi ai trước?"
         },
         {
           "speaker": "lucia",
@@ -893,7 +893,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Nàng muốn rút lại?"
+          "text": "Hứa cô nương, nàng muốn rút lại lời ấy?"
         },
         {
           "speaker": "hua_tieu_lan",
@@ -915,7 +915,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Nàng nghĩ chàng nhận tiền để gần gũi mình."
+          "text": "Nàng tưởng chàng nhận bạc để lấy lòng mình."
         },
         {
           "speaker": "hua_tieu_lan",
@@ -923,7 +923,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Nàng chưa hỏi người đưa tiền?"
+          "text": "Nàng chưa hỏi người đưa bạc sao?"
         },
         {
           "speaker": "hua_tieu_lan",
@@ -945,7 +945,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Nàng đã không gặp được."
+          "text": "Nhưng nàng chưa gặp được."
         },
         {
           "speaker": "hua_tieu_lan",
@@ -967,7 +967,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Nàng giận chính mình."
+          "text": "Bổn Tôn nghĩ nàng đã giận chính mình rất lâu."
         },
         {
           "speaker": "hua_tieu_lan",
@@ -981,7 +981,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Nàng không được ra ngoài sao?"
+          "text": "Nàng không được ra ngoài một mình sao?"
         },
         {
           "speaker": "hua_tieu_lan",
@@ -989,7 +989,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Còn bây giờ?"
+          "text": "Còn bây giờ thì sao?"
         },
         {
           "speaker": "hua_tieu_lan",
@@ -1011,7 +1011,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Nàng có muốn thôi kể chuyện ấy?"
+          "text": "Nếu chưa muốn kể nữa, nàng có thể dừng."
         },
         {
           "speaker": "hua_tieu_lan",
@@ -1025,7 +1025,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Ta không phải người ấy."
+          "text": "Bổn Tôn không phải Anh Tý."
         },
         {
           "speaker": "hua_tieu_lan",
@@ -1033,7 +1033,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Nàng vẫn có thể bước tiếp."
+          "text": "Nhưng nàng vẫn có thể bước tiếp bằng con đường của mình."
         },
         {
           "speaker": "hua_tieu_lan",
@@ -1095,7 +1095,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Vì sợ đánh rơi?"
+          "text": "Nàng sợ đánh rơi kiếm?"
         },
         {
           "speaker": "luc_tram",
@@ -1103,7 +1103,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Nàng học cách buông lỏng."
+          "text": "Nàng học được cách giữ lỏng tay."
         },
         {
           "speaker": "luc_tram",
@@ -1117,7 +1117,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Nàng có giận vì bị nhìn thấy?"
+          "text": "Nàng giận vì bị đồng môn trông thấy?"
         },
         {
           "speaker": "luc_tram",
@@ -1125,7 +1125,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Nàng nhớ người ấy."
+          "text": "Ta hiểu. Nàng nhớ người ấy."
         },
         {
           "speaker": "luc_tram",
@@ -1147,7 +1147,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Giờ nàng nghĩ khác?"
+          "text": "Vậy nàng đã thay đổi cách nhìn?"
         },
         {
           "speaker": "luc_tram",
@@ -1161,7 +1161,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Nàng chưa từng mài cho mất."
+          "text": "Nàng vẫn giữ vết xước ấy."
         },
         {
           "speaker": "luc_tram",
@@ -1169,7 +1169,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Sau đó?"
+          "text": "Rồi nàng làm gì?"
         },
         {
           "speaker": "luc_tram",
@@ -1222,7 +1222,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Anh đã đưa người ra bằng cách nào?"
+          "text": "Ngươi đưa họ ra bằng cách nào? Bổn Tôn muốn nghe cách chọn đường."
         },
         {
           "speaker": "trac_lam",
@@ -1230,7 +1230,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Mười một người ra ngoài."
+          "text": "Mười một người đã ra ngoài."
         },
         {
           "speaker": "trac_lam",
@@ -1244,7 +1244,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Anh còn liên lạc được với họ?"
+          "text": "Đội trưởng, ngươi còn liên lạc được với họ không?"
         },
         {
           "speaker": "trac_lam",
@@ -1252,7 +1252,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Anh có tiếp tục gọi?"
+          "text": "Ngươi vẫn tiếp tục gọi?"
         },
         {
           "speaker": "trac_lam",
@@ -1266,7 +1266,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Ông kể cho anh nghe những chuyện gì?"
+          "text": "Phụ thân kể cho ngươi điều gì?"
         },
         {
           "speaker": "trac_lam",
@@ -1274,7 +1274,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Anh học được điều gì?"
+          "text": "Bổn Tôn hiểu vì sao ngươi nhớ lời ông."
         },
         {
           "speaker": "trac_lam",
@@ -1288,7 +1288,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Anh được chọn một?"
+          "text": "Ngươi phải chọn một trong hai?"
         },
         {
           "speaker": "trac_lam",
@@ -1296,7 +1296,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Anh đã chọn thế nào?"
+          "text": "Bổn Tôn tò mò: ngươi đã xử lý ra sao?"
         },
         {
           "speaker": "trac_lam",
@@ -1310,7 +1310,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Giờ anh còn nhớ giọng họ?"
+          "text": "Giờ ngươi còn nhớ giọng họ không?"
         },
         {
           "speaker": "trac_lam",
@@ -1318,7 +1318,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Anh định tiếp tục tìm?"
+          "text": "Vậy ngươi vẫn tìm đồng đội?"
         },
         {
           "speaker": "trac_lam",
@@ -1375,11 +1375,11 @@
       [
         {
           "speaker": "iris",
-          "text": "Người mới tập bắn thường muốn nghe tiếng súng trước khi nhìn trúng đích."
+          "text": "Người mới tập bắn thường chỉ muốn nghe tiếng súng. Tôi đoán một vị 'Bổn Tôn' như anh cũng từng muốn chứng tỏ điều gì đó?"
         },
         {
           "speaker": "cao_minh",
-          "text": "Còn cô thì sao?"
+          "text": "Bổn Tôn thấy ngươi khá vững tay. Còn tốc độ thì sao?"
         },
         {
           "speaker": "iris",
@@ -1387,7 +1387,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Ivory với Ebony có khác nhau?"
+          "text": "Ivory và Ebony khác nhau nhiều lắm à?"
         },
         {
           "speaker": "iris",
@@ -1401,7 +1401,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô trả lời sao?"
+          "text": "Ngươi đáp lại thế nào, xạ thủ?"
         },
         {
           "speaker": "iris",
@@ -1409,7 +1409,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô không thích biểu diễn?"
+          "text": "Bổn Tôn tưởng ngươi thích biểu diễn."
         },
         {
           "speaker": "iris",
@@ -1423,7 +1423,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô đã nhìn thấy gì?"
+          "text": "Ngươi thấy điều gì sau cánh cửa?"
         },
         {
           "speaker": "iris",
@@ -1431,7 +1431,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô xem đó là nhát gan?"
+          "text": "Ngươi cho rằng như vậy là nhát gan sao?"
         },
         {
           "speaker": "iris",
@@ -1441,7 +1441,7 @@
       [
         {
           "speaker": "cao_minh",
-          "text": "Cô không kể nhiều về những người từng đi cùng mình."
+          "text": "Ngươi hiếm khi kể về đồng đội."
         },
         {
           "speaker": "iris",
@@ -1449,7 +1449,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Ta có thể tự quan sát."
+          "text": "Bổn Tôn có thể tự quan sát."
         },
         {
           "speaker": "iris",
@@ -1514,11 +1514,11 @@
       [
         {
           "speaker": "syvial",
-          "text": "Có lần người ta thấy quỷ tính của tôi, liền hỏi liệu tôi có đang nói bằng giọng của chính mình không."
+          "text": "Có người thấy quỷ tính của tôi, liền hỏi có phải kẻ khác đang nói hộ. Còn anh tự nhận Chí Tôn rồi bắt cả thế giới nghe mình."
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô đáp sao?"
+          "text": "Ngươi đã đáp lại những kẻ ấy sao?"
         },
         {
           "speaker": "syvial",
@@ -1526,7 +1526,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Chắc họ không thấy buồn cười."
+          "text": "Bổn Tôn đoán họ không thấy buồn cười."
         },
         {
           "speaker": "syvial",
@@ -1540,7 +1540,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô không thể phá nó?"
+          "text": "Ngươi có thể phá cửa, vậy tại sao còn chờ?"
         },
         {
           "speaker": "syvial",
@@ -1548,7 +1548,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Thế cô làm gì?"
+          "text": "Rồi ngươi giải quyết thế nào?"
         },
         {
           "speaker": "syvial",
@@ -1562,7 +1562,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Và cô làm gì?"
+          "text": "Và ngươi đã làm gì với Kai?"
         },
         {
           "speaker": "syvial",
@@ -1570,7 +1570,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Cô không sợ làm người khác khó chịu?"
+          "text": "Ngươi không sợ khiến hắn khó chịu?"
         },
         {
           "speaker": "syvial",
@@ -1584,7 +1584,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Đó là một suy nghĩ lạ."
+          "text": "Một suy nghĩ khá lạ đối với người cầm GodKiller."
         },
         {
           "speaker": "syvial",
@@ -1592,7 +1592,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Ta nghe rồi. Cô rút kiếm khi cần."
+          "text": "Bổn Tôn nghe rồi. Ngươi biết khi nào nên rút kiếm."
         },
         {
           "speaker": "syvial",
@@ -1653,7 +1653,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Con nhớ được mùi mưa à?"
+          "text": "Bổn Tôn từng nghe tiếng mưa trên mái điện. Ở nhà con, mưa có mùi sao?"
         },
         {
           "speaker": "an-nhien",
@@ -1661,7 +1661,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Vậy mình tìm chỗ nghỉ đỡ ngột ngạt hơn."
+          "text": "Vậy ta tìm một nơi dễ chịu hơn."
         },
         {
           "speaker": "an-nhien",
@@ -1671,19 +1671,19 @@
       [
         {
           "speaker": "an-nhien",
-          "text": "Con từng thi đếm bước với một bạn. Con đếm đến tám mươi thì bạn ấy chạy mất."
+          "text": "Con từng thi đếm bước với bạn. Mà sao chú không gọi mình là chú Cao Minh, cứ gọi Bổn Tôn hoài thế?"
         },
         {
           "speaker": "cao_minh",
-          "text": "Rồi con làm sao?"
+          "text": "Rồi con làm gì, tiểu nha đầu?"
         },
         {
           "speaker": "an-nhien",
-          "text": "Con đứng đợi, vì tưởng bạn sẽ quay lại. Hồi đó đợi chút xíu thôi."
+          "text": "Con đứng đợi, vì tưởng bạn sẽ quay lại. Rồi con tự đếm lại từ đầu, nhưng quên số mất."
         },
         {
           "speaker": "cao_minh",
-          "text": "Giờ con không cần phải đứng đợi một mình."
+          "text": "Con không phải đứng đợi một mình nữa."
         },
         {
           "speaker": "an-nhien",
@@ -1697,7 +1697,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Vậy con gọi to hơn được không?"
+          "text": "Vậy con có thể gọi đủ cho ta nghe không?"
         },
         {
           "speaker": "an-nhien",
@@ -1705,7 +1705,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Nếu sợ, con nói đủ cho ta nghe thôi."
+          "text": "Nếu sợ, con nói nhỏ thôi. Bổn Tôn vẫn nghe được."
         },
         {
           "speaker": "an-nhien",
@@ -1719,7 +1719,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Chỉ vậy thôi?"
+          "text": "Chỉ vậy thôi sao?"
         },
         {
           "speaker": "an-nhien",
@@ -1727,7 +1727,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Ước muốn không quá khó."
+          "text": "Bổn Tôn thấy ước muốn ấy rất đỗi bình thường."
         },
         {
           "speaker": "an-nhien",
@@ -1751,7 +1751,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Ngươi đã giết hơn bốn trăm người. Còn muốn đếm ai nữa?"
+          "text": "Ngươi giết hơn bốn trăm người Cao gia. Bổn Tôn chưa từng quên."
         },
         {
           "speaker": "diep_minh",
@@ -1759,7 +1759,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Vậy hôm nay nhìn cho rõ."
+          "text": "Vậy hôm nay nhìn cho rõ. Bổn Tôn vẫn còn sống."
         }
       ],
       [
@@ -1787,7 +1787,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Ta nhớ Sinh Mệnh Đạo của ngươi không có màu ấy."
+          "text": "Bổn Tôn nhớ Sinh Mệnh Đạo của ngươi không có màu ấy."
         },
         {
           "speaker": "diep_minh",
@@ -1885,7 +1885,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Ngươi đi trên máu người nhà ta. Đó không phải chuyện để hoài niệm."
+          "text": "Ngươi đi trên máu người nhà Bổn Tôn. Đó không phải chuyện để hoài niệm."
         },
         {
           "speaker": "diep_minh",
@@ -2113,7 +2113,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "...Lục Trầm?"
+          "text": "...Lục Trầm? Bổn Tôn tìm nàng đã lâu."
         },
         {
           "speaker": "luc_tram_hac_hoa",
@@ -2121,7 +2121,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Nàng thực sự không nhớ sao?"
+          "text": "Nàng thật sự không nhớ Bổn Tôn sao?"
         },
         {
           "speaker": "luc_tram_hac_hoa",
@@ -2461,7 +2461,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Ta biết."
+          "text": "Bổn Tôn biết."
         },
         {
           "speaker": "luc_tram_hac_hoa",
