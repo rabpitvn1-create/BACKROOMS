@@ -39,7 +39,22 @@
         .map(c=>({id:c.targetId,name:c.targetName||c.label}))
         .find(c=>String(c.id)===String(id))||null;
   }
-  function label(id){const c=visibleCharacter(id);return c&&c.name||entityCatalog[id]&&entityCatalog[id].name||id;}
+  function label(id){const c=visibleCharacter(id);return c&&c.name||entityCatalog[id]&&entityCatalog[id].name||(id==='cao_minh'?'Cao Minh':id);}
+  function entityEncounter(){
+    const combat=state.combat;
+    const encounter=combat&&combat.active===true?combat:state.pendingEncounter;
+    if(!encounter||!entityCatalog[encounter.entityKey]||!encounter.encounterId)return null;
+    // Pending confirmation and the first combat wave share one dialogue receipt.
+    // Later waves have their own Core instance identity, even in the same battle.
+    const wave=Number(encounter.waveNumber||1);
+    return {entityKey:encounter.entityKey,encounterId:wave>1?
+      encounter.entityInstanceId||encounter.encounterId+':wave:'+(wave-1):encounter.encounterId};
+  }
+  function entityLines(id){
+    const d=entityCatalog[id]||{};
+    return (d.encounter||[]).concat(d.story||[]).map(line=>
+      typeof line==='string'?{speaker:id,text:line}:line);
+  }
   function avatar(id){
     if(id==='cao_minh')return 'avatars/CAO_MINH_AVATAR.jpg';
     if(entityCatalog[id])return entityCatalog[id].overlay;
@@ -80,6 +95,8 @@
     active=null;root.hidden=true;document.body.classList.remove('special-dialogue-active');
     store();
     if(typeof global.backroomSyncExplorer==='function')global.backroomSyncExplorer();
+    // An NPC modal may have been open when Core delivered an Entity encounter.
+    applyIncoming(state);
   }
   function invite(){
     if(!active||!eligibleInvite(active.id)||!global.Android||typeof Android.recruitFollower!=='function')return;
@@ -185,25 +202,30 @@
   }
   function applyIncoming(old){
     const p=progress();
+    const encounter=entityEncounter();
+    if(active&&active.kind==='entity'&&(!encounter||active.id!==encounter.entityKey||
+        active.encounterId!==encounter.encounterId)){
+      active=null;p.pending=null;root.hidden=true;document.body.classList.remove('special-dialogue-active');store();
+    }
     if(active)return;
     // Resume persisted modal after reload. Its state is stored with the current-version presentation.
     if(p.pending&&p.pending.kind){
       const saved=p.pending;
-      if(saved.kind==='entity'&&!state.pendingEncounter&&!(state.combat&&state.combat.active))p.pending=null;
+      if(saved.kind==='entity'&&(!encounter||saved.id!==encounter.entityKey||
+          saved.encounterId!==encounter.encounterId||p.shownEncounters[saved.encounterId])){p.pending=null;store();}
       else {
         const d=catalog[saved.id]||{};
         const seq=saved.kind==='intro'?(d.intro||[{speaker:saved.id,text:'Xin chào.'}]):
           saved.kind==='story'?(d.story||[])[saved.chapter]||[]:
-          (entityCatalog[saved.id]&&entityCatalog[saved.id].encounter||[]).map(text=>({speaker:saved.id,text}));
+          entityLines(saved.id);
         if(open(saved.id,saved.kind,seq,{chapter:saved.chapter,encounterId:saved.encounterId})){
-          active.index=Math.min(Math.max(0,saved.index||0),active.lines.length-1);render();return;
+          active.index=Math.min(Math.max(0,saved.index||0),active.lines.length-1);
+          progress().pending.index=active.index;store();render();return;
         }
       }
     }
-    const pending=state.pendingEncounter;
-    const entity=pending&&entityCatalog[pending.entityKey];
-    if(entity&&pending.encounterId&&!p.shownEncounters[pending.encounterId]){
-      open(pending.entityKey,'entity',entity.encounter.map(text=>({speaker:pending.entityKey,text})),{encounterId:pending.encounterId});return;
+    if(encounter&&!p.shownEncounters[encounter.encounterId]){
+      open(encounter.entityKey,'entity',entityLines(encounter.entityKey),{encounterId:encounter.encounterId});return;
     }
     const before=new Set((old&&old.encounteredCharacters||[]).map(c=>String(c.id)));
     const newcomer=(state.encounteredCharacters||[]).find(c=>c.present&&!before.has(String(c.id))&&!p.introduced[c.id]);
@@ -251,7 +273,7 @@
   const previousRender=global.render;
   if(typeof previousRender==='function')global.render=function(){
     const result=previousRender.apply(this,arguments);
-    if(!active&&progress().pending)applyIncoming(state);
+    applyIncoming(state);
     return result;
   };
   root.addEventListener('keydown',event=>{
