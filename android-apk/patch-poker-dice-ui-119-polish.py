@@ -25,8 +25,8 @@ style = r'''
 .poker-die-shadow{position:absolute;left:16%;right:12%;bottom:24px;height:9px;border-radius:50%;background:#0008;filter:blur(4px);pointer-events:none}
 .poker-die-object{position:relative;width:100%;max-width:84px;aspect-ratio:1;display:grid;place-items:center;transform-origin:50% 65%;z-index:1}
 .poker-die-skin{display:block!important;width:100%!important;height:100%!important;object-fit:contain!important;pointer-events:none;filter:drop-shadow(0 3px 2px #0005)!important}
-.poker-die-unknown{width:78%;aspect-ratio:1;display:grid;place-items:center;border:1px solid #645b49;border-radius:7px;background:linear-gradient(145deg,#25261f,#151816);color:#ad9e79;font:700 24px/1 system-ui,sans-serif}
-.poker-die-hold-seal{position:absolute;bottom:5px;left:50%;transform:translateX(-50%);display:block;visibility:hidden;min-width:0;padding:3px 0;border:0;background:transparent;color:#9be1bc;font:700 9px/1 system-ui,sans-serif;letter-spacing:.04em;pointer-events:none;white-space:nowrap}
+.poker-die-unknown{width:78%;aspect-ratio:1;display:grid;place-items:center;border:1px solid #645b49;border-radius:7px;background:linear-gradient(145deg,#25261f,#151816);color:#ad9e79;font:700 24px/1 var(--game-font)}
+.poker-die-hold-seal{position:absolute;bottom:5px;left:50%;transform:translateX(-50%);display:block;visibility:hidden;min-width:0;padding:3px 0;border:0;background:transparent;color:#9be1bc;font:700 9px/1 var(--game-font);letter-spacing:.04em;pointer-events:none;white-space:nowrap}
 .poker-die.held{--held-glow:#9be1bc;border-color:transparent!important;background:transparent!important;box-shadow:none!important}
 .poker-die.held:after{content:none!important}
 .poker-die.held .poker-die-hold-seal{visibility:visible;color:var(--held-glow);text-shadow:0 0 7px #9be1bc88}
@@ -57,8 +57,8 @@ style = r'''
 @media(prefers-reduced-motion:reduce){.poker-die,.poker-die-object,.poker-dice-roll,.poker-dice-finish{transition:none!important}.poker-die.rolling .poker-die-object,.poker-die.rolling .poker-die-shadow,.poker-die.settling .poker-die-object{animation:none!important}.poker-die.rolling .poker-die-object:before{display:none!important;animation:none!important}.poker-die.rolling .poker-die-skin{visibility:visible!important}}
 
 /* SNAPSHOT_COMBAT_DAMAGE_R01 */
-.snapshot-combat-dmg{position:absolute;z-index:8;top:34%;display:inline-flex;align-items:center;gap:5px;padding:1px 4px;font-family:Play,"Pretendard Std",system-ui,sans-serif;font-size:9px;line-height:1;font-weight:800;color:#f4f7fa;text-shadow:0 2px 3px #000,0 0 6px #000;pointer-events:none;white-space:nowrap;animation:snapshot-combat-dmg-float 1.6s ease-out forwards}
-.snapshot-combat-dmg-tag{font:800 9px/1 Play,"Pretendard Std",system-ui,sans-serif;letter-spacing:.08em;padding:3px 6px;border-radius:999px;border:1px solid currentColor;background:rgba(8,10,12,.88);box-shadow:0 2px 7px rgba(0,0,0,.55);text-shadow:none}
+.snapshot-combat-dmg{position:absolute;z-index:8;top:34%;display:inline-flex;align-items:center;gap:5px;padding:1px 4px;font-family:var(--game-font);font-size:9px;line-height:1;font-weight:800;color:#f4f7fa;text-shadow:0 2px 3px #000,0 0 6px #000;pointer-events:none;white-space:nowrap;animation:snapshot-combat-dmg-float 1.6s ease-out forwards}
+.snapshot-combat-dmg-tag{font:800 9px/1 var(--game-font);letter-spacing:.08em;padding:3px 6px;border-radius:999px;border:1px solid currentColor;background:rgba(8,10,12,.88);box-shadow:0 2px 7px rgba(0,0,0,.55);text-shadow:none}
 .snapshot-combat-dmg.entity{left:18%}.snapshot-combat-dmg.player{right:18%}
 @keyframes snapshot-combat-dmg-float{0%{opacity:0;transform:translate(-50%,8px) scale(.96)}12%{opacity:1}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-34px) scale(1.04)}}
 </style>
