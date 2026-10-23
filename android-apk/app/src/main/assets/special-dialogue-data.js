@@ -1198,7 +1198,7 @@
       },
       {
         "speaker": "trac_lam",
-        "text": "Tôi sẽ gọi anh là Cao Minh. Nếu hợp tác, ta thống nhất tín hiệu trước. Danh xưng không giúp ai qua góc chết cả."
+        "text": "Tôi sẽ gọi anh là Cao Minh. Nếu hợp tác, chúng ta thống nhất tín hiệu trước. Danh xưng không giúp ai qua góc chết cả."
       }
     ],
     "ambient": [
@@ -1494,7 +1494,7 @@
       },
       {
         "speaker": "syvial",
-        "text": "Được. Ít nhất anh còn biết suy nghĩ trước khi vung kiếm. Ta đi tiếp chứ?"
+        "text": "Được. Ít nhất anh còn biết suy nghĩ trước khi vung kiếm. Giờ đi tiếp chứ?"
       }
     ],
     "ambient": [
