@@ -125,7 +125,7 @@
   }
   function finish(){
     if(!active)return;
-    const wasIntro=active.kind==='intro';
+    const wasFollowerScene=active.kind==='intro'||active.kind==='story';
     const p=progress();
     if(active.kind==='intro'){
       p.introduced[active.id]=true;
@@ -149,7 +149,7 @@
     store();
     // The Core can still report the NPC as present after the popup closes.
     // Restore Cao Minh now, not on the next encounter or movement turn.
-    if(wasIntro){
+    if(wasFollowerScene){
       if(typeof global.backroomRefreshSnapshotVisuals==='function')
         global.backroomRefreshSnapshotVisuals();
       else if(typeof global.backroomRefreshSnapshotPartyLayout==='function')
@@ -197,7 +197,7 @@
       store();
     }
     root.hidden=false;document.body.classList.add('special-dialogue-active');
-    if(kind==='intro'){
+    if(kind==='intro'||kind==='story'){
       if(typeof global.backroomRefreshSnapshotVisuals==='function')
         global.backroomRefreshSnapshotVisuals();
       else if(typeof global.backroomRefreshSnapshotPartyLayout==='function')
