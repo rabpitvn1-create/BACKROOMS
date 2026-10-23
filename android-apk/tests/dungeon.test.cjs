@@ -99,6 +99,19 @@ for(const slotStatus of ['training','complete']) test('Lucia Dungeon '+slotStatu
  assert.equal(overlay.subarray(0,8).toString('hex'),'89504e470d0a1a0a','overlay path must resolve to the packaged PNG');
 });
 
+test('Trac Lam Dungeon uses the canonical bundled full-body PNG instead of the avatar',()=>{
+ const r=boot();r.open();const model=training(r.data());
+ model.slots[0].follower={id:'trac_lam',name:'Trác Lâm',level:3,
+  sprite:'TracLam.png',avatar:'avatars/TracLam_avatar.jpg'};
+ r.respond(model);
+ const portrait=r.ids.dungeonSlots.children[0].querySelector('.dungeon-follower');
+ assert.ok(portrait);
+ assert.equal(portrait.src,'TracLam.png');
+ assert.equal(portrait.alt,'Trác Lâm');
+ assert.equal(fs.readFileSync(path.join(assets,portrait.src)).subarray(0,8).toString('hex'),
+  '89504e470d0a1a0a','full-body sprite must be bundled');
+});
+
 test('Lucia-like unsafe sprite paths cannot bypass the bundled image allowlist',()=>{
  for(const sprite of ['https://example.com/LUCIA_LUC_OVERLAY.png','file:///android_asset/LUCIA_LUC_OVERLAY.png',
   '../LUCIA_LUC_OVERLAY.png','avatars/../LUCIA_LUC_OVERLAY.png','LUCIA_LUC_OVERLAY.png?remote=1','javascript:alert(1)']){

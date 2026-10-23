@@ -129,6 +129,13 @@ public class MainActivity extends Activity {
   private static final int MAX_SNAPSHOT_BASE64 = 1_500_000;
   private static final String KNOWLEDGE_CANON_VERSION = "KNOWLEDGE-DB-SCHEMA-1";
 
+  /** The JavaScript bridge belongs exclusively to the bundled game page. */
+  private static boolean isTrustedGamePage(Uri uri) {
+    return uri != null && "file".equals(uri.getScheme())
+      && (uri.getAuthority() == null || uri.getAuthority().isEmpty())
+      && "/android_asset/index.html".equals(uri.getPath()) && uri.getQuery() == null;
+  }
+
   @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})
   @Override public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -144,9 +151,22 @@ public class MainActivity extends Activity {
       settings.setJavaScriptEnabled(true);
       settings.setDomStorageEnabled(true);
       settings.setAllowFileAccess(true);
+      // AI HTTP requests use native HttpURLConnection. The game WebView never needs network content.
+      // Blocking network frames prevents untrusted pages from reaching the Android JS bridge.
+      settings.setBlockNetworkLoads(true);
+      settings.setAllowFileAccessFromFileURLs(false);
+      settings.setAllowUniversalAccessFromFileURLs(false);
       webView.setWebViewClient(new WebViewClient() {
+        @Override public boolean shouldOverrideUrlLoading(WebView view, android.webkit.WebResourceRequest request) {
+          return !isTrustedGamePage(request.getUrl());
+        }
+        @SuppressWarnings("deprecation")
+        @Override public boolean shouldOverrideUrlLoading(WebView view, String url) {
+          return !isTrustedGamePage(Uri.parse(url));
+        }
         @Override public void onPageFinished(WebView view, String url) {
           super.onPageFinished(view, url);
+          if (!isTrustedGamePage(Uri.parse(url))) return;
           try {
             installUiEnhancements();
           } catch (Throwable error) {

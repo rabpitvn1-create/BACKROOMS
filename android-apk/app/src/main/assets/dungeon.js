@@ -33,7 +33,7 @@
     try{Android.dungeonRequest(JSON.stringify(typeof state==='undefined'?{}:state),JSON.stringify(packet));}
     catch(error){clearTimeout(timer);pending=null;if(operation!=='view')lock(false);render();status.textContent=messages.dungeon_request_failed;}
   }
-  function imageSource(path){return typeof path==='string'&&/^(?:avatars\/[A-Za-z0-9_.-]+\.(?:jpg|png|webp)|[A-Za-z0-9_-]+\.webp|LUCIA_LUC_OVERLAY\.png)$/.test(path)?path:'';}
+  function imageSource(path){return typeof path==='string'&&/^(?:avatars\/[A-Za-z0-9_.-]+\.(?:jpg|png|webp)|[A-Za-z0-9_-]+\.webp|(?:LUCIA_LUC_OVERLAY|TracLam)\.png)$/.test(path)?path:'';}
   function snapshot(card,slot){
     var scene=node('div','dungeon-scene');
     var mapping=window.BackroomSnapshotAssets;
