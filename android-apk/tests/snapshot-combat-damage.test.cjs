@@ -889,7 +889,7 @@ test('victory continuation runs once after the actual final shatter and never on
 
 test('Follower first meeting shows exactly two overlays, restores after closing, and never hijacks Entity/combat',()=>{
   const java=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/MainActivity.java'),'utf8');
-  const line=java.split('\n').find(l=>l.includes('/* SNAPSHOT_PARTY_LAYOUT_R04 */'));
+  const line=java.split('\n').find(l=>l.includes('/* SNAPSHOT_PARTY_LAYOUT_R05 */'));
   assert.ok(line);
   const script=JSON.parse(line.trim().replace(/ \+$/,''));
   for(let count=1;count<=7;count++){
@@ -925,6 +925,15 @@ test('Follower first meeting shows exactly two overlays, restores after closing,
       scope.backroomRefreshSnapshotPartyLayout();
       assert.equal(box.dataset.partyLayout,'exploration','Entity bypasses Follower two-shot');
       scope.state.pendingEncounter=null;
+      scope.state.specialDialogueProgress.pending=null;
+      scope.backroomRefreshSnapshotPartyLayout();
+      assert.equal(box.dataset.partyLayout,'exploration');
+      scope.state.party=[{id:'janet',presence:'ACTIVE'}];
+      scope.state.encounteredCharacters[0].present=false;
+      scope.state.specialDialogueProgress.pending={id:'janet',kind:'story'};
+      scope.backroomRefreshSnapshotPartyLayout();
+      assert.equal(box.dataset.partyLayout,'encounter','authored Follower story also needs two-shot');
+      assert.equal(hero.style.left,'6%');
       scope.state.specialDialogueProgress.pending=null;
       scope.backroomRefreshSnapshotPartyLayout();
       assert.equal(box.dataset.partyLayout,'exploration');
