@@ -39,42 +39,46 @@ test('Janet has five skill entries plus one Ultimate and four distinct equipment
 });
 
 
-test('Janet encounter preserves the original full-size right-anchored Cao Minh sprite',()=>{
-  // Execute the actual Android-injected layout body against a minimal DOM,
-  // rather than merely accepting a textual claim about the expected styles.
-  const sourceLine=java.split('\n').find(line=>line.includes('SNAPSHOT_PARTY_LAYOUT_R02'));
-  assert.ok(sourceLine,'the fixed snapshot party compositor must be installed');
-  const js=JSON.parse(sourceLine.trim().replace(/\s*\+\s*$/,''));
-  const body=js.slice(js.indexOf('function layoutSnapshotParty()'),
-    js.indexOf('var __partyLayoutBaseRenderSnapshot'));
-  assert.ok(body.startsWith('function layoutSnapshotParty()'));
-  const createLayout=new Function('document','state',body+';return layoutSnapshotParty;');
-  function arrange(companions,combat=false){
-    const hero={style:{}};
-    const overlays=Array.from({length:companions},()=>({style:{}}));
-    const box={dataset:{},querySelector:selector=>selector==='.snapshot-character'?hero:null,
-      querySelectorAll:()=>overlays};
-    createLayout({getElementById:id=>id==='snapshot'?box:null},
-      {combat:{active:combat}})();
-    return {hero,overlays,box};
-  }
-  const alone=arrange(0);
-  assert.equal(alone.hero.style.height,undefined,'solo snapshot uses the original 97% rule');
-  const janet=arrange(1);
-  assert.equal(janet.hero.style.height,'97%');
-  assert.equal(janet.hero.style.width,'auto');
-  assert.equal(janet.hero.style.maxWidth,'100%');
-  assert.equal(janet.hero.style.right,'0');
-  assert.equal(janet.hero.style.left,'auto','Cao Minh must not remain at a fixed left lane');
-  assert.equal(janet.overlays[0].style.left,'3%');
-  assert.equal(janet.overlays[0].style.height,'90%');
-  for(const count of [2,3,5]){
-    const layout=arrange(count);
-    assert.equal(layout.hero.style.height,'97%','followers never shrink Cao Minh');
-    assert.equal(layout.hero.style.right,'0');
-    assert.ok(layout.overlays.every(x=>x.style.left!=='auto'));
-  }
-  const battle=arrange(1,true);
-  assert.equal(battle.box.dataset.partyLayout,'combat');
-  assert.equal(battle.hero.style.height,undefined,'combat focus owns its own portrait layout');
+test('Janet encounter temporarily shows Cao Minh on the left, then restores him immediately on the right',()=>{
+  const line=java.split('\n').find(source=>source.includes('SNAPSHOT_PARTY_LAYOUT_R03'));
+  assert.ok(line,'Follower encounter layout must exist');
+  const injected=JSON.parse(line.trim().replace(/\s*\+\s*$/,''));
+  const createLayout=new Function('window','document','state','renderSnapshot',injected+
+    ';return window.backroomRefreshSnapshotPartyLayout;');
+  const hero={style:{}},janet={style:{}},box={dataset:{},
+    querySelector:selector=>selector==='.snapshot-character'?hero:null,
+    querySelectorAll:()=>[janet]};
+  const state={
+    combat:{active:false},
+    encounteredCharacters:[{id:'janet',present:true}],
+    specialDialogueProgress:{pending:{id:'janet',kind:'intro'}}
+  };
+  const win={};
+  const layout=createLayout(win,{getElementById:id=>id==='snapshot'?box:null},
+    state,()=>{});
+  layout();
+  assert.equal(box.dataset.partyLayout,'encounter');
+  assert.equal(hero.style.left,'6%');
+  assert.equal(hero.style.height,'84%');
+  assert.equal(janet.style.left,'50%');
+  assert.equal(janet.style.height,'84%');
+  // The Core is allowed to keep Janet present after her first scene.
+  state.specialDialogueProgress.pending=null;
+  layout();
+  assert.equal(box.dataset.partyLayout,'exploration');
+  assert.equal(hero.style.left,'auto');
+  assert.equal(hero.style.right,'0');
+  assert.equal(hero.style.height,'97%');
+  assert.equal(hero.style.width,'auto');
+  assert.equal(hero.style.maxWidth,'100%');
+  assert.equal(janet.style.left,'3%');
+  // An Entity encounter cannot be mistaken for a Follower first contact.
+  state.pendingEncounter={entityKey:'diep_minh',encounterId:'entity-1'};
+  layout();
+  assert.equal(box.dataset.partyLayout,'exploration');
+  assert.equal(hero.style.right,'0');
+  // Combat has its own unmodified rendering rules.
+  state.combat.active=true;
+  layout();
+  assert.equal(box.dataset.partyLayout,'combat');
 });
