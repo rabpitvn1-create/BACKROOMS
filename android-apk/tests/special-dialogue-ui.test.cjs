@@ -394,7 +394,8 @@ test('Lucia and Cao Minh exchange follows the current voice and knowledge bounda
   assert.equal(lucia.story.length,6);
   assert.ok(lucia.story.every(scene=>scene.length===5));
   assert.ok(spoken.every(line=>['lucia','cao_minh'].includes(line.speaker)));
-  assert.doesNotMatch(cao,/Bổn Tôn|bổn tọa|ngươi/);
+  assert.match(cao,/Bổn Tôn/);
+  assert.doesNotMatch(cao,/\\b(?:ta|tôi|ngươi)\\b/i);
   assert.match(girl,/Hứa Thuý Mai/);
   assert.match(girl,/Đồng bằng sông Cửu Long/);
   assert.doesNotMatch(girl,/Lục Trầm|Vạn Giới|Lôi Thiên Vực/);
