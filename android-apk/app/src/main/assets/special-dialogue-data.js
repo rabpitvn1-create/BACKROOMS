@@ -3407,7 +3407,7 @@
         },
         {
           "speaker": "diep_minh",
-          "text": "Ngươi hỏi Bản Tiên được gì? Nhìn lại chính mình đi — kẻ sót lại của Cao gia năm ấy, nay đã thành Vạn Giới Ma Tôn, đứng trên đỉnh một giới. Cái giá của sức mạnh đắt đến đâu, ngươi hẳn là người hiểu rõ hơn ai hết. Chúng ta vốn không khác nhau nhiều như ngươi tưởng đâu."
+          "text": "Ngươi hỏi Bản Tiên được gì? Nhìn lại chính mình đi — kẻ sót lại của Cao gia năm ấy, nay đã thành Vạn Giới Ma Tôn, đứng trên đỉnh một giới. Cái giá của sức mạnh đắt đến đâu, ngươi hẳn là người hiểu rõ hơn ai hết. Bản Tiên với ngươi vốn không khác nhau nhiều như ngươi tưởng đâu."
         },
         {
           "speaker": "cao_minh",
