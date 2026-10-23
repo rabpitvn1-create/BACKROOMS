@@ -773,10 +773,10 @@ test('modern Follower speech keeps its own register; An Nhiên is addressed as a
   const c=env({state:{party:[],partyDetails:{members:[]},encounteredCharacters:[]}}).ctx.BackroomSpecialDialogueData;
   const text=id=>c[id].intro.map(line=>line.text).join(' ');
   assert.match(text('trac_lam'),/Nếu hợp tác, chúng ta thống nhất tín hiệu trước/);
-  assert.match(text('syvial'),/Giờ đi tiếp chứ\\?/);
+  assert.match(text('syvial'),/Giờ đi tiếp chứ\?/);
   const childLines=c['an-nhien'].story.flat().filter(line=>line.speaker==='cao_minh');
   assert.ok(childLines.length>0);
-  assert.ok(childLines.every(line=>!/(^|\\s)ngươi(\\s|[,.!?]|$)/iu.test(line.text)),
+  assert.ok(childLines.every(line=>!/(^|\s)ngươi(\s|[,.!?]|$)/iu.test(line.text)),
     'Cao Minh must respect An Nhiên asking not to be called ngươi');
 });
 
