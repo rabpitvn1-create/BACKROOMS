@@ -7,39 +7,39 @@
     "intro": [
       {
         "speaker": "catherine",
-        "text": "Ngài cũng nghe thấy tiếng chuông vừa rồi, hay chỉ mình tôi?"
+        "text": "Xin dừng ở đó. Ngài có nghe thấy tiếng chuông vừa rồi không?"
       },
       {
         "speaker": "cao_minh",
-        "text": "Ở đây có đồng hồ sao?"
+        "text": "Bổn Tôn nghe thấy. Nhưng vì sao cô nương nhìn thanh kiếm của ta chăm chú vậy?"
       },
       {
         "speaker": "catherine",
-        "text": "Tôi chưa thấy cái nào. Chính vì thế mới đáng ngại. Xin đừng tiến lại gần, tôi cần nhìn rõ tay ngài."
+        "text": "Xin thứ lỗi. Giáp trụ, thanh kiếm và cách ngài tự xưng... ngài đang diễn kịch, hay thực sự thuộc một triều đại nào đó?"
       },
       {
         "speaker": "cao_minh",
-        "text": "Ta không định động thủ. Cô cũng có vẻ chưa muốn nổ súng."
+        "text": "Cao Minh. Bổn Tôn không có hứng đóng kịch cho người lạ xem."
       },
       {
         "speaker": "catherine",
-        "text": "Tôi chỉ bóp cò khi biết viên đạn sẽ đi đâu. Catherine Valeria Ashcombe. Còn ngài?"
+        "text": "Catherine Valeria Ashcombe. Tôi chưa từng gặp ai ăn vận như ngài ở Grayhaven. Cho phép tôi giữ chút hoài nghi."
       },
       {
         "speaker": "cao_minh",
-        "text": "Cao Minh. Cô đang tìm thứ phát ra tiếng chuông?"
+        "text": "Khá lắm. Ngươi đang tìm nguồn tiếng chuông sao?"
       },
       {
         "speaker": "catherine",
-        "text": "Tôi đang tìm một lời giải thích đủ tốt để không phải tin vào chuyện hoang đường."
+        "text": "Tôi đang tìm lời giải thích đủ tốt để không phải tin ngay vào chuyện hoang đường. Tên gọi 'Bổn Tôn' cũng nằm trong số ấy."
       },
       {
         "speaker": "cao_minh",
-        "text": "Vậy có lẽ chúng ta sẽ cùng đi một đoạn."
+        "text": "Bổn Tôn sẽ không ngăn ngươi kiểm chứng. Cứ thử."
       },
       {
         "speaker": "catherine",
-        "text": "Có lẽ. Nhưng xin thứ lỗi, thưa ngài Cao Minh, tôi thường tin việc người ta làm hơn điều người ta hứa."
+        "text": "Cảm ơn ngài Cao Minh. Tôi vẫn chưa tin hết, nhưng ít nhất ngài không buộc tôi tin."
       }
     ],
     "ambient": [
@@ -231,35 +231,35 @@
       },
       {
         "speaker": "cao_minh",
-        "text": "Chưa. Cô hạ cây gậy xuống đã."
+        "text": "Hạ gậy xuống, phàm nhân. Bổn Tôn chưa gặp người ngươi tìm."
       },
       {
         "speaker": "janet",
-        "text": "Cứ đứng đó trước. Tôi không biết anh là ai."
+        "text": "Phàm nhân? Bổn... cái gì? Anh đang quay phim kiếm hiệp à?"
       },
       {
         "speaker": "cao_minh",
-        "text": "Cao Minh. Còn cô?"
+        "text": "Cao Minh. Bổn Tôn là cách xưng của ta. Còn ngươi định hỏi đường hay đánh người?"
       },
       {
         "speaker": "janet",
-        "text": "Janet. Mia đi cùng tôi lúc đèn tắt. Tôi quay lại thì cô ấy biến mất."
+        "text": "Janet. Tôi cầm gậy để sống sót. Anh mặc như vừa bước ra khỏi phim thời trung cổ mà còn nói như ông vua vậy."
       },
       {
         "speaker": "cao_minh",
-        "text": "Cô đã tìm được dấu vết gì chưa?"
+        "text": "Ngươi và Mia mất dấu nhau ở đâu?"
       },
       {
         "speaker": "janet",
-        "text": "Chẳng có gì. Tôi gọi đến khản giọng, đi mãi mà những lối rẽ cứ giống hệt nhau."
+        "text": "Cầu thang dịch vụ. Đèn tắt, tôi quay lại thì cô ấy biến mất. Cả đám hành lang này giống nhau đến phát điên."
       },
       {
         "speaker": "cao_minh",
-        "text": "Ta chưa gặp cô ấy. Nếu có tin, ta sẽ nói."
+        "text": "Bổn Tôn chưa gặp nàng ấy. Có tin gì, ta sẽ nói với ngươi."
       },
       {
         "speaker": "janet",
-        "text": "Được. ...Xin lỗi vì cây gậy. Tôi không định gây sự, chỉ không muốn mất cảnh giác thêm lần nữa."
+        "text": "Được. Nhưng tôi tên Janet, đừng 'phàm nhân' nữa. Và... xin lỗi về cây gậy."
       }
     ],
     "ambient": [
@@ -444,35 +444,35 @@
       },
       {
         "speaker": "cao_minh",
-        "text": "Không. Vì sao anh hỏi?"
+        "text": "Bổn Tôn chưa cần chữa trị, phàm nhân. Ngươi là y sư?"
       },
       {
         "speaker": "nguyen_quoc_nam",
-        "text": "Nhìn cách anh bước, tôi tưởng chân trái bị đau. Có lẽ tôi nhìn nhầm. Xin lỗi."
+        "text": "Y sư? Tôi là giảng viên y khoa. Nhưng anh đang nói chuyện như người từ thời khác vậy."
       },
       {
         "speaker": "cao_minh",
-        "text": "Anh là thầy thuốc?"
+        "text": "Cao Minh. Bổn Tôn đến từ giới tu luyện, không phải nơi ngươi biết."
       },
       {
         "speaker": "nguyen_quoc_nam",
-        "text": "Tôi là Nguyễn Quốc Nam, giảng viên y khoa. Ở nơi này, biết sơ cứu cũng chưa chắc giúp được bao nhiêu."
+        "text": "Nguyễn Quốc Nam. Tôi chưa kiểm chứng được lời anh. Nhưng giáp trụ và thanh kiếm đó quả thật không bình thường."
       },
       {
         "speaker": "cao_minh",
-        "text": "Khẩu súng kia không giống dụng cụ của người dạy học."
+        "text": "Khẩu súng kia chẳng giống dụng cụ của y sư."
       },
       {
         "speaker": "nguyen_quoc_nam",
-        "text": "Tôi nhặt được nó sau khi lạc vào đây. Tôi chỉ mong không phải dùng."
+        "text": "Tôi tìm thấy nó sau khi lạc vào đây. Cũng mong không phải dùng."
       },
       {
         "speaker": "cao_minh",
-        "text": "Ta là Cao Minh. Anh đang tìm đường ra?"
+        "text": "Bổn Tôn đang tìm đường ra. Ngươi muốn cùng đi một đoạn?"
       },
       {
         "speaker": "nguyen_quoc_nam",
-        "text": "Phải. Tôi còn người nhà đang chờ. Nếu anh không phiền, chúng ta có thể đi cùng, nhưng có dấu hiệu nguy hiểm thì đừng cố tiến."
+        "text": "Có. Nhưng xin gọi tôi là Nam, đừng gọi phàm nhân. Tôi còn vợ con đang đợi ở nhà."
       }
     ],
     "ambient": [
@@ -664,39 +664,39 @@
       },
       {
         "speaker": "cao_minh",
-        "text": "Nếu ta có ý gây chuyện, cô đã không kịp hỏi tên."
+        "text": "Bổn Tôn không đến để giao chiến với ngươi, nữ binh."
       },
       {
         "speaker": "lucia",
-        "text": "Tôi không cược mạng vào một câu nói. Lucia “Lục”, binh nhì. Tên thật là Hứa Thuý Mai. Còn anh?"
+        "text": "'Bổn Tôn'? Anh thuộc đơn vị nào? Bộ giáp và thanh kiếm kia cũng chẳng phải quân trang."
       },
       {
         "speaker": "cao_minh",
-        "text": "Cao Minh. Cô cũng bị lạc tới đây?"
+        "text": "Cao Minh. Bổn Tôn là kiếm tu, không thuộc đơn vị nào của ngươi."
       },
       {
         "speaker": "lucia",
-        "text": "Cách đây không lâu tôi còn đang hành quân ở Đồng bằng sông Cửu Long. Chớp mắt một cái, đồng đội biến mất, trước mặt chỉ còn tường vàng."
+        "text": "Kiếm tu? Tôi là Lucia Lục, tên thật Hứa Thuý Mai, binh nhì. Anh đang thử phản ứng của tôi sao?"
       },
       {
         "speaker": "cao_minh",
-        "text": "Cô biết đây là đâu?"
+        "text": "Bổn Tôn không cần ngươi tin ngay. Trước đó ngươi ở đâu?"
       },
       {
         "speaker": "lucia",
-        "text": "Tôi từng đọc về Backrooms trên mạng. Hồi ấy còn nghĩ người ta bịa chuyện cho vui. Giờ thì chẳng thấy buồn cười nữa."
+        "text": "Tôi đang hành quân ở Đồng bằng sông Cửu Long thì lạc vào đây. Trước mắt chỉ còn những bức tường vàng."
       },
       {
         "speaker": "cao_minh",
-        "text": "Cô định lần đường bằng cách nào?"
+        "text": "Ngươi biết nơi này là gì không?"
       },
       {
         "speaker": "lucia",
-        "text": "Bám theo một bức tường, đánh dấu bằng phấn, dùng laser soi chỗ khuất. Nhưng nếu tường cũng đánh lừa mình thì phải đổi cách."
+        "text": "Tôi từng đọc về Backrooms trên mạng, nhưng chưa kiểm chứng được điều gì. Tôi tính đánh dấu bằng phấn, dùng laser soi góc khuất."
       },
       {
         "speaker": "lucia",
-        "text": "Tôi muốn tới Level 1, rồi tìm đường về nhà. Anh có thể đi cùng, nhưng tôi cần thấy anh hành động thế nào trước đã. Đồng ý chứ?"
+        "text": "Tôi muốn tìm Level 1 rồi về nhà. Nếu cùng đi, anh cứ gọi tôi là Lucia. Và báo trước khi định dùng... kiếm thuật nhé."
       }
     ],
     "ambient": [
@@ -857,27 +857,27 @@
       },
       {
         "speaker": "cao_minh",
-        "text": "Cô nhận nhầm người rồi."
+        "text": "Nàng nhận nhầm người rồi, cô nương. Bổn Tôn là Cao Minh."
       },
       {
         "speaker": "hua_tieu_lan",
-        "text": "...Phải. Xin thất lễ, Cao công tử. Người ấy có đôi mắt rất giống công tử."
+        "text": "Xin thất lễ, Cao công tử. Nhưng danh xưng 'Bổn Tôn' ấy... chẳng lẽ công tử là người tu tiên?"
       },
       {
         "speaker": "cao_minh",
-        "text": "Cô đang tìm người thất lạc sao?"
+        "text": "Bổn Tôn từng tu đến Chí Tôn. Nàng cứ gọi Cao Minh cũng được."
       },
       {
         "speaker": "hua_tieu_lan",
-        "text": "Tôi từng có cơ hội gặp lại chàng. Chính tôi đã bỏ lỡ. Nay giữa chốn này, trông thấy công tử khiến lòng tôi rối loạn."
+        "text": "Tôi chỉ nghe chuyện tiên gia qua người kể chuyện. Không ngờ gặp người ăn vận như công tử giữa chốn này. Người tôi đang tìm cũng có đôi mắt rất giống công tử."
       },
       {
         "speaker": "cao_minh",
-        "text": "Cô có nơi nào để đi không?"
+        "text": "Nàng còn nơi nào để đi không?"
       },
       {
         "speaker": "hua_tieu_lan",
-        "text": "Chưa có. Nếu công tử thuận lòng, tôi xin đi cùng một đoạn. Tôi sẽ không gọi nhầm tên nữa."
+        "text": "Chưa có. Nếu công tử thuận lòng, tôi xin đi cùng một đoạn. Chỉ mong đừng thất lễ lần nữa."
       }
     ],
     "ambient": [
@@ -1060,15 +1060,15 @@
       },
       {
         "speaker": "cao_minh",
-        "text": "Nàng không nhận ra ta?"
+        "text": "Lục Trầm... Nàng thật sự không nhận ra Bổn Tôn?"
       },
       {
         "speaker": "luc_tram",
-        "text": "Ta nên nhận ra sao?"
+        "text": "Ngươi biết ta từ đâu?"
       },
       {
         "speaker": "cao_minh",
-        "text": "Ta biết nàng. Chỉ không nghĩ sẽ được gặp lại ở đây."
+        "text": "Ta từng cùng nàng trải qua nhiều chuyện. Bổn Tôn không ép nàng phải tin ngay."
       },
       {
         "speaker": "luc_tram",
@@ -1182,23 +1182,23 @@
     "intro": [
       {
         "speaker": "trac_lam",
-        "text": "Dừng ở đó. Trác Lâm, SRU-03. Tôi cần biết anh có bị thương không."
+        "text": "Dừng ở đó. Trác Lâm, SRU-03. Tôi cần xác định anh có mang vũ khí hay đang bị thương."
       },
       {
         "speaker": "cao_minh",
-        "text": "Không. Anh là người của nơi này?"
+        "text": "Ngươi cứ quan sát. Bổn Tôn không định động thủ."
       },
       {
         "speaker": "trac_lam",
-        "text": "Không. Và nếu anh có đường ra thì tôi đang cần nó."
+        "text": "Bộ giáp và thanh kiếm ấy không thuộc trang bị nào tôi biết. Còn 'Bổn Tôn' là mật danh hay một vai diễn?"
       },
       {
         "speaker": "cao_minh",
-        "text": "Chưa tìm thấy."
+        "text": "Vạn Giới Ma Tôn, Cao Minh. Bổn Tôn đang tìm đường ra khỏi nơi này."
       },
       {
         "speaker": "trac_lam",
-        "text": "Vậy ta có cùng một vấn đề. Tôi đi trước kiểm tra góc khuất, anh giữ phía sau. Chưa rõ nguy hiểm thì đừng tách đội."
+        "text": "Tôi sẽ gọi anh là Cao Minh. Nếu hợp tác, ta thống nhất tín hiệu trước. Danh xưng không giúp ai qua góc chết cả."
       }
     ],
     "ambient": [
@@ -1331,31 +1331,31 @@
     "intro": [
       {
         "speaker": "iris",
-        "text": "Đứng ở đó. Tôi muốn chắc anh không định tiến lại sau lưng tôi."
+        "text": "Đứng đó. Tôi muốn biết anh có định tiến lại sau lưng mình không."
       },
       {
         "speaker": "cao_minh",
-        "text": "Ta không có ý đó. Cô là ai?"
+        "text": "Bổn Tôn không có thói quen đánh lén một người chưa rút súng."
       },
       {
         "speaker": "iris",
-        "text": "Iris. Nếu anh đã nhìn thấy hai khẩu súng thì cũng nên biết tôi chưa định dùng chúng."
+        "text": "'Bổn Tôn'? Giáp cổ, kiếm lớn, lại còn tước hiệu. Tôi gặp một ông vua lưu lạc à?"
       },
       {
         "speaker": "cao_minh",
-        "text": "Ivory và Ebony?"
+        "text": "Ivory và Ebony? Ngươi giương cả hai chỉ để hỏi đường sao?"
       },
       {
         "speaker": "iris",
-        "text": "Anh quan sát khá kỹ đấy. Nhưng đừng tưởng biết tên súng là biết người cầm."
+        "text": "Iris. Anh quan sát nhanh đấy. Nhưng nghe tên súng không có nghĩa tôi sẽ cúi đầu trước người tự xưng Chí Tôn."
       },
       {
         "speaker": "cao_minh",
-        "text": "Ta là Cao Minh. Cô đang tìm gì ở đây?"
+        "text": "Không cần. Bổn Tôn chỉ muốn biết ngươi có đường ra không."
       },
       {
         "speaker": "iris",
-        "text": "Một đường đi không buộc tôi phải quay lại cùng một chỗ. Nếu anh tìm được, tôi sẵn sàng nghe."
+        "text": "Chưa. Và đến khi thấy anh làm được gì, tôi cứ gọi anh là Cao Minh. Đỡ mất thời gian."
       }
     ],
     "ambient": [
@@ -1470,31 +1470,31 @@
     "intro": [
       {
         "speaker": "syvial",
-        "text": "Đừng nhìn thanh kiếm như thể nó sắp tự nhảy vào anh. Tôi vẫn đang giữ nó đấy."
+        "text": "Đừng nhìn GodKiller như thể nó sắp tự nhảy vào anh. Tôi vẫn đang giữ nó đấy."
       },
       {
         "speaker": "cao_minh",
-        "text": "Thanh kiếm của cô không giống thứ ta từng thấy."
+        "text": "Một thanh kiếm mang tên lớn. Bổn Tôn muốn biết chủ nhân có xứng với nó không."
       },
       {
         "speaker": "syvial",
-        "text": "GodKiller. Tên nghe dữ dằn, nhưng không phải cái cớ để tôi chém người mới gặp."
+        "text": "'Bổn Tôn'? Anh bước ra từ cổ thư nào vậy? Cả giáp trụ cũng không giống thời đại này."
       },
       {
         "speaker": "cao_minh",
-        "text": "Còn cô?"
+        "text": "Bổn Tôn là Cao Minh, một kiếm tu. Còn ngươi?"
       },
       {
         "speaker": "syvial",
-        "text": "Syvial. Anh có thể gọi vậy. Tôi đang tìm cách hiểu nơi này không tuân theo quy tắc nào."
+        "text": "Syvial. Tôi không lạ gì sức mạnh kỳ dị, nhưng tự xưng Chí Tôn thì đúng là hiếm gặp."
       },
       {
         "speaker": "cao_minh",
-        "text": "Ta là Cao Minh. Nếu cô đã mạnh như thế, sao không tự phá đường?"
+        "text": "Ngươi không cần tin. Bổn Tôn cũng chẳng định phá tường trước khi biết bên kia có gì."
       },
       {
         "speaker": "syvial",
-        "text": "Vì mạnh và biết mình đang phá cái gì là hai chuyện. Anh có định bước tiếp không?"
+        "text": "Được. Ít nhất anh còn biết suy nghĩ trước khi vung kiếm. Ta đi tiếp chứ?"
       }
     ],
     "ambient": [
@@ -1609,27 +1609,27 @@
       },
       {
         "speaker": "cao_minh",
-        "text": "Ta chưa biết. Con ở đây một mình sao?"
+        "text": "Tiểu nha đầu, Bổn Tôn cũng đang tìm đường."
       },
       {
         "speaker": "an-nhien",
-        "text": "Con không thấy ai quen cả. Đèn cứ kêu rè rè, con sợ."
+        "text": "Bổn Tôn là tên chú ạ? Sao chú mặc áo giống hiệp sĩ trong truyện vậy?"
       },
       {
         "speaker": "cao_minh",
-        "text": "Con tên gì?"
+        "text": "Ta tên Cao Minh. 'Bổn Tôn' là cách gọi của người tu đến Chí Tôn cảnh."
       },
       {
         "speaker": "an-nhien",
-        "text": "Con là An Nhiên. Con bảy tuổi. Dép con màu hồng, chú nhìn thấy không?"
+        "text": "Chí Tôn là người cao thật cao hả chú? Con là An Nhiên, con bảy tuổi."
       },
       {
         "speaker": "cao_minh",
-        "text": "Thấy rồi. Con có bị đau chỗ nào không?"
+        "text": "Ngươi có bị đau ở đâu không, An Nhiên?"
       },
       {
         "speaker": "an-nhien",
-        "text": "Không ạ. Nhưng con đói. Chú có biết chỗ nào sáng hơn không?"
+        "text": "Không ạ. Con đói. Mà chú đừng gọi con là 'ngươi' nữa, nghe lạ quá."
       }
     ],
     "ambient": [
