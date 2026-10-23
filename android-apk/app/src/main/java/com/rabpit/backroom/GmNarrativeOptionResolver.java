@@ -55,4 +55,12 @@ public final class GmNarrativeOptionResolver {
     }
     throw new IllegalArgumentException("gm_suggestion_missing");
   }
+
+  /** Do not finalize a peaceful victory continuation without usable next choices.
+   * Throw before committing so Retry reuses the already reserved Core turn. */
+  public static void requireContinuationOptions(JSONObject event, String narration) throws Exception {
+    if (event.optBoolean("automaticContinuation") && !event.has("encounter") &&
+      parse(narration).length() != 4)
+      throw new IllegalArgumentException("scene_gm_suggestions_missing");
+  }
 }

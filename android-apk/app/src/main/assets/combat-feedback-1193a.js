@@ -667,9 +667,13 @@
     lastContinuationId=id;
     busy=true;
     if(typeof syncPrimaryActions==='function')syncPrimaryActions();
-    try{Android.continueAfterCombat(JSON.stringify(state));}
+    try{
+      if(typeof window.backroomPostCombatPending==='function')window.backroomPostCombatPending();
+      Android.continueAfterCombat(JSON.stringify(state));
+    }
     catch(error){lastContinuationId='';busy=false;if(typeof syncPrimaryActions==='function')syncPrimaryActions();
-      if(typeof statusEl!=='undefined')statusEl.textContent='Chưa tiếp tục được sau giao tranh. Nhấn Retry.';}
+      if(typeof window.backroomError==='function')window.backroomError('Chưa tiếp tục được sau giao tranh. Nhấn Retry.');
+      else if(typeof statusEl!=='undefined')statusEl.textContent='Chưa tiếp tục được sau giao tranh. Nhấn Retry.';}
   }
 
   var previousTurn=window.backroomTurn;

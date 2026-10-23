@@ -88,13 +88,16 @@
     }
     actionDialog.close();sendPlayerAction(draft);
   };
-  function writerPending(provider){
+  function writerPending(provider,afterCombat=false){
     const log=document.getElementById('log');if(!log)return;
     let pending=log.querySelector('[data-scene-preparing="1"]');
     if(!pending){
       pending=document.createElement('article');pending.className='message gm pending scene-generation-pending';
-      pending.setAttribute('data-scene-preparing','1');pending.setAttribute('data-pending','1');
-      const role=document.createElement('div');role.className='role';role.textContent='BIÊN KỊCH';
+      pending.setAttribute('data-scene-preparing','1');
+      // The outer snapshot callback clears data-pending after backroomTurn.
+      // A continuation starts inside that callback and must survive its cleanup.
+      if(!afterCombat)pending.setAttribute('data-pending','1');
+      const role=document.createElement('div');role.className='role';role.textContent=afterCombat?'GAME MASTER':'BIÊN KỊCH';
       const line=document.createElement('div');line.className='text';
       const indicator=document.createElement('div');indicator.className='gm-thinking';indicator.setAttribute('role','status');
       const mark=document.createElement('img');mark.src='provider-logos/gemini.svg';mark.alt='';mark.className='scene-provider-logo';
@@ -103,7 +106,8 @@
     }
     // One fixed UI identity for the entire current mini-map. The real provider
     // can change to Gehihi in the worker; that detail stays in diagnostics.
-    const labelText='Gemini 4.0 Argon đang chuẩn bị màn chơi. Xin vui lòng chờ trong giây lát.';
+    const labelText=afterCombat?'GM đang kể diễn biến sau giao tranh và chuẩn bị gợi ý tiếp theo…':
+      'Gemini 4.0 Argon đang chuẩn bị màn chơi. Xin vui lòng chờ trong giây lát.';
     const indicator=pending.querySelector('.gm-thinking');
     if(indicator)indicator.setAttribute('aria-label',labelText);
     const label=pending.querySelector('.gm-thinking-name');if(label)label.textContent=labelText;
@@ -115,6 +119,7 @@
     if(log)log.querySelectorAll('[data-scene-preparing="1"]').forEach(n=>n.remove());
   }
   global.backroomSceneWriterProvider=()=>{if(preparing)writerPending();};
+  global.backroomPostCombatPending=()=>writerPending(null,true);
   function locked(){return busy||batchBusy||coreUnavailable||
     !!(global.SpecialDialogue&&global.SpecialDialogue.isOpen())||
     (state.player&&Number(state.player.hp)<=0)||state.player?.condition==='DEAD'||

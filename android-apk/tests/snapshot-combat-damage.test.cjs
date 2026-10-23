@@ -905,6 +905,22 @@ test('victory continuation runs once after the actual final shatter and never on
  assert.equal(escaped.length,0);
 });
 
+test('post-combat writer shows pending feedback and bridge failure unlocks Retry through the shared error handler',()=>{
+ const r=boot({combat:null}),pending=[],errors=[];
+ r.scope.busy=false;
+ r.scope.backroomPostCombatPending=()=>pending.push('waiting');
+ r.scope.backroomError=message=>{errors.push(message);r.scope.busy=false;};
+ r.scope.Android={continueAfterCombat(){throw new Error('bridge unavailable');}};
+ r.turn([],'enc:failed','enc',null,{postCombatContinuation:true});
+ assert.equal(pending.length,1);
+ assert.equal(errors.length,1);
+ assert.equal(r.scope.busy,false);
+ r.scope.Android.continueAfterCombat=()=>{};
+ r.turn([],'enc:failed','enc',null,{postCombatContinuation:true});
+ assert.equal(pending.length,2,'failed bridge submission must remain retryable');
+ assert.equal(r.scope.busy,true);
+});
+
 test('Follower first meeting shows exactly two overlays, restores after closing, and never hijacks Entity/combat',()=>{
   const java=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/MainActivity.java'),'utf8');
   const line=java.split('\n').find(l=>l.includes('/* SNAPSHOT_PARTY_LAYOUT_R05 */'));

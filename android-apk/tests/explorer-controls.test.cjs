@@ -48,6 +48,24 @@ function runtime(scene={}){
   const panel=elements.playerActionBar.children[0],dialog=document.body.children[0];
   return {ctx,calls,stored,panel,dialog,actionDialog:document.body.children[1],buttons:panel.children[0].children.map(slot=>slot.children[0]),menuTools:elements.explorerMenuTools,objectivePanel:elements.explorerMenuObjective,objectiveText:elements.explorerCurrentObjective,casebook:elements.explorerCasebook,menuClose:elements.gameMenuClose,player:panel.children[1].children[0],retry:panel.children[1].children[1],journal:elements.sceneJournal,room:elements.sceneJournalRoom,objective:elements.sceneJournalObjective,records:elements.sceneJournalRecords,log:elements.log,status:elements.status};
 }
+test('post-combat GM pending is visible until completion or error, then Retry unlocks',()=>{
+  const r=runtime({nodeId:'0',pendingActionId:'post-combat'});
+  r.ctx.busy=true;r.ctx.backroomSyncExplorer();
+  r.ctx.backroomPostCombatPending();
+  const pending=r.log.querySelector('[data-scene-preparing="1"]');
+  assert.ok(pending);
+  assert.equal(pending.children[0].textContent,'GAME MASTER');
+  assert.match(pending.querySelector('.gm-thinking-name').textContent,/sau giao tranh/);
+  assert.equal(pending.attributes['data-pending'],undefined,'outer snapshot wrapper must not erase the new pending message');
+  assert.equal(r.retry.disabled,true);
+  r.ctx.backroomError('GM lỗi');
+  assert.equal(r.log.querySelector('[data-scene-preparing="1"]'),null);
+  assert.equal(r.retry.hidden,false);assert.equal(r.retry.disabled,false);
+  r.ctx.backroomPostCombatPending();
+  r.ctx.backroomTurn(JSON.stringify({...r.ctx.state,scene:{...r.ctx.state.scene,pendingActionId:undefined}}));
+  assert.equal(r.log.querySelector('[data-scene-preparing="1"]'),null);
+  assert.equal(r.player.hidden,false);
+});
 test('four GM hints are selectable INSIDE GM log and each tap queues a single Core action',()=>{
   const r=runtime({nodeId:'0'});
   const narration='Tường rung lên.\nGỢI Ý HÀNH ĐỘNG:\n'

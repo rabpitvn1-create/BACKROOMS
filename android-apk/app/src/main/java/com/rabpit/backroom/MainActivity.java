@@ -1241,7 +1241,7 @@ public class MainActivity extends Activity {
       MainActivity.this, view.toString(), packet.getString("kind") + " " + packet.getString("interaction"), "{}");
     return "Bạn là GM Gehihi, kể văn xuôi tiếng Việt. Chỉ trả JSON có reply và questItems (mảng có thể rỗng). "
       + GM_SUGGESTION_RULES
-      + (packet.optBoolean("automaticContinuation") ? "Cảnh tự tiếp diễn sau chiến thắng; Cao Minh đứng tại chỗ. Không gán hành động hay lời mới cho người chơi. Nếu không có encounter, kết thúc bằng bốn gợi ý để người chơi chọn. " : "")
+      + (packet.optBoolean("automaticContinuation") ? "Cảnh tự tiếp diễn sau chiến thắng; Cao Minh đứng tại chỗ. Không gán hành động hay lời mới cho người chơi. Nếu không có encounter, BẮT BUỘC kết thúc bằng GỢI Ý HÀNH ĐỘNG: và đúng bốn dòng gợi ý để người chơi chọn. Bước Core đang chờ lời kể không phải lỗi hay cảnh cần Retry; không dùng nó làm lý do bỏ gợi ý. " : "")
       + "Core đã stage sự kiện; chỉ kể đúng public event. Không thêm hành động đã thực hiện hoặc lựa chọn đã xác nhận, chứng cứ Core, lời giải Core, loot, spawn hay thay route. "
       + "Bốn gợi ý cuối lời kể chỉ là phương án chưa thực hiện để người chơi tùy chọn, KHÔNG được kể như diễn biến hoặc công nhận là kết quả Core. "
       + "RIÊNG VẬT PHẨM NHIỆM VỤ GM: được tạo vật nhỏ một lần phục vụ suy luận trong diễn biến hợp lệ bằng questItems:[{\"type\":\"create\",\"id\":\"id-on-dinh\",\"name\":\"tên\",\"description\":\"mô tả\"}]; khi thực sự dùng xong trả {\"type\":\"consume\",\"id\":\"id-da-co\"}. Không thể thêm vật phẩm Core/Inventory, chữa trị, trang bị, mở cổng, xác nhận chứng cứ Core hay thay đổi gameplay. Mỗi vật phẩm chỉ tạo một lần, tối đa 8 thao tác/lượt, không ép tạo. "
@@ -1278,6 +1278,7 @@ public class MainActivity extends Activity {
   private String narrateStagedSceneAction(JSONObject stagedEvent) throws Exception {
     JSONObject reply = new JSONObject(generateText(sceneWriterPrompt()));
     ProviderResponseContract.requireWriter(reply);
+    GmNarrativeOptionResolver.requireContinuationOptions(stagedEvent, reply.getString("reply"));
     // Validate against the staged destination, never the pre-MOVE location.
     // Existing scripts may contain invalid authored names; do not trap those
     // in an endless retry loop. Newly generated scripts are validated at creation.
@@ -2379,7 +2380,9 @@ public class MainActivity extends Activity {
           if (code == null || !code.matches("scene_[a-z0-9_]{2,60}")) code = "scene_processing_error";
           DiagnosticLog.record("scene.failed", error.getClass().getSimpleName() + "; code=" + code);
           try { emit("backroomTurn", attachGmItems(requireGameCore().currentClientState(stateJson))); } catch (Exception ignored) {}
-          emit("backroomError", "Lượt chưa hoàn tất. State và roll đang chờ được giữ nguyên; nhấn Thử lại.");
+          emit("backroomError", "scene_gm_suggestions_missing".equals(code)
+            ? "GM chưa đưa đủ bốn gợi ý sau giao tranh. Kết quả chiến đấu đã được giữ nguyên; nhấn Retry để tạo lại lời kể."
+            : "Lượt chưa hoàn tất. State và roll đang chờ được giữ nguyên; nhấn Retry.");
         }
       });
     }
