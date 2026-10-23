@@ -868,3 +868,14 @@ test('snapshot is repainted once after Core commit releases a frozen camera',()=
   assert.equal(r.ctx.backroomFreezeSnapshot,false);
   assert.equal(painted,1,'the final Follower/Entity overlay must be rendered without a second turn');
 });
+
+
+test('failed action also repaints snapshot after releasing its camera freeze',()=>{
+  const r=runtime();
+  let painted=0;
+  r.ctx.backroomFreezeSnapshot=true;
+  r.ctx.backroomRefreshSnapshotVisuals=()=>{painted++;assert.equal(r.ctx.backroomFreezeSnapshot,false);};
+  r.ctx.backroomError('Failed writer call');
+  assert.equal(r.ctx.backroomFreezeSnapshot,false);
+  assert.equal(painted,1,'a failed pending action must not strand the previous Follower camera');
+});
