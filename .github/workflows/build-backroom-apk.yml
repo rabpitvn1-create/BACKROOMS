@@ -173,7 +173,11 @@ jobs:
           grep -q 'animation:none!important' apk-check/assets/combat-feedback-1193a.css
           grep -q 'completing=before&&before.active===true' apk-check/assets/combat-feedback-1193a.js
           grep -Fq '.snapshot[data-combat-focus] .snapshot-entity{' apk-check/assets/combat-feedback-1193a.css
-          grep -Fq 'display:block!important;left:0!important;right:auto!important' apk-check/assets/combat-feedback-1193a.css
+          grep -Fq 'display:block!important;right:auto!important' apk-check/assets/combat-feedback-1193a.css
+          ! grep -Fq 'left:0!important' apk-check/assets/combat-feedback-1193a.css
+          test -s apk-check/assets/avatars/tombstone.svg
+          cmp android-apk/app/src/main/assets/avatars/tombstone.svg apk-check/assets/avatars/tombstone.svg
+          grep -q 'gameOverPanel' apk-check/assets/index.html
           ! grep -q 'combat-switch-ring' apk-check/assets/combat-feedback-1193a.css
           test -s apk-check/assets/fx/hit-impact-sparks-v1.png
           cmp android-apk/app/src/main/assets/fx/hit-impact-sparks-v1.png apk-check/assets/fx/hit-impact-sparks-v1.png
@@ -383,7 +387,10 @@ jobs:
           ! unzip -p Backroom-1.2.0.0.40-verified.apk assets/combat-feedback-1193a.css | grep -q 'combat-party-appear'
           unzip -p Backroom-1.2.0.0.40-verified.apk assets/combat-feedback-1193a.js | grep -q 'completing=before&&before.active===true'
           unzip -p Backroom-1.2.0.0.40-verified.apk assets/combat-feedback-1193a.css | grep -Fq '.snapshot[data-combat-focus] .snapshot-entity{'
-          unzip -p Backroom-1.2.0.0.40-verified.apk assets/combat-feedback-1193a.css | grep -Fq 'display:block!important;left:0!important;right:auto!important'
+          unzip -p Backroom-1.2.0.0.40-verified.apk assets/combat-feedback-1193a.css | grep -Fq 'display:block!important;right:auto!important'
+          ! unzip -p Backroom-1.2.0.0.40-verified.apk assets/combat-feedback-1193a.css | grep -Fq 'left:0!important'
+          unzip -p Backroom-1.2.0.0.40-verified.apk assets/avatars/tombstone.svg > verified-tombstone.svg
+          cmp android-apk/app/src/main/assets/avatars/tombstone.svg verified-tombstone.svg
           ! unzip -p Backroom-1.2.0.0.40-verified.apk assets/combat-feedback-1193a.css | grep -q 'combat-switch-ring'
           unzip -p Backroom-1.2.0.0.40-verified.apk assets/fx/hit-impact-sparks-v1.png > verified-hit-impact-sparks.png
           cmp android-apk/app/src/main/assets/fx/hit-impact-sparks-v1.png verified-hit-impact-sparks.png
