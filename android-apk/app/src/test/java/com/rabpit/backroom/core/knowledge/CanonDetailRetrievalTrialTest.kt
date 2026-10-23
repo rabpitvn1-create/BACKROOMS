@@ -43,15 +43,29 @@ class CanonDetailRetrievalTrialTest {
     val db = database()
     assertTrue(db.records.size > 89)
     assertTrue(db.records.values.count { it.kind == "authored-detail" } >= 100)
+    val caoMinhVoiceOverrides = setOf(
+      "CHAR.CAO_MINH.DETAIL.DIALOGUE.017.01",
+      "CHAR.CAO_MINH.DETAIL.DIALOGUE.017.02",
+      "CHAR.CAO_MINH.DETAIL.DIALOGUE.017.03"
+    )
     assertTrue(db.records.values.filter { it.kind == "authored-detail" }.all {
+      val authorOverride = it.id in caoMinhVoiceOverrides &&
+        it.source.document == "https://github.com/rabpitvn1-create/BACKROOMS/pull/657" &&
+        it.source.anchor == "Cao Minh Chí Tôn xưng hô · Author override 23/10/2026" &&
+        it.text.contains("AUTHOR OVERRIDE 2026-10-23")
       (it.source.document.startsWith("Google Drive /Novel/Asset/") ||
         it.id.startsWith("LEVEL.00.ZONE.") &&
           it.source.document in setOf(
             "android-apk/LEVEL_0_EIGHT_ZONES_CANON.md",
-            "android-apk/LEVEL_0_TWENTY_NINE_SUBZONES_CANON.md")) &&
+            "android-apk/LEVEL_0_TWENTY_NINE_SUBZONES_CANON.md") ||
+        authorOverride) &&
         it.text.isNotBlank() && it.text.length < 800 &&
         !it.text.contains("[WRITER-SECRET]")
     })
+    assertEquals(caoMinhVoiceOverrides,
+      db.records.values.filter {
+        it.source.document == "https://github.com/rabpitvn1-create/BACKROOMS/pull/657"
+      }.map { it.id }.toSet())
     assertTrue(db.records.containsKey("CHAR.CAO_MINH.AUTHORED"))
   }
 
