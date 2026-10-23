@@ -1,0 +1,14 @@
+Backroom 1.2.0.0.39 Debug
+
+- Android versionCode 112; versionName 1.2.0.0.39; applicationId com.rabpit.backroom.
+- Cập nhật nền tảng Level 0 V2: sơ đồ khám phá, WorldGraph lưu tiến trình, Explorer và hành động do Game Core xác nhận (#654).
+- Dungeon: huấn luyện Follower theo 5 mốc thời gian, thưởng EXP và sách cộng chỉ số; sửa hiển thị overlay toàn thân Lucia Lục và Trác Lâm (#654, #658, #661).
+- Giao tiếp: mở khung thoại nhân vật chuyên biệt, mở rộng tuyến truyện Follower và hội thoại Diệp Minh / Lục Trầm Hắc Hóa theo các điều kiện encounter do Core xác nhận (#655, #657).
+- Khôi phục encounter và đối thoại cốt truyện Lục Trầm Hắc Hóa khi Core chuyển ngay sang combat, kể cả trường hợp tải lại (#660).
+- Đồng bộ avatar/overlay Lucia, bổ sung bóng chân và thay các nền avatar xanh phẳng bằng cảnh minh họa phù hợp (#659).
+- Tăng giới hạn an toàn WebView đối với điều hướng ngoài game và truy cập tài nguyên mạng; escape dấu nháy trong thuộc tính HTML được sinh động (#661).
+- Giữ nguyên phạm vi Core/Canon của các bản sửa bảo mật, không bổ sung chức năng chuyển đổi save cũ.
+
+Lưu ý cài đặt:
+- Đây là APK debug của quy trình GitHub Actions, không phải bản phát hành ký bằng keystore phân phối ổn định. Không bảo đảm có thể cập nhật đè lên bản debug được ký bằng chứng thư khác. Tuyệt đối không gỡ phiên bản đang có chỉ để cài bản mới khi chưa bảo toàn dữ liệu hiện tại.
+- APK chưa được xác nhận bằng thử nghiệm trực tiếp trên điện thoại Android của người dùng; kiểm thử tự động và kiểm tra tính toàn vẹn sẽ do pipeline phát hành thực hiện.
