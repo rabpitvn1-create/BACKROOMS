@@ -650,7 +650,7 @@ test('edited follower history respects dynamic Core state and does not assert in
     catherine:/tiếng chuông thứ mười ba/,
     janet:/dây thép gai/,
     nguyen_quoc_nam:/Dương vẽ cả nhà/,
-    lucia:/Đồng bằng sông Cửu Long/,
+    lucia:/thẳng tính.*đề phòng ngay từ đầu/,
     hua_tieu_lan:/không phải Anh Tý/,
     luc_tram:/vết xước/,
     trac_lam:/ECHO-17/,
