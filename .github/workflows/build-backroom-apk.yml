@@ -127,7 +127,7 @@ jobs:
           BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
           "$BUILD_TOOLS/apksigner" verify --verbose --print-certs Backroom-1.2.0.0.40.apk
           "$BUILD_TOOLS/aapt" dump badging Backroom-1.2.0.0.40.apk | grep -q "package: name='com.rabpit.backroom'"
-          "$BUILD_TOOLS/aapt" dump badging Backroom-1.2.0.0.40.apk | grep -q "versionCode='112' versionName='1.2.0.0.40'"
+          "$BUILD_TOOLS/aapt" dump badging Backroom-1.2.0.0.40.apk | grep -q "versionCode='113' versionName='1.2.0.0.40'"
           "$BUILD_TOOLS/aapt" dump badging Backroom-1.2.0.0.40.apk | grep -q "launchable-activity: name='com.rabpit.backroom.MainActivity'"
           "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 Backroom-1.2.0.0.40.apk
           rm -rf apk-check && mkdir apk-check
