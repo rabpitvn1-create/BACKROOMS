@@ -36,9 +36,9 @@ object StoryContinuityReducer {
     recordCommunicationChange(before, after, continuity, turn, witnesses)
     recordRegistryDiscoveries(before, after, continuity, turn, witnesses, "entityRegistry", "entity")
     recordRegistryDiscoveries(before, after, continuity, turn, witnesses, "survivorRegistry", "survivor")
-    recordCharacterContinuity(before, after, continuity, turn, "iris")
+    recordCharacterContinuity(before, after, continuity, turn, "luc-tram")
     recordCharacterContinuity(before, after, continuity, turn, "syvial")
-    recordRelationshipState(before, after, continuity, turn, "iris")
+    recordRelationshipState(before, after, continuity, turn, "luc-tram")
     recordRelationshipState(before, after, continuity, turn, "syvial")
     updateReunionThreads(after, continuity, turn)
 
@@ -56,12 +56,12 @@ object StoryContinuityReducer {
 
   private fun syncMainObjectives(after: JSONObject, continuity: JSONObject) {
     val flags = after.optJSONObject("flags") ?: return
-    val iris = lower(flags.optJSONObject("iris")?.optString("continuity", "").orEmpty())
+    val lucTram = lower(flags.optJSONObject("luc-tram")?.optString("continuity", "").orEmpty())
     val syvial = lower(flags.optJSONObject("syvial")?.optString("continuity", "").orEmpty())
-    if (!iris.contains("separated") && !syvial.contains("separated") && continuity.optJSONArray("objectives") == null) return
+    if (!lucTram.contains("separated") && !syvial.contains("separated") && continuity.optJSONArray("objectives") == null) return
     val objectives = continuity.optJSONArray("objectives") ?: JSONArray().also { continuity.put("objectives", it) }
     upsertById(objectives, JSONObject().put("id", "MAIN.SURVIVE").put("status", "active").put("fact", "Survive and learn the current environment."))
-    syncReunionObjective(objectives, after, "iris", iris)
+    syncReunionObjective(objectives, after, "luc-tram", lucTram)
     syncReunionObjective(objectives, after, "syvial", syvial)
     upsertById(objectives, JSONObject().put("id", "MAIN.EXIT").put("status", "active").put("fact", "Seek a way out only when gameplay evidence supports one."))
   }
@@ -70,7 +70,7 @@ object StoryContinuityReducer {
     val id = "MAIN.REUNITE.${actor.uppercase(Locale.ROOT)}"
     when {
       partyIds(after).contains(actor) -> upsertById(objectives, JSONObject()
-        .put("id", id).put("status", "resolved").put("fact", "$actor is currently reunited with Kai's party."))
+        .put("id", id).put("status", "resolved").put("fact", "$actor is currently reunited with Cao Minh's party."))
       continuityState.contains("separated") -> upsertById(objectives, JSONObject()
         .put("id", id).put("status", "active").put("fact", "Determine $actor's condition and re-establish a route if possible."))
     }
@@ -162,7 +162,7 @@ object StoryContinuityReducer {
   private fun updateReunionThreads(after: JSONObject, continuity: JSONObject, turn: Int) {
     val flags = after.optJSONObject("flags") ?: return
     val threads = continuity.optJSONArray("unresolvedThreads") ?: JSONArray().also { continuity.put("unresolvedThreads", it) }
-    listOf("iris", "syvial").forEach { actor ->
+    listOf("luc-tram", "syvial").forEach { actor ->
       val state = lower(flags.optJSONObject(actor)?.optString("continuity", "").orEmpty())
       val id = "THREAD.REUNITE.${actor.uppercase(Locale.ROOT)}"
       if (state.contains("separated")) {
@@ -182,8 +182,8 @@ object StoryContinuityReducer {
   }
 
   private fun currentWitnesses(state: JSONObject): JSONArray {
-    val out = JSONArray().put("kai")
-    partyIds(state).sorted().filter { it != "kai" }.forEach { out.put(it) }
+    val out = JSONArray().put("cao-minh")
+    partyIds(state).sorted().filter { it != "cao-minh" }.forEach { out.put(it) }
     return out
   }
 

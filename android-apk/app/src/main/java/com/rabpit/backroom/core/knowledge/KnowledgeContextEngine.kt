@@ -119,7 +119,7 @@ object KnowledgeContextEngine {
   ) {
     private val selected = linkedMapOf<String, Record>()
     private val reasons = linkedMapOf<String, String>()
-    private val presentActors = linkedSetOf("kai")
+    private val presentActors = linkedSetOf("cao-minh")
     private val actionText = normalize(action)
     private val sceneText = normalize(
       listOf(
@@ -172,7 +172,7 @@ object KnowledgeContextEngine {
         "WRITING.KNOWLEDGE_BOUNDARY",
         "WRITING.COMPETENCE",
         "WRITING.PLAYER_AGENCY",
-        "CHAR.KAI.RUNTIME_CORE"
+        "CHAR.CAO_MINH.RUNTIME_CORE"
       ).forEach { add(it, "mandatory hard context") }
     }
 
@@ -182,39 +182,37 @@ object KnowledgeContextEngine {
     }
 
     private fun addPresentRuntimeCards() {
-      if ("iris" in presentActors) add("CHAR.IRIS.RUNTIME_CORE", "present actor runtime core")
+      if ("luc-tram" in presentActors) add("CHAR.LUC_TRAM.RUNTIME_CORE", "present actor runtime core")
       if ("syvial" in presentActors) add("CHAR.SYVIAL.RUNTIME_CORE", "present actor runtime core")
     }
 
     private fun addRelationships() {
-      if ("iris" in presentActors) {
-        add("REL.KAI.IRIS.BASELINE", "present relationship edge")
-        add("ADDR.IRIS.KAI", "present address lock")
+      if ("luc-tram" in presentActors) {
+        add("REL.CAO_MINH.LUC_TRAM.BASELINE", "present relationship edge")
+        add("ADDR.LUC_TRAM.CAO_MINH", "present address lock")
       }
       if ("syvial" in presentActors) {
-        add("REL.KAI.SYVIAL.BASELINE", "present relationship edge")
-        add("ADDR.SYVIAL.KAI", "present address lock")
+        add("REL.CAO_MINH.SYVIAL.BASELINE", "present relationship edge")
+        add("ADDR.SYVIAL.CAO_MINH", "present address lock")
       }
-      if ("iris" in presentActors && "syvial" in presentActors) add("REL.IRIS.SYVIAL.BASELINE", "present relationship edge")
+      if ("luc-tram" in presentActors && "syvial" in presentActors) add("REL.LUC_TRAM.SYVIAL.BASELINE", "present relationship edge")
     }
 
     private fun addDirectStructuredLookups() {
       val direct = linkedSetOf<String>()
-      if (hasAny(actionText, "argus", "terrain read")) direct += "CHAR.IRIS.ARGUS"
-      if (hasAny(actionText, "thousandfold")) direct += "CHAR.IRIS.THOUSANDFOLD"
-      if (hasAny(actionText, "ivory", "ebony")) direct += "CHAR.IRIS.IVORY_EBONY"
-      if (hasAny(actionText, "field mednet", "field galley")) direct += "CHAR.IRIS.SUPPORT"
+      if (hasAny(actionText, "thiên kiếm linh tâm", "linh tâm")) direct += "CHAR.LUC_TRAM.THIEN_KIEM_LINH_TAM"
+      if (hasAny(actionText, "kiếm tâm")) direct += "CHAR.LUC_TRAM.THIEN_KIEM_LINH_TAM"
+      if (hasAny(actionText, "tịch quang")) direct += "CHAR.LUC_TRAM.TICH_QUANG"
+      if (hasAny(actionText, "kiếm khải", "thiên cơ bạch kim kiếm khải")) direct += "CHAR.LUC_TRAM.THIEN_CO_BACH_KIM_KIEM_KHAI"
       if (hasAny(actionText, "godkiller override", "twenty-four severance")) direct += "CHAR.SYVIAL.GODKILLER_OVERRIDE"
       else if (hasAny(actionText, "godkiller")) direct += "CHAR.SYVIAL.GODKILLER"
       if (hasAny(actionText, "lucifer core")) direct += "CHAR.SYVIAL.LUCIFER_CORE"
-      if (hasAny(actionText, "sparda core")) direct += "CHAR.KAI.SPARDA_CORE"
-      if (hasAny(actionText, "guilty crown", "override")) direct += "CHAR.KAI.GUILTY_CROWN_OVERRIDE"
-      if (hasAny(actionText, "white wraith", "magnum")) direct += "CHAR.KAI.WHITE_WRAITH"
-      if (hasAny(actionText, "omnivault", "nhẫn vạn tàng", "scan", "hoàn nguyên", "restore")) direct += "CHAR.KAI.OMNIVAULT"
-      if (hasAny(actionText, "devil trigger")) {
-        direct += "CHAR.KAI.DEVIL_TRIGGER"
-        if ("syvial" in presentActors) direct += "CHAR.SYVIAL.DEVIL_TRIGGER"
-      }
+      if (hasAny(actionText, "vạn quỷ ma tâm", "ma tâm")) direct += "CHAR.CAO_MINH.VAN_QUY_MA_TAM"
+      if (hasAny(actionText, "huyết ma nhị thập tứ trảm", "nhị thập tứ trảm")) direct += "CHAR.CAO_MINH.HUYET_MA_NHI_THAP_TU_TRAM"
+      if (hasAny(actionText, "huyết ma kiếm")) direct += "CHAR.CAO_MINH.HUYET_MA_KIEM"
+      if (hasAny(actionText, "vạn khố giới chỉ", "giới chỉ", "nhẫn vạn tàng", "scan", "hoàn nguyên", "restore")) direct += "CHAR.CAO_MINH.VAN_KHO_GIOI_CHI"
+      if (hasAny(actionText, "vạn quỷ ma thân", "ma thân")) direct += "CHAR.CAO_MINH.VAN_QUY_MA_THAN"
+      if (hasAny(actionText, "devil trigger") && "syvial" in presentActors) direct += "CHAR.SYVIAL.DEVIL_TRIGGER"
       direct.forEach { add(it, "direct structured lookup") }
 
       // Exact entity/item terms use tag indexes, not semantic retrieval.
@@ -239,7 +237,7 @@ object KnowledgeContextEngine {
 
       affordances.forEach { affordance ->
         db.affordanceIndex[affordance].orEmpty().forEach { id ->
-          if (id.startsWith("CHAR.IRIS.") && "iris" !in presentActors) return@forEach
+          if (id.startsWith("CHAR.LUC_TRAM.") && "luc-tram" !in presentActors) return@forEach
           if (id.startsWith("CHAR.SYVIAL.") && "syvial" !in presentActors) return@forEach
           add(id, "scene affordance: $affordance")
         }
@@ -309,12 +307,12 @@ object KnowledgeContextEngine {
           when (val value = party.opt(i)) {
             is JSONObject -> {
               val id = normalize(value.optString("id", value.optString("name", "")))
-              if (id.contains("iris")) presentActors += "iris"
+              if (id.contains("luc-tram")) presentActors += "luc-tram"
               if (id.contains("syvial")) presentActors += "syvial"
             }
             else -> {
               val id = normalize(value?.toString().orEmpty())
-              if (id.contains("iris")) presentActors += "iris"
+              if (id.contains("luc-tram")) presentActors += "luc-tram"
               if (id.contains("syvial")) presentActors += "syvial"
             }
           }
@@ -325,7 +323,7 @@ object KnowledgeContextEngine {
         for (i in 0 until details.length()) {
           val member = details.optJSONObject(i) ?: continue
           val id = normalize(member.optString("id", member.optString("name", "")))
-          if (id.contains("iris")) presentActors += "iris"
+          if (id.contains("luc-tram")) presentActors += "luc-tram"
           if (id.contains("syvial")) presentActors += "syvial"
         }
       }
@@ -354,7 +352,7 @@ object KnowledgeContextEngine {
       if (flags != null) {
         val continuity = JSONObject()
         listOf(
-          "communication", "exploration", "iris", "syvial", "reunionPath",
+          "communication", "exploration", "luc-tram", "syvial", "reunionPath",
           "survivorRegistry", "entityRegistry", "survivorsConfirmed", "entitiesConfirmedLocal",
           "entityEncounterKey", "currentLevel", "storyContinuity"
         ).forEach { key -> if (flags.has(key)) continuity.put(key, flags.get(key)) }
@@ -378,9 +376,9 @@ object KnowledgeContextEngine {
 
     private fun isMainCampaignSeparated(flags: JSONObject?): Boolean {
       if (flags == null) return false
-      val iris = normalize(flags.optJSONObject("iris")?.optString("continuity", "").orEmpty())
+      val lucTram = normalize(flags.optJSONObject("luc-tram")?.optString("continuity", "").orEmpty())
       val syvial = normalize(flags.optJSONObject("syvial")?.optString("continuity", "").orEmpty())
-      return iris.contains("separated") || syvial.contains("separated") ||
+      return lucTram.contains("separated") || syvial.contains("separated") ||
         (presentActors.size == 1 && state.optInt("turn", 1) <= 3)
     }
   }

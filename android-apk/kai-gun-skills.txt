@@ -1,35 +1,39 @@
-KAI AKECHI / TWILIGHT — AUTOMATIC GUN SKILLS ADDENDUM
+CAO MINH — VẠN GIỚI MA TÔN — AUTOMATIC SWORD SKILLS ADDENDUM
 STATUS: HARD CANON / GAMEPLAY LOCK
+SOURCE: CAO_MINH_CODEX — GAMEPLAY ADDENDUM R15 (CAO-GAMEPLAY-R15-01)
 
-Các kỹ năng dưới đây là kỹ năng xạ thủ tự động của Kai trong CombatRuntime. Mỗi kỹ năng có roll kích hoạt riêng theo mỗi combat turn hợp lệ. Guilty Crown Override giữ quyền ưu tiên ở turn thứ 3 và các bội số của 3; trong turn Override, bộ kỹ năng tự động này không roll để không chồng cơ chế lên Ultimate 24 phát.
+GHI CHÚ THAY THẾ: Tệp này trước đây chứa bộ kỹ năng SÚNG tự động của Kai Akechi. Cao Minh là Ma Đạo Kiếm Tu, không dùng súng; toàn bộ nội dung đã được thay bằng bộ kiếm kỹ tự động tương ứng của Cao Minh theo Gameplay Addendum R15 trong Codex của hắn. Tên tệp giữ nguyên trong đợt này; việc đổi tên tệp xử lý riêng.
 
-1. THE LAST REQUIEM
-- Kai bắn liên tục đúng 4 phát vào khớp vai của mục tiêu.
+Các kỹ năng dưới đây là kiếm kỹ tự động của Cao Minh trong CombatRuntime. Mỗi kỹ năng có roll kích hoạt riêng theo mỗi combat turn hợp lệ. Huyết Ma Nhị Thập Tứ Trảm giữ quyền ưu tiên ở turn thứ 3 và các bội số của 3; trong turn tuyệt kỹ, bộ kỹ năng tự động này không roll để không chồng cơ chế lên Ultimate 24 trảm.
+
+1. HUYẾT MA TỨ LIÊN
+- Cao Minh tung liên tục đúng 4 trảm ma kiếm vào các điểm nối trên thân thể / hộ thể của mục tiêu.
 - Tự động kích hoạt với xác suất 30% mỗi combat turn hợp lệ.
-- Gây tổng cộng 170% DMG của White Wraith / weapon damage hiện tại; 170% là tổng damage của kỹ năng, không nhân thêm lần nữa theo 4 viên đạn.
+- Gây tổng cộng 170% DMG của Huyết Ma Kiếm / weapon damage hiện tại; 170% là tổng damage của kỹ năng, không nhân thêm lần nữa theo 4 trảm.
 - Khi kích hoạt thành công, mục tiêu nhận Bleeding trong 3 combat turn tiếp theo.
 - Mỗi turn Bleeding gây damage bằng 5% Max HP của mục tiêu.
 - Bleeding tái kích hoạt sẽ làm mới thời lượng về 3 turn, không cộng dồn nhiều stack song song.
 
-2. SILENT LULLABY
-- Kai nhảy lên cao và bắn liên tục đúng 4 viên vào cùng một điểm trên ngực mục tiêu.
+2. MA TÂM TRẤN HỒN
+- Cao Minh đạp hư bốc lên cao rồi giáng liên tục đúng 4 đường ma kiếm vào cùng một điểm trên ngực mục tiêu.
 - Tự động kích hoạt với xác suất 20% mỗi combat turn hợp lệ.
-- Gây tổng cộng 130% DMG của White Wraith / weapon damage hiện tại.
-- Gây Stun 1 turn. Mục tiêu bị Stun mất phản ứng / phản công của chính combat turn đó.
+- Gây tổng cộng 130% DMG của Huyết Ma Kiếm / weapon damage hiện tại.
+- Gây Stun 1 turn. Mục tiêu bị Stun mất phản ứng / phản công của chính combat turn kích hoạt; không mặc định kéo dài sang combat turn kế tiếp.
 
-3. SALVATION
-- Kai ném súng về phía sau đối thủ, dịch chuyển tức thời đến vị trí của súng rồi bắn nhanh đúng 2 phát.
+3. HUYẾT ẢNH MA ĐỘN
+- Cao Minh ngự Huyết Ma Kiếm lướt qua đối thủ, dùng Huyết Ảnh Ma Độn xuất hiện tức thời cạnh kiếm rồi chém nhanh đúng 2 kiếm.
 - Tự động kích hoạt với xác suất 20% mỗi combat turn hợp lệ.
-- Gây tổng cộng 147% DMG của White Wraith / weapon damage hiện tại.
+- Gây tổng cộng 147% DMG của Huyết Ma Kiếm / weapon damage hiện tại.
 
-4. QUICK STEP
-- Kai liên tục dịch chuyển cự ly ngắn để phá khóa mục tiêu và đổi góc né.
+4. THIÊN MA BỘ
+- Cao Minh liên tục đổi nhịp thân pháp bằng ma văn dưới chân để phá khóa mục tiêu và đổi góc né.
 - Tự động kích hoạt với xác suất 30% mỗi combat turn hợp lệ.
-- Khi kích hoạt, Kai nhận +50 điểm phần trăm Evasion đối với đòn phản công thông thường của Entity.
+- Khi kích hoạt, Cao Minh nhận +50 điểm phần trăm Evasion đối với đòn phản công thông thường của Entity.
 - Hiệu lực kéo dài 3 combat turn tính cả turn kích hoạt; tái kích hoạt làm mới thời lượng về 3 turn.
-- Quick Step không vô hiệu hóa sát thương diện rộng bắt buộc của Devils And Gold; Silent Lullaby vẫn có thể Stun để chặn phản ứng của turn hiện tại.
+- Thiên Ma Bộ không tự vô hiệu hóa sát thương diện rộng bắt buộc của cơ chế khác; Ma Tâm Trấn Hồn vẫn có thể Stun để chặn phản ứng của turn hiện tại.
 
 HARD LOCK GAMEPLAY
-- Các roll The Last Requiem, Silent Lullaby, Salvation và Quick Step độc lập với nhau trong một turn hợp lệ, vì vậy nhiều kỹ năng có thể cùng kích hoạt nếu từng roll đều thành công.
+- Các roll Huyết Ma Tứ Liên, Ma Tâm Trấn Hồn, Huyết Ảnh Ma Độn và Thiên Ma Bộ độc lập với nhau trong một turn hợp lệ, vì vậy nhiều kỹ năng có thể cùng kích hoạt nếu từng roll đều thành công.
 - Kỹ năng đã kích hoạt không thực hiện thêm accuracy/evasion roll riêng; proc thành công đồng nghĩa kỹ năng trúng mục tiêu.
-- Không thay đổi Guilty Crown Override: đúng 24 phát, mỗi phát 10 HP trong gameplay hiện tại, Accuracy 200%, bỏ qua toàn bộ hiệu ứng né, tự động mỗi 3 combat turn.
+- Không thay đổi Huyết Ma Nhị Thập Tứ Trảm: đúng 24 trảm trong thời gian ngoại giới dừng hoàn toàn, mỗi trảm 10 HP trong gameplay hiện tại, Accuracy 200%, bỏ qua toàn bộ hiệu ứng né, tự động mỗi 3 combat turn.
+- Các tỷ lệ, damage và hiệu ứng ở addendum này chỉ là projection gameplay; không được dùng để bịa giới hạn ma nguyên, cảnh giới, phản phệ hoặc tri thức của Cao Minh trong văn xuôi.

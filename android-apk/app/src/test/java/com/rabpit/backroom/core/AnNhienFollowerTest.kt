@@ -60,22 +60,22 @@ class AnNhienFollowerTest {
 
   @Test fun followerCannotBeRemovedSeparatedOrMadeLeader() {
     val base = GameState.initial()
-    val state = base.copy(party = base.party.copy(memberIds = listOf(KAI_ID, AN_NHIEN_ID)))
+    val state = base.copy(party = base.party.copy(memberIds = listOf(CAO_MINH_ID, AN_NHIEN_ID)))
 
     val remove = PartyEngine.execute(state, PartyCommand(
-      "remove-an", state.turn.currentTurnId, KAI_ID, AN_NHIEN_ID, CommandSource.SYSTEM, PartyCommand.Operation.REMOVE
+      "remove-an", state.turn.currentTurnId, CAO_MINH_ID, AN_NHIEN_ID, CommandSource.SYSTEM, PartyCommand.Operation.REMOVE
     ))
     assertFalse(remove.applied)
     assertEquals("an_nhien_follower_locked", remove.validation.reason)
 
     val separate = PartyEngine.execute(state, PartyCommand(
-      "separate-an", state.turn.currentTurnId, KAI_ID, AN_NHIEN_ID, CommandSource.SYSTEM, PartyCommand.Operation.SEPARATE
+      "separate-an", state.turn.currentTurnId, CAO_MINH_ID, AN_NHIEN_ID, CommandSource.SYSTEM, PartyCommand.Operation.SEPARATE
     ))
     assertFalse(separate.applied)
     assertEquals("an_nhien_follower_locked", separate.validation.reason)
 
     val leader = PartyEngine.execute(state, PartyCommand(
-      "leader-an", state.turn.currentTurnId, KAI_ID, AN_NHIEN_ID, CommandSource.SYSTEM, PartyCommand.Operation.SET_LEADER
+      "leader-an", state.turn.currentTurnId, CAO_MINH_ID, AN_NHIEN_ID, CommandSource.SYSTEM, PartyCommand.Operation.SET_LEADER
     ))
     assertFalse(leader.applied)
     assertEquals("an_nhien_cannot_lead", leader.validation.reason)

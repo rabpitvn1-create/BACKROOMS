@@ -28,17 +28,17 @@ class CommandResolver(
       GameIntent.TRANSFER_ITEM -> item?.let { itemCommand(commandId, turnId, actor, target, source, ItemCommand.Operation.TRANSFER, it, quantity) }
       GameIntent.EQUIP_ITEM -> item?.let { itemCommand(commandId, turnId, actor, target, source, ItemCommand.Operation.EQUIP, it, quantity, "weapon") }
       GameIntent.UNEQUIP_ITEM -> item?.let { itemCommand(commandId, turnId, actor, target, source, ItemCommand.Operation.UNEQUIP, it, quantity, "weapon") }
-      GameIntent.OMNIVAULT_STORE -> item?.let { vaultCommand(commandId, turnId, actor, source, OmnivaultCommand.Operation.STORE, it, quantity) }
-      GameIntent.OMNIVAULT_WITHDRAW -> item?.let { vaultCommand(commandId, turnId, actor, source, OmnivaultCommand.Operation.WITHDRAW, it, quantity) }
-      GameIntent.OMNIVAULT_SCAN -> item?.let { vaultCommand(commandId, turnId, actor, source, OmnivaultCommand.Operation.SCAN, it, quantity) }
-      GameIntent.OMNIVAULT_COPY -> item?.let { vaultCommand(commandId, turnId, actor, source, OmnivaultCommand.Operation.COPY, it, quantity) }
-      GameIntent.OMNIVAULT_RESTORE -> item?.let { vaultCommand(commandId, turnId, actor, source, OmnivaultCommand.Operation.RESTORE, it, quantity) }
+      GameIntent.VAN_KHO_GIOI_CHI_STORE -> item?.let { vaultCommand(commandId, turnId, actor, source, VanKhoGioiChiCommand.Operation.STORE, it, quantity) }
+      GameIntent.VAN_KHO_GIOI_CHI_WITHDRAW -> item?.let { vaultCommand(commandId, turnId, actor, source, VanKhoGioiChiCommand.Operation.WITHDRAW, it, quantity) }
+      GameIntent.VAN_KHO_GIOI_CHI_SCAN -> item?.let { vaultCommand(commandId, turnId, actor, source, VanKhoGioiChiCommand.Operation.SCAN, it, quantity) }
+      GameIntent.VAN_KHO_GIOI_CHI_COPY -> item?.let { vaultCommand(commandId, turnId, actor, source, VanKhoGioiChiCommand.Operation.COPY, it, quantity) }
+      GameIntent.VAN_KHO_GIOI_CHI_RESTORE -> item?.let { vaultCommand(commandId, turnId, actor, source, VanKhoGioiChiCommand.Operation.RESTORE, it, quantity) }
       GameIntent.PARTY_JOIN_REQUEST -> target?.let { PartyCommand(commandId, turnId, actor, it, source, PartyCommand.Operation.ADD) }
       GameIntent.PARTY_REMOVE -> target?.let { PartyCommand(commandId, turnId, actor, it, source, PartyCommand.Operation.REMOVE) }
       GameIntent.PARTY_FOLLOW -> target?.let { PartyCommand(commandId, turnId, actor, it, source, PartyCommand.Operation.FOLLOW) }
       GameIntent.PARTY_SEPARATE -> target?.let { PartyCommand(commandId, turnId, actor, it, source, PartyCommand.Operation.SEPARATE) }
       GameIntent.INVENTORY_QUERY -> QueryCommand(commandId, turnId, actor, source = source, type = QueryCommand.Type.INVENTORY)
-      GameIntent.OMNIVAULT_QUERY -> QueryCommand(commandId, turnId, actor, source = source, type = QueryCommand.Type.OMNIVAULT)
+      GameIntent.VAN_KHO_GIOI_CHI_QUERY -> QueryCommand(commandId, turnId, actor, source = source, type = QueryCommand.Type.VAN_KHO_GIOI_CHI)
       GameIntent.PARTY_QUERY -> QueryCommand(commandId, turnId, actor, source = source, type = QueryCommand.Type.PARTY)
       GameIntent.CHARACTER_QUERY -> QueryCommand(commandId, turnId, actor, target, source, QueryCommand.Type.CHARACTER)
       GameIntent.STATUS_QUERY -> QueryCommand(commandId, turnId, actor, target, source, QueryCommand.Type.STATUS)
@@ -49,8 +49,8 @@ class CommandResolver(
   private fun itemCommand(id: String, turn: String, actor: String, target: String?, source: CommandSource, operation: ItemCommand.Operation, item: Pair<String, String>, quantity: Int, slot: String? = null) =
     ItemCommand(id, turn, actor, target, source, operation, item.first, item.second, quantity, slot)
 
-  private fun vaultCommand(id: String, turn: String, actor: String, source: CommandSource, operation: OmnivaultCommand.Operation, item: Pair<String, String>, quantity: Int) =
-    OmnivaultCommand(id, turn, actor, source = source, operation = operation, itemId = item.first, itemName = item.second, quantity = quantity, timestampEpochMs = System.currentTimeMillis())
+  private fun vaultCommand(id: String, turn: String, actor: String, source: CommandSource, operation: VanKhoGioiChiCommand.Operation, item: Pair<String, String>, quantity: Int) =
+    VanKhoGioiChiCommand(id, turn, actor, source = source, operation = operation, itemId = item.first, itemName = item.second, quantity = quantity, timestampEpochMs = System.currentTimeMillis())
 
   private fun stableCommandId(turnId: String, index: Int, clause: String): String {
     val digest = MessageDigest.getInstance("SHA-256").digest("$turnId|$index|${clause.trim().lowercase()}".toByteArray())

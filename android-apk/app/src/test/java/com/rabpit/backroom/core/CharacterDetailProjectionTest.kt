@@ -5,35 +5,35 @@ import org.junit.Test
 
 class CharacterDetailProjectionTest {
   @Test fun partyProjectionKeepsPartyOrderLeaderAndSubjectiveTime() {
-    val kai = CharacterState(KAI_ID, "Kai Akechi", avatarRef = "avatars/kai.png")
-    val iris = CharacterState("iris", "Iris", avatarRef = "avatars/iris.png")
+    val caoMinh = CharacterState(CAO_MINH_ID, "Cao Minh", avatarRef = "avatars/cao-minh.png")
+    val lucTram = CharacterState("luc-tram", "Lục Trầm", avatarRef = "avatars/luc-tram.png")
     val state = GameState.initial().copy(
-      characters = linkedMapOf(KAI_ID to kai, "iris" to iris),
-      party = PartyState(leaderId = KAI_ID, memberIds = listOf(KAI_ID, "iris"), maxMembers = 4),
+      characters = linkedMapOf(CAO_MINH_ID to caoMinh, "luc-tram" to lucTram),
+      party = PartyState(leaderId = CAO_MINH_ID, memberIds = listOf(CAO_MINH_ID, "luc-tram"), maxMembers = 4),
       time = GameTimeState(elapsedSubjectiveMinutes = 845L)
     )
 
     val projected = CharacterDetailProjector.projectParty(state)
 
-    assertEquals(KAI_ID, projected.leaderId)
+    assertEquals(CAO_MINH_ID, projected.leaderId)
     assertEquals(4, projected.maxMembers)
     assertEquals(845L, projected.elapsedSubjectiveMinutes)
-    assertEquals(listOf(KAI_ID, "iris"), projected.members.map { it.id })
+    assertEquals(listOf(CAO_MINH_ID, "luc-tram"), projected.members.map { it.id })
     assertTrue(projected.members[0].isLeader)
     assertFalse(projected.members[1].isLeader)
   }
 
   @Test fun characterProjectionUsesCharacterOwnedInventoryEquipmentStatusesAndPhysiology() {
-    val injury = StatusEffect("iris-injury", "INJURY", "event", persistent = true)
-    val unrelated = StatusEffect("kai-effect", "BUFF", "event")
-    val iris = CharacterState(
-      id = "iris",
-      name = "Iris",
-      avatarRef = "avatars/iris.png",
+    val injury = StatusEffect("luc-tram-injury", "INJURY", "event", persistent = true)
+    val unrelated = StatusEffect("cao-minh-effect", "BUFF", "event")
+    val lucTram = CharacterState(
+      id = "luc-tram",
+      name = "Lục Trầm",
+      avatarRef = "avatars/luc-tram.png",
       healthState = "INJURED",
       injuries = listOf("left_arm_cut"),
-      inventoryId = "iris-pack",
-      equipmentId = "iris-kit",
+      inventoryId = "luc-tram-pack",
+      equipmentId = "luc-tram-kit",
       statusIds = setOf(injury.id),
       physiology = PhysiologyState(
         minutesSinceFood = 800L,
@@ -43,29 +43,29 @@ class CharacterDetailProjectionTest {
       )
     )
     val state = GameState.initial().copy(
-      characters = mapOf(KAI_ID to GameState.initial().characters.getValue(KAI_ID), "iris" to iris),
-      party = PartyState(memberIds = listOf(KAI_ID, "iris")),
+      characters = mapOf(CAO_MINH_ID to GameState.initial().characters.getValue(CAO_MINH_ID), "luc-tram" to lucTram),
+      party = PartyState(memberIds = listOf(CAO_MINH_ID, "luc-tram")),
       inventories = mapOf(
-        KAI_ID to InventoryState(KAI_ID, mapOf("kai-item" to ItemStack("kai-item", "Kai Item"))),
-        "iris-pack" to InventoryState("iris-pack", mapOf(
+        CAO_MINH_ID to InventoryState(CAO_MINH_ID, mapOf("cao-minh-item" to ItemStack("cao-minh-item", "Cao Minh Item"))),
+        "luc-tram-pack" to InventoryState("luc-tram-pack", mapOf(
           "b" to ItemStack("b", "Zeta"),
           "a" to ItemStack("a", "Alpha")
         ))
       ),
       equipment = mapOf(
-        KAI_ID to GameState.initial().equipment.getValue(KAI_ID),
-        "iris-kit" to EquipmentState("iris-kit", mapOf("weapon" to "ivory", "armor" to "argus"))
+        CAO_MINH_ID to GameState.initial().equipment.getValue(CAO_MINH_ID),
+        "luc-tram-kit" to EquipmentState("luc-tram-kit", mapOf("weapon" to "tich-quang", "armor" to "thien-co-kiem-khai"))
       ),
       statuses = mapOf(injury.id to injury, unrelated.id to unrelated)
     )
 
-    val projected = CharacterDetailProjector.projectCharacter(state, "iris")!!
+    val projected = CharacterDetailProjector.projectCharacter(state, "luc-tram")!!
 
-    assertEquals("Iris", projected.name)
+    assertEquals("Lục Trầm", projected.name)
     assertEquals("INJURED", projected.healthState)
     assertEquals(listOf("left_arm_cut"), projected.injuries)
     assertEquals(listOf("Alpha", "Zeta"), projected.inventory.map { it.name })
-    assertEquals(mapOf("armor" to "argus", "weapon" to "ivory"), projected.equipment)
+    assertEquals(mapOf("armor" to "thien-co-kiem-khai", "weapon" to "tich-quang"), projected.equipment)
     assertEquals(listOf(injury), projected.statusEffects)
     assertEquals(PhysiologyBand.MILD, projected.physiology.hunger)
     assertEquals(PhysiologyBand.MILD, projected.physiology.thirst)
@@ -76,8 +76,8 @@ class CharacterDetailProjectionTest {
   @Test fun projectionDoesNotInventMissingData() {
     val unknown = CharacterState("survivor", "Survivor")
     val state = GameState.initial().copy(
-      characters = mapOf(KAI_ID to GameState.initial().characters.getValue(KAI_ID), "survivor" to unknown),
-      party = PartyState(memberIds = listOf(KAI_ID, "survivor"))
+      characters = mapOf(CAO_MINH_ID to GameState.initial().characters.getValue(CAO_MINH_ID), "survivor" to unknown),
+      party = PartyState(memberIds = listOf(CAO_MINH_ID, "survivor"))
     )
 
     val projected = CharacterDetailProjector.projectCharacter(state, "survivor")!!

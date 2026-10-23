@@ -13,7 +13,7 @@ class ActionRuntimeTest {
       stateAt(),
       sessionId = "S1",
       turnId = "TURN_1",
-      actorId = KAI_ID,
+      actorId = CAO_MINH_ID,
       kind = ActionKind.SEARCH,
       input = "Tìm kiếm khu vực hiện tại"
     )
@@ -29,7 +29,7 @@ class ActionRuntimeTest {
 
   @Test fun partialAdvanceUsesTimeEngineAndPhysiologyCounters() {
     val started = ActionRuntime.start(
-      stateAt(), "S1", "TURN_1", KAI_ID, ActionKind.SEARCH, "search", plannedMinutes = 20
+      stateAt(), "S1", "TURN_1", CAO_MINH_ID, ActionKind.SEARCH, "search", plannedMinutes = 20
     ).state
 
     val result = ActionRuntime.advance(started, "S1", "cp-1", 7)
@@ -38,7 +38,7 @@ class ActionRuntimeTest {
     assertEquals(7L, result.state.time.elapsedSubjectiveMinutes)
     assertEquals(7, result.state.time.lastAdvanceMinutes)
     assertEquals("action_search", result.state.time.lastAdvanceReason)
-    val physiology = result.state.characters.getValue(KAI_ID).physiology
+    val physiology = result.state.characters.getValue(CAO_MINH_ID).physiology
     assertEquals(7L, physiology.minutesSinceFood)
     assertEquals(7L, physiology.minutesSinceWater)
     assertEquals(7L, physiology.minutesAwake)
@@ -46,7 +46,7 @@ class ActionRuntimeTest {
   }
 
   @Test fun duplicateCheckpointNeverAdvancesTimeTwice() {
-    val started = ActionRuntime.start(stateAt(), "S1", "TURN_1", KAI_ID, ActionKind.EXPLORE, "explore").state
+    val started = ActionRuntime.start(stateAt(), "S1", "TURN_1", CAO_MINH_ID, ActionKind.EXPLORE, "explore").state
     val first = ActionRuntime.advance(started, "S1", "cp-1", 5)
     val second = ActionRuntime.advance(first.state, "S1", "cp-1", 5)
 
@@ -59,7 +59,7 @@ class ActionRuntimeTest {
 
   @Test fun checkpointCannotExceedPlannedDuration() {
     val started = ActionRuntime.start(
-      stateAt(), "S1", "TURN_1", KAI_ID, ActionKind.SEARCH, "search", plannedMinutes = 10
+      stateAt(), "S1", "TURN_1", CAO_MINH_ID, ActionKind.SEARCH, "search", plannedMinutes = 10
     ).state
     val first = ActionRuntime.advance(started, "S1", "cp-1", 6)
     val rejected = ActionRuntime.advance(first.state, "S1", "cp-2", 5)
@@ -71,7 +71,7 @@ class ActionRuntimeTest {
   }
 
   @Test fun searchCoveragePersistsAndWorldRevisionInvalidatesOldCoverage() {
-    val started = ActionRuntime.start(stateAt(), "S1", "TURN_1", KAI_ID, ActionKind.SEARCH, "search").state
+    val started = ActionRuntime.start(stateAt(), "S1", "TURN_1", CAO_MINH_ID, ActionKind.SEARCH, "search").state
     val first = ActionRuntime.markSearchCoverage(started, "S1", setOf("accessible_surface", "containers"))
     val second = ActionRuntime.markSearchCoverage(first.state, "S1", setOf("concealed_spaces"))
 
@@ -85,7 +85,7 @@ class ActionRuntimeTest {
 
   @Test fun interruptionKeepsPartialTimeAndCoverageThenReturnsControl() {
     val started = ActionRuntime.start(
-      stateAt(), "S1", "TURN_1", KAI_ID, ActionKind.SEARCH, "search", plannedMinutes = 30
+      stateAt(), "S1", "TURN_1", CAO_MINH_ID, ActionKind.SEARCH, "search", plannedMinutes = 30
     ).state
     val progressed = ActionRuntime.advance(started, "S1", "cp-1", 8).state
     val covered = ActionRuntime.markSearchCoverage(progressed, "S1", setOf("containers")).state
@@ -106,7 +106,7 @@ class ActionRuntimeTest {
       stateAt(),
       sessionId = "S1",
       turnId = "TURN_1",
-      actorId = KAI_ID,
+      actorId = CAO_MINH_ID,
       kind = ActionKind.EXPLORE,
       input = "Khám phá phía trước",
       searchDepth = SearchDepth.THOROUGH
@@ -115,15 +115,15 @@ class ActionRuntimeTest {
     assertEquals("search_depth_non_search_action", rejected.error)
 
     val accepted = ActionRuntime.start(
-      stateAt(), "S2", "TURN_1", KAI_ID, ActionKind.EXPLORE, "Khám phá phía trước"
+      stateAt(), "S2", "TURN_1", CAO_MINH_ID, ActionKind.EXPLORE, "Khám phá phía trước"
     )
     assertTrue(accepted.applied)
     assertNull(requireNotNull(accepted.session).searchDepth)
   }
 
   @Test fun secondActionSessionCannotStartWhileOneIsActive() {
-    val first = ActionRuntime.start(stateAt(), "S1", "TURN_1", KAI_ID, ActionKind.SEARCH, "search")
-    val second = ActionRuntime.start(first.state, "S2", "TURN_1", KAI_ID, ActionKind.EXPLORE, "explore")
+    val first = ActionRuntime.start(stateAt(), "S1", "TURN_1", CAO_MINH_ID, ActionKind.SEARCH, "search")
+    val second = ActionRuntime.start(first.state, "S2", "TURN_1", CAO_MINH_ID, ActionKind.EXPLORE, "explore")
 
     assertTrue(first.applied)
     assertFalse(second.applied)
@@ -144,9 +144,9 @@ class ActionRuntimeTest {
     )
     val state = stateAt().copy(
       characters = stateAt().characters + (follower.id to follower) + (dead.id to dead),
-      party = PartyState(memberIds = listOf(KAI_ID, follower.id))
+      party = PartyState(memberIds = listOf(CAO_MINH_ID, follower.id))
     )
-    val started = ActionRuntime.start(state, "S1", "TURN_1", KAI_ID, ActionKind.EXPLORE, "explore").state
+    val started = ActionRuntime.start(state, "S1", "TURN_1", CAO_MINH_ID, ActionKind.EXPLORE, "explore").state
     val result = ActionRuntime.advance(started, "S1", "cp-1", 12)
 
     assertTrue(result.applied)

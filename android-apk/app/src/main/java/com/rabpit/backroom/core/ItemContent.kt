@@ -67,7 +67,7 @@ object ItemContentRules {
       a.condition == b.condition && stackMetadata(a.metadata) == stackMetadata(b.metadata)
   }
 
-  private fun stackMetadata(metadata: Map<String, String>): Map<String, String> = metadata - setOf("omnivaultCopyCount", "lastUsedAt")
+  private fun stackMetadata(metadata: Map<String, String>): Map<String, String> = metadata - setOf("vanKhoGioiChiCopyCount", "lastUsedAt")
 
   private fun displayName(profile: ContentProfile?, state: ContentState, fallback: String): String {
     if (profile == null) return fallback

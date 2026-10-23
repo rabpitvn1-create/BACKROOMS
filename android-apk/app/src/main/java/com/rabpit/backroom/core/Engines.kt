@@ -108,7 +108,7 @@ object InventoryEngine {
         if (!state.characters.containsKey(targetId)) return invalid(state, "target_unknown")
         val owned = source.items[command.itemId] ?: return invalid(state, "item_not_owned")
         if (owned.quantity < command.quantity) return invalid(state, "insufficient_item_quantity")
-        if (command.actorId == KAI_ID && InventoryPolicy.isKaiSignatureEquipment(state, owned)) return invalid(state, "signature_equipment_locked")
+        if (command.actorId == CAO_MINH_ID && InventoryPolicy.isCaoMinhSignatureEquipment(state, owned)) return invalid(state, "signature_equipment_locked")
         val transferred = ItemContentRules.normalize(owned).copy(quantity = command.quantity)
         val targetInventory = state.inventories[targetId] ?: InventoryState(targetId)
         val validation = InventoryPolicy.validateAddition(state, targetId, targetInventory, transferred, command.quantity)
@@ -129,7 +129,7 @@ object InventoryEngine {
         if (equipment.slots[slot] != command.itemId) return invalid(state, "item_not_equipped")
         changed(state.copy(equipment = state.equipment + (command.actorId to equipment.copy(slots = equipment.slots - slot))), "item_unequipped")
       }
-      ItemCommand.Operation.STORE, ItemCommand.Operation.WITHDRAW -> invalid(state, "use_omnivault_command")
+      ItemCommand.Operation.STORE, ItemCommand.Operation.WITHDRAW -> invalid(state, "use_vanKhoGioiChi_command")
     }
   }
 }
