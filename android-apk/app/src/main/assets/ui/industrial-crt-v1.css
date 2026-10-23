@@ -1,0 +1,49 @@
+/* Drive Industrial CRT artwork, adapted to the 1.1.63.0.3 runtime.
+   Snapshot geometry belongs to the existing shell. Its bezel is paint only. */
+body{color:#f1ead6;background:#0b0e0c}
+body .shell,body .game{background:#111611 url('industrial-crt-v1/surface-crt.webp') repeat}
+body .topbar{border-bottom-color:#615740}
+body .eyebrow,body .role{color:#c9b982}
+body .turn,body .turn strong{color:#e9d9a4}
+body .log{background:linear-gradient(#0b100bd9,#0b100be8),url('industrial-crt-v1/surface-crt.webp') repeat}
+body .message{border:9px solid transparent;border-image:url('industrial-crt-v1/panel-frame.webp') 80 stretch;background:#141a13;background-clip:padding-box;color:#f1ead6;padding:10px 12px;box-shadow:0 3px 10px #0007}
+body .message.player{background-color:#24291a;color:#f8e9ba}
+body .message.gm{background-color:#141a13}
+body .message.warning{background-color:#30240e;color:#ffd895}
+body .message.warning .role{color:#ffd895}
+body .message.warning .text{color:#ffd895}
+body .message .text{overflow-wrap:anywhere}
+body .player-action-bar{background:#171b12 url('industrial-crt-v1/surface-crt.webp') repeat;border-top-color:#786843}
+body button:where(:not(.poker-die):not(.party-member):not(.combat-die):not(.combat-die-unknown)),body .player-action-bar .primary-action,body .game-menu-trigger,body .game-menu-close,body .player-action-close{
+  border-color:#81704f;
+  background:#34362c url('industrial-crt-v1/button-steel.webp') center/100% 100% no-repeat;
+  color:#fff4d5;text-shadow:0 1px 2px #000,0 0 3px #000;
+}
+body .player-action-bar .primary-action.execute-action,body #playerActionConfirm{
+  background:#d4a333 url('industrial-crt-v1/button-hazard.webp') center/100% 100% no-repeat;
+  color:#171a10;text-shadow:none;border-color:#ac893b;
+}
+body button.danger,body .actions .wide{color:#ffe0ca;background-color:#49241b;background-image:linear-gradient(#4b080875,#4b080875),url('industrial-crt-v1/button-steel.webp');border-color:#ac6650}
+body button:not(.poker-die):not(.party-member):not(.combat-die):not(.combat-die-unknown):active:not(:disabled){filter:brightness(1.18)}
+body button:focus-visible,body textarea:focus-visible{outline:2px solid #ffe29a;outline-offset:2px}
+body .game-menu-sheet,body .player-action-sheet,body .character-inventory-view{
+  background:#141a13 url('industrial-crt-v1/surface-crt.webp') repeat;color:#f1ead6;border-color:#827250;
+}
+body .game-menu-head{background:#1d2318 url('industrial-crt-v1/surface-crt.webp') repeat;border-color:#827250;color:#f4e5b7}
+body .card,body .character-section{border:10px solid transparent;border-image:url('industrial-crt-v1/panel-frame.webp') 80 stretch;background:#1b2117;background-clip:padding-box;color:#f1ead6}
+body .game-menu-sheet .card:first-child{background:#d4c096 url('industrial-crt-v1/paper-dossier.webp') center/cover;color:#2b291e}
+body .game-menu-sheet .card:first-child .row{color:#2b291e;border-color:#74624666;overflow-wrap:anywhere}
+body .game-menu-sheet .card:first-child .row b{color:#52452d}
+body .card .row{color:#f1ead6;border-color:#71684966}
+body .card .row b{color:#c2b587}
+body .chips span,body .equipment-list span,body .character-status-row{border-color:#726749;color:#eadfc3;background-color:#22291b}
+body textarea{background:#0d140e;color:#fff4d5;border-color:#887b53}
+body .industrial-crt-status{margin:8px 0 0;padding:9px 10px;border:1px solid #827250;background:#0c140d;color:#f6e6ba;font-size:12px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}
+body .industrial-crt-status:empty{display:none}
+
+/* Do not set width, height, aspect-ratio, margin, padding or border on #snapshot.
+   A pseudo-element survives native box.textContent='' redraws without DOM hooks.
+   Neither it nor the native image layers participate in layout. */
+body #snapshot{position:relative;isolation:isolate}
+body #snapshot::after{content:"";position:absolute;inset:0;z-index:3;border:12px solid transparent;border-image:url('industrial-crt-v1/black-observation-monitor-v1.webp') 96 stretch;pointer-events:none}
+@media(prefers-reduced-motion:reduce){body button{transition:none!important}}

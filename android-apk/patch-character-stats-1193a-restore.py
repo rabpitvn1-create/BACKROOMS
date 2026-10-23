@@ -979,7 +979,12 @@ if INDEX.exists():
     html = re.sub(r'''function statRows\(item\)\{.*?\n  \}''',
                   '''function statRows(item){const w=item.weapon||{},rows=[];if(w.DMG!=null)rows.push(['DMG',w.DMG]);if(w.ammo!=null)rows.push(['Ammo',w.ammo]);if(w.rpm!=null)rows.push(['Full Auto',w.rpm+' RPM']);return rows\n  }''',
                   html, count=1, flags=re.S)
-    html = re.sub(r'''function comparisonRows\(c\)\{.*?\}''', 'function comparisonRows(c){return[]}', html, count=1)
+    # This single-line function contains a nested map callback. Stopping at the
+    # first closing brace leaves `).filter(Boolean)}` and breaks the whole script.
+    html, replacements = re.subn(r'''(?m)^  function comparisonRows\(c\)\{[^\n]*\}$''',
+                                 '  function comparisonRows(c){return[]}', html, count=1)
+    if replacements != 1:
+        raise RuntimeError('Expected exactly one single-line comparisonRows function')
     INDEX.write_text(html, encoding="utf-8")
 
 # ---------------------------------------------------------------------------

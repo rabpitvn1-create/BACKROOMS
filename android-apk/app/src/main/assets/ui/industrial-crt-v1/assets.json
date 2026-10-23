@@ -1,0 +1,55 @@
+{
+  "sourceFolder": "https://drive.google.com/drive/folders/1H13I34yN6FfIN4qdXpoN3j2InSmjZT60",
+  "baseline": "7332b91ea111f691ca5cdaf1416afd0225a39ccd",
+  "snapshotGeometry": "Unchanged; bezel is an absolutely positioned pseudo-element.",
+  "assets": [
+    {
+      "file": "panel-frame.webp",
+      "width": 768,
+      "height": 761,
+      "bytes": 76858,
+      "sha256": "94cba89dc8c7faf86e4b786eb02d7243dc997a007571b0685df2e3ed21bc3769",
+      "driveRuntime": "https://drive.google.com/file/d/1OdRGe2sd-R74R_3LK7i1ScQ1F-kl2hV0/view?usp=drivesdk"
+    },
+    {
+      "file": "button-steel.webp",
+      "width": 960,
+      "height": 243,
+      "bytes": 66460,
+      "sha256": "0163c4ff01f3ac22dc59ff0e190cf06afb7e1e558b57e212d47cc0a1a2a12ff6",
+      "driveRuntime": "https://drive.google.com/file/d/1Es6MsQQA8Z5uynfvFvx_KFhg3xjiEqeq/view?usp=drivesdk"
+    },
+    {
+      "file": "button-hazard.webp",
+      "width": 960,
+      "height": 229,
+      "bytes": 62206,
+      "sha256": "6d96b0dd7c6755a9394cf1c6ab7fab90f0033dd92164e452b4acf99643c1c99e",
+      "driveRuntime": "https://drive.google.com/file/d/1SfLUl5_-p2IGZLloTWeu0flXBQZ_FzO4/view?usp=drivesdk"
+    },
+    {
+      "file": "surface-crt.webp",
+      "width": 512,
+      "height": 512,
+      "bytes": 10124,
+      "sha256": "6e8fc0ef567a504063083fce0db11b50bff0bbf4fac4181a4fab67d62c154544",
+      "driveRuntime": "https://drive.google.com/file/d/1BpEU8JADODcBI6b2CUzZipfBtSFcP4m7/view?usp=drivesdk"
+    },
+    {
+      "file": "paper-dossier.webp",
+      "width": 512,
+      "height": 512,
+      "bytes": 21110,
+      "sha256": "cd48fc9fe61871f9ee974999ace085fb82748ac30826a78e9e20b4820b2b9419",
+      "driveRuntime": "https://drive.google.com/file/d/1Ktb0ooloYoKJIlpLVU6JANbYfl5pUUHN/view?usp=drivesdk"
+    },
+    {
+      "file": "black-observation-monitor-v1.webp",
+      "width": 1024,
+      "height": 742,
+      "bytes": 58504,
+      "sha256": "d727d999826957add13e9ce99238ecf53b074888a9b67efc372113d03cb626d3",
+      "driveRuntime": "https://drive.google.com/file/d/1Up3kzz7T_pz-hN64rj2MyotXoBhDMzz8/view"
+    }
+  ]
+}
