@@ -691,7 +691,12 @@
   };
   global.backroomError=function(message){
     preparing=false;failed=true;clearWriterPending();if(error)error(message);
-    batchBusy=false;global.backroomFreezeSnapshot=false;refresh();
+    batchBusy=false;
+    const wasFrozen=!!global.backroomFreezeSnapshot;
+    global.backroomFreezeSnapshot=false;
+    if(wasFrozen&&typeof global.backroomRefreshSnapshotVisuals==='function')
+      global.backroomRefreshSnapshotVisuals();
+    refresh();
   };
   global.backroomPlayerActionProgress=function(json){
     // Core has committed a step. Save the newest combined presentation for
