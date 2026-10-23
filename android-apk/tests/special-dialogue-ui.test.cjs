@@ -541,8 +541,8 @@ test('all ten Follower biographies carry authored private memories and multi-tur
 
 test('Iris, Syvial and An Nhiên only open introductory backstory on Core-confirmed presence',()=>{
   const profiles=[
-    ['iris','Iris','avatars/Iris_avatar.jpg',/Đứng ở đó/],
-    ['syvial','Syvial','avatars/Syvial_avatar.jpg',/Đừng nhìn thanh kiếm/],
+    ['iris','Iris','avatars/Iris_avatar.jpg',/Đứng đó/],
+    ['syvial','Syvial','avatars/Syvial_avatar.jpg',/Đừng nhìn GodKiller/],
     ['an-nhien','An Nhiên','avatars/an_nhien_avatar.png',/Chú ơi/]
   ];
   for(const [id,name,avatar,first] of profiles){
@@ -728,4 +728,57 @@ test("Janet's edited biography remains conversational, coherent and Canon-ground
   ].entries())assert.match(scenes[index],pattern,'chapter '+(index+1));
   assert.match(catalog.past.at(-1),/dây thép gai/);
   assert.doesNotMatch(JSON.stringify(catalog),/Mia đã chết|Mia đang ở Level|đã tìm thấy Mia/);
+});
+
+
+test('Cao Minh keeps Bổn Tôn/ta register with every Follower; only other-world arrivals react',()=>{
+  const x=env({state:{party:[],partyDetails:{members:[]},encounteredCharacters:[]}});
+  const followers=x.ctx.BackroomSpecialDialogueData;
+  const rivals=x.ctx.BackroomSpecialEntityDialogue;
+  assert.equal(Object.keys(followers).length,10);
+  const reactions={
+    catherine:/diễn kịch|diễn viên/,
+    janet:/quay phim kiếm hiệp/,
+    lucia:/đơn vị nào/,
+    nguyen_quoc_nam:/từ thời khác/,
+    trac_lam:/mật danh hay một vai diễn/,
+    iris:/ông vua lưu lạc/,
+    syvial:/cổ thư/,
+    'an-nhien':/tên chú/,
+    hua_tieu_lan:/người tu tiên/
+  };
+  for(const [id,profile] of Object.entries(followers)){
+    const intro=profile.intro.map(line=>line.text).join(' ');
+    assert.match(intro,/Bổn Tôn/,id+' must acknowledge Cao Minh title');
+    if(id==='luc_tram'){
+      assert.doesNotMatch(intro,/diễn kịch|phim|cổ thư|mật danh|tước hiệu|người tu tiên/,
+        'Lục Trầm already comes from the immortal cultivation world');
+    }else assert.match(intro,reactions[id],id+' must have distinct cultural reaction');
+    const cm=[...profile.intro,...profile.story.flat()].filter(line=>line.speaker==='cao_minh');
+    assert.ok(cm.length>=4);
+    assert.ok(cm.every(line=>!/^(?:Tôi|Anh|Em)\b/.test(line.text)));
+    assert.ok(cm.some(line=>line.text.includes('Bổn Tôn')));
+    assert.ok(profile.story.every(scene=>scene.some(line=>line.speaker==='cao_minh')),
+      'new voice must not remove character interaction');
+  }
+  assert.match(rivals.diep_minh.episodes[0].map(line=>line.text).join(' '),/Bổn Tôn/);
+  assert.match(rivals.luc_tram_hac_hoa.episodes[0].map(line=>line.text).join(' '),/Bổn Tôn/);
+  const enemyFirst=[rivals.diep_minh.episodes[0],rivals.luc_tram_hac_hoa.episodes[0]];
+  for(const scene of enemyFirst)assert.doesNotMatch(
+    scene.map(line=>line.text).join(' '),/truyện kiếm hiệp|tự xưng kỳ lạ|đóng phim|diễn kịch/);
+  assert.doesNotMatch(JSON.stringify(rivals.luc_tram_hac_hoa),/tự động nhớ lại Cao Minh/);
+});
+
+test('author voice override remains present both in GM generation policy and knowledge authority',()=>{
+  const policy=fs.readFileSync(path.join(__dirname,
+    '../app/src/main/java/com/rabpit/backroom/core/knowledge/GmNarrativeVoicePolicy.kt'),'utf8');
+  const db=JSON.parse(fs.readFileSync(path.join(assets,'knowledge/canon_detail_db.json'),'utf8'));
+  assert.match(policy,/AUTHOR VOICE OVERRIDE/);
+  assert.match(policy,/Bổn Tôn/);
+  assert.match(policy,/Diệp Minh và Lục Trầm/);
+  assert.match(policy,/PLAYER AGENCY/);
+  const records=db.records.filter(r=>r.id.startsWith('CHAR.CAO_MINH.DETAIL.DIALOGUE.017.'));
+  assert.equal(records.length,3);
+  assert.ok(records.every(r=>r.text.includes('AUTHOR OVERRIDE 2026-10-23')));
+  assert.match(records.map(r=>r.text).join(' '),/Hắc Hóa/);
 });
