@@ -83,6 +83,70 @@
         {
           "speaker": "catherine",
           "text": "Hoảng lên thì dấu chân cũng chẳng rõ thêm. Tôi chỉ làm được đến thế thôi."
+        },
+        {
+          "speaker": "catherine",
+          "text": "Tôi bắt đầu một cuốn sổ mới, dành riêng cho nơi này. Sổ thứ ba, nếu tính cả sổ của mẹ và sổ nợ của cha."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Cô nương đi đâu cũng mang theo giấy mực. Đến chốn này cũng không bỏ được thói quen ấy sao?"
+        },
+        {
+          "speaker": "catherine",
+          "text": "Thói quen là thứ duy nhất ở đây chưa phản bội tôi. Tôi ghi lại cả những điều ngài nói — để sau này đối chiếu, mong ngài không phiền."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Cứ ghi. Lời của Bổn Tôn nói ra một lần, về sau vẫn là lời ấy. Sổ của ngươi đối chiếu đến đâu cũng chỉ thấy một bản."
+        },
+        {
+          "speaker": "catherine",
+          "text": "Đó chính là điều tôi đang kiểm chứng, ngài Cao Minh. Cho đến giờ... quả thật chưa thấy chỗ nào không khớp."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Vậy thì cứ đi tiếp. Đường còn dài, sổ của ngươi còn nhiều trang trống."
+        },
+        {
+          "speaker": "catherine",
+          "text": "Ngài đợi một lát. Trước mỗi cánh cửa, tôi đều nhìn mép trong của nó trước — xem chốt cài về phía nào."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Một cánh cửa ở chốn này, cô nương cũng phải xem xét như xem người sao?"
+        },
+        {
+          "speaker": "catherine",
+          "text": "Từ ngày mẹ tôi mất tích sau cánh cửa khóa từ bên trong, tôi không bước qua cửa nào mà không biết trước nó khóa được từ phía nào."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ừm. Xem đi. Bổn Tôn không vội — chốn này cũng chẳng có nơi nào đáng để vội đến."
+        },
+        {
+          "speaker": "catherine",
+          "text": "Cảm ơn ngài. Có người sẽ cho đây là thói quen thừa. Nhưng chính nhờ nó mà tôi biết phòng của mẹ tôi không có đường ra thứ hai."
+        },
+        {
+          "speaker": "catherine",
+          "text": "Tôi vừa nhận ra một điều đáng ghi vào sổ: tôi đã thôi giữ khoảng cách hai bước với ngài từ lúc nào không hay."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Bổn Tôn có bắt ngươi giữ hai bước bao giờ đâu. Ngươi tự đặt ra, thì tự bỏ cũng phải."
+        },
+        {
+          "speaker": "catherine",
+          "text": "Vâng, tôi tự bỏ. Không phải vì tôi đã tin chuyện của ngài — tôi vẫn chưa tin hết. Nhưng ngài chưa từng đổi lời, và ở chốn này, thế là đủ để đi bên cạnh."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Bổn Tôn không cần ai thề thốt đi theo. Cứ đi, đến khi nào ngươi chán thì thôi."
+        },
+        {
+          "speaker": "catherine",
+          "text": "Vậy chúng ta hợp nhau ở điểm ấy, ngài Cao Minh. Tôi cũng không hứa gì — tôi chỉ ghi lại những gì mình đã thấy."
         }
       ],
       [
@@ -131,6 +195,26 @@
         {
           "speaker": "catherine",
           "text": "Có giận. Nhưng nếu gặp lại, tôi muốn hỏi trước: ông đã sợ điều gì đến mức không dám nói với cả con gái mình?"
+        },
+        {
+          "speaker": "catherine",
+          "text": "Bản thiết kế của cha tôi — tôi thuộc nó đến từng nét. Có một bánh răng ông vẽ mười bảy răng, nhưng dòng chú thích ngay bên dưới lại ghi mười sáu."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Tay vẽ một đằng, bút ghi một nẻo. Người cẩn thận như ngươi kể, mà cũng để lại một chỗ không khớp như thế sao?"
+        },
+        {
+          "speaker": "catherine",
+          "text": "Cha tôi không sót. Cả đời ông chưa từng để hai con số cãi nhau trên cùng một trang giấy. Vậy nên tôi không biết chỗ không khớp ấy là ông để lại cho tôi, hay là chỗ ông bắt đầu sợ."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Sợ đến mức không dám viết cho đúng, thì chuyện ông ấy giấu e còn nặng hơn món nợ nhiều."
+        },
+        {
+          "speaker": "catherine",
+          "text": "Vâng. Và tôi vẫn chưa đủ can đảm kết luận nó là gì. Tôi chỉ mang theo nó, như mang một câu hỏi chưa đọc hết."
         }
       ],
       [
@@ -157,6 +241,30 @@
         {
           "speaker": "catherine",
           "text": "Cảm ơn ngài. Ở chốn này, một cuộc trò chuyện yên ổn cũng là thứ hiếm hoi."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ngươi lại lau thứ đồ sắt ấy. Nó chưa từng được dùng ở chốn này, mà ngươi vẫn chăm nó như ngày đầu."
+        },
+        {
+          "speaker": "catherine",
+          "text": "Vesper không phải thứ dùng xong mới chăm. Tôi đếm từng viên đạn của nó như đếm răng bánh xe — thiếu một, là cả cơ cấu phải xem lại."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Đến từng viên một cũng phải nằm trong sổ của ngươi."
+        },
+        {
+          "speaker": "catherine",
+          "text": "Đúng vậy. Vì ngày nào tôi còn đếm được chúng, ngày đó quyết định nổ súng vẫn còn là của tôi, chưa phải của cơn hoảng loạn."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Vật tự tay luyện ra, lại tự đặt ra lệ cho mình. Cô nương nghiêm với bản thân còn hơn với thứ đồ sắt ấy."
+        },
+        {
+          "speaker": "catherine",
+          "text": "Súng không giữ nổi người cầm nó. Phần ấy mỗi người phải tự lo."
         }
       ],
       [
@@ -179,6 +287,26 @@
         {
           "speaker": "catherine",
           "text": "Mấy mốc ngày tháng không khớp nhau. Chưa đủ để kết luận, nhưng đủ để tôi không bỏ cuộc."
+        },
+        {
+          "speaker": "catherine",
+          "text": "Chiếc đồng hồ nhỏ của mẹ tôi vẫn nằm trong xưởng, chưa ai hiệu chỉnh lại từ ngày bà mất tích. Chính tôi cũng chưa mở nó ra."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ngươi hiệu chỉnh được đồng hồ của thiên hạ, lại để của mẫu thân mình nằm yên như thế?"
+        },
+        {
+          "speaker": "catherine",
+          "text": "Không phải không biết cách. Chỉ là... nếu mở ra mà thấy nó vẫn chạy đúng, tôi không biết mình sẽ thấy nhẹ nhõm hay thấy giận hơn."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Có những vật chưa mở ra thì còn giữ được cả hai khả năng. Cái lựa chọn ấy, Bổn Tôn hiểu."
+        },
+        {
+          "speaker": "catherine",
+          "text": "Cảm ơn ngài đã không khuyên tôi mở nó. Hầu hết mọi người đều khuyên thế."
         }
       ],
       [
@@ -201,6 +329,50 @@
         {
           "speaker": "catherine",
           "text": "Tôi sẽ giữ cả hai. Tôi không muốn biến ông thành kẻ tội đồ chỉ để mình giận cho dễ."
+        },
+        {
+          "speaker": "catherine",
+          "text": "Mùi ẩm ở hành lang này làm tôi nhớ sương biển Grayhaven. Những đêm sương dày, người ta nghe chuông sương ở bến cảng thay vì nhìn đèn."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Quê hương ngươi cũng chỉ toàn tiếng chuông với sương mù. Bảo sao ngươi cứ đi tìm một tiếng chuông ở chốn này."
+        },
+        {
+          "speaker": "catherine",
+          "text": "Vì ở Grayhaven, tiếng chuông là thứ duy nhất trong sương vẫn nói thật. Nó ở đâu, bến cảng ở đó — không ai giả được vị trí của nó."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Còn chuông ở chốn này thì chưa chắc. Tiếng thứ mười ba của ngươi, Bổn Tôn vẫn chưa nghe lại được lần nào."
+        },
+        {
+          "speaker": "catherine",
+          "text": "Chưa, chứ không phải không có. Tôi phân biệt hai điều đó rất kỹ, ngài biết mà."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Sổ nợ của phụ thân ngươi, ngươi cũng thuộc lòng như bản thiết kế sao?"
+        },
+        {
+          "speaker": "catherine",
+          "text": "Thuộc từng khoản. Tiền vật liệu, tiền thuê xưởng — khoản nào cũng có tên người nhận và lý do. Trừ khoản cuối cùng."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Khoản cuối không ghi để làm gì?"
+        },
+        {
+          "speaker": "catherine",
+          "text": "Chỉ có một con số, không một chữ giải thích. Và mẹ tôi — người gạch chân mọi khoản mập mờ — đã gạch chân khoản ấy hai lần."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Người viết sổ đã tự tay chỉ cho ngươi chỗ không khớp lớn nhất rồi. Cô nương còn do dự gì nữa mà chưa lần theo nó?"
+        },
+        {
+          "speaker": "catherine",
+          "text": "Vì lần theo nó có nghĩa là chấp nhận cha tôi có một việc đến mẹ tôi cũng chỉ dám gạch chân, không dám hỏi. Tôi đang chuẩn bị lòng cho điều đó."
         }
       ],
       [
@@ -223,20 +395,76 @@
         {
           "speaker": "catherine",
           "text": "Muốn. Nhưng nếu cái giá là một người khác mắc kẹt thay mình, tôi thà tiếp tục tìm cách khác."
+        },
+        {
+          "speaker": "catherine",
+          "text": "Ngài nghe không? Xa lắm... có tiếng gì như chuông, mà cũng như tiếng đèn rền lên một nhịp khác."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Bổn Tôn nghe. Nó đến từ phía hành lang bên trái; qua mấy lần rẽ, tiếng đã tản đi nhiều."
+        },
+        {
+          "speaker": "catherine",
+          "text": "Tôi đếm được mười một nhịp rõ, nhịp thứ mười hai thì chìm. Lần trước ở Grayhaven, tôi đếm đủ mười ba. Tôi sẽ ghi cả hai con số."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Chốn này đến tiếng động cũng chẳng chịu đứng yên cho ai đếm. Ghi thế nào là việc của ngươi."
+        },
+        {
+          "speaker": "catherine",
+          "text": "Không đứng yên thì tôi ghi là 'không đứng yên'. Một ghi chép trung thực không cần hiện tượng phải hợp tác."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Cô nương đã đi qua nhiều hành lang hơn Bổn Tôn tưởng. Sau này nếu gặp một nữ nhân mang kiếm, dáng đi giữ lễ như người của môn phái, thì cho Bổn Tôn biết."
+        },
+        {
+          "speaker": "catherine",
+          "text": "Ngài đã hỏi tôi điều này từ lần đầu gặp. Nàng ấy là người thế nào đối với ngài, mà ngài hỏi đến lần thứ hai vẫn không đổi một chữ?"
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Là người Bổn Tôn phải tìm cho được. Hơn thế nữa — cô nương ghi vào sổ cũng không đối chiếu được với ai đâu."
+        },
+        {
+          "speaker": "catherine",
+          "text": "Tôi sẽ không hỏi thêm. Nhưng nếu gặp người như ngài tả, tôi sẽ nói — không phải vì đã hứa, mà vì tôi đã thấy ngài tìm thế nào."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Nói hay không là quyền của ngươi. Bổn Tôn vốn chỉ nói điều cần nói một lần; hôm nay là lần thứ hai, vì ngươi là người đầu tiên ở chốn này đi cùng Bổn Tôn đủ lâu để nghe lại."
+        },
+        {
+          "speaker": "catherine",
+          "text": "Vậy tôi sẽ xem đây là một ghi chép đáng giữ. Người ngài tìm — tôi mong nàng ấy cũng đang tìm ngài."
+        },
+        {
+          "speaker": "catherine",
+          "text": "Tôi đang đếm nhịp rè của đèn theo mạch tay mình. Chốn này không có đồng hồ, thì tôi dùng chính mình làm đồng hồ vậy."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Quê hương Bổn Tôn đo thời gian bằng nén hương, bằng trống canh. Chưa thấy ai lấy mạch tay ra đo bao giờ."
+        },
+        {
+          "speaker": "catherine",
+          "text": "Một 'canh' của ngài dài bao nhiêu, quy ra phút? Ở chỗ tôi, một giờ là sáu mươi phút — nếu biết, tôi sẽ ghi chú thích vào sổ."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Dài bằng một giấc ngủ chưa trọn. Phút với giây của ngươi, cứ để trong sổ của ngươi — Bổn Tôn đi hết một hành lang cũng không cần biết nó dài mấy phút."
+        },
+        {
+          "speaker": "catherine",
+          "text": "Ngài không cần. Còn tôi cần. Không đo được thời gian, tôi thấy mình như đang để mặc cho nơi này trôi qua người."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Vậy ngươi cứ đo. Bổn Tôn đi chậm lại một chút, kẻo làm rối nhịp đếm của nhà hiệu chỉnh."
         }
       ]
-    ,
-      [{"speaker":"catherine","text":"Tôi bắt đầu một cuốn sổ mới, dành riêng cho nơi này. Sổ thứ ba, nếu tính cả sổ của mẹ và sổ nợ của cha."},{"speaker":"cao_minh","text":"Cô nương đi đâu cũng mang theo giấy mực. Đến chốn này cũng không bỏ được thói quen ấy sao?"},{"speaker":"catherine","text":"Thói quen là thứ duy nhất ở đây chưa phản bội tôi. Tôi ghi lại cả những điều ngài nói — để sau này đối chiếu, mong ngài không phiền."},{"speaker":"cao_minh","text":"Cứ ghi. Lời của Bổn Tôn nói ra một lần, về sau vẫn là lời ấy. Sổ của ngươi đối chiếu đến đâu cũng chỉ thấy một bản."},{"speaker":"catherine","text":"Đó chính là điều tôi đang kiểm chứng, ngài Cao Minh. Cho đến giờ... quả thật chưa thấy chỗ nào không khớp."},{"speaker":"cao_minh","text":"Vậy thì cứ đi tiếp. Đường còn dài, sổ của ngươi còn nhiều trang trống."}],
-      [{"speaker":"catherine","text":"Ngài nghe không? Xa lắm... có tiếng gì như chuông, mà cũng như tiếng đèn rền lên một nhịp khác."},{"speaker":"cao_minh","text":"Bổn Tôn nghe. Nó đến từ phía hành lang bên trái; qua mấy lần rẽ, tiếng đã tản đi nhiều."},{"speaker":"catherine","text":"Tôi đếm được mười một nhịp rõ, nhịp thứ mười hai thì chìm. Lần trước ở Grayhaven, tôi đếm đủ mười ba. Tôi sẽ ghi cả hai con số."},{"speaker":"cao_minh","text":"Chốn này đến tiếng động cũng chẳng chịu đứng yên cho ai đếm. Ghi thế nào là việc của ngươi."},{"speaker":"catherine","text":"Không đứng yên thì tôi ghi là 'không đứng yên'. Một ghi chép trung thực không cần hiện tượng phải hợp tác."}],
-      [{"speaker":"catherine","text":"Ngài đợi một lát. Trước mỗi cánh cửa, tôi đều nhìn mép trong của nó trước — xem chốt cài về phía nào."},{"speaker":"cao_minh","text":"Một cánh cửa ở chốn này, cô nương cũng phải xem xét như xem người sao?"},{"speaker":"catherine","text":"Từ ngày mẹ tôi mất tích sau cánh cửa khóa từ bên trong, tôi không bước qua cửa nào mà không biết trước nó khóa được từ phía nào."},{"speaker":"cao_minh","text":"Ừm. Xem đi. Bổn Tôn không vội — chốn này cũng chẳng có nơi nào đáng để vội đến."},{"speaker":"catherine","text":"Cảm ơn ngài. Có người sẽ cho đây là thói quen thừa. Nhưng chính nhờ nó mà tôi biết phòng của mẹ tôi không có đường ra thứ hai."}],
-      [{"speaker":"cao_minh","text":"Ngươi lại lau thứ đồ sắt ấy. Nó chưa từng được dùng ở chốn này, mà ngươi vẫn chăm nó như ngày đầu."},{"speaker":"catherine","text":"Vesper không phải thứ dùng xong mới chăm. Tôi đếm từng viên đạn của nó như đếm răng bánh xe — thiếu một, là cả cơ cấu phải xem lại."},{"speaker":"cao_minh","text":"Đến từng viên một cũng phải nằm trong sổ của ngươi."},{"speaker":"catherine","text":"Đúng vậy. Vì ngày nào tôi còn đếm được chúng, ngày đó quyết định nổ súng vẫn còn là của tôi, chưa phải của cơn hoảng loạn."},{"speaker":"cao_minh","text":"Vật tự tay luyện ra, lại tự đặt ra lệ cho mình. Cô nương nghiêm với bản thân còn hơn với thứ đồ sắt ấy."},{"speaker":"catherine","text":"Súng không giữ nổi người cầm nó. Phần ấy mỗi người phải tự lo."}],
-      [{"speaker":"catherine","text":"Bản thiết kế của cha tôi — tôi thuộc nó đến từng nét. Có một bánh răng ông vẽ mười bảy răng, nhưng dòng chú thích ngay bên dưới lại ghi mười sáu."},{"speaker":"cao_minh","text":"Tay vẽ một đằng, bút ghi một nẻo. Người cẩn thận như ngươi kể, mà cũng để lại một chỗ không khớp như thế sao?"},{"speaker":"catherine","text":"Cha tôi không sót. Cả đời ông chưa từng để hai con số cãi nhau trên cùng một trang giấy. Vậy nên tôi không biết chỗ không khớp ấy là ông để lại cho tôi, hay là chỗ ông bắt đầu sợ."},{"speaker":"cao_minh","text":"Sợ đến mức không dám viết cho đúng, thì chuyện ông ấy giấu e còn nặng hơn món nợ nhiều."},{"speaker":"catherine","text":"Vâng. Và tôi vẫn chưa đủ can đảm kết luận nó là gì. Tôi chỉ mang theo nó, như mang một câu hỏi chưa đọc hết."}],
-      [{"speaker":"catherine","text":"Chiếc đồng hồ nhỏ của mẹ tôi vẫn nằm trong xưởng, chưa ai hiệu chỉnh lại từ ngày bà mất tích. Chính tôi cũng chưa mở nó ra."},{"speaker":"cao_minh","text":"Ngươi hiệu chỉnh được đồng hồ của thiên hạ, lại để của mẫu thân mình nằm yên như thế?"},{"speaker":"catherine","text":"Không phải không biết cách. Chỉ là... nếu mở ra mà thấy nó vẫn chạy đúng, tôi không biết mình sẽ thấy nhẹ nhõm hay thấy giận hơn."},{"speaker":"cao_minh","text":"Có những vật chưa mở ra thì còn giữ được cả hai khả năng. Cái lựa chọn ấy, Bổn Tôn hiểu."},{"speaker":"catherine","text":"Cảm ơn ngài đã không khuyên tôi mở nó. Hầu hết mọi người đều khuyên thế."}],
-      [{"speaker":"cao_minh","text":"Cô nương đã đi qua nhiều hành lang hơn Bổn Tôn tưởng. Sau này nếu gặp một nữ nhân mang kiếm, dáng đi giữ lễ như người của môn phái, thì cho Bổn Tôn biết."},{"speaker":"catherine","text":"Ngài đã hỏi tôi điều này từ lần đầu gặp. Nàng ấy là người thế nào đối với ngài, mà ngài hỏi đến lần thứ hai vẫn không đổi một chữ?"},{"speaker":"cao_minh","text":"Là người Bổn Tôn phải tìm cho được. Hơn thế nữa — cô nương ghi vào sổ cũng không đối chiếu được với ai đâu."},{"speaker":"catherine","text":"Tôi sẽ không hỏi thêm. Nhưng nếu gặp người như ngài tả, tôi sẽ nói — không phải vì đã hứa, mà vì tôi đã thấy ngài tìm thế nào."},{"speaker":"cao_minh","text":"Nói hay không là quyền của ngươi. Bổn Tôn vốn chỉ nói điều cần nói một lần; hôm nay là lần thứ hai, vì ngươi là người đầu tiên ở chốn này đi cùng Bổn Tôn đủ lâu để nghe lại."},{"speaker":"catherine","text":"Vậy tôi sẽ xem đây là một ghi chép đáng giữ. Người ngài tìm — tôi mong nàng ấy cũng đang tìm ngài."}],
-      [{"speaker":"catherine","text":"Tôi đang đếm nhịp rè của đèn theo mạch tay mình. Chốn này không có đồng hồ, thì tôi dùng chính mình làm đồng hồ vậy."},{"speaker":"cao_minh","text":"Quê hương Bổn Tôn đo thời gian bằng nén hương, bằng trống canh. Chưa thấy ai lấy mạch tay ra đo bao giờ."},{"speaker":"catherine","text":"Một 'canh' của ngài dài bao nhiêu, quy ra phút? Ở chỗ tôi, một giờ là sáu mươi phút — nếu biết, tôi sẽ ghi chú thích vào sổ."},{"speaker":"cao_minh","text":"Dài bằng một giấc ngủ chưa trọn. Phút với giây của ngươi, cứ để trong sổ của ngươi — Bổn Tôn đi hết một hành lang cũng không cần biết nó dài mấy phút."},{"speaker":"catherine","text":"Ngài không cần. Còn tôi cần. Không đo được thời gian, tôi thấy mình như đang để mặc cho nơi này trôi qua người."},{"speaker":"cao_minh","text":"Vậy ngươi cứ đo. Bổn Tôn đi chậm lại một chút, kẻo làm rối nhịp đếm của nhà hiệu chỉnh."}],
-      [{"speaker":"catherine","text":"Mùi ẩm ở hành lang này làm tôi nhớ sương biển Grayhaven. Những đêm sương dày, người ta nghe chuông sương ở bến cảng thay vì nhìn đèn."},{"speaker":"cao_minh","text":"Quê hương ngươi cũng chỉ toàn tiếng chuông với sương mù. Bảo sao ngươi cứ đi tìm một tiếng chuông ở chốn này."},{"speaker":"catherine","text":"Vì ở Grayhaven, tiếng chuông là thứ duy nhất trong sương vẫn nói thật. Nó ở đâu, bến cảng ở đó — không ai giả được vị trí của nó."},{"speaker":"cao_minh","text":"Còn chuông ở chốn này thì chưa chắc. Tiếng thứ mười ba của ngươi, Bổn Tôn vẫn chưa nghe lại được lần nào."},{"speaker":"catherine","text":"Chưa, chứ không phải không có. Tôi phân biệt hai điều đó rất kỹ, ngài biết mà."}],
-      [{"speaker":"cao_minh","text":"Sổ nợ của phụ thân ngươi, ngươi cũng thuộc lòng như bản thiết kế sao?"},{"speaker":"catherine","text":"Thuộc từng khoản. Tiền vật liệu, tiền thuê xưởng — khoản nào cũng có tên người nhận và lý do. Trừ khoản cuối cùng."},{"speaker":"cao_minh","text":"Khoản cuối không ghi để làm gì?"},{"speaker":"catherine","text":"Chỉ có một con số, không một chữ giải thích. Và mẹ tôi — người gạch chân mọi khoản mập mờ — đã gạch chân khoản ấy hai lần."},{"speaker":"cao_minh","text":"Người viết sổ đã tự tay chỉ cho ngươi chỗ không khớp lớn nhất rồi. Cô nương còn do dự gì nữa mà chưa lần theo nó?"},{"speaker":"catherine","text":"Vì lần theo nó có nghĩa là chấp nhận cha tôi có một việc đến mẹ tôi cũng chỉ dám gạch chân, không dám hỏi. Tôi đang chuẩn bị lòng cho điều đó."}],
-      [{"speaker":"catherine","text":"Tôi vừa nhận ra một điều đáng ghi vào sổ: tôi đã thôi giữ khoảng cách hai bước với ngài từ lúc nào không hay."},{"speaker":"cao_minh","text":"Bổn Tôn có bắt ngươi giữ hai bước bao giờ đâu. Ngươi tự đặt ra, thì tự bỏ cũng phải."},{"speaker":"catherine","text":"Vâng, tôi tự bỏ. Không phải vì tôi đã tin chuyện của ngài — tôi vẫn chưa tin hết. Nhưng ngài chưa từng đổi lời, và ở chốn này, thế là đủ để đi bên cạnh."},{"speaker":"cao_minh","text":"Bổn Tôn không cần ai thề thốt đi theo. Cứ đi, đến khi nào ngươi chán thì thôi."},{"speaker":"catherine","text":"Vậy chúng ta hợp nhau ở điểm ấy, ngài Cao Minh. Tôi cũng không hứa gì — tôi chỉ ghi lại những gì mình đã thấy."}]
     ]
   },
   "janet": {
@@ -320,6 +548,74 @@
         {
           "speaker": "janet",
           "text": "Chắc vậy. Tôi còn chưa nộp bài luận cuối kỳ. Biến mất kiểu này khéo bị đuổi học mất."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Từ nãy ngươi cứ nghiêng tai nghe ngóng. Lại nhớ cái 'radio' của ngươi sao?"
+        },
+        {
+          "speaker": "janet",
+          "text": "Không hẳn. Có lần đi qua một hành lang, tôi nghe loáng thoáng một đoạn nhạc jazz rất cũ, kiểu cha tôi hay mở trong xưởng. Nghe được mấy nốt thì mất."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Âm thanh ở chốn này từ đâu mà ra, Bổn Tôn chưa từng thấy có nguồn. Ngươi chắc mình không nằm mơ chứ?"
+        },
+        {
+          "speaker": "janet",
+          "text": "Không chắc. Ở đây ngày đêm lẫn lộn, có khi tôi mơ thật. Nhưng nếu là mơ, sao tôi không mơ thấy mặt cha tôi, mà chỉ mơ đúng tiếng kèn ông hay mở?"
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Mơ cũng được, thật cũng được. Lần sau nghe lại được, gọi Bổn Tôn. Thứ âm thanh không nguồn ấy, Bổn Tôn cũng muốn thấy tận nơi."
+        },
+        {
+          "speaker": "janet",
+          "text": "Anh không buồn ngủ à? Tôi đi đến rã cả chân, mắt díu lại mà không dám chợp. Ở đây nhắm mắt là tôi sợ mở ra đã ở chỗ khác."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Bổn Tôn ngồi tĩnh tọa là đủ. Phàm nhân các ngươi mới cần ngủ nhiều đến thế."
+        },
+        {
+          "speaker": "janet",
+          "text": "Vậy tôi chợp mắt ngay đây một lát. Anh đừng có đi đâu đấy — tôi nói trước thế thôi, chứ giữ chân anh sao nổi."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ngủ đi. Bổn Tôn đi hay ở, không do ngươi dặn."
+        },
+        {
+          "speaker": "janet",
+          "text": "...Tôi ngủ thật được một giấc rồi à? Anh vẫn ngồi đây thật này."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Phương này Bổn Tôn chưa sinh chán. Ngươi ngủ thêm cũng được."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Cầu thang này, đèn kêu khác hẳn những đoạn trước."
+        },
+        {
+          "speaker": "janet",
+          "text": "Ừ, tiếng vo ve chói hơn. Lần trước... thôi, tôi không dám chắc có phải cầu thang cũ không. Hành lang nào trông cũng như hành lang nào."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ngươi buộc sợi dây gai đó vào tay vịn làm gì?"
+        },
+        {
+          "speaker": "janet",
+          "text": "Đánh dấu. Tôi quấn dây thép gai kiểu này, cả đội bóng nhìn là biết của tôi. Nếu Mia từng đi qua đây, hoặc sau này có đi qua, cô ấy sẽ nhận ra."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Dấu của phàm nhân, mỏng manh thật. Nhưng người ngươi tìm mà tinh mắt, cũng đủ."
+        },
+        {
+          "speaker": "janet",
+          "text": "Mia tinh mắt lắm. Cô ấy mà thấy, cô ấy sẽ biết tôi vẫn đang tìm."
         }
       ],
       [
@@ -342,6 +638,30 @@
         {
           "speaker": "janet",
           "text": "Vì nó khóc khi thấy tôi bị phạt. Tôi mải giận thay nó, quên cả hỏi xem nó có sợ hay không."
+        },
+        {
+          "speaker": "janet",
+          "text": "Sau vụ tôi bị phạt vì bênh Noah, nó hỏi tôi một câu. Nó hỏi: 'Chị có sợ không?' Tôi bảo không, sợ gì mấy đứa đó."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ngươi nói dối."
+        },
+        {
+          "speaker": "janet",
+          "text": "Sao anh biết?"
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ngươi quát cho cả sân trường kéo đến xem. Kẻ không sợ, không cần đông người chứng kiến."
+        },
+        {
+          "speaker": "janet",
+          "text": "Ừ, tôi nói dối. Tôi sợ bị phạt thì ít, sợ nó khóc thì nhiều. Chuyện này tôi chưa kể cho ai nghe đâu — kể cả Mia."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Nó cần ngươi đứng chắn trước nó. Ngươi sợ hay không, chuyện đó không quan trọng."
         }
       ],
       [
@@ -364,6 +684,70 @@
         {
           "speaker": "janet",
           "text": "Ngay sau lưng. Tôi còn nghe tiếng bước chân của cô ấy. Quay lại thì cầu thang đã thành một cầu thang khác. Tôi không biết cô ấy bị đưa đi đâu."
+        },
+        {
+          "speaker": "janet",
+          "text": "Trước khi gặp anh, tôi từng quay lại cầu thang dịch vụ đó một mình. Đứng ở chân cầu thang gọi tên Mia đến khản cả giọng."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Tường ở chốn này không biết trả lời."
+        },
+        {
+          "speaker": "janet",
+          "text": "Tôi biết. Tiếng vọng lại còn nghe như có người đáp, thành ra càng gọi càng rợn. Sau lần đó tôi không dám quay lại nữa."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Một mình thì không dám. Có Bổn Tôn đi cùng, ngươi lại dám sao?"
+        },
+        {
+          "speaker": "janet",
+          "text": "Ừ. Ngại thì tôi cũng nói thẳng là ừ. Anh đi qua đó vì việc của anh, tôi biết — nhưng tôi đi cùng thì tôi đỡ run. Thế thôi."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ngươi lục cái túi ấy lần thứ ba rồi. Tìm gì?"
+        },
+        {
+          "speaker": "janet",
+          "text": "Cuốn băng cassette của tôi. Ở ký túc tôi thu trộm tiếng phòng bên cạnh mở radio ầm ĩ, định mang lên kiện ban quản lý. Ai ngờ trong băng còn dính cả tiếng bọn bạn tôi cười đùa ở hành lang."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "'Cassette' — lại một thứ giữ tiếng của ngươi?"
+        },
+        {
+          "speaker": "janet",
+          "text": "Ừ, một cuộn băng nhỏ, cho vào máy là nghe lại được. Cuốn băng đó giờ mà còn, tôi nghe tiếng cười của bọn nó thôi cũng đỡ."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Giữ tiếng cười trong một cuộn dây. Phàm nhân các ngươi sợ quên đến thế sao?"
+        },
+        {
+          "speaker": "janet",
+          "text": "Anh thì không sợ quên à? ...Thôi, bỏ đi. Băng mất từ hôm lạc vào đây rồi. Kiện cáo gì nữa."
+        },
+        {
+          "speaker": "janet",
+          "text": "Có chuyện này tôi chưa nói với anh. Đêm xuống cầu thang dịch vụ đó — người khơi mào là tôi. Tôi nghe chuyện cái buồng điện thoại ma, tôi cười, tôi bảo 'đi xem đi, sợ gì'."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Cô gái kia tự bước xuống cầu thang. Chân là của cô ấy."
+        },
+        {
+          "speaker": "janet",
+          "text": "Tôi biết chứ. Nhưng giá mà hôm đó tôi nghe hết lời can của cô ấy trước khi cãi... Mẹ tôi mà biết, bà chỉ liếc tôi một cái thôi là đủ."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Giận mình không đưa ngươi lại gần cô ấy thêm bước nào. Đi tiếp đi."
+        },
+        {
+          "speaker": "janet",
+          "text": "Anh an ủi người ta tệ thật đấy. ...Mà lạ, nghe xong lại muốn đi tiếp thật."
         }
       ],
       [
@@ -386,6 +770,30 @@
         {
           "speaker": "janet",
           "text": "Ừ. Bọn nó trêu suốt mà tôi cứ để kệ. Giờ thì nhớ cả mấy đứa chuyên chọc mình nhất."
+        },
+        {
+          "speaker": "janet",
+          "text": "Anh này. Người anh tìm — cô gái mang kiếm ấy. Cô ấy là gì của anh?"
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Là người Bổn Tôn phải tìm cho ra. Thế là đủ."
+        },
+        {
+          "speaker": "janet",
+          "text": "Cô ấy có biết anh đang tìm không? Lỡ cô ấy cũng đang lang thang ở một hành lang nào đó—"
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Bổn Tôn tỉnh dậy thì đã ở chốn này. Nàng ở đâu, còn hay mất, Bổn Tôn đều chưa rõ. Tìm được mới biết."
+        },
+        {
+          "speaker": "janet",
+          "text": "Vậy thì hai ta giống nhau ở điểm đó. Nếu tôi thấy người con gái nào mang kiếm, tôi sẽ hét lên gọi anh. Hét là nghề của tôi rồi."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Huyên náo vừa thôi. Thấy người thì nói, không cần kinh động cả hành lang."
         }
       ],
       [
@@ -430,6 +838,26 @@
         {
           "speaker": "janet",
           "text": "Tôi biết. Tôi chỉ đang tập sửa cái tính ấy thôi. Giờ không còn mẹ ở cạnh để nhắc nữa."
+        },
+        {
+          "speaker": "janet",
+          "text": "Nhà tôi ở Houma có một cái điện thoại bàn màu vàng xỉn treo ở bếp. Tối nào Noah cũng giành máy nằm dài ra sàn gọi bạn, dây xoắn kéo căng hết cỡ."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Người ở xa nói vào thứ đó, người ở nhà nghe được. Cái buồng điện thoại ở trường ngươi cũng vậy?"
+        },
+        {
+          "speaker": "janet",
+          "text": "Đại khái thế. Khác là buồng ở trường ai nhét xu vào cũng gọi được. Mà cái buồng hỏng đó... nó không cần xu. Nó tự gọi cho bọn tôi."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ở quê hương Bổn Tôn, truyền âm qua ngàn dặm là việc thường. Nhưng vật truyền âm không tự gọi người. Thứ ở trường ngươi, nó muốn gì thì Bổn Tôn chưa rõ."
+        },
+        {
+          "speaker": "janet",
+          "text": "Tôi cũng chưa rõ. Chỉ biết nếu nó gọi lần nữa, tôi vẫn muốn nghe — nhỡ đầu bên kia là Mia."
         }
       ],
       [
@@ -452,19 +880,36 @@
         {
           "speaker": "janet",
           "text": "Chứ sao. Tôi còn nợ cả đội một trận đấu. Ngày nào tháo được mớ dây này, tôi sẽ đánh một cú bay thật xa."
+        },
+        {
+          "speaker": "janet",
+          "text": "Anh đứng xa chút. Dây thép gai trên Belle lỏng rồi, tôi quấn lại. Nó cào vào tay phát là rát lắm đấy."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Vũ khí của phàm nhân, dùng một trận lại phải ngồi sửa."
+        },
+        {
+          "speaker": "janet",
+          "text": "Kiếm của anh thì sao? Đánh nhau suốt, chưa từng phải mài à?"
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Kiếm của Bổn Tôn không cần mài. Nó tự sắc."
+        },
+        {
+          "speaker": "janet",
+          "text": "Sướng thế. Đây, anh cầm thử Belle một lúc cho tôi rảnh tay buộc nút cuối. Nặng đầu lắm, cẩn thận."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Nặng đầu, vung chậm. Đòn đầu còn được, đòn hai đối phương đã tránh xong rồi."
+        },
+        {
+          "speaker": "janet",
+          "text": "Thì nó có sinh ra để đánh đòn hai đâu. Nó là gậy bóng chày, anh ạ. Đòn đầu ghi điểm là đủ."
         }
       ]
-    ,
-      [{"speaker":"janet","text":"Trước khi gặp anh, tôi từng quay lại cầu thang dịch vụ đó một mình. Đứng ở chân cầu thang gọi tên Mia đến khản cả giọng."},{"speaker":"cao_minh","text":"Tường ở chốn này không biết trả lời."},{"speaker":"janet","text":"Tôi biết. Tiếng vọng lại còn nghe như có người đáp, thành ra càng gọi càng rợn. Sau lần đó tôi không dám quay lại nữa."},{"speaker":"cao_minh","text":"Một mình thì không dám. Có Bổn Tôn đi cùng, ngươi lại dám sao?"},{"speaker":"janet","text":"Ừ. Ngại thì tôi cũng nói thẳng là ừ. Anh đi qua đó vì việc của anh, tôi biết — nhưng tôi đi cùng thì tôi đỡ run. Thế thôi."}],
-      [{"speaker":"cao_minh","text":"Từ nãy ngươi cứ nghiêng tai nghe ngóng. Lại nhớ cái 'radio' của ngươi sao?"},{"speaker":"janet","text":"Không hẳn. Có lần đi qua một hành lang, tôi nghe loáng thoáng một đoạn nhạc jazz rất cũ, kiểu cha tôi hay mở trong xưởng. Nghe được mấy nốt thì mất."},{"speaker":"cao_minh","text":"Âm thanh ở chốn này từ đâu mà ra, Bổn Tôn chưa từng thấy có nguồn. Ngươi chắc mình không nằm mơ chứ?"},{"speaker":"janet","text":"Không chắc. Ở đây ngày đêm lẫn lộn, có khi tôi mơ thật. Nhưng nếu là mơ, sao tôi không mơ thấy mặt cha tôi, mà chỉ mơ đúng tiếng kèn ông hay mở?"},{"speaker":"cao_minh","text":"Mơ cũng được, thật cũng được. Lần sau nghe lại được, gọi Bổn Tôn. Thứ âm thanh không nguồn ấy, Bổn Tôn cũng muốn thấy tận nơi."}],
-      [{"speaker":"janet","text":"Sau vụ tôi bị phạt vì bênh Noah, nó hỏi tôi một câu. Nó hỏi: 'Chị có sợ không?' Tôi bảo không, sợ gì mấy đứa đó."},{"speaker":"cao_minh","text":"Ngươi nói dối."},{"speaker":"janet","text":"Sao anh biết?"},{"speaker":"cao_minh","text":"Ngươi quát cho cả sân trường kéo đến xem. Kẻ không sợ, không cần đông người chứng kiến."},{"speaker":"janet","text":"Ừ, tôi nói dối. Tôi sợ bị phạt thì ít, sợ nó khóc thì nhiều. Chuyện này tôi chưa kể cho ai nghe đâu — kể cả Mia."},{"speaker":"cao_minh","text":"Nó cần ngươi đứng chắn trước nó. Ngươi sợ hay không, chuyện đó không quan trọng."}],
-      [{"speaker":"janet","text":"Anh đứng xa chút. Dây thép gai trên Belle lỏng rồi, tôi quấn lại. Nó cào vào tay phát là rát lắm đấy."},{"speaker":"cao_minh","text":"Vũ khí của phàm nhân, dùng một trận lại phải ngồi sửa."},{"speaker":"janet","text":"Kiếm của anh thì sao? Đánh nhau suốt, chưa từng phải mài à?"},{"speaker":"cao_minh","text":"Kiếm của Bổn Tôn không cần mài. Nó tự sắc."},{"speaker":"janet","text":"Sướng thế. Đây, anh cầm thử Belle một lúc cho tôi rảnh tay buộc nút cuối. Nặng đầu lắm, cẩn thận."},{"speaker":"cao_minh","text":"Nặng đầu, vung chậm. Đòn đầu còn được, đòn hai đối phương đã tránh xong rồi."},{"speaker":"janet","text":"Thì nó có sinh ra để đánh đòn hai đâu. Nó là gậy bóng chày, anh ạ. Đòn đầu ghi điểm là đủ."}],
-      [{"speaker":"cao_minh","text":"Ngươi lục cái túi ấy lần thứ ba rồi. Tìm gì?"},{"speaker":"janet","text":"Cuốn băng cassette của tôi. Ở ký túc tôi thu trộm tiếng phòng bên cạnh mở radio ầm ĩ, định mang lên kiện ban quản lý. Ai ngờ trong băng còn dính cả tiếng bọn bạn tôi cười đùa ở hành lang."},{"speaker":"cao_minh","text":"'Cassette' — lại một thứ giữ tiếng của ngươi?"},{"speaker":"janet","text":"Ừ, một cuộn băng nhỏ, cho vào máy là nghe lại được. Cuốn băng đó giờ mà còn, tôi nghe tiếng cười của bọn nó thôi cũng đỡ."},{"speaker":"cao_minh","text":"Giữ tiếng cười trong một cuộn dây. Phàm nhân các ngươi sợ quên đến thế sao?"},{"speaker":"janet","text":"Anh thì không sợ quên à? ...Thôi, bỏ đi. Băng mất từ hôm lạc vào đây rồi. Kiện cáo gì nữa."}],
-      [{"speaker":"janet","text":"Nhà tôi ở Houma có một cái điện thoại bàn màu vàng xỉn treo ở bếp. Tối nào Noah cũng giành máy nằm dài ra sàn gọi bạn, dây xoắn kéo căng hết cỡ."},{"speaker":"cao_minh","text":"Người ở xa nói vào thứ đó, người ở nhà nghe được. Cái buồng điện thoại ở trường ngươi cũng vậy?"},{"speaker":"janet","text":"Đại khái thế. Khác là buồng ở trường ai nhét xu vào cũng gọi được. Mà cái buồng hỏng đó... nó không cần xu. Nó tự gọi cho bọn tôi."},{"speaker":"cao_minh","text":"Ở quê hương Bổn Tôn, truyền âm qua ngàn dặm là việc thường. Nhưng vật truyền âm không tự gọi người. Thứ ở trường ngươi, nó muốn gì thì Bổn Tôn chưa rõ."},{"speaker":"janet","text":"Tôi cũng chưa rõ. Chỉ biết nếu nó gọi lần nữa, tôi vẫn muốn nghe — nhỡ đầu bên kia là Mia."}],
-      [{"speaker":"janet","text":"Anh này. Người anh tìm — cô gái mang kiếm ấy. Cô ấy là gì của anh?"},{"speaker":"cao_minh","text":"Là người Bổn Tôn phải tìm cho ra. Thế là đủ."},{"speaker":"janet","text":"Cô ấy có biết anh đang tìm không? Lỡ cô ấy cũng đang lang thang ở một hành lang nào đó—"},{"speaker":"cao_minh","text":"Bổn Tôn tỉnh dậy thì đã ở chốn này. Nàng ở đâu, còn hay mất, Bổn Tôn đều chưa rõ. Tìm được mới biết."},{"speaker":"janet","text":"Vậy thì hai ta giống nhau ở điểm đó. Nếu tôi thấy người con gái nào mang kiếm, tôi sẽ hét lên gọi anh. Hét là nghề của tôi rồi."},{"speaker":"cao_minh","text":"Huyên náo vừa thôi. Thấy người thì nói, không cần kinh động cả hành lang."}],
-      [{"speaker":"janet","text":"Anh không buồn ngủ à? Tôi đi đến rã cả chân, mắt díu lại mà không dám chợp. Ở đây nhắm mắt là tôi sợ mở ra đã ở chỗ khác."},{"speaker":"cao_minh","text":"Bổn Tôn ngồi tĩnh tọa là đủ. Phàm nhân các ngươi mới cần ngủ nhiều đến thế."},{"speaker":"janet","text":"Vậy tôi chợp mắt ngay đây một lát. Anh đừng có đi đâu đấy — tôi nói trước thế thôi, chứ giữ chân anh sao nổi."},{"speaker":"cao_minh","text":"Ngủ đi. Bổn Tôn đi hay ở, không do ngươi dặn."},{"speaker":"janet","text":"...Tôi ngủ thật được một giấc rồi à? Anh vẫn ngồi đây thật này."},{"speaker":"cao_minh","text":"Phương này Bổn Tôn chưa sinh chán. Ngươi ngủ thêm cũng được."}],
-      [{"speaker":"janet","text":"Có chuyện này tôi chưa nói với anh. Đêm xuống cầu thang dịch vụ đó — người khơi mào là tôi. Tôi nghe chuyện cái buồng điện thoại ma, tôi cười, tôi bảo 'đi xem đi, sợ gì'."},{"speaker":"cao_minh","text":"Cô gái kia tự bước xuống cầu thang. Chân là của cô ấy."},{"speaker":"janet","text":"Tôi biết chứ. Nhưng giá mà hôm đó tôi nghe hết lời can của cô ấy trước khi cãi... Mẹ tôi mà biết, bà chỉ liếc tôi một cái thôi là đủ."},{"speaker":"cao_minh","text":"Giận mình không đưa ngươi lại gần cô ấy thêm bước nào. Đi tiếp đi."},{"speaker":"janet","text":"Anh an ủi người ta tệ thật đấy. ...Mà lạ, nghe xong lại muốn đi tiếp thật."}],
-      [{"speaker":"cao_minh","text":"Cầu thang này, đèn kêu khác hẳn những đoạn trước."},{"speaker":"janet","text":"Ừ, tiếng vo ve chói hơn. Lần trước... thôi, tôi không dám chắc có phải cầu thang cũ không. Hành lang nào trông cũng như hành lang nào."},{"speaker":"cao_minh","text":"Ngươi buộc sợi dây gai đó vào tay vịn làm gì?"},{"speaker":"janet","text":"Đánh dấu. Tôi quấn dây thép gai kiểu này, cả đội bóng nhìn là biết của tôi. Nếu Mia từng đi qua đây, hoặc sau này có đi qua, cô ấy sẽ nhận ra."},{"speaker":"cao_minh","text":"Dấu của phàm nhân, mỏng manh thật. Nhưng người ngươi tìm mà tinh mắt, cũng đủ."},{"speaker":"janet","text":"Mia tinh mắt lắm. Cô ấy mà thấy, cô ấy sẽ biết tôi vẫn đang tìm."}]
     ]
   },
   "nguyen_quoc_nam": {
@@ -551,6 +996,82 @@
         {
           "speaker": "nguyen_quoc_nam",
           "text": "Phải. Tôi chỉ nhắc điều mình chắc chắn thôi."
+        },
+        {
+          "speaker": "nguyen_quoc_nam",
+          "text": "Anh tránh chỗ thảm ướt kia ra. Túi áo tôi vừa chạm vào, lạnh ngắt."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Tờ giấy của ngươi?"
+        },
+        {
+          "speaker": "nguyen_quoc_nam",
+          "text": "Ướt mất một góc rồi. Nét sáp chỗ Dương vẽ tay tôi đã nhòe — may mà mặt còn lại chưa sao."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ngươi giữ tờ giấy còn hơn giữ khẩu súng."
+        },
+        {
+          "speaker": "nguyen_quoc_nam",
+          "text": "Súng mất, tôi còn đôi tay mà đi tiếp. Tờ này mất là mất hẳn. Ở nơi này, không đâu vẽ lại được cho tôi."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Bổn Tôn cũng có thứ không đâu làm lại được. Giữ cho kỹ vào."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Tay ngươi chảy máu."
+        },
+        {
+          "speaker": "nguyen_quoc_nam",
+          "text": "Xước vào cạnh tủ lúc nãy thôi. Anh đứng yên một chút — tôi vừa làm vừa nói, nói ra miệng thì tay đỡ run."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ngươi nói với vết thương của mình như nói với học trò."
+        },
+        {
+          "speaker": "nguyen_quoc_nam",
+          "text": "Thói quen đứng lớp. Rửa sạch trước, che lại sau, đừng coi thường vết nhỏ. Nói thuộc lòng vậy mà giờ áp vào tay mình, vẫn phải nhắc lại từ đầu."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Vết nhỏ ấy, ở chốn này để lâu sẽ ra sao, ngươi biết không?"
+        },
+        {
+          "speaker": "nguyen_quoc_nam",
+          "text": "Chưa biết. Nên tôi mới xử lý như thể nó nguy hiểm. Chưa biết thì cứ cẩn thận trước — đó là cách an toàn nhất tôi có."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ngươi ngủ đi. Bổn Tôn chưa buồn ngủ."
+        },
+        {
+          "speaker": "nguyen_quoc_nam",
+          "text": "Ở bệnh viện tôi quen trực đêm, ngủ chập chờn quen rồi. Nhưng anh không ngủ chút nào sao?"
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Phàm nhân cần ngủ để khỏi chết. Bổn Tôn thì không vội."
+        },
+        {
+          "speaker": "nguyen_quoc_nam",
+          "text": "Vậy tôi chợp mắt một lát. Nếu có gì khác thường, anh cứ gọi tôi dậy."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ngủ đi. Việc canh chừng, Bổn Tôn còn làm tốt hơn ngươi."
+        },
+        {
+          "speaker": "nguyen_quoc_nam",
+          "text": "Tôi ngủ bao lâu rồi? Đồng hồ bảo hai tiếng, mà cứ như mới nhắm mắt."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Đủ lâu để Bổn Tôn sinh chán. Đêm ở chốn này còn vô vị hơn ngày."
         }
       ],
       [
@@ -577,6 +1098,50 @@
         {
           "speaker": "nguyen_quoc_nam",
           "text": "Không. Nên tôi cố nhớ giọng con bé, hơn là ngồi đoán."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Đồng hồ của ngươi lại chạy sai rồi sao, y sư? Ngươi đã nhìn nó ba lần trong một đoạn hành lang."
+        },
+        {
+          "speaker": "nguyen_quoc_nam",
+          "text": "Nó vẫn chạy đều, anh. Chỉ là tôi không còn tin nó nữa. Đói thì chưa đói, buồn ngủ cũng chưa, mà kim đã quay hết một vòng."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Thời gian ở chốn này không đứng về phía ngươi."
+        },
+        {
+          "speaker": "nguyen_quoc_nam",
+          "text": "Ở bệnh viện, tôi sống bằng giờ giấc: giờ thăm bệnh, giờ phát thuốc. Vào đây, tôi đành đếm nhịp tim của mình thay đồng hồ."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Nhịp tim phàm nhân, đếm được bao lâu?"
+        },
+        {
+          "speaker": "nguyen_quoc_nam",
+          "text": "Được tới chừng nào tôi còn bình tĩnh. Mà ở đây, bình tĩnh là thứ hao nhanh nhất."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ngươi lại sờ cổ tay. Lần này không phải để xem giờ."
+        },
+        {
+          "speaker": "nguyen_quoc_nam",
+          "text": "Bắt mạch. Lo thì mạch nhanh. Tôi tự xem cho mình trước, kẻo chưa gì đã lo lây sang người khác."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Y gia ở giới của Bổn Tôn cũng xem mạch. Có điều, họ xem cả những mạch ngươi không sờ thấy được."
+        },
+        {
+          "speaker": "nguyen_quoc_nam",
+          "text": "Mạch không sờ thấy được... Anh nói vậy, tôi không kiểm chứng nổi. Nhưng nếu anh xem được, anh thấy mạch tôi thế nào?"
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Mạch vẫn ổn định. Tâm thì chưa."
         }
       ],
       [
@@ -599,6 +1164,26 @@
         {
           "speaker": "nguyen_quoc_nam",
           "text": "Có lẽ vậy. Đó là thứ ít ỏi tôi còn dùng được mà không cần thiết bị."
+        },
+        {
+          "speaker": "nguyen_quoc_nam",
+          "text": "Tôi dạy sinh viên: chưa biết thì nói chưa biết. Nhưng có một điều, chính tôi cũng chưa dám nói ra miệng — tôi chưa biết Hồng Lan và Dương còn đợi mình hay không."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ngươi sợ điều gì hơn: họ còn đợi, hay họ đã thôi đợi?"
+        },
+        {
+          "speaker": "nguyen_quoc_nam",
+          "text": "Sợ họ đã phải sống tiếp mà không có tôi. Nghe ích kỷ, nhưng đó là thật."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Bổn Tôn cũng chưa biết người mình tìm còn sống hay đã mất. Chưa biết — thì cứ đi tiếp. Ngươi dạy học trò điều ấy, giờ tự ngươi phải học lại."
+        },
+        {
+          "speaker": "nguyen_quoc_nam",
+          "text": "Phải. Thầy dạy được người khác, chưa chắc dạy được mình."
         }
       ],
       [
@@ -625,6 +1210,30 @@
         {
           "speaker": "nguyen_quoc_nam",
           "text": "Tôi vẫn mong tìm được đường tránh trước."
+        },
+        {
+          "speaker": "nguyen_quoc_nam",
+          "text": "Mỗi ngày tôi đều kiểm tra lại khẩu súng một lần. Không phải để dùng — để nhớ mình đã quyết không dùng bừa."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Kẻ cầm binh khí mà ngày nào cũng tự nhắc mình đừng dùng. Ở giới của Bổn Tôn, hạng người ấy hiếm."
+        },
+        {
+          "speaker": "nguyen_quoc_nam",
+          "text": "Tôi không biết phía trước là người lạc như mình, hay là thứ gì khác. Chưa rõ thì tôi không nổ súng. Nguyên tắc của tôi chỉ có vậy."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Nếu thứ chắn đường không cho ngươi thời gian để rõ?"
+        },
+        {
+          "speaker": "nguyen_quoc_nam",
+          "text": "Thì tôi phải quyết trong lúc chưa rõ. Tôi sợ nhất là ngày đó, chứ không sợ khẩu súng."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Tay ngươi cầm súng, tâm vẫn là tâm y sư. Hai thứ ấy ở chung một người, hoặc cứu ngươi, hoặc hại ngươi."
         }
       ],
       [
@@ -647,6 +1256,30 @@
         {
           "speaker": "nguyen_quoc_nam",
           "text": "Thật hơn một lời bảo đảm. Ở đây, tôi cũng phải tự nhắc mình như vậy."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Cả quãng đường, ngươi chưa từng hỏi tên người Bổn Tôn tìm."
+        },
+        {
+          "speaker": "nguyen_quoc_nam",
+          "text": "Tôi không hỏi vì anh không nói. Người làm nghề của tôi quen đợi bệnh nhân tự kể."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Nàng tên Lục Trầm. Kiếm tu. Nếu ngươi gặp một nữ nhân mang kiếm trước Bổn Tôn, đó là nàng."
+        },
+        {
+          "speaker": "nguyen_quoc_nam",
+          "text": "Tôi nhớ rồi. Nếu gặp cô ấy, tôi sẽ bảo có người đang tìm cô ấy — đang tìm rất lâu rồi."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Không cần nói rất lâu. Nàng nghe sẽ không hiểu đâu."
+        },
+        {
+          "speaker": "nguyen_quoc_nam",
+          "text": "Vậy tôi chỉ nói tên anh thôi. Phần còn lại để anh tự nói với cô ấy."
         }
       ],
       [
@@ -669,6 +1302,26 @@
         {
           "speaker": "nguyen_quoc_nam",
           "text": "Ngồi xuống ăn một bữa cơm còn nóng, trước khi kể bất cứ chuyện gì. Điều bé xíu vậy thôi, mà giờ nghĩ tới thấy xa quá."
+        },
+        {
+          "speaker": "nguyen_quoc_nam",
+          "text": "Hồng Lan nấu ăn không cầu kỳ. Hôm nào tôi về trễ, cô ấy chỉ hâm lại nồi canh, rồi ngồi chờ ở bàn, không nói một lời trách."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Nàng chờ ngươi bằng cách ấy được bao lâu rồi?"
+        },
+        {
+          "speaker": "nguyen_quoc_nam",
+          "text": "Từ ngày cưới tới giờ. Người ta giận thì nói ra. Cô ấy không nói — nên tôi biết mình nợ nhiều hơn là một bữa cơm nguội."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Trở về được, ngươi định trả món nợ ấy thế nào?"
+        },
+        {
+          "speaker": "nguyen_quoc_nam",
+          "text": "Chưa nghĩ xa vậy. Trước mắt là ngồi xuống khi cơm còn nóng. Chỉ một bữa thôi cũng được — một bữa đúng hẹn."
         }
       ],
       [
@@ -691,19 +1344,32 @@
         {
           "speaker": "nguyen_quoc_nam",
           "text": "Tôi không biết ngoài kia xảy ra chuyện gì. Nhưng chừng nào còn đi được, tôi chưa muốn bỏ cơ hội trở về."
+        },
+        {
+          "speaker": "nguyen_quoc_nam",
+          "text": "Hồi Dương học xem giờ, con bé gọi kim phút là kim chạy nhanh, còn kim giờ là kim lười."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ngươi dạy tiểu nữ nhi xem giờ từ khi nó chưa biết đếm sao?"
+        },
+        {
+          "speaker": "nguyen_quoc_nam",
+          "text": "Nó chưa biết đếm hết, nhưng biết đợi. Kim lười chỉ vào số sáu là ba sắp về — nó thuộc mỗi điều đó thôi."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ngươi dạy nó xem giờ, rốt cuộc là dạy nó chờ ngươi."
+        },
+        {
+          "speaker": "nguyen_quoc_nam",
+          "text": "Nghe anh nói, tôi mới thấy đúng là vậy. Hồi đó tôi chỉ nghĩ mình đang dạy con xem đồng hồ."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Người chờ đợi là người hao mòn nhất. Nó học điều ấy sớm quá."
         }
       ]
-    ,
-      [{"speaker":"cao_minh","text":"Đồng hồ của ngươi lại chạy sai rồi sao, y sư? Ngươi đã nhìn nó ba lần trong một đoạn hành lang."},{"speaker":"nguyen_quoc_nam","text":"Nó vẫn chạy đều, anh. Chỉ là tôi không còn tin nó nữa. Đói thì chưa đói, buồn ngủ cũng chưa, mà kim đã quay hết một vòng."},{"speaker":"cao_minh","text":"Thời gian ở chốn này không đứng về phía ngươi."},{"speaker":"nguyen_quoc_nam","text":"Ở bệnh viện, tôi sống bằng giờ giấc: giờ thăm bệnh, giờ phát thuốc. Vào đây, tôi đành đếm nhịp tim của mình thay đồng hồ."},{"speaker":"cao_minh","text":"Nhịp tim phàm nhân, đếm được bao lâu?"},{"speaker":"nguyen_quoc_nam","text":"Được tới chừng nào tôi còn bình tĩnh. Mà ở đây, bình tĩnh là thứ hao nhanh nhất."}],
-      [{"speaker":"cao_minh","text":"Ngươi lại sờ cổ tay. Lần này không phải để xem giờ."},{"speaker":"nguyen_quoc_nam","text":"Bắt mạch. Lo thì mạch nhanh. Tôi tự xem cho mình trước, kẻo chưa gì đã lo lây sang người khác."},{"speaker":"cao_minh","text":"Y gia ở giới của Bổn Tôn cũng xem mạch. Có điều, họ xem cả những mạch ngươi không sờ thấy được."},{"speaker":"nguyen_quoc_nam","text":"Mạch không sờ thấy được... Anh nói vậy, tôi không kiểm chứng nổi. Nhưng nếu anh xem được, anh thấy mạch tôi thế nào?"},{"speaker":"cao_minh","text":"Mạch vẫn ổn định. Tâm thì chưa."}],
-      [{"speaker":"nguyen_quoc_nam","text":"Anh tránh chỗ thảm ướt kia ra. Túi áo tôi vừa chạm vào, lạnh ngắt."},{"speaker":"cao_minh","text":"Tờ giấy của ngươi?"},{"speaker":"nguyen_quoc_nam","text":"Ướt mất một góc rồi. Nét sáp chỗ Dương vẽ tay tôi đã nhòe — may mà mặt còn lại chưa sao."},{"speaker":"cao_minh","text":"Ngươi giữ tờ giấy còn hơn giữ khẩu súng."},{"speaker":"nguyen_quoc_nam","text":"Súng mất, tôi còn đôi tay mà đi tiếp. Tờ này mất là mất hẳn. Ở nơi này, không đâu vẽ lại được cho tôi."},{"speaker":"cao_minh","text":"Bổn Tôn cũng có thứ không đâu làm lại được. Giữ cho kỹ vào."}],
-      [{"speaker":"nguyen_quoc_nam","text":"Hồi Dương học xem giờ, con bé gọi kim phút là kim chạy nhanh, còn kim giờ là kim lười."},{"speaker":"cao_minh","text":"Ngươi dạy tiểu nữ nhi xem giờ từ khi nó chưa biết đếm sao?"},{"speaker":"nguyen_quoc_nam","text":"Nó chưa biết đếm hết, nhưng biết đợi. Kim lười chỉ vào số sáu là ba sắp về — nó thuộc mỗi điều đó thôi."},{"speaker":"cao_minh","text":"Ngươi dạy nó xem giờ, rốt cuộc là dạy nó chờ ngươi."},{"speaker":"nguyen_quoc_nam","text":"Nghe anh nói, tôi mới thấy đúng là vậy. Hồi đó tôi chỉ nghĩ mình đang dạy con xem đồng hồ."},{"speaker":"cao_minh","text":"Người chờ đợi là người hao mòn nhất. Nó học điều ấy sớm quá."}],
-      [{"speaker":"nguyen_quoc_nam","text":"Mỗi ngày tôi đều kiểm tra lại khẩu súng một lần. Không phải để dùng — để nhớ mình đã quyết không dùng bừa."},{"speaker":"cao_minh","text":"Kẻ cầm binh khí mà ngày nào cũng tự nhắc mình đừng dùng. Ở giới của Bổn Tôn, hạng người ấy hiếm."},{"speaker":"nguyen_quoc_nam","text":"Tôi không biết phía trước là người lạc như mình, hay là thứ gì khác. Chưa rõ thì tôi không nổ súng. Nguyên tắc của tôi chỉ có vậy."},{"speaker":"cao_minh","text":"Nếu thứ chắn đường không cho ngươi thời gian để rõ?"},{"speaker":"nguyen_quoc_nam","text":"Thì tôi phải quyết trong lúc chưa rõ. Tôi sợ nhất là ngày đó, chứ không sợ khẩu súng."},{"speaker":"cao_minh","text":"Tay ngươi cầm súng, tâm vẫn là tâm y sư. Hai thứ ấy ở chung một người, hoặc cứu ngươi, hoặc hại ngươi."}],
-      [{"speaker":"nguyen_quoc_nam","text":"Hồng Lan nấu ăn không cầu kỳ. Hôm nào tôi về trễ, cô ấy chỉ hâm lại nồi canh, rồi ngồi chờ ở bàn, không nói một lời trách."},{"speaker":"cao_minh","text":"Nàng chờ ngươi bằng cách ấy được bao lâu rồi?"},{"speaker":"nguyen_quoc_nam","text":"Từ ngày cưới tới giờ. Người ta giận thì nói ra. Cô ấy không nói — nên tôi biết mình nợ nhiều hơn là một bữa cơm nguội."},{"speaker":"cao_minh","text":"Trở về được, ngươi định trả món nợ ấy thế nào?"},{"speaker":"nguyen_quoc_nam","text":"Chưa nghĩ xa vậy. Trước mắt là ngồi xuống khi cơm còn nóng. Chỉ một bữa thôi cũng được — một bữa đúng hẹn."}],
-      [{"speaker":"cao_minh","text":"Tay ngươi chảy máu."},{"speaker":"nguyen_quoc_nam","text":"Xước vào cạnh tủ lúc nãy thôi. Anh đứng yên một chút — tôi vừa làm vừa nói, nói ra miệng thì tay đỡ run."},{"speaker":"cao_minh","text":"Ngươi nói với vết thương của mình như nói với học trò."},{"speaker":"nguyen_quoc_nam","text":"Thói quen đứng lớp. Rửa sạch trước, che lại sau, đừng coi thường vết nhỏ. Nói thuộc lòng vậy mà giờ áp vào tay mình, vẫn phải nhắc lại từ đầu."},{"speaker":"cao_minh","text":"Vết nhỏ ấy, ở chốn này để lâu sẽ ra sao, ngươi biết không?"},{"speaker":"nguyen_quoc_nam","text":"Chưa biết. Nên tôi mới xử lý như thể nó nguy hiểm. Chưa biết thì cứ cẩn thận trước — đó là cách an toàn nhất tôi có."}],
-      [{"speaker":"cao_minh","text":"Ngươi ngủ đi. Bổn Tôn chưa buồn ngủ."},{"speaker":"nguyen_quoc_nam","text":"Ở bệnh viện tôi quen trực đêm, ngủ chập chờn quen rồi. Nhưng anh không ngủ chút nào sao?"},{"speaker":"cao_minh","text":"Phàm nhân cần ngủ để khỏi chết. Bổn Tôn thì không vội."},{"speaker":"nguyen_quoc_nam","text":"Vậy tôi chợp mắt một lát. Nếu có gì khác thường, anh cứ gọi tôi dậy."},{"speaker":"cao_minh","text":"Ngủ đi. Việc canh chừng, Bổn Tôn còn làm tốt hơn ngươi."},{"speaker":"nguyen_quoc_nam","text":"Tôi ngủ bao lâu rồi? Đồng hồ bảo hai tiếng, mà cứ như mới nhắm mắt."},{"speaker":"cao_minh","text":"Đủ lâu để Bổn Tôn sinh chán. Đêm ở chốn này còn vô vị hơn ngày."}],
-      [{"speaker":"nguyen_quoc_nam","text":"Tôi dạy sinh viên: chưa biết thì nói chưa biết. Nhưng có một điều, chính tôi cũng chưa dám nói ra miệng — tôi chưa biết Hồng Lan và Dương còn đợi mình hay không."},{"speaker":"cao_minh","text":"Ngươi sợ điều gì hơn: họ còn đợi, hay họ đã thôi đợi?"},{"speaker":"nguyen_quoc_nam","text":"Sợ họ đã phải sống tiếp mà không có tôi. Nghe ích kỷ, nhưng đó là thật."},{"speaker":"cao_minh","text":"Bổn Tôn cũng chưa biết người mình tìm còn sống hay đã mất. Chưa biết — thì cứ đi tiếp. Ngươi dạy học trò điều ấy, giờ tự ngươi phải học lại."},{"speaker":"nguyen_quoc_nam","text":"Phải. Thầy dạy được người khác, chưa chắc dạy được mình."}],
-      [{"speaker":"cao_minh","text":"Cả quãng đường, ngươi chưa từng hỏi tên người Bổn Tôn tìm."},{"speaker":"nguyen_quoc_nam","text":"Tôi không hỏi vì anh không nói. Người làm nghề của tôi quen đợi bệnh nhân tự kể."},{"speaker":"cao_minh","text":"Nàng tên Lục Trầm. Kiếm tu. Nếu ngươi gặp một nữ nhân mang kiếm trước Bổn Tôn, đó là nàng."},{"speaker":"nguyen_quoc_nam","text":"Tôi nhớ rồi. Nếu gặp cô ấy, tôi sẽ bảo có người đang tìm cô ấy — đang tìm rất lâu rồi."},{"speaker":"cao_minh","text":"Không cần nói rất lâu. Nàng nghe sẽ không hiểu đâu."},{"speaker":"nguyen_quoc_nam","text":"Vậy tôi chỉ nói tên anh thôi. Phần còn lại để anh tự nói với cô ấy."}]
     ]
   },
   "lucia": {
@@ -801,6 +1467,74 @@
         {
           "speaker": "cao_minh",
           "text": "Được. Bổn Tôn nhớ cái tên Lucia này."
+        },
+        {
+          "speaker": "lucia",
+          "text": "Khoan đã. Dấu phấn này không phải của tôi. Vệt phấn thì giống, mà vị trí thấp hơn hẳn."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Hoàng tường đã biết lặp lại, nay đến phấn ngân của ngươi cũng có cái thứ hai."
+        },
+        {
+          "speaker": "lucia",
+          "text": "Dấu của tôi luôn có một gạch xiên ở dưới. Dấu này không có. Nó là gì thì tôi không biết, chỉ biết không phải tôi đánh."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Nhận ra được thật giả trong đồ của mình, thế là đủ dùng. Đừng đứng nhìn nó nữa."
+        },
+        {
+          "speaker": "lucia",
+          "text": "Phấn tôi mang theo cũng có hạn. Hết phấn là chỉ còn tường với trí nhớ. Tiết kiệm được đoạn nào hay đoạn đó."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Vậy thì đừng phí vào dấu giả. Đi."
+        },
+        {
+          "speaker": "lucia",
+          "text": "Đi chậm thôi. Đoạn sàn trước mặt khác màu, tôi quét laser kiểm tra đã."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Cái chấm đỏ ấy, ngươi soi khắp nơi. Sàn có chỗ không liền, ngươi nhìn ra được gì?"
+        },
+        {
+          "speaker": "lucia",
+          "text": "Trên mạng đồn sàn ở đây có chỗ đứng lên là sụp xuống tầng lạ. Đồn thì đồn, tôi quét để coi mặt sàn có liền hay không, có chỗ nào lõm bất thường không."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Mười bài chín bài bịa, ngươi từng nghe Bổn Tôn nói rồi. Chỗ này thì ngươi vẫn quét."
+        },
+        {
+          "speaker": "lucia",
+          "text": "Tôi không tin đồn. Tôi kiểm tra. Hai việc đó khác nhau. Đoạn này liền, đi được, bám tường bên trái."
+        },
+        {
+          "speaker": "lucia",
+          "text": "Tôi mở rộng theo vòng xoắn ốc, bám tường phải, mỗi vòng ghi một mốc giờ. Hết vòng này sang vòng rộng hơn. Cứ thế, sớm muộn cũng chạm được chỗ khác."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ngươi đi rất có nề nếp. Nơi này thì không có nề nếp nào cả."
+        },
+        {
+          "speaker": "lucia",
+          "text": "Nó không có nề nếp thì tôi càng phải có. Không thì đi một ngày cũng như đi một giờ, chẳng biết mình đã qua đâu."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Bổn Tôn không tìm cửa. Bổn Tôn tìm người. Cửa gặp thì qua, không gặp cũng không sao."
+        },
+        {
+          "speaker": "lucia",
+          "text": "Còn tôi phải tìm cửa trước. Qua được Level 1 mới tính tiếp chuyện về nhà. Mỗi người một việc, mà đường thì đi chung, cũng tiện."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Đi chung tới khi đường rẽ. Tới đó, ai theo việc nấy."
         }
       ],
       [
@@ -845,6 +1579,50 @@
         {
           "speaker": "lucia",
           "text": "Kệ tôi. Tôi chỉ tin một điều ở anh thôi: thấy nguy hiểm thật, anh sẽ lên tiếng. Còn lại cứ để thời gian trả lời."
+        },
+        {
+          "speaker": "lucia",
+          "text": "Anh đợi một chút. Tôi đếm lại đạn."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Lại đếm. Từ ngày gặp Bổn Tôn đến giờ, ngươi chưa dùng đến thứ đồ sắt ấy lần nào."
+        },
+        {
+          "speaker": "lucia",
+          "text": "Một trăm năm mươi viên, còn nguyên. Sáu mươi trong súng, chín mươi dự phòng. Đếm lại không phải sợ mất, mà để chắc mình còn bao nhiêu lần được phép dùng đến nó."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Kiếm của Bổn Tôn không có con số ấy. Chém bao nhiêu lần cũng không vơi."
+        },
+        {
+          "speaker": "lucia",
+          "text": "Thì anh đâu cần tính. Còn tôi, mỗi viên là một lần chọn. Bắn ra rồi là không lấy lại được."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Biết đồ của mình có đáy, tay mới không vung bừa. Điểm này, ngươi không tệ."
+        },
+        {
+          "speaker": "lucia",
+          "text": "Súng mà hết đạn thì tôi còn dao. Dao thì không phải đếm."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Con dao ấy ngắn. Gặp việc thật, ngươi tính dùng nó sao?"
+        },
+        {
+          "speaker": "lucia",
+          "text": "Cận quá thì súng cũng vướng. Dao gọn, rút nhanh. Với lại nó còn để cắt, để nạy, đủ thứ việc lặt vặt."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Đồ của phàm nhân, một món lo mấy việc. Kiếm của Bổn Tôn chỉ có một việc."
+        },
+        {
+          "speaker": "lucia",
+          "text": "Một việc mà anh làm giỏi là được. Tôi thì phải lo đủ thứ, đồ đạc cũng vậy."
         }
       ],
       [
@@ -867,6 +1645,26 @@
         {
           "speaker": "lucia",
           "text": "Ừ. Ít ra ở trong quân ngũ, không ai hỏi tôi là con nhà nào trước khi giao việc."
+        },
+        {
+          "speaker": "lucia",
+          "text": "Ở Sài Gòn, nhà tôi muốn tìm một người thì dễ lắm. Quan hệ mấy chục năm, một buổi là có tin. Còn tôi ở đây, tìm một cánh cửa mãi không ra."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Thế gia của ngươi tìm người bằng người và tiền. Bổn Tôn tìm bằng đôi chân và thanh kiếm này. Cách khác nhau, kết quả giống nhau: chưa thấy."
+        },
+        {
+          "speaker": "lucia",
+          "text": "Nhà tôi chắc đang loạn lên, mà họ còn chẳng biết tôi mất tích ở đâu. Chỉ biết tôi đi hành quân, rồi không về."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Kẻ Bổn Tôn tìm, đến một manh mối cũng không để lại ở nơi này."
+        },
+        {
+          "speaker": "lucia",
+          "text": "Thế thì hai đứa mình cứ đi tiếp. Tìm chưa ra không có nghĩa là không có."
         }
       ],
       [
@@ -889,6 +1687,50 @@
         {
           "speaker": "lucia",
           "text": "Tôi không muốn có lần nào bắn nhầm. Đạn của tôi có hạn, mạng người thì không có phát thứ hai."
+        },
+        {
+          "speaker": "lucia",
+          "text": "Đến khoảng giờ thứ tư rồi. Nghe đi... lại tiếng động đó, phía xa bên trái."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Bổn Tôn nghe thấy. Có vật di chuyển, không gần. Là gì thì chưa thấy tận mắt, Bổn Tôn không đoán."
+        },
+        {
+          "speaker": "lucia",
+          "text": "Mấy lần trước cũng đúng khoảng giờ này. Tôi ghi mốc hết vào đồng hồ rồi. Chưa thấy tận mắt thì tôi không nói nó là gì."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Không cần đuổi theo. Nó muốn đến gần, tự nó sẽ đến."
+        },
+        {
+          "speaker": "lucia",
+          "text": "Ừ. Tôi cũng không rời tường vì một tiếng động chưa rõ. Đi tiếp thôi, đoạn này tôi đánh dấu rồi."
+        },
+        {
+          "speaker": "lucia",
+          "text": "Mỗi lần qua một khúc quanh, tôi lại ngoái lại đếm người. Thói quen trong đội, tới giờ chưa bỏ được. Sau lưng tôi bây giờ chỉ có anh."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Trong đội của ngươi, đếm thiếu một người thì sao?"
+        },
+        {
+          "speaker": "lucia",
+          "text": "Thì quay lại tìm. Chưa đủ người, chưa đi tiếp. Giờ tôi đếm tới hai là hết, mà trong bụng vẫn chờ thêm mấy con số nữa."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Bổn Tôn đi một mình đã quen nhiều năm. Đếm người, là việc lạ."
+        },
+        {
+          "speaker": "lucia",
+          "text": "Vậy mà anh đi tìm một người khắp nơi này. Cũng là một kiểu đếm thiếu đấy."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ừ. Một người. Thiếu đã lâu rồi."
         }
       ],
       [
@@ -911,18 +1753,28 @@
         {
           "speaker": "lucia",
           "text": "Dù thế nào tôi cũng phải về. Và tôi không bỏ ai lại giữa đường chỉ vì mình sốt ruột."
+        },
+        {
+          "speaker": "lucia",
+          "text": "Tôi chợp mắt hai mươi phút. Đồng hồ hẹn giờ rồi. Anh còn thức thì tôi ngủ được."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Bổn Tôn không cần ngủ như phàm nhân. Ngươi ngủ hay thức, là việc của ngươi."
+        },
+        {
+          "speaker": "lucia",
+          "text": "Tôi biết anh không hứa canh cho tôi. Nhưng tôi nhìn tay anh mấy hôm nay rồi: anh còn thức, kiếm còn trong tầm tay. Vậy là đủ để tôi chợp mắt."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ngủ đi. Huyên náo cả ngày, yên được lúc nào hay lúc đó."
+        },
+        {
+          "speaker": "lucia",
+          "text": "Hai mươi phút thôi. Quá giờ, đồng hồ kêu, tôi dậy. Lính ngủ cũng có kỷ luật."
         }
       ]
-    ,
-      [{"speaker":"lucia","text":"Khoan đã. Dấu phấn này không phải của tôi. Vệt phấn thì giống, mà vị trí thấp hơn hẳn."},{"speaker":"cao_minh","text":"Hoàng tường đã biết lặp lại, nay đến phấn ngân của ngươi cũng có cái thứ hai."},{"speaker":"lucia","text":"Dấu của tôi luôn có một gạch xiên ở dưới. Dấu này không có. Nó là gì thì tôi không biết, chỉ biết không phải tôi đánh."},{"speaker":"cao_minh","text":"Nhận ra được thật giả trong đồ của mình, thế là đủ dùng. Đừng đứng nhìn nó nữa."},{"speaker":"lucia","text":"Phấn tôi mang theo cũng có hạn. Hết phấn là chỉ còn tường với trí nhớ. Tiết kiệm được đoạn nào hay đoạn đó."},{"speaker":"cao_minh","text":"Vậy thì đừng phí vào dấu giả. Đi."}],
-      [{"speaker":"lucia","text":"Đi chậm thôi. Đoạn sàn trước mặt khác màu, tôi quét laser kiểm tra đã."},{"speaker":"cao_minh","text":"Cái chấm đỏ ấy, ngươi soi khắp nơi. Sàn có chỗ không liền, ngươi nhìn ra được gì?"},{"speaker":"lucia","text":"Trên mạng đồn sàn ở đây có chỗ đứng lên là sụp xuống tầng lạ. Đồn thì đồn, tôi quét để coi mặt sàn có liền hay không, có chỗ nào lõm bất thường không."},{"speaker":"cao_minh","text":"Mười bài chín bài bịa, ngươi từng nghe Bổn Tôn nói rồi. Chỗ này thì ngươi vẫn quét."},{"speaker":"lucia","text":"Tôi không tin đồn. Tôi kiểm tra. Hai việc đó khác nhau. Đoạn này liền, đi được, bám tường bên trái."}],
-      [{"speaker":"lucia","text":"Anh đợi một chút. Tôi đếm lại đạn."},{"speaker":"cao_minh","text":"Lại đếm. Từ ngày gặp Bổn Tôn đến giờ, ngươi chưa dùng đến thứ đồ sắt ấy lần nào."},{"speaker":"lucia","text":"Một trăm năm mươi viên, còn nguyên. Sáu mươi trong súng, chín mươi dự phòng. Đếm lại không phải sợ mất, mà để chắc mình còn bao nhiêu lần được phép dùng đến nó."},{"speaker":"cao_minh","text":"Kiếm của Bổn Tôn không có con số ấy. Chém bao nhiêu lần cũng không vơi."},{"speaker":"lucia","text":"Thì anh đâu cần tính. Còn tôi, mỗi viên là một lần chọn. Bắn ra rồi là không lấy lại được."},{"speaker":"cao_minh","text":"Biết đồ của mình có đáy, tay mới không vung bừa. Điểm này, ngươi không tệ."}],
-      [{"speaker":"lucia","text":"Đến khoảng giờ thứ tư rồi. Nghe đi... lại tiếng động đó, phía xa bên trái."},{"speaker":"cao_minh","text":"Bổn Tôn nghe thấy. Có vật di chuyển, không gần. Là gì thì chưa thấy tận mắt, Bổn Tôn không đoán."},{"speaker":"lucia","text":"Mấy lần trước cũng đúng khoảng giờ này. Tôi ghi mốc hết vào đồng hồ rồi. Chưa thấy tận mắt thì tôi không nói nó là gì."},{"speaker":"cao_minh","text":"Không cần đuổi theo. Nó muốn đến gần, tự nó sẽ đến."},{"speaker":"lucia","text":"Ừ. Tôi cũng không rời tường vì một tiếng động chưa rõ. Đi tiếp thôi, đoạn này tôi đánh dấu rồi."}],
-      [{"speaker":"lucia","text":"Mỗi lần qua một khúc quanh, tôi lại ngoái lại đếm người. Thói quen trong đội, tới giờ chưa bỏ được. Sau lưng tôi bây giờ chỉ có anh."},{"speaker":"cao_minh","text":"Trong đội của ngươi, đếm thiếu một người thì sao?"},{"speaker":"lucia","text":"Thì quay lại tìm. Chưa đủ người, chưa đi tiếp. Giờ tôi đếm tới hai là hết, mà trong bụng vẫn chờ thêm mấy con số nữa."},{"speaker":"cao_minh","text":"Bổn Tôn đi một mình đã quen nhiều năm. Đếm người, là việc lạ."},{"speaker":"lucia","text":"Vậy mà anh đi tìm một người khắp nơi này. Cũng là một kiểu đếm thiếu đấy."},{"speaker":"cao_minh","text":"Ừ. Một người. Thiếu đã lâu rồi."}],
-      [{"speaker":"lucia","text":"Ở Sài Gòn, nhà tôi muốn tìm một người thì dễ lắm. Quan hệ mấy chục năm, một buổi là có tin. Còn tôi ở đây, tìm một cánh cửa mãi không ra."},{"speaker":"cao_minh","text":"Thế gia của ngươi tìm người bằng người và tiền. Bổn Tôn tìm bằng đôi chân và thanh kiếm này. Cách khác nhau, kết quả giống nhau: chưa thấy."},{"speaker":"lucia","text":"Nhà tôi chắc đang loạn lên, mà họ còn chẳng biết tôi mất tích ở đâu. Chỉ biết tôi đi hành quân, rồi không về."},{"speaker":"cao_minh","text":"Kẻ Bổn Tôn tìm, đến một manh mối cũng không để lại ở nơi này."},{"speaker":"lucia","text":"Thế thì hai đứa mình cứ đi tiếp. Tìm chưa ra không có nghĩa là không có."}],
-      [{"speaker":"lucia","text":"Tôi mở rộng theo vòng xoắn ốc, bám tường phải, mỗi vòng ghi một mốc giờ. Hết vòng này sang vòng rộng hơn. Cứ thế, sớm muộn cũng chạm được chỗ khác."},{"speaker":"cao_minh","text":"Ngươi đi rất có nề nếp. Nơi này thì không có nề nếp nào cả."},{"speaker":"lucia","text":"Nó không có nề nếp thì tôi càng phải có. Không thì đi một ngày cũng như đi một giờ, chẳng biết mình đã qua đâu."},{"speaker":"cao_minh","text":"Bổn Tôn không tìm cửa. Bổn Tôn tìm người. Cửa gặp thì qua, không gặp cũng không sao."},{"speaker":"lucia","text":"Còn tôi phải tìm cửa trước. Qua được Level 1 mới tính tiếp chuyện về nhà. Mỗi người một việc, mà đường thì đi chung, cũng tiện."},{"speaker":"cao_minh","text":"Đi chung tới khi đường rẽ. Tới đó, ai theo việc nấy."}],
-      [{"speaker":"lucia","text":"Tôi chợp mắt hai mươi phút. Đồng hồ hẹn giờ rồi. Anh còn thức thì tôi ngủ được."},{"speaker":"cao_minh","text":"Bổn Tôn không cần ngủ như phàm nhân. Ngươi ngủ hay thức, là việc của ngươi."},{"speaker":"lucia","text":"Tôi biết anh không hứa canh cho tôi. Nhưng tôi nhìn tay anh mấy hôm nay rồi: anh còn thức, kiếm còn trong tầm tay. Vậy là đủ để tôi chợp mắt."},{"speaker":"cao_minh","text":"Ngủ đi. Huyên náo cả ngày, yên được lúc nào hay lúc đó."},{"speaker":"lucia","text":"Hai mươi phút thôi. Quá giờ, đồng hồ kêu, tôi dậy. Lính ngủ cũng có kỷ luật."}],
-      [{"speaker":"lucia","text":"Súng mà hết đạn thì tôi còn dao. Dao thì không phải đếm."},{"speaker":"cao_minh","text":"Con dao ấy ngắn. Gặp việc thật, ngươi tính dùng nó sao?"},{"speaker":"lucia","text":"Cận quá thì súng cũng vướng. Dao gọn, rút nhanh. Với lại nó còn để cắt, để nạy, đủ thứ việc lặt vặt."},{"speaker":"cao_minh","text":"Đồ của phàm nhân, một món lo mấy việc. Kiếm của Bổn Tôn chỉ có một việc."},{"speaker":"lucia","text":"Một việc mà anh làm giỏi là được. Tôi thì phải lo đủ thứ, đồ đạc cũng vậy."}]
     ]
   },
   "hua_tieu_lan": {
@@ -986,6 +1838,30 @@
         {
           "speaker": "hua_tieu_lan",
           "text": "Vâng. Đó là lần đầu tôi nhận ra, lời nói cũng có thể khiến một người không trở lại nữa."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Cô nương nhận ra hai tiếng Bổn Tôn ngay từ lần đầu. Người kể chuyện ở xứ cô nương kể cả những điều ấy sao?"
+        },
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Người kể chuyện ở Chợ Lớn kể chuyện tiên gia hay lắm. Tôi nghe từ bé — kiếm bay, người sống mấy trăm năm. Tôi cứ tưởng đó là chuyện bịa cho trẻ con vui."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Giờ thì sao?"
+        },
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Giờ tôi đi cùng một người trong những chuyện ấy. Công tử, tôi hỏi một điều — người tu tiên lạc đường, có tìm lại được đường về nhà không?"
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Còn tùy kẻ ấy đã đánh mất những gì trên đường đi."
+        },
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Tôi hỏi không phải cho công tử. Tôi hỏi cho tôi."
         }
       ],
       [
@@ -1030,6 +1906,30 @@
         {
           "speaker": "hua_tieu_lan",
           "text": "Chưa. Lúc ấy tôi vẫn nghĩ, ngày mai còn có thể nói."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Số bạc cứu dân thiên tai năm ấy. Cô nương có biết nó cứu được bao nhiêu người không?"
+        },
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Mẫu thân không nói con số. Chỉ bảo năm ấy lụt lớn, bạc đưa xuống mua gạo và thuốc, chia cho người ở các làng ven sông. Có những người sống được nhờ đó, mà cả đời tôi cũng không biết tên."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Những người ấy không biết tên chàng. Cô nương thì nhục mạ chàng trước mặt gia nhân."
+        },
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Công tử nói thẳng quá. Nhưng đúng là vậy. Chàng mang bạc đi cứu người không quen, còn tôi đứng trong phủ, chỉ lo người ta cười mình tin nhầm."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Cô nương giận mình vì không biết, hay vì không hỏi?"
+        },
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Vì không hỏi. Không biết thì còn tha thứ được cho mình. Không hỏi là tôi đã tự chọn phần dễ cho mình."
         }
       ],
       [
@@ -1074,6 +1974,90 @@
         {
           "speaker": "hua_tieu_lan",
           "text": "Giờ được đi bất cứ đâu trong những hành lang này, tôi chỉ muốn trở về đúng cánh cửa cũ."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Cô nương lau thứ ấy đã lâu rồi. Nó là binh khí của cô nương sao?"
+        },
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Xin thất lễ, để công tử phải chờ. Đây là súng trường, tên gọi Trường Xuân. Từ năm tôi mười lăm tuổi, đi đâu gia nhân cũng mang theo nó cho tôi."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Một tiểu thư khuê các, lại học dùng súng."
+        },
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Cha tôi cho người dạy tôi bắn ở sân sau phủ. Ông bảo con gái Hứa gia ra đường, phải có thứ tự giữ mình. Tôi bắn bia gỗ mười phát trúng cả mười."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Còn chĩa vào người?"
+        },
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Chưa từng. Tay tôi cầm súng chắc, nhưng chưa biết lúc cần bắn thật, nó còn chắc được không."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Cô nương lại đứng trước cửa, tay đã đặt lên mà không đẩy."
+        },
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Thói quen cũ, công tử đừng cười. Ở phủ, cửa nào cũng có người mở sẵn cho tôi. Ngày mới lạc vào đây, tôi còn đứng chờ — chờ có ai đến đón như mọi khi."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ở chốn này, cửa không mở vì thể diện của ai cả."
+        },
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Tôi biết rồi. Mấy hôm nay tôi đã tự đẩy được. Chỉ là tay vẫn chần chừ một nhịp trước khi đẩy — như nó còn đợi một người hầu nào đó không bao giờ tới."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Đẩy đi. Bổn Tôn không có thói quen chờ cửa."
+        },
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Đêm ở phủ, tôi hay nghe mưa rơi trên mái ngói. Tiếng mưa có lúc to lúc nhỏ, nghe mãi cũng quen. Còn tiếng đèn ở đây, nó kêu một điệu không đổi, nghe lâu nhức cả đầu."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Cô nương đếm tiếng ấy thay cho việc ngủ sao?"
+        },
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Tôi đếm đèn thay đếm người đi chợ, như hồi đứng sau song cửa. Hồi đó tôi ước được ra ngoài. Giờ ra ngoài mãi không hết hành lang, lại chỉ muốn nghe lại tiếng mưa trên mái nhà mình."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Mưa ở chốn này không rơi. Cô nương nhớ mái ngói cũng vô ích."
+        },
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Vô ích thì tôi vẫn nhớ. Nhớ không phải để quay lại ngay — chỉ để biết mình từng có một nơi như thế."
+        },
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Xin công tử đi chậm một chút. Đôi giày này sinh ra để đi trong sân phủ, không phải để đi mãi trong hành lang."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Cởi ra mà đi chân đất. Hành lang này không có ai nhìn cô nương đâu."
+        },
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Tôi đã thử rồi. Đi được một đoạn lại xỏ vào. Chân đau một, mà nghĩ đến bộ dạng của mình lúc ấy, tôi chịu không nổi phần kia."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Thể diện của cô nương nặng hơn đôi giày."
+        },
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Mười tám năm được dạy như thế, đâu bỏ được trong mấy ngày. Nhưng công tử thấy đấy — giờ tôi đã dám nói ra miệng chuyện mình sợ mất thể diện. Ở phủ, điều này tôi không dám nhận với ai."
         }
       ],
       [
@@ -1096,6 +2080,26 @@
         {
           "speaker": "hua_tieu_lan",
           "text": "Chưa. Nhưng tôi muốn học cách kể, mà không biến Anh Tý thành một tội lỗi chỉ thuộc về tôi."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Vòng ngọc trên tay cô nương, đi đường thế này không sợ vỡ sao?"
+        },
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Sợ chứ. Áo đã lem, giày đã mòn, chỉ còn vòng ngọc này là nguyên vẹn như hôm ở nhà. Mẫu thân dặn tôi giữ nó bên người — đồ của Hứa gia, đi đâu cũng phải còn một thứ không đổi."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Người còn, vật còn. Cô nương giữ được cả hai là hơn khối kẻ Bổn Tôn từng gặp."
+        },
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Công tử nói vậy, tôi lại càng không dám làm vỡ nó."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Đừng giữ vì lời Bổn Tôn. Giữ vì nó là của cô nương."
         }
       ],
       [
@@ -1118,19 +2122,76 @@
         {
           "speaker": "hua_tieu_lan",
           "text": "Vậy xin để tôi đi bằng tên của mình — không phải bằng một lời xin lỗi chưa kịp nói."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ngày sinh nhật mười tám tuổi của cô nương. Hôm ấy cô nương rời phủ bằng cách nào?"
+        },
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Trong phủ mở tiệc, người ra vào đông. Tôi lẻn theo cửa sau, một mình — lần đầu trong đời không có gia nhân đi cùng. Hồi bé tôi chỉ mong được một mình bước qua cổng một lần cho biết."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Rồi cô nương bước qua, và không còn đường quay lại."
+        },
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Vâng. Tôi được như nguyện theo cái cách tàn nhẫn nhất. Đến giờ tôi vẫn không nhớ nổi sau cánh cổng ấy là gì — chỉ nhớ mình cứ đi, và tiếng người nhà gọi nhỏ dần."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Nghe không được nữa thì thôi nghĩ. Đi tiếp đi."
+        },
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Công tử nói phải. Nghĩ mãi, chân cũng không quay lại được."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Đêm qua cô nương nói một mình trong hành lang. Nói với ai?"
+        },
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Xin thất lễ, tôi làm ồn đến công tử sao? Tôi tập nói lời xin lỗi. Nói với khoảng trống trước mặt, như thể chàng đang đứng đó."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Chàng không nghe được. Tập để làm gì?"
+        },
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Để nếu đời người còn có một lần nào nữa — dù chỉ trong mơ — tôi không lại đứng yên như lần trước. Lần trước tôi để thể diện giữ miệng mình lại."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Vậy thì nói cho rõ ràng. Đừng nói lí nhí như sợ người ta nghe thấy — bệnh ấy của cô nương, Bổn Tôn thấy mãi rồi."
+        },
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Vâng. Lần này tôi sẽ nói to. Dù người nghe chỉ là hành lang này."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Cô nương có điều muốn hỏi Bổn Tôn đã mấy hôm nay."
+        },
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Công tử tinh ý thật. Người công tử tìm — nữ nhân mang kiếm ấy — công tử có điều gì chưa kịp nói với nàng không? Như tôi với Anh Tý vậy."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Cô nương hỏi nhiều rồi."
+        },
+        {
+          "speaker": "hua_tieu_lan",
+          "text": "Xin thất lễ. Tôi không gặng nữa. Chỉ là tôi mong công tử không phải đứng ở phía bên này của một lời chưa nói, như tôi."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Đi thôi. Hành lang này, Bổn Tôn đã chán."
         }
       ]
-    ,
-      [{"speaker":"cao_minh","text":"Cô nương lau thứ ấy đã lâu rồi. Nó là binh khí của cô nương sao?"},{"speaker":"hua_tieu_lan","text":"Xin thất lễ, để công tử phải chờ. Đây là súng trường, tên gọi Trường Xuân. Từ năm tôi mười lăm tuổi, đi đâu gia nhân cũng mang theo nó cho tôi."},{"speaker":"cao_minh","text":"Một tiểu thư khuê các, lại học dùng súng."},{"speaker":"hua_tieu_lan","text":"Cha tôi cho người dạy tôi bắn ở sân sau phủ. Ông bảo con gái Hứa gia ra đường, phải có thứ tự giữ mình. Tôi bắn bia gỗ mười phát trúng cả mười."},{"speaker":"cao_minh","text":"Còn chĩa vào người?"},{"speaker":"hua_tieu_lan","text":"Chưa từng. Tay tôi cầm súng chắc, nhưng chưa biết lúc cần bắn thật, nó còn chắc được không."}],
-      [{"speaker":"cao_minh","text":"Số bạc cứu dân thiên tai năm ấy. Cô nương có biết nó cứu được bao nhiêu người không?"},{"speaker":"hua_tieu_lan","text":"Mẫu thân không nói con số. Chỉ bảo năm ấy lụt lớn, bạc đưa xuống mua gạo và thuốc, chia cho người ở các làng ven sông. Có những người sống được nhờ đó, mà cả đời tôi cũng không biết tên."},{"speaker":"cao_minh","text":"Những người ấy không biết tên chàng. Cô nương thì nhục mạ chàng trước mặt gia nhân."},{"speaker":"hua_tieu_lan","text":"Công tử nói thẳng quá. Nhưng đúng là vậy. Chàng mang bạc đi cứu người không quen, còn tôi đứng trong phủ, chỉ lo người ta cười mình tin nhầm."},{"speaker":"cao_minh","text":"Cô nương giận mình vì không biết, hay vì không hỏi?"},{"speaker":"hua_tieu_lan","text":"Vì không hỏi. Không biết thì còn tha thứ được cho mình. Không hỏi là tôi đã tự chọn phần dễ cho mình."}],
-      [{"speaker":"cao_minh","text":"Cô nương lại đứng trước cửa, tay đã đặt lên mà không đẩy."},{"speaker":"hua_tieu_lan","text":"Thói quen cũ, công tử đừng cười. Ở phủ, cửa nào cũng có người mở sẵn cho tôi. Ngày mới lạc vào đây, tôi còn đứng chờ — chờ có ai đến đón như mọi khi."},{"speaker":"cao_minh","text":"Ở chốn này, cửa không mở vì thể diện của ai cả."},{"speaker":"hua_tieu_lan","text":"Tôi biết rồi. Mấy hôm nay tôi đã tự đẩy được. Chỉ là tay vẫn chần chừ một nhịp trước khi đẩy — như nó còn đợi một người hầu nào đó không bao giờ tới."},{"speaker":"cao_minh","text":"Đẩy đi. Bổn Tôn không có thói quen chờ cửa."}],
-      [{"speaker":"hua_tieu_lan","text":"Đêm ở phủ, tôi hay nghe mưa rơi trên mái ngói. Tiếng mưa có lúc to lúc nhỏ, nghe mãi cũng quen. Còn tiếng đèn ở đây, nó kêu một điệu không đổi, nghe lâu nhức cả đầu."},{"speaker":"cao_minh","text":"Cô nương đếm tiếng ấy thay cho việc ngủ sao?"},{"speaker":"hua_tieu_lan","text":"Tôi đếm đèn thay đếm người đi chợ, như hồi đứng sau song cửa. Hồi đó tôi ước được ra ngoài. Giờ ra ngoài mãi không hết hành lang, lại chỉ muốn nghe lại tiếng mưa trên mái nhà mình."},{"speaker":"cao_minh","text":"Mưa ở chốn này không rơi. Cô nương nhớ mái ngói cũng vô ích."},{"speaker":"hua_tieu_lan","text":"Vô ích thì tôi vẫn nhớ. Nhớ không phải để quay lại ngay — chỉ để biết mình từng có một nơi như thế."}],
-      [{"speaker":"cao_minh","text":"Vòng ngọc trên tay cô nương, đi đường thế này không sợ vỡ sao?"},{"speaker":"hua_tieu_lan","text":"Sợ chứ. Áo đã lem, giày đã mòn, chỉ còn vòng ngọc này là nguyên vẹn như hôm ở nhà. Mẫu thân dặn tôi giữ nó bên người — đồ của Hứa gia, đi đâu cũng phải còn một thứ không đổi."},{"speaker":"cao_minh","text":"Người còn, vật còn. Cô nương giữ được cả hai là hơn khối kẻ Bổn Tôn từng gặp."},{"speaker":"hua_tieu_lan","text":"Công tử nói vậy, tôi lại càng không dám làm vỡ nó."},{"speaker":"cao_minh","text":"Đừng giữ vì lời Bổn Tôn. Giữ vì nó là của cô nương."}],
-      [{"speaker":"hua_tieu_lan","text":"Xin công tử đi chậm một chút. Đôi giày này sinh ra để đi trong sân phủ, không phải để đi mãi trong hành lang."},{"speaker":"cao_minh","text":"Cởi ra mà đi chân đất. Hành lang này không có ai nhìn cô nương đâu."},{"speaker":"hua_tieu_lan","text":"Tôi đã thử rồi. Đi được một đoạn lại xỏ vào. Chân đau một, mà nghĩ đến bộ dạng của mình lúc ấy, tôi chịu không nổi phần kia."},{"speaker":"cao_minh","text":"Thể diện của cô nương nặng hơn đôi giày."},{"speaker":"hua_tieu_lan","text":"Mười tám năm được dạy như thế, đâu bỏ được trong mấy ngày. Nhưng công tử thấy đấy — giờ tôi đã dám nói ra miệng chuyện mình sợ mất thể diện. Ở phủ, điều này tôi không dám nhận với ai."}],
-      [{"speaker":"cao_minh","text":"Ngày sinh nhật mười tám tuổi của cô nương. Hôm ấy cô nương rời phủ bằng cách nào?"},{"speaker":"hua_tieu_lan","text":"Trong phủ mở tiệc, người ra vào đông. Tôi lẻn theo cửa sau, một mình — lần đầu trong đời không có gia nhân đi cùng. Hồi bé tôi chỉ mong được một mình bước qua cổng một lần cho biết."},{"speaker":"cao_minh","text":"Rồi cô nương bước qua, và không còn đường quay lại."},{"speaker":"hua_tieu_lan","text":"Vâng. Tôi được như nguyện theo cái cách tàn nhẫn nhất. Đến giờ tôi vẫn không nhớ nổi sau cánh cổng ấy là gì — chỉ nhớ mình cứ đi, và tiếng người nhà gọi nhỏ dần."},{"speaker":"cao_minh","text":"Nghe không được nữa thì thôi nghĩ. Đi tiếp đi."},{"speaker":"hua_tieu_lan","text":"Công tử nói phải. Nghĩ mãi, chân cũng không quay lại được."}],
-      [{"speaker":"cao_minh","text":"Cô nương nhận ra hai tiếng Bổn Tôn ngay từ lần đầu. Người kể chuyện ở xứ cô nương kể cả những điều ấy sao?"},{"speaker":"hua_tieu_lan","text":"Người kể chuyện ở Chợ Lớn kể chuyện tiên gia hay lắm. Tôi nghe từ bé — kiếm bay, người sống mấy trăm năm. Tôi cứ tưởng đó là chuyện bịa cho trẻ con vui."},{"speaker":"cao_minh","text":"Giờ thì sao?"},{"speaker":"hua_tieu_lan","text":"Giờ tôi đi cùng một người trong những chuyện ấy. Công tử, tôi hỏi một điều — người tu tiên lạc đường, có tìm lại được đường về nhà không?"},{"speaker":"cao_minh","text":"Còn tùy kẻ ấy đã đánh mất những gì trên đường đi."},{"speaker":"hua_tieu_lan","text":"Tôi hỏi không phải cho công tử. Tôi hỏi cho tôi."}],
-      [{"speaker":"cao_minh","text":"Đêm qua cô nương nói một mình trong hành lang. Nói với ai?"},{"speaker":"hua_tieu_lan","text":"Xin thất lễ, tôi làm ồn đến công tử sao? Tôi tập nói lời xin lỗi. Nói với khoảng trống trước mặt, như thể chàng đang đứng đó."},{"speaker":"cao_minh","text":"Chàng không nghe được. Tập để làm gì?"},{"speaker":"hua_tieu_lan","text":"Để nếu đời người còn có một lần nào nữa — dù chỉ trong mơ — tôi không lại đứng yên như lần trước. Lần trước tôi để thể diện giữ miệng mình lại."},{"speaker":"cao_minh","text":"Vậy thì nói cho rõ ràng. Đừng nói lí nhí như sợ người ta nghe thấy — bệnh ấy của cô nương, Bổn Tôn thấy mãi rồi."},{"speaker":"hua_tieu_lan","text":"Vâng. Lần này tôi sẽ nói to. Dù người nghe chỉ là hành lang này."}],
-      [{"speaker":"cao_minh","text":"Cô nương có điều muốn hỏi Bổn Tôn đã mấy hôm nay."},{"speaker":"hua_tieu_lan","text":"Công tử tinh ý thật. Người công tử tìm — nữ nhân mang kiếm ấy — công tử có điều gì chưa kịp nói với nàng không? Như tôi với Anh Tý vậy."},{"speaker":"cao_minh","text":"Cô nương hỏi nhiều rồi."},{"speaker":"hua_tieu_lan","text":"Xin thất lễ. Tôi không gặng nữa. Chỉ là tôi mong công tử không phải đứng ở phía bên này của một lời chưa nói, như tôi."},{"speaker":"cao_minh","text":"Đi thôi. Hành lang này, Bổn Tôn đã chán."}]
     ],
     "past": [
       "Tôi là Tứ tiểu thư Hứa gia ở Sài Gòn – Chợ Lớn. Hồi bé, cứ mong được một mình bước qua cổng.",
@@ -1199,6 +2260,26 @@
         {
           "speaker": "luc_tram",
           "text": "Buông lỏng tay không có nghĩa là buông điều mình đã chọn. Các hạ cũng cầm kiếm, chắc hiểu điều này."
+        },
+        {
+          "speaker": "luc_tram",
+          "text": "Ngươi nói từng đứng chung một phía với ta. Vậy nói thử một điều về kiếm pháp của ta — điều người chỉ nghe danh Thiên Kiếm Môn không thể biết được."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Thế Bạch Hồng Quán Nhật của nàng ra nhanh, nhưng trước lúc mũi kiếm đâm tới, vai trái nàng hạ xuống trước nửa nhịp. Giao thủ đủ lâu sẽ đọc được."
+        },
+        {
+          "speaker": "luc_tram",
+          "text": "Điểm ấy người trong sư môn biết, nhưng kẻ ngoài môn phái từng thấy ta xuất chiêu đó mà còn sống để kể lại thì rất ít. Ta ghi nhận: ngươi thật sự đã giao thủ với ta, và không chỉ một lần."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Bổn Tôn không cần bịa chuyện để nàng tin."
+        },
+        {
+          "speaker": "luc_tram",
+          "text": "Từng giao thủ nhiều lần chỉ chứng minh chúng ta từng đối đầu, hoặc từng kề vai. Nó chưa chứng minh được phần ngươi gọi là đồng minh. Hai việc đó ta vẫn tách riêng, chưa gộp làm một."
         }
       ],
       [
@@ -1243,6 +2324,46 @@
         {
           "speaker": "luc_tram",
           "text": "Vậy thì từ đây, ta không giữ lễ với ngươi nữa. Ngươi đo người bằng thanh kiếm đang giơ; còn ta vẫn giữ đạo của mình, chỉ không trốn sau hai chữ ấy để khỏi tự xét lại."
+        },
+        {
+          "speaker": "luc_tram",
+          "text": "Vừa rồi, khi ta vận linh lực đỡ đòn, có một sợi khí tức lạ chạy dọc kinh mạch của ta. Nó không thuộc đạo thống Thiên Kiếm Môn, và ta chưa từng cảm thấy nó trước khi tỉnh lại ở nơi này."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Đó là ma khí. Của Bổn Tôn."
+        },
+        {
+          "speaker": "luc_tram",
+          "text": "Ngươi nói thế nghĩa là ma khí của ngươi đã ở trong người ta từ trước. Việc đó không thể xảy ra giữa hai người lạ chỉ từng giao thủ vài lần."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Nó vào người nàng trong trận chiến cuối cùng, khi Bổn Tôn giữ lại mạng cho nàng. Chuyện dài, hôm nay Bổn Tôn chỉ nói tới đó."
+        },
+        {
+          "speaker": "luc_tram",
+          "text": "Ngươi đặt vào tay ta một kết luận rất lớn rồi bảo ta dừng ở đó. Ta chưa chấp nhận kết luận ấy — nhưng sợi khí kia là có thật, và ta sẽ tự kiểm chứng nó mỗi lần vận công cho tới khi hiểu nó là gì."
+        },
+        {
+          "speaker": "luc_tram",
+          "text": "Trong lần giao thủ vừa rồi, ta cố ý để hở sườn trái một nhịp. Ta muốn xem ngươi xử lý sơ hở của người đi cùng mình như thế nào."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Bổn Tôn thấy rõ. Và Bổn Tôn đứng vào chỗ hở ấy, thay vì đứng nhìn nàng bị đánh trúng."
+        },
+        {
+          "speaker": "luc_tram",
+          "text": "Ngươi cũng có thể nhân lúc đó áp sát hoặc ra đòn. Đối thủ cũ của ta, rất ít người bỏ qua một sơ hở như vậy."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Bổn Tôn không đâm vào lưng người đang đi cùng đường với mình."
+        },
+        {
+          "speaker": "luc_tram",
+          "text": "Vậy ta ghi nhận thêm một điều, và chỉ một điều này thôi: trên đoạn đường hiện tại, ta có thể tin ngươi không hại ta. Phần quá khứ ngươi kể vẫn chưa qua được cửa kiểm chứng của ta."
         }
       ],
       [
@@ -1265,17 +2386,108 @@
         {
           "speaker": "luc_tram",
           "text": "Giờ thì không giấu nữa. Một vết xước không đáng sợ bằng thói quen giả vờ mình chưa từng sai."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Hành lang phía trước vừa đổi hướng. Kiếm ngân Bổn Tôn để lại trên tường không còn ở chỗ cũ nữa."
+        },
+        {
+          "speaker": "luc_tram",
+          "text": "Kiếm ấn của ta cũng lệch khỏi vị trí ban đầu. Ta chưa rõ hành lang đang dịch chuyển, hay chính các dấu mốc bị kéo đi — nhưng lối sau lưng chúng ta lúc này vẫn còn nguyên vẹn."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Có thứ đang tiến tới từ đoạn rẽ phía trước. Bổn Tôn chưa nhìn rõ hình dạng của nó."
+        },
+        {
+          "speaker": "luc_tram",
+          "text": "Thần niệm của ta bắt được quỹ đạo của nó đang vòng sang trái, đúng phía kiếm ấn của ta vừa đứt. Ngươi ép nó phải lộ hướng thật, còn phần phản kích cứ để ta xử lý."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Được. Bổn Tôn ra trước, nàng theo quỹ đạo mình đã đọc mà ra kiếm."
+        },
+        {
+          "speaker": "luc_tram",
+          "text": "Ngươi không cần rót phần của ta. Ta không uống rượu mạnh — từ ngày nhập môn đến giờ, ta chưa từng động vào một giọt."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Bổn Tôn biết. Nàng chê nó làm loạn kiếm tâm."
+        },
+        {
+          "speaker": "luc_tram",
+          "text": "Câu ấy ta chỉ từng nói với người trong sư môn, mà cũng rất ít lần. Ngươi không nằm trong số người đã nghe, ít nhất là theo phần ký ức ta còn giữ được."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Bổn Tôn từng nghe chính miệng nàng nói. Còn vì sao Bổn Tôn được nghe, đó nằm ở phần ký ức nàng đã mất."
+        },
+        {
+          "speaker": "luc_tram",
+          "text": "Một thói quen ăn uống chưa đủ nặng để làm chứng cứ. Nhưng nó khiến ta khó chịu thật sự — một người lạ không nên biết những việc nhỏ nhặt về ta như vậy."
+        },
+        {
+          "speaker": "luc_tram",
+          "text": "Thiên Kiếm Môn dạy kiếm phải chịu trách nhiệm cho nơi nó chém xuống. Đi cùng ngươi mấy lần, ta thấy kiếm của ngươi không nằm trong quy củ nào như thế."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Kiếm của Bổn Tôn chém xuống đâu, Bổn Tôn tự chịu trách nhiệm. Bổn Tôn không cần một môn quy đứng ra định sẵn thay mình."
+        },
+        {
+          "speaker": "luc_tram",
+          "text": "Vậy điều gì giữ một người mạnh như ngươi khỏi chém xuống bất cứ nơi nào mình muốn?"
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Không gì cả, ngoài ý muốn của chính Bổn Tôn. Đạo của chúng ta khác nhau ở đúng chỗ đó."
+        },
+        {
+          "speaker": "luc_tram",
+          "text": "Ít nhất ngươi nói thẳng, không mượn danh ma đạo để tô vẽ cho nó. Ta vẫn không đồng ý với đạo ấy — nhưng từ nay ta hiểu nó khác đạo của ta ở đâu, và vì sao."
+        },
+        {
+          "speaker": "luc_tram",
+          "text": "Ngươi đã tìm thấy ta, dù ta không còn là người trong ký ức của ngươi. Vậy vì sao ngươi còn đi cùng ta, thay vì tự mình tìm đường ra khỏi nơi này?"
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Người Bổn Tôn muốn tìm đang đứng trước mặt. Việc nàng không nhớ Bổn Tôn không làm dữ kiện đó thay đổi."
+        },
+        {
+          "speaker": "luc_tram",
+          "text": "Đó chưa phải câu trả lời. Ta hỏi thẳng: ngươi muốn gì ở ta?"
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Hiện tại thì một người đi cùng đường, và là người giữ được phía sau của chính mình. Chừng đó đủ cho đoạn đường này. Những việc khác, ra khỏi đây rồi hãy tính."
+        },
+        {
+          "speaker": "luc_tram",
+          "text": "Ta tiếp tục đi cùng vì kiếm của ngươi, và vì tới giờ ngươi chưa từng ép ta tin bất cứ điều gì. Nếu có ngày ngươi ép, phần đồng hành này chấm dứt ngay ngày đó."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Hành lang phía trước hẹp lại. Hai người không đi sóng vai được nữa."
+        },
+        {
+          "speaker": "luc_tram",
+          "text": "Ta đi trước. Ngươi giữ phía sau cho ta — đây là lần đầu ta giao phía sau cho ngươi mà không để lại kiếm ấn canh chừng."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Cứ đi theo đường kiếm của nàng. Phía sau, Bổn Tôn giữ."
+        },
+        {
+          "speaker": "luc_tram",
+          "text": "Đừng hiểu việc này lớn hơn nó vốn là. Ta tin kiếm của ngươi vì đã nhiều lần tận mắt thấy nó làm việc. Còn phần ngươi kể về hai chúng ta, ta vẫn đang kiểm chứng — và sẽ còn kiểm chứng rất lâu nữa."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Bổn Tôn không hiểu lớn hơn đâu. Nàng cứ kiểm chứng theo cách của nàng."
         }
       ]
-    ,
-      [{"speaker":"luc_tram","text":"Ngươi nói từng đứng chung một phía với ta. Vậy nói thử một điều về kiếm pháp của ta — điều người chỉ nghe danh Thiên Kiếm Môn không thể biết được."},{"speaker":"cao_minh","text":"Thế Bạch Hồng Quán Nhật của nàng ra nhanh, nhưng trước lúc mũi kiếm đâm tới, vai trái nàng hạ xuống trước nửa nhịp. Giao thủ đủ lâu sẽ đọc được."},{"speaker":"luc_tram","text":"Điểm ấy người trong sư môn biết, nhưng kẻ ngoài môn phái từng thấy ta xuất chiêu đó mà còn sống để kể lại thì rất ít. Ta ghi nhận: ngươi thật sự đã giao thủ với ta, và không chỉ một lần."},{"speaker":"cao_minh","text":"Bổn Tôn không cần bịa chuyện để nàng tin."},{"speaker":"luc_tram","text":"Từng giao thủ nhiều lần chỉ chứng minh chúng ta từng đối đầu, hoặc từng kề vai. Nó chưa chứng minh được phần ngươi gọi là đồng minh. Hai việc đó ta vẫn tách riêng, chưa gộp làm một."}],
-      [{"speaker":"cao_minh","text":"Hành lang phía trước vừa đổi hướng. Kiếm ngân Bổn Tôn để lại trên tường không còn ở chỗ cũ nữa."},{"speaker":"luc_tram","text":"Kiếm ấn của ta cũng lệch khỏi vị trí ban đầu. Ta chưa rõ hành lang đang dịch chuyển, hay chính các dấu mốc bị kéo đi — nhưng lối sau lưng chúng ta lúc này vẫn còn nguyên vẹn."},{"speaker":"cao_minh","text":"Có thứ đang tiến tới từ đoạn rẽ phía trước. Bổn Tôn chưa nhìn rõ hình dạng của nó."},{"speaker":"luc_tram","text":"Thần niệm của ta bắt được quỹ đạo của nó đang vòng sang trái, đúng phía kiếm ấn của ta vừa đứt. Ngươi ép nó phải lộ hướng thật, còn phần phản kích cứ để ta xử lý."},{"speaker":"cao_minh","text":"Được. Bổn Tôn ra trước, nàng theo quỹ đạo mình đã đọc mà ra kiếm."}],
-      [{"speaker":"luc_tram","text":"Ngươi không cần rót phần của ta. Ta không uống rượu mạnh — từ ngày nhập môn đến giờ, ta chưa từng động vào một giọt."},{"speaker":"cao_minh","text":"Bổn Tôn biết. Nàng chê nó làm loạn kiếm tâm."},{"speaker":"luc_tram","text":"Câu ấy ta chỉ từng nói với người trong sư môn, mà cũng rất ít lần. Ngươi không nằm trong số người đã nghe, ít nhất là theo phần ký ức ta còn giữ được."},{"speaker":"cao_minh","text":"Bổn Tôn từng nghe chính miệng nàng nói. Còn vì sao Bổn Tôn được nghe, đó nằm ở phần ký ức nàng đã mất."},{"speaker":"luc_tram","text":"Một thói quen ăn uống chưa đủ nặng để làm chứng cứ. Nhưng nó khiến ta khó chịu thật sự — một người lạ không nên biết những việc nhỏ nhặt về ta như vậy."}],
-      [{"speaker":"luc_tram","text":"Vừa rồi, khi ta vận linh lực đỡ đòn, có một sợi khí tức lạ chạy dọc kinh mạch của ta. Nó không thuộc đạo thống Thiên Kiếm Môn, và ta chưa từng cảm thấy nó trước khi tỉnh lại ở nơi này."},{"speaker":"cao_minh","text":"Đó là ma khí. Của Bổn Tôn."},{"speaker":"luc_tram","text":"Ngươi nói thế nghĩa là ma khí của ngươi đã ở trong người ta từ trước. Việc đó không thể xảy ra giữa hai người lạ chỉ từng giao thủ vài lần."},{"speaker":"cao_minh","text":"Nó vào người nàng trong trận chiến cuối cùng, khi Bổn Tôn giữ lại mạng cho nàng. Chuyện dài, hôm nay Bổn Tôn chỉ nói tới đó."},{"speaker":"luc_tram","text":"Ngươi đặt vào tay ta một kết luận rất lớn rồi bảo ta dừng ở đó. Ta chưa chấp nhận kết luận ấy — nhưng sợi khí kia là có thật, và ta sẽ tự kiểm chứng nó mỗi lần vận công cho tới khi hiểu nó là gì."}],
-      [{"speaker":"luc_tram","text":"Trong lần giao thủ vừa rồi, ta cố ý để hở sườn trái một nhịp. Ta muốn xem ngươi xử lý sơ hở của người đi cùng mình như thế nào."},{"speaker":"cao_minh","text":"Bổn Tôn thấy rõ. Và Bổn Tôn đứng vào chỗ hở ấy, thay vì đứng nhìn nàng bị đánh trúng."},{"speaker":"luc_tram","text":"Ngươi cũng có thể nhân lúc đó áp sát hoặc ra đòn. Đối thủ cũ của ta, rất ít người bỏ qua một sơ hở như vậy."},{"speaker":"cao_minh","text":"Bổn Tôn không đâm vào lưng người đang đi cùng đường với mình."},{"speaker":"luc_tram","text":"Vậy ta ghi nhận thêm một điều, và chỉ một điều này thôi: trên đoạn đường hiện tại, ta có thể tin ngươi không hại ta. Phần quá khứ ngươi kể vẫn chưa qua được cửa kiểm chứng của ta."}],
-      [{"speaker":"luc_tram","text":"Thiên Kiếm Môn dạy kiếm phải chịu trách nhiệm cho nơi nó chém xuống. Đi cùng ngươi mấy lần, ta thấy kiếm của ngươi không nằm trong quy củ nào như thế."},{"speaker":"cao_minh","text":"Kiếm của Bổn Tôn chém xuống đâu, Bổn Tôn tự chịu trách nhiệm. Bổn Tôn không cần một môn quy đứng ra định sẵn thay mình."},{"speaker":"luc_tram","text":"Vậy điều gì giữ một người mạnh như ngươi khỏi chém xuống bất cứ nơi nào mình muốn?"},{"speaker":"cao_minh","text":"Không gì cả, ngoài ý muốn của chính Bổn Tôn. Đạo của chúng ta khác nhau ở đúng chỗ đó."},{"speaker":"luc_tram","text":"Ít nhất ngươi nói thẳng, không mượn danh ma đạo để tô vẽ cho nó. Ta vẫn không đồng ý với đạo ấy — nhưng từ nay ta hiểu nó khác đạo của ta ở đâu, và vì sao."}],
-      [{"speaker":"luc_tram","text":"Ngươi đã tìm thấy ta, dù ta không còn là người trong ký ức của ngươi. Vậy vì sao ngươi còn đi cùng ta, thay vì tự mình tìm đường ra khỏi nơi này?"},{"speaker":"cao_minh","text":"Người Bổn Tôn muốn tìm đang đứng trước mặt. Việc nàng không nhớ Bổn Tôn không làm dữ kiện đó thay đổi."},{"speaker":"luc_tram","text":"Đó chưa phải câu trả lời. Ta hỏi thẳng: ngươi muốn gì ở ta?"},{"speaker":"cao_minh","text":"Hiện tại thì một người đi cùng đường, và là người giữ được phía sau của chính mình. Chừng đó đủ cho đoạn đường này. Những việc khác, ra khỏi đây rồi hãy tính."},{"speaker":"luc_tram","text":"Ta tiếp tục đi cùng vì kiếm của ngươi, và vì tới giờ ngươi chưa từng ép ta tin bất cứ điều gì. Nếu có ngày ngươi ép, phần đồng hành này chấm dứt ngay ngày đó."}],
-      [{"speaker":"cao_minh","text":"Hành lang phía trước hẹp lại. Hai người không đi sóng vai được nữa."},{"speaker":"luc_tram","text":"Ta đi trước. Ngươi giữ phía sau cho ta — đây là lần đầu ta giao phía sau cho ngươi mà không để lại kiếm ấn canh chừng."},{"speaker":"cao_minh","text":"Cứ đi theo đường kiếm của nàng. Phía sau, Bổn Tôn giữ."},{"speaker":"luc_tram","text":"Đừng hiểu việc này lớn hơn nó vốn là. Ta tin kiếm của ngươi vì đã nhiều lần tận mắt thấy nó làm việc. Còn phần ngươi kể về hai chúng ta, ta vẫn đang kiểm chứng — và sẽ còn kiểm chứng rất lâu nữa."},{"speaker":"cao_minh","text":"Bổn Tôn không hiểu lớn hơn đâu. Nàng cứ kiểm chứng theo cách của nàng."}]
     ]
   },
   "trac_lam": {
@@ -1335,6 +2547,26 @@
         {
           "speaker": "trac_lam",
           "text": "Phải. Tôi nhớ tiếng họ đáp lúc điểm danh hơn cả con số trong báo cáo."
+        },
+        {
+          "speaker": "trac_lam",
+          "text": "Thiết bị của tôi ghi mười chín giờ bốn mươi bảy phút kể từ lúc mất liên lạc ở ECHO-17 đến khi gặp anh. Đó là thời gian máy đo được, không phải thời gian thật của nơi này — hai thứ đó tôi tách riêng trong nhật ký."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Canh giờ ở chốn này, Bổn Tôn cũng chưa nắm được. Tách ra hay gộp lại, con số ấy vẫn không chỉ cho ngươi biết đồng đội mình đang ở phương nào."
+        },
+        {
+          "speaker": "trac_lam",
+          "text": "Nó không chỉ hướng. Nó cho tôi biết mình đã rẽ sai bao nhiêu lần kể từ dấu mốc cuối cùng, và phần nào trong nhật ký là đo được, phần nào chỉ là cảm giác của tôi."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Phàm nhân các ngươi trói mình vào con số, rồi lại phải tự tay ghi chú rằng con số ấy không đáng tin. Bổn Tôn đói thì ăn, mệt thì nghỉ, gặp đường thì đi."
+        },
+        {
+          "speaker": "trac_lam",
+          "text": "Anh không cần con số vì anh không định quay lại đâu cả. Tôi thì còn sáu người phải đưa về, nên đường đã đi qua, tôi không được phép quên nó đi nhanh như vậy."
         }
       ],
       [
@@ -1357,6 +2589,46 @@
         {
           "speaker": "trac_lam",
           "text": "Tôi vẫn gọi, nhưng ghi cả lần nhầm ấy vào nhật ký. Nhớ đồng đội không biến tín hiệu giả thành thật được."
+        },
+        {
+          "speaker": "trac_lam",
+          "text": "Mỗi lần dừng nghỉ, tôi đọc lại danh sách tổ một lượt: sáu cái tên, đúng thứ tự trong hồ sơ. Không phải nghi thức. Trí nhớ không được dùng tới sẽ phai dần, giống như mọi thứ khác ở đây."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Đọc tên không gọi người về được."
+        },
+        {
+          "speaker": "trac_lam",
+          "text": "Tôi biết. Tôi đọc để giữ cho danh sách còn nguyên vẹn. Nếu một ngày gặp được dấu hiệu thật của một người trong tổ, tôi cần chắc mình còn nhận ra nó thuộc về ai, thay vì nghe theo cảm giác."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ngươi đến cả việc nhớ đồng đội cũng đặt dưới kỷ luật. Ở giới của Bổn Tôn, kẻ sống sót thường chọn quên cho nhanh. Nhớ đầy đủ một danh sách người đã mất, không phải ai cũng chịu được lâu."
+        },
+        {
+          "speaker": "trac_lam",
+          "text": "Chịu được hay không, danh sách vẫn là sáu người. Tôi chưa có bằng chứng để gạch đi một cái tên nào."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Một câu hỏi. Nếu một ngày dấu vết của tổ ngươi và một con đường ra cùng xuất hiện, mà chỉ giữ được một, ngươi chọn bên nào?"
+        },
+        {
+          "speaker": "trac_lam",
+          "text": "Tùy dữ kiện lúc đó. Nếu con đường ra không chắc giữ được đến lúc quay lại, dấu hiệu của đồng đội cũng sẽ mất theo nó. Tôi không quyết định trước bằng cảm tính."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ngươi đang tìm họ. Vậy mà ngươi có thể quay lưng với dấu hiệu của chính họ."
+        },
+        {
+          "speaker": "trac_lam",
+          "text": "Nếu quay lưng là cách duy nhất giữ lại cơ hội tìm tiếp, thì có. Tôi là người duy nhất còn đang đi tìm họ; đổi mạng mình lấy một dấu hiệu chưa kiểm chứng thì cơ hội của cả năm người cũng hết theo tôi."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Kẻ thề sống chết vì đồng môn, Bổn Tôn gặp không ít. Kẻ dám nói mình sẽ quay lưng để còn đường quay lại — ít hơn nhiều."
         }
       ],
       [
@@ -1379,6 +2651,26 @@
         {
           "speaker": "trac_lam",
           "text": "Đưa được người về nhà quan trọng hơn việc kể mình đã gan dạ thế nào."
+        },
+        {
+          "speaker": "trac_lam",
+          "text": "Túi cứu thương. Mẫu chuẩn SRU, khóa kéo còn nguyên, bên trong đã rỗng — băng ép và gạc đã được dùng hoặc bị lấy đi. Không có ký hiệu cá nhân, nên tôi không gắn nó cho một người cụ thể nào."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Một cái túi rỗng, mà ngươi xem kỹ hơn cả con đường phía trước."
+        },
+        {
+          "speaker": "trac_lam",
+          "text": "Vì nó có thể là của một trong năm người, cũng có thể không phải. Điều tôi biết chắc chỉ là: từng có người mang trang bị SRU ở đây, và đã rời đi mà không mang cái túi theo."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Bỏ lại vật cứu mạng. Kẻ đó hoặc đã không còn cần nó, hoặc lúc ấy trong tay có thứ hắn cho là đáng giữ hơn."
+        },
+        {
+          "speaker": "trac_lam",
+          "text": "Hoặc túi đã rỗng và chỉ còn là khối lượng vướng chân. Tôi không đổi một cái túi rỗng thành số phận của ai cả."
         }
       ],
       [
@@ -1401,6 +2693,46 @@
         {
           "speaker": "trac_lam",
           "text": "Có lần tôi chọn sai thứ tự ưu tiên. Từ đó, trước khi quyết định, tôi hỏi cả người đứng cuối đội hình xem họ nhìn thấy gì."
+        },
+        {
+          "speaker": "trac_lam",
+          "text": "Trên khung cửa này có một vết khắc. Ba vạch ngắn, một vạch chéo — đó là ký hiệu đánh dấu tuyến đường của SRU, khắc bằng lưỡi dao chứ không phải vết xước ngẫu nhiên."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Một vết khắc mà khiến ngươi đứng lại lâu hơn cả một cánh cửa đang mở."
+        },
+        {
+          "speaker": "trac_lam",
+          "text": "Tôi nhận ra quy ước khắc, nhưng phần chỉ hướng của ký hiệu đã bị mép tường cắt mất. Tôi không biết ai đã khắc, khắc lúc nào, và người đó đi về hướng nào sau cánh cửa này."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ở giới của Bổn Tôn, tu sĩ lạc trong cấm địa cũng để lại kiếm ngân làm dấu đường. Kẻ đến sau chỉ biết từng có người đi qua; còn kẻ đó đã ra ngoài hay đã thành bạch cốt, dấu vết không nói."
+        },
+        {
+          "speaker": "trac_lam",
+          "text": "Vậy thì ghi lại đúng như vậy: một ký hiệu SRU, thiếu phần chỉ hướng, không rõ người khắc. Tôi không để nó thành nhiều hơn thế."
+        },
+        {
+          "speaker": "trac_lam",
+          "text": "Phía trước tách hai nhánh, cả hai đều ngắn và còn nằm trong tầm liên lạc. Nếu chia ra kiểm tra từng nhánh, chúng ta tiết kiệm được một nửa thời gian."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Bổn Tôn đi nhánh này. Nhánh kia nồng mùi ẩm mốc, Bổn Tôn không thích."
+        },
+        {
+          "speaker": "trac_lam",
+          "text": "Đó không phải cách chọn đường. Và tôi cũng vừa tự nhắc mình: quy tắc đầu tiên của tôi là không chia đội hình khi chưa chắc liên lạc còn giữ được qua lớp tường ở nơi này."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Ngươi đề xuất, rồi ngươi tự bác bỏ. Bổn Tôn còn chưa kịp từ chối."
+        },
+        {
+          "speaker": "trac_lam",
+          "text": "Tôi đi cùng nhánh của anh — không phải vì anh chọn nó, mà vì mất liên lạc với người duy nhất đang ở cạnh mình là cái giá tôi không trả cho một nửa thời gian tiết kiệm được."
         }
       ],
       [
@@ -1423,17 +2755,48 @@
         {
           "speaker": "trac_lam",
           "text": "Tôi sẽ tìm những dấu hiệu có thể kiểm chứng. Nếu còn đường đưa họ ra, tôi phải nhận ra nó khi thời điểm đến."
+        },
+        {
+          "speaker": "trac_lam",
+          "text": "Khoan. Trong tràng nhiễu vừa rồi có một nhịp lặp: ba ngắn, một dài. Đó là nhịp mở đầu của tín hiệu gọi nội bộ SRU-03."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Bổn Tôn nghe cùng một tràng tạp âm ấy. Trong tai Bổn Tôn, nó chỉ là tạp âm."
+        },
+        {
+          "speaker": "trac_lam",
+          "text": "Tôi vừa nghe lại bản ghi hai lần và đổi sang kênh dự phòng để loại khả năng nhiễu sinh ra từ chính thiết bị của mình. Nhịp thì khớp, nhưng phía sau không có mã xác thực. Nó giống một tiếng vọng hơn là một lần phát thật."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Hướng đó, trong phạm vi thần thức của Bổn Tôn quét tới, không có khí tức của người sống. Chỉ có tường và khí ẩm."
+        },
+        {
+          "speaker": "trac_lam",
+          "text": "Phần của anh tôi không có cách kiểm chứng, nên tôi không ghi nó thành bằng chứng. Nhưng nhịp nhiễu đó tôi ghi lại kèm cả việc nó thiếu mã. Nếu nó lặp lại lần thứ hai, tôi sẽ có thứ để đối chiếu."
+        },
+        {
+          "speaker": "trac_lam",
+          "text": "Khoan đi tiếp. Sát mép tường dưới chân anh có hai vỏ đạn rỗng, đúng cỡ và đúng ký hiệu dập của đạn M-92 — mẫu chỉ lực lượng phản ứng như chúng tôi mới dùng."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Quanh đây, Bổn Tôn không thấy tàn dư khí tức nào. Việc xảy ra ở chỗ này hoặc đã qua rất lâu, hoặc nơi này nuốt sạch dấu vết, như cách nó nuốt đường đi."
+        },
+        {
+          "speaker": "trac_lam",
+          "text": "Không có vết máu, không có dấu kéo lê, không có vật dụng bỏ lại. Tôi chỉ ghi được một việc: từng có người dùng vũ khí của SRU ra tay hai lần ở đúng vị trí này."
+        },
+        {
+          "speaker": "cao_minh",
+          "text": "Chỉ hai vỏ. Kẻ để lại chúng hoặc ra tay rất tỉnh táo, hoặc đã bị dồn đến mức không còn lần thứ ba."
+        },
+        {
+          "speaker": "trac_lam",
+          "text": "Cả hai đều chỉ là khả năng. Tôi ghi lại vị trí và số vỏ đạn. Nếu sau này nó khớp với lời kể của một người trong tổ, lúc đó nó mới thành bằng chứng."
         }
       ]
-    ,
-      [{"speaker":"trac_lam","text":"Trên khung cửa này có một vết khắc. Ba vạch ngắn, một vạch chéo — đó là ký hiệu đánh dấu tuyến đường của SRU, khắc bằng lưỡi dao chứ không phải vết xước ngẫu nhiên."},{"speaker":"cao_minh","text":"Một vết khắc mà khiến ngươi đứng lại lâu hơn cả một cánh cửa đang mở."},{"speaker":"trac_lam","text":"Tôi nhận ra quy ước khắc, nhưng phần chỉ hướng của ký hiệu đã bị mép tường cắt mất. Tôi không biết ai đã khắc, khắc lúc nào, và người đó đi về hướng nào sau cánh cửa này."},{"speaker":"cao_minh","text":"Ở giới của Bổn Tôn, tu sĩ lạc trong cấm địa cũng để lại kiếm ngân làm dấu đường. Kẻ đến sau chỉ biết từng có người đi qua; còn kẻ đó đã ra ngoài hay đã thành bạch cốt, dấu vết không nói."},{"speaker":"trac_lam","text":"Vậy thì ghi lại đúng như vậy: một ký hiệu SRU, thiếu phần chỉ hướng, không rõ người khắc. Tôi không để nó thành nhiều hơn thế."}],
-      [{"speaker":"trac_lam","text":"Thiết bị của tôi ghi mười chín giờ bốn mươi bảy phút kể từ lúc mất liên lạc ở ECHO-17 đến khi gặp anh. Đó là thời gian máy đo được, không phải thời gian thật của nơi này — hai thứ đó tôi tách riêng trong nhật ký."},{"speaker":"cao_minh","text":"Canh giờ ở chốn này, Bổn Tôn cũng chưa nắm được. Tách ra hay gộp lại, con số ấy vẫn không chỉ cho ngươi biết đồng đội mình đang ở phương nào."},{"speaker":"trac_lam","text":"Nó không chỉ hướng. Nó cho tôi biết mình đã rẽ sai bao nhiêu lần kể từ dấu mốc cuối cùng, và phần nào trong nhật ký là đo được, phần nào chỉ là cảm giác của tôi."},{"speaker":"cao_minh","text":"Phàm nhân các ngươi trói mình vào con số, rồi lại phải tự tay ghi chú rằng con số ấy không đáng tin. Bổn Tôn đói thì ăn, mệt thì nghỉ, gặp đường thì đi."},{"speaker":"trac_lam","text":"Anh không cần con số vì anh không định quay lại đâu cả. Tôi thì còn sáu người phải đưa về, nên đường đã đi qua, tôi không được phép quên nó đi nhanh như vậy."}],
-      [{"speaker":"trac_lam","text":"Khoan. Trong tràng nhiễu vừa rồi có một nhịp lặp: ba ngắn, một dài. Đó là nhịp mở đầu của tín hiệu gọi nội bộ SRU-03."},{"speaker":"cao_minh","text":"Bổn Tôn nghe cùng một tràng tạp âm ấy. Trong tai Bổn Tôn, nó chỉ là tạp âm."},{"speaker":"trac_lam","text":"Tôi vừa nghe lại bản ghi hai lần và đổi sang kênh dự phòng để loại khả năng nhiễu sinh ra từ chính thiết bị của mình. Nhịp thì khớp, nhưng phía sau không có mã xác thực. Nó giống một tiếng vọng hơn là một lần phát thật."},{"speaker":"cao_minh","text":"Hướng đó, trong phạm vi thần thức của Bổn Tôn quét tới, không có khí tức của người sống. Chỉ có tường và khí ẩm."},{"speaker":"trac_lam","text":"Phần của anh tôi không có cách kiểm chứng, nên tôi không ghi nó thành bằng chứng. Nhưng nhịp nhiễu đó tôi ghi lại kèm cả việc nó thiếu mã. Nếu nó lặp lại lần thứ hai, tôi sẽ có thứ để đối chiếu."}],
-      [{"speaker":"trac_lam","text":"Túi cứu thương. Mẫu chuẩn SRU, khóa kéo còn nguyên, bên trong đã rỗng — băng ép và gạc đã được dùng hoặc bị lấy đi. Không có ký hiệu cá nhân, nên tôi không gắn nó cho một người cụ thể nào."},{"speaker":"cao_minh","text":"Một cái túi rỗng, mà ngươi xem kỹ hơn cả con đường phía trước."},{"speaker":"trac_lam","text":"Vì nó có thể là của một trong năm người, cũng có thể không phải. Điều tôi biết chắc chỉ là: từng có người mang trang bị SRU ở đây, và đã rời đi mà không mang cái túi theo."},{"speaker":"cao_minh","text":"Bỏ lại vật cứu mạng. Kẻ đó hoặc đã không còn cần nó, hoặc lúc ấy trong tay có thứ hắn cho là đáng giữ hơn."},{"speaker":"trac_lam","text":"Hoặc túi đã rỗng và chỉ còn là khối lượng vướng chân. Tôi không đổi một cái túi rỗng thành số phận của ai cả."}],
-      [{"speaker":"trac_lam","text":"Phía trước tách hai nhánh, cả hai đều ngắn và còn nằm trong tầm liên lạc. Nếu chia ra kiểm tra từng nhánh, chúng ta tiết kiệm được một nửa thời gian."},{"speaker":"cao_minh","text":"Bổn Tôn đi nhánh này. Nhánh kia nồng mùi ẩm mốc, Bổn Tôn không thích."},{"speaker":"trac_lam","text":"Đó không phải cách chọn đường. Và tôi cũng vừa tự nhắc mình: quy tắc đầu tiên của tôi là không chia đội hình khi chưa chắc liên lạc còn giữ được qua lớp tường ở nơi này."},{"speaker":"cao_minh","text":"Ngươi đề xuất, rồi ngươi tự bác bỏ. Bổn Tôn còn chưa kịp từ chối."},{"speaker":"trac_lam","text":"Tôi đi cùng nhánh của anh — không phải vì anh chọn nó, mà vì mất liên lạc với người duy nhất đang ở cạnh mình là cái giá tôi không trả cho một nửa thời gian tiết kiệm được."}],
-      [{"speaker":"trac_lam","text":"Mỗi lần dừng nghỉ, tôi đọc lại danh sách tổ một lượt: sáu cái tên, đúng thứ tự trong hồ sơ. Không phải nghi thức. Trí nhớ không được dùng tới sẽ phai dần, giống như mọi thứ khác ở đây."},{"speaker":"cao_minh","text":"Đọc tên không gọi người về được."},{"speaker":"trac_lam","text":"Tôi biết. Tôi đọc để giữ cho danh sách còn nguyên vẹn. Nếu một ngày gặp được dấu hiệu thật của một người trong tổ, tôi cần chắc mình còn nhận ra nó thuộc về ai, thay vì nghe theo cảm giác."},{"speaker":"cao_minh","text":"Ngươi đến cả việc nhớ đồng đội cũng đặt dưới kỷ luật. Ở giới của Bổn Tôn, kẻ sống sót thường chọn quên cho nhanh. Nhớ đầy đủ một danh sách người đã mất, không phải ai cũng chịu được lâu."},{"speaker":"trac_lam","text":"Chịu được hay không, danh sách vẫn là sáu người. Tôi chưa có bằng chứng để gạch đi một cái tên nào."}],
-      [{"speaker":"cao_minh","text":"Một câu hỏi. Nếu một ngày dấu vết của tổ ngươi và một con đường ra cùng xuất hiện, mà chỉ giữ được một, ngươi chọn bên nào?"},{"speaker":"trac_lam","text":"Tùy dữ kiện lúc đó. Nếu con đường ra không chắc giữ được đến lúc quay lại, dấu hiệu của đồng đội cũng sẽ mất theo nó. Tôi không quyết định trước bằng cảm tính."},{"speaker":"cao_minh","text":"Ngươi đang tìm họ. Vậy mà ngươi có thể quay lưng với dấu hiệu của chính họ."},{"speaker":"trac_lam","text":"Nếu quay lưng là cách duy nhất giữ lại cơ hội tìm tiếp, thì có. Tôi là người duy nhất còn đang đi tìm họ; đổi mạng mình lấy một dấu hiệu chưa kiểm chứng thì cơ hội của cả năm người cũng hết theo tôi."},{"speaker":"cao_minh","text":"Kẻ thề sống chết vì đồng môn, Bổn Tôn gặp không ít. Kẻ dám nói mình sẽ quay lưng để còn đường quay lại — ít hơn nhiều."}],
-      [{"speaker":"trac_lam","text":"Khoan đi tiếp. Sát mép tường dưới chân anh có hai vỏ đạn rỗng, đúng cỡ và đúng ký hiệu dập của đạn M-92 — mẫu chỉ lực lượng phản ứng như chúng tôi mới dùng."},{"speaker":"cao_minh","text":"Quanh đây, Bổn Tôn không thấy tàn dư khí tức nào. Việc xảy ra ở chỗ này hoặc đã qua rất lâu, hoặc nơi này nuốt sạch dấu vết, như cách nó nuốt đường đi."},{"speaker":"trac_lam","text":"Không có vết máu, không có dấu kéo lê, không có vật dụng bỏ lại. Tôi chỉ ghi được một việc: từng có người dùng vũ khí của SRU ra tay hai lần ở đúng vị trí này."},{"speaker":"cao_minh","text":"Chỉ hai vỏ. Kẻ để lại chúng hoặc ra tay rất tỉnh táo, hoặc đã bị dồn đến mức không còn lần thứ ba."},{"speaker":"trac_lam","text":"Cả hai đều chỉ là khả năng. Tôi ghi lại vị trí và số vỏ đạn. Nếu sau này nó khớp với lời kể của một người trong tổ, lúc đó nó mới thành bằng chứng."}]
     ]
   },
   "iris": {
@@ -1998,7 +3361,7 @@
         },
         {
           "speaker": "diep_minh",
-          "text": "Đúng. Với Bản Tiên, đêm ấy chẳng qua là một nước tính toán sai — sai ở chỗ để sót một người. Còn với ngươi, đó là cả một đời không gột rửa được. Hai ta nhìn cùng một chuyện, mà chẳng bao giờ thấy giống nhau."
+          "text": "Đúng. Với Bản Tiên, đêm ấy chẳng qua là một nước tính toán sai — sai ở chỗ để sót một người. Còn với ngươi, đó là cả một đời không gột rửa được. Cùng một chuyện, ngươi với Bản Tiên chẳng bao giờ thấy giống nhau."
         }
       ],
       [
