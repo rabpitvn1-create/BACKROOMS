@@ -24,8 +24,8 @@ Directly opened from Google Drive before implementation:
 - `05_TextGame/RULES/TEXT_GAME_RULES.md`
 - `05_TextGame/RULES/GAME_MASTER_RULES.md`
 - `05_TextGame/STORY/MAIN_STORY.md`
-- `02_CHARACTERS/Kai_Codex.docx`
-- `02_CHARACTERS/Iris_Codex.docx`
+- `Asset/01_Character/CAO_MINH_CODEX.md` (replaces `02_CHARACTERS/Kai_Codex.docx`; character id `cao-minh`)
+- `Asset/01_Character/LUC_TRAM_CODEX.md` (replaces `02_CHARACTERS/Iris_Codex.docx`; character id `luc-tram`)
 - `02_CHARACTERS/Syvial_Codex.docx`
 - `01_WORLD/world.md`
 - `01_WORLD/level.md`
@@ -68,21 +68,21 @@ Runtime traceability is therefore:
 
 | Runtime ID | Source | Anchor | Mutability | Notes |
 | --- | --- | --- | --- | --- |
-| `CHAR.KAI.RUNTIME_CORE` | `Kai_Codex.docx` | `KAI-QUICK-01`, `KAI-PER-01`, `KAI-DLG-01`, `KAI-WEAK-01`, `KAI-ACTION-LOCK-01` | IMMUTABLE | Minimal present-character card, not full ability dump. |
-| `CHAR.KAI.IDENTITY` | `Kai_Codex.docx` | `KAI-ID-01` | IMMUTABLE | Kai Akechi / Twilight; origin era 2299 is not birth year; true age unknown. |
-| `CHAR.KAI.SPARDA_CORE` | `Kai_Codex.docx` | `KAI-CORE-SPARDA-01` | IMMUTABLE | Infinite demon power; do not add intrinsic depletion/cooldown. |
-| `CHAR.KAI.DEVIL_TRIGGER` | `Kai_Codex.docx` | `KAI-DT-01` | IMMUTABLE | No invented berserk state, intrinsic duration cap, cooldown, or backlash. |
-| `CHAR.KAI.GUILTY_CROWN_OVERRIDE` | `Kai_Codex.docx` | `KAI-ULT-GCO-01` | IMMUTABLE | Exact 24-shot override while external time is fully stopped, under the codex conditions. |
-| `CHAR.KAI.WHITE_WRAITH` | `Kai_Codex.docx` | `KAI-EQP-WWM-01` | IMMUTABLE | Signature firearm; demonic ammunition comes from Kai. |
-| `CHAR.KAI.ARMOR` | `Kai_Codex.docx` | `KAI-EQP-ARMOR-01` | IMMUTABLE | Blackblood Armor and linked modules. |
-| `CHAR.KAI.OMNIVAULT` | `Kai_Codex.docx` | `KAI-EQP-OMNIVAULT-01`, `KAI-WEAK-01` | IMMUTABLE | Inanimate-only storage; 3 scan/copy slots and codex restore constraints. |
-| `CHAR.IRIS.RUNTIME_CORE` | `Iris_Codex.docx` | `IRIS-QUICK-01`, `IRIS-PER-01`, `IRIS-REL-01`, `IRIS-CANON-GATE-01` | IMMUTABLE | Present-character card. Iris is a ranged combatant/scout, not a remote drone station. |
-| `CHAR.IRIS.ARGUS` | `Iris_Codex.docx` | `IRIS-SCOUT-TERRAIN-01`, `IRIS-SCOUT-GROUND-01`, `IRIS-SCOUT-TARGET-01` | IMMUTABLE | Direct observation + armor sensors + terrain/route/cover/trace analysis. No omniscience, wall vision, remote cameras, or automatic true-form detection. |
-| `CHAR.IRIS.THOUSANDFOLD` | `Iris_Codex.docx` | `IRIS-THOUSANDFOLD-01` | IMMUTABLE | Information processing up to 1:1000; does not accelerate the body 1000x. |
-| `CHAR.IRIS.IVORY_EBONY` | `Iris_Codex.docx` | `IRIS-COMBAT-TWIN-01`, `IRIS-AMMO-DEMONIC-01` | IMMUTABLE | Mechanical twin pistols; ammunition formed from Iris's demon power; infinite source does not imply infinite ROF/durability/damage/accuracy. |
-| `CHAR.IRIS.SUPPORT` | `Iris_Codex.docx` | Field Galley / Field MedNet sections | IMMUTABLE | Field MedNet is not magic healing; Field Galley does not create matter. |
-| `CHAR.IRIS.UNKNOWN` | `Iris_Codex.docx` | `IRIS-UNKNOWN-01` | IMMUTABLE | Preserve current unknown fields, including exact combat tier and Iris↔Syvial address if not otherwise locked. |
-| `CHAR.SYVIAL.RUNTIME_CORE` | `Syvial_Codex.docx` | `SYVIAL-QUICK-01`, `SYVIAL-OVERVIEW-01`, `SYVIAL-YANDERE-01`, `SYVIAL-REL-KAI-01`, `SYVIAL-ACTION-LOCK-01` | IMMUTABLE | UR+, lucid/socially capable, heavy yandere toward Kai without random murder or loss of tactical intelligence. |
+| `CHAR.CAO_MINH.RUNTIME_CORE` | `CAO_MINH_CODEX.md` (R17+R18) | `CAO-QUICK-01`, `CAO-PER-01`, `CAO-DLG-01`, `CAO-WEAK-01`, `CAO-ACTION-LOCK-01` | IMMUTABLE | Minimal present-character card, not full ability dump. Character id `cao-minh` (replaces `kai`). |
+| `CHAR.CAO_MINH.IDENTITY` | `CAO_MINH_CODEX.md` | `CAO-ID-01` | IMMUTABLE | Cao Minh / Vạn Giới Ma Tôn; no sect or faction; origin world and true age OPEN; already the strongest of his origin world before the Backrooms. |
+| `CHAR.CAO_MINH.VAN_QUY_MA_TAM` | `CAO_MINH_CODEX.md` | `CAO-CORE-VQM-01` | IMMUTABLE | Replaces SPARDA_CORE. Đạo Cơ / Ma Hải; no established intrinsic cap; do not add invented depletion/cooldown/backlash. Origin (Vạn Quỷ Ma Tôn transmission) is KNOWLEDGE LOCK. |
+| `CHAR.CAO_MINH.VAN_QUY_MA_THAN` | `CAO_MINH_CODEX.md` | `CAO-VQMS-01` | IMMUTABLE | Replaces DEVIL_TRIGGER. Full release of bản nguyên; keeps consciousness/personality; no invented berserk state, intrinsic duration cap, cooldown, or backlash. |
+| `CHAR.CAO_MINH.HUYET_MA_24_TRAM` | `CAO_MINH_CODEX.md` | `CAO-ULT-HUYETMA24-01` | IMMUTABLE | Huyết Ma Nhị Thập Tứ Trảm: exact 24 sword strikes while external time is fully stopped, under the codex conditions. |
+| `CHAR.CAO_MINH.HUYET_MA_KIEM` | `CAO_MINH_CODEX.md` | `CAO-EQP-HUYET-MA-KIEM-01` | IMMUTABLE | Replaces WHITE_WRAITH. Bản mệnh greatsword; kiếm thể / ngự kiếm / Huyết Sát Ma Khí; self-restores via Vạn Quỷ Ma Tâm. |
+| `CHAR.CAO_MINH.ARMOR` | `CAO_MINH_CODEX.md` | `CAO-EQP-HUYET-MA-KHAI-01` | IMMUTABLE | Huyết Ma Chiến Khải (bản mệnh Ma Khải) and linked parts: Ma Trảo / Huyết Ấn, Đạp Hư Ma Văn. |
+| `CHAR.CAO_MINH.VAN_KHO_GIOI_CHI` | author rename decision (2026-10-24) + `CAO_MINH_CODEX.md` | (old `KAI-EQP-OMNIVAULT-01` mechanism); cf. `CAO-EQP-VANTANG-01` | IMMUTABLE | Vạn Khố Giới Chỉ is the renamed Omnivault, kept for Cao Minh with its runtime feature set intact: inanimate-only storage; 3 scan/copy slots and codex restore constraints. NOTE: the Cao Minh codex also locks a separate ring, Vạn Tàng Giới (`CAO-EQP-VANTANG-01`), with a narrower feature set (storage + Phản Bổn only). Whether the two rings merge is an OPEN author decision; until then the runtime keeps the Vạn Khố Giới Chỉ feature set. |
+| `CHAR.LUC_TRAM.RUNTIME_CORE` | `LUC_TRAM_CODEX.md` (R05+R06) | section `00 · HỒ SƠ TRUY XUẤT NHANH`, `LUC-READ-FIRST-R04` | IMMUTABLE | Present-character card. Character id `luc-tram` (replaces `iris`). Lục Trầm is a righteous-path sword cultivator (Thiên Kiếm Môn), not a modern soldier or scout station. |
+| `CHAR.LUC_TRAM.THIEN_KIEM_LINH_TAM` | `LUC_TRAM_CODEX.md` | section `07 · THIÊN KIẾM LINH TÂM` | IMMUTABLE | Combat perception root: reads trajectories, balance shifts, linh lực fluctuation and instability points. Hard limits: no mind-reading, no good/evil detection, no Entity identification, no Backrooms-rule knowledge. |
+| `CHAR.LUC_TRAM.TICH_QUANG` | `LUC_TRAM_CODEX.md` | section `08 · TỊCH QUANG KIẾM` | IMMUTABLE | Bản mệnh spirit sword; clean line, fast angle changes, joint/balance cuts, phá pháp, force redirection, rear-guard protection. No infinite self-regeneration; serious damage needs real repair. |
+| `CHAR.LUC_TRAM.THIEN_KIEM_THAT_THUC` | `LUC_TRAM_CODEX.md` | section `11 · THIÊN KIẾM THẤT THỨC`, `12 · THIÊN KIẾM ĐỊNH GIỚI` | IMMUTABLE | Sword system incl. Nhất Tuyến Phá Vọng, Bạch Hồng Quán Nhật, Tịch Quang Phản Kiếm, Vạn Kiếm Quy Tâm; ultimate Thiên Kiếm Định Giới per codex. |
+| `CHAR.LUC_TRAM.COMBAT` | `LUC_TRAM_CODEX.md` | section `10 · PHONG CÁCH CHIẾN ĐẤU` | IMMUTABLE | Strongest once the opponent commits: reads attack lines, breaks rhythm, redirects force, counter-strikes; natural formation anchor / rear guard. Power scale hard lock: below Cao Minh overall; do not competence-suppress or power-equalize. |
+| `CHAR.LUC_TRAM.UNKNOWN` | `LUC_TRAM_CODEX.md` | sections `15 · TÁI NGỘ`, `23 · CÁC TRƯỜNG OPEN`, `LUC-READ-FIRST-R04` | IMMUTABLE | Preserve OPEN fields: true age, detailed cảnh giới, reunion place/time/conditions, memory-recovery possibility, Lục Trầm↔Syvial address (no shared canon yet). |
+| `CHAR.SYVIAL.RUNTIME_CORE` | `Syvial_Codex.docx` | `SYVIAL-QUICK-01`, `SYVIAL-OVERVIEW-01`, `SYVIAL-YANDERE-01`, `SYVIAL-REL-KAI-01`, `SYVIAL-ACTION-LOCK-01` | IMMUTABLE | UR+, lucid/socially capable, heavy yandere toward Cao Minh without random murder or loss of tactical intelligence. |
 | `CHAR.SYVIAL.LUCIFER_CORE` | `Syvial_Codex.docx` | `SYVIAL-CORE-LUCIFER-01` | IMMUTABLE | Infinite demon power; no invented intrinsic energy meter/cooldown. |
 | `CHAR.SYVIAL.DEVIL_TRIGGER` | `Syvial_Codex.docx` | `SYVIAL-DT-01` | IMMUTABLE | Does not remove control or add an intrinsic duration/cooldown absent from codex. |
 | `CHAR.SYVIAL.GODKILLER` | `Syvial_Codex.docx` | `SYVIAL-EQP-GODKILLER-01` | IMMUTABLE | Purely mechanical greatsword; do not turn into gun/gunblade. |
@@ -93,11 +93,11 @@ Runtime traceability is therefore:
 
 | Runtime ID | Source | Anchor | Mutability | Canon baseline |
 | --- | --- | --- | --- | --- |
-| `REL.KAI.IRIS.BASELINE` | `Iris_Codex.docx` | `IRIS-REL-KAI-01` | BASELINE | Iris has romantic feelings for Kai; Kai knows but has not reciprocated; official state remains teammate / commander-specialist. |
-| `ADDR.IRIS.KAI` | `Iris_Codex.docx` | `IRIS-REL-KAI-01`, `IRIS-DLG-01` | IMMUTABLE | Iris uses the `anh–em` system with Kai. |
-| `REL.IRIS.SYVIAL.BASELINE` | `Iris_Codex.docx` | `IRIS-REL-SYVIAL-01` | BASELINE | Friends and trusted teammates with romantic rivalry around Kai; not enemies. |
-| `REL.KAI.SYVIAL.BASELINE` | `Syvial_Codex.docx` | `SYVIAL-REL-KAI-01` | BASELINE | Syvial's feelings are immutable; how far Kai reciprocates is continuity-controlled. |
-| `ADDR.SYVIAL.KAI` | `Syvial_Codex.docx` | `SYVIAL-REL-KAI-01` | IMMUTABLE | Syvial -> Kai: `em`, calls `anh` or `Kai`; `Anh Kai` may be emphatic/teasing. Kai -> Syvial: `anh`, calls `Syvial` or `em`. `cục cưng` only if continuity has locked a long-term romantic relationship, not the default. |
+| `REL.CAO_MINH.LUC_TRAM.BASELINE` | `LUC_TRAM_CODEX.md` + `CAO_MINH_CODEX.md` | LUC sections `03`, `13`, `16`, `17`, `19`; CAO `15.4` | BASELINE | History only: from public enemies to trusted allies with mutual feelings before the Backrooms. After Lôi Thiên Vực she was revived by his đạo hạnh, began nhập ma, and FORGOT everything about him. This baseline is history, NOT her current knowledge; current state is set by continuity. Finding her is his priority #1. |
+| `ADDR.LUC_TRAM.CAO_MINH` | `LUC_TRAM_CODEX.md` + author ruling | LUC section `20 · XƯNG HÔ` + post-revival state | IMMUTABLE | Post-revival default: Lục Trầm addresses Cao Minh as `các hạ` (righteous-path courtesy to an unidentified man; she does not remember him). Cao Minh -> Lục Trầm: calls her `nàng`, self-addresses `Bổn Tôn`. Historical registers (`ma đầu`, `Lục tiên tử`, bare names) belong to pre-amnesia phases and must not be applied post-revival without continuity. |
+| `REL.LUC_TRAM.SYVIAL.BASELINE` | — | — | OPEN | No shared canon: Lục Trầm and Syvial have never met in locked canon. Do NOT carry over the old Iris↔Syvial friendship/rivalry baseline. Establish only via continuity. |
+| `REL.CAO_MINH.SYVIAL.BASELINE` | `Syvial_Codex.docx` | `SYVIAL-REL-KAI-01` (partner renamed) | BASELINE | Syvial's feelings are immutable; how far Cao Minh reciprocates is continuity-controlled. |
+| `ADDR.SYVIAL.CAO_MINH` | `Syvial_Codex.docx` | `SYVIAL-REL-KAI-01` (partner renamed) | IMMUTABLE | Syvial -> Cao Minh: `em`, calls `anh` or `Cao Minh`; `Anh Cao Minh` may be emphatic/teasing. Cao Minh -> Syvial: per Cao Minh register lock (see `CHAR.CAO_MINH.RUNTIME_CORE` / `CAO-DLG-01`). `cục cưng` only if continuity has locked a long-term romantic relationship, not the default. |
 | `REL.CAMPAIGN.*` | runtime continuity | relationship-change events | RUNTIME_MUTABLE | Campaign delta overlays baseline without mutating codex records. |
 
 ## World source map
@@ -125,7 +125,7 @@ Adding future levels/entities is append-only: add records and references/tags; t
 | `STORY.MAIN.PREMISE` | `05_TextGame/STORY/MAIN_STORY.md` | 2 | IMMUTABLE |
 | `STORY.MAIN.OBJECTIVE` | `05_TextGame/STORY/MAIN_STORY.md` | 3 | BASELINE |
 | `STORY.MAIN.COMMS_INITIAL` | `05_TextGame/STORY/MAIN_STORY.md` | 4 | BASELINE |
-| `STORY.MAIN.IRIS_EXISTENCE` | `05_TextGame/STORY/MAIN_STORY.md` | 5 | BASELINE |
+| `STORY.MAIN.LUC_TRAM_EXISTENCE` | `CAO_MINH_CODEX.md` + `LUC_TRAM_CODEX.md` | CAO `19`; LUC `14`, `15` | BASELINE |
 | `STORY.MAIN.SYVIAL_EXISTENCE` | `05_TextGame/STORY/MAIN_STORY.md` | 5 | BASELINE |
 | `STORY.CONTINUITY.EVENT.*` | runtime reducer | committed gameplay events | RUNTIME_MUTABLE |
 | `STORY.CONTINUITY.OBJECTIVE.*` | runtime continuity | objective state | RUNTIME_MUTABLE |
@@ -160,7 +160,7 @@ The required Drive save files are currently absent from the Drive folder, so the
 5. Semantic retrieval is a last resort only when structured lookup is insufficient.
 6. Present characters always receive a compact runtime core. They do not need to be named by player input.
 7. Scene-driven capability examples:
-   - trace/route/cover/ambush/target-identification problem + Iris present -> `CHAR.IRIS.ARGUS`.
+   - attack-line reading/formation anchor/counter-opening problem + Lục Trầm present -> `CHAR.LUC_TRAM.THIEN_KIEM_LINH_TAM` and `CHAR.LUC_TRAM.TICH_QUANG`.
    - direct combat/threat/control/frontline problem + Syvial present -> `CHAR.SYVIAL.COMBAT` and, only when relevant, weapon/override modules.
 8. Capability retrieval never implies omniscience, invented limits, or automatic action. Followers retain autonomy.
 9. Raw dialogue log is a small recency buffer only. Long-term memory is structured continuity.
@@ -168,6 +168,6 @@ The required Drive save files are currently absent from the Drive folder, so the
 
 ## Baseline implementation audit link
 
-The current build-time runtime is patch-generated. `patch-ai-orchestrator.py` extracts broad string sections from `drive-canon.txt` and `kai-codex.txt`; `compactStateForPrompt` copies most legacy state and retains six recent log entries; routing uses keyword helpers such as dialogue/combat/item/entity plus limited presence checks. `patch-conditional-audit.py` already skips the AI critic below a risk threshold, but critic calls duplicate a broad canon/state slice.
+The current build-time runtime is patch-generated. `patch-ai-orchestrator.py` extracts broad string sections from `drive-canon.txt` and `kai-codex.txt` (file names unchanged in this pass; `kai-codex.txt` content is now the Cao Minh operational codex and the former gun-skills addendum file now carries Cao Minh's automatic sword skills — file renames are a separate follow-up); `compactStateForPrompt` copies most legacy state and retains six recent log entries; routing uses keyword helpers such as dialogue/combat/item/entity plus limited presence checks. `patch-conditional-audit.py` already skips the AI critic below a risk threshold, but critic calls duplicate a broad canon/state slice.
 
 Those files are not a canon source for the new database. They are retained only as OLD-system input for benchmark comparison.

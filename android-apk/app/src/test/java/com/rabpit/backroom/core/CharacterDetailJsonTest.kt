@@ -6,9 +6,9 @@ import org.junit.Test
 class CharacterDetailJsonTest {
   @Test fun partyJsonContainsStableUiFieldsAndSubjectiveTime() {
     val member = CharacterDetailProjection(
-      id = "iris",
-      name = "Iris",
-      avatarRef = "avatars/iris.png",
+      id = "luc-tram",
+      name = "Lục Trầm",
+      avatarRef = "avatars/luc-tram.png",
       presence = CharacterPresence.ACTIVE,
       isLeader = false,
       healthState = "INJURED",
@@ -34,7 +34,7 @@ class CharacterDetailJsonTest {
         metadata = mapOf("secret" to "do-not-expose", "physiologyEffect" to "WATER"),
         contentState = ContentState.NONE
       )),
-      equipment = mapOf("weapon" to "ivory"),
+      equipment = mapOf("weapon" to "tich-quang"),
       statusEffects = listOf(StatusEffect(
         id = "injury-1",
         type = "INJURY",
@@ -44,18 +44,18 @@ class CharacterDetailJsonTest {
       ))
     )
     val json = CharacterDetailJson.encodeParty(PartyDetailProjection(
-      leaderId = KAI_ID,
+      leaderId = CAO_MINH_ID,
       maxMembers = 4,
       elapsedSubjectiveMinutes = 915L,
       members = listOf(member)
     ))
 
-    assertEquals(KAI_ID, json.getString("leaderId"))
+    assertEquals(CAO_MINH_ID, json.getString("leaderId"))
     assertEquals(4, json.getInt("maxMembers"))
     assertEquals(915L, json.getLong("elapsedSubjectiveMinutes"))
     val character = json.getJSONArray("members").getJSONObject(0)
-    assertEquals("iris", character.getString("id"))
-    assertEquals("avatars/iris.png", character.getString("avatar"))
+    assertEquals("luc-tram", character.getString("id"))
+    assertEquals("avatars/luc-tram.png", character.getString("avatar"))
     assertEquals("INJURED", character.getString("healthState"))
     assertEquals(63, character.getInt("currentHp"))
     assertEquals(100, character.getInt("maxHp"))
@@ -65,13 +65,13 @@ class CharacterDetailJsonTest {
     assertEquals(81, physiology.getInt("foodPercent"))
     assertEquals(50, physiology.getInt("waterPercent"))
     assertEquals(30, physiology.getInt("restPercent"))
-    assertEquals("ivory", character.getJSONObject("equipment").getString("weapon"))
+    assertEquals("tich-quang", character.getJSONObject("equipment").getString("weapon"))
   }
 
   @Test fun uiJsonDoesNotExposeInventoryOrStatusInternalMetadata() {
     val member = CharacterDetailProjection(
-      id = "kai",
-      name = "Kai",
+      id = "cao-minh",
+      name = "Cao Minh",
       avatarRef = null,
       presence = CharacterPresence.ACTIVE,
       isLeader = true,

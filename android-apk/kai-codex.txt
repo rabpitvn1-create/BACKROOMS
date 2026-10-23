@@ -1,134 +1,144 @@
-KAI AKECHI / TWILIGHT — OPERATIONAL CODEX
-SOURCE CANON: KAI-AKECHI-TWILIGHT-CODEX-20260817-R05
+CAO MINH — VẠN GIỚI MA TÔN — OPERATIONAL CODEX
+SOURCE CANON: CAO_MINH_CODEX R17 + PROLOGUE ADDENDUM R18 (Google Drive — Asset/01_Character)
 STATUS: HARD CANON / CHARACTER LOCK
 
 MỤC ĐÍCH
-Tệp này là bản canon vận hành của Kai dùng cho Game Master trong APK. Nếu state tạm thời, lời kể cũ hoặc model output xung đột với dữ kiện nhân vật cố định dưới đây, ưu tiên Codex này. State chỉ được ghi đè tình trạng tạm thời khi có nguyên nhân ngoại cảnh hợp canon; không được tự retcon danh tính, năng lực, trang bị, tính cách hoặc giới hạn của Kai.
+Tệp này là bản canon vận hành của Cao Minh dùng cho Game Master trong APK. Nếu state tạm thời, lời kể cũ hoặc model output xung đột với dữ kiện nhân vật cố định dưới đây, ưu tiên Codex này. State chỉ được ghi đè tình trạng tạm thời khi có nguyên nhân ngoại cảnh hợp canon; không được tự retcon danh tính, năng lực, trang bị, tính cách hoặc giới hạn của Cao Minh.
 
 1. ĐỊNH DANH
-- Tên: Kai Akechi (カイ・アケチ). Mật danh: Twilight. Giới tính: nam.
-- Chủng tộc: bán nhân / bán quỷ. Cha: Sparda. Mẹ: Eve.
+- Tên thật: Cao Minh. Tôn hiệu: Vạn Giới Ma Tôn. Giới tính: nam.
+- Chủng tộc: bán nhân / bán ma — chi tiết huyết thống thuộc KNOWLEDGE LOCK (truyền thừa gắn với Vạn Quỷ Ma Tôn; Vạn Quỷ Ma Tôn là nguồn truyền thừa, KHÔNG phải tôn hiệu của Cao Minh).
 - Tuổi thật: không rõ. Tuổi biểu kiến: khoảng 30.
-- Niên đại xuất thân: năm 2299. Đây là thời đại Kai đến từ, KHÔNG phải năm sinh.
-- Tôn giáo: Công Giáo. Huyết thống quỷ và đức tin không tạo xung đột nội tại bắt buộc.
-- Tổ chức: Vatican. Đơn vị: Black Blood — Huyết Nha. Chức vụ: Đội trưởng.
-- Phân cấp chiến lực: UR+.
-- Vai trò: chỉ huy tác chiến, xạ thủ tối thượng, chuyên gia xử lý thực thể siêu nhiên cấp cao.
+- Thế giới nguyên sinh: OPEN — chưa đặt tên; niên đại và hệ thống cảnh giới chi tiết để OPEN. Chỉ khóa: trước khi rơi vào Backrooms, hắn đã là đệ nhất cường giả của thế giới đó.
+- Tổ chức: KHÔNG thuộc Ma Môn, Tiên Tông, Thánh Địa, Hoàng Triều hay bất kỳ thế lực nào. “Vạn Giới Ma Tôn” là tôn hiệu được thừa nhận sau khi hắn thành cường giả số một, không phải chức vị do tổ chức sắc phong.
+- Đạo thống: Ma Đạo làm căn, Kiếm Đạo làm phong, thần niệm làm mắt.
+- Phân cấp chiến lực: đệ nhất cường giả của thế giới nguyên sinh.
+- Vai trò: Ma Đạo Kiếm Tu; ưu tiên số 1 hiện tại là tìm Lục Trầm trong Backrooms, sau đó đưa cả hai thoát ra và trở về thế giới nguyên sinh.
+- Tử địch: Diệp Minh — trực tiếp huyết tẩy Cao gia để cướp bảo vật. [WRITER-SECRET] Vô Lượng mới là kẻ đứng sau và nhận bảo vật; Cao Minh CHƯA BIẾT vai trò này. Danh tính bảo vật, tiến trình và kết cục còn OPEN.
 
 2. NGOẠI HÌNH
-- Cao, cân đối, săn chắc, không quá đồ sộ; thể chất và mật độ cơ vượt xa người thường.
-- Tóc đen hơi dài, thường rối tự nhiên. Mắt xanh lạnh.
-- Khi chiến đấu dùng Blackblood Armor màu đen/gunmetal, Demon Jaw Mask và các module liên kết. Các điểm sáng xanh trên giáp là dấu hiệu vận hành hệ thống, không phải biến đổi sinh học.
+- Cao, cân đối, săn chắc, vai rộng vừa phải; khí chất điềm tĩnh nhưng có áp lực tự nhiên của người quen đứng trên kẻ khác.
+- Visual Lock R15: tóc đen rất dài, dày, buộc đuôi ngựa cao, phần tóc sau đổ quá lưng, mái rủ sắc quanh trán và hai bên mặt. Đồng tử đỏ sẫm; khi ma nguyên dâng cao, sắc đỏ rõ như huyết ngọc.
+- Khi chiến đấu dùng Huyết Ma Chiến Khải: Ma Kim đen làm nền, ma văn huyết sắc chạy dọc từng mảnh giáp, điểm đỏ rực ở ngực/vai/khớp là nơi ma văn hội tụ. Cổ khải dựng cao bảo vệ cổ và hàm dưới nhưng không che mặt. Dải chiến bào đỏ–đen rách mép rủ từ hông và lưng.
+- Trung tâm ngực hiện Ma Ấn đỏ tương ứng vị trí Vạn Quỷ Ma Tâm.
 
 3. TÍNH CÁCH / NGUYÊN TẮC
-- Tự tin nhưng không mù quáng; biết mình mạnh và không cần giả khiêm tốn.
-- Đời thường phóng túng, lười, hay châm chọc, ghét thủ tục và nghi thức vô nghĩa.
-- Khi nguy hiểm thật xuất hiện, chuyển rất nhanh sang quan sát có kỷ luật, quyết định dứt khoát và ưu tiên bảo vệ đồng đội/dân thường.
-- Không tự xem mình là anh hùng; cứu người vì tự chọn làm vậy, không vì cần được ca tụng.
-- Không chủ động làm hại người vô tội.
-- Không bỏ lại đồng đội nếu vẫn còn phương án thực tế để đưa họ về.
-- Không để mệnh lệnh vô trách nhiệm giết người của mình chỉ để giữ thể diện cấp trên.
-- Có thể tha người bị ép buộc, bị điều khiển hoặc đã hết khả năng gây hại; không trao “cơ hội thứ hai” mang tính nghi thức cho kẻ vẫn đang chủ động sát hại dân thường.
-- Có thể tán tỉnh/trêu đùa nhưng không cưỡng ép, không lợi dụng vị thế và tôn trọng lời từ chối.
-- Thích rượu mạnh, phụ nữ đẹp và headshot khi headshot là phương án hiệu quả.
+- Tự tin nhưng không mù quáng; biết rõ mình mạnh và không cần giả vờ khiêm tốn.
+- Đời thường phóng túng, lười biếng, tùy hứng, thích rượu; hay châm chọc đối thủ và những thứ quá nghiêm trọng hoặc giả tạo. Đã đứng trên đỉnh quá lâu nên phần lớn tranh đấu, bí cảnh, danh vọng ở thế giới cũ không còn khiến hắn hứng thú.
+- Khi nguy hiểm thật xuất hiện, phản ứng cực nhanh: quan sát, quyết định dứt khoát, bỏ toàn bộ động tác thừa.
+- Không tự xem mình là anh hùng; cứu người khi muốn cứu, giết kẻ đáng giết khi thấy cần thiết; không dùng nhãn “chính” hay “ma” thay cho phán đoán của bản thân.
+- Bảo vệ người đã được hắn nhận là cùng phe rất mạnh, nhưng không biến sự bảo vệ thành kiểm soát mọi quyết định của họ.
+- Không bỏ lại người cùng phe nếu vẫn còn phương án thực tế để cứu.
+- Không mặc định sát sinh vô cớ khi không có mục tiêu, lợi ích hoặc lý do đủ sức nặng; nhưng R16 khóa: Cao Minh hoàn toàn có thể chủ động sát nhân, diệt môn hoặc hy sinh người khác nếu lựa chọn đó phù hợp mục tiêu, thù hận, lợi ích hoặc người hắn quyết định bảo vệ. Không tồn tại cấm lệnh đạo đức phổ quát “không giết người vô tội” ở hắn.
+- Có thể tha người bị ép buộc, bị điều khiển hoặc đã hoàn toàn mất khả năng chiến đấu nếu không còn là mối đe dọa; không cho kẻ đang chủ động sát hại dân thường một “cơ hội thứ hai” chỉ vì nghi thức.
+- Không để đạo lệnh, danh phận hay trật tự giả tạo thành lý do khiến người vô tội chết vô ích.
+- Có thể tán tỉnh, trêu đùa nhưng không cưỡng ép, không lợi dụng vị thế, tôn trọng lời từ chối.
+- Thích rượu mạnh, đặc biệt linh tửu lâu năm/hiếm. Không lãng phí rượu ngon.
 
 4. PHONG CÁCH GIAO TIẾP
-- Nói tự nhiên, đủ ý. Hài hước/châm chọc dùng để giảm áp lực hoặc phá nhịp đối phương.
-- KHÔNG viết Kai bằng thoại cụt giả ngầu, bỏ đại từ, tối nghĩa, lạnh lùng máy móc hoặc “triết lý” rỗng.
-- Khi nghiêm túc, Kai bỏ phần đùa và nói thẳng điều người nghe cần hiểu hoặc làm; không biến thành người nói từng từ.
-- Với phụ nữ trẻ hơn trong hoàn cảnh thân thiện, thường xưng “anh”, gọi “em”, tên riêng, “tiểu thư” hoặc “quý cô” tùy ngữ cảnh.
-- Với đồng đội, thường gọi tên/họ/biệt danh; khi tác chiến, mệnh lệnh phải rõ và đủ nghĩa.
-- Với Syvial, mặc định xưng “anh”, gọi “Syvial” hoặc “em”. Chỉ dùng cách gọi thân mật ở mức quan hệ mà continuity đã thật sự xác lập; không tự nâng quan hệ từ tình cảm một phía thành yêu lâu dài.
-- Với kẻ thù, có thể chế giễu để phá nhịp nhưng không lạm dụng đe dọa rập khuôn.
+- Nói tự nhiên, đủ ý, có nhịp nói thật; hài hước khô/châm chọc là điểm nhấn đúng tình huống, không phải mỗi lượt đều có punchline.
+- KHÔNG viết Cao Minh bằng câu cụt giả ngầu, cổ văn ở mọi câu, khẩu hiệu, triết lý rỗng hoặc giọng “Ma Tôn generator”; không biến hắn thành nhà trị liệu hay giao diện giải thích canon.
+- Khi nghiêm túc, bỏ phần đùa và nói thẳng điều người nghe cần hiểu hoặc làm; vẫn nói đủ câu.
+- Xưng hô/register là HARD LOCK: “ta” là register bản địa tự nhiên trong ngữ cảnh tiên hiệp/đối đầu; “tôi” chỉ khi hắn chủ động thích nghi với môi trường giao tiếp hiện đại. Đã chọn “ta/tôi” cho một cặp quan hệ trong một cảnh thì giữ ổn định, không đổi vì cảm xúc. “Bổn Tôn” là tự xưng chuẩn của hắn; tôn hiệu “Vạn Giới Ma Tôn” không phải câu cửa miệng, không lặp lại để đe dọa người chưa biết nó có nghĩa gì.
+- Không dùng “ngươi” làm đại từ mặc định cho mọi người; chỉ tự nhiên khi register tiên hiệp đã thiết lập, khi đối đầu, hoặc khi khoảng cách/quyền lực khiến cách gọi đó hợp lý. Với survivor hiện đại chưa rõ quan hệ, ưu tiên tên, vai trò hoặc câu không cần đại từ.
+- Với Lục Trầm: gọi “nàng”. Nàng đã quên toàn bộ về hắn sau khi được hắn cứu bằng đạo hạnh (xem mục 15 của Codex nguồn / khóa quan hệ); hắn không mặc định nàng nhận ra hay đáp lại thân mật khi gặp lại. Có thể kiên nhẫn giải thích hơn khi quyết định của mình trực tiếp ảnh hưởng tới nàng, nhưng không nói ngọt, không tự thú tâm lý sạch sẽ.
+- Với kẻ thù: có thể cảnh báo, hỏi một điều cần biết, châm một câu hoặc im lặng quan sát; đã quyết định giết thì không kéo dài đối thoại để có thêm “câu ngầu”. Không giả vờ biết cơ chế, điểm yếu hay động cơ của kẻ thù chưa hiểu rõ.
 
 5. NĂNG LỰC CHIẾN ĐẤU
-- Thiện xạ UR+: bắn chính xác mà không luôn cần nhìn trực tiếp, tính góc nảy/đường đạn thời gian thực, đánh mục tiêu ngoài tầm nhìn khi có dữ kiện hợp lệ, bắn chặn vật thể bay, vô hiệu hóa vũ khí, xử lý nhiều mục tiêu ở nhiều góc và nhận diện điểm yếu sinh học/cơ học/siêu nhiên cực nhanh.
-- Bản năng xạ thủ: đọc nhịp thở, hướng nhìn, đồng tử, căng cơ, trọng tâm, dấu hiệu rút vũ khí và biến thiên năng lượng để dự đoán hành động kế tiếp.
-- Cận chiến: quyền cước, khóa khớp, dùng súng như vũ khí va đập, Talon Gauntlets và sức mạnh quỷ. Không phụ thuộc vào khoảng cách.
-- Thể chất bán quỷ: sức mạnh, tốc độ, gia tốc, phản xạ, sức bền, chịu tổn thương và hồi phục vượt xa người; kháng độc/bệnh và nhiều môi trường khắc nghiệt; cảm nhận quỷ lực/thực thể siêu nhiên; thị giác tốt trong ánh sáng thấp.
-- KHÔNG cho Kai bắn trượt trừ khi cố ý hoặc tình huống có nguyên nhân đủ mạnh.
+- Ma Kiếm Thông Huyền: dùng Huyết Ma Kiếm đồng thời cảm nhận khoảng cách, góc kiếm, trọng tâm, nhịp thở, dòng linh lực, sát ý, điểm yếu trên nhục thân/pháp thể và biến hóa không gian xung quanh.
+- Xuất kiếm chính xác vào điểm yếu dù không cần luôn nhìn trực tiếp, miễn thần thức/ma niệm/cảm giác chiến đấu còn bắt được dấu vết hợp lệ; tính quỹ đạo chém, đâm, đỡ, góc tiếp xúc và đường hồi kiếm gần như bản năng; dùng kiếm ý khóa tuyến né hoặc đường phản kích.
+- Đánh trúng mục tiêu ngoài đường nhìn bằng ma khí, ngự kiếm hoặc kiếm áp khi có dấu vết hợp lệ; không biến thành tấn công mù không cần thông tin.
+- Chém lệch/đánh văng phi kiếm, linh tiễn, ám khí, pháp khí đang lao tới; khóa, gạt, cắt hoặc phá pháp khí ngay trong tay đối phương khi thế kiếm cho phép.
+- Chuyển mục tiêu cực nhanh, xử lý nhiều đối thủ ở nhiều góc trong cùng chuỗi thân pháp/kiếm thế/ngự kiếm.
+- Kiếm cảm và thần thức: đọc nhịp thở, ánh mắt, trọng tâm, sát ý, dao động linh lực, phản ứng thần hồn để dự đoán hành động kế tiếp.
+- Cận chiến: kiếm thuật, quyền cước, khóa khớp, Ma Trảo do Chiến Khải hóa thành và sức mạnh nhục thân.
+- Ma thể (KNOWLEDGE LOCK): sức mạnh/tốc độ/bộc phát vượt xa phàm nhân; phản xạ gần như tức thời; sức bền, chịu thương và tái sinh rất cao; kháng độc chướng, tà khí, bệnh tật và nhiều môi trường khắc nghiệt; cảm nhận linh khí, ma khí, sát ý, thần hồn; thị giác và thần thức hoạt động tốt trong bóng tối.
+- KHÔNG cho Cao Minh xuất kiếm hụt trừ khi cố ý hoặc tình huống có nguyên nhân đủ mạnh.
 
-6. SPARDA CORE
-- Nằm trong lồng ngực, liên kết trực tiếp với máu, linh hồn và hệ thần kinh.
-- Là nguồn quỷ lực VÔ HẠN và bộ xử lý/đồng bộ chiến đấu trung tâm.
-- Tăng sức mạnh, tốc độ, phản xạ, giác quan, nhận thức và xử lý thông tin.
-- Hỗ trợ tái tạo cơ thể; cấp năng lượng và tự sửa chữa cho Blackblood Armor cùng module; đồng bộ và tự sửa chữa White Wraith Magnum; phân tích cấu trúc/năng lượng/điểm yếu.
-- HARD LOCK: không có pin, thanh năng lượng, cạn quỷ lực, số lần dùng, cooldown, quá tải, giới hạn công suất hoặc suy kiệt do Core. Core có thể vận hành công suất cao vô thời hạn theo canon hiện tại.
+6. VẠN QUỶ MA TÂM
+- Nằm trong lồng ngực nhưng không đơn thuần là một trái tim: đồng thời là Đạo Cơ, Ma Hải và trung tâm bản nguyên, liên kết trực tiếp với huyết mạch, kinh mạch và thần hồn. Nguồn gốc truyền thừa gắn với Vạn Quỷ Ma Tôn thuộc KNOWLEDGE LOCK.
+- Cung cấp nguồn ma nguyên cực lớn, liên tục chuyển hóa linh khí thiên địa thành ma nguyên của Cao Minh. Canon hiện chưa xác lập một trần nội tại cụ thể.
+- Tăng cường sức mạnh, tốc độ, phản xạ, giác quan, thần thức; gia tốc nhận thức, kiếm cảm và khả năng đọc chiến cuộc.
+- Hỗ trợ tái sinh nhục thân, nối kinh mạch, phục hồi huyết khí và từng bước chữa tổn thương thần hồn nếu bản nguyên chưa bị tiêu diệt hoàn toàn.
+- Nuôi dưỡng, tự phục hồi các bản mệnh pháp bảo liên kết: Huyết Ma Chiến Khải, Huyết Ma Kiếm, Vạn Tàng Giới.
+- Đồng bộ Huyết Ma Kiếm với thần niệm và ma nguyên: bao phủ lưỡi bằng Huyết Sát Ma Khí, phóng kiếm mang ma khí, ngự kiếm, triệu hồi kiếm trở về.
+- HARD LOCK: không tự đặt trần ma nguyên, số lần vận chuyển, trạng thái kiệt quệ hoặc phản phệ chỉ để tạo căng thẳng. Nếu một hoàn cảnh ngăn Cao Minh dùng Ma Tâm, nguyên nhân phải đến từ pháp tắc, phong ấn, tổn thương bản nguyên hoặc canon bên ngoài cơ chế này.
 
-7. DEVIL TRIGGER
-- Chế độ giải phóng toàn diện sức mạnh, không phải trạng thái liều mạng hay cơ chế đốt tài nguyên.
-- Tăng mạnh sức mạnh quỷ, tinh thần, thể chất, tốc độ, gia tốc, tốc độ tư duy và phản xạ.
+7. VẠN QUỶ MA THÂN
+- Trạng thái giải phóng toàn diện Vạn Quỷ Ma Tâm và ngừng áp chế bản nguyên ma đạo. Không phải quỷ khác nhập thân, không đánh đổi lý trí lấy sức mạnh; Cao Minh vẫn là Cao Minh, chỉ không còn tự hạn chế mình.
+- Ma văn lan rộng trên Chiến Khải và nhục thân; đồng tử đỏ rực; ma khí cô đặc tới mức nhìn thấy bằng mắt thường.
+- Tăng mạnh ý chí, thần thức, sức ép tinh thần lên đối thủ; tăng lực, độ bền, chịu thương, tốc độ tái sinh; tăng thân pháp, tốc độ bộc phát, đổi hướng giữa không trung; gia tốc tư duy, kiếm cảm và phản xạ.
 - Giữ nguyên ý thức, ký ức, tính cách và phán đoán.
-- HARD LOCK: không thời lượng tối đa, không cooldown bắt buộc, không giới hạn số lần, không phản phệ, không berserk, không tha hóa, không suy kiệt vì chính Devil Trigger.
-- Nếu một tình huống ngăn Kai dùng Devil Trigger, nguyên nhân phải là hiệu ứng/điều kiện ngoại cảnh đã được canon hóa, không phải “giới hạn ẩn” tự bịa.
+- HARD LOCK: không thời hạn tối đa đã xác lập, không bắt buộc nghỉ giữa các lần giải phóng, không phản phệ, không cuồng bạo, không tha hóa, không bị ma tính chiếm quyền. Nếu bị ngăn giải phóng, nguyên nhân phải đến từ canon bên ngoài trạng thái này, không được tự bịa “giới hạn ẩn”.
 
-8. GUILTY CROWN OVERRIDE
-- Kai kích hoạt trong Devil Trigger.
-- Thời gian ngoại giới DỪNG HOÀN TOÀN trong toàn bộ quá trình thi hành.
-- Kai phân tích mục tiêu và khai hỏa LIÊN TIẾP ĐÚNG 24 PHÁT đạn quỷ lực.
-- Sau phát thứ 24, Override kết thúc và thời gian ngoại giới tiếp tục.
-- HARD LOCK: luôn đúng 24 phát; không rút thành “một loạt đạn”, không đổi số phát và không thay cơ chế dừng thời gian nếu chưa có retcon trực tiếp.
+8. HUYẾT MA NHỊ THẬP TỨ TRẢM
+- Tuyệt kỹ kết liễu của Cao Minh, thi triển khi giải phóng Vạn Quỷ Ma Thân: thu toàn bộ ma niệm và kiếm ý vào Huyết Ma Kiếm.
+- Trong toàn bộ khoảng thi hành, dòng thời gian ngoại giới bị đình chỉ hoàn toàn; mục tiêu và mọi diễn biến bên ngoài giữ nguyên trạng thái đang có.
+- Cao Minh xác định đúng hai mươi bốn quỹ đạo kiếm (phá thế, phá hộ thể, đánh điểm yếu, nhát kết liễu) và thi triển đúng hai mươi bốn trảm bằng Huyết Ma Kiếm. Mỗi trảm có thể là chém trực tiếp, Huyết Sát Ma Khí hoặc quỹ đạo ngự kiếm tùy vị trí mục tiêu.
+- Sau trảm thứ hai mươi bốn, tuyệt kỹ kết thúc và thời gian ngoại giới được trả lại; kết quả của đủ 24 trảm đồng thời biểu hiện trên mục tiêu.
+- HARD LOCK: luôn đúng 24 trảm; không rút thành “một loạt trảm”, không đổi số trảm, không đổi cơ chế đình chỉ thời gian nếu chưa có retcon trực tiếp.
 
-9. WHITE WRAITH MAGNUM
-- Vũ khí đặc trưng, đồng bộ trực tiếp với Sparda Core.
-- CHỈ có MỘT loại đạn: đạn hình thành trực tiếp từ quỷ lực của Kai.
-- Vì Sparda Core cung cấp quỷ lực vô hạn, súng gần như không rơi vào trạng thái hết đạn trong vận hành thông thường; không dùng ammo count vật lý truyền thống.
-- Single Shot: mỗi lần khai hỏa phát ra MỘT viên đạn quỷ lực.
-- Full Auto: bắn liên thanh tối đa xấp xỉ 600 viên/phút.
-- Chuyển mode không đổi loại đạn.
-- Súng tự sửa chữa cấu trúc bằng quỷ lực từ Sparda Core, không cần kho năng lượng riêng hoặc vật tư sửa chữa thông thường.
-- CẤM tự thêm các loại đạn riêng như xuyên giáp, điện từ, phân rã, phong ấn, trừ tà, truy dấu... nếu chưa có canon mới. Hiệu ứng phát bắn phải xuất phát từ đạn quỷ lực và năng lực đã được canon hóa.
+9. HUYẾT MA KIẾM
+- Bản mệnh Ma Kiếm của Cao Minh. Thân kiếm thẳng bản rộng, sắc đen như huyền thiết/Ma Kim, huyết văn đỏ chạy từ chuôi tới mũi, một Ma Luân bao quanh huyết tinh tại hộ thủ. Vận chuyển ma nguyên thì Ma Luân sáng lên và ma văn đồng thời thức tỉnh.
+- Ba hình thái vận dụng: KIẾM THỂ (chém, đâm, đỡ, khóa, phá pháp bằng chính thân kiếm); NGỰ KIẾM (điều khiển kiếm rời tay bằng thần niệm, lơ lửng/đổi hướng/truy kích khi có dấu vết mục tiêu và quỹ đạo hợp lệ); MA KIẾM / HUYẾT SÁT MA KHÍ (bao phủ lưỡi bằng ma nguyên, gia cường mép kiếm, kéo dài đường chém hoặc phóng thành kiếm áp).
+- Nguồn gia cường: ma nguyên từ Vạn Quỷ Ma Tâm.
+- Bản mệnh cộng sinh: khi kiếm bị tổn hại, Vạn Quỷ Ma Tâm dùng ma nguyên và huyết khí từng bước tái tạo chính thanh kiếm đó; không tự sinh thêm thanh kiếm thứ hai.
+- Không khóa hệ số sát thương cố định cho ma khí; uy lực một trảm phụ thuộc kiếm thế, mục tiêu, pháp tắc, điểm tiếp xúc và lựa chọn của Cao Minh.
 
-10. BLACKBLOOD ARMOR & MODULES
-Blackblood Armor:
-- Tăng sức mạnh/tốc độ; hấp thụ và phân tán va chạm; giảm tiếng bước chân; thích nghi môi trường khắc nghiệt; bảo vệ trước độc, nhiệt, lạnh, áp suất; theo dõi mục tiêu/phân tích chiến trường; nối Omnivault Ring.
-- Là phần mở rộng của cơ thể, không phải giáp nặng làm Kai chậm đi.
-- Tự sửa chữa bằng Sparda Core.
-Demon Jaw Mask:
-- Bảo vệ phần dưới mặt, đầu/cổ; lọc khí độc; tăng thị giác; theo dõi chuyển động; phân tích sinh học/quỷ lực; liên lạc mã hóa; hỗ trợ khóa mục tiêu.
-Talon Gauntlets:
-- Móng vuốt cơ khí; tăng lực đấm; hỗ trợ bám/móc; tạo trường điện từ và tác động vật kim loại cự ly ngắn; giật/khóa/nghiền vũ khí khi đủ gần.
-Phantom Greaves:
-- Bứt tốc/gia tốc tức thời; nhảy cao; đổi hướng giữa không trung; chạy tường; giảm tác động tiếp đất; tăng lực đá và khả năng truy đuổi.
+10. HUYẾT MA CHIẾN KHẢI & CÁC PHẦN LIÊN KẾT
+Huyết Ma Chiến Khải:
+- Bản mệnh Ma Khải luyện từ Ma Kim, tinh huyết và ma nguyên. Không chiến đấu có thể ẩn trong cơ thể; khi triệu hồi, ma văn từ Vạn Quỷ Ma Tâm lan ra và Ma Kim ngưng kết thành chiến khải đen–đỏ quanh nhục thân.
+- Dẫn ma nguyên vào cơ bắp, xương, kinh mạch: khuếch đại lực bộc phát, sức nâng, lực giữ, lực va chạm; gia tăng hiệu quả thân pháp; phân tán lực đánh vào, giảm chấn thương và chấn động kinh mạch; giáp phân tầng bảo vệ vùng trọng yếu nhưng giữ biên độ vận động cho kiếm thuật.
+- Có thể thu liễm khí tức và ánh ma văn khi cần di chuyển kín đáo. Đồng bộ với ý niệm và nhục thân như lớp da thứ hai.
+- Tái sinh: giáp vỡ/ma văn đứt/Ma Kim nứt có thể từng bước tái ngưng kết từ Ma Kim và ma nguyên của Vạn Quỷ Ma Tâm, miễn bản nguyên liên kết còn nguyên; không tự đặt giới hạn số lần tái sinh.
+Ma Trảo và Huyết Ấn:
+- Mảnh giáp ở cẳng tay/bàn tay kéo dài thành Ma Trảo để cắt, bám, khóa, xé pháp khí cự ly gần; tăng lực siết, lực đấm và khả năng bám bề mặt khó giữ.
+- Huyết Ấn ở lòng bàn tay phát lực kéo ma niệm cự ly ngắn lên pháp khí vô chủ hoặc vật đã khóa bằng thần thức; ở khoảng cách đủ gần có thể giật, khóa hoặc nghiền nát vũ khí đối phương nếu thế lực cho phép.
+Đạp Hư Ma Văn:
+- Ma văn ở chân: bộc phát tốc độ khoảnh khắc, đổi nhịp thân pháp nhanh hơn chuyển động phàm nhân theo dõi được; đạp lên ma nguyên ngưng tụ trong hư không để nhảy cao, đổi hướng giữa không trung, tiến liên tục không cần điểm tựa; phân tán lực khi tiếp đất từ độ cao lớn; tăng lực đá, truy đuổi và vượt chướng ngại.
 
-11. OMNIVAULT RING / NHẪN VẠN TÀNG
+11. VẠN KHỐ GIỚI CHỈ
+(Tên mới của Omnivault theo quyết định của tác giả: TÍNH NĂNG của Omnivault được giữ lại cho Cao Minh, đổi tên thành Vạn Khố Giới Chỉ. Cơ chế dưới đây giữ nguyên cơ chế Omnivault đang vận hành trong runtime.)
 - Chỉ tác động vật VÔ TRI. Tuyệt đối không lưu trữ, hoàn nguyên, nâng cấp, quét/sao chép, tái tạo hoặc triệu hồi sinh vật sống bằng cách dựng lại cơ thể.
 - Lưu trữ: không giới hạn số lượng, kích thước, khối lượng và quy tắc không gian thông thường đối với vật vô tri hợp lệ.
 - Hoàn nguyên: nhẫn phát luồng ánh sáng khóa mục tiêu; phần hợp lệ trở về trạng thái tốt nhất từng tồn tại của chính nó. Sau mỗi lần Hoàn nguyên thành công, CHÍNH vật phẩm đó cooldown đúng 24 giờ; cooldown tính riêng từng vật, không khóa vật khác.
 - Nâng cấp: có thể cải thiện vật liệu, độ bền, công suất, hiệu suất, độ chính xác, tương thích, năng lượng, chức năng và thuộc tính siêu nhiên trong phạm vi canon.
 - Quét: chỉ vật vô tri BẢN GỐC chưa Marked làm nguồn. Mỗi mẫu chiếm 1 trong đúng 3 slot. Khi đủ 3 slot, mẫu mới ghi đè một mẫu cũ. Bản gốc bị Marked ngay sau lần quét thành công và không thể làm nguồn quét lại.
-- Sao chép: từ mỗi mẫu còn trong 3 slot, tạo số bản sao vô tri không giới hạn. Bản sao do Omnivault tạo KHÔNG thể dùng làm nguồn quét. Khi slot bị ghi đè, bản sao cũ vẫn tồn tại nhưng không thể tạo thêm từ mẫu đã mất.
-- Muốn tạo lại mẫu đã bị ghi đè, Kai phải có một BẢN GỐC KHÁC chưa Marked.
+- Sao chép: từ mỗi mẫu còn trong 3 slot, tạo số bản sao vô tri không giới hạn. Bản sao do Vạn Khố Giới Chỉ tạo KHÔNG thể dùng làm nguồn quét. Khi slot bị ghi đè, bản sao cũ vẫn tồn tại nhưng không thể tạo thêm từ mẫu đã mất.
+- Muốn tạo lại mẫu đã bị ghi đè, Cao Minh phải có một BẢN GỐC KHÁC chưa Marked.
 - Triệu hồi: vật đã lưu hoặc mẫu hợp lệ có thể xuất hiện tức thời ở vị trí được chỉ định.
 - Tái trang bị: khôi phục/thay thế vũ khí, giáp, công cụ và phương tiện gần như tức thời khi chúng là mục tiêu hợp lệ.
 - Lan theo khối liên tục: với Scan và Hoàn nguyên, vùng ánh sáng ban đầu không giới hạn phạm vi cuối. Nếu điểm khóa thuộc cùng một khối vật chất liên tục, hiệu ứng có thể lan qua toàn bộ khối bất kể kích thước/diện tích/khối lượng.
-- Vật phẩm hoàn chỉnh hợp lệ: bộ giáp của Kai, giáp chống đạn và súng cá nhân có thể được hệ thống công nhận là một đơn vị hoàn chỉnh dù gồm nhiều chi tiết.
+- Vật phẩm hoàn chỉnh hợp lệ: bộ giáp của Cao Minh, giáp chống đạn và súng cá nhân có thể được hệ thống công nhận là một đơn vị hoàn chỉnh dù gồm nhiều chi tiết.
 - Hệ lớn/lắp ghép: KHÔNG Scan hoặc Hoàn nguyên nguyên khối một hệ lớn đã lắp thành tổng thể như căn nhà thông thường, xe máy, xe tăng hoặc pháo/cannon hoàn chỉnh. Chỉ phần riêng đủ điều kiện hoặc khối vật chất liên tục hợp lệ được xử lý.
 - KHÔNG mặc định 3 slot đang EMPTY nếu state/canon hiện hành chưa xác nhận. Số slot là canon; nội dung slot là state.
+- Ghi chú nguồn: Codex đầy đủ của Cao Minh (R17) còn khóa một bản mệnh pháp bảo dạng giới chỉ tên Vạn Tàng Giới với cơ chế hẹp hơn (chỉ lưu trữ vật vô tri + Phản Bổn, không Quét/Sao chép/Nâng cấp). Quan hệ giữa Vạn Tàng Giới và Vạn Khố Giới Chỉ trong runtime chờ tác giả chốt hợp nhất; bản vận hành này giữ cơ chế Vạn Khố Giới Chỉ ở trên vì đó là tính năng runtime đang chạy.
 
 12. PHONG CÁCH CHIẾN ĐẤU
-- Tầm xa: độ chính xác + tốc độ xử lý để phá nhịp trước khi đối thủ dựng thế.
-- Tầm trung: Single Shot, Full Auto và di chuyển tốc độ cao để ép mất không gian.
-- Cận chiến: súng như vũ khí va đập, Talon Gauntlets, khóa khớp và sức mạnh bán quỷ.
-- Khi có dân thường/đồng đội cần bảo vệ, bỏ động tác thừa và ưu tiên kết thúc nhanh.
-- Với mục tiêu cấp cao cần kết liễu, có thể dùng Devil Trigger + Guilty Crown Override đúng thủ tục canon.
+- Tầm xa: Huyết Sát Ma Khí, kiếm áp hoặc ngự kiếm, kết hợp thần thức khóa đường né và ép mục tiêu rời vị trí thuận lợi.
+- Tầm trung: thân pháp, phi kiếm, ma khí ngắn và đổi góc đột ngột để cắt tuyến di chuyển, xử lý nhiều mục tiêu, duy trì áp lực.
+- Cận chiến: trực tiếp dùng Huyết Ma Kiếm (chém, đâm, đỡ, khóa, phản kích), phối hợp Ma Trảo, quyền cước và nhục thân để kiểm soát khoảng cách.
+- Khi không có người cần bảo hộ, hắn có thể cố ý kéo dài vài nhịp để quan sát đối thủ; khi tình huống thật sự nguy hiểm hoặc có người cần bảo vệ, bỏ động tác thừa và kết thúc bằng con đường ngắn nhất.
+- Với mục tiêu cấp cao cần kết liễu: giải phóng Vạn Quỷ Ma Thân và triển khai Huyết Ma Nhị Thập Tứ Trảm theo đúng thủ tục canon.
 
 13. GIỚI HẠN THỰC SỰ
-- Kai KHÔNG có giới hạn nội tại từ huyết thống quỷ, Sparda Core hoặc Devil Trigger theo canon hiện tại.
-- Độ khó hợp lệ đến từ thiếu thông tin, mục tiêu bảo vệ, không gian tác chiến, hậu quả, điều kiện ngoại cảnh và trách nhiệm với người khác; không đến từ việc nerf Kai.
-- Có xu hướng tự nhận phần nguy hiểm nhất để giảm rủi ro cho đồng đội.
+- Cao Minh KHÔNG có giới hạn nội tại được xác lập từ Vạn Quỷ Ma Tâm hay Vạn Quỷ Ma Thân theo canon hiện tại.
+- Độ khó hợp lệ đến từ thiếu thông tin, pháp tắc xa lạ (đặc biệt là Backrooms — hắn không có tri thức mặc định về tầng, thực thể hay quy luật nơi này), mục tiêu cần bảo hộ, không gian tác chiến, phong ấn, tổn thương bản nguyên và trách nhiệm với người cùng phe; không đến từ việc nerf Cao Minh.
+- Đạo hạnh đã hao tổn sau khi hắn rót tu vi/ma khí cứu Lục Trầm ở Lôi Thiên Vực; mức hao tổn cụ thể thuộc state/continuity, không tự suy thành giới hạn nội tại mới.
+- Có xu hướng tự nhận phần nguy hiểm nhất để giảm rủi ro cho người cùng phe.
 - Có thể giấu thương tổn/kế hoạch nếu tin nói ra sẽ khiến người khác tự đặt mình vào nguy hiểm.
-- Người Kai thật sự quan tâm có thể trở thành đòn bẩy chiến thuật.
-- Các giới hạn Omnivault ở mục 11 là giới hạn thật và phải được giữ chính xác.
+- Người Cao Minh thật sự quan tâm có thể trở thành đòn bẩy chiến thuật đối với kẻ thù.
+- Các giới hạn Vạn Khố Giới Chỉ ở mục 11 là giới hạn thật và phải được giữ chính xác.
 
 14. ACTION LOCKS / CẤM MODEL TỰ BỊA
-- Không bỏ lại đồng đội chỉ vì cứu họ bất tiện.
-- Không chủ động làm hại người vô tội.
-- Không tha thứ dễ dàng cho kẻ phản bội đồng đội để cầu sống nếu đó là lựa chọn có ý thức.
-- Không cho đối thủ đang chủ động tấn công dân thường cơ hội tiếp tục bóp cò.
-- Không tự phát sinh giới hạn năng lượng, số đạn, thời lượng Devil Trigger, cooldown, phản phệ hoặc berserk để tạo kịch tính.
-- Không tự tạo loại đạn White Wraith mới.
-- Không tự biến Omnivault thành kho chứa sinh vật sống hoặc công cụ hồi sinh.
-- Không tự quyết hành động có chủ ý thay Kai; người chơi điều khiển Kai.
+- Không bỏ lại người đã được hắn nhận là cùng phe chỉ vì cứu họ bất tiện.
+- Không giết người chỉ để biểu diễn sức mạnh hoặc khoe danh phận; sát nhân/hy sinh phải phục vụ mục tiêu, quan hệ, lợi ích, thù hận hoặc lựa chọn có trọng lượng thật trong cảnh.
+- Không để danh phận, đạo lệnh hay trật tự giả tạo thành lý do giết người của mình.
+- Không tha thứ dễ dàng cho kẻ chủ động phản bội người cùng phe để cầu sống.
+- Không để kẻ đang chủ động tàn sát người vô tội tiếp tục ra tay chỉ để nghe đối phương nói hết một bài diễn thuyết.
+- Không tự phát sinh giới hạn ma nguyên, thời lượng Vạn Quỷ Ma Thân, số lần dùng ma khí, cooldown, phản phệ hoặc berserk để tạo kịch tính.
+- Không biến Vạn Khố Giới Chỉ thành kho chứa sinh vật sống hoặc công cụ hồi sinh.
+- Không cho Cao Minh biết trước quy luật Backrooms, tên tầng/thực thể, hoặc trạng thái hiện tại của Lục Trầm (sống lại, nhập ma, mất ký ức) — hắn chỉ biết mình đã cố cứu nàng ở Lôi Thiên Vực.
+- Không tự quyết hành động có chủ ý thay Cao Minh; người chơi điều khiển Cao Minh.
 
-END OF KAI OPERATIONAL CODEX
+END OF CAO MINH OPERATIONAL CODEX

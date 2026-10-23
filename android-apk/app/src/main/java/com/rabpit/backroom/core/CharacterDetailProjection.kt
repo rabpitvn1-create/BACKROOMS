@@ -66,14 +66,14 @@ object CharacterDetailProjector {
   }
 
   private fun healthFor(state: GameState, character: CharacterState): Pair<Int, Int> {
-    val metadata = if (character.id == KAI_ID) state.metadata else character.metadata
+    val metadata = if (character.id == CAO_MINH_ID) state.metadata else character.metadata
     val maxHp = (
-      metadata[if (character.id == KAI_ID) "combat.playerMaxHp" else "maxHp"]?.toIntOrNull()
+      metadata[if (character.id == CAO_MINH_ID) "combat.playerMaxHp" else "maxHp"]?.toIntOrNull()
         ?: metadata["healthMax"]?.toIntOrNull()
         ?: 100
       ).coerceIn(1, 999)
     val currentHp = (
-      metadata[if (character.id == KAI_ID) "combat.playerHp" else "hp"]?.toIntOrNull()
+      metadata[if (character.id == CAO_MINH_ID) "combat.playerHp" else "hp"]?.toIntOrNull()
         ?: metadata["healthCurrent"]?.toIntOrNull()
         ?: maxHp
       ).coerceIn(0, maxHp)

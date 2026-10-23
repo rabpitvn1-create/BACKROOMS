@@ -17,21 +17,21 @@ class GameStateCodecTest {
       metadata = mapOf("source" to "field_observation")
     )
     val state = GameState.initial().copy(
-      inventories = mapOf(KAI_ID to InventoryState(KAI_ID, mapOf("water" to ItemStack("water", "Almond Water", 2)))),
+      inventories = mapOf(CAO_MINH_ID to InventoryState(CAO_MINH_ID, mapOf("water" to ItemStack("water", "Almond Water", 2)))),
       statuses = mapOf(effect.id to effect),
-      characters = mapOf(KAI_ID to CharacterState(KAI_ID, "Kai Akechi", statusIds = setOf(effect.id), physiology = physiology)),
-      omnivault = OmnivaultState(scanSlots = listOf(ScanSlot(1, "water", ItemStack("water", "Almond Water"), 10)), markedSourceIds = setOf("water")),
-      turn = TurnState("TURN_9", PendingTurn("TURN_9", "Kai nhặt nước", PendingTurnStatus.INTERPRETING)),
+      characters = mapOf(CAO_MINH_ID to CharacterState(CAO_MINH_ID, "Cao Minh", statusIds = setOf(effect.id), physiology = physiology)),
+      vanKhoGioiChi = VanKhoGioiChiState(scanSlots = listOf(ScanSlot(1, "water", ItemStack("water", "Almond Water"), 10)), markedSourceIds = setOf("water")),
+      turn = TurnState("TURN_9", PendingTurn("TURN_9", "Cao Minh nhặt nước", PendingTurnStatus.INTERPRETING)),
       time = GameTimeState(elapsedSubjectiveMinutes = 485L, lastAdvanceMinutes = 15, lastAdvanceReason = "travel")
     )
     val canonicalState = SpecialFollowersCanon.ensure(AnNhienCanon.ensure(state))
     val decoded = GameStateCodec.decode(GameStateCodec.encode(state))
     assertEquals(canonicalState, decoded)
-    assertEquals(physiology, decoded.characters.getValue(KAI_ID).physiology)
+    assertEquals(physiology, decoded.characters.getValue(CAO_MINH_ID).physiology)
   }
 
   @Test fun freshRunStartsWithKnownSatisfiedPhysiologyBaseline() {
-    val physiology = GameState.initial().characters.getValue(KAI_ID).physiology
+    val physiology = GameState.initial().characters.getValue(CAO_MINH_ID).physiology
     assertEquals(0L, physiology.minutesSinceFood)
     assertEquals(0L, physiology.minutesSinceWater)
     assertEquals(0L, physiology.minutesAwake)
@@ -46,17 +46,17 @@ class GameStateCodecTest {
 
   @Test fun currentCharacterWithoutPhysiologyDefaultsToUnknownState() {
     val root = JSONObject(GameStateCodec.encode(GameState.initial()))
-    root.getJSONObject("characters").getJSONObject(KAI_ID).remove("physiology")
+    root.getJSONObject("characters").getJSONObject(CAO_MINH_ID).remove("physiology")
     val decoded = GameStateCodec.decode(root.toString())
-    assertEquals(PhysiologyState(), decoded.characters.getValue(KAI_ID).physiology)
+    assertEquals(PhysiologyState(), decoded.characters.getValue(CAO_MINH_ID).physiology)
   }
 
   @Test fun freshStateKeepsSignatureGearOnlyInEquipment() {
     val state = GameState.initial()
-    assertTrue(state.inventories.getValue(KAI_ID).items.isEmpty())
-    assertEquals(KAI_WHITE_WRAITH_ID, state.equipment.getValue(KAI_ID).slots["weapon"])
-    assertEquals(KAI_BLACKBLOOD_ARMOR_ID, state.equipment.getValue(KAI_ID).slots["armor"])
-    assertEquals(KAI_OMNIVAULT_RING_ID, state.equipment.getValue(KAI_ID).slots["ring"])
+    assertTrue(state.inventories.getValue(CAO_MINH_ID).items.isEmpty())
+    assertEquals(CAO_MINH_HUYET_MA_KIEM_ID, state.equipment.getValue(CAO_MINH_ID).slots["weapon"])
+    assertEquals(CAO_MINH_HUYET_MA_CHIEN_KHAI_ID, state.equipment.getValue(CAO_MINH_ID).slots["armor"])
+    assertEquals(CAO_MINH_VAN_KHO_GIOI_CHI_ID, state.equipment.getValue(CAO_MINH_ID).slots["ring"])
   }
 
   @Test fun legacyWebViewSaveMigratesWithoutLosingNormalInventoryOrParty() {
@@ -65,54 +65,54 @@ class GameStateCodecTest {
       "title":"BACKROOMS",
       "location":"Level 0",
       "inventory":[
-        {"name":"White Wraith Magnum","quantity":1},
-        {"name":"Blackblood Armor & linked modules","quantity":1},
-        {"name":"Omnivault Ring / Nhẫn Vạn Tàng","quantity":1},
+        {"name":"Huyết Ma Kiếm","quantity":1},
+        {"name":"Huyết Ma Chiến Khải","quantity":1},
+        {"name":"Vạn Khố Giới Chỉ","quantity":1},
         {"name":"Almond Water","quantity":2,"state":"sealed"}
       ],
-      "party":[{"id":"iris","name":"Iris","avatar":"iris.png"}]
+      "party":[{"id":"luc-tram","name":"Lục Trầm","avatar":"luc-tram.png"}]
     }"""
     val migrated = GameStateCodec.decode(legacy)
     assertEquals(CURRENT_SAVE_VERSION, migrated.saveVersion)
     assertEquals("TURN_184", migrated.turn.currentTurnId)
     assertEquals(GameTimeState(), migrated.time)
-    assertEquals(0L, migrated.characters.getValue(KAI_ID).physiology.minutesSinceFood)
-    assertEquals(0L, migrated.characters.getValue(KAI_ID).physiology.minutesSinceWater)
-    assertEquals(0L, migrated.characters.getValue(KAI_ID).physiology.minutesAwake)
-    assertEquals(PhysiologyState(), migrated.characters.getValue("iris").physiology)
-    assertEquals(1, migrated.inventories.getValue(KAI_ID).items.size)
-    assertEquals(2, migrated.inventories.getValue(KAI_ID).items.values.single().quantity)
-    assertEquals(KAI_WHITE_WRAITH_ID, migrated.equipment.getValue(KAI_ID).slots["weapon"])
-    assertEquals(KAI_BLACKBLOOD_ARMOR_ID, migrated.equipment.getValue(KAI_ID).slots["armor"])
-    assertEquals(KAI_OMNIVAULT_RING_ID, migrated.equipment.getValue(KAI_ID).slots["ring"])
-    assertEquals(listOf(KAI_ID, "iris"), migrated.party.memberIds)
+    assertEquals(0L, migrated.characters.getValue(CAO_MINH_ID).physiology.minutesSinceFood)
+    assertEquals(0L, migrated.characters.getValue(CAO_MINH_ID).physiology.minutesSinceWater)
+    assertEquals(0L, migrated.characters.getValue(CAO_MINH_ID).physiology.minutesAwake)
+    assertEquals(PhysiologyState(), migrated.characters.getValue("luc-tram").physiology)
+    assertEquals(1, migrated.inventories.getValue(CAO_MINH_ID).items.size)
+    assertEquals(2, migrated.inventories.getValue(CAO_MINH_ID).items.values.single().quantity)
+    assertEquals(CAO_MINH_HUYET_MA_KIEM_ID, migrated.equipment.getValue(CAO_MINH_ID).slots["weapon"])
+    assertEquals(CAO_MINH_HUYET_MA_CHIEN_KHAI_ID, migrated.equipment.getValue(CAO_MINH_ID).slots["armor"])
+    assertEquals(CAO_MINH_VAN_KHO_GIOI_CHI_ID, migrated.equipment.getValue(CAO_MINH_ID).slots["ring"])
+    assertEquals(listOf(CAO_MINH_ID, "luc-tram"), migrated.party.memberIds)
     assertEquals("Level 0", migrated.world["location"])
   }
 
   @Test fun v2CoreSaveMovesSignatureItemsOutOfInventory() {
     val v2 = JSONObject(GameStateCodec.encode(GameState.initial())).apply {
       put("saveVersion", 2)
-      put("inventories", JSONObject().put(KAI_ID, JSONObject().apply {
-        put("ownerId", KAI_ID)
+      put("inventories", JSONObject().put(CAO_MINH_ID, JSONObject().apply {
+        put("ownerId", CAO_MINH_ID)
         put("items", JSONObject().apply {
-          put("old-gun", JSONObject().apply {
-            put("itemId", "old-gun"); put("name", "White Wraith Magnum"); put("quantity", 1); put("metadata", JSONObject()); put("archetypeId", "old-gun"); put("contentState", "NONE")
+          put("old-sword", JSONObject().apply {
+            put("itemId", "old-sword"); put("name", "Huyết Ma Kiếm"); put("quantity", 1); put("metadata", JSONObject()); put("archetypeId", "old-sword"); put("contentState", "NONE")
           })
           put("rope", JSONObject().apply {
             put("itemId", "rope"); put("name", "Rope"); put("quantity", 1); put("metadata", JSONObject()); put("archetypeId", "rope"); put("contentState", "NONE")
           })
         })
       }))
-      put("equipment", JSONObject().put(KAI_ID, JSONObject().put("ownerId", KAI_ID).put("slots", JSONObject())))
+      put("equipment", JSONObject().put(CAO_MINH_ID, JSONObject().put("ownerId", CAO_MINH_ID).put("slots", JSONObject())))
     }
     val migrated = GameStateCodec.decode(v2)
     assertEquals(CURRENT_SAVE_VERSION, migrated.saveVersion)
-    assertEquals(0L, migrated.characters.getValue(KAI_ID).physiology.minutesSinceFood)
-    assertEquals(0L, migrated.characters.getValue(KAI_ID).physiology.minutesSinceWater)
-    assertEquals(0L, migrated.characters.getValue(KAI_ID).physiology.minutesAwake)
-    assertEquals(setOf("rope"), migrated.inventories.getValue(KAI_ID).items.keys)
-    assertEquals(KAI_WHITE_WRAITH_ID, migrated.equipment.getValue(KAI_ID).slots["weapon"])
-    assertEquals(KAI_BLACKBLOOD_ARMOR_ID, migrated.equipment.getValue(KAI_ID).slots["armor"])
-    assertEquals(KAI_OMNIVAULT_RING_ID, migrated.equipment.getValue(KAI_ID).slots["ring"])
+    assertEquals(0L, migrated.characters.getValue(CAO_MINH_ID).physiology.minutesSinceFood)
+    assertEquals(0L, migrated.characters.getValue(CAO_MINH_ID).physiology.minutesSinceWater)
+    assertEquals(0L, migrated.characters.getValue(CAO_MINH_ID).physiology.minutesAwake)
+    assertEquals(setOf("rope"), migrated.inventories.getValue(CAO_MINH_ID).items.keys)
+    assertEquals(CAO_MINH_HUYET_MA_KIEM_ID, migrated.equipment.getValue(CAO_MINH_ID).slots["weapon"])
+    assertEquals(CAO_MINH_HUYET_MA_CHIEN_KHAI_ID, migrated.equipment.getValue(CAO_MINH_ID).slots["armor"])
+    assertEquals(CAO_MINH_VAN_KHO_GIOI_CHI_ID, migrated.equipment.getValue(CAO_MINH_ID).slots["ring"])
   }
 }

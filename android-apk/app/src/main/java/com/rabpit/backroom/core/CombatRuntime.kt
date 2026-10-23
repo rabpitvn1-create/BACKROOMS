@@ -123,7 +123,7 @@ object CombatRuntime {
           opening = min(3, c.opening + 1),
           momentum = min(3, c.momentum + 1)
         )
-        log += "Kai đọc được nhịp tấn công của ${c.entityName}; sơ hở tăng lên."
+        log += "Cao Minh đọc được nhịp tấn công của ${c.entityName}; sơ hở tăng lên."
       }
       Intent.EVADE -> {
         val goodCounter = c.telegraph in setOf("LUNGE", "GRAB", "RUSH")
@@ -134,7 +134,7 @@ object CombatRuntime {
           escapeProgress = min(100, c.escapeProgress + if (goodCounter) 18 else 10),
           cover = if (c.cover == Cover.EXPOSED) Cover.PARTIAL else c.cover
         )
-        log += if (goodCounter) "Kai né đúng telegraph, cướp thế chủ động." else "Kai đổi góc và giảm áp lực trực diện."
+        log += if (goodCounter) "Cao Minh né đúng telegraph, cướp thế chủ động." else "Cao Minh đổi góc và giảm áp lực trực diện."
       }
       Intent.MOVE -> {
         val nextRange = when (c.range) {
@@ -148,16 +148,16 @@ object CombatRuntime {
           escapeProgress = min(100, c.escapeProgress + 15),
           momentum = min(3, c.momentum + 1)
         )
-        log += "Kai tái định vị, kéo giãn khoảng cách và tìm vật che chắn."
+        log += "Cao Minh tái định vị, kéo giãn khoảng cách và tìm vật che chắn."
       }
       Intent.GUARD -> {
         c = c.copy(cover = Cover.HARD, momentum = min(3, c.momentum + 1), opening = min(3, c.opening + 1))
-        log += "Kai khóa tư thế phòng thủ và ép ${c.entityName} phải lộ hướng tấn công."
+        log += "Cao Minh khóa tư thế phòng thủ và ép ${c.entityName} phải lộ hướng tấn công."
       }
       Intent.ESCAPE -> {
         val gain = 20 + c.momentum.coerceAtLeast(0) * 5 + when (c.cover) { Cover.HARD -> 15; Cover.PARTIAL -> 8; Cover.EXPOSED -> 0 }
         c = c.copy(escapeProgress = min(100, c.escapeProgress + gain), momentum = min(3, c.momentum + 1))
-        log += "Kai dồn ưu thế vào đường thoát (${c.escapeProgress}%)."
+        log += "Cao Minh dồn ưu thế vào đường thoát (${c.escapeProgress}%)."
       }
       Intent.ATTACK -> {
         val roll = roll(c, 100)
@@ -195,7 +195,7 @@ object CombatRuntime {
     if (c.escapeProgress >= 100) {
       val persisted = encode(state, c.copy(phase = Phase.RESOLVED))
       val cleared = clearCombatOnly(persisted)
-      return Resolution(cleared, true, log.joinToString(" ") + " Kai cắt được truy đuổi và thoát khỏi encounter.", escaped = true)
+      return Resolution(cleared, true, log.joinToString(" ") + " Cao Minh cắt được truy đuổi và thoát khỏi encounter.", escaped = true)
     }
 
     // Enemy response. READ/guard/evasion reduce expected incoming damage; attacking blindly is riskier.
@@ -207,9 +207,9 @@ object CombatRuntime {
       val damage = max(1, profile.attack + roll(c.copy(eventCounter = c.eventCounter + 47), 7) - when (c.cover) { Cover.HARD -> 8; Cover.PARTIAL -> 4; Cover.EXPOSED -> 0 })
       val hp = max(0, c.playerHp - damage)
       c = c.copy(playerHp = hp, momentum = max(-3, c.momentum - 1))
-      log += "${c.entityName} phản công: Kai -$damage HP (${c.playerHp}/${c.playerMaxHp})."
+      log += "${c.entityName} phản công: Cao Minh -$damage HP (${c.playerHp}/${c.playerMaxHp})."
     } else {
-      log += "${c.entityName} không xuyên được thế phòng thủ/di chuyển của Kai."
+      log += "${c.entityName} không xuyên được thế phòng thủ/di chuyển của Cao Minh."
     }
 
     c = c.copy(

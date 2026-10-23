@@ -45,7 +45,7 @@ class CombatFeedback1193aTest {
       CombatRuntime.active(state)!!.playerHp to CombatRuntime.resolve(state, "EXECUTE", "Đứng yên")
     }.first { (_, r) -> r.feedback.any { it.target == "actor" } }
     val damage = result.second.feedback.filter { it.target == "actor" }.sumOf { it.amount }
-    val finalHp = result.second.state.characters[KAI_ID]!!.vitalState.currentHp
+    val finalHp = result.second.state.characters[CAO_MINH_ID]!!.vitalState.currentHp
     assertTrue(damage > result.first - finalHp)
   }
 

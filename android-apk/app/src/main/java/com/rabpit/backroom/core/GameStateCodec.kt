@@ -15,7 +15,7 @@ object GameStateCodec {
     put("inventories", JSONObject().apply { state.inventories.forEach { (id, value) -> put(id, inventory(value)) } })
     put("equipment", JSONObject().apply { state.equipment.forEach { (id, value) -> put(id, equipment(value)) } })
     put("statuses", JSONObject().apply { state.statuses.forEach { (id, value) -> put(id, status(value)) } })
-    put("omnivault", omnivault(state.omnivault))
+    put("vanKhoGioiChi", vanKhoGioiChi(state.vanKhoGioiChi))
     put("turn", turn(state.turn))
     put("time", gameTime(state.time))
     put("world", stringMap(state.world))
@@ -40,21 +40,21 @@ object GameStateCodec {
     val statuses = root.optJSONObject("statuses").objectMap(::decodeStatus)
     val partyJson = root.optJSONObject("party") ?: JSONObject()
     val party = PartyState(
-      leaderId = partyJson.optString("leaderId", KAI_ID),
-      memberIds = partyJson.optJSONArray("memberIds").strings().ifEmpty { listOf(KAI_ID) },
+      leaderId = partyJson.optString("leaderId", CAO_MINH_ID),
+      memberIds = partyJson.optJSONArray("memberIds").strings().ifEmpty { listOf(CAO_MINH_ID) },
       maxMembers = partyJson.optInt("maxMembers", 4).coerceAtLeast(1)
     )
 
-    val kaiInventory = inventories[KAI_ID] ?: InventoryState(KAI_ID)
+    val caoMinhInventory = inventories[CAO_MINH_ID] ?: InventoryState(CAO_MINH_ID)
     val cleanedItems = linkedMapOf<String, ItemStack>()
-    val migratedSlots = LinkedHashMap(KaiStartingEquipment.slots)
-    kaiInventory.items.values.forEach { item ->
-      val slot = KaiStartingEquipment.slotFor(item.itemId, item.name)
-      if (slot != null) migratedSlots[slot] = KaiStartingEquipment.itemIdForSlot(slot) ?: item.itemId
+    val migratedSlots = LinkedHashMap(CaoMinhStartingEquipment.slots)
+    caoMinhInventory.items.values.forEach { item ->
+      val slot = CaoMinhStartingEquipment.slotFor(item.itemId, item.name)
+      if (slot != null) migratedSlots[slot] = CaoMinhStartingEquipment.itemIdForSlot(slot) ?: item.itemId
       else cleanedItems[item.itemId] = item
     }
-    inventories[KAI_ID] = kaiInventory.copy(items = cleanedItems)
-    equipment[KAI_ID] = EquipmentState(KAI_ID, migratedSlots)
+    inventories[CAO_MINH_ID] = caoMinhInventory.copy(items = cleanedItems)
+    equipment[CAO_MINH_ID] = EquipmentState(CAO_MINH_ID, migratedSlots)
 
     return GameState(
       characters = characters.ifEmpty { GameState.initial().characters },
@@ -62,7 +62,7 @@ object GameStateCodec {
       inventories = inventories.ifEmpty { GameState.initial().inventories },
       equipment = equipment.ifEmpty { GameState.initial().equipment },
       statuses = statuses,
-      omnivault = decodeOmnivault(root.optJSONObject("omnivault") ?: JSONObject()),
+      vanKhoGioiChi = decodeVanKhoGioiChi(root.optJSONObject("vanKhoGioiChi") ?: JSONObject()),
       turn = decodeTurn(root.optJSONObject("turn") ?: JSONObject()),
       time = decodeGameTime(root.optJSONObject("time")),
       world = root.optJSONObject("world").stringsMap(),
@@ -78,8 +78,8 @@ object GameStateCodec {
     val statuses = root.optJSONObject("statuses").objectMap(::decodeStatus)
     val partyJson = root.optJSONObject("party") ?: JSONObject()
     val party = PartyState(
-      leaderId = partyJson.optString("leaderId", KAI_ID),
-      memberIds = partyJson.optJSONArray("memberIds").strings().ifEmpty { listOf(KAI_ID) },
+      leaderId = partyJson.optString("leaderId", CAO_MINH_ID),
+      memberIds = partyJson.optJSONArray("memberIds").strings().ifEmpty { listOf(CAO_MINH_ID) },
       maxMembers = partyJson.optInt("maxMembers", 4).coerceAtLeast(1)
     )
     return GameState(
@@ -88,7 +88,7 @@ object GameStateCodec {
       inventories = inventories.ifEmpty { GameState.initial().inventories },
       equipment = equipment.ifEmpty { GameState.initial().equipment },
       statuses = statuses,
-      omnivault = decodeOmnivault(root.optJSONObject("omnivault") ?: JSONObject()),
+      vanKhoGioiChi = decodeVanKhoGioiChi(root.optJSONObject("vanKhoGioiChi") ?: JSONObject()),
       turn = decodeTurn(root.optJSONObject("turn") ?: JSONObject()),
       time = decodeGameTime(root.optJSONObject("time")),
       world = root.optJSONObject("world").stringsMap(),
@@ -187,7 +187,7 @@ object GameStateCodec {
     json.optBoolean("persistent"), json.optJSONObject("metadata").stringsMap()
   )
 
-  private fun omnivault(value: OmnivaultState) = JSONObject().apply {
+  private fun vanKhoGioiChi(value: VanKhoGioiChiState) = JSONObject().apply {
     put("ownerId", value.ownerId)
     put("storedItems", JSONObject().apply { value.storedItems.values.forEach { stack -> put(ItemContentRules.normalize(stack).itemId, item(stack)) } })
     put("scanSlots", JSONArray().apply { value.scanSlots.forEach { slot -> put(JSONObject().apply {
@@ -197,15 +197,15 @@ object GameStateCodec {
     put("restoreCooldownUntilEpochMs", JSONObject().apply { value.restoreCooldownUntilEpochMs.forEach { (id, time) -> put(id, time) } })
   }
 
-  private fun decodeOmnivault(json: JSONObject): OmnivaultState {
+  private fun decodeVanKhoGioiChi(json: JSONObject): VanKhoGioiChiState {
     val slots = json.optJSONArray("scanSlots").objects().map { slot ->
       val template = decodeItem(slot.optJSONObject("templateItem") ?: JSONObject())
       ScanSlot(slot.optInt("slot"), template.itemId, template, slot.optLong("scannedAtEpochMs"))
     }
     val cooldowns = mutableMapOf<String, Long>()
     json.optJSONObject("restoreCooldownUntilEpochMs")?.let { values -> values.keys().forEach { cooldowns[it] = values.optLong(it) } }
-    return OmnivaultState(
-      json.optString("ownerId", KAI_ID), itemMap(json.optJSONObject("storedItems")), slots,
+    return VanKhoGioiChiState(
+      json.optString("ownerId", CAO_MINH_ID), itemMap(json.optJSONObject("storedItems")), slots,
       json.optJSONArray("markedSourceIds").strings().toSet(), cooldowns
     )
   }
@@ -249,7 +249,7 @@ object LegacySaveMigration {
     val initial = GameState.initial()
     val turnNumber = root.optInt("turn", 1).coerceAtLeast(1)
     val migrated = linkedMapOf<String, ItemStack>()
-    val equipmentSlots = LinkedHashMap(KaiStartingEquipment.slots)
+    val equipmentSlots = LinkedHashMap(CaoMinhStartingEquipment.slots)
     root.optJSONArray("inventory").objects().mapIndexedNotNull { index, json ->
       val name = json.optString("name").trim()
       if (name.isEmpty()) null else {
@@ -257,9 +257,9 @@ object LegacySaveMigration {
         ItemContentRules.normalize(ItemStack(id, name, json.optInt("quantity", 1).coerceAtLeast(1), json.nullableString("state"), mapOf("migrated" to "legacy-v0")))
       }
     }.forEach { item ->
-      val slot = KaiStartingEquipment.slotFor(item.itemId, item.name)
+      val slot = CaoMinhStartingEquipment.slotFor(item.itemId, item.name)
       if (slot != null) {
-        equipmentSlots[slot] = KaiStartingEquipment.itemIdForSlot(slot) ?: item.itemId
+        equipmentSlots[slot] = CaoMinhStartingEquipment.itemIdForSlot(slot) ?: item.itemId
       } else {
         val old = migrated[item.itemId]
         migrated[item.itemId] = if (old != null && ItemContentRules.sameStackState(old, item)) old.copy(quantity = old.quantity + item.quantity) else item
@@ -273,12 +273,12 @@ object LegacySaveMigration {
       }
     }.toMap()
     val characters = initial.characters + partyCharacters
-    val partyIds = (listOf(KAI_ID) + partyCharacters.keys).distinct().take(4)
+    val partyIds = (listOf(CAO_MINH_ID) + partyCharacters.keys).distinct().take(4)
     return initial.copy(
       characters = characters,
       party = PartyState(memberIds = partyIds),
-      inventories = initial.inventories + (KAI_ID to InventoryState(KAI_ID, migrated)) + partyCharacters.keys.associateWith { InventoryState(it) },
-      equipment = initial.equipment + (KAI_ID to EquipmentState(KAI_ID, equipmentSlots)) + partyCharacters.keys.associateWith { EquipmentState(it) },
+      inventories = initial.inventories + (CAO_MINH_ID to InventoryState(CAO_MINH_ID, migrated)) + partyCharacters.keys.associateWith { InventoryState(it) },
+      equipment = initial.equipment + (CAO_MINH_ID to EquipmentState(CAO_MINH_ID, equipmentSlots)) + partyCharacters.keys.associateWith { EquipmentState(it) },
       turn = TurnState(currentTurnId = "TURN_$turnNumber"),
       world = mapOf("title" to root.optString("title"), "location" to root.optString("location")),
       metadata = mapOf("migratedFromVersion" to root.optInt("saveVersion", 0).toString(), "equipmentSeparated" to "true")

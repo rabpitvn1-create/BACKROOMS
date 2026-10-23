@@ -24,7 +24,7 @@ data class ItemCommand(
   enum class Operation { PICKUP, DROP, USE, TRANSFER, STORE, WITHDRAW, EQUIP, UNEQUIP }
 }
 
-data class OmnivaultCommand(
+data class VanKhoGioiChiCommand(
   override val commandId: String,
   override val turnId: String?,
   override val actorId: String,
@@ -86,13 +86,13 @@ data class QueryCommand(
   override val source: CommandSource,
   val type: Type
 ) : GameCommand {
-  enum class Type { CHARACTER, INVENTORY, PARTY, STATUS, OMNIVAULT }
+  enum class Type { CHARACTER, INVENTORY, PARTY, STATUS, VAN_KHO_GIOI_CHI }
 }
 
 data class ValidatedLegacyStateCommand(
   override val commandId: String,
   override val turnId: String?,
-  override val actorId: String = KAI_ID,
+  override val actorId: String = CAO_MINH_ID,
   override val targetId: String? = null,
   override val source: CommandSource,
   val location: String? = null,
