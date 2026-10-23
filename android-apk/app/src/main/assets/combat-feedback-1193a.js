@@ -28,7 +28,8 @@
     'Catherine.webp':[941,1672,2,113,941,1611],
     'Janet.webp':[941,1672,15,2,936,1652],
     'NguyenQuocNam.webp':[941,1672,33,30,941,1646],
-    'HuaTieuLan.webp':[1024,1536,11,63,1023,1490]
+    'HuaTieuLan.webp':[1024,1536,11,63,1023,1490],
+    'LucTram.webp':[941,1672,6,9,941,1648]
   };
   function fitCombatPortrait(image,snapshot){
     if(!image||!image.style||typeof image.style.setProperty!=='function')return;

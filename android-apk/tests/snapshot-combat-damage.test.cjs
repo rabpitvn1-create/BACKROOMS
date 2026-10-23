@@ -490,7 +490,7 @@ test('Entity counterattack keeps Cao Minh and avoids creating a rotating Entity 
 });
 
 test('turn focus uses projected Party avatar for actors outside the original hardcoded group',()=>{
- const members=[{id:'luc_tram',avatarRef:'avatars/luctram_avatar.png',presence:'ACTIVE'}];
+ const members=[{id:'luc_tram',avatarRef:'avatars/LucTram_avatar.webp',presence:'ACTIVE'}];
  const r=boot({combat:{active:true,encounterId:'enc',entityKey:'hound'},partyDetails:{members}});
  r.turn([],'enc:luc-tram','enc',{active:true,encounterId:'enc',entityKey:'hound',round:2},
   {partyDetails:{members}},{
@@ -499,14 +499,32 @@ test('turn focus uses projected Party avatar for actors outside the original har
   });
  assert.equal(r.box.dataset.combatFocus,'luc_tram');
  const portrait=r.box.children.find(n=>n.className==='combat-turn-avatar');
- assert.ok(portrait);assert.equal(portrait.src,'avatars/luctram_avatar.png');
+ assert.ok(portrait);assert.equal(portrait.src,'avatars/LucTram_avatar.webp');
  r.timers.find(t=>t.ms===1210).fn();
  assert.equal(r.box.dataset.combatFocus,'cao_minh');
  assert.equal(r.box.children.some(n=>n.className==='combat-turn-avatar'),false);
  const exit=r.box.children.find(n=>n.className.includes('combat-turn-exit'));
- assert.ok(exit);assert.equal(exit.src,'avatars/luctram_avatar.png');
+ assert.ok(exit);assert.equal(exit.src,'avatars/LucTram_avatar.webp');
 });
 
+
+test('Lục Trầm combat uses her full-body sprite while Hắc Hóa remains the separate Entity image',()=>{
+ const members=[{id:'luc_tram',avatar:'avatars/LucTram_avatar.webp',sprite:'LucTram.webp',presence:'ACTIVE'}];
+ const combat={active:true,encounterId:'enc',entityKey:'luc_tram_hac_hoa',round:2};
+ const r=boot({combat,partyDetails:{members}});
+ r.entity.src='entity/luc_tram_hac_hoa.webp';
+ r.turn([],'enc:luc-tram-sprite','enc',combat,{partyDetails:{members}},
+  {turns:[{kind:'actor',eventIndex:0,actorId:'luc_tram',actorName:'Lục Trầm',entityName:'Lục Trầm Hắc Hóa'}]});
+ const portrait=r.box.children.find(n=>n.className==='combat-turn-avatar');
+ assert.ok(portrait);assert.equal(portrait.src,'LucTram.webp');
+ assert.equal(r.box.dataset.combatFocus,'luc_tram');
+ assert.equal(r.entity.src,'entity/luc_tram_hac_hoa.webp');
+ r.box.textContent='';
+ r.scope.backroomSyncCombatPortrait();
+ const restored=r.box.children.filter(n=>n.className==='combat-turn-avatar');
+ assert.equal(restored.length,1);assert.equal(restored[0].src,'LucTram.webp');
+ assert.equal(r.entity.src,'entity/luc_tram_hac_hoa.webp');
+});
 
 test('entering combat without a damage packet keeps Cao Minh in Snapshot instead of hiding all portraits',()=>{
  const r=boot({combat:{active:true,encounterId:'new-enc',entityKey:'hound',round:1}});
@@ -539,7 +557,7 @@ test('Entity load callbacks never alter the Party focus',()=>{
 });
 
 test('Snapshot reconstruction reattaches active dynamic Party portrait without switching actor',()=>{
- const partyDetails={members:[{id:'luc_tram',avatarRef:'avatars/luctram_avatar.png',presence:'ACTIVE'}]};
+ const partyDetails={members:[{id:'luc_tram',avatarRef:'avatars/LucTram_avatar.webp',presence:'ACTIVE'}]};
  const r=boot({combat:{active:true,encounterId:'enc',entityKey:'hound',round:1},partyDetails});
  r.turn([],'enc:render','enc',{active:true,encounterId:'enc',entityKey:'hound',round:2},{partyDetails},
   {turns:[{kind:'actor',eventIndex:0,actorId:'luc_tram',actorName:'Lục Trầm',entityName:'Hound'}]});
@@ -549,7 +567,7 @@ test('Snapshot reconstruction reattaches active dynamic Party portrait without s
  r.scope.backroomSyncCombatPortrait();
  assert.equal(r.box.dataset.combatFocus,'luc_tram');
  assert.equal(r.box.children.filter(n=>n.className==='combat-turn-avatar').length,1);
- assert.equal(r.box.children.find(n=>n.className==='combat-turn-avatar').src,'avatars/luctram_avatar.png');
+ assert.equal(r.box.children.find(n=>n.className==='combat-turn-avatar').src,'avatars/LucTram_avatar.webp');
  const java=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/MainActivity.java'),'utf8');
  assert.match(java,/appendLuciaCombatOverlay\(\);if\(typeof window!=='undefined'&&typeof window\.backroomSyncCombatPortrait==='function'\)window\.backroomSyncCombatPortrait\(\)/);
  assert.match(java,/normalizeEntityVisual\(img\);img\.dataset\.entityStatus='ready';img\.style\.opacity='1'/);

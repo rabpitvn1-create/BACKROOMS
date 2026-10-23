@@ -10,7 +10,8 @@ const val LUC_TRAM_KIEM_KHAI_ID = "luc-tram:thien-co-bach-kim-kiem-khai"
 
 object LucTramCanon {
   const val NAME = "Lục Trầm"
-  const val AVATAR_REF = "avatars/luctram_avatar.png"
+  const val AVATAR_REF = "avatars/LucTram_avatar.webp"
+  const val SPRITE_REF = "LucTram.webp"
   const val FIRST_ELIGIBLE_LEVEL = 4
 
   fun character(existing: CharacterState? = null): CharacterState {
@@ -27,6 +28,7 @@ object LucTramCanon {
       inventoryId = LUC_TRAM_ID,
       equipmentId = LUC_TRAM_ID,
       metadata = base.metadata + mapOf(
+        "spriteRef" to SPRITE_REF,
         "species" to "human",
         "gender" to "female",
         "npcType" to "follower",
