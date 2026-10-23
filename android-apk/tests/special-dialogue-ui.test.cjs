@@ -812,3 +812,36 @@ test('R07 rivals share immortal cultivation register without comic cultural surp
       id+' already belongs to the immortal cultivation world');
   }
 });
+
+test('Diệp Minh self-address stays Bản Tiên across all authored routes without contaminating other speakers',()=>{
+  const x=env({state:{party:[],partyDetails:{members:[]},encounteredCharacters:[]}});
+  const rivals=x.ctx.BackroomSpecialEntityDialogue;
+  const diep=rivals.diep_minh;
+  for(const group of ['episodes','cross','repeat']){
+    const scenes=diep[group];
+    const self=scenes.flat().filter(line=>line.speaker==='diep_minh');
+    assert.ok(self.some(line=>line.text.includes('Bản Tiên')),group+' should contain the signature first-person');
+    for(const line of self){
+      // "người ta" is generic Vietnamese, not Diệp Minh speaking as "ta".
+      const text=line.text.replace(/người ta/giu,'người đời');
+      assert.doesNotMatch(text,/(?<![\p{L}])(?:ta|tôi|bổn tôn)(?![\p{L}])/iu,
+        group+': Diệp Minh must not revert to a different first-person');
+    }
+    assert.ok(scenes.flat().filter(line=>line.speaker==='cao_minh')
+      .every(line=>!line.text.includes('Bản Tiên')),
+      group+': Cao Minh must never adopt Diệp Minh self-address');
+  }
+  const allOther=[...rivals.luc_tram_hac_hoa.episodes,
+    ...rivals.luc_tram_hac_hoa.cross,...rivals.luc_tram_hac_hoa.repeat].flat();
+  assert.ok(allOther.every(line=>!line.text.includes('Bản Tiên')),
+    'Diệp Minh title must not migrate to Lục Trầm story');
+  const policy=fs.readFileSync(path.join(__dirname,
+    '../app/src/main/java/com/rabpit/backroom/core/knowledge/GmNarrativeVoicePolicy.kt'),'utf8');
+  assert.match(policy,/DIỆP MINH — AUTHOR VOICE OVERRIDE:.*Bản Tiên/);
+  const db=JSON.parse(fs.readFileSync(path.join(assets,'knowledge/canon_detail_db.json'),'utf8'));
+  const record=db.records.find(r=>r.id==='CHAR.DIEP_MINH.DETAIL.DIALOGUE.001.02');
+  assert.ok(record);
+  assert.match(record.text,/Bản Tiên/);
+  assert.match(record.text,/Nửa bước Chân Tiên/);
+  assert.equal(record.source.document,'https://github.com/rabpitvn1-create/BACKROOMS/pull/657');
+});
