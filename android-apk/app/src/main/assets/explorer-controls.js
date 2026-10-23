@@ -676,9 +676,17 @@
     // MainActivity wraps backroomTurn and renders Snapshot AFTER this callback.
     // Keep the guard alive until that wrapper returns; batches clear it explicitly.
     if(!batchBusy&&global.backroomFreezeSnapshot){
+      const resumeSnapshot=()=>{
+        if(batchBusy||!global.backroomFreezeSnapshot)return;
+        global.backroomFreezeSnapshot=false;
+        // A frozen Core commit can otherwise skip both the Follower overlay
+        // and the return from the temporary encounter camera until another turn.
+        if(typeof global.backroomRefreshSnapshotVisuals==='function')
+          global.backroomRefreshSnapshotVisuals();
+      };
       if(typeof global.requestAnimationFrame==='function')
-        global.requestAnimationFrame(()=>{global.backroomFreezeSnapshot=false;});
-      else global.backroomFreezeSnapshot=false;
+        global.requestAnimationFrame(resumeSnapshot);
+      else resumeSnapshot();
     }
   };
   global.backroomError=function(message){
