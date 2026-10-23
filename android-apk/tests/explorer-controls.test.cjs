@@ -66,6 +66,30 @@ test('post-combat GM pending is visible until completion or error, then Retry un
   assert.equal(r.log.querySelector('[data-scene-preparing="1"]'),null);
   assert.equal(r.player.hidden,false);
 });
+test('New Game opening offers four choices after scene preparation without opening Player Action',()=>{
+  const html=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/index.html'),'utf8');
+  const ctx={};
+  vm.runInNewContext(html.slice(html.indexOf('const initial={'),html.indexOf('const byId='))
+    +'\nthis.opening=initial;',ctx);
+  const r=runtime({nodeId:'0',generationNeeded:true});
+  r.ctx.state.log=JSON.parse(JSON.stringify(ctx.opening.log));
+  r.ctx.render();
+  assert.equal(r.log.querySelector('.gm-suggestion-list'),null,'wait for Core to prepare the scene');
+  r.ctx.backroomTurn(JSON.stringify({...r.ctx.state,scene:{...r.ctx.state.scene,generationNeeded:false}}));
+  r.ctx.render();
+  const choices=r.log.querySelector('.gm-suggestion-list');
+  assert.ok(choices,'opening text must be scoped to the initial Core scene');
+  assert.equal(choices.children.length,4);
+  assert.equal(choices.children.every(b=>!b.disabled),true);
+  assert.ok(!r.actionDialog.open);
+  choices.children[0].onclick();
+  assert.deepEqual(r.calls.at(-1),['gm-suggestion',1]);
+  assert.equal(r.calls.filter(c=>c[0]==='player').length,0);
+  assert.equal(choices.children.every(b=>b.disabled),true);
+  r.ctx.backroomTurn(JSON.stringify({...r.ctx.state,scene:{...r.ctx.state.scene,nodeId:'1'}}));
+  r.ctx.render();
+  assert.equal(r.log.querySelector('.gm-suggestion-list'),null,'opening choices cannot follow the player to another Level');
+});
 test('four GM hints are selectable INSIDE GM log and each tap queues a single Core action',()=>{
   const r=runtime({nodeId:'0'});
   const narration='Tường rung lên.\nGỢI Ý HÀNH ĐỘNG:\n'

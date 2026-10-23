@@ -178,12 +178,24 @@ body.industrial-ui{
   background-image:linear-gradient(135deg,#c59a51dd,#8b642ecc 65%,#67451fe6),var(--industrial-crt);
   background-size:auto,512px 512px
 }
-.industrial-ui #prologueReader,.industrial-ui #explorerPlayerAction{
+.industrial-ui #explorerPlayerAction{
   border:12px solid transparent;border-image:var(--industrial-frame) 80 / 12px / 0 repeat;
   border-radius:10px!important;background:#10150f var(--industrial-crt) center/512px 512px;
   color:#eeddb5;box-shadow:0 8px 30px #000b;scrollbar-color:#75674a #101512
 }
-.industrial-ui #prologueReader{overflow:hidden}
+/* Match the GM panel: paint the rails over the CRT surface, rather than
+   keeping the reader's separate rounded dialog border. */
+.industrial-ui #prologueReader{
+  isolation:isolate;border:0;border-radius:0!important;padding:12px;overflow:hidden;
+  background-color:#101611;background-image:linear-gradient(#09100a55,#09100a55),var(--industrial-crt);
+  background-size:auto,512px 512px;color:#f0dfbb;box-shadow:0 8px 30px #000b;
+  scrollbar-color:#75674a #101512
+}
+.industrial-ui #prologueReader::after{
+  content:'';position:absolute;inset:0;z-index:3;
+  border:12px solid transparent;border-image:var(--industrial-frame) 80 / 12px / 0 repeat;
+  pointer-events:none
+}
 .industrial-ui #prologueReader .prologue-reader-head,
 .industrial-ui #explorerPlayerAction .explorer-dialog-header{
   flex:none;min-width:0;padding:10px 12px;margin:0;border-bottom:1px solid #726343;
