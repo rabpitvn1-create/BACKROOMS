@@ -52,7 +52,7 @@ function env(options={}){
   return {ctx,dialog:document.dialog,parts:document.dialog.nodes,classes};
 }
 function finishModal(x) {
-  for(let step=0;step<12&&!x.dialog.hidden;step++){
+  for(let step=0;step<96&&!x.dialog.hidden;step++){
     const buttons=x.parts['#specialDialogueActions'].children;
     assert.ok(buttons.length,'dialogue should remain navigable');
     buttons.at(-1).click();
@@ -79,7 +79,7 @@ test('normal Follower talks offline using the same Party portrait and never invo
   // Core-confirmed Lucia already in Party but without her authored first-contact
   // story must receive that story before ambient dialogue can be opened.
   assert.equal(x.dialog.hidden,false);
-  assert.match(x.parts['#specialDialogueText'].textContent,/Tôi chưa biết anh là ai/);
+  assert.match(x.parts['#specialDialogueText'].textContent,/Đứng lại! Tiến thêm một bước/);
   finishModal(x);
   assert.equal(x.ctx.SpecialDialogue.openCharacter('lucia','talk'),true);
   assert.equal(x.dialog.hidden,false);
@@ -152,7 +152,7 @@ test('R07 encounters have consecutive authored beats, repeat safely and never sp
   finishModal(x);
   assert.equal(x.ctx.state.specialDialogueProgress.entityBeats.diep_minh,1);
   encounter(x,'diep_minh','r07-diep-2');
-  assert.match(x.parts['#specialDialogueText'].textContent,/ở chốn này bao lâu/);
+  assert.match(x.parts['#specialDialogueText'].textContent,/sa vào chốn này đã bao lâu/);
   finishModal(x);
   assert.equal(x.ctx.state.specialDialogueProgress.entityBeats.diep_minh,2);
   for(let n=3;n<=5;n++){encounter(x,'diep_minh','r07-diep-'+n);finishModal(x);}
@@ -187,7 +187,7 @@ test('Lục Trầm is autonomous; both confirmed adversaries unlock one cross-en
   finishModal(x);
   assert.equal(x.ctx.state.specialDialogueProgress.entityCross.luc_tram_hac_hoa,1);
   encounter(x,'luc_tram_hac_hoa','r07-tram-after-cross');
-  assert.match(x.parts['#specialDialogueText'].textContent,/Tại sao ngươi luôn gọi ta/);
+  assert.match(x.parts['#specialDialogueText'].textContent,/Vì sao ngươi cứ gọi ta/);
   finishModal(x);
 });
 test('reload resumes the exact persisted encounter route and line before consuming progress',()=>{
@@ -223,7 +223,7 @@ test('cross-route appears early after both actual encounters and does not skip i
   encounter(x,'luc_tram_hac_hoa','r07-early-l1');
   finishModal(x);
   encounter(x,'diep_minh','r07-early-d2');
-  assert.match(x.parts['#specialDialogueText'].textContent,/không phải người duy nhất/);
+  assert.match(x.parts['#specialDialogueText'].textContent,/ngươi là người duy nhất/);
   assert.equal(x.ctx.state.specialDialogueProgress.entityBeats.diep_minh,1);
   finishModal(x);
   assert.equal(x.ctx.state.specialDialogueProgress.entityCross.diep_minh,1);
@@ -254,7 +254,7 @@ test('R07 late encounters add six episodes and six varied repeat scenes per anta
     }
   }
   encounter(x,'diep_minh','r07-late-d6');
-  assert.match(x.parts['#specialDialogueText'].textContent,/Ngươi có bao giờ nghĩ/);
+  assert.match(x.parts['#specialDialogueText'].textContent,/Ngươi có bao giờ tự hỏi/);
   finishModal(x);
   assert.equal(x.ctx.state.specialDialogueProgress.entityBeats.diep_minh,6);
   for(let n=7;n<=11;n++){encounter(x,'diep_minh','r07-late-d'+n);finishModal(x);}
@@ -277,7 +277,7 @@ test('three cross-interludes are gated by confirmed history on both storylines',
   }
   const insufficient=seeded(3,2,1);
   encounter(insufficient,'diep_minh','r07-cross-gate-insufficient');
-  assert.match(insufficient.parts['#specialDialogueText'].textContent,/Một tông môn không nhất thiết/);
+  assert.match(insufficient.parts['#specialDialogueText'].textContent,/Một tông môn thật sự/);
   finishModal(insufficient);
   assert.equal(insufficient.ctx.state.specialDialogueProgress.entityCross.diep_minh,1);
   const second=seeded(3,3,1);
@@ -286,7 +286,7 @@ test('three cross-interludes are gated by confirmed history on both storylines',
   finishModal(second);
   assert.equal(second.ctx.state.specialDialogueProgress.entityCross.diep_minh,2);
   encounter(second,'diep_minh','r07-resume-episode');
-  assert.match(second.parts['#specialDialogueText'].textContent,/Một tông môn không nhất thiết/);
+  assert.match(second.parts['#specialDialogueText'].textContent,/Một tông môn thật sự/);
   finishModal(second);
   const third=seeded(6,6,2);
   encounter(third,'diep_minh','r07-cross-three');
@@ -309,7 +309,7 @@ test('Lục Trầm late encounters do not claim she remembers Cao Minh, is recru
     specialDialogueProgress:{introduced:{},chapters:{},shownEncounters:{},pending:null,lastRollTurn:1,
       entityBeats:{luc_tram_hac_hoa:10},entityCross:{},entityRepeats:{}}}});
   encounter(x,'luc_tram_hac_hoa','r07-late-l11');
-  assert.match(x.parts['#specialDialogueText'].textContent,/Nếu những gì ngươi nói là thật/);
+  assert.match(x.parts['#specialDialogueText'].textContent,/Nếu những gì ngươi nói đều là thật/);
   finishModal(x);
   assert.equal(x.ctx.state.specialDialogueProgress.entityBeats.luc_tram_hac_hoa,11);
   assert.equal(x.ctx.state.party.length,0);
@@ -332,12 +332,13 @@ test('Lucia Lục Core-confirmed first encounter opens authored popup and never 
     avatar:'avatars/lucia_avatar.jpg',present:true,inParty:false,joinEligible:true}];
   x.ctx.backroomTurn(JSON.stringify(next));
   assert.equal(x.dialog.hidden,false,'committed first meeting must open popup automatically');
-  assert.match(x.parts['#specialDialogueText'].textContent,/Tôi chưa biết anh là ai/);
-  assert.equal(x.parts['#specialDialogueProgress'].textContent,'1 / 10');
+  assert.match(x.parts['#specialDialogueText'].textContent,/Đứng lại! Tiến thêm một bước/);
+  assert.equal(x.parts['#specialDialogueProgress'].textContent,'1 / 13');
   assert.equal(x.parts['#specialDialogueAvatar'].children[0].src,'avatars/lucia_avatar.jpg');
   assert.equal(x.ctx.state.specialDialogueProgress.introduced.lucia,undefined);
   assert.equal(x.ctx.invited,undefined);
-  for(let i=0;i<9;i++)x.parts['#specialDialogueActions'].children[0].click();
+  for(let i=0;i<x.ctx.BackroomSpecialDialogueData.lucia.intro.length-1;i++)
+    x.parts['#specialDialogueActions'].children[0].click();
   const names=x.parts['#specialDialogueActions'].children.map(b=>b.textContent);
   assert.ok(names.includes('Mời vào Party'));
   assert.equal(x.ctx.invited,undefined,'invitation remains the player choice');
@@ -357,7 +358,7 @@ test('Lucia first meeting is recovered after app launch, old generic greeting an
     specialDialogueProgress:{introduced:{lucia:true},chapters:{},
       shownEncounters:{},pending:null,lastRollTurn:4}}});
   assert.equal(old.dialog.hidden,false,'old generic greeting must not silently consume authored story');
-  assert.match(old.parts['#specialDialogueText'].textContent,/Tôi chưa biết anh là ai/);
+  assert.match(old.parts['#specialDialogueText'].textContent,/Đứng lại! Tiến thêm một bước/);
   finishModal(old);
   const restored=JSON.parse(JSON.stringify(old.ctx.state));
   const reloaded=env({state:restored});
@@ -394,8 +395,8 @@ test('Lucia authored intro resumes at the same line on reload',()=>{
   assert.equal(saved.specialDialogueProgress.pending.index,2);
   const y=env({state:saved});
   assert.equal(y.dialog.hidden,false);
-  assert.equal(y.parts['#specialDialogueProgress'].textContent,'3 / 10');
-  assert.match(y.parts['#specialDialogueText'].textContent,/Bổn Tôn.*đơn vị nào/);
+  assert.equal(y.parts['#specialDialogueProgress'].textContent,'3 / 13');
+  assert.match(y.parts['#specialDialogueText'].textContent,/Khẩu súng này/);
   finishModal(y);
   assert.equal(y.ctx.state.specialDialogueProgress.introRevisions.lucia,'lucia-intro-r01');
 });
@@ -408,9 +409,10 @@ test('authored encounters have distinct natural voices without a dump of author-
   const lucia=speech(people.lucia.intro);
   const diep=speech(foes.diep_minh.episodes[0]);
   const tram=speech(foes.luc_tram_hac_hoa.episodes[0]);
-  assert.match(lucia,/Đồng bằng sông Cửu Long/);
-  assert.match(lucia,/Hứa Thuý Mai/);
-  assert.match(lucia,/Tôi chưa biết anh là ai/);
+  const luciaBackstory=speech(people.lucia.story.flat())+' '+people.lucia.past.join(' ');
+  assert.match(luciaBackstory,/Đồng bằng sông Cửu Long/);
+  assert.match(luciaBackstory,/Hứa Thuý Mai/);
+  assert.match(lucia,/Đứng lại! Tiến thêm một bước/);
   assert.doesNotMatch(lucia,/Vạn Giới|Lôi Thiên Vực|ma nguyên|Lục Trầm/);
   assert.match(diep,/Cao gia/);
   assert.match(diep,/bỏ sót ngươi/);
@@ -447,10 +449,12 @@ test('Catherine, Janet and Nguyễn Quốc Nam each receive their authored first
     assert.equal(x.dialog.hidden,false,id+' popup must open after Core confirmation');
     assert.match(x.parts['#specialDialogueText'].textContent,opening);
     assert.equal(x.parts['#specialDialogueAvatar'].children[0].src,avatar);
-    assert.equal(x.parts['#specialDialogueProgress'].textContent,'1 / 9');
+    assert.equal(x.parts['#specialDialogueProgress'].textContent,
+      '1 / '+x.ctx.BackroomSpecialDialogueData[id].intro.length);
     assert.equal(x.ctx.invited,undefined);
     assert.equal(x.ctx.state.party.length,0);
-    for(let i=0;i<8;i++)x.parts['#specialDialogueActions'].children[0].click();
+    for(let i=0;i<x.ctx.BackroomSpecialDialogueData[id].intro.length-1;i++)
+      x.parts['#specialDialogueActions'].children[0].click();
     const actions=x.parts['#specialDialogueActions'].children.map(b=>b.textContent);
     assert.ok(actions.includes('Mời vào Party'),id+' may be invited but not automatically recruited');
     x.parts['#specialDialogueActions'].children.at(-1).click();
@@ -513,6 +517,20 @@ test('three new Follower narratives remain hidden until Core presence and expose
 });
 
 
+test('expanded companion dialogue retains canonical chapter gates and longer arcs',()=>{
+  const data=env({state:{party:[],partyDetails:{members:[]},encounteredCharacters:[]}})
+    .ctx.BackroomSpecialDialogueData;
+  const expected={catherine:[7,97],janet:[7,92],nguyen_quoc_nam:[7,95],
+    lucia:[6,80],hua_tieu_lan:[7,90],luc_tram:[4,60],trac_lam:[5,65]};
+  for(const [id,[chapters,lines]] of Object.entries(expected)){
+    const d=data[id];
+    assert.equal(d.story.length,chapters,id+' must keep established progress gates');
+    assert.equal(d.story.reduce((sum,scene)=>sum+scene.length,0),lines,
+      id+' must preserve the complete expanded dialogue');
+    assert.equal(d.past.length,chapters+1,id+' must unlock one memory per finished chapter');
+  }
+});
+
 test('all ten Follower biographies carry authored private memories and multi-turn past arcs',()=>{
   const env0=env({state:{party:[],partyDetails:{members:[]},encounteredCharacters:[]}});
   const catalog=env0.ctx.BackroomSpecialDialogueData;
@@ -525,7 +543,7 @@ test('all ten Follower biographies carry authored private memories and multi-tur
     assert.ok(p.story.length>=4,id+' has multiple recalled scenes');
     assert.equal(p.past.length,p.story.length+1,id+' unlocks one recollection per finished chapter');
     for(const scene of p.story){
-      assert.ok(scene.length>=3&&scene.length<=6,id+' has dialogue, not a lecture');
+      assert.ok(scene.length>=3&&scene.length<=32,id+' has bounded, navigable dialogue');
       assert.ok(scene.some(line=>line.speaker==='cao_minh'),id+' talks with Cao Minh');
       assert.ok(scene.every(line=>[id,'cao_minh'].includes(line.speaker)&&line.text.trim()),id+' legitimate speakers');
     }
@@ -712,14 +730,14 @@ test("Janet's edited biography remains conversational, coherent and Canon-ground
     .ctx.BackroomSpecialDialogueData.janet;
   const intro=catalog.intro.map(x=>x.text).join(' ');
   const scenes=catalog.story.map(lines=>lines.map(x=>x.text).join(' '));
-  assert.equal(catalog.intro.length,9);
+  assert.equal(catalog.intro.length,10);
   assert.equal(catalog.story.length,7);
   assert.equal(catalog.past.length,8,'one recollection per completed chapter');
   assert.match(intro,/Mia/);
   assert.match(intro,/Cao Minh/);
   assert.doesNotMatch(intro,/Catherine|thần lực|dịch chuyển|cổng thoát/);
   for(const lines of catalog.story){
-    assert.equal(lines.length,5,'Janet shares a conversation rather than narrating a lecture');
+    assert.ok(lines.length>=5&&lines.length<=32,'Janet has an expanded, navigable conversation');
     assert.ok(lines.some(line=>line.speaker==='cao_minh'));
     assert.ok(lines.every(line=>['janet','cao_minh'].includes(line.speaker)));
   }
@@ -737,11 +755,11 @@ test('Cao Minh keeps Bổn Tôn/ta register with every Follower; only other-worl
   const rivals=x.ctx.BackroomSpecialEntityDialogue;
   assert.equal(Object.keys(followers).length,10);
   const reactions={
-    catherine:/diễn kịch|diễn viên/,
-    janet:/hiệp sĩ thời trung cổ/,
-    lucia:/đơn vị nào/,
+    catherine:/diễn.*kịch|diễn viên/,
+    janet:/thời trung cổ/,
+    lucia:/nữ nhân mang kiếm|anh điên à/i,
     nguyen_quoc_nam:/từ thời khác/,
-    trac_lam:/mật danh hay một vai diễn/,
+    trac_lam:/mật danh.*vai diễn/,
     iris:/ông vua lưu lạc/,
     syvial:/cổ thư/,
     'an-nhien':/tên chú/,
@@ -772,7 +790,7 @@ test('Cao Minh keeps Bổn Tôn/ta register with every Follower; only other-worl
 test('modern Follower speech keeps its own register; An Nhiên is addressed as a child',()=>{
   const c=env({state:{party:[],partyDetails:{members:[]},encounteredCharacters:[]}}).ctx.BackroomSpecialDialogueData;
   const text=id=>c[id].intro.map(line=>line.text).join(' ');
-  assert.match(text('trac_lam'),/Nếu hợp tác, chúng ta thống nhất tín hiệu trước/);
+  assert.match(text('trac_lam'),/Nếu đi cùng đường, chúng ta thống nhất tín hiệu trước/);
   assert.match(text('syvial'),/Giờ đi tiếp chứ\?/);
   const childLines=c['an-nhien'].story.flat().filter(line=>line.speaker==='cao_minh');
   assert.ok(childLines.length>0);
