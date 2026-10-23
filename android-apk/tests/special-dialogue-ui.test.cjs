@@ -667,3 +667,25 @@ test('Follower intro recomposes snapshot on open and finish without another Core
     'closing first-contact must repaint even while Core keeps Janet physically present');
   assert.equal(x.ctx.state.specialDialogueProgress.introduced.janet,true);
 });
+
+
+test('later Follower story chapters repaint the two-shot on open and restore it on finish',()=>{
+  const follower={id:'janet',name:'Janet the Lady',presence:'ACTIVE',
+    avatar:'avatars/Janet_avatar.webp'};
+  const x=env({state:{party:[follower],partyDetails:{members:[follower]},
+    encounteredCharacters:[{...follower,present:false,inParty:true}],
+    specialDialogueProgress:{introduced:{janet:true},introRevisions:{janet:'janet-intro-r01'},
+      chapters:{janet:0},shownEncounters:{},pending:null,lastRollTurn:4}}});
+  assert.equal(x.dialog.hidden,true);
+  const events=[];
+  x.ctx.backroomRefreshSnapshotVisuals=()=>events.push(
+    x.ctx.state.specialDialogueProgress.pending?.kind||'exploration');
+  const next=JSON.parse(JSON.stringify(x.ctx.state));
+  next.turn=5;next.log=[{role:'player',text:'Di chuyển và kiểm tra hành lang'}];
+  x.ctx.backroomTurn(JSON.stringify(next));
+  assert.equal(x.dialog.hidden,false);
+  assert.equal(x.ctx.state.specialDialogueProgress.pending.kind,'story');
+  finishModal(x);
+  assert.deepEqual(events,['story','exploration']);
+  assert.equal(x.ctx.state.specialDialogueProgress.chapters.janet,1);
+});
