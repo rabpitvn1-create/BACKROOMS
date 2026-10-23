@@ -28,16 +28,14 @@ class PartyDefeatTest {
   }
 
   @Test fun lethalEnemyRoundEndsCombatAndDeathPersistsThroughCurrentSaveRoundTrip() {
-    var state = CombatRuntime.start(party(1, 1), "diep_minh")
-    var ending = ""
-    for (i in 0 until 60) {
-      val result = CombatRuntime.resolve(state, "SEARCH", "quan sát")
-      state = result.state
-      if (PartyCombatHealth.isDefeated(state)) {
-        ending = result.completionNarrative
-        break
-      }
-    }
+    val started = CombatRuntime.start(party(1, 1), "diep_minh")
+    // Turn five is a guaranteed all-party hit. Waiting from turn one lets
+    // Cao Minh's passive outheal the boss pulse, so it cannot prove lethality.
+    val lethalTurn = started.copy(metadata = started.metadata + ("combat.eventCounter" to "4"))
+    val result = CombatRuntime.resolve(lethalTurn, "SEARCH", "quan sát")
+    val state = result.state
+    val ending = result.completionNarrative
+    assertTrue(result.reply.contains("Devils And Gold"))
     assertTrue("Lethal damage must finish the encounter", PartyCombatHealth.isDefeated(state))
     assertNull(CombatRuntime.active(state))
     assertNull(CombatRuntime.pending(state))

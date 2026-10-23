@@ -545,7 +545,13 @@ class CombatRuntimeTest {
       }
       assertTrue("$key two independent procs should overlap", both > 4)
     }
-    val initial = CombatRuntime.start(GameState.initial(), "926")
+    // This checks surviving status durations, not death cleanup. Give the
+    // defender enough HP to survive both ticks and the enemy's double proc.
+    val base = GameState.initial()
+    val defender = base.characters.getValue(CAO_MINH_ID)
+    val durable = base.copy(characters = base.characters + (CAO_MINH_ID to
+      defender.copy(statProfile = defender.statProfile.copy(vit = 50))))
+    val initial = CombatRuntime.start(CharacterStatEngine.setCurrentHp(durable, CAO_MINH_ID, Int.MAX_VALUE), "926")
     val state = initial.copy(metadata = initial.metadata + mapOf(
       "combat.roamingBleed.$CAO_MINH_ID" to "2",
       "combat.roamingPoison.$CAO_MINH_ID" to "2",
