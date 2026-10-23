@@ -401,6 +401,30 @@ test('Lucia and Cao Minh exchange follows the current voice and knowledge bounda
   assert.doesNotMatch(girl,/Lục Trầm|Vạn Giới|Lôi Thiên Vực/);
 });
 
+test('Cao Minh cannot identify modern firearms before another character explains them',()=>{
+  const catalog=env({state:{party:[],partyDetails:{members:[]},encounteredCharacters:[]}})
+    .ctx.BackroomSpecialDialogueData;
+  const sequences={
+    lucia:[catalog.lucia.intro],
+    catherine:[catalog.catherine.intro,...catalog.catherine.story.slice(0,4)],
+    nguyen_quoc_nam:[catalog.nguyen_quoc_nam.intro],
+    iris:[catalog.iris.intro]
+  };
+  for(const [id,scenes] of Object.entries(sequences)){
+    let weaponExplained=false;
+    for(const scene of scenes){
+      for(const line of scene){
+        if(line.speaker===id&&/súng/i.test(line.text))weaponExplained=true;
+        if(line.speaker==='cao_minh'&&!weaponExplained){
+          assert.doesNotMatch(line.text,/súng|nòng|đạn|bắn|bóp cò|Ivory|Ebony|Vesper Nocturne/i,
+            id+': Cao Minh must not know gun terminology or a weapon name before being told');
+        }
+      }
+    }
+    assert.equal(weaponExplained,true,id+' must identify the unfamiliar weapon');
+  }
+});
+
 test('Lucia authored intro resumes at the same line on reload',()=>{
   const x=env({state:{party:[],partyDetails:{members:[]},
     encounteredCharacters:[{id:'lucia',name:'Lucia "Lục"',present:true,inParty:false}]}});
