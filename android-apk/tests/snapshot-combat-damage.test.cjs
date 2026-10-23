@@ -887,9 +887,9 @@ test('victory continuation runs once after the actual final shatter and never on
  assert.equal(escaped.length,0);
 });
 
-test('exploration party keeps Cao Minh at native scale and lays out followers away from the hero anchor',()=>{
+test('Follower story encounter temporarily shows both characters and restores Cao Minh after it ends',()=>{
   const java=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/MainActivity.java'),'utf8');
-  const line=java.split('\n').find(l=>l.includes('/* SNAPSHOT_PARTY_LAYOUT_R02 */'));
+  const line=java.split('\n').find(l=>l.includes('/* SNAPSHOT_PARTY_LAYOUT_R03 */'));
   assert.ok(line);
   const script=JSON.parse(line.trim().replace(/ \+$/,''));
   for(let count=1;count<=7;count++){
@@ -900,23 +900,46 @@ test('exploration party keeps Cao Minh at native scale and lays out followers aw
     let baseCalls=0;
     const scope={document:{getElementById(){return box}},state:{combat:{active:false}},
       renderSnapshot(){baseCalls++}};scope.window=scope;
-    vm.runInNewContext(script,scope);scope.renderSnapshot();
+    vm.runInNewContext(script,scope);
+    scope.renderSnapshot();
     assert.equal(baseCalls,1);assert.equal(box.dataset.partyLayout,'exploration');
     if(count>1){
       assert.equal(hero.style.left,'auto');
       assert.equal(hero.style.right,'0');
       assert.equal(hero.style.height,'97%');
       assert.equal(hero.style.width,'auto');
-      assert.equal(hero.style.maxWidth,'100%','never shrink the wide Cao Minh artwork');
+      assert.equal(hero.style.maxWidth,'100%');
       followers.forEach((actor,index)=>{
         const left=parseFloat(actor.style.left),maxWidth=parseFloat(actor.style.maxWidth);
-        assert.ok(left>=3&&left+maxWidth<=67.00001,'companions stay within left lanes');
+        assert.ok(left>=3&&left+maxWidth<=67.00001);
         if(index)assert.ok(left>=parseFloat(followers[index-1].style.left)+
-          parseFloat(followers[index-1].style.maxWidth)-.00001,'follower lanes do not overlap');
+          parseFloat(followers[index-1].style.maxWidth)-.00001);
         assert.equal(actor.style.objectFit,'contain');
         assert.equal(actor.style.width,'auto');
       });
-    }else assert.deepEqual(hero.style,{},'solo player keeps original render styles');
+      scope.state.encounteredCharacters=[{id:'janet',present:true}];
+      scope.state.specialDialogueProgress={pending:{id:'janet',kind:'intro'}};
+      scope.backroomRefreshSnapshotPartyLayout();
+      assert.equal(box.dataset.partyLayout,'encounter');
+      assert.equal(hero.style.left,'6%','Cao Minh may move left during an active Follower encounter');
+      assert.equal(hero.style.height,'84%');
+      assert.equal(hero.style.width,(88/count)+'%');
+      assert.equal(followers[0].style.right,'auto');
+      // Ending the popup must restore the previous exploration layout without
+      // requiring another Core turn, even while Core keeps Janet present.
+      scope.state.specialDialogueProgress.pending=null;
+      scope.backroomRefreshSnapshotPartyLayout();
+      assert.equal(box.dataset.partyLayout,'exploration');
+      assert.equal(hero.style.left,'auto');
+      assert.equal(hero.style.right,'0');
+      assert.equal(hero.style.height,'97%');
+      assert.equal(hero.style.width,'auto');
+      // Entity encounters do not use the temporary Follower layout.
+      scope.state.pendingEncounter={entityKey:'diep_minh',encounterId:'e1'};
+      scope.backroomRefreshSnapshotPartyLayout();
+      assert.equal(box.dataset.partyLayout,'exploration');
+      assert.equal(hero.style.right,'0');
+    }else assert.deepEqual(hero.style,{},'solo player keeps the original snapshot styling');
     actors.forEach(actor=>actor.style={});scope.state.combat.active=true;scope.renderSnapshot();
     assert.equal(box.dataset.partyLayout,'combat');actors.forEach(actor=>assert.deepEqual(actor.style,{}));
     scope.backroomFreezeSnapshot=true;scope.renderSnapshot();assert.equal(baseCalls,2);
