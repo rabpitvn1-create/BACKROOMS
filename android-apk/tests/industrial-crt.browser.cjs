@@ -53,6 +53,7 @@ async function boot(viewport,theme){
   await page.goto(origin+'/index.html');
   await page.evaluate(nativeScript);
   await page.waitForFunction(()=>{const b=document.querySelector('.snapshot-bg');return b&&b.complete&&b.naturalWidth>0});
+  await page.waitForFunction(()=>Array.from(document.querySelectorAll('#snapshot img')).every(img=>img.complete&&img.naturalWidth>0));
   await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
   return {page,errors};
 }
@@ -88,9 +89,23 @@ for(const viewport of [{width:320,height:640},{width:390,height:844},{width:1280
       const expected=await geometry(baseline.page);
       assert.equal(expected.height,300);
       assert.deepEqual(await geometry(page),expected);
-      const bezel=await page.evaluate(()=>{const s=getComputedStyle(document.getElementById('snapshot'),'::after');return {image:s.borderImageSource,pointer:s.pointerEvents}});
+      async function scenePixels(p){
+        const box=await p.locator('#snapshot').boundingBox();
+        // Exclude the original 7px rounded corners, but retain the inner edge
+        // that a 12px decorative overlay would cover even with equal geometry.
+        return p.screenshot({clip:{x:box.x+8,y:box.y+8,width:box.width-16,height:box.height-16}});
+      }
+      async function imageGeometry(p){return p.locator('#snapshot img').evaluateAll(images=>images.map(img=>{
+        const r=img.getBoundingClientRect(),s=getComputedStyle(img);
+        return {className:img.className,x:r.x,y:r.y,width:r.width,height:r.height,objectFit:s.objectFit,transform:s.transform};
+      }));}
+      assert.deepEqual(await imageGeometry(page),await imageGeometry(baseline.page));
+      const referenceScene=await scenePixels(baseline.page);
+      assert.ok((await scenePixels(page)).equals(referenceScene),'theme must preserve visible scene pixels, not only the outer box');
+      const bezel=await page.evaluate(()=>{const box=document.getElementById('snapshot'),s=getComputedStyle(box);return {image:s.borderImageSource,width:s.borderImageWidth,overlay:getComputedStyle(box,'::after').content}});
       assert.match(bezel.image,/black-observation-monitor-v1.webp/);
-      assert.equal(bezel.pointer,'none');
+      assert.equal(bezel.width,'1');
+      assert.equal(bezel.overlay,'none');
       const bar=await page.locator('#playerActionBar').boundingBox();
       assert.ok(bar.y>=0&&bar.y+bar.height<=viewport.height+1,'action bar stays in viewport');
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
@@ -114,8 +129,10 @@ for(const viewport of [{width:320,height:640},{width:390,height:844},{width:1280
       assert.equal(await page.locator('#playerActionModal').isVisible(),true);
       await page.locator('#playerActionCancel').click();
       await page.evaluate(()=>{render();render()});
+      await page.waitForFunction(()=>Array.from(document.querySelectorAll('#snapshot img')).every(img=>img.complete&&img.naturalWidth>0));
       assert.equal(await page.locator('#snapshot .snapshot-bg').count(),1);
       assert.deepEqual(await geometry(page),expected);
+      assert.ok((await scenePixels(page)).equals(referenceScene),'native redraw must retain the same visible scene');
       if(process.env.UI_QA_SCREENSHOTS)await page.screenshot({path:path.join(process.env.UI_QA_SCREENSHOTS,`game-${viewport.width}.png`)});
       assert.deepEqual(baseline.errors,[]);
       assert.deepEqual(themed.errors,[]);

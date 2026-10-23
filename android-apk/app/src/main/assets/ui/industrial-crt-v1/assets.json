@@ -1,7 +1,7 @@
 {
   "sourceFolder": "https://drive.google.com/drive/folders/1H13I34yN6FfIN4qdXpoN3j2InSmjZT60",
   "baseline": "7332b91ea111f691ca5cdaf1416afd0225a39ccd",
-  "snapshotGeometry": "Unchanged; bezel is an absolutely positioned pseudo-element.",
+  "snapshotGeometry": "Unchanged scene aperture and image scale; decoration paints only the original 1px border, with no overlay.",
   "assets": [
     {
       "file": "panel-frame.webp",

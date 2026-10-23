@@ -41,9 +41,9 @@ body textarea{background:#0d140e;color:#fff4d5;border-color:#887b53}
 body .industrial-crt-status{margin:8px 0 0;padding:9px 10px;border:1px solid #827250;background:#0c140d;color:#f6e6ba;font-size:12px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}
 body .industrial-crt-status:empty{display:none}
 
-/* Do not set width, height, aspect-ratio, margin, padding or border on #snapshot.
-   A pseudo-element survives native box.textContent='' redraws without DOM hooks.
-   Neither it nor the native image layers participate in layout. */
-body #snapshot{position:relative;isolation:isolate}
-body #snapshot::after{content:"";position:absolute;inset:0;z-index:3;border:12px solid transparent;border-image:url('industrial-crt-v1/black-observation-monitor-v1.webp') 96 stretch;pointer-events:none}
+/* Paint only the existing border. A thick inset bezel would cover the scene
+   even when the snapshot and image bounding boxes remain unchanged.
+   Unitless border-image-width:1 uses the original border width (1px), so the
+   scene aperture, image scale, layout and native redraw behavior stay intact. */
+body #snapshot{border-image-source:url('industrial-crt-v1/black-observation-monitor-v1.webp');border-image-slice:96;border-image-width:1;border-image-outset:0;border-image-repeat:stretch}
 @media(prefers-reduced-motion:reduce){body button{transition:none!important}}
