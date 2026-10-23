@@ -320,6 +320,12 @@
     const latest=[...entries].reverse().find(e=>e&&e.role==='player');
     if(!latest||!/(?:di chuy[eể]n|bước|đi qua|đi tới|đi đến|tìm kiếm|tìm hiểu|quan sát|kiểm tra|khám phá|thao tác|tiến vào|băng qua)/i.test(latest.text||'')){store();return;}
     const eligible=(state.party||[]).filter(c=>{
+      const detail=(state.partyDetails&&state.partyDetails.members||[])
+        .find(m=>String(m.id)===String(c.id));
+      // Do not stage a portrait-less story for an absent or incapacitated member.
+      if(c.presence==='DEAD'||c.presence==='SEPARATED'||(detail&&
+        (detail.presence==='DEAD'||detail.presence==='SEPARATED'||
+          (detail.currentHp!=null&&Number(detail.currentHp)<=0))))return false;
       const d=catalog[c.id];return d&&Array.isArray(d.story)&&
         Number(p.chapters[c.id]||0)<d.story.length&&p.introduced[c.id];
     });
