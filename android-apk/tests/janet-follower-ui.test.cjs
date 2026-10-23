@@ -40,12 +40,12 @@ test('Janet has five skill entries plus one Ultimate and four distinct equipment
 
 
 test('Janet encounter temporarily shows Cao Minh on the left, then restores him immediately on the right',()=>{
-  const line=java.split('\n').find(source=>source.includes('SNAPSHOT_PARTY_LAYOUT_R03'));
+  const line=java.split('\n').find(source=>source.includes('SNAPSHOT_PARTY_LAYOUT_R04'));
   assert.ok(line,'Follower encounter layout must exist');
   const injected=JSON.parse(line.trim().replace(/\s*\+\s*$/,''));
   const createLayout=new Function('window','document','state','renderSnapshot',injected+
     ';return window.backroomRefreshSnapshotPartyLayout;');
-  const hero={style:{}},janet={style:{}},box={dataset:{},
+  const hero={style:{},className:'snapshot-character'},janet={style:{},className:'snapshot-janet'},box={dataset:{},
     querySelector:selector=>selector==='.snapshot-character'?hero:null,
     querySelectorAll:()=>[janet]};
   const state={
@@ -81,4 +81,19 @@ test('Janet encounter temporarily shows Cao Minh on the left, then restores him 
   state.combat.active=true;
   layout();
   assert.equal(box.dataset.partyLayout,'combat');
+});
+
+
+test('Lucia first-contact overlay uses packaged full-body image outside combat',()=>{
+  assert.match(java,/if\(!luciaCombatVisible\(\)&&snapshotFirstContactId\(\)!=='lucia'\)return/);
+  assert.match(java,/img\.className='snapshot-lucia'/);
+  assert.ok(fs.statSync(path.join(main,'assets/LUCIA_LUC_OVERLAY.png')).size>1000);
+  assert.match(java,/window\.backroomRefreshSnapshotVisuals=function\(\)\{renderSnapshot\(\);\}/);
+});
+test('Janet full-body overlay is bundled and Core-present NPC is not omitted from compositor',()=>{
+  assert.ok(fs.statSync(path.join(main,'assets/Janet.webp')).size>1000);
+  assert.match(java,/function janetVisualPresent\(\)/);
+  assert.match(java,/seen\.some\(function\(m\)\{return m&&String\(m.id\)==='janet'&&m.present===true;/);
+  assert.match(java,/var first=snapshotFirstContactId\(\),focus=/);
+  assert.match(java,/companions\.forEach\(function\(img\)\{img\.style\.display=img===focus\?'':'none';\}\)/);
 });
