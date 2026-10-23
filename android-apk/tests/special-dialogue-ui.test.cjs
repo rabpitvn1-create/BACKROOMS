@@ -738,7 +738,7 @@ test('Cao Minh keeps Bổn Tôn/ta register with every Follower; only other-worl
   assert.equal(Object.keys(followers).length,10);
   const reactions={
     catherine:/diễn kịch|diễn viên/,
-    janet:/quay phim kiếm hiệp/,
+    janet:/hiệp sĩ thời trung cổ/,
     lucia:/đơn vị nào/,
     nguyen_quoc_nam:/từ thời khác/,
     trac_lam:/mật danh hay một vai diễn/,
@@ -781,4 +781,23 @@ test('author voice override remains present both in GM generation policy and kno
   assert.equal(records.length,3);
   assert.ok(records.every(r=>r.text.includes('AUTHOR OVERRIDE 2026-10-23')));
   assert.match(records.map(r=>r.text).join(' '),/Hắc Hóa/);
+});
+
+
+test('R07 rivals share immortal cultivation register without comic cultural surprise',()=>{
+  const x=env({state:{party:[],partyDetails:{members:[]},encounteredCharacters:[]}});
+  const rivals=x.ctx.BackroomSpecialEntityDialogue;
+  for(const [id,route] of Object.entries(rivals)){
+    for(const group of ['episodes','cross','repeat']){
+      const cm=route[group].flat().filter(line=>line.speaker==='cao_minh');
+      assert.ok(cm.some(line=>line.text.includes('Bổn Tôn')),
+        id+' '+group+' must retain Cao Minh preferred register');
+      assert.ok(cm.every(line=>!/(^|\s)(?:Tôi|Em)(?:\s|[.!?])/i.test(line.text)),
+        id+' must not switch to modern first person');
+    }
+    const reactions=[...route.episodes,...route.cross,...route.repeat].flat()
+      .filter(line=>line.speaker!== 'cao_minh').map(line=>line.text).join(' ');
+    assert.doesNotMatch(reactions,/anh đang đóng phim|kiếm hiệp là gì|bổn tôn nghĩa là gì|kiểu nói cổ trang/,
+      id+' already belongs to the immortal cultivation world');
+  }
 });
