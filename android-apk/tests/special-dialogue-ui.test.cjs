@@ -384,6 +384,22 @@ test('Lucia popup requires Core presence; delayed rendering can recover it witho
   x.ctx.render();
   assert.equal(x.dialog.hidden,true);
 });
+test('Lucia and Cao Minh exchange follows the current voice and knowledge boundaries',()=>{
+  const x=env();
+  const lucia=x.ctx.BackroomSpecialDialogueData.lucia;
+  const spoken=[...lucia.intro,...lucia.story.flat()];
+  const cao=spoken.filter(line=>line.speaker==='cao_minh').map(line=>line.text).join(' ');
+  const girl=spoken.filter(line=>line.speaker==='lucia').map(line=>line.text).join(' ');
+  assert.equal(lucia.intro.length,10);
+  assert.equal(lucia.story.length,6);
+  assert.ok(lucia.story.every(scene=>scene.length===5));
+  assert.ok(spoken.every(line=>['lucia','cao_minh'].includes(line.speaker)));
+  assert.doesNotMatch(cao,/Bổn Tôn|bổn tọa|ngươi/);
+  assert.match(girl,/Hứa Thuý Mai/);
+  assert.match(girl,/Đồng bằng sông Cửu Long/);
+  assert.doesNotMatch(girl,/Lục Trầm|Vạn Giới|Lôi Thiên Vực/);
+});
+
 test('Lucia authored intro resumes at the same line on reload',()=>{
   const x=env({state:{party:[],partyDetails:{members:[]},
     encounteredCharacters:[{id:'lucia',name:'Lucia "Lục"',present:true,inParty:false}]}});
@@ -395,7 +411,7 @@ test('Lucia authored intro resumes at the same line on reload',()=>{
   const y=env({state:saved});
   assert.equal(y.dialog.hidden,false);
   assert.equal(y.parts['#specialDialogueProgress'].textContent,'3 / 10');
-  assert.match(y.parts['#specialDialogueText'].textContent,/Bổn Tôn.*đơn vị nào/);
+  assert.match(y.parts['#specialDialogueText'].textContent,/Anh thuộc đơn vị nào/);
   finishModal(y);
   assert.equal(y.ctx.state.specialDialogueProgress.introRevisions.lucia,'lucia-intro-r01');
 });
