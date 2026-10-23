@@ -52,4 +52,20 @@ public class GmNarrativeOptionResolverTest {
     try { GmNarrativeOptionResolver.resolve(1, current); fail("old suggestion reused"); }
     catch (IllegalArgumentException expected) { }
   }
+  @Test public void peacefulVictoryRequiresFourOptionsBeforeCommit() throws Exception {
+    JSONObject event = new JSONObject().put("automaticContinuation", true);
+    GmNarrativeOptionResolver.requireContinuationOptions(event, FOUR);
+    for (String narration : new String[]{"Thực thể ngã xuống.", FOUR.replace("4. ", "3. ")}) {
+      try {
+        GmNarrativeOptionResolver.requireContinuationOptions(event, narration);
+        fail("victory without four usable choices accepted");
+      } catch (IllegalArgumentException expected) {
+        assertEquals("scene_gm_suggestions_missing", expected.getMessage());
+      }
+    }
+    GmNarrativeOptionResolver.requireContinuationOptions(
+      new JSONObject().put("automaticContinuation", true).put("encounter", new JSONObject()),
+      "Một thực thể xuất hiện.");
+    GmNarrativeOptionResolver.requireContinuationOptions(new JSONObject(), "Một diễn biến thường.");
+  }
 }

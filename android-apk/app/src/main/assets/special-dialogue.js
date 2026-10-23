@@ -25,7 +25,8 @@
     if(!state.specialDialogueProgress||typeof state.specialDialogueProgress!=='object')
       state.specialDialogueProgress={introduced:{},chapters:{},lastRollTurn:state.turn,shownEncounters:{},pending:null};
     const p=state.specialDialogueProgress;
-    for(const k of ['introduced','chapters','shownEncounters'])if(!p[k]||typeof p[k]!=='object')p[k]={};
+    for(const k of ['introduced','introRevisions','chapters','pastVisits','shownEncounters','entityBeats','entityCross','entityRepeats'])
+      if(!p[k]||typeof p[k]!=='object')p[k]={};
     return p;
   }
   function store(){if(typeof persistPresentation==='function')persistPresentation();}
@@ -39,7 +40,10 @@
         .map(c=>({id:c.targetId,name:c.targetName||c.label}))
         .find(c=>String(c.id)===String(id))||null;
   }
-  function label(id){const c=visibleCharacter(id);return c&&c.name||entityCatalog[id]&&entityCatalog[id].name||(id==='cao_minh'?'Cao Minh':id);}
+  function label(id){
+    if(id==='cao_minh')return state.player&&state.player.name||'Cao Minh';
+    const c=visibleCharacter(id);return c&&c.name||entityCatalog[id]&&entityCatalog[id].name||id;
+  }
   function entityEncounter(){
     const combat=state.combat;
     const encounter=combat&&combat.active===true?combat:state.pendingEncounter;
@@ -49,11 +53,6 @@
     const wave=Number(encounter.waveNumber||1);
     return {entityKey:encounter.entityKey,encounterId:wave>1?
       encounter.entityInstanceId||encounter.encounterId+':wave:'+(wave-1):encounter.encounterId};
-  }
-  function entityLines(id){
-    const d=entityCatalog[id]||{};
-    return (d.encounter||[]).concat(d.story||[]).map(line=>
-      typeof line==='string'?{speaker:id,text:line}:line);
   }
   function avatar(id){
     if(id==='cao_minh')return 'avatars/CAO_MINH_AVATAR.jpg';
@@ -81,21 +80,93 @@
     const c=(state.encounteredCharacters||[]).find(x=>x.id===id);
     return c&&c.present&&c.joinEligible&&!c.inParty&&!state.pendingEncounter;
   }
+  // These characters previously only had a generic fallback greeting. Track
+  // authored introductions without affecting other followers' current progress.
+  const AUTHORED_INTRO_REVISIONS={
+    lucia:'lucia-intro-r01',
+    catherine:'catherine-intro-r01',
+    janet:'janet-intro-r01',
+    nguyen_quoc_nam:'nguyen-quoc-nam-intro-r01',
+    iris:'iris-intro-r01',
+    syvial:'syvial-intro-r01',
+    'an-nhien':'an-nhien-intro-r01'
+  };
+  function coreConfirmedNpc(id){
+    // Do not create encounters from old names, GM prose, or historical roster.
+    return (state.encounteredCharacters||[]).some(c=>c.id===id&&c.present===true)||
+      (state.party||[]).some(c=>c.id===id&&c.presence!=='DEAD'&&c.presence!=='SEPARATED');
+  }
+  function needsIntro(id,p){
+    const revision=AUTHORED_INTRO_REVISIONS[id];
+    return !p.introduced[id]||(revision&&p.introRevisions[id]!==revision);
+  }
+  // The Core encounter confirms *who is present*. Presentation can track
+  // conversation beats, but encounter count alone never proves a story secret.
+  function entityScene(id, p, saved){
+    const d=entityCatalog[id]||{};
+    const episodes=Array.isArray(d.episodes)?d.episodes:[];
+    const repeat=Array.isArray(d.repeat)?d.repeat:[];
+    const route=saved&&saved.routeKind;
+    const index=saved&&Number.isInteger(saved.routeIndex)?saved.routeIndex:0;
+    function scene(kind,n){
+      const source=kind==='episode'?episodes:kind==='cross'?d.cross:repeat;
+      const picked=source[n];
+      if(!Array.isArray(picked)||!picked.length)return null;
+      return {routeKind:kind,routeIndex:n,lines:picked};
+    }
+    if(route){
+      const restored=scene(route,index);
+      if(restored)return restored;
+    }
+    const beat=Math.max(0,Number(p.entityBeats[id]||0));
+    const other=id==='diep_minh'?'luc_tram_hac_hoa':'diep_minh';
+    const otherBeat=Math.max(0,Number(p.entityBeats[other]||0));
+    const crossIndex=Math.max(0,Number(p.entityCross[id]||0));
+    // Every interlude requires encounters with BOTH rivals. Later interludes
+    // require richer context, but never certify a clue or restore memories.
+    const crossThresholds=[1,3,6];
+    if(Array.isArray(d.cross)&&crossIndex<d.cross.length&&
+      beat>=crossThresholds[crossIndex]&&otherBeat>=crossThresholds[crossIndex])
+      return scene('cross',crossIndex);
+    if(beat<episodes.length)return scene('episode',beat);
+    if(repeat.length)return scene('repeat',Math.max(0,Number(p.entityRepeats[id]||0))%repeat.length);
+    return {routeKind:'fallback',routeIndex:0,
+      lines:(d.encounter||[]).map(text=>({speaker:id,text}))};
+  }
   function finish(){
     if(!active)return;
+    const wasFollowerScene=active.kind==='intro'||active.kind==='story';
     const p=progress();
-    if(active.kind==='intro')p.introduced[active.id]=true;
+    if(active.kind==='intro'){
+      p.introduced[active.id]=true;
+      const revision=AUTHORED_INTRO_REVISIONS[active.id];
+      if(revision)p.introRevisions[active.id]=revision;
+    }
     if(active.kind==='story')p.chapters[active.id]=Math.max(Number(p.chapters[active.id]||0),active.chapter+1);
     if(active.kind==='entity'){
       p.shownEncounters[active.encounterId]=true;
+      if(active.routeKind==='episode')p.entityBeats[active.id]=Math.max(
+        Number(p.entityBeats[active.id]||0),active.routeIndex+1);
+      if(active.routeKind==='cross')p.entityCross[active.id]=Math.max(
+        Number(p.entityCross[active.id]||0),active.routeIndex+1);
+      if(active.routeKind==='repeat')p.entityRepeats[active.id]=
+        Math.max(0,Number(p.entityRepeats[active.id]||0))+1;
       const keys=Object.keys(p.shownEncounters);
       if(keys.length>24)keys.slice(0,keys.length-24).forEach(key=>delete p.shownEncounters[key]);
     }
     p.pending=null;
     active=null;root.hidden=true;document.body.classList.remove('special-dialogue-active');
     store();
+    // The Core can still report the NPC as present after the popup closes.
+    // Restore Cao Minh now, not on the next encounter or movement turn.
+    if(wasFollowerScene){
+      if(typeof global.backroomRefreshSnapshotVisuals==='function')
+        global.backroomRefreshSnapshotVisuals();
+      else if(typeof global.backroomRefreshSnapshotPartyLayout==='function')
+        global.backroomRefreshSnapshotPartyLayout();
+    }
     if(typeof global.backroomSyncExplorer==='function')global.backroomSyncExplorer();
-    // An NPC modal may have been open when Core delivered an Entity encounter.
+    // Core may deliver an Entity while a Follower modal is still open.
     applyIncoming(state);
   }
   function invite(){
@@ -129,12 +200,21 @@
   function open(id,kind,lines,opts){
     if(active)return false;
     const typed=(lines||[]).filter(x=>x&&typeof x.text==='string'&&x.text.trim());
-    active={id,kind,lines:typed,index:0,chapter:opts&&opts.chapter||0,encounterId:opts&&opts.encounterId||''};
+    active={id,kind,lines:typed,index:0,chapter:opts&&opts.chapter||0,
+      encounterId:opts&&opts.encounterId||'',
+      routeKind:opts&&opts.routeKind||'',routeIndex:opts&&opts.routeIndex||0};
     if(kind==='intro'||kind==='story'||kind==='entity'){
-      progress().pending={id,kind,index:0,chapter:active.chapter,encounterId:active.encounterId};
+      progress().pending={id,kind,index:0,chapter:active.chapter,
+        encounterId:active.encounterId,routeKind:active.routeKind,routeIndex:active.routeIndex};
       store();
     }
     root.hidden=false;document.body.classList.add('special-dialogue-active');
+    if(kind==='intro'||kind==='story'){
+      if(typeof global.backroomRefreshSnapshotVisuals==='function')
+        global.backroomRefreshSnapshotVisuals();
+      else if(typeof global.backroomRefreshSnapshotPartyLayout==='function')
+        global.backroomRefreshSnapshotPartyLayout();
+    }
     render();
     return true;
   }
@@ -143,10 +223,15 @@
     if(kind==='past'){
       const chapter=Number(progress().chapters[id]||0);
       const base=Array.isArray(d.past)?d.past:[];
-      // Previously revealed story facts only, never unlock a chapter by pressing "Quá khứ".
-      const revealed=(d.story||[]).slice(0,chapter).flat().filter(x=>x&&x.text).map(x=>x.text);
-      const options=base.concat(revealed);
-      return [{speaker:id,text:options.length?options[(chapter+base.length-1)%options.length]:'Tôi chưa muốn nhắc đến chuyện trước kia.'}];
+      // Reveal no more than one new recollection for each finished story
+      // chapter. The Past button never grants progression or reads a future
+      // chapter; repeated requests cycle through the currently known memories.
+      const unlocked=base.slice(0,Math.min(base.length,1+chapter));
+      const visits=Math.max(0,Number(progress().pastVisits[id]||0));
+      const memory=unlocked.length?unlocked[visits%unlocked.length]:'Tôi chưa muốn nhắc đến chuyện trước kia.';
+      progress().pastVisits[id]=visits+1;
+      store();
+      return [{speaker:id,text:memory}];
     }
     const ambient=Array.isArray(d.ambient)&&d.ambient.length?d.ambient:
       ['Tôi đang nghe. Có điều gì cần trao đổi không?','Chúng ta nên cẩn trọng khi di chuyển ở đây.'];
@@ -168,7 +253,7 @@
       return true;
     }
     const p=progress();
-    if(!p.introduced[id]){
+    if(needsIntro(id,p)){
       const d=catalog[id];
       const intro=d&&Array.isArray(d.intro)&&d.intro.length?d.intro:
         [{speaker:id,text:'Xin chào. Có điều gì muốn trao đổi với tôi không?'}];
@@ -213,22 +298,32 @@
       const saved=p.pending;
       if(saved.kind==='entity'&&(!encounter||saved.id!==encounter.entityKey||
           saved.encounterId!==encounter.encounterId||p.shownEncounters[saved.encounterId])){p.pending=null;store();}
+      else if(saved.kind==='intro'&&!coreConfirmedNpc(saved.id))p.pending=null;
       else {
         const d=catalog[saved.id]||{};
+        const entityRoute=saved.kind==='entity'?entityScene(saved.id,p,saved):null;
         const seq=saved.kind==='intro'?(d.intro||[{speaker:saved.id,text:'Xin chào.'}]):
           saved.kind==='story'?(d.story||[])[saved.chapter]||[]:
-          entityLines(saved.id);
-        if(open(saved.id,saved.kind,seq,{chapter:saved.chapter,encounterId:saved.encounterId})){
+          entityRoute&&entityRoute.lines||[];
+        if(open(saved.id,saved.kind,seq,{chapter:saved.chapter,encounterId:saved.encounterId,
+          routeKind:entityRoute&&entityRoute.routeKind,routeIndex:entityRoute&&entityRoute.routeIndex})){
           active.index=Math.min(Math.max(0,saved.index||0),active.lines.length-1);
-          progress().pending.index=active.index;store();render();return;
+          if(p.pending)p.pending.index=active.index;
+          store();render();return;
         }
       }
     }
     if(encounter&&!p.shownEncounters[encounter.encounterId]){
-      open(encounter.entityKey,'entity',entityLines(encounter.entityKey),{encounterId:encounter.encounterId});return;
+      const selected=entityScene(encounter.entityKey,p);
+      open(encounter.entityKey,'entity',selected.lines,{encounterId:encounter.encounterId,
+        routeKind:selected.routeKind,routeIndex:selected.routeIndex});return;
     }
-    const before=new Set((old&&old.encounteredCharacters||[]).map(c=>String(c.id)));
-    const newcomer=(state.encounteredCharacters||[]).find(c=>c.present&&!before.has(String(c.id))&&!p.introduced[c.id]);
+    // The encounter might have been committed before the UI registered the
+    // callback (reload, Android projection, or first render). Core presence +
+    // an unfinished introduction are the authority, not a roster diff.
+    const newcomer=(state.encounteredCharacters||[]).find(c=>
+      c.present===true&&needsIntro(c.id,p)&&coreConfirmedNpc(c.id))||
+      (state.party||[]).find(c=>coreConfirmedNpc(c.id)&&needsIntro(c.id,p));
     if(newcomer){
       const d=catalog[newcomer.id];
       open(newcomer.id,'intro',d&&d.intro||[{speaker:newcomer.id,text:'Xin chào. Có điều gì muốn trao đổi không?'}]);return;
@@ -241,6 +336,12 @@
     const latest=[...entries].reverse().find(e=>e&&e.role==='player');
     if(!latest||!/(?:di chuy[eể]n|bước|đi qua|đi tới|đi đến|tìm kiếm|tìm hiểu|quan sát|kiểm tra|khám phá|thao tác|tiến vào|băng qua)/i.test(latest.text||'')){store();return;}
     const eligible=(state.party||[]).filter(c=>{
+      const detail=(state.partyDetails&&state.partyDetails.members||[])
+        .find(m=>String(m.id)===String(c.id));
+      // Do not stage a portrait-less story for an absent or incapacitated member.
+      if(c.presence==='DEAD'||c.presence==='SEPARATED'||(detail&&
+        (detail.presence==='DEAD'||detail.presence==='SEPARATED'||
+          (detail.currentHp!=null&&Number(detail.currentHp)<=0))))return false;
       const d=catalog[c.id];return d&&Array.isArray(d.story)&&
         Number(p.chapters[c.id]||0)<d.story.length&&p.introduced[c.id];
     });
@@ -273,6 +374,8 @@
   const previousRender=global.render;
   if(typeof previousRender==='function')global.render=function(){
     const result=previousRender.apply(this,arguments);
+    // Also recover a first encounter that became present before this render,
+    // even when there is no persisted modal cursor yet.
     applyIncoming(state);
     return result;
   };

@@ -490,7 +490,7 @@ test('Entity counterattack keeps Cao Minh and avoids creating a rotating Entity 
 });
 
 test('turn focus uses projected Party avatar for actors outside the original hardcoded group',()=>{
- const members=[{id:'luc_tram',avatarRef:'avatars/luctram_avatar.png',presence:'ACTIVE'}];
+ const members=[{id:'luc_tram',avatarRef:'avatars/LucTram_avatar.webp',presence:'ACTIVE'}];
  const r=boot({combat:{active:true,encounterId:'enc',entityKey:'hound'},partyDetails:{members}});
  r.turn([],'enc:luc-tram','enc',{active:true,encounterId:'enc',entityKey:'hound',round:2},
   {partyDetails:{members}},{
@@ -499,14 +499,32 @@ test('turn focus uses projected Party avatar for actors outside the original har
   });
  assert.equal(r.box.dataset.combatFocus,'luc_tram');
  const portrait=r.box.children.find(n=>n.className==='combat-turn-avatar');
- assert.ok(portrait);assert.equal(portrait.src,'avatars/luctram_avatar.png');
+ assert.ok(portrait);assert.equal(portrait.src,'avatars/LucTram_avatar.webp');
  r.timers.find(t=>t.ms===1210).fn();
  assert.equal(r.box.dataset.combatFocus,'cao_minh');
  assert.equal(r.box.children.some(n=>n.className==='combat-turn-avatar'),false);
  const exit=r.box.children.find(n=>n.className.includes('combat-turn-exit'));
- assert.ok(exit);assert.equal(exit.src,'avatars/luctram_avatar.png');
+ assert.ok(exit);assert.equal(exit.src,'avatars/LucTram_avatar.webp');
 });
 
+
+test('Lục Trầm combat uses her full-body sprite while Hắc Hóa remains the separate Entity image',()=>{
+ const members=[{id:'luc_tram',avatar:'avatars/LucTram_avatar.webp',sprite:'LucTram.webp',presence:'ACTIVE'}];
+ const combat={active:true,encounterId:'enc',entityKey:'luc_tram_hac_hoa',round:2};
+ const r=boot({combat,partyDetails:{members}});
+ r.entity.src='entity/luc_tram_hac_hoa.webp';
+ r.turn([],'enc:luc-tram-sprite','enc',combat,{partyDetails:{members}},
+  {turns:[{kind:'actor',eventIndex:0,actorId:'luc_tram',actorName:'Lục Trầm',entityName:'Lục Trầm Hắc Hóa'}]});
+ const portrait=r.box.children.find(n=>n.className==='combat-turn-avatar');
+ assert.ok(portrait);assert.equal(portrait.src,'LucTram.webp');
+ assert.equal(r.box.dataset.combatFocus,'luc_tram');
+ assert.equal(r.entity.src,'entity/luc_tram_hac_hoa.webp');
+ r.box.textContent='';
+ r.scope.backroomSyncCombatPortrait();
+ const restored=r.box.children.filter(n=>n.className==='combat-turn-avatar');
+ assert.equal(restored.length,1);assert.equal(restored[0].src,'LucTram.webp');
+ assert.equal(r.entity.src,'entity/luc_tram_hac_hoa.webp');
+});
 
 test('entering combat without a damage packet keeps Cao Minh in Snapshot instead of hiding all portraits',()=>{
  const r=boot({combat:{active:true,encounterId:'new-enc',entityKey:'hound',round:1}});
@@ -539,7 +557,7 @@ test('Entity load callbacks never alter the Party focus',()=>{
 });
 
 test('Snapshot reconstruction reattaches active dynamic Party portrait without switching actor',()=>{
- const partyDetails={members:[{id:'luc_tram',avatarRef:'avatars/luctram_avatar.png',presence:'ACTIVE'}]};
+ const partyDetails={members:[{id:'luc_tram',avatarRef:'avatars/LucTram_avatar.webp',presence:'ACTIVE'}]};
  const r=boot({combat:{active:true,encounterId:'enc',entityKey:'hound',round:1},partyDetails});
  r.turn([],'enc:render','enc',{active:true,encounterId:'enc',entityKey:'hound',round:2},{partyDetails},
   {turns:[{kind:'actor',eventIndex:0,actorId:'luc_tram',actorName:'Lục Trầm',entityName:'Hound'}]});
@@ -549,7 +567,7 @@ test('Snapshot reconstruction reattaches active dynamic Party portrait without s
  r.scope.backroomSyncCombatPortrait();
  assert.equal(r.box.dataset.combatFocus,'luc_tram');
  assert.equal(r.box.children.filter(n=>n.className==='combat-turn-avatar').length,1);
- assert.equal(r.box.children.find(n=>n.className==='combat-turn-avatar').src,'avatars/luctram_avatar.png');
+ assert.equal(r.box.children.find(n=>n.className==='combat-turn-avatar').src,'avatars/LucTram_avatar.webp');
  const java=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/MainActivity.java'),'utf8');
  assert.match(java,/appendLuciaCombatOverlay\(\);if\(typeof window!=='undefined'&&typeof window\.backroomSyncCombatPortrait==='function'\)window\.backroomSyncCombatPortrait\(\)/);
  assert.match(java,/normalizeEntityVisual\(img\);img\.dataset\.entityStatus='ready';img\.style\.opacity='1'/);
@@ -887,31 +905,87 @@ test('victory continuation runs once after the actual final shatter and never on
  assert.equal(escaped.length,0);
 });
 
-test('exploration party uses disjoint bounded slots and leaves combat geometry to the turn renderer',()=>{
- const java=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/MainActivity.java'),'utf8');
- const line=java.split('\n').find(l=>l.includes('/* SNAPSHOT_PARTY_LAYOUT_R01 */'));
- const script=JSON.parse(line.trim().replace(/ \+$/,''));
- for(let count=1;count<=6;count++){
-  const actors=Array.from({length:count},()=>({style:{}}));
-  const box={dataset:{},querySelectorAll(){return actors}};
-  let baseCalls=0;
-  const scope={document:{getElementById(){return box}},state:{combat:{active:false}},renderSnapshot(){baseCalls++}};scope.window=scope;
-  vm.runInNewContext(script,scope);scope.renderSnapshot();
-  assert.equal(baseCalls,1);assert.equal(box.dataset.partyLayout,'exploration');
-  if(count>1)actors.forEach((actor,index)=>{
-   const left=parseFloat(actor.style.left),width=parseFloat(actor.style.width);
-   assert.ok(left>=6&&left+width<=94.00001);
-   if(index)assert.ok(left>=parseFloat(actors[index-1].style.left)+width-0.00001);
-   assert.equal(actor.style.objectFit,'contain');
-  });
-  actors.forEach(actor=>actor.style={});scope.state.combat.active=true;scope.renderSnapshot();
-  assert.equal(box.dataset.partyLayout,'combat');actors.forEach(actor=>assert.deepEqual(actor.style,{}));
-  scope.backroomFreezeSnapshot=true;scope.renderSnapshot();assert.equal(baseCalls,2);
- }
- const css=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/combat-feedback-1193a.css'),'utf8');
- for(const name of ['catherine','janet','nguyen-quoc-nam','hua-tieu-lan'])assert.ok(css.includes('.snapshot[data-party-layout="combat"] .snapshot-'+name));
+test('post-combat writer shows pending feedback and bridge failure unlocks Retry through the shared error handler',()=>{
+ const r=boot({combat:null}),pending=[],errors=[];
+ r.scope.busy=false;
+ r.scope.backroomPostCombatPending=()=>pending.push('waiting');
+ r.scope.backroomError=message=>{errors.push(message);r.scope.busy=false;};
+ r.scope.Android={continueAfterCombat(){throw new Error('bridge unavailable');}};
+ r.turn([],'enc:failed','enc',null,{postCombatContinuation:true});
+ assert.equal(pending.length,1);
+ assert.equal(errors.length,1);
+ assert.equal(r.scope.busy,false);
+ r.scope.Android.continueAfterCombat=()=>{};
+ r.turn([],'enc:failed','enc',null,{postCombatContinuation:true});
+ assert.equal(pending.length,2,'failed bridge submission must remain retryable');
+ assert.equal(r.scope.busy,true);
 });
 
+test('Follower first meeting shows exactly two overlays, restores after closing, and never hijacks Entity/combat',()=>{
+  const java=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/MainActivity.java'),'utf8');
+  const line=java.split('\n').find(l=>l.includes('/* SNAPSHOT_PARTY_LAYOUT_R05 */'));
+  assert.ok(line);
+  const script=JSON.parse(line.trim().replace(/ \+$/,''));
+  for(let count=1;count<=7;count++){
+    const actors=Array.from({length:count},(_,i)=>({style:{},
+      className:i===0?'snapshot-character':['snapshot-janet','snapshot-catherine',
+        'snapshot-nguyen-quoc-nam','snapshot-hua-tieu-lan','snapshot-trac-lam','snapshot-lucia'][i-1]}));
+    const hero=actors[0],followers=actors.slice(1);
+    const box={dataset:{},querySelector(s){return s==='.snapshot-character'?hero:null;},
+      querySelectorAll(){return followers}};
+    let baseCalls=0;
+    const scope={document:{getElementById(){return box}},state:{combat:{active:false}},
+      renderSnapshot(){baseCalls++}};scope.window=scope;
+    vm.runInNewContext(script,scope);scope.renderSnapshot();
+    assert.equal(baseCalls,1);assert.equal(box.dataset.partyLayout,'exploration');
+    if(count>1){
+      assert.equal(hero.style.right,'0');assert.equal(hero.style.height,'97%');
+      assert.equal(hero.style.width,'auto');
+      followers.forEach((actor,index)=>{
+        const left=parseFloat(actor.style.left),maxWidth=parseFloat(actor.style.maxWidth);
+        assert.ok(left>=3&&left+maxWidth<=67.00001);
+        if(index)assert.ok(left>=parseFloat(followers[index-1].style.left)+
+          parseFloat(followers[index-1].style.maxWidth)-.00001);
+      });
+      scope.state.encounteredCharacters=[{id:'janet',present:true}];
+      scope.state.specialDialogueProgress={pending:{id:'janet',kind:'intro'}};
+      scope.backroomRefreshSnapshotPartyLayout();
+      assert.equal(box.dataset.partyLayout,'encounter');
+      assert.equal(hero.style.left,'6%');assert.equal(hero.style.height,'84%');
+      assert.equal(followers[0].style.left,'50%');
+      assert.ok(followers.slice(1).every(x=>x.style.display==='none'),
+        'other party members must not be drawn over Janet story encounter');
+      scope.state.pendingEncounter={entityKey:'diep_minh',encounterId:'e1'};
+      scope.backroomRefreshSnapshotPartyLayout();
+      assert.equal(box.dataset.partyLayout,'exploration','Entity bypasses Follower two-shot');
+      scope.state.pendingEncounter=null;
+      scope.state.specialDialogueProgress.pending=null;
+      scope.backroomRefreshSnapshotPartyLayout();
+      assert.equal(box.dataset.partyLayout,'exploration');
+      scope.state.party=[{id:'janet',presence:'ACTIVE'}];
+      scope.state.encounteredCharacters[0].present=false;
+      scope.state.specialDialogueProgress.pending={id:'janet',kind:'story'};
+      scope.backroomRefreshSnapshotPartyLayout();
+      assert.equal(box.dataset.partyLayout,'encounter','authored Follower story also needs two-shot');
+      assert.equal(hero.style.left,'6%');
+      scope.state.specialDialogueProgress.pending=null;
+      scope.backroomRefreshSnapshotPartyLayout();
+      assert.equal(box.dataset.partyLayout,'exploration');
+      assert.equal(hero.style.left,'auto');assert.equal(hero.style.right,'0');
+      assert.equal(hero.style.height,'97%');assert.equal(hero.style.width,'auto');
+      assert.ok(followers.every(x=>x.style.display===''));
+      scope.state.specialDialogueProgress.pending={id:'janet',kind:'intro'};
+      scope.state.encounteredCharacters[0].present=false;
+      scope.backroomRefreshSnapshotPartyLayout();
+      assert.equal(box.dataset.partyLayout,'exploration','not-present NPC cannot trigger encounter');
+    }else assert.deepEqual(hero.style,{},'solo player remains original size');
+    actors.forEach(actor=>actor.style={});scope.state.combat.active=true;scope.renderSnapshot();
+    assert.equal(box.dataset.partyLayout,'combat');actors.forEach(actor=>assert.deepEqual(actor.style,{}));
+    scope.backroomFreezeSnapshot=true;scope.renderSnapshot();assert.equal(baseCalls,2);
+  }
+  const css=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/combat-feedback-1193a.css'),'utf8');
+  for(const name of ['catherine','janet','nguyen-quoc-nam','hua-tieu-lan'])assert.ok(css.includes('.snapshot[data-party-layout="combat"] .snapshot-'+name));
+});
 
 test('combat portraits normalize visible body height and ground without changing focus or transforms',()=>{
  const helper=script.slice(script.indexOf('  var partyPortraitBounds='),script.indexOf('  function combatPortraitSource('));

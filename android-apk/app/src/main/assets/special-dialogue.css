@@ -1,5 +1,5 @@
-/* A single RuneScape-style dialogue card above the existing GM and Snapshot.
-   The original CRT shell, GM typography and Header are not modified. */
+/* A single dialogue card above the existing GM and Snapshot.
+   Industrial surfaces reuse the game's shared frame and button assets. */
 #specialDialogue[hidden]{display:none!important}
 #specialDialogue{position:fixed;inset:0;z-index:600;display:grid;place-items:center;padding:12px max(12px,env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));background:rgba(3,6,8,.64);font-family:Play,sans-serif}
 body.special-dialogue-active main.shell{pointer-events:none}
@@ -18,4 +18,30 @@ body.special-dialogue-active .game>.log{filter:blur(2px);opacity:.28}
 #specialDialogue .special-dialogue-actions button:focus-visible{outline:2px solid #efc76e;outline-offset:2px}
 #specialDialogue .special-dialogue-progress{text-align:right;color:#b8b5a4;font-size:11px;letter-spacing:.04em;padding:0 14px 8px}
 @media(max-width:360px){#specialDialogue .special-dialogue-middle{grid-template-columns:minmax(0,1fr) 74px;gap:8px;padding:12px}#specialDialogue .special-dialogue-actions button{font-size:13px}}
+/* Keep the ID in these selectors: the base dialogue rules also use it. */
+body.industrial-ui #specialDialogue{padding-top:calc(12px + env(safe-area-inset-top));box-sizing:border-box}
+body.industrial-ui #specialDialogue .special-dialogue-card{
+  box-sizing:border-box;width:min(100%,575px);min-height:0;
+  max-height:min(580px,calc(var(--app-height,100dvh) - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
+  border:12px solid transparent;border-image:var(--industrial-frame) 80 / 12px / 0 repeat;
+  border-radius:10px;background:#10150f var(--industrial-crt) center/512px 512px;
+  color:#eeddb5;box-shadow:0 8px 32px #000b;scrollbar-color:#75674a #101512
+}
+body.industrial-ui #specialDialogue .special-dialogue-top{
+  flex:none;min-width:0;overflow-wrap:anywhere;border-color:#726343;
+  background:#11150f var(--industrial-crt) center/512px 512px;color:#f3c576
+}
+body.industrial-ui #specialDialogue .special-dialogue-middle{min-height:0;flex:1 1 auto;overscroll-behavior:contain}
+body.industrial-ui #specialDialogue .special-dialogue-avatar{border-color:#8d7753;background:#171c17}
+body.industrial-ui #specialDialogue .special-dialogue-progress{flex:none;color:#bcaf86}
+body.industrial-ui #specialDialogue .special-dialogue-actions{
+  flex:0 1 auto;min-height:0;max-height:40dvh;overflow:auto;overscroll-behavior:contain;
+  border-color:#726343;background:#11150f var(--industrial-crt) center/512px 512px
+}
+body.industrial-ui #specialDialogue .special-dialogue-actions button{
+  box-sizing:border-box;flex:none;min-width:0;min-height:52px;padding:6px 12px;
+  border:10px solid transparent;border-image:var(--industrial-steel) 70 fill / 12px / 0 stretch;
+  border-radius:8px!important;background:transparent;color:#fff0bf;
+  text-shadow:0 1px 3px #000;white-space:normal;overflow-wrap:anywhere
+}
 @media(prefers-reduced-motion:reduce){#specialDialogue *{transition:none!important;animation:none!important}}

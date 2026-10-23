@@ -48,6 +48,48 @@ function runtime(scene={}){
   const panel=elements.playerActionBar.children[0],dialog=document.body.children[0];
   return {ctx,calls,stored,panel,dialog,actionDialog:document.body.children[1],buttons:panel.children[0].children.map(slot=>slot.children[0]),menuTools:elements.explorerMenuTools,objectivePanel:elements.explorerMenuObjective,objectiveText:elements.explorerCurrentObjective,casebook:elements.explorerCasebook,menuClose:elements.gameMenuClose,player:panel.children[1].children[0],retry:panel.children[1].children[1],journal:elements.sceneJournal,room:elements.sceneJournalRoom,objective:elements.sceneJournalObjective,records:elements.sceneJournalRecords,log:elements.log,status:elements.status};
 }
+test('post-combat GM pending is visible until completion or error, then Retry unlocks',()=>{
+  const r=runtime({nodeId:'0',pendingActionId:'post-combat'});
+  r.ctx.busy=true;r.ctx.backroomSyncExplorer();
+  r.ctx.backroomPostCombatPending();
+  const pending=r.log.querySelector('[data-scene-preparing="1"]');
+  assert.ok(pending);
+  assert.equal(pending.children[0].textContent,'GAME MASTER');
+  assert.match(pending.querySelector('.gm-thinking-name').textContent,/sau giao tranh/);
+  assert.equal(pending.attributes['data-pending'],undefined,'outer snapshot wrapper must not erase the new pending message');
+  assert.equal(r.retry.disabled,true);
+  r.ctx.backroomError('GM lỗi');
+  assert.equal(r.log.querySelector('[data-scene-preparing="1"]'),null);
+  assert.equal(r.retry.hidden,false);assert.equal(r.retry.disabled,false);
+  r.ctx.backroomPostCombatPending();
+  r.ctx.backroomTurn(JSON.stringify({...r.ctx.state,scene:{...r.ctx.state.scene,pendingActionId:undefined}}));
+  assert.equal(r.log.querySelector('[data-scene-preparing="1"]'),null);
+  assert.equal(r.player.hidden,false);
+});
+test('New Game opening offers four choices after scene preparation without opening Player Action',()=>{
+  const html=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/index.html'),'utf8');
+  const ctx={};
+  vm.runInNewContext(html.slice(html.indexOf('const initial={'),html.indexOf('const byId='))
+    +'\nthis.opening=initial;',ctx);
+  const r=runtime({nodeId:'0',generationNeeded:true});
+  r.ctx.state.log=JSON.parse(JSON.stringify(ctx.opening.log));
+  r.ctx.render();
+  assert.equal(r.log.querySelector('.gm-suggestion-list'),null,'wait for Core to prepare the scene');
+  r.ctx.backroomTurn(JSON.stringify({...r.ctx.state,scene:{...r.ctx.state.scene,generationNeeded:false}}));
+  r.ctx.render();
+  const choices=r.log.querySelector('.gm-suggestion-list');
+  assert.ok(choices,'opening text must be scoped to the initial Core scene');
+  assert.equal(choices.children.length,4);
+  assert.equal(choices.children.every(b=>!b.disabled),true);
+  assert.ok(!r.actionDialog.open);
+  choices.children[0].onclick();
+  assert.deepEqual(r.calls.at(-1),['gm-suggestion',1]);
+  assert.equal(r.calls.filter(c=>c[0]==='player').length,0);
+  assert.equal(choices.children.every(b=>b.disabled),true);
+  r.ctx.backroomTurn(JSON.stringify({...r.ctx.state,scene:{...r.ctx.state.scene,nodeId:'1'}}));
+  r.ctx.render();
+  assert.equal(r.log.querySelector('.gm-suggestion-list'),null,'opening choices cannot follow the player to another Level');
+});
 test('four GM hints are selectable INSIDE GM log and each tap queues a single Core action',()=>{
   const r=runtime({nodeId:'0'});
   const narration='Tường rung lên.\nGỢI Ý HÀNH ĐỘNG:\n'
@@ -856,4 +898,26 @@ test('MAP pinch zoom preserves midpoint, allows continued single-finger pan and 
   sc.listeners.click(click);assert.equal(prevented,1);assert.equal(stopped,1);
   r.pointer('pointerdown',3,80,90);r.pointer('pointerup',3,80,90);sc.listeners.click(click);
   assert.equal(prevented,1,'an ordinary node tap is still delivered');assert.equal(r.calls.length,0);
+});
+
+
+test('snapshot is repainted once after Core commit releases a frozen camera',()=>{
+  const r=runtime();
+  let painted=0;
+  r.ctx.backroomFreezeSnapshot=true;
+  r.ctx.backroomRefreshSnapshotVisuals=()=>{painted++;assert.equal(r.ctx.backroomFreezeSnapshot,false);};
+  r.ctx.backroomTurn(JSON.stringify({...r.ctx.state,turn:5}));
+  assert.equal(r.ctx.backroomFreezeSnapshot,false);
+  assert.equal(painted,1,'the final Follower/Entity overlay must be rendered without a second turn');
+});
+
+
+test('failed action also repaints snapshot after releasing its camera freeze',()=>{
+  const r=runtime();
+  let painted=0;
+  r.ctx.backroomFreezeSnapshot=true;
+  r.ctx.backroomRefreshSnapshotVisuals=()=>{painted++;assert.equal(r.ctx.backroomFreezeSnapshot,false);};
+  r.ctx.backroomError('Failed writer call');
+  assert.equal(r.ctx.backroomFreezeSnapshot,false);
+  assert.equal(painted,1,'a failed pending action must not strand the previous Follower camera');
 });

@@ -142,10 +142,20 @@ body.industrial-ui{
   min-height:52px;padding:5px 8px;border:10px solid transparent;
   border-image:var(--industrial-steel) 70 fill / 12px / 0 stretch;
   border-radius:8px!important;background:transparent;color:#fff0bf;
+  min-width:0;max-width:100%;white-space:normal;
   text-align:center;text-shadow:0 1px 3px #000;overflow-wrap:anywhere
 }
 .industrial-ui .game-menu-sheet .card>button{max-width:100%}
-.industrial-ui .game-menu-sheet button:disabled{opacity:.45}
+.industrial-ui .game-menu-sheet button:disabled{opacity:.45;cursor:default}
+@media(hover:hover){
+  .industrial-ui .game-menu-sheet .actions button:hover:not(:disabled),
+  .industrial-ui #explorerMenuTools .explorer-dossier-tiles button:hover:not(:disabled),
+  .industrial-ui .game-menu-sheet #dungeonOpen:hover:not(:disabled){filter:brightness(1.12)}
+}
+.industrial-ui .game-menu-sheet .actions button:active:not(:disabled),
+.industrial-ui #explorerMenuTools .explorer-dossier-tiles button:active:not(:disabled),
+.industrial-ui .game-menu-sheet #dungeonOpen:active:not(:disabled){filter:brightness(.9)}
+
 .industrial-ui .game-menu-sheet .diagnostic-note{font-size:13px;line-height:1.6;color:#d1c3a3}
 .industrial-ui .diagnostic-consent{color:#d3c19a;line-height:1.5}
 .industrial-ui .diagnostic-consent input{accent-color:#d9b75b;min-width:22px;min-height:22px}
@@ -173,12 +183,24 @@ body.industrial-ui{
   background-image:linear-gradient(135deg,#c59a51dd,#8b642ecc 65%,#67451fe6),var(--industrial-crt);
   background-size:auto,512px 512px;color:#fff2ce;text-shadow:0 1px 3px #38210c
 }
-.industrial-ui #prologueReader,.industrial-ui #explorerPlayerAction{
+.industrial-ui #explorerPlayerAction{
   border:12px solid transparent;border-image:var(--industrial-frame) 80 / 12px / 0 repeat;
   border-radius:10px!important;background:#10150f var(--industrial-crt) center/512px 512px;
   color:#eeddb5;box-shadow:0 8px 30px #000b;scrollbar-color:#75674a #101512
 }
-.industrial-ui #prologueReader{overflow:hidden}
+/* Match the GM panel: paint the rails over the CRT surface, rather than
+   keeping the reader's separate rounded dialog border. */
+.industrial-ui #prologueReader{
+  isolation:isolate;border:0;border-radius:0!important;padding:12px;overflow:hidden;
+  background-color:#101611;background-image:linear-gradient(#09100a55,#09100a55),var(--industrial-crt);
+  background-size:auto,512px 512px;color:#f0dfbb;box-shadow:0 8px 30px #000b;
+  scrollbar-color:#75674a #101512
+}
+.industrial-ui #prologueReader::after{
+  content:'';position:absolute;inset:0;z-index:3;
+  border:12px solid transparent;border-image:var(--industrial-frame) 80 / 12px / 0 repeat;
+  pointer-events:none
+}
 .industrial-ui #prologueReader .prologue-reader-head,
 .industrial-ui #explorerPlayerAction .explorer-dialog-header{
   flex:none;min-width:0;padding:10px 12px;margin:0;border-bottom:1px solid #726343;
@@ -232,15 +254,40 @@ body.industrial-ui{
 /* Dungeon uses the shared menu frame and controls. Keep texture URLs relative to this theme. */
 
 .industrial-ui #dungeonModal{padding:calc(env(safe-area-inset-top) + 6px) 4px calc(env(safe-area-inset-bottom) + 6px);box-sizing:border-box}
-.industrial-ui .dungeon-sheet{height:100%;border:12px solid transparent;border-image:var(--industrial-frame) 80 / 12px / 0 repeat;border-radius:10px;background:#10150f var(--industrial-crt) center/512px 512px;color:#eeddb5;box-shadow:0 8px 32px #000b}
+.industrial-ui .dungeon-sheet{height:100%;border:12px solid transparent;border-image:var(--industrial-frame) 80 / 12px / 0 repeat;border-radius:10px;background:#10150f var(--industrial-crt) center/512px 512px;color:#eeddb5;box-shadow:0 8px 32px #000b;scrollbar-color:#75674a #101512}
 .industrial-ui .dungeon-header,.industrial-ui .dungeon-footer{background:#10150f var(--industrial-crt) center/512px 512px;border-color:#726343}
+.industrial-ui .dungeon-header h2,.industrial-ui .dungeon-slot-title{color:#f3c576}
+.industrial-ui .dungeon-header small,.industrial-ui .dungeon-intro,.industrial-ui .dungeon-footer p{color:#d1c3a3}
+.industrial-ui .dungeon-header>div,.industrial-ui .dungeon-footer p{min-width:0;overflow-wrap:anywhere}
 .industrial-ui .dungeon-slot{border:9px solid transparent;border-image:var(--industrial-frame) 80 / 9px / 0 repeat;padding:10px;background:#11170f var(--industrial-crt) center/512px 512px}
 .industrial-ui .dungeon-scene{border:5px solid #111a17;border-radius:6px;box-shadow:0 0 0 1px #6c715b,inset 0 0 12px #0009;isolation:isolate}
-.industrial-ui .dungeon-header button,.industrial-ui .dungeon-footer button,.industrial-ui .dungeon-release,.industrial-ui .dungeon-start{box-sizing:border-box;border:9px solid transparent;border-image:var(--industrial-steel) 70 fill / 10px / 0 stretch;border-radius:7px;background:transparent;color:#ffedb3;min-height:48px;box-shadow:0 3px 7px #0008}
-.industrial-ui .dungeon-start{border-image-source:var(--industrial-hazard);color:#201905;font-weight:bold}
-.industrial-ui .dungeon-select{box-sizing:border-box;background:#0c120e;border-color:#827453;color:#eeddb5;border-radius:3px}
+.industrial-ui .dungeon-scene--empty{background:linear-gradient(#080e0d66,#080e0d66),var(--industrial-crt);background-size:auto,512px 512px;color:#bcaf86;text-shadow:0 1px 2px #000}
+.industrial-ui .dungeon-scene-label{background:#10150fe6;color:#eeddb5;border:1px solid #726343}
+.industrial-ui .dungeon-name{color:#fff0bf;overflow-wrap:anywhere}
+.industrial-ui .dungeon-exp,.industrial-ui .dungeon-clock{color:#d1c3a3;overflow-wrap:anywhere}
+.industrial-ui #dungeonStatus{color:#f3c576;line-height:1.5;overflow-wrap:anywhere}
+.industrial-ui .dungeon-progress{height:10px;background:#080e0d;border:1px solid #726343;border-radius:3px;accent-color:#d6b86b}
+.industrial-ui .dungeon-progress::-webkit-progress-bar{background:#080e0d}
+.industrial-ui .dungeon-progress::-webkit-progress-value{background:linear-gradient(90deg,#94703b,#f3c576)}
+.industrial-ui .dungeon-progress::-moz-progress-bar{background:linear-gradient(90deg,#94703b,#f3c576)}
+.industrial-ui .dungeon-header button,.industrial-ui .dungeon-footer button,.industrial-ui .dungeon-release,.industrial-ui .dungeon-start{box-sizing:border-box;border:9px solid transparent;border-image:var(--industrial-steel) 70 fill / 10px / 0 stretch;border-radius:7px;background:transparent;color:#ffedb3;min-height:48px;box-shadow:0 3px 7px #0008;text-shadow:0 1px 3px #000;white-space:normal;overflow-wrap:anywhere}
+.industrial-ui .dungeon-start{border-image-source:var(--industrial-hazard);color:#201905;font-weight:bold;text-shadow:0 1px 0 #ffdf7d88}
+.industrial-ui .dungeon-select{
+  appearance:none;-webkit-appearance:none;box-sizing:border-box;min-height:48px;padding:6px 30px 6px 10px;
+  border:9px solid transparent;border-image:var(--industrial-steel) 70 / 10px / 0 stretch;
+  background:linear-gradient(45deg,transparent 50%,#ffedb3 50%) right 15px center/5px 5px no-repeat,
+    linear-gradient(135deg,#ffedb3 50%,transparent 50%) right 10px center/5px 5px no-repeat,
+    var(--industrial-crt) center/512px 512px;
+  color:#ffedb3;color-scheme:dark;border-radius:7px;text-shadow:0 1px 3px #000
+}
+.industrial-ui .dungeon-select option{background:#10150f;color:#eeddb5;text-shadow:none}
+.industrial-ui #dungeonModal button:disabled,.industrial-ui .dungeon-select:disabled{opacity:.45;cursor:default}
+.industrial-ui .dungeon-select:focus-visible{outline:2px solid #ffdf8c;outline-offset:2px}
+@media(hover:hover){
+  .industrial-ui #dungeonModal button:hover:not(:disabled),.industrial-ui .dungeon-select:hover:not(:disabled){filter:brightness(1.12)}
+}
+.industrial-ui #dungeonModal button:active:not(:disabled){filter:brightness(.9)}
 .industrial-ui .dungeon-header{padding:8px 10px}
-.industrial-ui .dungeon-header button{min-width:44px}
+.industrial-ui .dungeon-header button{width:48px;height:48px;min-width:48px}
 .industrial-ui .dungeon-footer{padding:8px;flex-wrap:wrap}
-.industrial-ui .dungeon-footer p{min-width:120px}
 @media(max-width:600px){.industrial-ui .dungeon-content{padding:10px 2px}.industrial-ui .dungeon-slot{padding:8px}.industrial-ui .dungeon-slots{gap:12px}}

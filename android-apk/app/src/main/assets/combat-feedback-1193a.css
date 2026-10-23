@@ -206,4 +206,5 @@ body.poker-dice-open .player-action-bar .primary-action{pointer-events:none;opac
 .snapshot[data-party-layout="combat"] .snapshot-catherine,
 .snapshot[data-party-layout="combat"] .snapshot-janet,
 .snapshot[data-party-layout="combat"] .snapshot-nguyen-quoc-nam,
-.snapshot[data-party-layout="combat"] .snapshot-hua-tieu-lan{display:none!important}
+.snapshot[data-party-layout="combat"] .snapshot-hua-tieu-lan,
+.snapshot[data-party-layout="combat"] .snapshot-luc-tram{display:none!important}
