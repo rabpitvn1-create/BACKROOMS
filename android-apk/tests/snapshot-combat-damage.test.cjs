@@ -887,59 +887,55 @@ test('victory continuation runs once after the actual final shatter and never on
  assert.equal(escaped.length,0);
 });
 
-test('Follower story encounter temporarily shows both characters and restores Cao Minh after it ends',()=>{
+test('Follower first meeting shows exactly two overlays, restores after closing, and never hijacks Entity/combat',()=>{
   const java=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/MainActivity.java'),'utf8');
-  const line=java.split('\n').find(l=>l.includes('/* SNAPSHOT_PARTY_LAYOUT_R03 */'));
+  const line=java.split('\n').find(l=>l.includes('/* SNAPSHOT_PARTY_LAYOUT_R04 */'));
   assert.ok(line);
   const script=JSON.parse(line.trim().replace(/ \+$/,''));
   for(let count=1;count<=7;count++){
-    const actors=Array.from({length:count},()=>({style:{}}));
+    const actors=Array.from({length:count},(_,i)=>({style:{},
+      className:i===0?'snapshot-character':['snapshot-janet','snapshot-catherine',
+        'snapshot-nguyen-quoc-nam','snapshot-hua-tieu-lan','snapshot-trac-lam','snapshot-lucia'][i-1]}));
     const hero=actors[0],followers=actors.slice(1);
     const box={dataset:{},querySelector(s){return s==='.snapshot-character'?hero:null;},
       querySelectorAll(){return followers}};
     let baseCalls=0;
     const scope={document:{getElementById(){return box}},state:{combat:{active:false}},
       renderSnapshot(){baseCalls++}};scope.window=scope;
-    vm.runInNewContext(script,scope);
-    scope.renderSnapshot();
+    vm.runInNewContext(script,scope);scope.renderSnapshot();
     assert.equal(baseCalls,1);assert.equal(box.dataset.partyLayout,'exploration');
     if(count>1){
-      assert.equal(hero.style.left,'auto');
-      assert.equal(hero.style.right,'0');
-      assert.equal(hero.style.height,'97%');
+      assert.equal(hero.style.right,'0');assert.equal(hero.style.height,'97%');
       assert.equal(hero.style.width,'auto');
-      assert.equal(hero.style.maxWidth,'100%');
       followers.forEach((actor,index)=>{
         const left=parseFloat(actor.style.left),maxWidth=parseFloat(actor.style.maxWidth);
         assert.ok(left>=3&&left+maxWidth<=67.00001);
         if(index)assert.ok(left>=parseFloat(followers[index-1].style.left)+
           parseFloat(followers[index-1].style.maxWidth)-.00001);
-        assert.equal(actor.style.objectFit,'contain');
-        assert.equal(actor.style.width,'auto');
       });
       scope.state.encounteredCharacters=[{id:'janet',present:true}];
       scope.state.specialDialogueProgress={pending:{id:'janet',kind:'intro'}};
       scope.backroomRefreshSnapshotPartyLayout();
       assert.equal(box.dataset.partyLayout,'encounter');
-      assert.equal(hero.style.left,'6%','Cao Minh may move left during an active Follower encounter');
-      assert.equal(hero.style.height,'84%');
-      assert.equal(hero.style.width,(88/count)+'%');
-      assert.equal(followers[0].style.right,'auto');
-      // Ending the popup must restore the previous exploration layout without
-      // requiring another Core turn, even while Core keeps Janet present.
+      assert.equal(hero.style.left,'6%');assert.equal(hero.style.height,'84%');
+      assert.equal(followers[0].style.left,'50%');
+      assert.ok(followers.slice(1).every(x=>x.style.display==='none'),
+        'other party members must not be drawn over Janet story encounter');
+      scope.state.pendingEncounter={entityKey:'diep_minh',encounterId:'e1'};
+      scope.backroomRefreshSnapshotPartyLayout();
+      assert.equal(box.dataset.partyLayout,'exploration','Entity bypasses Follower two-shot');
+      scope.state.pendingEncounter=null;
       scope.state.specialDialogueProgress.pending=null;
       scope.backroomRefreshSnapshotPartyLayout();
       assert.equal(box.dataset.partyLayout,'exploration');
-      assert.equal(hero.style.left,'auto');
-      assert.equal(hero.style.right,'0');
-      assert.equal(hero.style.height,'97%');
-      assert.equal(hero.style.width,'auto');
-      // Entity encounters do not use the temporary Follower layout.
-      scope.state.pendingEncounter={entityKey:'diep_minh',encounterId:'e1'};
+      assert.equal(hero.style.left,'auto');assert.equal(hero.style.right,'0');
+      assert.equal(hero.style.height,'97%');assert.equal(hero.style.width,'auto');
+      assert.ok(followers.every(x=>x.style.display===''));
+      scope.state.specialDialogueProgress.pending={id:'janet',kind:'intro'};
+      scope.state.encounteredCharacters[0].present=false;
       scope.backroomRefreshSnapshotPartyLayout();
-      assert.equal(box.dataset.partyLayout,'exploration');
-      assert.equal(hero.style.right,'0');
-    }else assert.deepEqual(hero.style,{},'solo player keeps the original snapshot styling');
+      assert.equal(box.dataset.partyLayout,'exploration','not-present NPC cannot trigger encounter');
+    }else assert.deepEqual(hero.style,{},'solo player remains original size');
     actors.forEach(actor=>actor.style={});scope.state.combat.active=true;scope.renderSnapshot();
     assert.equal(box.dataset.partyLayout,'combat');actors.forEach(actor=>assert.deepEqual(actor.style,{}));
     scope.backroomFreezeSnapshot=true;scope.renderSnapshot();assert.equal(baseCalls,2);
