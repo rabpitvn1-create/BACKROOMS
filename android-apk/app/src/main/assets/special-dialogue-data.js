@@ -1765,7 +1765,7 @@
       [
         {
           "speaker": "cao_minh",
-          "text": "Ngươi đã ở chốn này bao lâu?"
+          "text": "Bổn Tôn muốn biết ngươi đã ở chốn này bao lâu."
         },
         {
           "speaker": "diep_minh",
@@ -1805,7 +1805,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Ngươi định lập tông trong một mê cung không giữ nổi đường đi?"
+          "text": "Ngươi định lập tông trong một mê cung không giữ nổi đường đi? Bổn Tôn thật muốn xem."
         },
         {
           "speaker": "diep_minh",
@@ -1849,7 +1849,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Thế thì đừng vội tự xưng là chủ nhân nơi này."
+          "text": "Vậy đừng vội tự nhận mình là chủ nhân nơi này trước mặt Bổn Tôn."
         }
       ],
       [
@@ -1895,7 +1895,7 @@
       [
         {
           "speaker": "cao_minh",
-          "text": "Hoàng Thiên Mộc Kiếm đã khác xưa."
+          "text": "Hoàng Thiên Mộc Kiếm đã khác xưa. Bổn Tôn suýt không nhận ra."
         },
         {
           "speaker": "diep_minh",
@@ -1931,7 +1931,7 @@
       [
         {
           "speaker": "cao_minh",
-          "text": "Ngươi đã cướp thần vật Cao gia. Rốt cuộc được gì?"
+          "text": "Ngươi đã cướp thần vật Cao gia. Đứng trước Bổn Tôn, rốt cuộc ngươi được gì?"
         },
         {
           "speaker": "diep_minh",
@@ -1987,7 +1987,7 @@
       [
         {
           "speaker": "cao_minh",
-          "text": "Ngươi từng đứng cạnh Lục Trầm. Ngươi đã kể nàng nghe những gì?"
+          "text": "Bổn Tôn thấy ngươi từng đứng cạnh Lục Trầm. Ngươi đã kể nàng nghe những gì?"
         },
         {
           "speaker": "diep_minh",
@@ -2035,7 +2035,7 @@
       [
         {
           "speaker": "cao_minh",
-          "text": "Ngươi còn tìm cửa ra?"
+          "text": "Ngươi vẫn tìm cửa ra? Bổn Tôn tưởng ngươi muốn chiếm lấy nơi này."
         },
         {
           "speaker": "diep_minh",
@@ -2075,7 +2075,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Lần đầu ta nghe ngươi nói thật."
+          "text": "Cuối cùng Bổn Tôn cũng nghe được một câu thật từ ngươi."
         },
         {
           "speaker": "diep_minh",
@@ -2157,7 +2157,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Ai nói với nàng?"
+          "text": "Kẻ nào đã nói với nàng những lời ấy về Bổn Tôn?"
         },
         {
           "speaker": "luc_tram_hac_hoa",
@@ -2179,7 +2179,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Ta đã thấy nàng luyện kiếm nhiều lần."
+          "text": "Bổn Tôn đã thấy nàng luyện kiếm nhiều lần."
         },
         {
           "speaker": "luc_tram_hac_hoa",
@@ -2231,7 +2231,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Người nhà ta chết dưới kiếm hắn. Hơn bốn trăm người."
+          "text": "Người nhà Bổn Tôn chết dưới kiếm hắn. Hơn bốn trăm người."
         },
         {
           "speaker": "luc_tram_hac_hoa",
@@ -2257,7 +2257,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Thế mà hắn vẫn nói với nàng về chính đạo."
+          "text": "Thế mà hắn vẫn nói với nàng về chính đạo, rồi đẩy mọi tội lỗi lên Bổn Tôn."
         },
         {
           "speaker": "luc_tram_hac_hoa",
@@ -2373,7 +2373,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Hắn đã giết cả người nhà ta."
+          "text": "Hắn đã giết cả người nhà Bổn Tôn."
         },
         {
           "speaker": "luc_tram_hac_hoa",
@@ -2433,7 +2433,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Ta cũng không nói đó là trùng hợp."
+          "text": "Bổn Tôn cũng không bảo đó là trùng hợp."
         },
         {
           "speaker": "luc_tram_hac_hoa",
@@ -2507,7 +2507,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Ta sẽ không xin nàng tin ta bằng lời."
+          "text": "Bổn Tôn sẽ không ép nàng tin chỉ bằng lời."
         },
         {
           "speaker": "luc_tram_hac_hoa",
