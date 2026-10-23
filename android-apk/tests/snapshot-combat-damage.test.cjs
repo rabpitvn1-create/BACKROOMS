@@ -887,31 +887,43 @@ test('victory continuation runs once after the actual final shatter and never on
  assert.equal(escaped.length,0);
 });
 
-test('exploration party uses disjoint bounded slots and leaves combat geometry to the turn renderer',()=>{
- const java=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/MainActivity.java'),'utf8');
- const line=java.split('\n').find(l=>l.includes('/* SNAPSHOT_PARTY_LAYOUT_R01 */'));
- const script=JSON.parse(line.trim().replace(/ \+$/,''));
- for(let count=1;count<=6;count++){
-  const actors=Array.from({length:count},()=>({style:{}}));
-  const box={dataset:{},querySelectorAll(){return actors}};
-  let baseCalls=0;
-  const scope={document:{getElementById(){return box}},state:{combat:{active:false}},renderSnapshot(){baseCalls++}};scope.window=scope;
-  vm.runInNewContext(script,scope);scope.renderSnapshot();
-  assert.equal(baseCalls,1);assert.equal(box.dataset.partyLayout,'exploration');
-  if(count>1)actors.forEach((actor,index)=>{
-   const left=parseFloat(actor.style.left),width=parseFloat(actor.style.width);
-   assert.ok(left>=6&&left+width<=94.00001);
-   if(index)assert.ok(left>=parseFloat(actors[index-1].style.left)+width-0.00001);
-   assert.equal(actor.style.objectFit,'contain');
-  });
-  actors.forEach(actor=>actor.style={});scope.state.combat.active=true;scope.renderSnapshot();
-  assert.equal(box.dataset.partyLayout,'combat');actors.forEach(actor=>assert.deepEqual(actor.style,{}));
-  scope.backroomFreezeSnapshot=true;scope.renderSnapshot();assert.equal(baseCalls,2);
- }
- const css=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/combat-feedback-1193a.css'),'utf8');
- for(const name of ['catherine','janet','nguyen-quoc-nam','hua-tieu-lan'])assert.ok(css.includes('.snapshot[data-party-layout="combat"] .snapshot-'+name));
+test('exploration party keeps Cao Minh at native scale and lays out followers away from the hero anchor',()=>{
+  const java=fs.readFileSync(path.join(__dirname,'../app/src/main/java/com/rabpit/backroom/MainActivity.java'),'utf8');
+  const line=java.split('\n').find(l=>l.includes('/* SNAPSHOT_PARTY_LAYOUT_R02 */'));
+  assert.ok(line);
+  const script=JSON.parse(line.trim().replace(/ \+$/,''));
+  for(let count=1;count<=7;count++){
+    const actors=Array.from({length:count},()=>({style:{}}));
+    const hero=actors[0],followers=actors.slice(1);
+    const box={dataset:{},querySelector(s){return s==='.snapshot-character'?hero:null;},
+      querySelectorAll(){return followers}};
+    let baseCalls=0;
+    const scope={document:{getElementById(){return box}},state:{combat:{active:false}},
+      renderSnapshot(){baseCalls++}};scope.window=scope;
+    vm.runInNewContext(script,scope);scope.renderSnapshot();
+    assert.equal(baseCalls,1);assert.equal(box.dataset.partyLayout,'exploration');
+    if(count>1){
+      assert.equal(hero.style.left,'auto');
+      assert.equal(hero.style.right,'0');
+      assert.equal(hero.style.height,'97%');
+      assert.equal(hero.style.width,'auto');
+      assert.equal(hero.style.maxWidth,'100%','never shrink the wide Cao Minh artwork');
+      followers.forEach((actor,index)=>{
+        const left=parseFloat(actor.style.left),maxWidth=parseFloat(actor.style.maxWidth);
+        assert.ok(left>=3&&left+maxWidth<=67.00001,'companions stay within left lanes');
+        if(index)assert.ok(left>=parseFloat(followers[index-1].style.left)+
+          parseFloat(followers[index-1].style.maxWidth)-.00001,'follower lanes do not overlap');
+        assert.equal(actor.style.objectFit,'contain');
+        assert.equal(actor.style.width,'auto');
+      });
+    }else assert.deepEqual(hero.style,{},'solo player keeps original render styles');
+    actors.forEach(actor=>actor.style={});scope.state.combat.active=true;scope.renderSnapshot();
+    assert.equal(box.dataset.partyLayout,'combat');actors.forEach(actor=>assert.deepEqual(actor.style,{}));
+    scope.backroomFreezeSnapshot=true;scope.renderSnapshot();assert.equal(baseCalls,2);
+  }
+  const css=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/combat-feedback-1193a.css'),'utf8');
+  for(const name of ['catherine','janet','nguyen-quoc-nam','hua-tieu-lan'])assert.ok(css.includes('.snapshot[data-party-layout="combat"] .snapshot-'+name));
 });
-
 
 test('combat portraits normalize visible body height and ground without changing focus or transforms',()=>{
  const helper=script.slice(script.indexOf('  var partyPortraitBounds='),script.indexOf('  function combatPortraitSource('));
