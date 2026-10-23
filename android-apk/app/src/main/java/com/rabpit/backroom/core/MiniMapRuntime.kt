@@ -24,7 +24,7 @@ object MiniMapRuntime {
   fun script(state: GameState, p: JSONObject = progress(state)): JSONObject? = state.world[scriptKey(p)]?.let(::JSONObject)
   fun node(state: GameState) = LevelRouteRegistry.requested(JSONObject(state.world.getValue("levelJson")))!!
   fun token(state: GameState): String = progress(state).let { "${it.getString("runId")}:${it.getString("nodeId")}:${it.getInt("index")}" }
-  fun blocked(state: GameState) = CombatRuntime.active(state) != null || CombatRuntime.pending(state) != null || PENDING in state.world || ActionRuntime.activeSession(state) != null || state.turn.pending != null
+  fun blocked(state: GameState) = PartyCombatHealth.isDefeated(state) || CombatRuntime.active(state) != null || CombatRuntime.pending(state) != null || PENDING in state.world || ActionRuntime.activeSession(state) != null || state.turn.pending != null
   /** A checked scene control is a small, repeatable action, not a new encounter roll. */
   fun isMechanismControl(state: GameState, actionId: String): Boolean {
     val s = script(state) ?: return false

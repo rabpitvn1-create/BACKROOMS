@@ -42,10 +42,11 @@ object CoreClientProjection {
     val state = initialize(rawState)
     val out = JSONObject(client.toString())
     for (key in arrayOf("turn", "saveVersion", "inventory", "party", "partyDetails",
-      "equipment", "player", "coreSystem", "combat", "combatFeedback", "postCombatContinuation", "gameTime",
+      "equipment", "player", "gameOver", "coreSystem", "combat", "combatFeedback", "postCombatContinuation", "gameTime",
       "location", "title", "level", "flags", "story", "pendingEncounter", "encounteredCharacters", "scene", "dungeon")) out.remove(key)
     out.put("turn", turnIndex(state))
     out.put("saveVersion", CURRENT_SAVE_VERSION)
+    out.put("gameOver", PartyCombatHealth.isDefeated(state))
     out.put("location", state.world.getValue("location"))
     out.put("title", state.world.getValue("title"))
     out.put("level", JSONObject(state.world.getValue("levelJson")))

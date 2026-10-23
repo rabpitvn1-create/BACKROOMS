@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs><linearGradient id="stone" x2=".3" y2="1"><stop stop-color="#8c9487"/><stop offset="1" stop-color="#414a41"/></linearGradient></defs>
+  <path fill="#101611" d="M0 0h128v128H0z"/>
+  <path fill="#1b251b" d="m8 116 12-12 15 4 13-9 22 5 15-3 13 9 19 6z"/>
+  <path fill="url(#stone)" stroke="#a3aa95" stroke-width="2" d="M29 107V45a35 35 0 0 1 70 0v62z"/>
+  <path fill="none" stroke="#303a30" stroke-width="3" d="M37 102V45a27 27 0 0 1 54 0v57M64 29v25m-9-16h18m-26 42h34m-29 9h24"/>
+  <path fill="#67725e" stroke="#929b7e" stroke-width="2" d="M23 107h82v9H23z"/>
+  <path fill="none" stroke="#252f25" stroke-width="2" d="m85 58-7 11 5 4-8 13"/>
+</svg>

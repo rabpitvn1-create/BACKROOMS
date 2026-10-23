@@ -51,6 +51,7 @@ class GameCoreFacade private constructor(
   /** Native-owned presentation checkpoint; no gameplay/RNG/time changes. */
   @Synchronized fun beginPlayerPresentation(id: String, text: String, clientJson: String): String {
     val core = loadCurrentState()
+    require(!PartyCombatHealth.isDefeated(core)) { "game_over" }
     require(MiniMapRuntime.PENDING !in core.world && !MiniMapRuntime.blocked(core)) { "scene_busy" }
     val active = PlayerActionPresentation.journal(core)
     require(active == null || active.optString("status") == "complete" ||
@@ -171,6 +172,7 @@ class GameCoreFacade private constructor(
     }
     val command = JSONObject(raw)
     var state = loadCurrentState()
+    require(!PartyCombatHealth.isDefeated(state)) { "game_over" }
     val actionId = command.getString("actionId")
     // A persisted FREE pending command must remain retryable after process death.
     val savedFreeText = state.world[MiniMapRuntime.PENDING]?.let(::JSONObject)?.takeIf {
@@ -297,7 +299,9 @@ class GameCoreFacade private constructor(
    * No AI planner call; halt before another step if an Entity is pending. */
   @Synchronized fun executePlayerFootsteps(playerText: String, count: Int, clientJson: String): String {
     require(count in 1..12) { "player_footstep_count" }
-    val batch = PlayerActionPresentation.journal(loadCurrentState()) ?: error("player_action_missing")
+    val initialState = loadCurrentState()
+    require(!PartyCombatHealth.isDefeated(initialState)) { "game_over" }
+    val batch = PlayerActionPresentation.journal(initialState) ?: error("player_action_missing")
     require(batch.optString("status") == "running" && batch.optString("playerText") == playerText &&
       batch.getJSONArray("events").length() == 0) { "player_footstep_batch_invalid" }
     require(WorldGraphRuntime.active(MiniMapRuntime.progress(loadCurrentState()))) { "player_footstep_world_only" }
@@ -476,6 +480,7 @@ class GameCoreFacade private constructor(
   @Synchronized fun processRule(clientStateJson: String, action: String): String {
     val client = JSONObject(clientStateJson)
     val state = loadCurrentState()
+    require(!PartyCombatHealth.isDefeated(state)) { "game_over" }
     if (CombatRuntime.pending(state) != null) return response(false, clientSnapshot(client, state),
       "encounter_confirmation_required", "encounter_confirmation_required")
     if (blocksTextItemAction(action)) return response(true, clientSnapshot(client, state), "item_ui_required", "item_ui_required", "Hãy nhấn vào item và chọn Dùng, Chuyển hoặc Bỏ.")
@@ -609,6 +614,7 @@ class GameCoreFacade private constructor(
   @Synchronized fun beginAction(clientStateJson: String, kindRaw: String, action: String): String {
     val client = JSONObject(clientStateJson)
     val state = loadCurrentState()
+    require(!PartyCombatHealth.isDefeated(state)) { "game_over" }
     if (MiniMapRuntime.STATE in state.world) return actionStartResponse(false, null, "scene_ui_required")
     val reserved = CombatRuntime.pending(state)
     if (reserved != null) {
@@ -836,6 +842,7 @@ class GameCoreFacade private constructor(
   @Synchronized fun prepareCombatDice(clientStateJson: String, action: String): String {
     val client = JSONObject(clientStateJson)
     val current = loadCurrentState()
+    require(!PartyCombatHealth.isDefeated(current)) { "game_over" }
     val combat = CombatRuntime.active(current)
       ?: return response(false, clientSnapshot(client, current),
         "combat_inactive", "combat_dice_inactive")
@@ -852,6 +859,7 @@ class GameCoreFacade private constructor(
   @Synchronized fun setCombatDiceHold(clientStateJson: String, dieIndex: Int, held: Boolean): String {
     val client = JSONObject(clientStateJson)
     val current = loadCurrentState()
+    require(!PartyCombatHealth.isDefeated(current)) { "game_over" }
     return try {
       val next = PokerDiceCore.setHold(current, dieIndex, held)
       repository.save(next)
@@ -865,6 +873,7 @@ class GameCoreFacade private constructor(
   @Synchronized fun rerollCombatDice(clientStateJson: String): String {
     val client = JSONObject(clientStateJson)
     val current = loadCurrentState()
+    require(!PartyCombatHealth.isDefeated(current)) { "game_over" }
     return try {
       val next = PokerDiceCore.reroll(current)
       repository.save(next)
@@ -878,6 +887,7 @@ class GameCoreFacade private constructor(
   @Synchronized fun finishCombatDice(clientStateJson: String): String {
     val client = JSONObject(clientStateJson)
     val current = loadCurrentState()
+    require(!PartyCombatHealth.isDefeated(current)) { "game_over" }
     return try {
       val next = PokerDiceCore.finish(current)
       repository.save(next)
@@ -1214,6 +1224,7 @@ class GameCoreFacade private constructor(
   @Synchronized fun confirmEncounter(clientStateJson: String, encounterId: String): String {
     val client = JSONObject(clientStateJson)
     val current = loadCurrentState()
+    require(!PartyCombatHealth.isDefeated(current)) { "game_over" }
     if (current.metadata.containsKey(SPAWN_ENCOUNTER_OWNER))
       return response(false, clientSnapshot(client, current), "encounter_narration_pending", "encounter_confirmation_rejected")
     if (client.optInt("turn", -1) != CoreClientProjection.turnIndex(current))
@@ -1231,6 +1242,7 @@ class GameCoreFacade private constructor(
   @Synchronized fun recruitFollower(clientStateJson: String, characterId: String): String {
     val client = JSONObject(clientStateJson)
     val current = loadCurrentState()
+    require(!PartyCombatHealth.isDefeated(current)) { "game_over" }
     fun reject(reason: String): String = response(false, clientSnapshot(client, current), reason, "recruitment_rejected")
     if (client.optInt("turn", -1) != CoreClientProjection.turnIndex(current))
       return reject("stale_client_state")
@@ -1264,6 +1276,7 @@ class GameCoreFacade private constructor(
   @Synchronized fun processCombat(clientStateJson: String, actionKind: String, action: String): String {
     val client = JSONObject(clientStateJson)
     val current = loadCurrentState()
+    require(!PartyCombatHealth.isDefeated(current)) { "game_over" }
     val activeCombat = CombatRuntime.active(current)
       ?: return response(false, client, null, "combat_inactive")
     if (!PokerDiceCore.isFinalizedFor(current, action, activeCombat.encounterId)) {
@@ -1289,7 +1302,16 @@ class GameCoreFacade private constructor(
     ))
     if (time.applied) next = time.state
     next = CharacterStatEngine.applyCompletedTurnRegen(next, "COMBAT_TURN_${CoreClientProjection.turnIndex(current)}")
-    if (resolution.entityDestroyed || resolution.escaped) {
+    // The exertion minute can also be lethal; settle after every Core HP change.
+    next = PartyCombatHealth.markFallen(next)
+    if (PartyCombatHealth.isDefeated(next)) {
+      next = CombatRuntime.clear(next)
+      if (!resolution.completionNarrative.contains("GAME OVER")) {
+        val ending = "GAME OVER — Tất cả nhân vật trong đội đã hết HP."
+        resolution = resolution.copy(reply = "${resolution.reply} $ending".trim(), completionNarrative = ending)
+      }
+    }
+    if (resolution.entityDestroyed || resolution.escaped || PartyCombatHealth.isDefeated(next)) {
       val flags = next.world["flagsJson"]?.let { JSONObject(it) }
         ?: client.optJSONObject("flags")?.let { JSONObject(it.toString()) }
         ?: JSONObject()
@@ -1322,7 +1344,7 @@ class GameCoreFacade private constructor(
       put("events", JSONArray().apply { resolution.feedback.forEach { put(it.toJson()) } })
       put("turns", JSONArray().apply { resolution.turnCues.forEach { put(it.toJson()) } })
     })
-    if (resolution.entityDestroyed || resolution.escaped) {
+    if (resolution.entityDestroyed || resolution.escaped || PartyCombatHealth.isDefeated(next)) {
       val flags = output.optJSONObject("flags") ?: JSONObject().also { output.put("flags", it) }
       flags.put("entityEncounterKey", "")
     }
@@ -1334,7 +1356,7 @@ class GameCoreFacade private constructor(
       val log = output.optJSONArray("log") ?: JSONArray().also { output.put("log", it) }
       log.put(JSONObject().put("role", "gm").put("text", resolution.completionNarrative))
     }
-    return response(true, output, null, if (resolution.entityDestroyed) "combat_entity_destroyed" else if (resolution.escaped) "combat_escaped" else "combat_resolved", combatReply)
+    return response(true, output, null, if (PartyCombatHealth.isDefeated(next)) "game_over" else if (resolution.entityDestroyed) "combat_entity_destroyed" else if (resolution.escaped) "combat_escaped" else "combat_resolved", combatReply)
   }
 
   private fun normalizeVisualPresence(state: GameState): GameState {
@@ -1484,6 +1506,7 @@ class GameCoreFacade private constructor(
   @Synchronized fun processItemAction(clientStateJson: String, requestJson: String): String {
     val client = JSONObject(clientStateJson)
     val state = loadCurrentState()
+    require(!PartyCombatHealth.isDefeated(state)) { "game_over" }
     fun reject(reason: String): String = response(false, clientSnapshot(client, state), reason, "item_ui_rejected", validationReply(reason))
     if (CombatRuntime.pending(state) != null) return reject("encounter_confirmation_required")
     if (client.optInt("turn", -1) != CoreClientProjection.turnIndex(state)) return reject("stale_client_state")

@@ -13,11 +13,28 @@ object PartyCombatHealth {
   /** Includes fallen members in the max-HP projection until the encounter roster changes. */
   fun members(state: GameState): List<String> =
     state.party.memberIds.distinct().take(state.party.maxMembers.coerceIn(1, 4)).filter { id ->
-      state.characters[id]?.presence == CharacterPresence.ACTIVE
+      state.characters[id]?.presence in setOf(CharacterPresence.ACTIVE, CharacterPresence.DEAD)
     }
 
   fun actingMembers(state: GameState): List<String> = members(state).filter { id ->
-    (state.characters[id]?.vitalState?.currentHp ?: 0) > 0
+    state.characters[id]?.presence == CharacterPresence.ACTIVE &&
+      (state.characters[id]?.vitalState?.currentHp ?: 0) > 0
+  }
+
+  /** Missing/separated characters cannot rescue the current party. */
+  fun isDefeated(state: GameState): Boolean =
+    members(state).isNotEmpty() && actingMembers(state).isEmpty()
+
+  /** Commit lethal combat damage at the round boundary, after all hit effects. */
+  fun markFallen(state: GameState): GameState {
+    val fallen = members(state).mapNotNull { id ->
+      val character = state.characters.getValue(id)
+      if (character.presence == CharacterPresence.ACTIVE && character.vitalState.currentHp <= 0)
+        id to character.copy(presence = CharacterPresence.DEAD,
+          vitalState = character.vitalState.copy(currentHp = 0, condition = CharacterCondition.DEAD))
+      else null
+    }.toMap()
+    return if (fallen.isEmpty()) state else state.copy(characters = state.characters + fallen)
   }
 
   fun currentHp(state: GameState): Int = members(state).sumOf { id ->

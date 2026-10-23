@@ -41,7 +41,7 @@ html,body,button,input,textarea,select,option{font-family:Play,sans-serif}
 .snapshot[data-combat-focus] .snapshot-character,
 .snapshot[data-combat-focus] .snapshot-lucia{display:none!important}
 .snapshot[data-combat-focus] .snapshot-entity{
- display:block!important;left:0!important;right:auto!important;
+ display:block!important;right:auto!important;
  animation:none!important;rotate:none;translate:none;scale:none
 }
 /* Identical Party geometry for Cao Minh, Lucia, and every dynamic companion.

@@ -1925,12 +1925,29 @@ function renderSemanticText(entry){
   return out;
 }
 
-function levelHeader(s){if(s&&s.level&&s.level.name){const id=s.level.id!=null?s.level.id:s.level.number;if(s.level.kind==="AREA"||s.level.kind==="SPECIAL"||s.level.name==="Level "+id)return s.level.name;return "Level "+id+" – "+s.level.name;}const where=String(s&&s.location||"")+" "+String(s&&s.title||"");const m=where.match(/Level\s*([^\s\/—–-]+)\s*(?:\/|—|–|-)\s*([^—–\n]+?)(?:\s+[—–]\s+|$)/i);if(m)return "Level "+m[1]+" – "+m[2].trim();return s&&s.title||"Backrooms"}function render(){prologueControls?.refresh(state);const readingOffset=logEl.scrollTop;titleEl.textContent=levelHeader(state);turnEl.textContent=state.turn;locationEl.textContent=state.location;modeEl.textContent=state.mode;playerEl.textContent=state.player?.name||"Cao Minh";partyEl.innerHTML=chips(state.party);if(inventoryEl)inventoryEl.innerHTML=chips(state.inventory);logEl.innerHTML=(state.log||[]).map(x=>{const w=x.role!=="player"&&String(x.text||"").trim().startsWith("[Warning]");return "<article class='message "+(x.role==="player"?"player":x.role==="core"?"core":"gm")+(w?" warning":"")+"'><div class='role'>"+(x.role==="player"?"BẠN":x.role==="core"?"CORE · KẾT QUẢ ĐÃ XÁC NHẬN":"GAME MASTER")+"</div><div class='text'>"+renderSemanticText(x)+"</div>"+(x.actionStatus?"<div class='action-status'>"+esc(x.actionStatus)+"</div>":"")+"</article>"}).join("");if(state.scene&&state.scene.runtime==='world-graph-v3')logEl.scrollTop=Math.min(readingOffset,logEl.scrollHeight);else logEl.scrollTop=logEl.scrollHeight;if(window.backroomRenderBattleStart)window.backroomRenderBattleStart();if(window.backroomRenderEncounteredCharacters)window.backroomRenderEncounteredCharacters()}
+function levelHeader(s){if(s&&s.level&&s.level.name){const id=s.level.id!=null?s.level.id:s.level.number;if(s.level.kind==="AREA"||s.level.kind==="SPECIAL"||s.level.name==="Level "+id)return s.level.name;return "Level "+id+" – "+s.level.name;}const where=String(s&&s.location||"")+" "+String(s&&s.title||"");const m=where.match(/Level\s*([^\s\/—–-]+)\s*(?:\/|—|–|-)\s*([^—–\n]+?)(?:\s+[—–]\s+|$)/i);if(m)return "Level "+m[1]+" – "+m[2].trim();return s&&s.title||"Backrooms"}function render(){prologueControls?.refresh(state);renderGameOver();const readingOffset=logEl.scrollTop;titleEl.textContent=levelHeader(state);turnEl.textContent=state.turn;locationEl.textContent=state.location;modeEl.textContent=state.mode;playerEl.textContent=state.player?.name||"Cao Minh";partyEl.innerHTML=chips(state.party);if(inventoryEl)inventoryEl.innerHTML=chips(state.inventory);logEl.innerHTML=(state.log||[]).map(x=>{const w=x.role!=="player"&&String(x.text||"").trim().startsWith("[Warning]");return "<article class='message "+(x.role==="player"?"player":x.role==="core"?"core":"gm")+(w?" warning":"")+"'><div class='role'>"+(x.role==="player"?"BẠN":x.role==="core"?"CORE · KẾT QUẢ ĐÃ XÁC NHẬN":"GAME MASTER")+"</div><div class='text'>"+renderSemanticText(x)+"</div>"+(x.actionStatus?"<div class='action-status'>"+esc(x.actionStatus)+"</div>":"")+"</article>"}).join("");if(state.scene&&state.scene.runtime==='world-graph-v3')logEl.scrollTop=Math.min(readingOffset,logEl.scrollHeight);else logEl.scrollTop=logEl.scrollHeight;if(window.backroomRenderBattleStart)window.backroomRenderBattleStart();if(window.backroomRenderEncounteredCharacters)window.backroomRenderEncounteredCharacters()}
 const SAVE_KEY="backroom-apk-state";
 const SNAPSHOT_KEY="backroom-apk-snapshot";
 let destructiveAction="";
 let destructiveUntil=0;
 
+function renderGameOver(){
+  const panel=document.getElementById('gameOverPanel');
+  if(panel)panel.hidden=state.gameOver!==true;
+  if(state.gameOver===true){
+    if(submitEl)submitEl.disabled=true;
+    const prompt=document.getElementById('prologuePrompt');if(prompt)prompt.hidden=true;
+  }
+}
+function runGameOverAction(action){
+  action();
+  const message=document.getElementById('gameOverStatus');
+  if(message)message.textContent=statusEl.textContent;
+}
+function characterIsDead(member){
+  return !!member&&(member.presence==='DEAD'||member.condition==='DEAD'||
+    (member.currentHp!=null&&Number(member.currentHp)<=0));
+}
 function freshInitial(){return JSON.parse(JSON.stringify(initial))}
 function clearAuthoritativeCore(){
   try{
@@ -2017,7 +2034,7 @@ function clearSave(){
 formEl.addEventListener("submit",e=>{
   e.preventDefault();
   const a=actionEl.value.trim();
-  if(!a||busy||coreUnavailable||state.pendingEncounter||(state.combat&&state.combat.active)||window.__combatBusy||window.__combatDiceBusy||window.__combatFeedbackBusy)return;
+  if(!a||busy||coreUnavailable||state.gameOver===true||state.pendingEncounter||(state.combat&&state.combat.active)||window.__combatBusy||window.__combatDiceBusy||window.__combatFeedbackBusy)return;
   if(!window.Android||typeof window.Android.submitAction!=="function"){statusEl.textContent="Không tìm thấy Android action bridge.";return;}
   busy=true;syncPrimaryActions();
   statusEl.textContent="Gehihi đang xử lý lượt…";appendActionPending(a);
@@ -2028,7 +2045,7 @@ formEl.addEventListener("submit",e=>{
 // PRIMARY_EXECUTE_ACTION
 function syncPrimaryActions(){
   const hasText=!!(actionEl&&actionEl.value.trim());
-  if(submitEl)submitEl.disabled=busy||coreUnavailable||!!state.pendingEncounter||!hasText;
+  if(submitEl)submitEl.disabled=busy||coreUnavailable||state.gameOver===true||!!state.pendingEncounter||!hasText;
   if(typeof window.backroomSyncExplorer==="function")window.backroomSyncExplorer();
 }
 function appendActionPending(label){
@@ -2179,7 +2196,7 @@ render();
     selectedCharacterId=member.id||'cao_minh';
     if(view)view.dataset.characterId=selectedCharacterId;
     detailName.textContent=member.name||member.id||'—';
-    const detailAvatarSrc=member.id==='cao_minh'?(madGodSetEquipped()?'avatars/MadGod.jpg':'avatars/CAO_MINH_AVATAR.jpg'):(member.avatar||member.avatarRef||'');
+    const detailAvatarSrc=characterIsDead(member)?'avatars/tombstone.svg':member.id==='cao_minh'?(madGodSetEquipped()?'avatars/MadGod.jpg':'avatars/CAO_MINH_AVATAR.jpg'):(member.avatar||member.avatarRef||'');
     detailAvatar.hidden=!detailAvatarSrc;
     if(detailAvatarSrc)detailAvatar.src=detailAvatarSrc;else detailAvatar.removeAttribute('src');
     detailAvatar.alt=member.name||member.id||'Nhân vật';
@@ -2225,9 +2242,9 @@ render();
     for(let i=0;i<max;i++){
       const member=members[i];
       if(!member){cards.push('<div class="party-member empty"><div class="party-avatar-placeholder">Trống</div><strong>Trống</strong></div>');continue}
-      const avatar=member.id==='cao_minh'?(madGodSetEquipped()?'avatars/MadGod.jpg':'avatars/CAO_MINH_AVATAR.jpg'):(member.avatar||member.avatarRef);
+      const avatar=characterIsDead(member)?'avatars/tombstone.svg':member.id==='cao_minh'?(madGodSetEquipped()?'avatars/MadGod.jpg':'avatars/CAO_MINH_AVATAR.jpg'):(member.avatar||member.avatarRef);
       const visual=avatar?'<img src="'+esc(avatar)+'" alt="'+esc(member.name||member.id)+'">':'<div class="party-avatar-placeholder">'+esc(String(member.name||member.id||'?').slice(0,1).toUpperCase())+'</div>';
-      cards.push('<div class="party-member" data-character="'+esc(member.id)+'">'+visual+'<strong>'+esc(member.name||member.id)+'</strong><div class="party-state">'+esc(member.presence||'ACTIVE')+'</div></div>');
+      cards.push('<div class="party-member'+(characterIsDead(member)?' is-dead':'')+'" data-character="'+esc(member.id)+'">'+visual+'<strong>'+esc(member.name||member.id)+'</strong><div class="party-state">'+esc(characterIsDead(member)?'Đã chết':presenceLabels[member.presence]||member.presence||'ACTIVE')+'</div></div>');
     }
     party.innerHTML=cards.join('');
     party.querySelectorAll('.party-member[data-character]').forEach(card=>card.addEventListener('click',()=>openMember(card.getAttribute('data-character'))));
@@ -2257,6 +2274,12 @@ render();
   </div>
 </div>
 
+<section id="gameOverPanel" role="alert" aria-labelledby="gameOverTitle" hidden>
+  <h2 id="gameOverTitle">GAME OVER</h2>
+  <p>Tất cả nhân vật trong đội đã hết HP.</p>
+  <p id="gameOverStatus" aria-live="polite"></p>
+  <div class="game-over-actions"><button type="button" onclick="runGameOverAction(load)">Tải điểm lưu</button><button type="button" onclick="runGameOverAction(resetGame)">Chơi lại</button></div>
+</section>
 <script src="item-icons.js"></script>
 <script>
 (function(){
@@ -2719,6 +2742,7 @@ body.poker-dice-open .game>.log{display:none!important}
 <script src="ui/snapshot-tv.js"></script>
 <script src="special-dialogue-data.js"></script>
 <script src="special-dialogue.js"></script>
+<script>renderGameOver();</script>
 </body>
 </html>
 

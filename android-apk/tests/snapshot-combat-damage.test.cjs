@@ -338,7 +338,7 @@ test('snapshot style has distinct active-actor rules and existing local Party as
  assert.match(css,/\.snapshot\[data-combat-focus\] \.snapshot-character/);
  assert.match(css,/\.snapshot\[data-combat-focus\] \.snapshot-entity/);
  assert.match(css,/\.snapshot\[data-combat-focus\] \.snapshot-entity\{/);
- assert.match(css,/display:block!important;left:0!important;right:auto!important/);
+ assert.match(css,/display:block!important;right:auto!important/);
  assert.doesNotMatch(css,/\.snapshot\[data-combat-focus\] \.snapshot-entity\{display:none!important\}/);
  assert.match(css,/@keyframes combat-turn-enter/);
  assert.match(css,/@keyframes combat-turn-leave/);
@@ -614,7 +614,7 @@ test('final combat packet presents Lucia cue before Core victory projection clos
 test('Entity overlay stays visible as an opponent during Cao Minh and Lucia active turns',()=>{
  const css=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/combat-feedback-1193a.css'),'utf8');
  assert.match(css,/\.snapshot\[data-combat-focus\] \.snapshot-entity\{/);
- assert.match(css,/display:block!important;left:0!important;right:auto!important/);
+ assert.match(css,/display:block!important;right:auto!important/);
  assert.doesNotMatch(css,/\.snapshot\[data-combat-focus\] \.snapshot-entity\{display:none!important\}/);
  const r=boot();
  const turns=[{kind:'actor',eventIndex:0,actorId:'cao_minh',actorName:'Cao Minh',entityName:'Hound'},

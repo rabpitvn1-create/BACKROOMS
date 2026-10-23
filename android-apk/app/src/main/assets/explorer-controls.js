@@ -120,7 +120,7 @@
   }
   global.backroomSceneWriterProvider=()=>{if(preparing)writerPending();};
   global.backroomPostCombatPending=()=>writerPending(null,true);
-  function locked(){return busy||batchBusy||coreUnavailable||
+  function locked(){return state.gameOver===true||busy||batchBusy||coreUnavailable||
     !!(global.SpecialDialogue&&global.SpecialDialogue.isOpen())||
     (state.player&&Number(state.player.hp)<=0)||state.player?.condition==='DEAD'||
     !!state.playerAction?.recoverable||!!state.pendingEncounter||!!(state.combat&&state.combat.active);}
@@ -661,7 +661,7 @@
     const showRetry=!!scene.pendingActionId||!!state.playerAction?.recoverable||(failed&&!!scene.generationNeeded);
     playerAction.hidden=showRetry;retry.hidden=!showRetry;
     playerAction.disabled=locked()||!!scene.generationNeeded;
-    retry.disabled=busy||batchBusy||coreUnavailable;
+    retry.disabled=state.gameOver===true||busy||batchBusy||coreUnavailable;
     // The GM narration can render before backroomPlayerActionFinished clears
     // batchBusy. Reconcile the existing buttons when the turn actually unlocks.
     syncGmSuggestionButtons();

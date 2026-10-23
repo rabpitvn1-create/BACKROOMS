@@ -265,6 +265,7 @@ object CombatRuntime {
 
   /** Reserve one Core encounter without entering Combat or touching character HP. */
   fun prepareEncounter(state: GameState, entityKey: String, encounterId: String): GameState {
+    require(!PartyCombatHealth.isDefeated(state)) { "game_over" }
     require(active(state) == null && pending(state) == null) { "encounter_already_reserved" }
     require(supportsEntityKey(entityKey) && encounterId.isNotBlank()) { "encounter_invalid" }
     return createEncounter(state, listOf(entityKey), Phase.PENDING_ENCOUNTER_CONFIRMATION, encounterId)
@@ -272,6 +273,7 @@ object CombatRuntime {
 
   /** A repeated click is a no-op; identity never comes from narrator/client Entity keys. */
   fun confirmEncounter(state: GameState, encounterId: String): GameState {
+    require(!PartyCombatHealth.isDefeated(state)) { "game_over" }
     val reserved = pending(state)
     if (reserved == null) {
       require(active(state)?.encounterId == encounterId) { "encounter_confirmation_stale" }
@@ -292,6 +294,7 @@ object CombatRuntime {
 
   /** Only explicitly composed encounters contain multiple Entities. */
   fun startWaves(state: GameState, entityKeys: List<String>): GameState {
+    require(!PartyCombatHealth.isDefeated(state)) { "game_over" }
     if (active(state) != null || pending(state) != null) return state
     return createEncounter(state, entityKeys, Phase.ACTIVE)
   }
@@ -342,6 +345,18 @@ object CombatRuntime {
   }
 
   fun resolve(input: GameState, actionKind: String, action: String): Resolution {
+    val result = if (PartyCombatHealth.isDefeated(input))
+      Resolution(input, handled = active(input) != null, reply = "")
+    else resolveRound(input, actionKind, action)
+    if (!result.handled) return result
+    val settled = PartyCombatHealth.markFallen(result.state)
+    if (!PartyCombatHealth.isDefeated(settled)) return result.copy(state = settled)
+    val ending = "GAME OVER — Tất cả nhân vật trong đội đã hết HP."
+    return result.copy(state = clearCombatOnly(settled),
+      reply = "${result.reply} $ending".trim(), completionNarrative = ending)
+  }
+
+  private fun resolveRound(input: GameState, actionKind: String, action: String): Resolution {
     val state = CharacterSkillUnlocks.enforceCombatState(input)
     val current = active(state) ?: return Resolution(state, handled = false)
     val originalProfile = profiles[current.entityKey] ?: return Resolution(clear(state), handled = false)

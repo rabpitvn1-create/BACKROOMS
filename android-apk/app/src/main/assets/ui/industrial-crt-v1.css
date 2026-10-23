@@ -171,17 +171,16 @@ body.industrial-ui{
 .industrial-ui #explorerChoices.explorer-map-mode{border-width:14px;padding:6px}
 .industrial-ui #explorerChoices.explorer-map-mode .explorer-map-zoom button::after{content:none}
 .industrial-ui #explorerChoices.explorer-map-mode .explorer-map-zoom button{border:8px solid transparent;border-image:var(--industrial-steel) 70 fill / 10px / 0 stretch;padding:2px 7px}
-/* The offer keeps its gold identity, with the same steel rails and close
-   control as the reader. Leave room for the independent dismiss hit target. */
+/* Use the same CRT surface and steel rails as the reader. */
 .industrial-ui #prologuePrompt{
   border:0;border-radius:14px;background:transparent;box-shadow:0 5px 12px #0009
 }
 .industrial-ui #prologueOpenButton{
   min-height:64px;padding:10px 60px;border:10px solid transparent;
   border-image:var(--industrial-steel) 70 / 12px / 0 stretch;
-  border-radius:14px!important;background-color:#8b642e;
-  background-image:linear-gradient(135deg,#c59a51dd,#8b642ecc 65%,#67451fe6),var(--industrial-crt);
-  background-size:auto,512px 512px;color:#fff2ce;text-shadow:0 1px 3px #38210c
+  border-radius:14px!important;background-color:#101611;
+  background-image:linear-gradient(#09100a55,#09100a55),var(--industrial-crt);
+  background-size:auto,512px 512px;color:#f3c576;text-shadow:0 1px 3px #000
 }
 .industrial-ui #explorerPlayerAction{
   border:12px solid transparent;border-image:var(--industrial-frame) 80 / 12px / 0 repeat;
@@ -291,3 +290,16 @@ body.industrial-ui{
 .industrial-ui .dungeon-header button{width:48px;height:48px;min-width:48px}
 .industrial-ui .dungeon-footer{padding:8px;flex-wrap:wrap}
 @media(max-width:600px){.industrial-ui .dungeon-content{padding:10px 2px}.industrial-ui .dungeon-slot{padding:8px}.industrial-ui .dungeon-slots{gap:12px}}
+
+/* Terminal state stays visible while menu, character details and Load remain usable. */
+#gameOverPanel[hidden]{display:none!important}
+#gameOverPanel{position:fixed;inset:auto 12px 18px;margin:auto;z-index:40;
+  width:min(calc(100% - 24px),480px);padding:24px;text-align:center;
+  border:12px solid transparent;border-image:var(--industrial-frame) 80 / 12px / 0 repeat;
+  background:#101611 var(--industrial-crt) center/512px 512px;box-shadow:0 8px 40px #000c}
+#gameOverPanel h2{margin:0;color:#e69b88;letter-spacing:.12em}
+#gameOverPanel p{line-height:1.5}
+#gameOverPanel .game-over-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+#gameOverPanel button{min-height:48px}
+.party-member.is-dead .party-state{color:#e69b88}
+.party-member.is-dead img{object-fit:contain}
