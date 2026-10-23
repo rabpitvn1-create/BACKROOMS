@@ -705,3 +705,27 @@ test('unavailable Party Follower does not start a story with no matching overlay
   assert.equal(x.dialog.hidden,true);
   assert.equal(x.ctx.state.specialDialogueProgress.pending,null);
 });
+
+
+test("Janet's edited biography remains conversational, coherent and Canon-grounded",()=>{
+  const catalog=env({state:{party:[],partyDetails:{members:[]},encounteredCharacters:[]}})
+    .ctx.BackroomSpecialDialogueData.janet;
+  const intro=catalog.intro.map(x=>x.text).join(' ');
+  const scenes=catalog.story.map(lines=>lines.map(x=>x.text).join(' '));
+  assert.equal(catalog.intro.length,9);
+  assert.equal(catalog.story.length,7);
+  assert.equal(catalog.past.length,8,'one recollection per completed chapter');
+  assert.match(intro,/Mia/);
+  assert.match(intro,/Cao Minh/);
+  assert.doesNotMatch(intro,/Catherine|thần lực|dịch chuyển|cổng thoát/);
+  for(const lines of catalog.story){
+    assert.equal(lines.length,5,'Janet shares a conversation rather than narrating a lecture');
+    assert.ok(lines.some(line=>line.speaker==='cao_minh'));
+    assert.ok(lines.every(line=>['janet','cao_minh'].includes(line.speaker)));
+  }
+  for(const [index,pattern] of [
+    /radio/,/Noah/,/Mia/,/the Lady/,/cha tôi/,/Mẹ tôi/,/Bayou Belle/
+  ].entries())assert.match(scenes[index],pattern,'chapter '+(index+1));
+  assert.match(catalog.past.at(-1),/dây thép gai/);
+  assert.doesNotMatch(JSON.stringify(catalog),/Mia đã chết|Mia đang ở Level|đã tìm thấy Mia/);
+});
