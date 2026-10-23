@@ -235,7 +235,7 @@
       },
       {
         "speaker": "janet",
-        "text": "Phàm nhân? Bổn... cái gì? Anh đang quay phim kiếm hiệp à?"
+        "text": "Phàm nhân? Bổn... cái gì? Anh đang đóng vai hiệp sĩ thời trung cổ à?"
       },
       {
         "speaker": "cao_minh",
