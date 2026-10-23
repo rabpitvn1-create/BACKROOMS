@@ -1,0 +1,13 @@
+Backroom 1.2.0.0.40 Debug
+
+- Android versionCode 113; versionName 1.2.0.0.40; applicationId com.rabpit.backroom.
+- Cập nhật toàn bộ các thay đổi trên main sau bản phát hành trước, gồm PR #664: viết lại cách nói của Cao Minh theo Canon và mở rộng các tuyến hội thoại Follower; giữ cơ chế mở khóa hồi ức và số chương tương thích với cấu trúc hiện hành.
+- Mở rộng hội thoại riêng của Lucia lên 80 lượt story, Catherine 97, Janet 92, Nguyễn Quốc Nam 95, Hứa Tiểu Lan 90, Lục Trầm 60 và Trác Lâm 65; điều chỉnh các tuyến đối thoại Diệp Minh và Lục Trầm Hắc Hóa theo Canon.
+- Điều chỉnh hồi quy nội dung và kiểm thử giao tiếp của các tuyến mở rộng. PR #663 đã đóng, không merge để tránh ghi đè các tuyến mới.
+- Sửa quy trình xác minh phát hành: giải nén đầy đủ dungeon.js và dungeon.css trước khi so sánh APK đã tải từ GitHub Release, không bỏ qua cổng xác minh.
+
+Lưu ý:
+- Đây là APK debug được GitHub Actions xây dựng, không phải bản APK có chữ ký phân phối ổn định. Cài cập nhật có thể thất bại nếu bản đang dùng được ký bằng chứng thư khác. Không gỡ ứng dụng đang dùng chỉ để cài bản mới khi chưa bảo toàn dữ liệu hiện tại.
+- Không bảo đảm đọc save từ phiên bản cũ; vẫn phải giữ chức năng lưu/tải của phiên bản hiện hành.
+- Các lượt thoại Iris về súng và Ivory/Ebony có vấn đề giới hạn tri thức đã được ghi nhận khi đóng PR #663 và chưa được thay đổi trong lần phát hành này.
+- APK chưa được xác minh bằng thao tác thử trực tiếp trên điện thoại. Bản phát hành chỉ được coi là GREEN khi pipeline xác minh bản APK tải lại, hash và nội dung đóng gói hoàn tất.
