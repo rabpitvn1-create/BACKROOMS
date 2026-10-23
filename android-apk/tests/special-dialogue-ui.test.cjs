@@ -395,7 +395,7 @@ test('Lucia authored intro resumes at the same line on reload',()=>{
   const y=env({state:saved});
   assert.equal(y.dialog.hidden,false);
   assert.equal(y.parts['#specialDialogueProgress'].textContent,'3 / 10');
-  assert.match(y.parts['#specialDialogueText'].textContent,/Hứa Thuý Mai/);
+  assert.match(y.parts['#specialDialogueText'].textContent,/Bổn Tôn.*đơn vị nào/);
   finishModal(y);
   assert.equal(y.ctx.state.specialDialogueProgress.introRevisions.lucia,'lucia-intro-r01');
 });
@@ -610,7 +610,7 @@ test('new Follower chapters advance only when reading finishes after a committed
   next.log=[{role:'player',text:'Di chuyển qua hành lang và kiểm tra lối rẽ'}];
   x.ctx.backroomTurn(JSON.stringify(next));
   assert.equal(x.dialog.hidden,false);
-  assert.match(x.parts['#specialDialogueText'].textContent,/Có lần người ta thấy quỷ tính/);
+  assert.match(x.parts['#specialDialogueText'].textContent,/Có người thấy quỷ tính/);
   assert.equal(x.ctx.state.specialDialogueProgress.chapters.syvial,0);
   const mid=JSON.parse(JSON.stringify(x.ctx.state));
   const resumed=env({state:mid});
