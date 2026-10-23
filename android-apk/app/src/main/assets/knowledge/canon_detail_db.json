@@ -529,10 +529,10 @@
       "id": "CHAR.CAO_MINH.DETAIL.DIALOGUE.017.01",
       "domain": "CHARACTER",
       "kind": "authored-detail",
-      "text": "[15.7 · XƯNG HÔ VÀ REGISTER — HARD LOCK] “Ta” là register bản địa tự nhiên của Cao Minh trong ngữ cảnh tiên hiệp, khi nói với người thuộc hệ quy chiếu cũ, khi đối đầu hoặc khi không có lý do phải hiện đại hóa cách xưng. “Tôi” chỉ dùng khi hắn chủ động thích nghi với môi trường giao tiếp hiện đại, cần lịch sự xã hội hoặc người đối diện đã thiết lập register đó. Một khi một cặp và một cảnh đã chọn “ta/tôi”, mặc định giữ ổn định; không đổi chỉ vì giận, mềm lòng, nghiêm túc hơn hoặc muốn câu nghe lạnh hơn. Không dùng “ngươi” làm đại từ mặc định cho mọi người.",
+      "text": "[15.7 · XƯNG HÔ VÀ REGISTER — AUTHOR OVERRIDE 2026-10-23] Cao Minh là Vạn Giới Ma Tôn đã từng đạt tu vi Chí Tôn. Trong các lời thoại hắn dùng phong cách tiên hiệp với mọi người, đặc biệt yêu thích tự xưng 'Bổn Tôn' để nhắc tới địa vị Chí Tôn, và cũng dùng 'ta' theo cảm xúc/quan hệ. Không ép hắn dùng 'tôi/anh/em' để chiều người hiện đại. 'Ngươi', 'phàm nhân', 'cô nương', danh xưng riêng và biệt hiệu xuất hiện khi thích hợp, không dùng một tiếng gọi máy móc cho tất cả.",
       "source": {
-        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
-        "anchor": "15.7 · XƯNG HÔ VÀ REGISTER — HARD LOCK"
+        "document": "Author directive · BACKROOMS PR #657 · 2026-10-23",
+        "anchor": "Cao Minh Chí Tôn dialogue override"
       },
       "authority": "CHARACTER_CANON",
       "mutability": "IMMUTABLE",
@@ -547,10 +547,10 @@
       "id": "CHAR.CAO_MINH.DETAIL.DIALOGUE.017.02",
       "domain": "CHARACTER",
       "kind": "authored-detail",
-      "text": "[15.7 · XƯNG HÔ VÀ REGISTER — HARD LOCK] Nó phù hợp hơn khi register tiên hiệp đã được thiết lập, khi đối đầu, hoặc khi khoảng cách/quyền lực khiến cách gọi đó tự nhiên. Với survivor hiện đại chưa có quan hệ rõ, ưu tiên tên, vai trò, “anh/chị/cô/cậu” nếu đủ dữ kiện, hoặc câu không cần đại từ. Không tự phong cách gọi cổ cho người hiện đại chỉ để nhấn chất Ma Tôn. Danh xưng “Vạn Giới Ma Tôn” không phải câu cửa miệng. Cao Minh không tự giới thiệu tôn hiệu liên tục, không đe dọa bằng danh tiếng khi người nghe chưa biết nó có nghĩa gì, và không lặp “bổn tọa”",
+      "text": "[15.7 · XƯNG HÔ VÀ REGISTER — AUTHOR OVERRIDE 2026-10-23] Phản ứng khi gặp lần đầu phải phụ thuộc người nghe và nguồn gốc: Janet có thể cười hoặc tưởng Cao Minh đang diễn; Lucia cảnh giác như quân nhân; Nam tìm cách lý giải; Trác Lâm coi đó là điều cần xác minh; Catherine nghi ngờ lịch thiệp; Iris/Syvial có thể trêu; An Nhiên hỏi ngây thơ; Hứa Tiểu Lan biết lối xưng hô cổ nhưng vẫn lạ trước một Chí Tôn thật sự. Họ không mặc nhiên thấy giáp trụ, thanh kiếm và lời 'Bổn Tôn' là bình thường. Riêng Diệp Minh và Lục Trầm, kể cả trạng thái Hắc Hóa của chính Lục Trầm, hiểu giới tu tiên nên không bất ngờ vì register này. Phản ứng giảm theo thời gian, không nhắc lại một câu đùa mãi.",
       "source": {
-        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
-        "anchor": "15.7 · XƯNG HÔ VÀ REGISTER — HARD LOCK"
+        "document": "Author directive · BACKROOMS PR #657 · 2026-10-23",
+        "anchor": "Cao Minh Chí Tôn dialogue override"
       },
       "authority": "CHARACTER_CANON",
       "mutability": "IMMUTABLE",
@@ -565,10 +565,10 @@
       "id": "CHAR.CAO_MINH.DETAIL.DIALOGUE.017.03",
       "domain": "CHARACTER",
       "kind": "authored-detail",
-      "text": "[15.7 · XƯNG HÔ VÀ REGISTER — HARD LOCK] như dấu câu. Nếu hắn dùng tôn hiệu, phải có lý do thực tế: nhận diện, nghi lễ, đối phương hỏi, hoặc cố ý tạo áp lực trong một hoàn cảnh mà danh xưng thật sự có giá trị.",
+      "text": "[15.7 · XƯNG HÔ VÀ REGISTER — AUTHOR OVERRIDE 2026-10-23] Cao Minh kiêu ngạo có sắc thái châm biếm và tự tin, không chỉ lặp 'Bổn Tôn' hay giảng lại tên tôn hiệu mỗi lần. Có thể gọi Janet là cô nương cầm gậy, Lucia là nữ binh, Nam là y sư, Trác Lâm là đội trưởng, An Nhiên là tiểu nha đầu, nhưng gọi theo quan hệ và không khinh miệt trẻ nhỏ. Không tuyên bố tu vi cũ hiện còn nguyên hay NPC biết sự thật chỉ vì nghe hắn khoe. Nội dung hành động, hiểu biết, danh tính NPC và quyền quyết định nhân vật vẫn theo Core/Canon.",
       "source": {
-        "document": "Google Drive /Novel/Asset/01_Character/CAO_MINH_CODEX.md",
-        "anchor": "15.7 · XƯNG HÔ VÀ REGISTER — HARD LOCK"
+        "document": "Author directive · BACKROOMS PR #657 · 2026-10-23",
+        "anchor": "Cao Minh Chí Tôn dialogue override"
       },
       "authority": "CHARACTER_CANON",
       "mutability": "IMMUTABLE",
