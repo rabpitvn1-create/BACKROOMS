@@ -1987,7 +1987,7 @@
       [
         {
           "speaker": "cao_minh",
-          "text": "Bổn Tôn thấy ngươi từng đứng cạnh Lục Trầm. Ngươi đã kể nàng nghe những gì?"
+          "text": "Ngươi từng đứng cạnh Lục Trầm. Bổn Tôn hỏi, ngươi đã kể nàng nghe những gì?"
         },
         {
           "speaker": "diep_minh",
