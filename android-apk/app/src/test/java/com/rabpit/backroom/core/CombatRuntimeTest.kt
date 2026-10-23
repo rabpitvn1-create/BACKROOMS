@@ -545,14 +545,11 @@ class CombatRuntimeTest {
       }
       assertTrue("$key two independent procs should overlap", both > 4)
     }
-    // This checks surviving status durations, not death cleanup. Give the
-    // defender enough HP to survive both ticks and the enemy's double proc.
-    val base = GameState.initial()
-    val defender = base.characters.getValue(CAO_MINH_ID)
-    val durable = base.copy(characters = base.characters + (CAO_MINH_ID to
-      defender.copy(statProfile = defender.statProfile.copy(vit = 50))))
-    val initial = CombatRuntime.start(CharacterStatEngine.setCurrentHp(durable, CAO_MINH_ID, Int.MAX_VALUE), "926")
+    val initial = CombatRuntime.start(GameState.initial(), "926")
+    // Check existing tick durations without a fresh hit refreshing them or
+    // killing the defender: seed 10 rolls 90 against the capped 88% hit chance.
     val state = initial.copy(metadata = initial.metadata + mapOf(
+      "combat.seed" to "10",
       "combat.roamingBleed.$CAO_MINH_ID" to "2",
       "combat.roamingPoison.$CAO_MINH_ID" to "2",
       "combat.roamingStun.$CAO_MINH_ID" to "1"
@@ -560,6 +557,7 @@ class CombatRuntimeTest {
     val loaded = GameStateCodec.decode(GameStateCodec.encode(state))
     val result = CombatRuntime.resolve(loaded, "EXECUTE", "Cả Party tấn công")
     assertTrue(result.reply.contains("bị Choáng và mất lượt tấn công"))
+    assertFalse(result.feedback.any { it.target == "actor" && it.phase == "entity" && it.outcome == "hit" })
     assertEquals("1", result.state.metadata["combat.roamingBleed.$CAO_MINH_ID"])
     assertEquals("1", result.state.metadata["combat.roamingPoison.$CAO_MINH_ID"])
     assertFalse(result.state.metadata.containsKey("combat.roamingStun.$CAO_MINH_ID"))
