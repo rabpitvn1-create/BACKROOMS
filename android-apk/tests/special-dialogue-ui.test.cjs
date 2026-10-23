@@ -160,7 +160,7 @@ test('R07 encounters have consecutive authored beats, repeat safely and never sp
   for(let n=6;n<=11;n++){encounter(x,'diep_minh','r07-diep-'+n);finishModal(x);}
   assert.equal(x.ctx.state.specialDialogueProgress.entityBeats.diep_minh,11);
   encounter(x,'diep_minh','r07-diep-repeat-1');
-  assert.match(x.parts['#specialDialogueText'].textContent,/Đường đi đổi hướng/);
+  assert.match(x.parts['#specialDialogueText'].textContent,/Đường đi lại đổi hướng/);
   finishModal(x);
   assert.equal(x.ctx.state.specialDialogueProgress.entityRepeats.diep_minh,1);
   encounter(x,'diep_minh','r07-diep-repeat-2');
@@ -230,7 +230,7 @@ test('cross-route appears early after both actual encounters and does not skip i
   assert.equal(x.ctx.state.specialDialogueProgress.entityBeats.diep_minh,1,
     'cross encounter must not consume the independent lore episode');
   encounter(x,'diep_minh','r07-early-d3');
-  assert.match(x.parts['#specialDialogueText'].textContent,/đã ở chốn này bao lâu/);
+  assert.match(x.parts['#specialDialogueText'].textContent,/sa vào chốn này đã bao lâu/);
   finishModal(x);
   assert.equal(x.ctx.state.specialDialogueProgress.entityBeats.diep_minh,2);
 });
@@ -260,11 +260,11 @@ test('R07 late encounters add six episodes and six varied repeat scenes per anta
   for(let n=7;n<=11;n++){encounter(x,'diep_minh','r07-late-d'+n);finishModal(x);}
   assert.equal(x.ctx.state.specialDialogueProgress.entityBeats.diep_minh,11);
   encounter(x,'diep_minh','r07-late-repeat-1');
-  assert.match(x.parts['#specialDialogueText'].textContent,/Đường đi đổi hướng/);
+  assert.match(x.parts['#specialDialogueText'].textContent,/Đường đi lại đổi hướng/);
   finishModal(x);
   x.ctx.state.specialDialogueProgress.entityRepeats.diep_minh=3;
   encounter(x,'diep_minh','r07-late-repeat-4');
-  assert.match(x.parts['#specialDialogueText'].textContent,/Người khác sợ lạc đường/);
+  assert.match(x.parts['#specialDialogueText'].textContent,/Người khác lạc vào đây, sợ nhất là lạc đường/);
   finishModal(x);
   assert.equal(x.ctx.state.specialDialogueProgress.entityRepeats.diep_minh,4);
 });
@@ -415,9 +415,9 @@ test('authored encounters have distinct natural voices without a dump of author-
   assert.match(lucia,/Đứng lại! Tiến thêm một bước/);
   assert.doesNotMatch(lucia,/Vạn Giới|Lôi Thiên Vực|ma nguyên|Lục Trầm/);
   assert.match(diep,/Cao gia/);
-  assert.match(diep,/bỏ sót ngươi/);
+  assert.match(diep,/Kẻ ngươi bỏ sót/);
   assert.match(tram,/Ma khí trong kinh mạch/);
-  assert.match(tram,/Ngươi biết tên ta/);
+  assert.match(tram,/Các hạ biết tên ta/);
   assert.doesNotMatch(tram,/tự rời đi|lớp trì lưu|tỉnh trước ngươi|hồi sinh/);
   assert.match(speech(people.hua_tieu_lan.intro),/Anh Tý/);
   assert.match(speech(people.trac_lam.intro),/SRU-03/);
