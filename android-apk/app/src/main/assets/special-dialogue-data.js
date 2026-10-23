@@ -84,7 +84,7 @@
       [
         {
           "speaker": "cao_minh",
-          "text": "Ngươi giữ những tờ giấy ấy còn kỹ hơn đạn."
+          "text": "Ngươi giữ những tờ giấy ấy còn kỹ hơn thứ binh khí bên người."
         },
         {
           "speaker": "catherine",
@@ -132,11 +132,11 @@
       [
         {
           "speaker": "cao_minh",
-          "text": "Ngươi chưa từng buông khẩu súng ngay cả khi trò chuyện."
+          "text": "Ngươi vẫn giữ thứ binh khí lạ ấy bên mình cả lúc trò chuyện."
         },
         {
           "speaker": "catherine",
-          "text": "Vesper Nocturne từng là một khối kim loại chưa hoàn thiện. Tôi đã sửa nó bằng tay mình."
+          "text": "Đó là súng. Vesper Nocturne từng là một khối kim loại chưa hoàn thiện. Tôi đã sửa nó bằng tay mình."
         },
         {
           "speaker": "cao_minh",
@@ -148,7 +148,7 @@
         },
         {
           "speaker": "cao_minh",
-          "text": "Ta không định thử xem ngươi có bắn trúng không."
+          "text": "Vậy tốt. Bổn Tôn cũng chẳng có ý buộc ngươi phải dùng nó."
         },
         {
           "speaker": "catherine",
@@ -460,11 +460,11 @@
       },
       {
         "speaker": "cao_minh",
-        "text": "Khẩu súng kia chẳng giống dụng cụ của y sư."
+        "text": "Vật ngươi mang bên người trông chẳng giống dụng cụ của y sư."
       },
       {
         "speaker": "nguyen_quoc_nam",
-        "text": "Tôi tìm thấy nó sau khi lạc vào đây. Cũng mong không phải dùng."
+        "text": "Đây là súng. Tôi tìm thấy nó sau khi lạc vào đây. Cũng mong không phải dùng."
       },
       {
         "speaker": "cao_minh",
@@ -664,7 +664,7 @@
       },
       {
         "speaker": "cao_minh",
-        "text": "Được, Bổn Tôn không tiến lại gần. Tên là Cao Minh. Cô cũng hạ nòng súng xuống một chút được không?"
+        "text": "Bổn Tôn đứng đây. Tên là Cao Minh. Thứ cô đang chĩa về phía Bổn Tôn là binh khí gì?"
       },
       {
         "speaker": "lucia",
@@ -672,11 +672,11 @@
       },
       {
         "speaker": "cao_minh",
-        "text": "Bổn Tôn không thuộc quân đội nào cả, chỉ quen dùng kiếm. Cô chưa cần tin ngay, nhưng cứ chĩa súng thế này thì nói chuyện cũng khó."
+        "text": "Bổn Tôn không thuộc quân đội nào cả. Kiếm này là binh khí của Bổn Tôn. Muốn nói chuyện, cô hạ thứ trong tay xuống trước đã."
       },
       {
         "speaker": "lucia",
-        "text": "Tôi là binh nhì Hứa Thuý Mai, còn gọi là Lucia Lục. Xin lỗi, tôi vừa gặp chuyện rất khó giải thích nên phải cẩn thận."
+        "text": "Đây là súng. Tôi là binh nhì Hứa Thuý Mai, còn gọi là Lucia Lục. Xin lỗi, tôi vừa gặp chuyện rất khó giải thích nên phải cẩn thận."
       },
       {
         "speaker": "cao_minh",
@@ -1335,7 +1335,7 @@
       },
       {
         "speaker": "cao_minh",
-        "text": "Bổn Tôn không có thói quen đánh lén một người chưa rút súng."
+        "text": "Bổn Tôn không có thói quen đánh lén người chưa rút binh khí."
       },
       {
         "speaker": "iris",
@@ -1343,11 +1343,11 @@
       },
       {
         "speaker": "cao_minh",
-        "text": "Ivory và Ebony? Ngươi giương cả hai chỉ để hỏi đường sao?"
+        "text": "Ngươi mang hai món binh khí lạ. Định dùng cả hai chỉ để hỏi đường sao?"
       },
       {
         "speaker": "iris",
-        "text": "Iris. Anh quan sát nhanh đấy. Nhưng nghe tên súng không có nghĩa tôi sẽ cúi đầu trước người tự xưng Chí Tôn."
+        "text": "Iris. Chúng là súng, tên Ivory và Ebony. Anh quan sát nhanh đấy. Nhưng tôi không cúi đầu trước người tự xưng Chí Tôn."
       },
       {
         "speaker": "cao_minh",
