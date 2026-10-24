@@ -25,6 +25,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.security.SecureRandom;
+import java.util.Locale;
 import java.util.Iterator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -735,6 +737,10 @@ public class MainActivity extends Activity {
     return result.put("roll", roll).put("success", roll <= chance);
   }
 
+  private static String lower(String value) {
+    return value == null ? "" : value.toLowerCase(Locale.ROOT);
+  }
+
   private boolean containsAny(String text, String... terms) {
     String value = lower(text);
     for (String term : terms) if (value.contains(lower(term))) return true;
@@ -946,12 +952,18 @@ public class MainActivity extends Activity {
     return safe;
   }
 
-  private void mergeObject(JSONObject target, JSONObject patch) throws Exception {
+  /** Recursive merge for validated state flags; distinct from provider response merge. */
+  private void mergeFlagsObject(JSONObject target, JSONObject patch) throws Exception {
     if (patch == null) return;
-    for (String key : JSONObject.getNames(patch) == null ? new String[0] : JSONObject.getNames(patch)) {
+    Iterator<String> keys = patch.keys();
+    while (keys.hasNext()) {
+      String key = keys.next();
       Object value = patch.opt(key);
-      if (value instanceof JSONObject && target.opt(key) instanceof JSONObject) mergeObject(target.optJSONObject(key), (JSONObject)value);
-      else target.put(key, value);
+      if (value instanceof JSONObject && target.opt(key) instanceof JSONObject) {
+        mergeFlagsObject(target.optJSONObject(key), (JSONObject) value);
+      } else {
+        target.put(key, value);
+      }
     }
   }
 
@@ -978,7 +990,7 @@ public class MainActivity extends Activity {
       JSONObject newSyvial = patch.optJSONObject("syvial");
       if ((oldSyvial == null || !oldSyvial.optBoolean("present", false)) && newSyvial.optBoolean("present", false) && !rollSuccess(rolls, "syvialReunion")) patch.remove("syvial");
     }
-    mergeObject(safe, patch);
+    mergeFlagsObject(safe, patch);
     return safe;
   }
 
