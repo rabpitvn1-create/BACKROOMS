@@ -53,7 +53,10 @@ data class CharacterDetailProjection(
   val inventoryCapacityMax: Int = 9,
   val equipment: Map<String, String>,
   val equipmentDetails: List<ItemDetailProjection> = emptyList(),
-  val statusEffects: List<StatusEffect>
+  val statusEffects: List<StatusEffect>,
+  val level: Int = 1,
+  val exp: Int = 0,
+  val requiredExp: Int = 18
 ) {
 }
 
@@ -137,7 +140,10 @@ object CharacterDetailProjector {
       inventoryCapacityMax = InventoryCapacityPolicy.maxSlots(normalized, c.id),
       equipment = equipment, equipmentDetails = equipmentDetails,
       passives = CompanionSkillCatalog.forCharacter(c.id).filter { it.kind == "PASSIVE" }.map { it.name },
-      statusEffects = c.statusIds.mapNotNull(normalized.statuses::get)
+      statusEffects = c.statusIds.mapNotNull(normalized.statuses::get),
+      level = EntityExpRewards.progression(normalized, c.id).level,
+      exp = EntityExpRewards.progression(normalized, c.id).exp,
+      requiredExp = EntityExpRewards.progression(normalized, c.id).requiredExp
     )
   }
 }
