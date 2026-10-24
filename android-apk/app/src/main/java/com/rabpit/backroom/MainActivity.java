@@ -1041,6 +1041,12 @@ public class MainActivity extends Activity {
         try {
           JSONObject before = new JSONObject(stateJson);
           boolean meta = isMetaAction(action);
+          if (!meta) {
+            JSONObject lootResult = new JSONObject(requireGameCore().processExplorationLoot(before.toString(), action));
+            if (!lootResult.optBoolean("handled", false) || lootResult.optJSONObject("state") == null)
+              throw new IllegalStateException("Core loot resolution failed");
+            before = lootResult.getJSONObject("state");
+          }
           JSONObject rolls = makeGameplayRolls(before, action, meta);
           // CANON_RUNTIME_2_WIRING: OFF leaves the original GM path unchanged.
           String canonPacket = null;
