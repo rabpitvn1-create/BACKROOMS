@@ -105,12 +105,6 @@ script_extra = r'''
     if(Array.isArray(member&&member.statuses)&&member.statuses.length)rows.push(['Hiệu ứng',member.statuses.map(x=>x.type||x.id).join(', '),'status-warning']);
     return rows;
   }
-  function equipmentRows(member){
-    const eq=member&&member.equipment||{};
-    const keys=Object.keys(eq);
-    if(!keys.length&&member&&member.id==='kai')return Object.keys(signatureEquipment).map(k=>signatureEquipment[k]);
-    return keys.map(k=>String(k)+': '+String(eq[k]));
-  }
   function renderMemberDetail(member){
     if(!member)return;
     selectedCharacterId=member.id||'kai';
@@ -120,9 +114,11 @@ script_extra = r'''
     const inv=Array.isArray(member.inventory)?member.inventory:(member.id==='kai'?kaiItems():[]);
     capacity.textContent=inv.length+' / 9 loại vật phẩm';
     items.innerHTML=chips(inv);
-    const eqRows=equipmentRows(member);
-    equipment.innerHTML=eqRows.length?eqRows.map(x=>'<span>'+esc(x)+'</span>').join(''):'<span>Không có trang bị được ghi nhận.</span>';
-    statusList.innerHTML=statusRows(member).map(row=>'<div class="character-status-row '+row[2]+'"><b>'+esc(row[0])+'</b><span>'+esc(row[1])+'</span></div>').join('');
+    equipment.innerHTML='';
+    statusList.innerHTML='';
+    if(typeof window.renderCharacterStatusEquipment==='function')window.renderCharacterStatusEquipment(member);
+    statusList.insertAdjacentHTML('beforeend',statusRows(member).map(row=>'<div class="character-status-row '+row[2]+'"><b>'+esc(row[0])+'</b><span>'+esc(row[1])+'</span></div>').join(''));
+    if(typeof window.backroomRefreshCloudinary==='function')window.backroomRefreshCloudinary();
   }
   function openMember(id){const member=memberById(id);renderMemberDetail(member);view.hidden=false}
   function renderPartyCards(){
@@ -168,3 +164,4 @@ if 'White Wraith Magnum"},\n    {name:"Blackblood Armor' in html:
 
 INDEX.write_text(html, encoding="utf-8")
 print("Party character detail UI applied: up to four avatar slots with per-character Status, Equipment and Inventory.")
+

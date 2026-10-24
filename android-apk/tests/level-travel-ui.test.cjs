@@ -58,6 +58,8 @@ function boot() {
 }
 const first = boot();
 assert.equal(starts, 1, 'first game must be initialized once');
+assert.equal(first.document.getElementById('level-travel-background'), undefined,
+  'travel controls must not create a second Snapshot background');
 for (let i = 0; i < 100; i++) first.render();
 first.save();
 assert.equal(starts, 1, 'render/save cannot initialize another game');
@@ -88,3 +90,4 @@ assert.equal(starts, 3, 'only explicit recovery creates another game');
 assert.equal(invalid.submitEl.disabled, false, 'explicit new game must restore input');
 assert.equal(invalid.document.getElementById('startupRecovery').hidden, true);
 console.log('PASS: startup, 100 renders, save/load, reopen, exit button, reset and rejected-save recovery');
+

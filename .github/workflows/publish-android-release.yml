@@ -46,13 +46,27 @@ jobs:
           git diff --exit-code -- android-apk/app/src/main
           node --test android-apk/tests/lucia-visuals.test.cjs android-apk/tests/named-follower-visuals.test.cjs android-apk/tests/party-combat-choice.test.cjs
           node android-apk/tests/level-travel-ui.test.cjs
-          node --test android-apk/tests/snapshot-hud-regression.test.cjs
+          node --test android-apk/tests/snapshot-hud-regression.test.cjs android-apk/tests/character-detail-ui.test.cjs android-apk/tests/primary-actions-ui.test.cjs
+          python3 android-apk/tests/run-provider-router-test.py
       - name: Run Android JVM regression suite
         working-directory: android-apk
         run: gradle :app:testDebugUnitTest --no-daemon
-      - name: Assemble debug APK
+      - name: Assemble debug APK with configured text providers
         working-directory: android-apk
-        run: gradle :app:assembleDebug --no-daemon
+        env:
+          GEHIHI_API_KEY: ${{ secrets.GEHIHI_API_KEY }}
+          GEHIHI_BASE_URL: ${{ secrets.GEHIHI_BASE_URL }}
+          GEHIHI_MODEL: ${{ secrets.GEHIHI_MODEL }}
+          GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 }}
+          GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
+          GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
+          GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
+          GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
+        run: |
+          python3 tests/verify-provider-config.py
+          gradle :app:assembleDebug --no-daemon
+      - name: Verify packaged gameplay UI and provider router
+        run: python3 android-apk/tests/verify-restored-apk.py android-apk/app/build/outputs/apk/debug/app-debug.apk
       - name: Publish GitHub Release and checksum
         shell: bash
         env:
@@ -83,3 +97,4 @@ jobs:
           NOTES
           gh release create "$TAG" "Backroom-$VERSION.apk" "Backroom-$VERSION.apk.sha256" \
             --target "$GITHUB_SHA" --title "Backroom $VERSION Debug" --notes-file release-notes.md
+

@@ -3,7 +3,7 @@
   const modal = document.getElementById('equipmentDetailModal');
   if (!view || !modal) return;
   const section = document.createElement('section');
-  section.innerHTML = '<h3>THAO TÁC</h3><label>Số lượng <input id="itemActionQuantity" type="number" min="1" step="1" value="1" style="width:80px;background:#11171b;color:inherit;border:1px solid #46525a;padding:8px"></label><label id="itemActionTargetLabel" style="display:block;margin:10px 0">Người nhận <select id="itemActionTarget" style="max-width:100%;background:#11171b;color:inherit;padding:8px"></select></label><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px"><button type="button" id="itemActionUse">Dùng</button><button type="button" id="itemActionTransfer">Chuyển</button><button type="button" id="itemActionDrop" class="danger">Bỏ</button></div><p id="itemActionMessage" role="status" style="color:#c7b38b;font-size:12px"></p>';
+  section.innerHTML = '<h3>THAO TÁC</h3><label>Số lượng <input id="itemActionQuantity" type="number" min="1" step="1" value="1" style="width:80px;background:#11171b;color:inherit;border:1px solid #46525a;padding:8px"></label><label id="itemActionTargetLabel" style="display:block;margin:10px 0">Người nhận <select id="itemActionTarget" style="max-width:100%;background:#11171b;color:inherit;padding:8px"></select></label><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px"><button type="button" id="itemActionEquip" hidden>Trang bị</button><button type="button" id="itemActionUse">Dùng</button><button type="button" id="itemActionTransfer">Chuyển</button><button type="button" id="itemActionDrop" class="danger">Bỏ</button></div><p id="itemActionMessage" role="status" style="color:#c7b38b;font-size:12px"></p>';
   modal.querySelector('.equipment-detail-sheet').appendChild(section);
   const q = id => document.getElementById(id);
   let selected = null;
@@ -11,6 +11,9 @@
   function members() { return state?.partyDetails?.members || []; }
   function update() {
     const locked = busy || !selected || selected.item.equipped === true;
+    q('itemActionEquip').hidden = !selected?.item.slot;
+    q('itemActionEquip').disabled = busy || !selected;
+    q('itemActionEquip').textContent = selected?.item.equipped ? 'Tháo trang bị' : 'Trang bị';
     q('itemActionUse').disabled = locked;
     q('itemActionDrop').disabled = locked;
     q('itemActionTransfer').disabled = locked || !q('itemActionTarget').options.length;
@@ -56,6 +59,7 @@
     try { Android.itemAction(JSON.stringify(state), JSON.stringify({ operation, actorId: selected.actorId, itemId: selected.item.id, quantity, targetId })); }
     catch (error) { busy = false; update(); syncPrimaryActions(); q('itemActionMessage').textContent = 'Không gửi được thao tác item.'; }
   }
+  q('itemActionEquip').addEventListener('click', () => submit(selected?.item.equipped ? 'UNEQUIP' : 'EQUIP'));
   q('itemActionUse').addEventListener('click', () => submit('USE'));
   q('itemActionTransfer').addEventListener('click', () => submit('TRANSFER'));
   q('itemActionDrop').addEventListener('click', () => submit('DROP'));
@@ -71,3 +75,4 @@
     syncPrimaryActions(); update();
   };
 })();
+

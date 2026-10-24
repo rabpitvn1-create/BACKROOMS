@@ -54,9 +54,6 @@
       panel = document.createElement('section');
       panel.id = 'level-travel-panel';
       panel.style.cssText = 'margin:8px 10px;border:1px solid #343b41;background:#0b0e10';
-      const image = document.createElement('img');
-      image.id = 'level-travel-background';
-      image.style.cssText = 'width:100%;max-height:260px;object-fit:cover;display:block';
       const label = document.createElement('div');
       label.id = 'level-travel-streak';
       label.style.cssText = 'padding:8px;color:#c8c8b0;font-size:12px';
@@ -70,14 +67,11 @@
         actionEl.value = 'Thử thoát Level';
         formEl.requestSubmit();
       };
-      panel.append(image, label, button);
+      panel.append(label, button);
       const snapshot = document.getElementById('snapshot');
       if (snapshot) snapshot.before(panel); else document.body.prepend(panel);
     }
     document.getElementById('level-travel-attempt').disabled = busy || Boolean(state.combat && state.combat.active);
-    const image = document.getElementById('level-travel-background');
-    if (image.getAttribute('src') !== state.levelBackground) image.src = state.levelBackground;
-    image.alt = state.displayTitle || 'Địa điểm chưa xác định';
     document.getElementById('level-travel-streak').textContent = 'Chuỗi thoát: ' + t.exitStreak + '/3 · Mỗi lần thử: 50%';
   }
   window.render = drawTravel;
@@ -131,3 +125,4 @@
     showRecovery(error);
   }
 })();
+

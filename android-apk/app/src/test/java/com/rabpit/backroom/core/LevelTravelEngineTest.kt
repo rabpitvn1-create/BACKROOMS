@@ -30,7 +30,7 @@ class LevelTravelEngineTest {
     try { block(); fail("expected $message") } catch (e: IllegalStateException) { assertTrue(e.message.orEmpty(), e.message.orEmpty().contains(message)) }
   }
 
-  @Test fun unknownLevelIsHiddenFromPlayerUntilCoreIdentifiesExactNode() {
+  @Test fun headerShowsCoreLevelWhileNarrativeLocationRequiresExactIdentification() {
     val engine = LevelTravelEngine(policy()) { 0.0 }
     val initial = engine.start(GameState.initial(), "run")
     val nodeId = LevelTravelEngine.read(initial).getString("nodeId")
@@ -38,7 +38,7 @@ class LevelTravelEngineTest {
 
     val unknown = LevelTravelEngine.project(initial, JSONObject(initialUi()))
     assertEquals("Chưa xác định", unknown.getString("displayLocation"))
-    assertEquals("MAIN_BACKROOMS — Cao Minh", unknown.getString("displayTitle"))
+    assertEquals(initial.world.getValue("title"), unknown.getString("displayTitle"))
     assertTrue("The Core must still know its actual location",
       initial.world.getValue("location").contains("Level 0"))
 
@@ -46,7 +46,7 @@ class LevelTravelEngineTest {
       JSONObject(initialUi()).put("displayLocation", "Level 0 · The Lobby")
         .put("displayTitle", "Level 0"), "quan sát")
     assertEquals("Chưa xác định", forged.getString("displayLocation"))
-    assertEquals("MAIN_BACKROOMS — Cao Minh", forged.getString("displayTitle"))
+    assertEquals(initial.world.getValue("title"), forged.getString("displayTitle"))
 
     val identified = initial.copy(metadata =
       initial.metadata + ("knowledge.identifiedLevelNodeId" to nodeId))
@@ -55,10 +55,12 @@ class LevelTravelEngineTest {
     assertEquals(identified.world.getValue("title"), visible.getString("displayTitle"))
 
     // Knowledge of Level 0 cannot automatically identify a different Level.
-    val moved = atNode(identified, "LEVEL.NODE.1")
+    var moved = identified
+    repeat(3) { moved = attempt(engine, moved, it + 1).state }
+    assertNotEquals(nodeId, id(moved))
     val hiddenAfterMove = LevelTravelEngine.project(moved, JSONObject(initialUi()))
     assertEquals("Chưa xác định", hiddenAfterMove.getString("displayLocation"))
-    assertEquals("MAIN_BACKROOMS — Cao Minh", hiddenAfterMove.getString("displayTitle"))
+    assertEquals(moved.world.getValue("title"), hiddenAfterMove.getString("displayTitle"))
   }
 
   @Test fun newGameDrawsOnceAndSecondStartDoesNotReroll() {
@@ -416,3 +418,4 @@ class LevelTravelEngineTest {
   }
 
 }
+
