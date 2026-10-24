@@ -102,7 +102,12 @@ object CombatRuntime {
     val effective = CharacterStatEngine.effective(state, CAO_MINH_ID)
     val playerMax = effective.maxHp
     val playerHp = state.characters[CAO_MINH_ID]?.vitalState?.currentHp?.coerceIn(0, playerMax) ?: playerMax
-    val seed = stableSeed(entityKey, state.turn.currentTurnId, state.time.elapsedSubjectiveMinutes)
+    // Core turns can remain unchanged while the WebView resolves several
+    // encounters. A persistent serial prevents duplicate encounter IDs and
+    // repeated feedback-event keys after combat cleanup.
+    val previousSerial = state.metadata["encounter.serial"]?.toLongOrNull()?.coerceAtLeast(0L) ?: 0L
+    val serial = if (previousSerial == Long.MAX_VALUE) 1L else previousSerial + 1L
+    val seed = stableSeed(entityKey, "${state.turn.currentTurnId}:$serial", state.time.elapsedSubjectiveMinutes)
     val snapshot = Snapshot(
       encounterId = "${state.turn.currentTurnId}:${entityKey}:${abs(seed)}",
       entityKey = entityKey,
@@ -124,7 +129,7 @@ object CombatRuntime {
       eventCounter = 0,
       seed = seed
     )
-    return encode(state, snapshot)
+    return encode(state.copy(metadata = state.metadata + ("encounter.serial" to serial.toString())), snapshot)
   }
 
   fun resolve(state: GameState, actionKind: String, action: String): Resolution {
