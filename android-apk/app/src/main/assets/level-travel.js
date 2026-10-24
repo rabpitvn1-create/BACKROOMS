@@ -9,15 +9,25 @@
   const recoveryButton = document.getElementById('startNewGameFromRecovery');
   function showRecovery(error) {
     const detail = String(error && error.message || error || '');
+    if (typeof window.backroomDiagnosticRecord === 'function')
+      window.backroomDiagnosticRecord('startup', detail || 'unknown_failure');
     const incompatible = /save_version_unsupported|unsupported save|coreSnapshot|level_game_not_initialized/.test(detail);
     const message = incompatible
       ? 'Dữ liệu lưu hiện có không thuộc định dạng game hiện hành. Game không tự chuyển đổi hay xóa save cũ.'
-      : 'Game Core không thể khởi động. Dữ liệu hiện có chưa bị xóa.';
+      : detail.includes('core_save_decode_failed')
+        ? 'Save Core bị lỗi giải mã; dữ liệu gốc vẫn được giữ nguyên.'
+        : 'Game Core không thể khởi động. Dữ liệu hiện có chưa bị xóa.';
     if (recovery) recovery.hidden = false;
     if (recoveryMessage) recoveryMessage.textContent = message +
-      ' Chỉ chọn “Bắt đầu game mới” nếu bạn muốn thay thế dữ liệu đang lưu.';
+      ' Mã lỗi: ' + (detail.replace(/[\\r\\n<>]/g, ' ').slice(0, 220) || 'unknown') +
+      '. Chỉ chọn “Bắt đầu game mới” nếu bạn muốn thay thế dữ liệu đang lưu.';
     statusEl.textContent = message;
     submitEl.disabled = true;
+    // A cached browser label is not proof of Core identity after boot failed.
+    const place = document.getElementById('location');
+    if (place) place.textContent = 'Chưa xác định';
+    const heading = document.getElementById('title');
+    if (heading) heading.textContent = 'MAIN_BACKROOMS — Cao Minh';
   }
   function hideRecovery() {
     if (recovery) recovery.hidden = true;
@@ -67,7 +77,7 @@
     document.getElementById('level-travel-attempt').disabled = busy || Boolean(state.combat && state.combat.active);
     const image = document.getElementById('level-travel-background');
     if (image.getAttribute('src') !== state.levelBackground) image.src = state.levelBackground;
-    image.alt = state.title || 'Địa điểm hiện tại';
+    image.alt = state.displayTitle || 'Địa điểm chưa xác định';
     document.getElementById('level-travel-streak').textContent = 'Chuỗi thoát: ' + t.exitStreak + '/3 · Mỗi lần thử: 50%';
   }
   window.render = drawTravel;
@@ -115,6 +125,8 @@
     window.save();
     drawTravel();
     hideRecovery();
+    if (typeof window.backroomDiagnosticRecord === 'function')
+      window.backroomDiagnosticRecord('startup', 'resume_success');
   } catch (error) {
     showRecovery(error);
   }

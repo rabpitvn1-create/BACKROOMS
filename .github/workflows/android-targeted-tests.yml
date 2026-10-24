@@ -8,6 +8,8 @@ on:
       - "android-apk/app/build.gradle"
       - "android-apk/patch-level-travel.py"
       - "android-apk/tests/level-travel-ui.test.cjs"
+      - "android-apk/tests/diagnostic-export.test.cjs"
+      - "android-apk/tests/verify-restored-apk.py"
       - ".github/workflows/android-targeted-tests.yml"
   workflow_dispatch:
 
@@ -55,16 +57,21 @@ jobs:
           git diff --exit-code -- android-apk/app/src/main
           node android-apk/tests/level-travel-ui.test.cjs
           node --test android-apk/tests/snapshot-hud-regression.test.cjs
+      - name: Verify diagnostic log export and redaction
+        run: node --test android-apk/tests/diagnostic-export.test.cjs
       - name: Compile application and execute full Android unit regression suite
         working-directory: android-apk
         run: gradle :app:testDebugUnitTest --no-daemon
       - name: Package debug APK
         working-directory: android-apk
         run: gradle :app:assembleDebug --no-daemon
-      - name: Upload debug APK
+      - name: Verify restored runtime inside packaged APK
+        run: python3 android-apk/tests/verify-restored-apk.py android-apk/app/build/outputs/apk/debug/app-debug.apk
+      - name: Upload verified debug APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Backroom-debug-${{ github.event.pull_request.number || github.run_number }}
+          name: backrooms-pr-debug-apk
           path: android-apk/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 7
+          compression-level: 0

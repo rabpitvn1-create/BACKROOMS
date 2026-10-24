@@ -34,7 +34,7 @@
 <button id="mobileMenuClose" class="mobile-menu-close" type="button">✕ Đóng menu</button>
 <div class="card"><h2>Trạng thái</h2><div class="row"><b>Vị trí</b><span id="location"></span></div><div class="row"><b>Chế độ</b><span id="mode"></span></div><div class="row"><b>Nhân vật</b><span id="player"></span></div></div>
 <div class="card"><h2>Chỉ số hiện tại</h2><div id="playerStats"><div class="row"><b>HP</b><span>—</span></div><div class="row"><b>STR</b><span>—</span></div><div class="row"><b>DF</b><span>—</span></div><div class="row"><b>AGI</b><span>—</span></div><div class="row"><b>CRIT</b><span>—</span></div></div></div>
-<div class="card"><h2>Save / Load</h2><div class="actions"><button onclick="save()">Lưu</button><button onclick="load()">Tải</button><button class="wide" onclick="resetGame()">Bắt đầu lại từ đầu</button><button class="wide danger" onclick="clearSave()">Xóa save trên máy</button></div></div>
+<div class="card"><h2>Save / Load</h2><div class="actions"><button onclick="save()">Lưu</button><button onclick="load()">Tải</button><button class="wide" onclick="resetGame()">Bắt đầu lại từ đầu</button><button class="wide danger" onclick="clearSave()">Xóa save trên máy</button><button type="button" class="wide" id="exportDiagnosticsJson">Xuất log chẩn đoán (.json)</button></div><p id="diagnosticExportStatus" role="status" aria-live="polite" style="font-size:12px;color:#9aa4ad;margin:10px 0 0">Log chỉ chứa mã lỗi và trạng thái kỹ thuật, không chứa nội dung save hay API key.</p></div>
 <div class="card"><h2>Party</h2><div class="party-time" id="partyTime"></div><div id="party" class="party-grid"><div class="party-member" data-character="cao-minh"><img src="avatars/CAO_MINH_AVATAR.jpg" alt="Cao Minh"><strong>Cao Minh</strong></div></div></div>
 <div id="characterInventoryView" class="character-inventory-view" hidden>
   <div class="character-inventory-head"><button type="button" id="characterInventoryBack">← Trở lại</button><div><div class="eyebrow">CHARACTER DETAIL</div><h2 id="characterInventoryName">Cao Minh</h2></div></div>
@@ -199,7 +199,9 @@ const initial={canonVersion:"NOVEL-TEXTGAME-2026-08-20-DRIVE-INTEGRATION-R06",
   title:"MAIN_BACKROOMS — Cao Minh",
   turn:1,
   mode:"local APK · canon R06",
-  location:"Level 0 / The Lobby — khu phòng vàng ban đầu sau no-clip",
+  location:"Chưa xác định",
+  displayLocation:"Chưa xác định",
+  displayTitle:"MAIN_BACKROOMS — Cao Minh",
   player:{name:"Cao Minh",condition:"Ổn định"},
   party:[],
   inventory:[
@@ -216,7 +218,7 @@ const initial={canonVersion:"NOVEL-TEXTGAME-2026-08-20-DRIVE-INTEGRATION-R06",
 
 const byId=id=>document.getElementById(id);
 const titleEl=byId("title"),turnEl=byId("turn"),locationEl=byId("location"),modeEl=byId("mode"),playerEl=byId("player"),partyEl=byId("party"),inventoryEl=byId("inventory"),logEl=byId("log"),statusEl=byId("status"),formEl=byId("form"),actionEl=byId("action"),submitEl=byId("submit");
-let state=JSON.parse(localStorage.getItem("backroom-apk-state")||"null")||initial;state.canonVersion="NOVEL-TEXTGAME-2026-08-20-DRIVE-INTEGRATION-R06";state.flags=state.flags||{};state.flags.iris=state.flags.iris||{exists:true,continuity:"SEPARATED",reunionEligible:true};state.flags.syvial=state.flags.syvial||{exists:true,continuity:"SEPARATED",reunionEligible:true};
+let state=JSON.parse(localStorage.getItem("backroom-apk-state")||"null")||initial;state.canonVersion="NOVEL-TEXTGAME-2026-08-20-DRIVE-INTEGRATION-R06";state.flags=state.flags||{};state.flags.syvial=state.flags.syvial||{exists:true,continuity:"SEPARATED",reunionEligible:true};
 let busy=false;
 
 const oldPrologueSignature="Không beacon. Không telemetry.";
@@ -231,7 +233,7 @@ if(state.turn===1&&Array.isArray(state.log)&&state.log[0]){
 
 function esc(s){const d=document.createElement("div");d.textContent=s||"";return d.innerHTML}
 function chips(items){return items&&items.length?items.map(x=>"<span>"+esc(typeof x==="string"?x:x.name||"—")+"</span>").join(""):"<span>Trống.</span>"}
-function render(){titleEl.textContent=state.title;turnEl.textContent=state.turn;locationEl.textContent=state.location;modeEl.textContent=state.mode;playerEl.textContent=state.player?.name||"Cao Minh";partyEl.innerHTML=chips(state.party);if(inventoryEl)inventoryEl.innerHTML=chips(state.inventory);logEl.innerHTML=(state.log||[]).map(x=>"<article class='message "+(x.role==="player"?"player":"")+"'><div class='role'>"+(x.role==="player"?"BẠN":"GAME MASTER")+"</div><div class='text'>"+esc(x.text)+"</div></article>").join("");logEl.scrollTop=logEl.scrollHeight;statusEl.textContent="Save được lưu riêng trên thiết bị này."}
+function render(){titleEl.textContent=state.displayTitle||"MAIN_BACKROOMS — Cao Minh";turnEl.textContent=state.turn;locationEl.textContent=state.displayLocation||"Chưa xác định";modeEl.textContent=state.mode;playerEl.textContent=state.player?.name||"Cao Minh";partyEl.innerHTML=chips(state.party);if(inventoryEl)inventoryEl.innerHTML=chips(state.inventory);logEl.innerHTML=(state.log||[]).map(x=>"<article class='message "+(x.role==="player"?"player":"")+"'><div class='role'>"+(x.role==="player"?"BẠN":"GAME MASTER")+"</div><div class='text'>"+esc(x.text)+"</div></article>").join("");logEl.scrollTop=logEl.scrollHeight;statusEl.textContent="Save được lưu riêng trên thiết bị này."}
 function save(){localStorage.setItem("backroom-apk-state",JSON.stringify(state));statusEl.textContent="Đã lưu save trên máy."}
 function load(){state=JSON.parse(localStorage.getItem("backroom-apk-state")||"null")||initial;render()}
 function resetGame(){if(confirm("Bắt đầu lại từ Turn 1?")){if(window.Android&&typeof Android.resetCore==='function')Android.resetCore();state=JSON.parse(JSON.stringify(initial));save();render()}}
@@ -701,10 +703,14 @@ render();
   ensureButton();
 })();
 </script>
+<script src="cloudinary-gameplay.js"></script>
+<script src="cloudinary-entity-combat.js"></script>
+<script src="character-level-ui.js"></script>
 <script src="combat-feedback-1193a.js"></script>
 <script src="loot-item-display.js"></script>
 <script src="snapshot-stage.js"></script>
 <script src="mobile-hud.js"></script>
+<script src="diagnostic-export.js"></script>
 <script src="level-travel.js"></script>
 </body>
 </html>

@@ -35,7 +35,7 @@ class GameCoreFacade @JvmOverloads internal constructor(
     if (fresh) {
       output.put("turn", 1)
       output.put("log", JSONArray().put(JSONObject().put("role", "gm").put("text",
-        "Cao Minh xuất hiện tại " + output.getString("location") + ". Liên lạc với Lục Trầm và Syvial vẫn gián đoạn.")))
+        "Cao Minh xuất hiện ở một nơi chưa xác định. Liên lạc với Lục Trầm và Syvial vẫn gián đoạn.")))
     }
     output.remove("coreSnapshot")
     core = core.copy(world = core.world + ("levelTravelUi" to output.toString()))
@@ -47,7 +47,13 @@ class GameCoreFacade @JvmOverloads internal constructor(
   /** App startup resumes the committed Core even if the WebView autosave never completed. */
   @Synchronized fun resumeLevelGame(legacyStateJson: String, hasBrowserSave: Boolean): String {
     if (repository.exists()) {
-      val core = repository.load()
+      val core = try {
+        repository.load()
+      } catch (error: Exception) {
+        // Recovery is allowed only from an explicitly supplied snapshot using
+        // the current save schema. Never delete or overwrite corrupted bytes.
+        throw IllegalStateException("core_save_decode_failed", error)
+      }
       if (LevelTravelEngine.KEY in core.world) {
         val legacy = core.world["levelTravelUi"]?.let(::JSONObject) ?: JSONObject(legacyStateJson)
         val output = syncLegacy(legacy, core, incrementTurn = false)
@@ -85,7 +91,7 @@ class GameCoreFacade @JvmOverloads internal constructor(
       output.put("flags", JSONObject(outcome.state.world["flagsJson"] ?: "{}"))
       val r = outcome.receipt
       val reply = when {
-        r.getBoolean("completed") -> "Thoát thành công 3/3. Cao Minh tới " + output.getString("location") + ". Chuỗi thoát mới: 0/3."
+        r.getBoolean("completed") -> "Thoát thành công 3/3. Cao Minh đã đến một nơi mới, chưa xác định danh tính. Chuỗi thoát mới: 0/3."
         r.getBoolean("success") -> "Lần thử thoát thành công: " + r.getInt("streak") + "/3. Cao Minh vẫn ở địa điểm hiện tại."
         else -> "Lần thử thoát thất bại. Chuỗi trở về 0/3; Cao Minh vẫn ở địa điểm hiện tại."
       }
@@ -303,6 +309,9 @@ class GameCoreFacade @JvmOverloads internal constructor(
       output.put("combat", combat)
     }
     output.put("coreSystem", PokerDiceCore.statsJson(core, CAO_MINH_ID))
+    val progress = EntityExpRewards.progression(core, CAO_MINH_ID)
+    output.put("characterProgression", JSONObject().put("level",progress.level)
+      .put("exp",progress.exp).put("requiredExp",progress.requiredExp))
     return NamedFollowerRuntime.project(output, core)
   }
 
@@ -388,6 +397,10 @@ class GameCoreFacade @JvmOverloads internal constructor(
       CoreLootEngine.roll(completed, CoreLootEngine.Source.ENTITY, active.encounterId)
     } else null
     if (loot != null) completed = loot.state
+    val expReward = if (resolution.entityDestroyed) {
+      EntityExpRewards.award(completed, active.encounterId, active.entityKey)
+    } else null
+    if (expReward != null) completed = expReward.state
     repository.save(completed)
     // Combat changes HP and the combat snapshot, not the already validated
     // narrative inventory/party. The GM path is not yet wired into Core's
@@ -426,10 +439,50 @@ class GameCoreFacade @JvmOverloads internal constructor(
     output.put("combatFeedback", JSONObject().apply {
       put("id", "${active.encounterId}:${active.eventCounter + 1}")
       put("encounterId", active.encounterId)
-      put("events", JSONArray().apply { resolution.feedback.forEach { put(it.toJson()) } })
+      put("events", JSONArray().apply {
+        var entityHpRemaining = active.entityHp
+        resolution.feedback.forEach { event ->
+          if (event.target == "entity") entityHpRemaining =
+            (entityHpRemaining - event.amount.coerceAtLeast(0)).coerceAtLeast(0)
+          put(event.toJson().apply {
+            put("sourceName", when (event.actorId) {
+              CAO_MINH_ID -> "Cao Minh"
+              NGUYEN_QUOC_NAM_ID -> "Nguyễn Quốc Nam"
+              HUA_TIEU_LAN_ID -> "Hứa Tiểu Lan"
+              else -> completed.characters[event.actorId]?.name ?: active.entityName
+            })
+            if (event.target == "entity") {
+              put("entityName", active.entityName)
+              put("remainingHp", entityHpRemaining)
+              put("maxHp", active.entityMaxHp)
+            }
+          })
+        }
+      })
+      put("turns", JSONArray().apply {
+        var previousPhase = ""
+        var previousActor = ""
+        resolution.feedback.forEachIndexed { index, event ->
+          val kind = if (event.phase == "entity") "entity" else "actor"
+          val actingId = if (kind == "entity") "entity" else event.actorId
+          if (kind != previousPhase || actingId != previousActor) {
+            put(JSONObject().put("kind", kind).put("eventIndex", index)
+              .put("actorId", if (kind == "entity") "entity" else event.actorId)
+              .put("actorName", if (kind == "entity") active.entityName else
+                completed.characters[event.actorId]?.name ?: "Cao Minh")
+              .put("entityKey", active.entityKey).put("entityName", active.entityName)
+              .put("details", JSONArray()))
+            previousPhase = kind
+            previousActor = actingId
+          }
+        }
+      })
     })
     val lootReply = loot?.dropped?.let { " ${it.name} xuất hiện tại vị trí Entity bị tiêu diệt." }.orEmpty()
-    val reply = resolution.reply + lootReply
+    val expReply = expReward?.takeIf { it.amount > 0 }?.let {
+      " +${it.amount} EXP." + if (it.leveledUp > 0) " Tăng ${it.leveledUp} cấp." else ""
+    }.orEmpty()
+    val reply = resolution.reply + lootReply + expReply
     appendLog(output, action, reply)
     return response(true, output, null, "combat_committed", reply)
   }
@@ -542,6 +595,9 @@ class GameCoreFacade @JvmOverloads internal constructor(
   }
 
   fun currentCoreState(): String = GameStateCodec.encode(repository.load())
+  /** Diagnostic reads must never create a fresh state or change saved bytes. */
+  @Synchronized fun diagnosticCoreStateOrNull(): String? =
+    if (repository.exists()) GameStateCodec.encode(repository.load()) else null
   fun clear() { preparedNamedTurn = null; repository.clear() }
   override fun close() = Unit
 
