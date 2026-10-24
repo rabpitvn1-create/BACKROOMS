@@ -1,59 +1,46 @@
-const {test} = require('node:test');
-const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const path = require('node:path');
-const vm = require('node:vm');
-const html = fs.readFileSync(path.join(__dirname,'../app/src/main/assets/index.html'),'utf8');
-const source = [...html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)]
-  .map(m=>m[1]).find(s=>s.includes('if(window.__pokerCoreUiInstalled)'));
-
-function boot(diceState) {
-  function node() {
-    return {hidden:true,disabled:false,textContent:'',children:[],listeners:{},classList:{add(){},remove(){}},
-      setAttribute(){},addEventListener(k,fn){this.listeners[k]=fn;},appendChild(n){this.children.push(n);}};
+const {test}=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const vm=require('node:vm');
+const html=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/index.html'),'utf8');
+const source=[...html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]).find(s=>s.includes('if(window.__pokerCoreUiInstalled)'));
+function boot(diceState){
+  function node(){
+    const n={hidden:true,disabled:false,children:[],listeners:{},attrs:{},classList:{add(){},remove(){}},
+      setAttribute(k,v){this.attrs[k]=v;},addEventListener(k,fn){this.listeners[k]=fn;},appendChild(c){this.children.push(c);}};
+    Object.defineProperty(n,'textContent',{get(){return this.text||'';},set(v){this.text=v;this.children=[];}});
+    return n;
   }
-  const ids={};
-  for(const id of ['pokerDiceModal','pokerDiceRow','pokerDiceMeta','pokerDiceHand','pokerDiceRoll','pokerDiceFinish','pokerDiceTitle','pokerDiceCommand'])ids[id]=node();
-  const commands={};
-  for(const command of ['ATTACK','GUARD','EVADE','READ']) {
-    const button=node();button.getAttribute=()=>command;button.closest=()=>button;commands[command]=button;
-  }
-  ids.pokerDiceCommand.querySelectorAll=()=>Object.values(commands);
+  const ids=Object.fromEntries(['pokerDiceModal','pokerDiceRow','pokerDiceMeta','pokerDiceHand','pokerDiceRoll','pokerDiceFinish','pokerDiceTitle'].map(id=>[id,node()]));
   const calls=[];
   const scope={state:{combat:{active:true,encounterId:'enc',...(diceState?{diceState}:{})}},busy:false,statusEl:{},
-    document:{getElementById:id=>ids[id]||null,body:{classList:{add(){},remove(){}}},createElement:node},
-    setTimeout(){},Android:{combatDicePrepare:(s,a)=>calls.push(['prepare',a]),
-      combatDiceFinish:()=>calls.push(['finish']),submitAction:(s,k,a)=>calls.push(['execute',k,a])},
+    document:{getElementById:id=>ids[id]||null,body:{classList:{add(){},remove(){}}},createElement:node},setTimeout(){},
+    Android:{combatDicePrepare:(s,a)=>calls.push(['prepare',a]),combatDiceHold:(s,i,held)=>calls.push(['hold',i,held]),combatDiceFinish:()=>calls.push(['finish']),submitAction:(s,k,a)=>calls.push(['execute',k,a])},
     render(){},backroomTurn(json){scope.state=JSON.parse(json);}};
   scope.window=scope;vm.runInNewContext(source,scope);
-  return {scope,ids,calls,choose(command){ids.pokerDiceCommand.listeners.click({target:commands[command]});}};
+  return {scope,ids,calls};
 }
-
-test('a new combat round waits for a player command before rolling',()=>{
-  const r=boot();assert.deepEqual(r.calls,[]);
-  assert.equal(r.ids.pokerDiceCommand.hidden,false);
-  assert.equal(r.ids.pokerDiceRoll.disabled,true);
-  assert.equal(r.ids.pokerDiceFinish.disabled,true);
+const dice={action:'Cả Party cùng tấn công',values:[1,2,3,4,5],held:[false,true,false,false,false],rerollsUsed:0,maxRerolls:3,finalized:false,hand:'NONE'};
+test('battle opens five dice and prepares one Core session without a four-button selector',()=>{
+  const r=boot();assert.deepEqual(r.calls,[['prepare',dice.action]]);
+  r.scope.ensureDirectCombatDice();r.scope.ensureDirectCombatDice();assert.equal(r.calls.length,1);
+  assert.equal(r.ids.pokerDiceRow.children.length,5);
+  assert.ok(r.ids.pokerDiceRow.children.every(d=>d.disabled));
+  assert.doesNotMatch(html,/id="pokerDiceCommand"|data-party-combat=/);
 });
-
-for(const [command,action] of Object.entries({ATTACK:'Cả Party cùng tấn công',GUARD:'Cả Party cùng phòng thủ',EVADE:'Cả Party cùng né tránh',READ:'Cả Party cùng quan sát'})) {
-  test(command+' binds the real dice session and submits that same command',()=>{
-    const r=boot();r.choose(command);
-    assert.deepEqual(r.calls,[['prepare',action]]);
-    r.choose(command==='ATTACK'?'GUARD':'ATTACK');
-    assert.equal(r.calls.length,1);
-    const dice={action,values:[1,2,3,4,5],held:[true,true,true,true,true],rerollsUsed:0,maxRerolls:3,finalized:false,hand:'SSF'};
-    r.scope.backroomCombatDiceState(JSON.stringify({combat:{active:true,encounterId:'enc',diceState:dice}}));
-    assert.equal(r.ids.pokerDiceCommand.hidden,true);
-    r.ids.pokerDiceFinish.listeners.click();
-    r.scope.backroomCombatDiceState(JSON.stringify({combat:{active:true,encounterId:'enc',diceState:{...dice,finalized:true}}}));
-    assert.deepEqual(r.calls.at(-1),['execute','EXECUTE',action]);
-  });
-}
-
-test('reload restores a finalized defensive command without changing it to attack',()=>{
-  const action='Cả Party cùng phòng thủ';
-  const r=boot({action,values:[1,1,1,1,1],held:[true,true,true,true,true],finalized:true,hand:'FSF'});
-  assert.deepEqual(r.calls,[['execute','EXECUTE',action]]);
-  assert.equal(r.ids.pokerDiceCommand.hidden,true);
+test('Core dice values and HOLD state are rendered and clicks request a native hold',()=>{
+  const r=boot(dice),buttons=r.ids.pokerDiceRow.children;
+  assert.equal(buttons.length,5);assert.match(buttons[1].className,/held/);
+  assert.equal(buttons[1].attrs['aria-pressed'],'true');assert.equal(buttons[0].attrs['aria-pressed'],'false');
+  assert.equal(buttons[1].children[0].src,'dice/die-2.png');
+  buttons[0].listeners.click();assert.deepEqual(r.calls,[['hold',0,true]]);
+});
+test('FINISH executes the same native dice action; restored finalized actions remain intact',()=>{
+  const r=boot(dice);r.ids.pokerDiceFinish.listeners.click();
+  r.scope.backroomCombatDiceState(JSON.stringify({combat:{active:true,encounterId:'enc',diceState:{...dice,finalized:true}}}));
+  assert.deepEqual(r.calls,[['finish'],['execute','EXECUTE',dice.action]]);
+  const guard='Cả Party cùng phòng thủ';
+  const restored=boot({...dice,action:guard,finalized:true});
+  assert.deepEqual(restored.calls,[['execute','EXECUTE',guard]]);
 });

@@ -57,21 +57,11 @@
       const label = document.createElement('div');
       label.id = 'level-travel-streak';
       label.style.cssText = 'padding:8px;color:#c8c8b0;font-size:12px';
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.id = 'level-travel-attempt';
-      button.textContent = 'Thử thoát Level';
-      button.style.cssText = 'width:100%';
-      button.onclick = function () {
-        if (busy) return;
-        actionEl.value = 'Thử thoát Level';
-        formEl.requestSubmit();
-      };
-      panel.append(label, button);
+      // Exit attempts use the primary gameplay actions, never a separate shortcut.
+      panel.append(label);
       const snapshot = document.getElementById('snapshot');
       if (snapshot) snapshot.before(panel); else document.body.prepend(panel);
     }
-    document.getElementById('level-travel-attempt').disabled = busy || Boolean(state.combat && state.combat.active);
     document.getElementById('level-travel-streak').textContent = 'Chuỗi thoát: ' + t.exitStreak + '/3 · Mỗi lần thử: 50%';
   }
   window.render = drawTravel;

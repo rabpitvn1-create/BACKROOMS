@@ -31,9 +31,10 @@ test('three action buttons exist once in the persistent bottom bar; Execute open
   const r=boot();assert.equal(r.context.submitEl.disabled,false);
   r.context.submitEl.fire('click');assert.equal(r.nodes.get('playerActionModal').hidden,false);
   assert.equal(r.nodes.get('playerActionConfirm').disabled,true);assert.equal(r.calls.length,0);
-  r.context.actionEl.value='Kiểm tra cánh cửa';r.context.actionEl.fire('input');
+  r.context.actionEl.value='Đi qua lối thoát';r.context.actionEl.fire('input');
   assert.equal(r.nodes.get('playerActionConfirm').disabled,false);
-  r.context.formEl.fire('submit');assert.equal(r.calls[0].action,'Kiểm tra cánh cửa');
+  r.context.formEl.fire('submit');assert.equal(r.calls[0].action,'Đi qua lối thoát');
+  assert.equal(r.calls[0].kind,'EXECUTE','exit intent must use the regular gameplay bridge');
   assert.equal(r.nodes.get('playerActionModal').hidden,true);
 });
 test('Explore and Search submit one real gameplay turn and preserve a freeform draft',()=>{

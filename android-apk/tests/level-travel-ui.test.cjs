@@ -65,9 +65,10 @@ first.save();
 assert.equal(starts, 1, 'render/save cannot initialize another game');
 first.load();
 assert.equal(starts, 1, 'load cannot reroll');
-first.document.getElementById('level-travel-attempt').onclick();
-assert.equal(first.actionEl.value, 'Thử thoát Level');
-assert.equal(submissions, 1);
+assert.equal(first.document.getElementById('level-travel-attempt'), undefined,
+  'exit attempts must use the primary gameplay actions, without a dedicated exit button');
+assert.match(first.document.getElementById('level-travel-streak').textContent, /0\/3/);
+assert.equal(submissions, 0, 'travel rendering must never submit a gameplay action');
 const reopened = boot();
 assert.equal(starts, 1, 'reopen must load the current save');
 reopened.resetGame();
@@ -89,5 +90,5 @@ invalid.document.getElementById('startNewGameFromRecovery').listeners.click();
 assert.equal(starts, 3, 'only explicit recovery creates another game');
 assert.equal(invalid.submitEl.disabled, false, 'explicit new game must restore input');
 assert.equal(invalid.document.getElementById('startupRecovery').hidden, true);
-console.log('PASS: startup, 100 renders, save/load, reopen, exit button, reset and rejected-save recovery');
+console.log('PASS: startup, 100 renders, save/load, reopen, read-only exit streak, reset and rejected-save recovery');
 

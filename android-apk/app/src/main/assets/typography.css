@@ -15,5 +15,5 @@
 
 /* Include form controls, SVG text, generated labels and dynamic game panels. */
 *, ::before, ::after {
-  font-family: inherit;
+  font-family: var(--game-font) !important;
 }
