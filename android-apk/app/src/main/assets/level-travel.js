@@ -9,7 +9,7 @@
   const recoveryButton = document.getElementById('startNewGameFromRecovery');
   function showRecovery(error) {
     const detail = String(error && error.message || error || '');
-    const incompatible = /save_version_unsupported|coreSnapshot|level_game_not_initialized/.test(detail);
+    const incompatible = /save_version_unsupported|unsupported save|coreSnapshot|level_game_not_initialized/.test(detail);
     const message = incompatible
       ? 'Dữ liệu lưu hiện có không thuộc định dạng game hiện hành. Game không tự chuyển đổi hay xóa save cũ.'
       : 'Game Core không thể khởi động. Dữ liệu hiện có chưa bị xóa.';

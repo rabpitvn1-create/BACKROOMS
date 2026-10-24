@@ -31,9 +31,7 @@
       closeMenu(); button.focus();
     }
   });
-  // Opening a character sheet from Party must not leave the HUD above the sheet.
-  panel.addEventListener('click', event => {
-    if (event.target.closest('.party-member[data-character]')) closeMenu();
-  });
+  // Character detail is nested inside this sidebar; keep it visible when
+  // a Party card opens its full-screen sheet, then return to the same HUD.
   window.backroomMobileHud = {open: openMenu, close: closeMenu};
 })();

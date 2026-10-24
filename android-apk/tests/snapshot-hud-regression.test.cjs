@@ -123,7 +123,7 @@ test('Generated image payloads are ignored; only curated fixed backgrounds are r
     other.levelBackground, 'curated static art remains available for unbundled Levels');
 });
 
-test('Mobile HUD opens from header and closes with Escape or a Party selection', () => {
+test('Mobile HUD remains open for Party detail and closes with Escape or explicit close', () => {
   const nodes = Object.fromEntries(['mobileMenuButton', 'sidePanel', 'mobileMenuClose',
     'mobileMenuBackdrop'].map(id => [id, element()]));
   nodes.mobileMenuBackdrop.hidden = true;
@@ -144,7 +144,9 @@ test('Mobile HUD opens from header and closes with Escape or a Party selection',
   assert.equal(set.has('mobile-menu-open'), false);
   assert.equal(nodes.mobileMenuBackdrop.hidden, true);
   nodes.mobileMenuButton.listeners.click();
-  nodes.sidePanel.listeners.click({target: {closest: s => s === '.party-member[data-character]' ? {} : null}});
+  assert.equal(set.has('mobile-menu-open'), true,
+    'Party detail is a child of the sidebar and must remain visible');
+  nodes.mobileMenuClose.listeners.click();
   assert.equal(set.has('mobile-menu-open'), false);
 });
 
