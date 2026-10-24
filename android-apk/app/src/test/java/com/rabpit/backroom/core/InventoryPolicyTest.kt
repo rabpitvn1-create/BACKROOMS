@@ -41,6 +41,17 @@ class InventoryPolicyTest {
     assertEquals("inventory_slot_limit", InventoryPolicy.validateAddition(state, "bob", state.inventories.getValue("bob"), ItemStack("c", "C"), 1))
   }
 
+  @Test fun hugeRequestedQuantityNeverOverflowsStackLimit() {
+    val state = stateWith()
+    val inventory = state.inventories.getValue(CAO_MINH_ID)
+    val item = ItemStack("x", "Mảnh vụn", 1)
+    assertEquals("inventory_stack_limit",
+      InventoryPolicy.validateAddition(state, CAO_MINH_ID, inventory, item, Int.MAX_VALUE))
+    val stacked = inventory.copy(items = mapOf("x" to item.copy(quantity = 998)))
+    assertEquals("inventory_stack_limit",
+      InventoryPolicy.validateAddition(state, CAO_MINH_ID, stacked, item, Int.MAX_VALUE))
+  }
+
   @Test fun equippedCaoMinhSignatureItemCannotBeScanned() {
     val sword = ItemStack("cao-minh:huyet-ma-kiem", "Huyết Ma Kiếm", 1)
     val state = stateWith().copy(
