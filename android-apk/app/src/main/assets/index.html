@@ -399,8 +399,18 @@ render();
       ((member.passives&&member.passives.length)?'<div class="character-status-row"><b>Passive</b><span>'+e(member.passives.filter(Boolean).join(' · '))+'</span></div>':'')+
       ((member.statuses&&member.statuses.length)?'<div class="character-status-row"><b>Status Effects</b><span>'+e(member.statuses.map(x=>x.type||x.id).join(', '))+'</span></div>':'');
     const eq=member.equipment||{},details=member.equipmentItems||[];
-    if(equipment){const rendered=[];Object.keys(eq).sort().forEach(slot=>{const id=eq[slot],item=details.find(x=>String(x.id)===String(id))||itemById(member,id);if(item)rendered.push(card(item,slot))});equipment.innerHTML=rendered.length?rendered.join(''):'<span>Không có trang bị được ghi nhận.</span>'}
-    if(inventory){inventory.innerHTML=(member.inventory||[]).map(x=>card(x,null)).join('')||'<span>Trống.</span>'}
+    if(equipment){
+      const rendered=[],displayedIds=new Set();
+      Object.keys(eq).sort().forEach(slot=>{
+        const id=eq[slot],item=details.find(x=>String(x.id)===String(id))||itemById(member,id);
+        if(item&&!displayedIds.has(String(item.id))){rendered.push(card(item,slot));displayedIds.add(String(item.id))}
+      });
+      // Canon items are owner-bound Equipment even when unequipped.
+      details.filter(x=>x.classification==='CANONICAL'&&!displayedIds.has(String(x.id)))
+        .forEach(item=>{rendered.push(card(item,item.slot||'special'));displayedIds.add(String(item.id))});
+      equipment.innerHTML=rendered.length?rendered.join(''):'<span>Không có trang bị được ghi nhận.</span>';
+    }
+    if(inventory){inventory.innerHTML=(member.inventory||[]).filter(x=>x.consumesInventorySlot!==false).map(x=>card(x,null)).join('')||'<span>Trống.</span>'}
   }
   function statRows(item){const w=item.weapon||{},rows=[];const bonuses=item.equipmentModifiers||{};Object.keys(bonuses).forEach(k=>{if(Number(bonuses[k]))rows.push([k,'+'+Number(bonuses[k])+'%'])});if(w.DMG!=null)rows.push(['DMG',w.DMG]);if(w.ammo!=null)rows.push(['Ammo',w.ammo]);if(w.rpm!=null)rows.push(['Full Auto',w.rpm+' RPM']);return rows
   }

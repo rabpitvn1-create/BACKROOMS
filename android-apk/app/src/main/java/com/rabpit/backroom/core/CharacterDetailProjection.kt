@@ -18,7 +18,8 @@ data class ItemDetailProjection(
   val restrictions: List<String> = emptyList(),
   val components: List<EquipmentComponent> = emptyList(),
   val iconRef: String? = null,
-  val bonuses: EquipmentBonuses = EquipmentBonuses()
+  val bonuses: EquipmentBonuses = EquipmentBonuses(),
+  val consumesInventorySlot: Boolean? = null
 )
 
 data class CharacterDetailProjection(
@@ -79,6 +80,9 @@ object CharacterDetailProjector {
     val base = c.statProfile
     val inventory = normalized.inventories[c.inventoryId]?.items?.values.orEmpty().sortedBy { it.itemId }
     val equipment = normalized.equipment[c.equipmentId]?.slots.orEmpty().toSortedMap()
+    val equippedIds = equipment.values.toSet()
+    fun carried(itemId: String) = itemId !in equippedIds &&
+      !InventoryCapacityPolicy.isOwnerCanon(characterId, itemId)
     fun itemDetail(item: ItemStack): ItemDetailProjection {
       val def = EquipmentCatalog.definition(item.itemId)
       val slots = equipment.filterValues { it == item.itemId }.keys.sorted()
@@ -89,10 +93,17 @@ object CharacterDetailProjector {
         statItem = def?.weapon != null || def?.bonuses?.any() == true, classification = def?.classification?.name,
         weapon = def?.weapon, abilities = def?.abilities.orEmpty(), restrictions = def?.restrictions.orEmpty(),
         components = def?.components.orEmpty(), iconRef = def?.iconRef,
-        bonuses = def?.bonuses ?: EquipmentBonuses()
+        bonuses = def?.bonuses ?: EquipmentBonuses(),
+        consumesInventorySlot = carried(item.itemId)
       )
     }
     val details = inventory.map(::itemDetail)
+    // Canon owner gear is projected only under Equipment, not carried Inventory.
+    val carriedIds = inventory.filter { carried(it.itemId) }.map { it.itemId }.toSet()
+    val carriedDetails = details.filter { it.id in carriedIds }
+    val equipmentDetails = details.filter {
+      it.equipped || InventoryCapacityPolicy.isOwnerCanon(characterId, it.id)
+    }
     val gear = CharacterStatEngine.equippedBonuses(normalized, characterId)
     fun statLine(raw: Int, value: Int, percent: Int = 0): StatLineProjection {
       val equipmentBonus = (CharacterStatCore.scaleByPercent(raw, 100 + percent) - raw)
@@ -121,10 +132,10 @@ object CharacterDetailProjector {
       criticalResistancePercent = effective.resCriticalPercent,
       evasionResistancePercent = effective.resEvasionPercent,
       injuries = c.injuries.toList(), physiology = PhysiologyStatusPolicy.derive(c.physiology),
-      inventory = inventory.toList(), inventoryDetails = details,
+      inventory = inventory.filter { it.itemId in carriedIds }, inventoryDetails = carriedDetails,
       inventoryCapacityUsed = InventoryCapacityPolicy.usedSlots(normalized, c.id),
       inventoryCapacityMax = InventoryCapacityPolicy.maxSlots(normalized, c.id),
-      equipment = equipment, equipmentDetails = details.filter { it.equipped },
+      equipment = equipment, equipmentDetails = equipmentDetails,
       passives = CompanionSkillCatalog.forCharacter(c.id).filter { it.kind == "PASSIVE" }.map { it.name },
       statusEffects = c.statusIds.mapNotNull(normalized.statuses::get)
     )

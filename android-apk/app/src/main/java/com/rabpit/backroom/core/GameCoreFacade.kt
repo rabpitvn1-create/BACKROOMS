@@ -493,7 +493,9 @@ class GameCoreFacade @JvmOverloads internal constructor(
       output.remove("combatFeedback")
     }
     output.put("equipment",legacyEquipment(state))
-    val caoMinhInventory = state.inventories[CAO_MINH_ID]?.items?.values.orEmpty()
+    val caoMinhInventory = state.inventories[CAO_MINH_ID]?.items?.values.orEmpty().filter {
+      InventoryCapacityPolicy.consumesSlot(state, CAO_MINH_ID, it.itemId)
+    }
     output.put("inventory", JSONArray().apply { caoMinhInventory.forEach { stack -> put(JSONObject().apply {
       put("id", stack.itemId); put("name", stack.name); put("quantity", stack.quantity)
       stack.condition?.let { put("state", it) }; put("metadata", JSONObject(stack.metadata))

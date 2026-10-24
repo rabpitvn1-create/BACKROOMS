@@ -91,7 +91,7 @@ object EquipmentCatalog {
         ability("Huyết Sát Ma Khí", "Vạn Quỷ Ma Tâm gia cường lưỡi kiếm hoặc phóng kiếm áp bằng ma nguyên."),
         ability("Bản Mệnh Tái Sinh", "Vạn Quỷ Ma Tâm từng bước tái tạo chính thanh kiếm đã hỏng; không tự sinh kiếm thứ hai.")
       ),
-      canonRef = "CAO_MINH_CODEX R17"
+      canonRef = "CAO_MINH_CODEX R17", iconRef = "https://res.cloudinary.com/csz2me5b/image/upload/v1792832681/Item_Huyet_Ma_Kiem.webp"
     ),
     EquipmentDefinition(
       id = CAO_MINH_HUYET_MA_CHIEN_KHAI_ID, name = "Huyết Ma Chiến Khải", type = "BẢN MỆNH MA KHẢI", primarySlot = EquipmentSlot.ARMOR,
@@ -104,7 +104,34 @@ object EquipmentCatalog {
         ability("Bản Mệnh Tái Ngưng Kết", "Giáp vỡ được Vạn Quỷ Ma Tâm từng bước tái ngưng kết; không đồng nghĩa hồi HP nhân vật.")
       ),
       restrictions = listOf("Không phạt tốc độ di chuyển; giáp đồng bộ với kiếm thuật và nhục thân."),
-      canonRef = "CAO_MINH_CODEX R17"
+      canonRef = "CAO_MINH_CODEX R17", iconRef = "https://res.cloudinary.com/csz2me5b/image/upload/v1792832698/Item_Huyet_Ma_Khai.webp"
+    ),
+    EquipmentDefinition(
+      id = CAO_MINH_HUYET_MA_GAUNTLETS_ID, name = "Găng Huyết Ma",
+      type = "BỘ PHẬN LIÊN KẾT HUYẾT MA CHIẾN KHẢI", primarySlot = EquipmentSlot.GAUNTLETS,
+      abilities = listOf(
+        ability("Ma Trảo", "Giáp ở cẳng tay và bàn tay hóa trảo để cắt, bám, khóa hoặc xé pháp khí ở cự ly gần."),
+        ability("Huyết Ấn", "Ma niệm trong lòng bàn tay tác động vật vô chủ hoặc vật đã khóa bằng thần thức trong phạm vi gần.")
+      ),
+      restrictions = listOf(
+        "Là bộ phận liên kết của Huyết Ma Chiến Khải, không phải pháp bảo độc lập.",
+        "Không cộng thêm chỉ số hoặc nhân đôi năng lực Ma Trảo/Huyết Ấn của Chiến Khải."
+      ),
+      canonRef = "CAO_MINH_CODEX R17 §10",
+      iconRef = "https://res.cloudinary.com/csz2me5b/image/upload/v1792832619/Item_Cao_Minh_Huyet_Ma_Gauntlets.webp"
+    ),
+    EquipmentDefinition(
+      id = CAO_MINH_HUYET_MA_BOOTS_ID, name = "Giày Huyết Ma",
+      type = "BỘ PHẬN LIÊN KẾT HUYẾT MA CHIẾN KHẢI", primarySlot = EquipmentSlot.GREAVES,
+      abilities = listOf(
+        ability("Đạp Hư Ma Văn", "Ma văn ở chân hỗ trợ bộc phát thân pháp, đạp lên ma nguyên ngưng tụ, đổi hướng giữa không trung và giảm lực tiếp đất.")
+      ),
+      restrictions = listOf(
+        "Là bộ phận liên kết của Huyết Ma Chiến Khải, không phải pháp bảo độc lập.",
+        "Không cộng thêm chỉ số hoặc nhân đôi hiệu ứng Đạp Hư Ma Văn của Chiến Khải."
+      ),
+      canonRef = "CAO_MINH_CODEX R17 §10",
+      iconRef = "https://res.cloudinary.com/csz2me5b/image/upload/v1792832622/Item_Cao_Minh_Huyet_Ma_Boots.webp"
     ),
     EquipmentDefinition(
       id = CAO_MINH_VAN_KHO_GIOI_CHI_ID, name = "Vạn Khố Giới Chỉ", type = "PHÁP BẢO KHÔNG GIAN", primarySlot = EquipmentSlot.RING,
@@ -127,7 +154,7 @@ object EquipmentCatalog {
         ability("Linh Lực Gia Tốc", "Hỗ trợ bộc phát thân pháp và phân tán lực đổi hướng giữa không trung.")
       ),
       restrictions = listOf("Pháp bảo thuần tu tiên, không có AI, cảm biến điện tử, súng, tên lửa hoặc động cơ hiện đại."),
-      canonRef = "LUC_TRAM_CODEX R05"
+      canonRef = "LUC_TRAM_CODEX R05", iconRef = "https://res.cloudinary.com/csz2me5b/image/upload/v1792832694/Item_Kiem_Khai.webp"
     ),
     EquipmentDefinition(
       id = LUC_TRAM_TICH_QUANG_SET_ID, name = "Tịch Quang", type = "BẢN MỆNH LINH KIẾM", primarySlot = EquipmentSlot.WEAPON,
@@ -138,7 +165,7 @@ object EquipmentCatalog {
         ability("Kiếm Ý Dẫn Lực", "Đổi góc nhanh, chém khớp, phá pháp khí và mượn lực phản đòn.")
       ),
       restrictions = listOf("Linh kiếm không tự tái sinh vô hạn; hư hại nặng cần vật liệu và thời gian tu sửa."),
-      canonRef = "LUC_TRAM_CODEX R05"
+      canonRef = "LUC_TRAM_CODEX R05", iconRef = "https://res.cloudinary.com/csz2me5b/image/upload/v1792832681/Item_Tich_Quang.webp"
     ),
     EquipmentDefinition(
       id = SYVIAL_GODKILLER_ID, name = "GodKiller", type = "MECHANICAL GREATSWORD", primarySlot = EquipmentSlot.WEAPON,
@@ -150,7 +177,7 @@ object EquipmentCatalog {
         ability("GodKiller Override Compatibility", "Tương thích Twenty-Four Severance.", "Khi đủ canon: exactly 24 slashes.")
       ),
       restrictions = listOf("GodKiller không phải gunblade, firearm hoặc ranged cannon."),
-      canonRef = "SYVIAL-LUCIFER-CODEX-20260816-R03"
+      canonRef = "SYVIAL-LUCIFER-CODEX-20260816-R03", iconRef = "https://res.cloudinary.com/csz2me5b/image/upload/v1792832695/Item_Godkiller.webp"
     ),
     EquipmentDefinition(
       id = SYVIAL_LUCIFER_ARMOR_ID, name = "Lucifer Armor", type = "ARMOR", primarySlot = EquipmentSlot.ARMOR,
@@ -171,11 +198,11 @@ object EquipmentCatalog {
     ),
     EquipmentDefinition(
       id = AN_NHIEN_OUTFIT_ID, name = AnNhienCanon.OUTFIT_NAME, type = "OUTFIT", primarySlot = EquipmentSlot.OUTFIT,
-      canonRef = "AN-NHIEN-CURRENT"
+      canonRef = "AN-NHIEN-CURRENT", iconRef = "https://res.cloudinary.com/csz2me5b/image/upload/v1792832691/Item_Pink_Outfit.webp"
     ),
     EquipmentDefinition(
       id = AN_NHIEN_FOOTWEAR_ID, name = AnNhienCanon.FOOTWEAR_NAME, type = "FOOTWEAR", primarySlot = EquipmentSlot.FOOTWEAR,
-      canonRef = "AN-NHIEN-CURRENT"
+      canonRef = "AN-NHIEN-CURRENT", iconRef = "https://res.cloudinary.com/csz2me5b/image/upload/v1792832690/Item_Pink_Crocs.webp"
     )
   )
 
@@ -190,6 +217,8 @@ object EquipmentCatalog {
     CAO_MINH_ID -> linkedMapOf(
       EquipmentSlot.WEAPON to CAO_MINH_HUYET_MA_KIEM_ID,
       EquipmentSlot.ARMOR to CAO_MINH_HUYET_MA_CHIEN_KHAI_ID,
+      EquipmentSlot.GAUNTLETS to CAO_MINH_HUYET_MA_GAUNTLETS_ID,
+      EquipmentSlot.GREAVES to CAO_MINH_HUYET_MA_BOOTS_ID,
       EquipmentSlot.RING to CAO_MINH_VAN_KHO_GIOI_CHI_ID
     )
     LUC_TRAM_ID -> linkedMapOf(EquipmentSlot.WEAPON to LUC_TRAM_TICH_QUANG_SET_ID, EquipmentSlot.ARMOR to LUC_TRAM_KIEM_KHAI_ID)
@@ -362,7 +391,7 @@ object EquipmentEngine {
 }
 
 object CharacterEquipmentSystem {
-  private const val SCHEMA_VERSION = "2-core-stats-1193a"
+  private const val SCHEMA_VERSION = "3-canon-linked-gear"
 
   fun seedFresh(state: GameState): GameState = normalizeInternal(state, seedStarting = true, fresh = true)
   fun normalize(state: GameState): GameState =
