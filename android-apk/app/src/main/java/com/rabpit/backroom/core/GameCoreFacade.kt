@@ -385,6 +385,10 @@ class GameCoreFacade @JvmOverloads internal constructor(
       CoreLootEngine.roll(completed, CoreLootEngine.Source.ENTITY, active.encounterId)
     } else null
     if (loot != null) completed = loot.state
+    val expReward = if (resolution.entityDestroyed) {
+      EntityExpRewards.award(completed, active.encounterId, active.entityKey)
+    } else null
+    if (expReward != null) completed = expReward.state
     repository.save(completed)
     // Combat changes HP and the combat snapshot, not the already validated
     // narrative inventory/party. The GM path is not yet wired into Core's
@@ -426,7 +430,10 @@ class GameCoreFacade @JvmOverloads internal constructor(
       put("events", JSONArray().apply { resolution.feedback.forEach { put(it.toJson()) } })
     })
     val lootReply = loot?.dropped?.let { " ${it.name} xuất hiện tại vị trí Entity bị tiêu diệt." }.orEmpty()
-    val reply = resolution.reply + lootReply
+    val expReply = expReward?.takeIf { it.amount > 0 }?.let {
+      " +${it.amount} EXP." + if (it.leveledUp > 0) " Tăng ${it.leveledUp} cấp." else ""
+    }.orEmpty()
+    val reply = resolution.reply + lootReply + expReply
     appendLog(output, action, reply)
     return response(true, output, null, "combat_committed", reply)
   }
