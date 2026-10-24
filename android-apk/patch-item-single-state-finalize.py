@@ -5,6 +5,7 @@ runs after them, keeping the one-state contract visible to the GM and failing
 the build if an old generated mutation path resurfaces.
 """
 from pathlib import Path
+import runpy
 
 ROOT = Path(__file__).resolve().parent
 CORE = ROOT / "app/src/main/java/com/rabpit/backroom/core"
@@ -41,3 +42,6 @@ if "ITEM SINGLE STATE HARD LOCK:" not in main:
     main = main.replace(anchor, directive + anchor, 1)
     MAIN.write_text(main, encoding="utf-8")
 print("Single-state Item contract validated: no partial/empty variants, whole-unit consumption, GM directive attached.")
+
+# The final loot gate must run after the one-state and Omnivault transformations.
+runpy.run_path(str(ROOT / "patch-core-loot-authority-finalize.py"), run_name="__main__")
