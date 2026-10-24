@@ -160,7 +160,7 @@ class GameCoreFacade @JvmOverloads internal constructor(
   }
 
   /** A serial Android request owns this plan. Browser/GM roll JSON never commits it. */
-  fun prepareNamedFollowerTurn(legacyStateJson: String, action: String, rollsJson: String): String {
+  @JvmOverloads fun prepareNamedFollowerTurn(legacyStateJson: String, action: String, rollsJson: String, actionKind: String = ""): String {
     val legacy = JSONObject(legacyStateJson)
     val current = loadOrMigrate(legacy)
     val rolls = JSONObject(rollsJson)
@@ -170,13 +170,16 @@ class GameCoreFacade @JvmOverloads internal constructor(
     val prepared = cached ?: PreparedNamedTurn(current, NamedFollowerRuntime.plan(
       current, turnId, action, namedTicket(), rolls.optBoolean("meta", false),
       flags?.optBoolean("survivorEncountersAllowed", true) ?: true,
-      flags?.optBoolean("entityEncountersAllowed", true) ?: true))
+      (flags?.optBoolean("entityEncountersAllowed", true) ?: true) && (actionKind.isBlank() || actionKind == "EXPLORE")))
     if (!rolls.optBoolean("meta", false)) {
       check(turnId !in current.turn.completedTurnIds) { "turn_already_completed" }
       preparedNamedTurn = prepared
     }
     val locked = NamedFollowerRuntime.rolls(prepared.plan)
     locked.keys().forEach { key -> rolls.put(key, locked.get(key)) }
+    if (prepared.plan.entityEligible) CombatRuntime.encounterKey(prepared.plan.ticket)?.let {
+      rolls.put("roamingEntityKey", it)
+    }
     return JSONObject().put("state", NamedFollowerRuntime.project(legacy, current)).put("rolls", rolls).toString()
   }
 
@@ -196,6 +199,11 @@ class GameCoreFacade @JvmOverloads internal constructor(
     val pending = TurnCoordinator.createPending(result.state, prepared.plan.turnId, action)
     check(pending.error == null) { pending.error.orEmpty() }
     val projected = NamedFollowerRuntime.project(candidate, result.state)
+    if (prepared.plan.entityEligible) CombatRuntime.encounterKey(prepared.plan.ticket)?.let { key ->
+      val flags = projected.optJSONObject("flags") ?: JSONObject()
+      flags.put("entityEncounterKey", key)
+      projected.put("flags", flags)
+    }
     val commands = listOf(
       ValidatedLegacyStateCommand("${prepared.plan.turnId}:NAMED:WORLD", prepared.plan.turnId,
         source = CommandSource.SYSTEM, location = projected.optString("location"),
@@ -302,6 +310,7 @@ class GameCoreFacade @JvmOverloads internal constructor(
    */
   private fun projectCombatState(legacy: JSONObject, core: GameState): JSONObject {
     val output = JSONObject(legacy.toString())
+    output.put("partyDetails", CharacterDetailJson.encodeParty(CharacterDetailProjector.projectParty(core)))
     output.put("saveVersion", CURRENT_SAVE_VERSION)
     val combat = CombatRuntime.toJson(core)
     if (combat == null) output.remove("combat") else {
@@ -594,6 +603,61 @@ class GameCoreFacade @JvmOverloads internal constructor(
     return response(true, projected, null, "world_pickup_committed", reply)
   }
 
+  /** Typed item commands share the existing validator/reducer, never the GM. */
+  @Synchronized fun processItemAction(legacyStateJson: String, requestJson: String): String {
+    val legacy = JSONObject(legacyStateJson)
+    val current = repository.load()
+    fun reject(reason: String) = response(false, syncLegacy(legacy, current, false),
+      reason, "item_action_rejected", validationReply(reason))
+    if (LevelTravelEngine.KEY !in current.world) return reject("level_game_not_initialized")
+    val expected = legacy.optJSONObject(LevelTravelEngine.KEY) ?: return reject("stale_game_run")
+    val actual = LevelTravelEngine.read(current)
+    if (expected.optString("runId") != actual.getString("runId") ||
+      expected.optInt("revision", -1) != actual.getInt("revision") ||
+      legacy.optInt("turn", -1) != (current.world["levelTravelUiTurn"]?.toIntOrNull() ?: 1))
+      return reject("stale_level_turn")
+    if (CombatRuntime.active(current) != null) return reject("combat_active")
+    val request = JSONObject(requestJson)
+    val operation = runCatching { ItemCommand.Operation.valueOf(request.optString("operation")) }.getOrNull()
+      ?: return reject("item_operation_invalid")
+    if (operation !in setOf(ItemCommand.Operation.USE, ItemCommand.Operation.DROP,
+      ItemCommand.Operation.TRANSFER, ItemCommand.Operation.EQUIP, ItemCommand.Operation.UNEQUIP))
+      return reject("item_operation_invalid")
+    val quantity = request.optDouble("quantity", Double.NaN)
+    if (!quantity.isFinite() || quantity < 1 || quantity > Int.MAX_VALUE || quantity % 1.0 != 0.0)
+      return reject("quantity_must_be_positive_integer")
+    val actorId = request.optString("actorId")
+    val actor = current.characters[actorId] ?: return reject("actor_not_found")
+    if (actorId !in current.party.memberIds || actor.presence != CharacterPresence.ACTIVE)
+      return reject("actor_not_active_party")
+    val itemId = request.optString("itemId")
+    val item = current.inventories[actor.inventoryId]?.items?.get(itemId) ?: return reject("item_not_owned")
+    val targetId = request.optString("targetId").takeIf { it.isNotBlank() }
+    if (operation == ItemCommand.Operation.TRANSFER &&
+      (targetId !in current.party.memberIds || current.characters[targetId]?.presence != CharacterPresence.ACTIVE))
+      return reject("target_not_active_party")
+    val turnId = nextTurnId(legacy, current)
+    val command = ItemCommand("$turnId:UI:ITEM", turnId, actorId, targetId, CommandSource.UI,
+      operation, itemId, item.name, quantity.toInt(), EquipmentCatalog.definition(itemId)?.primarySlot?.key)
+    val pending = TurnCoordinator.createPending(current, turnId, operation.name)
+    if (pending.error != null) return reject(pending.error)
+    val committed = TurnCoordinator.commit(pending.state,
+      listOf(command, timeAdvanceCommand(turnId, operation.name)))
+    if (committed.error != null) return reject(committed.error)
+    val projected = syncLegacy(legacy, committed.state, incrementTurn = true)
+    projected.remove("exitResult")
+    val reply = "Đã xử lý ${item.name}."
+    appendLog(projected, operation.name, reply)
+    projected.remove("coreSnapshot")
+    val persisted = committed.state.copy(world = committed.state.world + mapOf(
+      "levelTravelUiTurn" to projected.getInt("turn").toString(),
+      "levelTravelUi" to projected.toString()))
+    repository.save(persisted)
+    preparedNamedTurn = null
+    projected.put("coreSnapshot", JSONObject(GameStateCodec.encode(persisted)))
+    return response(true, projected, null, "item_action_committed", reply)
+  }
+
   fun currentCoreState(): String = GameStateCodec.encode(repository.load())
   /** Diagnostic reads must never create a fresh state or change saved bytes. */
   @Synchronized fun diagnosticCoreStateOrNull(): String? =
@@ -844,3 +908,4 @@ class GameCoreFacade @JvmOverloads internal constructor(
     )
   }
 }
+

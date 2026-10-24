@@ -992,32 +992,53 @@ script = r'''
   const q=id=>document.getElementById(id);
   const e=s=>typeof esc==='function'?esc(s):String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   function members(){return state&&state.partyDetails&&Array.isArray(state.partyDetails.members)?state.partyDetails.members:[]}
-  function selected(){const id=view&&view.dataset.characterId||'kai';return members().find(x=>String(x.id)===String(id))||members()[0]}
-  function statText(s){if(!s)return '—';const b=Number(s.equipment)||0;return String(s.effective)+(b?(' ('+(b>0?'+':'')+b+')'):'')}
+  function selected(){const id=view&&view.dataset.characterId||'cao-minh';return members().find(x=>String(x.id)===String(id))||members()[0]}
+  function statText(s){if(s==null)return '—';if(typeof s==='number')return String(s);const eff=s.effective!=null?s.effective:s.base;if(eff==null)return '—';const parts=[];const eq=Number(s.equipment)||0,pa=Number(s.passive)||0;if(eq)parts.push((eq>0?'+':'')+eq+' TB');if(pa)parts.push((pa>0?'+':'')+pa+' passive');return String(eff)+(parts.length?(' ('+parts.join(' · ')+')'):'')}
+  function hpText(member){if(!member||member.currentHp==null||member.maxHp==null)return '—';return String(member.currentHp)+' / '+String(member.maxHp)}
   function iconFor(item){return String((item&&item.type)||'EQ').split(/[ /_-]+/).filter(Boolean).map(x=>x[0]).join('').slice(0,3).toUpperCase()||'EQ'}
   function itemById(member,id){return (member&&member.inventory||[]).find(x=>String(x.id)===String(id))||(member&&member.equipmentItems||[]).find(x=>String(x.id)===String(id))}
+  function iconMarkup(item){
+    const source=item&&(item.icon||(window.backroomCloudinary&&window.backroomCloudinary.item(item.id)));
+    if(source)return '<img src="'+e(source)+'" alt="" style="width:100%;height:100%;object-fit:contain">';
+    // A slot symbol is explicit UI chrome when the source mapping has no item artwork.
+    if(item&&item.slot==='ring')return '<svg viewBox="0 0 32 32" role="img" aria-label="Nhẫn" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="2"><circle cx="16" cy="20" r="8"/><path d="m10 8 3-4h6l3 4-6 6z"/></svg>';
+    return e(iconFor(item));
+  }
   function card(item,slot){
     const badges=[];if(item.equipped)badges.push('<span class="equipment-badge equipped">EQUIPPED</span>');if(item.statItem)badges.push('<span class="equipment-badge">STAT ITEM</span>');if(item.classification==='SPECIAL_CHEAT')badges.push('<span class="equipment-badge cheat">SPECIAL / CHEAT</span>');
-    return '<div class="'+(slot?'equipment-card':'inventory-item-card')+'" data-item-id="'+e(item.id)+'"><div class="equipment-card-icon">'+e(iconFor(item))+'</div><div class="equipment-card-main"><strong>'+e(item.name||item.id)+'</strong><small>'+e(slot?String(slot).toUpperCase():(item.rarity||('×'+(item.quantity||1))))+'</small></div><div class="equipment-badges">'+badges.join('')+'</div></div>';
+    return '<div class="'+(slot?'equipment-card':'inventory-item-card')+'" data-item-id="'+e(item.id)+'"><div class="equipment-card-icon">'+iconMarkup(item)+'</div><div class="equipment-card-main"><strong>'+e(item.name||item.id)+'</strong><small>'+e(slot?String(slot).toUpperCase():(item.rarity||('×'+(item.quantity||1))))+'</small></div><div class="equipment-badges">'+badges.join('')+'</div></div>';
   }
   function render(member){
     if(!member)return;
     if(nameEl){let role=document.getElementById('characterRole');if(!role){role=document.createElement('div');role.id='characterRole';role.className='character-role';nameEl.insertAdjacentElement('afterend',role)}role.textContent=member.role||'UNSPECIFIED'}
+    const mstats=member.stats||{};
     const rows=[
-      ['ENE',member.energy||'N/A'],['HP REGEN',(Number(member.hpRegen)||0)>0?('+'+member.hpRegen+' / completed turn'):'0'],['CONDITION',member.condition||'HEALTHY'],
-      ['STR',statText(member.stats&&member.stats.STR)],['DF',statText(member.stats&&member.stats.DF)],['AGI',statText(member.stats&&member.stats.AGI)],['CRIT',statText(member.stats&&member.stats.CRIT)]
+      ['HP',hpText(member)],['ENE',member.energy||'N/A'],['HP REGEN',(Number(member.hpRegen)||0)>0?('+'+member.hpRegen+' / completed turn'):'0'],['CONDITION',member.condition||'HEALTHY'],
+      ['STR',statText(mstats.STR)],['DEF',statText(mstats.DEF)],['SKL',statText(mstats.SKL)],['VIT',statText(mstats.VIT)]
     ];
+    const combat=member.combatStatus||{};
+    [['CRIT %','criticalChancePercent'],['CRIT DMG %','criticalDamagePercent'],['EVASION %','evasionPercent'],['CRIT RES %','criticalResistancePercent'],['EVASION RES %','evasionResistancePercent']].forEach(([label,key])=>rows.push([label,combat[key]!=null?String(combat[key])+'%':'—']));
     if(status)status.innerHTML='<div class="character-core-stats">'+rows.map(r=>'<div class="character-core-stat"><b>'+e(r[0])+'</b><strong>'+e(r[1])+'</strong></div>').join('')+'</div>'+
+      ((member.passives&&member.passives.length)?'<div class="character-status-row"><b>Passive</b><span>'+e(member.passives.filter(Boolean).join(' · '))+'</span></div>':'')+
       ((member.statuses&&member.statuses.length)?'<div class="character-status-row"><b>Status Effects</b><span>'+e(member.statuses.map(x=>x.type||x.id).join(', '))+'</span></div>':'');
     const eq=member.equipment||{},details=member.equipmentItems||[];
-    if(equipment){const rendered=[];Object.keys(eq).sort().forEach(slot=>{const id=eq[slot],item=details.find(x=>String(x.id)===String(id))||itemById(member,id);if(item)rendered.push(card(item,slot))});equipment.innerHTML=rendered.length?rendered.join(''):'<span>Không có trang bị được ghi nhận.</span>'}
-    if(inventory){inventory.innerHTML=(member.inventory||[]).map(x=>card(x,null)).join('')||'<span>Trống.</span>'}
+    if(equipment){
+      const rendered=[],displayedIds=new Set();
+      Object.keys(eq).sort().forEach(slot=>{
+        const id=eq[slot],item=details.find(x=>String(x.id)===String(id))||itemById(member,id);
+        if(item&&!displayedIds.has(String(item.id))){rendered.push(card(item,slot));displayedIds.add(String(item.id))}
+      });
+      // Canon items are owner-bound Equipment even when unequipped.
+      details.filter(x=>x.classification==='CANONICAL'&&!displayedIds.has(String(x.id)))
+        .forEach(item=>{rendered.push(card(item,item.slot||'special'));displayedIds.add(String(item.id))});
+      equipment.innerHTML=rendered.length?rendered.join(''):'<span>Không có trang bị được ghi nhận.</span>';
+    }
+    if(inventory){inventory.innerHTML=(member.inventory||[]).filter(x=>x.consumesInventorySlot!==false).map(x=>card(x,null)).join('')||'<span>Trống.</span>'}
   }
-  function statRows(item){
-    const b=item.bonuses||{},w=item.weapon||{},rows=[];if(Number(b.HP))rows.push(['HP',(b.HP>0?'+':'')+b.HP]);if(Number(b.DF))rows.push(['DF',(b.DF>0?'+':'')+b.DF]);if(Number(b.STR))rows.push(['STR',(b.STR>0?'+':'')+b.STR]);if(Number(b.AGI))rows.push(['AGI',(b.AGI>0?'+':'')+b.AGI]);if(Number(b.CRIT))rows.push(['CRIT',(b.CRIT>0?'+':'')+b.CRIT]);if(w.DMG!=null)rows.push(['DMG',w.DMG]);if(w.ammo!=null)rows.push(['Ammo',w.ammo]);if(w.rpm!=null)rows.push(['Full Auto',w.rpm+' RPM']);return rows
+  function statRows(item){const w=item.weapon||{},rows=[];const bonuses=item.equipmentModifiers||{};Object.keys(bonuses).forEach(k=>{if(Number(bonuses[k]))rows.push([k,'+'+Number(bonuses[k])+'%'])});if(w.DMG!=null)rows.push(['DMG',w.DMG]);if(w.ammo!=null)rows.push(['Ammo',w.ammo]);if(w.rpm!=null)rows.push(['Full Auto',w.rpm+' RPM']);return rows
   }
-  function comparisonRows(c){if(!c)return[];return ['maxHp','STR','DF','AGI','CRIT'].map(k=>{const x=c[k];if(!x)return null;const d=Number(x.delta)||0;return [k==='maxHp'?'MAX HP':k,x.before+' → '+x.after+' ('+(d>=0?'+':'')+d+')',d]}).filter(Boolean)}
-  function openItem(item){if(!item||!modal)return;q('equipmentDetailName').textContent=item.name||item.id;q('equipmentDetailIcon').textContent=iconFor(item);q('equipmentDetailClass').textContent=item.classification==='SPECIAL_CHEAT'?'SPECIAL / CHEAT':(item.type||'ITEM');q('equipmentDetailMeta').textContent=[item.type,item.slot,item.rarity,item.equipped?'EQUIPPED':'UNEQUIPPED'].filter(Boolean).join(' · ');
+  function comparisonRows(c){return[]}
+  function openItem(item){if(!item||!modal)return;q('equipmentDetailName').textContent=item.name||item.id;q('equipmentDetailIcon').innerHTML=iconMarkup(item);q('equipmentDetailClass').textContent=item.classification==='SPECIAL_CHEAT'?'SPECIAL / CHEAT':(item.type||'ITEM');q('equipmentDetailMeta').textContent=[item.type,item.slot,item.rarity,item.equipped?'EQUIPPED':'UNEQUIPPED'].filter(Boolean).join(' · ');
     const sr=statRows(item);q('equipmentDetailStats').innerHTML=sr.length?sr.map(r=>'<div class="equipment-detail-row"><span>'+e(r[0])+'</span><strong>'+e(r[1])+'</strong></div>').join(''):'<div class="equipment-detail-row"><span>Combat bonus</span><strong>0</strong></div>';
     const compare=item.comparison||((item.classification==='SPECIAL_CHEAT')?item.baseItemEffect:null),cr=comparisonRows(compare);const cs=q('equipmentDetailComparisonSection');cs.hidden=!cr.length;q('equipmentDetailComparison').innerHTML=cr.map(r=>'<div class="equipment-detail-row"><span>'+e(r[0])+'</span><strong class="'+(r[2]>=0?'stat-delta-positive':'stat-delta-negative')+'">'+e(r[1])+'</strong></div>').join('');
     const abs=item.abilities||[];q('equipmentDetailAbilities').innerHTML=abs.length?abs.map(a=>'<div class="ability-row"><strong>'+e(a.name)+'</strong><p>'+e(a.description)+'</p>'+(a.limit?'<em>'+e(a.limit)+'</em>':'')+'</div>').join(''):'<div class="ability-row"><p>Không có Special Ability được ghi nhận.</p></div>';
@@ -1025,10 +1046,9 @@ script = r'''
   if(view)view.addEventListener('click',ev=>{const card=ev.target.closest('[data-item-id]');if(!card)return;const member=selected();openItem(itemById(member,card.getAttribute('data-item-id')))});
   if(close)close.addEventListener('click',()=>modal.hidden=true);if(modal)modal.addEventListener('click',ev=>{if(ev.target===modal)modal.hidden=true});
   window.renderCharacterStatusEquipment=render;
-  const oldRender=window.render;if(typeof oldRender==='function')window.render=function(){oldRender();render(selected())};
-  setTimeout(()=>render(selected()),0);
 })();
 </script>
+
 '''
 if 'window.renderCharacterStatusEquipment=render;' not in html:
     if script_anchor not in html: raise RuntimeError("HTML script injection anchor missing")
@@ -1151,3 +1171,4 @@ for marker in required:
         raise RuntimeError("Character Status/Equipment contract missing: " + marker)
 
 print("Character Status + Equipment + Inventory Detail System installed: shared Item ownership, normalized stats, HP preservation, regen, UI detail, combat integration, and tests.")
+

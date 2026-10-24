@@ -24,16 +24,23 @@
   <p id="startupRecoveryMessage">Dữ liệu hiện tại không thể được khởi tạo.</p>
   <button type="button" id="startNewGameFromRecovery">Bắt đầu game mới</button>
 </div>
-<div class="snapshot" id="snapshot">SNAPSHOT — Android bản đầu chưa tạo ảnh tự động</div>
+<div class="snapshot" id="snapshot">Đang tải bối cảnh…</div>
 <div class="log" id="log"></div>
-<form class="composer" id="form"><textarea id="action" placeholder="Cao Minh làm gì trong Turn hiện tại?" rows="3"></textarea><button id="submit">THỰC HIỆN</button></form>
+<div class="player-action-bar" id="playerActionBar" aria-label="Hành động"><div id="providerActivity" class="provider-activity" hidden role="status" aria-live="polite"></div><div class="primary-action-row" id="primaryActionRow"><button type="button" class="primary-action" id="exploreActionButton">Khám phá</button><button type="button" class="primary-action execute-action" id="submit">Thực hiện</button><button type="button" class="primary-action" id="searchActionButton">Tìm kiếm</button></div></div>
+<div class="player-action-modal" id="playerActionModal" hidden aria-hidden="true">
+  <div class="player-action-backdrop" id="playerActionBackdrop"></div>
+  <section class="player-action-sheet" role="dialog" aria-modal="true" aria-labelledby="playerActionTitle">
+    <div class="player-action-head"><h2 id="playerActionTitle">HÀNH ĐỘNG</h2><button id="playerActionClose" type="button" aria-label="Đóng">×</button></div>
+    <form class="composer" id="form"><label for="action">Cao Minh sẽ làm gì?</label><textarea id="action" placeholder="Nhập hành động của Cao Minh…" rows="4"></textarea><div class="composer-actions"><button id="playerActionCancel" type="button">Hủy</button><button id="playerActionConfirm" type="submit">Thực hiện</button></div></form>
+  </section>
+</div>
 <div class="status" id="status"></div>
 </section>
 <button id="mobileMenuBackdrop" class="mobile-menu-backdrop" type="button" hidden aria-label="Đóng menu"></button>
 <aside class="side" id="sidePanel">
 <button id="mobileMenuClose" class="mobile-menu-close" type="button">✕ Đóng menu</button>
 <div class="card"><h2>Trạng thái</h2><div class="row"><b>Vị trí</b><span id="location"></span></div><div class="row"><b>Chế độ</b><span id="mode"></span></div><div class="row"><b>Nhân vật</b><span id="player"></span></div></div>
-<div class="card"><h2>Chỉ số hiện tại</h2><div id="playerStats"><div class="row"><b>HP</b><span>—</span></div><div class="row"><b>STR</b><span>—</span></div><div class="row"><b>DF</b><span>—</span></div><div class="row"><b>AGI</b><span>—</span></div><div class="row"><b>CRIT</b><span>—</span></div></div></div>
+<div class="card"><h2>Chỉ số hiện tại</h2><div id="playerStats"><div class="row"><b>HP</b><span>—</span></div><div class="row"><b>STR</b><span>—</span></div><div class="row"><b>DEF</b><span>—</span></div><div class="row"><b>SKL</b><span>—</span></div><div class="row"><b>VIT</b><span>—</span></div></div></div>
 <div class="card"><h2>Save / Load</h2><div class="actions"><button onclick="save()">Lưu</button><button onclick="load()">Tải</button><button class="wide" onclick="resetGame()">Bắt đầu lại từ đầu</button><button class="wide danger" onclick="clearSave()">Xóa save trên máy</button><button type="button" class="wide" id="exportDiagnosticsJson">Xuất log chẩn đoán (.json)</button></div><p id="diagnosticExportStatus" role="status" aria-live="polite" style="font-size:12px;color:#9aa4ad;margin:10px 0 0">Log chỉ chứa mã lỗi và trạng thái kỹ thuật, không chứa nội dung save hay API key.</p></div>
 <div class="card"><h2>Party</h2><div class="party-time" id="partyTime"></div><div id="party" class="party-grid"><div class="party-member" data-character="cao-minh"><img src="avatars/CAO_MINH_AVATAR.jpg" alt="Cao Minh"><strong>Cao Minh</strong></div></div></div>
 <div id="characterInventoryView" class="character-inventory-view" hidden>
@@ -238,9 +245,9 @@ function save(){localStorage.setItem("backroom-apk-state",JSON.stringify(state))
 function load(){state=JSON.parse(localStorage.getItem("backroom-apk-state")||"null")||initial;render()}
 function resetGame(){if(confirm("Bắt đầu lại từ Turn 1?")){if(window.Android&&typeof Android.resetCore==='function')Android.resetCore();state=JSON.parse(JSON.stringify(initial));save();render()}}
 function clearSave(){if(confirm("Xóa save trên máy?")){localStorage.removeItem("backroom-apk-state");if(window.Android&&typeof Android.resetCore==='function')Android.resetCore();state=JSON.parse(JSON.stringify(initial));render()}}
-formEl.addEventListener("submit",e=>{e.preventDefault();const a=actionEl.value.trim();if(!a||busy)return;if(!window.Android){statusEl.textContent="Không tìm thấy Android bridge.";return}busy=true;submitEl.disabled=true;statusEl.textContent="Gemini đang xử lý lượt…";window.Android.submitTurn(JSON.stringify(state),a)});
+formEl.addEventListener("submit",e=>{e.preventDefault();const a=actionEl.value.trim();if(!a||busy)return;if(!window.Android){statusEl.textContent="Không tìm thấy Android bridge.";return}busy=true;submitEl.disabled=true;statusEl.textContent="Đang xử lý lượt…";window.Android.submitGameplayAction(JSON.stringify(state),"EXECUTE",a)});
 window.backroomTurn=json=>{state=JSON.parse(json);actionEl.value="";busy=false;submitEl.disabled=false;save();statusEl.textContent="Turn "+state.turn+" đã lưu trên máy.";render()};
-window.backroomError=message=>{busy=false;submitEl.disabled=false;statusEl.textContent="Lỗi Gemini: "+message};
+window.backroomError=message=>{busy=false;submitEl.disabled=false;statusEl.textContent="Lỗi xử lý lượt: "+message};
 render();
 </script>
 
@@ -301,22 +308,6 @@ render();
     if(Array.isArray(member&&member.statuses)&&member.statuses.length)rows.push(['Hiệu ứng',member.statuses.map(x=>x.type||x.id).join(', '),'status-warning']);
     return rows;
   }
-  function equipmentRows(member){
-    const eq=member&&member.equipment||{};
-    const keys=Object.keys(eq);
-    if(!keys.length&&member&&member.id==='cao-minh')return Object.keys(signatureEquipment).map(k=>signatureEquipment[k]);
-    return keys.map(k=>String(k)+': '+String(eq[k]));
-  }
-  function detailStatText(s){if(s==null)return '—';if(typeof s==='number')return String(s);const eff=s.effective!=null?s.effective:s.base;if(eff==null)return '—';const parts=[];const eq=Number(s.equipment)||0,pa=Number(s.passive)||0;if(eq)parts.push((eq>0?'+':'')+eq+' TB');if(pa)parts.push((pa>0?'+':'')+pa+' passive');return String(eff)+(parts.length?(' ('+parts.join(' · ')+')'):'')}
-  function detailStatsHtml(member){
-    const st=member&&member.stats||{};
-    const hp=(member&&member.currentHp!=null&&member.maxHp!=null)?String(member.currentHp)+' / '+String(member.maxHp):detailStatText(st.HP);
-    const cells=[['HP',hp],['STR',detailStatText(st.STR)],['DF',detailStatText(st.DF)],['AGI',detailStatText(st.AGI)],['CRIT',detailStatText(st.CRIT)]];
-    let html='<div class="character-core-stats">'+cells.map(c=>'<div class="character-core-stat"><b>'+esc(c[0])+'</b><strong>'+esc(c[1])+'</strong></div>').join('')+'</div>';
-    const passives=Array.isArray(member&&member.passives)?member.passives.filter(Boolean):[];
-    if(passives.length)html+='<div class="character-status-row"><b>Passive</b><span>'+passives.map(p=>esc(p)).join(' · ')+'</span></div>';
-    return html;
-  }
   function renderMemberDetail(member){
     if(!member)return;
     selectedCharacterId=member.id||'cao-minh';
@@ -325,11 +316,14 @@ render();
     detailAvatar.src=member.avatar||member.avatarRef||'avatars/CAO_MINH_AVATAR.jpg';
     detailAvatar.alt=member.name||member.id||'Nhân vật';
     const inv=Array.isArray(member.inventory)?member.inventory:(member.id==='cao-minh'?leaderItems():[]);
-    capacity.textContent=member&&member.id==='an-nhien'?inv.length+' / 2 slot thực phẩm':inv.length+' / 9 loại vật phẩm';
+    const limit=member.inventoryCapacity||{used:inv.length,max:member.id==='an-nhien'?2:9};
+    capacity.textContent=limit.used+' / '+limit.max+' loại vật phẩm';
     items.innerHTML=chips(inv);
-    const eqRows=equipmentRows(member);
-    equipment.innerHTML=eqRows.length?eqRows.map(x=>'<span>'+esc(x)+'</span>').join(''):'<span>Không có trang bị được ghi nhận.</span>';
-    statusList.innerHTML=detailStatsHtml(member)+statusRows(member).map(row=>'<div class="character-status-row '+row[2]+'"><b>'+esc(row[0])+'</b><span>'+esc(row[1])+'</span></div>').join('');
+    equipment.innerHTML='';
+    statusList.innerHTML='';
+    if(typeof window.renderCharacterStatusEquipment==='function')window.renderCharacterStatusEquipment(member);
+    statusList.insertAdjacentHTML('beforeend',statusRows(member).map(row=>'<div class="character-status-row '+row[2]+'"><b>'+esc(row[0])+'</b><span>'+esc(row[1])+'</span></div>').join(''));
+    if(typeof window.backroomRefreshCloudinary==='function')window.backroomRefreshCloudinary();
   }
   function openMember(id){const member=memberById(id);renderMemberDetail(member);view.hidden=false}
   function renderPartyCards(){
@@ -391,7 +385,13 @@ render();
   function hpText(member){if(!member||member.currentHp==null||member.maxHp==null)return '—';return String(member.currentHp)+' / '+String(member.maxHp)}
   function iconFor(item){return String((item&&item.type)||'EQ').split(/[ /_-]+/).filter(Boolean).map(x=>x[0]).join('').slice(0,3).toUpperCase()||'EQ'}
   function itemById(member,id){return (member&&member.inventory||[]).find(x=>String(x.id)===String(id))||(member&&member.equipmentItems||[]).find(x=>String(x.id)===String(id))}
-  function iconMarkup(item){return item&&item.icon?'<img src="'+e(item.icon)+'" alt="" style="width:100%;height:100%;object-fit:contain">':e(iconFor(item))}
+  function iconMarkup(item){
+    const source=item&&(item.icon||(window.backroomCloudinary&&window.backroomCloudinary.item(item.id)));
+    if(source)return '<img src="'+e(source)+'" alt="" style="width:100%;height:100%;object-fit:contain">';
+    // A slot symbol is explicit UI chrome when the source mapping has no item artwork.
+    if(item&&item.slot==='ring')return '<svg viewBox="0 0 32 32" role="img" aria-label="Nhẫn" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="2"><circle cx="16" cy="20" r="8"/><path d="m10 8 3-4h6l3 4-6 6z"/></svg>';
+    return e(iconFor(item));
+  }
   function card(item,slot){
     const badges=[];if(item.equipped)badges.push('<span class="equipment-badge equipped">EQUIPPED</span>');if(item.statItem)badges.push('<span class="equipment-badge">STAT ITEM</span>');if(item.classification==='SPECIAL_CHEAT')badges.push('<span class="equipment-badge cheat">SPECIAL / CHEAT</span>');
     return '<div class="'+(slot?'equipment-card':'inventory-item-card')+'" data-item-id="'+e(item.id)+'"><div class="equipment-card-icon">'+iconMarkup(item)+'</div><div class="equipment-card-main"><strong>'+e(item.name||item.id)+'</strong><small>'+e(slot?String(slot).toUpperCase():(item.rarity||('×'+(item.quantity||1))))+'</small></div><div class="equipment-badges">'+badges.join('')+'</div></div>';
@@ -404,7 +404,8 @@ render();
       ['HP',hpText(member)],['ENE',member.energy||'N/A'],['HP REGEN',(Number(member.hpRegen)||0)>0?('+'+member.hpRegen+' / completed turn'):'0'],['CONDITION',member.condition||'HEALTHY'],
       ['STR',statText(mstats.STR)],['DEF',statText(mstats.DEF)],['SKL',statText(mstats.SKL)],['VIT',statText(mstats.VIT)]
     ];
-    if(member.combatStatus){rows.push(['CRIT %',member.combatStatus.criticalChancePercent!=null?String(member.combatStatus.criticalChancePercent)+'%':'—'],['EVASION %',member.combatStatus.evasionPercent!=null?String(member.combatStatus.evasionPercent)+'%':'—'])}
+    const combat=member.combatStatus||{};
+    [['CRIT %','criticalChancePercent'],['CRIT DMG %','criticalDamagePercent'],['EVASION %','evasionPercent'],['CRIT RES %','criticalResistancePercent'],['EVASION RES %','evasionResistancePercent']].forEach(([label,key])=>rows.push([label,combat[key]!=null?String(combat[key])+'%':'—']));
     if(status)status.innerHTML='<div class="character-core-stats">'+rows.map(r=>'<div class="character-core-stat"><b>'+e(r[0])+'</b><strong>'+e(r[1])+'</strong></div>').join('')+'</div>'+
       ((member.passives&&member.passives.length)?'<div class="character-status-row"><b>Passive</b><span>'+e(member.passives.filter(Boolean).join(' · '))+'</span></div>':'')+
       ((member.statuses&&member.statuses.length)?'<div class="character-status-row"><b>Status Effects</b><span>'+e(member.statuses.map(x=>x.type||x.id).join(', '))+'</span></div>':'');
@@ -433,8 +434,6 @@ render();
   if(view)view.addEventListener('click',ev=>{const card=ev.target.closest('[data-item-id]');if(!card)return;const member=selected();openItem(itemById(member,card.getAttribute('data-item-id')))});
   if(close)close.addEventListener('click',()=>modal.hidden=true);if(modal)modal.addEventListener('click',ev=>{if(ev.target===modal)modal.hidden=true});
   window.renderCharacterStatusEquipment=render;
-  const oldRender=window.render;if(typeof oldRender==='function')window.render=function(){oldRender();render(selected())};
-  setTimeout(()=>render(selected()),0);
 })();
 </script>
 
@@ -460,7 +459,7 @@ render();
   }
   function renderMenuStats(){
     const members=menuMembers().filter(m=>m&&(m.stats||m.currentHp!=null));
-    if(!members.length){box.innerHTML=['HP','STR','DF','AGI','CRIT'].map(k=>'<div class="row"><b>'+k+'</b><span>—</span></div>').join('');return}
+    if(!members.length){box.innerHTML=['HP','STR','DEF','SKL','VIT'].map(k=>'<div class="row"><b>'+k+'</b><span>—</span></div>').join('');return}
     const ordered=members.slice().sort((a,b)=>(b.isLeader?1:0)-(a.isLeader?1:0));
     const multi=ordered.length>1;
     box.innerHTML=ordered.map(m=>statRowsFor(m,multi).map(r=>'<div class="row"><b>'+e(r[0])+'</b><span>'+e(r[1])+'</span></div>').join('')).join('');
@@ -712,5 +711,8 @@ render();
 <script src="mobile-hud.js"></script>
 <script src="diagnostic-export.js"></script>
 <script src="level-travel.js"></script>
+<script src="primary-actions.js"></script>
+<script src="item-detail-actions.js"></script>
 </body>
 </html>
+

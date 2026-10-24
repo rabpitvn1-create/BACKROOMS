@@ -103,12 +103,24 @@ test('Combat swaps Cao Minh overlay, displays confirmed Entity, then cleans it u
   const stage = box.querySelector('.snapshot-stage');
   assert.equal(stage.querySelector('.snapshot-player-overlay').getAttribute('src'),
     art.characterOverlay('cao-minh', true));
+  assert.ok(stage.querySelector('.snapshot-character'),
+    'combat focus, motion and damage must address the actual player overlay');
   assert.equal(stage.querySelector('.snapshot-entity').getAttribute('src'), art.entity('smiler'));
   state.combat = null;
   render(state, null);
   assert.equal(stage.querySelector('.snapshot-entity'), null);
   assert.equal(stage.querySelector('.snapshot-player-overlay').getAttribute('src'),
     art.characterOverlay('cao-minh', false));
+});
+
+test('Core-selected area artwork is the single backdrop even inside a bundled main Level', () => {
+  const {box,state,render}=snapshotBoot();
+  state.levelBackground='https://res.cloudinary.com/csz2me5b/image/upload/curated/sublevel.webp';
+  render(state);
+  assert.equal(box.querySelector('.snapshot-background-img').getAttribute('src'),state.levelBackground);
+  const css=fs.readFileSync(path.join(assets,'mobile-hud.css'),'utf8');
+  assert.match(css,/img\.snapshot-player-overlay\s*\{[^}]*right:1%; left:auto/);
+  assert.match(css,/img\.snapshot-entity\s*\{[^}]*left:1%; right:auto/);
 });
 
 test('Generated image payloads are ignored; only curated fixed backgrounds are rendered', () => {
@@ -171,3 +183,4 @@ test('WebView and HTML use the Snapshot stage and visible recovery/menu controls
   assert.doesNotMatch(snapshotSource, /dataUri|Snapshot Gemini/);
   assert.doesNotMatch(java, /box\.textContent=''/);
 });
+

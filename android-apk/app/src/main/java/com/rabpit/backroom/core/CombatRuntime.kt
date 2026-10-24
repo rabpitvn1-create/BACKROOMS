@@ -102,6 +102,16 @@ object CombatRuntime {
 
   fun active(state: GameState): Snapshot? = decode(state)?.takeIf { it.phase == Phase.ACTIVE }
 
+  /** Existing shared roaming pool; the locked encounter ticket selects exactly one profile. */
+  fun encounterKey(ticket: Int): String? {
+    if (ticket !in 0..3499) return null
+    val roaming = listOf("hound", "clump", "duller", "deathmoth", "hostile_faceling",
+      "false_puddle", "paintings", "smiler", "skin-stealer", "predatory_window",
+      "biological_pipeline", "wretch", "cable_mimic", "the_beast_of_level_5",
+      "hotel_corpse_lure", "jeff_the_killer", "jane_the_killer", "slenderman")
+    return roaming[ticket * roaming.size / 3500]
+  }
+
   fun start(state: GameState, entityKey: String): GameState {
     if (active(state) != null) return state
     val profile = profiles[entityKey] ?: return state
@@ -468,3 +478,4 @@ object CombatRuntime {
   private fun positiveMod(value: Long, bound: Int): Int = ((value and Long.MAX_VALUE) % bound.toLong()).toInt()
   private inline fun <reified T : Enum<T>> enumOr(fallback: T, raw: String?): T = enumValues<T>().firstOrNull { it.name == raw } ?: fallback
 }
+

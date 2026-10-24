@@ -163,7 +163,7 @@ class LevelTravelEngine(
       return output.put("displayLocation",
         if (confirmed) state.world["location"] ?: UNKNOWN_LOCATION else UNKNOWN_LOCATION)
         .put("displayTitle",
-          if (confirmed) state.world["title"] ?: UNKNOWN_TITLE else UNKNOWN_TITLE)
+          state.world["title"] ?: UNKNOWN_TITLE)
     }
 
     fun protectCandidate(state: GameState, candidate: JSONObject, action: String): JSONObject {
@@ -197,3 +197,4 @@ class LevelTravelEngine(
     }
   }
 }
+

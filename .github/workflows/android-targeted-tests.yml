@@ -10,6 +10,7 @@ on:
       - "android-apk/tests/level-travel-ui.test.cjs"
       - "android-apk/tests/diagnostic-export.test.cjs"
       - "android-apk/tests/verify-restored-apk.py"
+      - "android-apk/tests/**"
       - ".github/workflows/android-targeted-tests.yml"
   workflow_dispatch:
 
@@ -56,15 +57,28 @@ jobs:
           python3 android-apk/patch-level-travel.py
           git diff --exit-code -- android-apk/app/src/main
           node android-apk/tests/level-travel-ui.test.cjs
-          node --test android-apk/tests/snapshot-hud-regression.test.cjs
+          node --test android-apk/tests/snapshot-hud-regression.test.cjs android-apk/tests/character-detail-ui.test.cjs android-apk/tests/primary-actions-ui.test.cjs
+          python3 android-apk/tests/run-provider-router-test.py
       - name: Verify diagnostic log export and redaction
         run: node --test android-apk/tests/diagnostic-export.test.cjs
       - name: Compile application and execute full Android unit regression suite
         working-directory: android-apk
         run: gradle :app:testDebugUnitTest --no-daemon
-      - name: Package debug APK
+      - name: Package debug APK with configured text providers
         working-directory: android-apk
-        run: gradle :app:assembleDebug --no-daemon
+        env:
+          GEHIHI_API_KEY: ${{ secrets.GEHIHI_API_KEY }}
+          GEHIHI_BASE_URL: ${{ secrets.GEHIHI_BASE_URL }}
+          GEHIHI_MODEL: ${{ secrets.GEHIHI_MODEL }}
+          GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 }}
+          GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
+          GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
+          GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
+          GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
+          TRUSTED_BUILD: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository }}
+        run: |
+          if [ "$TRUSTED_BUILD" = true ]; then python3 tests/verify-provider-config.py; fi
+          gradle :app:assembleDebug --no-daemon
       - name: Verify restored runtime inside packaged APK
         run: python3 android-apk/tests/verify-restored-apk.py android-apk/app/build/outputs/apk/debug/app-debug.apk
       - name: Upload verified debug APK artifact
@@ -75,3 +89,4 @@ jobs:
           if-no-files-found: error
           retention-days: 7
           compression-level: 0
+

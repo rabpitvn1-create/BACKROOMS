@@ -12,7 +12,7 @@ required_assets = {
     "index.html", "cloudinary-gameplay.js", "cloudinary-entity-combat.js",
     "character-level-ui.js", "combat-feedback-1193a.js",
     "combat-feedback-1193a.css", "snapshot-stage.js", "mobile-hud.js",
-    "loot-item-display.js", "level-travel.js", "diagnostic-export.js",
+    "loot-item-display.js", "level-travel.js", "diagnostic-export.js", "primary-actions.js", "mobile-hud.css", "item-detail-actions.js",
 }
 required_classes = {
     "CombatRuntime", "RestoredCompanionCombat", "CombatStatusLifecycle",
@@ -27,13 +27,18 @@ with ZipFile(apk) as archive:
     required_scripts = [
         "cloudinary-gameplay.js", "cloudinary-entity-combat.js",
         "character-level-ui.js", "combat-feedback-1193a.js",
-        "snapshot-stage.js", "mobile-hud.js", "level-travel.js", "diagnostic-export.js",
+        "snapshot-stage.js", "mobile-hud.js", "level-travel.js", "diagnostic-export.js", "primary-actions.js", "item-detail-actions.js",
     ]
     missing_scripts = [name for name in required_scripts if 'src="' + name + '"' not in index]
     if missing_scripts:
         raise SystemExit("APK index.html does not load: " + ", ".join(missing_scripts))
     if 'id="exportDiagnosticsJson"' not in index:
         raise SystemExit("Diagnostic export button not packaged")
+    for element in ["playerActionBar", "playerActionModal", "exploreActionButton", "searchActionButton"]:
+        if index.count('id="' + element + '"') != 1:
+            raise SystemExit("Primary action UI missing/duplicated: " + element)
+    if "level-travel-background" in archive.read("assets/level-travel.js").decode("utf-8"):
+        raise SystemExit("Duplicate travel Snapshot background packaged")
     if index.index('src="diagnostic-export.js"') > index.index('src="level-travel.js"'):
         raise SystemExit("Diagnostics script must start before Level Travel boot")
     if "state.flags.iris=state.flags.iris" in index:
@@ -56,5 +61,8 @@ with ZipFile(apk) as archive:
         raise SystemExit("Restored Kotlin classes missing from DEX: " + ", ".join(missing_classes))
     if b"Lcom/rabpit/backroom/AppDiagnosticLog;" not in dex:
         raise SystemExit("Native diagnostic exporter class missing from DEX")
+    if b"Lcom/rabpit/backroom/TextProviderRouter;" not in dex:
+        raise SystemExit("Gehihi/Gemini text provider router missing from DEX")
 print(f"APK integration integrity OK: {apk.name}, {len(required_assets)} assets, "
       f"{len(required_classes)} Kotlin classes, {len(dex_names)} DEX files")
+

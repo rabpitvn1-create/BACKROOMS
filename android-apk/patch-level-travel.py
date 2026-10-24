@@ -207,7 +207,14 @@ f=ROOT/'app/src/main/assets/index.html';s=f.read_text()
 # generated reset/load wrappers cannot bypass the Core startup contract.
 import re
 s=re.sub(r'<script src="level-travel\.js"></script>\r?\n?', '', s)
-s=once(s,'</body>','<script src="level-travel.js"></script>\n</body>')
+has_primary_actions = '<script src="primary-actions.js"></script>' in s
+s=re.sub(r'<script src="primary-actions\.js"></script>\r?\n?', '', s)
+has_item_actions = '<script src="item-detail-actions.js"></script>' in s
+s=re.sub(r'<script src="item-detail-actions\.js"></script>\r?\n?', '', s)
+footer = '<script src="level-travel.js"></script>\n'
+if has_primary_actions: footer += '<script src="primary-actions.js"></script>\n'
+if has_item_actions: footer += '<script src="item-detail-actions.js"></script>\n'
+s=once(s,'</body>',footer+'</body>')
 f.write_text(s)
 print('Level travel: Core start/exit transaction, no GM transition, old exit RNG removed.')
 
@@ -334,3 +341,4 @@ if 'public String resumeLevelGame(' not in s:
     s=once(s,'    @JavascriptInterface public String levelCoreSnapshot() {',
      '    @JavascriptInterface public String resumeLevelGame(String stateJson, boolean hasBrowserSave) {\n      return requireGameCore().resumeLevelGame(stateJson, hasBrowserSave);\n    }\n    @JavascriptInterface public String levelCoreSnapshot() {')
 MAIN.write_text(s)
+

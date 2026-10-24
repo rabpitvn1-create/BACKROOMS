@@ -45,6 +45,7 @@ public class MainActivity extends Activity {
   private String pendingDiagnosticJson;
   private static final int REQUEST_EXPORT_DIAGNOSTICS = 0xBD60;
   private QuotaGovernor canonQuotaGovernor;
+  private final TextProviderRouter textProviders = new TextProviderRouter();
 
   private GameCoreFacade requireGameCore() {
     GameCoreFacade core = gameCore;
@@ -205,113 +206,120 @@ public class MainActivity extends Activity {
 
   private String postJson(String endpoint, String key, String authHeader, JSONObject payload) throws Exception {
     HttpURLConnection connection = (HttpURLConnection) new URL(endpoint).openConnection();
-    connection.setRequestMethod("POST");
-    connection.setConnectTimeout(20000);
-    connection.setReadTimeout(60000);
-    connection.setDoOutput(true);
-    connection.setRequestProperty("Content-Type", "application/json");
-    connection.setRequestProperty(authHeader, authHeader.equals("Authorization") ? "Bearer " + key : key);
-    try (OutputStream output = connection.getOutputStream()) {
-      output.write(payload.toString().getBytes("UTF-8"));
-    }
-
-    int status = connection.getResponseCode();
-    lastProviderHttpStatus.set(status);
-    lastProviderRetryAfterMs.set(parseRetryAfterMs(connection.getHeaderField("Retry-After")));
-    InputStream stream = status >= 200 && status < 300 ? connection.getInputStream() : connection.getErrorStream();
-    StringBuilder body = new StringBuilder();
-    if (stream != null) {
-      try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, "UTF-8"))) {
+    try {
+      connection.setRequestMethod("POST");
+      connection.setInstanceFollowRedirects(false);
+      connection.setConnectTimeout(12000);
+      connection.setReadTimeout(30000);
+      connection.setDoOutput(true);
+      connection.setRequestProperty("Content-Type", "application/json");
+      connection.setRequestProperty(authHeader, authHeader.equals("Authorization") ? "Bearer " + key : key);
+      try (OutputStream output = connection.getOutputStream()) {
+        output.write(payload.toString().getBytes(StandardCharsets.UTF_8));
+      }
+      int status = connection.getResponseCode();
+      long retryAfter = parseRetryAfterMs(connection.getHeaderField("Retry-After"));
+      lastProviderHttpStatus.set(status);
+      lastProviderRetryAfterMs.set(retryAfter);
+      // Error bodies can contain reflected prompts or credentials. Keep only the status.
+      if (status < 200 || status >= 300) throw new HttpError(status, retryAfter);
+      StringBuilder body = new StringBuilder();
+      try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
         String line;
         while ((line = reader.readLine()) != null) body.append(line);
       }
+      return body.toString();
+    } finally {
+      connection.disconnect();
     }
-    connection.disconnect();
-
-    if (status < 200 || status >= 300) {
-      String detail = body.length() > 220 ? body.substring(0, 220) : body.toString();
-      throw new HttpError(status, "Provider HTTP " + status + (detail.isEmpty() ? "" : ": " + detail));
-    }
-    return body.toString();
   }
 
-  private String geminiText(String prompt) throws Exception {
-    Exception last = null;
-    for (String key : geminiKeys()) {
-      if (key == null || key.isEmpty()) continue;
-      for (int attempt = 0; attempt < 2; attempt++) {
-        try {
-          JSONObject part = new JSONObject().put("text", prompt);
-          JSONObject contents = new JSONObject().put("role", "user").put("parts", new JSONArray().put(part));
-          JSONObject config = new JSONObject().put("responseMimeType", "application/json").put("temperature", 0.8);
-          JSONObject body = new JSONObject().put("contents", new JSONArray().put(contents)).put("generationConfig", config);
-          JSONObject result = new JSONObject(postJson("https://generativelanguage.googleapis.com/v1beta/models/" + GEMINI_MODEL + ":generateContent", key, "x-goog-api-key", body));
-          JSONArray candidates = result.optJSONArray("candidates");
-          StringBuilder text = new StringBuilder();
-          if (candidates != null) {
-            for (int c = 0; c < candidates.length(); c++) {
-              JSONObject candidate = candidates.optJSONObject(c);
-              JSONObject providerContent = candidate != null ? candidate.optJSONObject("content") : null;
-              JSONArray parts = providerContent != null ? providerContent.optJSONArray("parts") : null;
-              if (parts == null) continue;
-              for (int p = 0; p < parts.length(); p++) {
-                JSONObject responsePart = parts.optJSONObject(p);
-                String piece = responsePart != null ? responsePart.optString("text", "").trim() : "";
-                if (!piece.isEmpty()) {
-                  if (text.length() > 0) text.append('\n');
-                  text.append(piece);
-                }
-              }
-            }
-          }
-          if (text.length() == 0) throw new Exception("Gemini không trả nội dung.");
-          return text.toString();
-        } catch (Exception e) {
-          last = e;
-          int code = e instanceof HttpError ? ((HttpError)e).status : 0;
-          if (attempt == 0 && (code == 0 || retryable(code))) {
-            try { Thread.sleep(350); } catch (InterruptedException ignored) {}
-            continue;
-          }
-          break;
-        }
+  private String gehihiText(String prompt) throws Exception {
+    String base = BuildConfig.GEHIHI_BASE_URL.trim();
+    if (base.isEmpty()) base = "https://api.vilao.ai/v1";
+    URL url = new URL(base);
+    if (!"https".equalsIgnoreCase(url.getProtocol()) || url.getHost().isEmpty() ||
+        url.getUserInfo() != null || url.getQuery() != null || url.getRef() != null)
+      throw new Exception("GEHIHI_BASE_URL không hợp lệ.");
+    while (base.endsWith("/")) base = base.substring(0, base.length() - 1);
+    String endpoint = base.endsWith("/chat/completions") ? base : base + "/chat/completions";
+    JSONObject body = new JSONObject().put("model", BuildConfig.GEHIHI_MODEL.trim())
+      .put("messages", new JSONArray().put(new JSONObject().put("role", "user").put("content", prompt)))
+      .put("max_tokens", 2048).put("stream", false);
+    JSONObject result = new JSONObject(postJson(endpoint, BuildConfig.GEHIHI_API_KEY.trim(), "Authorization", body));
+    JSONArray choices = result.optJSONArray("choices");
+    JSONObject first = choices != null && choices.length() > 0 ? choices.optJSONObject(0) : null;
+    JSONObject message = first != null ? first.optJSONObject("message") : null;
+    Object content = message != null ? message.opt("content") : null;
+    StringBuilder output = new StringBuilder();
+    if (content instanceof String) output.append((String) content);
+    else if (content instanceof JSONArray) {
+      JSONArray parts = (JSONArray) content;
+      for (int i = 0; i < parts.length(); i++) {
+        JSONObject part = parts.optJSONObject(i);
+        if (part != null && part.has("text")) output.append(part.getString("text")).append('\n');
       }
     }
-    throw last != null ? last : new Exception("Không có Gemini API key trong APK.");
+    String answer = output.toString().trim();
+    parseModelJson(answer);
+    return answer;
+  }
+
+  private String geminiText(String prompt, String key) throws Exception {
+    JSONObject contents = new JSONObject().put("role", "user")
+      .put("parts", new JSONArray().put(new JSONObject().put("text", prompt)));
+    JSONObject config = new JSONObject().put("responseMimeType", "application/json");
+    JSONObject body = new JSONObject().put("contents", new JSONArray().put(contents)).put("generationConfig", config);
+    JSONObject result = new JSONObject(postJson("https://generativelanguage.googleapis.com/v1beta/models/" + GEMINI_MODEL + ":generateContent", key, "x-goog-api-key", body));
+    JSONArray candidates = result.optJSONArray("candidates");
+    JSONObject candidate = candidates != null && candidates.length() > 0 ? candidates.optJSONObject(0) : null;
+    JSONObject content = candidate != null ? candidate.optJSONObject("content") : null;
+    JSONArray parts = content != null ? content.optJSONArray("parts") : null;
+    StringBuilder output = new StringBuilder();
+    if (parts != null) for (int i = 0; i < parts.length(); i++) {
+      JSONObject part = parts.optJSONObject(i);
+      if (part != null && !part.optBoolean("thought", false)) output.append(part.optString("text", ""));
+    }
+    String answer = output.toString().trim();
+    parseModelJson(answer);
+    return answer;
   }
 
   private String generateText(String prompt) throws Exception {
-    return geminiText(prompt);
+    return generateTextForTurn(prompt, Math.max(1, (prompt.length() + 3) / 4));
   }
 
   private String generateTextForTurn(String prompt, int estimatedInputTokens) throws Exception {
-    if (!CanonRuntime2Flags.isEnabled(this)) return generateText(prompt);
+    boolean primaryConfigured = !BuildConfig.GEHIHI_API_KEY.trim().isEmpty() && !BuildConfig.GEHIHI_MODEL.trim().isEmpty();
+    return textProviders.generate(primaryConfigured,
+      () -> callTextProvider("gehihi", BuildConfig.GEHIHI_MODEL, null, estimatedInputTokens, () -> gehihiText(prompt)),
+      geminiKeys(), (key, index) -> callTextProvider("gemini", GEMINI_MODEL, "K" + (index + 1),
+        estimatedInputTokens, () -> geminiText(prompt, key)),
+      name -> emit("backroomProvider", name));
+  }
+
+  private String callTextProvider(String provider, String model, String keyAlias, int estimatedInputTokens,
+      java.util.concurrent.Callable<String> call) throws Exception {
+    if (!CanonRuntime2Flags.isEnabled(this)) return call.call();
     QuotaGovernor governor = canonQuotaGovernor();
-    GenerationRequest request = new GenerationRequest(
-      "gemini", null, GEMINI_MODEL, GenerationKind.NARRATION,
+    GenerationRequest request = new GenerationRequest(provider, null, model, GenerationKind.NARRATION,
       Math.max(1, estimatedInputTokens), 60_000L);
     AdmissionDecision decision = governor.admit(request);
-    if (decision instanceof AdmissionDecision.Defer) {
-      throw new Exception("CR2: nhà cung cấp đang cooldown; lượt không thay đổi.");
-    }
-    if (decision instanceof AdmissionDecision.LocalDeterministic ||
-        decision instanceof AdmissionDecision.NoCall) {
-      throw new Exception("CR2: quota không cho phép gọi mô hình; lượt không thay đổi.");
-    }
+    if (!(decision instanceof AdmissionDecision.SingleCall))
+      throw new Exception("CR2: nhà cung cấp chưa được phép nhận yêu cầu; lượt không thay đổi.");
     String reservation = ((AdmissionDecision.SingleCall) decision).getReservationId();
     lastProviderHttpStatus.set(-1);
     lastProviderRetryAfterMs.set(-1L);
     try {
-      String answer = geminiText(prompt);
-      governor.recordResult(new ProviderAttemptResult(
-        "gemini", GEMINI_MODEL, lastProviderHttpStatus.get() < 0 ? null : lastProviderHttpStatus.get(),
+      String answer = call.call();
+      governor.recordResult(new ProviderAttemptResult(provider, model,
+        lastProviderHttpStatus.get() < 0 ? null : lastProviderHttpStatus.get(),
         lastProviderRetryAfterMs.get() < 0 ? null : lastProviderRetryAfterMs.get(),
         null, null, false, null, reservation));
       return answer;
     } catch (Exception failure) {
       int status = failure instanceof HttpError ? ((HttpError) failure).status : -1;
-      governor.recordResult(new ProviderAttemptResult(
-        "gemini", GEMINI_MODEL, status < 0 ? null : status,
+      governor.recordResult(new ProviderAttemptResult(provider, model, status < 0 ? null : status,
         lastProviderRetryAfterMs.get() < 0 ? null : lastProviderRetryAfterMs.get(),
         null, null, false, null, reservation));
       throw failure;
@@ -945,6 +953,16 @@ public class MainActivity extends Activity {
   }
 
   private class GameBridge {
+    @JavascriptInterface public void itemAction(String stateJson, String requestJson) {
+      io.execute(() -> {
+        try {
+          emit("backroomItemAction", requireGameCore().processItemAction(stateJson, requestJson));
+        } catch (Exception error) {
+          diagnosticLog.recordException("item_action", error);
+          emit("backroomItemAction", "{\"handled\":false,\"error\":\"item_action_failed\"}");
+        }
+      });
+    }
     @JavascriptInterface public void exportDiagnosticLog(String uiSummaryJson) {
       MainActivity.this.exportDiagnosticLog(uiSummaryJson);
     }
@@ -980,6 +998,10 @@ public class MainActivity extends Activity {
     }
 
     @JavascriptInterface public void submitTurn(String stateJson, String action) {
+      submitGameplayAction(stateJson, "EXECUTE", action);
+    }
+
+    @JavascriptInterface public void submitGameplayAction(String stateJson, String actionKind, String action) {
       io.execute(() -> {
         try {
           JSONObject levelAction = new JSONObject(requireGameCore().processLevelAction(stateJson, action));
@@ -987,6 +1009,8 @@ public class MainActivity extends Activity {
             emit("backroomTurn", levelAction.getJSONObject("state").toString());
             return;
           }
+          if (!"EXECUTE".equals(actionKind) && !"SEARCH".equals(actionKind) && !"EXPLORE".equals(actionKind))
+            throw new IllegalArgumentException("action_kind_invalid");
           JSONObject before = levelAction.getJSONObject("state");
           JSONObject pickupResult = new JSONObject(requireGameCore().processWorldPickup(before.toString(), action));
           if (pickupResult.optBoolean("handled", false)) {
@@ -1003,13 +1027,22 @@ public class MainActivity extends Activity {
           }
           boolean meta = isMetaAction(action) || NamedFollowerRuntime.isMetaAction(action);
           if (!meta) {
-            JSONObject lootResult = new JSONObject(requireGameCore().processExplorationLoot(before.toString(), action));
+            JSONObject localRule = new JSONObject(requireGameCore().processRule(before.toString(), action));
+            if (localRule.optBoolean("handled", false)) {
+              JSONObject localState = localRule.getJSONObject("state");
+              localState = new JSONObject(requireGameCore().finishLevelTurn(before.toString(), localState.toString(), action));
+              emit("backroomTurn", localState.toString());
+              return;
+            }
+          }
+          if (!meta) {
+            JSONObject lootResult = new JSONObject(requireGameCore().processExplorationLoot(before.toString(), action, actionKind));
             if (!lootResult.optBoolean("handled", false) || lootResult.optJSONObject("state") == null)
               throw new IllegalStateException("Core loot resolution failed");
             before = lootResult.getJSONObject("state");
           }
           JSONObject rolls = makeGameplayRolls(before, action, meta);
-          JSONObject namedPrepared = new JSONObject(requireGameCore().prepareNamedFollowerTurn(before.toString(), action, rolls.toString()));
+          JSONObject namedPrepared = new JSONObject(requireGameCore().prepareNamedFollowerTurn(before.toString(), action, rolls.toString(), actionKind));
           before = namedPrepared.getJSONObject("state");
           rolls = namedPrepared.getJSONObject("rolls");
           // CANON_RUNTIME_2_WIRING: OFF leaves the original GM path unchanged.
@@ -1113,14 +1146,14 @@ public class MainActivity extends Activity {
           // Start an authoritative encounter only on a locked success roll and
           // a profile key accepted by CombatRuntime. GM prose alone is insufficient.
           if (!meta && rollSuccess(rolls, "entityEncounter")) {
-            JSONObject combatFlags = state.optJSONObject("flags");
-            String entityKey = combatFlags == null ? "" : combatFlags.optString("entityEncounterKey", "");
+            String entityKey = rolls.optString("roamingEntityKey", "");
             if (!entityKey.isEmpty()) {
               JSONObject started = new JSONObject(requireGameCore().startCombatState(state.toString(), entityKey));
               if (started.optBoolean("handled", false)) {
                 JSONObject projected = started.optJSONObject("state");
                 if (projected != null && projected.optJSONObject("combat") != null) {
                   state.put("combat", projected.getJSONObject("combat"));
+                  state.put("partyDetails", projected.getJSONObject("partyDetails"));
                 }
               }
             }
@@ -1193,8 +1226,8 @@ public class MainActivity extends Activity {
 
   }
 
-  private static class HttpError extends Exception {
-    final int status;
-    HttpError(int status, String message) { super(message); this.status = status; }
+  private static class HttpError extends TextProviderRouter.HttpFailure {
+    HttpError(int status, long retryAfterMs) { super(status, retryAfterMs); }
   }
 }
+
