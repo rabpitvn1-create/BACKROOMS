@@ -79,7 +79,10 @@ normalize_replacement = '''  fun normalize(item: ItemStack): ItemStack {
     HealingItems.normalize(item)?.let { return it }
     val profile = profileFor(item.name, item.archetypeId)
 '''
-item_content = replace_once(item_content, normalize_anchor, normalize_replacement, "Healing item normalization")
+# A single-state ItemContent implementation already calls HealingItems.normalize()
+# before applying whole-unit metadata. Do not inject the retired profileFor hook.
+if 'val normalized = HealingItems.normalize(item) ?: item' not in item_content:
+    item_content = replace_once(item_content, normalize_anchor, normalize_replacement, "Healing item normalization")
 ITEM_CONTENT.write_text(item_content, encoding="utf-8")
 
 
