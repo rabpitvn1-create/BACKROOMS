@@ -45,7 +45,8 @@ public class MainActivity extends Activity {
   private String pendingDiagnosticJson;
   private static final int REQUEST_EXPORT_DIAGNOSTICS = 0xBD60;
   private QuotaGovernor canonQuotaGovernor;
-  private final TextProviderRouter textProviders = new TextProviderRouter();
+  private volatile TextProviderRouter textProviders = new TextProviderRouter();
+  private ProviderCredentials providerCredentials;
 
   private GameCoreFacade requireGameCore() {
     GameCoreFacade core = gameCore;
@@ -66,6 +67,7 @@ public class MainActivity extends Activity {
   @Override public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     diagnosticLog = new AppDiagnosticLog(getApplicationContext());
+    providerCredentials = new ProviderCredentials(getApplicationContext());
     try {
       gameCore = GameCoreFacade.create(getApplicationContext(), BuildConfig.DEBUG);
     } catch (RuntimeException failure) {
@@ -184,14 +186,8 @@ public class MainActivity extends Activity {
     return false;
   }
 
-  private String[] geminiKeys() {
-    return new String[] {
-      BuildConfig.GEMINI_API_KEY_1,
-      BuildConfig.GEMINI_API_KEY_2,
-      BuildConfig.GEMINI_API_KEY_3,
-      BuildConfig.GEMINI_API_KEY_4,
-      BuildConfig.GEMINI_API_KEY_5
-    };
+  private String[] geminiKeys() throws Exception {
+    return providerCredentials.geminiKeys();
   }
 
   private static long parseRetryAfterMs(String header) {
@@ -235,7 +231,10 @@ public class MainActivity extends Activity {
   }
 
   private String gehihiText(String prompt) throws Exception {
-    String base = BuildConfig.GEHIHI_BASE_URL.trim();
+    String base = providerCredentials.get("GEHIHI_BASE_URL").trim();
+    String model = providerCredentials.get("GEHIHI_MODEL").trim();
+    String apiKey = providerCredentials.get("GEHIHI_API_KEY").trim();
+    if (model.isEmpty() || apiKey.isEmpty()) throw new Exception("Gehihi chưa cấu hình.");
     if (base.isEmpty()) base = "https://api.vilao.ai/v1";
     URL url = new URL(base);
     if (!"https".equalsIgnoreCase(url.getProtocol()) || url.getHost().isEmpty() ||
@@ -243,10 +242,10 @@ public class MainActivity extends Activity {
       throw new Exception("GEHIHI_BASE_URL không hợp lệ.");
     while (base.endsWith("/")) base = base.substring(0, base.length() - 1);
     String endpoint = base.endsWith("/chat/completions") ? base : base + "/chat/completions";
-    JSONObject body = new JSONObject().put("model", BuildConfig.GEHIHI_MODEL.trim())
+    JSONObject body = new JSONObject().put("model", model)
       .put("messages", new JSONArray().put(new JSONObject().put("role", "user").put("content", prompt)))
       .put("max_tokens", 2048).put("stream", false);
-    JSONObject result = new JSONObject(postJson(endpoint, BuildConfig.GEHIHI_API_KEY.trim(), "Authorization", body));
+    JSONObject result = new JSONObject(postJson(endpoint, apiKey, "Authorization", body));
     JSONArray choices = result.optJSONArray("choices");
     JSONObject first = choices != null && choices.length() > 0 ? choices.optJSONObject(0) : null;
     JSONObject message = first != null ? first.optJSONObject("message") : null;
@@ -290,9 +289,11 @@ public class MainActivity extends Activity {
   }
 
   private String generateTextForTurn(String prompt, int estimatedInputTokens) throws Exception {
-    boolean primaryConfigured = !BuildConfig.GEHIHI_API_KEY.trim().isEmpty() && !BuildConfig.GEHIHI_MODEL.trim().isEmpty();
+    String gehihiModel = providerCredentials.get("GEHIHI_MODEL").trim();
+    boolean primaryConfigured = !providerCredentials.get("GEHIHI_API_KEY").trim().isEmpty()
+      && !gehihiModel.isEmpty();
     return textProviders.generate(primaryConfigured,
-      () -> callTextProvider("gehihi", BuildConfig.GEHIHI_MODEL, null, estimatedInputTokens, () -> gehihiText(prompt)),
+      () -> callTextProvider("gehihi", gehihiModel, null, estimatedInputTokens, () -> gehihiText(prompt)),
       geminiKeys(), (key, index) -> callTextProvider("gemini", GEMINI_MODEL, "K" + (index + 1),
         estimatedInputTokens, () -> geminiText(prompt, key)),
       name -> emit("backroomProvider", name));
@@ -953,6 +954,25 @@ public class MainActivity extends Activity {
   }
 
   private class GameBridge {
+    @JavascriptInterface public String providerCredentialsStatus() {
+      try {
+        return providerCredentials.status().toString();
+      } catch (Exception failure) {
+        return "{\"error\":\"provider_config_unavailable\"}";
+      }
+    }
+
+    @JavascriptInterface public String saveProviderCredentials(String configJson) {
+      try {
+        JSONObject status = providerCredentials.update(configJson);
+        textProviders = new TextProviderRouter();
+        return status.toString();
+      } catch (Exception failure) {
+        diagnosticLog.record("provider", "config_update_failed");
+        return "{\"error\":\"provider_config_invalid\"}";
+      }
+    }
+
     @JavascriptInterface public void itemAction(String stateJson, String requestJson) {
       io.execute(() -> {
         try {
