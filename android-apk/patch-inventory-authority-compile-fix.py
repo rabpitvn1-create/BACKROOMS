@@ -72,8 +72,8 @@ omnivault_healing_hook = '''    HealingItems.normalize(item)?.let { healing ->
       return healing.copy(itemId = item.itemId, metadata = healing.metadata + item.metadata)
     }
 '''
-canonical_healing_hook = '    HealingItems.normalize(item)?.let { return it }\\n'
-single_state_hook = '    val normalized = HealingItems.normalize(item) ?: item\\n'
+canonical_healing_hook = '    HealingItems.normalize(item)?.let { return it }\n'
+single_state_hook = '    val normalized = HealingItems.normalize(item) ?: item\n'
 if single_state_hook in item_content:
     # This path retains the canonical ID, strips content variants and preserves
     # copy identity with the HealingItems normalization rule installed below.
@@ -85,8 +85,8 @@ elif canonical_healing_hook not in item_content:
 ITEM_CONTENT.write_text(item_content, encoding="utf-8")
 
 healing = HEALING.read_text(encoding="utf-8")
-old_healing_id = '      itemId = id,\\n'
-copy_safe_healing_id = '      itemId = if (ItemIdentity.isOmnivaultCopy(item)) item.itemId else id,\\n'
+old_healing_id = '      itemId = id,\n'
+copy_safe_healing_id = '      itemId = if (ItemIdentity.isOmnivaultCopy(item)) item.itemId else id,\n'
 if old_healing_id in healing:
     if healing.count(old_healing_id) != 1:
         raise RuntimeError(f"Healing copy identity anchor expected 1 match, found {healing.count(old_healing_id)}")
