@@ -45,4 +45,6 @@ jobs:
             --tests com.rabpit.backroom.core.CharacterStatusEquipmentSystemTest \
             --tests com.rabpit.backroom.core.CharacterStats1193aRegressionTest \
             --tests com.rabpit.backroom.core.InventoryCapacityNewGameTest \
-            --tests com.rabpit.backroom.core.InventoryPolicyTest
+            --tests com.rabpit.backroom.core.InventoryPolicyTest \
+            --tests com.rabpit.backroom.core.ItemDetailActionsTest \
+            --tests com.rabpit.backroom.core.RuleIntentInterpreterTest
