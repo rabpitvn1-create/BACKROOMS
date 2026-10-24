@@ -30,6 +30,13 @@ class CanonEquipmentInventoryTest {
       assertEquals(loadout.values.toSet(),
         character.equipmentDetails.map { it.id }.toSet())
       assertTrue(character.equipmentDetails.all { it.consumesInventorySlot == false })
+      val ui = CharacterDetailJson.encodeCharacter(character)
+      assertEquals(0, ui.getJSONArray("inventory").length())
+      val uiEquipment = ui.getJSONArray("equipmentItems")
+      assertEquals(loadout.values.toSet().size, uiEquipment.length())
+      for (index in 0 until uiEquipment.length()) {
+        assertFalse(uiEquipment.getJSONObject(index).getBoolean("consumesInventorySlot"))
+      }
     }
   }
 
