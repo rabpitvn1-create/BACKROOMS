@@ -63,3 +63,11 @@ jobs:
         run: gradle :app:assembleDebug --no-daemon
       - name: Verify restored runtime inside packaged APK
         run: python3 android-apk/tests/verify-restored-apk.py android-apk/app/build/outputs/apk/debug/app-debug.apk
+      - name: Upload verified debug APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backrooms-pr-debug-apk
+          path: android-apk/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
