@@ -1,0 +1,455 @@
+{
+  "manifest_id": "canon_source_manifest.v1",
+  "generated_by": "CR2-B1 Gate 1 deliverables (2026-10-24), từ mapping của CR2-A2 Gate 1 Ingest Audit",
+  "design_ref": "ARCHITECTURE.md §4 bước ingest A (source_id -> revision/sha256/parser/record_ids/review_status)",
+  "universe_id": "BACKROOMS_MAIN",
+  "sources": [
+    {
+      "source_id": "CAO_MINH_CODEX",
+      "path": "Asset/01_Character/CAO_MINH_CODEX.md",
+      "local_paths": [
+        "~/workspace/backrooms_data_design/canon/CAO_MINH_CODEX.md",
+        "~/workspace/drive_canon/CAO_MINH_CODEX.md (bản trùng byte-for-byte)"
+      ],
+      "revision": "R17 + PROLOGUE ADDENDUM R18",
+      "sha256": "c8b4172d6f3df4dc3bc274331a0228712c518fe9ed8401c7b20fc2112e78b84a",
+      "bytes": 86645,
+      "parser": "markdown-sections (tiêu đề/mã mục theo §4B)",
+      "parser_version": "gate1-audit-manual (CR2-A2, 2026-10-24)",
+      "availability": "LOCAL_SNAPSHOT",
+      "review_status": "PENDING_REVIEW",
+      "record_ids": [
+        "CHAR.CAO_MINH.HUYET_MA_CHIEN_KHAI",
+        "CHAR.CAO_MINH.HUYET_MA_KIEM",
+        "CHAR.CAO_MINH.HUYET_MA_NHI_THAP_TU_TRAM",
+        "CHAR.CAO_MINH.RUNTIME_CORE",
+        "CHAR.CAO_MINH.VAN_QUY_MA_TAM",
+        "CHAR.CAO_MINH.VAN_QUY_MA_THAN",
+        "STORY.MAIN.OBJECTIVE",
+        "STORY.MAIN.SEPARATION"
+      ]
+    },
+    {
+      "source_id": "LUC_TRAM_CODEX",
+      "path": "Asset/01_Character/LUC_TRAM_CODEX.md",
+      "local_paths": [
+        "~/workspace/backrooms_data_design/canon/LUC_TRAM_CODEX.md"
+      ],
+      "revision": "R05 + Prologue Addendum R06 (router R04)",
+      "sha256": "58e85b5dcdb5fe99b380e677cf4549395bdb65592872bfc877dbd09feec12152",
+      "bytes": 94888,
+      "parser": "markdown-sections (tiêu đề/mã mục theo §4B)",
+      "parser_version": "gate1-audit-manual (CR2-A2, 2026-10-24)",
+      "availability": "LOCAL_SNAPSHOT",
+      "review_status": "PENDING_REVIEW",
+      "record_ids": [
+        "ADDR.LUC_TRAM.CAO_MINH",
+        "CHAR.LUC_TRAM.RUNTIME_CORE",
+        "CHAR.LUC_TRAM.THIEN_CO_BACH_KIM_KIEM_KHAI",
+        "CHAR.LUC_TRAM.THIEN_KIEM_LINH_TAM",
+        "CHAR.LUC_TRAM.THIEN_KIEM_THAT_THUC",
+        "CHAR.LUC_TRAM.TICH_QUANG",
+        "REL.CAO_MINH.LUC_TRAM.BASELINE"
+      ]
+    },
+    {
+      "source_id": "KNOWLEDGE_DB",
+      "path": "android-apk/app/src/main/assets/knowledge/knowledge_db.json",
+      "local_paths": [
+        "~/workspace/BACKROOMS_current/android-apk/app/src/main/assets/knowledge/knowledge_db.json"
+      ],
+      "revision": "schemaVersion 2 (nâng cấp Record v2 tại CR2-B1 từ bản schemaVersion 1, sha256 v1: e59a48d9a0beebb82c8061f462ffec3e7c9efea502c7124268e718654c3fce1b)",
+      "sha256": null,
+      "sha256_note": "Hash của chính DB v2 không tự ghi trong manifest này để tránh tự tham chiếu; hash bản v1 gốc nằm ở field revision.",
+      "parser": "json-records",
+      "parser_version": "record-v2-upgrade (CR2-B1)",
+      "availability": "LOCAL_SNAPSHOT",
+      "review_status": "PENDING_REVIEW",
+      "record_ids": [
+        "ADDR.LUC_TRAM.CAO_MINH",
+        "ADDR.SYVIAL.CAO_MINH",
+        "CHAR.CAO_MINH.DAI_MA_DAU",
+        "CHAR.CAO_MINH.HUYET_MA_CHIEN_KHAI",
+        "CHAR.CAO_MINH.HUYET_MA_KIEM",
+        "CHAR.CAO_MINH.HUYET_MA_NHI_THAP_TU_TRAM",
+        "CHAR.CAO_MINH.RUNTIME_CORE",
+        "CHAR.CAO_MINH.VAN_KHO_GIOI_CHI",
+        "CHAR.CAO_MINH.VAN_QUY_MA_TAM",
+        "CHAR.CAO_MINH.VAN_QUY_MA_THAN",
+        "CHAR.LUC_TRAM.RUNTIME_CORE",
+        "CHAR.LUC_TRAM.THIEN_CO_BACH_KIM_KIEM_KHAI",
+        "CHAR.LUC_TRAM.THIEN_KIEM_LINH_TAM",
+        "CHAR.LUC_TRAM.THIEN_KIEM_THAT_THUC",
+        "CHAR.LUC_TRAM.TICH_QUANG",
+        "CHAR.SYVIAL.COMBAT",
+        "CHAR.SYVIAL.DEVIL_TRIGGER",
+        "CHAR.SYVIAL.GODKILLER",
+        "CHAR.SYVIAL.GODKILLER_OVERRIDE",
+        "CHAR.SYVIAL.LUCIFER_CORE",
+        "CHAR.SYVIAL.RUNTIME_CORE",
+        "ENTITY.BEAST_LEVEL_5",
+        "ENTITY.BIOLOGICAL_PIPELINE",
+        "ENTITY.CABLE_MIMIC",
+        "ENTITY.DEATHMOTH",
+        "ENTITY.FALSE_PUDDLE",
+        "ENTITY.GLOBAL_HARD_LOCK",
+        "ENTITY.HOUND",
+        "ENTITY.JEFF",
+        "ENTITY.SKIN_STEALER",
+        "ENTITY.SMILER",
+        "ENTITY.WRETCH",
+        "GAME.GM.FAIRNESS",
+        "GAME.TEXT.CORE",
+        "ITEM.ALMOND_WATER",
+        "ITEM.GLOBAL_HARD_LOCK",
+        "ITEM.GREEK_FIRE",
+        "ITEM.LIQUID_PAIN",
+        "LEVEL.00",
+        "LEVEL.01",
+        "LEVEL.02",
+        "LEVEL.03",
+        "LEVEL.04",
+        "LEVEL.05",
+        "LEVEL.06",
+        "REL.CAO_MINH.LUC_TRAM.BASELINE",
+        "REL.CAO_MINH.SYVIAL.BASELINE",
+        "REL.LUC_TRAM.SYVIAL.BASELINE",
+        "STORY.MAIN.OBJECTIVE",
+        "STORY.MAIN.SEPARATION",
+        "WORLD.CORE",
+        "WRITING.COMPETENCE",
+        "WRITING.DIALOGUE",
+        "WRITING.KNOWLEDGE_BOUNDARY",
+        "WRITING.PLAYER_AGENCY"
+      ]
+    },
+    {
+      "source_id": "WORLD_MD",
+      "path": "01_WORLD/world.md",
+      "local_paths": [],
+      "revision": null,
+      "sha256": null,
+      "parser": "markdown-sections (tiêu đề/mã mục theo §4B)",
+      "parser_version": null,
+      "availability": "SOURCE_UNAVAILABLE",
+      "review_status": "SOURCE_UNAVAILABLE",
+      "record_ids": [
+        "WORLD.CORE"
+      ]
+    },
+    {
+      "source_id": "LEVEL_MD",
+      "path": "01_WORLD/level.md",
+      "local_paths": [],
+      "revision": null,
+      "sha256": null,
+      "parser": "markdown-sections (tiêu đề/mã mục theo §4B)",
+      "parser_version": null,
+      "availability": "SOURCE_UNAVAILABLE",
+      "review_status": "SOURCE_UNAVAILABLE",
+      "record_ids": [
+        "LEVEL.00",
+        "LEVEL.01",
+        "LEVEL.02",
+        "LEVEL.03",
+        "LEVEL.04",
+        "LEVEL.05",
+        "LEVEL.06"
+      ]
+    },
+    {
+      "source_id": "ENTITY_MD",
+      "path": "01_WORLD/entity.md",
+      "local_paths": [],
+      "revision": null,
+      "sha256": null,
+      "parser": "markdown-sections (tiêu đề/mã mục theo §4B)",
+      "parser_version": null,
+      "availability": "SOURCE_UNAVAILABLE",
+      "review_status": "SOURCE_UNAVAILABLE",
+      "record_ids": [
+        "ENTITY.BEAST_LEVEL_5",
+        "ENTITY.BIOLOGICAL_PIPELINE",
+        "ENTITY.CABLE_MIMIC",
+        "ENTITY.DEATHMOTH",
+        "ENTITY.FALSE_PUDDLE",
+        "ENTITY.GLOBAL_HARD_LOCK",
+        "ENTITY.HOUND",
+        "ENTITY.JEFF",
+        "ENTITY.SKIN_STEALER",
+        "ENTITY.SMILER",
+        "ENTITY.WRETCH",
+        "LEVEL.00",
+        "LEVEL.04",
+        "LEVEL.06"
+      ]
+    },
+    {
+      "source_id": "ITEMS_MD",
+      "path": "01_WORLD/items.md",
+      "local_paths": [],
+      "revision": null,
+      "sha256": null,
+      "parser": "markdown-sections (tiêu đề/mã mục theo §4B)",
+      "parser_version": null,
+      "availability": "SOURCE_UNAVAILABLE",
+      "review_status": "SOURCE_UNAVAILABLE",
+      "record_ids": [
+        "ITEM.ALMOND_WATER",
+        "ITEM.GLOBAL_HARD_LOCK",
+        "ITEM.GREEK_FIRE",
+        "ITEM.LIQUID_PAIN"
+      ]
+    },
+    {
+      "source_id": "TEXT_GAME_RULES",
+      "path": "05_TextGame/RULES/TEXT_GAME_RULES.md",
+      "local_paths": [],
+      "revision": null,
+      "sha256": null,
+      "parser": "markdown-sections (tiêu đề/mã mục theo §4B)",
+      "parser_version": null,
+      "availability": "SOURCE_UNAVAILABLE",
+      "review_status": "SOURCE_UNAVAILABLE",
+      "record_ids": [
+        "GAME.TEXT.CORE",
+        "WRITING.PLAYER_AGENCY"
+      ]
+    },
+    {
+      "source_id": "GAME_MASTER_RULES",
+      "path": "05_TextGame/RULES/GAME_MASTER_RULES.md",
+      "local_paths": [],
+      "revision": null,
+      "sha256": null,
+      "parser": "markdown-sections (tiêu đề/mã mục theo §4B)",
+      "parser_version": null,
+      "availability": "SOURCE_UNAVAILABLE",
+      "review_status": "SOURCE_UNAVAILABLE",
+      "record_ids": [
+        "GAME.GM.FAIRNESS",
+        "WRITING.PLAYER_AGENCY"
+      ]
+    },
+    {
+      "source_id": "MAIN_STORY",
+      "path": "05_TextGame/STORY/MAIN_STORY.md",
+      "local_paths": [],
+      "revision": null,
+      "sha256": null,
+      "parser": "markdown-sections (tiêu đề/mã mục theo §4B)",
+      "parser_version": null,
+      "availability": "SOURCE_UNAVAILABLE",
+      "review_status": "SOURCE_UNAVAILABLE",
+      "record_ids": []
+    },
+    {
+      "source_id": "SYVIAL_CODEX",
+      "path": "02_CHARACTERS/Syvial_Codex.docx",
+      "local_paths": [],
+      "revision": null,
+      "sha256": null,
+      "parser": "docx-sections (heading/bảng/đoạn theo §4B)",
+      "parser_version": null,
+      "availability": "SOURCE_UNAVAILABLE",
+      "review_status": "SOURCE_UNAVAILABLE",
+      "record_ids": [
+        "ADDR.SYVIAL.CAO_MINH",
+        "CHAR.SYVIAL.COMBAT",
+        "CHAR.SYVIAL.DEVIL_TRIGGER",
+        "CHAR.SYVIAL.GODKILLER",
+        "CHAR.SYVIAL.GODKILLER_OVERRIDE",
+        "CHAR.SYVIAL.LUCIFER_CORE",
+        "CHAR.SYVIAL.RUNTIME_CORE",
+        "REL.CAO_MINH.SYVIAL.BASELINE"
+      ]
+    },
+    {
+      "source_id": "WORLDCODEX",
+      "path": "00_RULES/worldcodex.md",
+      "local_paths": [],
+      "revision": null,
+      "sha256": null,
+      "parser": "markdown-sections (tiêu đề/mã mục theo §4B)",
+      "parser_version": null,
+      "availability": "SOURCE_UNAVAILABLE",
+      "review_status": "SOURCE_UNAVAILABLE",
+      "record_ids": [
+        "WRITING.COMPETENCE",
+        "WRITING.KNOWLEDGE_BOUNDARY"
+      ]
+    },
+    {
+      "source_id": "CONVERSATION",
+      "path": "00_RULES/CONVERSATION.MD",
+      "local_paths": [],
+      "revision": null,
+      "sha256": null,
+      "parser": "markdown-sections (tiêu đề/mã mục theo §4B)",
+      "parser_version": null,
+      "availability": "SOURCE_UNAVAILABLE",
+      "review_status": "SOURCE_UNAVAILABLE",
+      "record_ids": [
+        "WRITING.DIALOGUE",
+        "WRITING.KNOWLEDGE_BOUNDARY"
+      ]
+    },
+    {
+      "source_id": "WAY_OF_WRITING",
+      "path": "00_RULES/WayOfWriting.md",
+      "local_paths": [],
+      "revision": null,
+      "sha256": null,
+      "parser": "markdown-sections (tiêu đề/mã mục theo §4B)",
+      "parser_version": null,
+      "availability": "SOURCE_UNAVAILABLE",
+      "review_status": "SOURCE_UNAVAILABLE",
+      "record_ids": []
+    },
+    {
+      "source_id": "VIVID_VERBS_GUIDE",
+      "path": "00_RULES/Vivid_Verbs_Guide.md",
+      "local_paths": [],
+      "revision": null,
+      "sha256": null,
+      "parser": "markdown-sections (tiêu đề/mã mục theo §4B)",
+      "parser_version": null,
+      "availability": "SOURCE_UNAVAILABLE",
+      "review_status": "SOURCE_UNAVAILABLE",
+      "record_ids": []
+    },
+    {
+      "source_id": "SUPERNATURAL_HORROR_CRAFT_GUIDE",
+      "path": "00_RULES/Supernatural_Horror_Craft_Guide.md",
+      "local_paths": [],
+      "revision": null,
+      "sha256": null,
+      "parser": "markdown-sections (tiêu đề/mã mục theo §4B)",
+      "parser_version": null,
+      "availability": "SOURCE_UNAVAILABLE",
+      "review_status": "SOURCE_UNAVAILABLE",
+      "record_ids": [
+        "WRITING.COMPETENCE"
+      ]
+    },
+    {
+      "source_id": "INTIMACY_WRITING_GUIDE",
+      "path": "00_RULES/Intimacy_Writing_Guide.md",
+      "local_paths": [],
+      "revision": null,
+      "sha256": null,
+      "parser": "markdown-sections (tiêu đề/mã mục theo §4B)",
+      "parser_version": null,
+      "availability": "SOURCE_UNAVAILABLE",
+      "review_status": "SOURCE_UNAVAILABLE",
+      "record_ids": []
+    },
+    {
+      "source_id": "DIALOGUE_BENCHMARKS",
+      "path": "00_RULES/Dialogue_Benchmarks.md",
+      "local_paths": [],
+      "revision": null,
+      "sha256": null,
+      "parser": "markdown-sections (tiêu đề/mã mục theo §4B)",
+      "parser_version": null,
+      "availability": "SOURCE_UNAVAILABLE",
+      "review_status": "SOURCE_UNAVAILABLE",
+      "record_ids": []
+    },
+    {
+      "source_id": "NHUNG_DIEU_BAT_BUOC",
+      "path": "00_RULES/Những điều bắt buộc không được làm khi viết tiểu thuyết.md",
+      "local_paths": [],
+      "revision": null,
+      "sha256": null,
+      "parser": "markdown-sections (tiêu đề/mã mục theo §4B)",
+      "parser_version": null,
+      "availability": "SOURCE_UNAVAILABLE",
+      "review_status": "SOURCE_UNAVAILABLE",
+      "record_ids": [
+        "WRITING.COMPETENCE",
+        "WRITING.KNOWLEDGE_BOUNDARY"
+      ]
+    },
+    {
+      "source_id": "HUONG_DAN",
+      "path": "00_RULES/HuongDan.txt",
+      "local_paths": [],
+      "revision": null,
+      "sha256": null,
+      "parser": "markdown-sections (tiêu đề/mã mục theo §4B)",
+      "parser_version": null,
+      "availability": "SOURCE_UNAVAILABLE",
+      "review_status": "SOURCE_UNAVAILABLE",
+      "record_ids": []
+    },
+    {
+      "source_id": "RULES_BOOT",
+      "path": "00_RULES/00_RULES_BOOT.md",
+      "local_paths": [],
+      "revision": null,
+      "sha256": null,
+      "parser": "markdown-sections (tiêu đề/mã mục theo §4B)",
+      "parser_version": null,
+      "availability": "SOURCE_UNAVAILABLE",
+      "review_status": "SOURCE_UNAVAILABLE",
+      "record_ids": []
+    },
+    {
+      "source_id": "KAI_CODEX_DOCX_DEPRECATED",
+      "path": "02_CHARACTERS/Kai_Codex.docx",
+      "local_paths": [],
+      "revision": null,
+      "sha256": null,
+      "parser": "docx-sections (heading/bảng/đoạn theo §4B)",
+      "parser_version": null,
+      "availability": "SOURCE_UNAVAILABLE",
+      "review_status": "SOURCE_UNAVAILABLE",
+      "note": "Đã bị CAO_MINH_CODEX thay thế theo KNOWLEDGE_SOURCE_MAP; record CHAR.CAO_MINH.VAN_KHO_GIOI_CHI vẫn tham chiếu do quyết định tác giả 2026-10-24 giữ tính năng và đổi tên Vạn Khố Giới Chỉ. Cờ OPEN: hợp nhất với Vạn Tàng Giới chưa chốt.",
+      "record_ids": [
+        "CHAR.CAO_MINH.VAN_KHO_GIOI_CHI"
+      ]
+    }
+  ],
+  "coverage": {
+    "records_total": 55,
+    "imported": 54,
+    "imported_note": "54/55 record có source.document/anchor trỏ tài liệu canon thật; 1 record (REL.LUC_TRAM.SYVIAL.BASELINE) khai báo không có nguồn canon.",
+    "records_with_local_source_sha256": 15,
+    "records_pending_source_snapshot": 40,
+    "pending_review": 55,
+    "declared_unestablished": [
+      "REL.LUC_TRAM.SYVIAL.BASELINE"
+    ],
+    "records_without_file_source": [
+      "REL.LUC_TRAM.SYVIAL.BASELINE (khai báo chưa thiết lập, 2026-10-24)",
+      "CHAR.CAO_MINH.DAI_MA_DAU (nguồn là quyết định tác giả 2026-10-24, chưa có tài liệu)"
+    ],
+    "known_missing_source_map_rows": [
+      "CHAR.CAO_MINH.IDENTITY",
+      "CHAR.LUC_TRAM.COMBAT",
+      "CHAR.LUC_TRAM.UNKNOWN",
+      "STORY.MAIN.PREMISE",
+      "STORY.MAIN.COMMS_INITIAL",
+      "STORY.MAIN.LUC_TRAM_EXISTENCE",
+      "STORY.MAIN.SYVIAL_EXISTENCE",
+      "WRITING.ADDRESS",
+      "WRITING.PROSE_POV",
+      "WRITING.VIVID_VERBS",
+      "WRITING.HORROR",
+      "WRITING.INTIMACY",
+      "WRITING.DIALOGUE_BENCHMARK",
+      "WRITING.GUIDE_SUPPLEMENT"
+    ],
+    "known_missing_count": 14,
+    "known_missing_notes": [
+      "14 hàng KNOWLEDGE_SOURCE_MAP đã có tên nhưng chưa thành record (liệt kê ở known_missing_source_map_rows).",
+      "Thư mục Drive 05_TextGame/SAVE trống khi audit — KNOWN_MISSING có xác nhận, không import save đoán.",
+      "18 tài liệu Source Map chưa có bản local (availability=SOURCE_UNAVAILABLE trong sources) nên chưa tính được content_sha256/approved_revision."
+    ],
+    "unknown_total": {
+      "status": "UNKNOWN",
+      "detail": "Tổng số entity_id của wildcard ENTITY.* và ITEM.* trong Source Map KHÔNG đếm được vì entity.md/items.md chưa có bản local; Level 7+ và các nhân vật ngoài 3 codex (Lucia, Diệp Minh, Trác Lâm, Hứa Tiểu Lan...) thuộc phần canon 99% chưa ingest theo thiết kế — không dựng giả, không tuyên bố là canon."
+    }
+  }
+}
