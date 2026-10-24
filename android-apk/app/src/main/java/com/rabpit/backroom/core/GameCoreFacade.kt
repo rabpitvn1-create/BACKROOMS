@@ -35,7 +35,7 @@ class GameCoreFacade @JvmOverloads internal constructor(
     if (fresh) {
       output.put("turn", 1)
       output.put("log", JSONArray().put(JSONObject().put("role", "gm").put("text",
-        "Cao Minh xuất hiện tại " + output.getString("location") + ". Liên lạc với Lục Trầm và Syvial vẫn gián đoạn.")))
+        "Cao Minh xuất hiện ở một nơi chưa xác định. Liên lạc với Lục Trầm và Syvial vẫn gián đoạn.")))
     }
     output.remove("coreSnapshot")
     core = core.copy(world = core.world + ("levelTravelUi" to output.toString()))
@@ -91,7 +91,7 @@ class GameCoreFacade @JvmOverloads internal constructor(
       output.put("flags", JSONObject(outcome.state.world["flagsJson"] ?: "{}"))
       val r = outcome.receipt
       val reply = when {
-        r.getBoolean("completed") -> "Thoát thành công 3/3. Cao Minh tới " + output.getString("location") + ". Chuỗi thoát mới: 0/3."
+        r.getBoolean("completed") -> "Thoát thành công 3/3. Cao Minh đã đến một nơi mới, chưa xác định danh tính. Chuỗi thoát mới: 0/3."
         r.getBoolean("success") -> "Lần thử thoát thành công: " + r.getInt("streak") + "/3. Cao Minh vẫn ở địa điểm hiện tại."
         else -> "Lần thử thoát thất bại. Chuỗi trở về 0/3; Cao Minh vẫn ở địa điểm hiện tại."
       }
