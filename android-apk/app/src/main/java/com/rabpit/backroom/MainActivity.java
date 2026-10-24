@@ -895,18 +895,8 @@ public class MainActivity extends Activity {
   }
 
   private JSONArray sanitizedInventory(JSONArray current, JSONArray proposed, JSONObject rolls) throws Exception {
-    if (proposed == null) return current == null ? new JSONArray() : new JSONArray(current.toString());
-    JSONArray safe = new JSONArray();
-    for (int i = 0; i < proposed.length(); i++) {
-      Object item = proposed.opt(i);
-      String name = itemName(item);
-      boolean existing = arrayHasName(current, name);
-      boolean almond = lower(name).contains("almond water");
-      boolean allowed = existing || (almond && rollSuccess(rolls, "almondWater")) ||
-        (!almond && rollSuccess(rolls, "loot"));
-      if (allowed) safe.put(item);
-    }
-    return safe;
+    // Core alone changes Item ownership. Ignore all GM inventory proposals.
+    return current == null ? new JSONArray() : new JSONArray(current.toString());
   }
 
   private JSONArray sanitizedParty(JSONArray current, JSONArray proposed, JSONObject rolls) throws Exception {
