@@ -52,7 +52,9 @@ object CombatRuntime {
     val amount: Int,
     val critical: Boolean = false,
     val actorId: String = CAO_MINH_ID,
-    val phase: String = "actor"
+    val phase: String = "actor",
+    val skill: String? = null,
+    val status: String? = null
   ) {
     fun toJson(): JSONObject = JSONObject().apply {
       put("target", target)
@@ -61,6 +63,8 @@ object CombatRuntime {
       put("critical", critical)
       put("flash", true)
       put("phase", phase)
+      skill?.let { put("skill", it) }
+      status?.let { put("status", it) }
     }
   }
 
@@ -144,7 +148,16 @@ object CombatRuntime {
     var c = current.copy(eventCounter = current.eventCounter + 1)
     val log = mutableListOf<String>()
     val feedback = mutableListOf<DamageFeedback>()
-    var resolvedState = state
+    val tick = CombatStatusLifecycle.advance(state)
+    var resolvedState = tick.state
+    feedback += tick.feedback
+    val activeHp = resolvedState.characters[CAO_MINH_ID]?.vitalState?.currentHp ?: 0
+    c = c.copy(playerHp = activeHp)
+    if (activeHp <= 0) {
+      return Resolution(clearCombatOnly(resolvedState), true,
+        "Cao Minh đã gục vì hiệu ứng trạng thái. Trận chiến kết thúc.",
+        feedback = feedback.toList())
+    }
 
     when (intent) {
       Intent.READ -> {
