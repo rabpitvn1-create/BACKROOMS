@@ -18,7 +18,13 @@ class SharedPreferencesSaveRepository(context: Context) : SaveRepository {
 
   @Synchronized override fun load(): GameState {
     val raw = preferences.getString(KEY_STATE, null) ?: return GameState.initial()
-    return runCatching { GameStateCodec.decode(raw) }.getOrElse { GameState.initial().copy(metadata = mapOf("loadError" to (it.message ?: "invalid_save"))) }
+    return try {
+      GameStateCodec.decode(raw)
+    } catch (error: Exception) {
+      // A failed decode is not a New Game. Keep the original bytes untouched
+      // so startup can recover a validated current-version browser snapshot.
+      throw IllegalStateException("core_save_decode_failed", error)
+    }
   }
 
   override fun exists(): Boolean = preferences.contains(KEY_STATE)
