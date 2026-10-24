@@ -134,6 +134,9 @@ object CombatRuntime {
 
   fun resolve(state: GameState, actionKind: String, action: String): Resolution {
     val current = active(state) ?: return Resolution(state, handled = false)
+    if (current.playerHp <= 0 || (state.characters[CAO_MINH_ID]?.vitalState?.currentHp ?: 0) <= 0) {
+      return Resolution(clearCombatOnly(state), handled = true, reply = "Cao Minh đã gục. Trận chiến kết thúc.")
+    }
     val profile = profiles[current.entityKey] ?: return Resolution(clear(state), handled = false)
     val intent = classify(actionKind, action)
     var c = current.copy(eventCounter = current.eventCounter + 1)
@@ -265,6 +268,13 @@ object CombatRuntime {
         return Resolution(clearCombatOnly(persisted), true,
           log.joinToString(" ") + " ${c.entityName} đã bị tiêu diệt.", entityDestroyed = true, feedback = feedback.toList())
       }
+    }
+
+    if (c.playerHp <= 0) {
+      val knockedOut = encode(resolvedState, c.copy(phase = Phase.RESOLVED))
+      return Resolution(clearCombatOnly(knockedOut), true,
+        log.joinToString(" ") + " Cao Minh đã gục. Trận chiến kết thúc.",
+        feedback = feedback.toList())
     }
 
     c = c.copy(
