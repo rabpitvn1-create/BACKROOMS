@@ -4,6 +4,21 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class EntityExpRewardsTest {
+  @Test fun levelThresholdMatchesOriginalApkDex() {
+    assertEquals(18, EntityExpRewards.requiredExp(1))
+    assertEquals(26, EntityExpRewards.requiredExp(2))
+    assertEquals(0, EntityExpRewards.requiredExp(EntityExpRewards.MAX_LEVEL))
+  }
+
+  @Test fun levelUpCarriesSurplusExp() {
+    val state = GameState.initial()
+    val result = EntityExpRewards.grantExp(state, CAO_MINH_ID, 20)
+    val level = EntityExpRewards.progression(result.state, CAO_MINH_ID)
+    assertEquals(2, level.level)
+    assertEquals(2, level.exp)
+    assertEquals(26, level.requiredExp)
+  }
+
   @Test fun entityVictoryAwardsOnceAcrossRepeatedRequests() {
     val initial = GameState.initial()
     val once = EntityExpRewards.award(initial, "battle_1", "hound")
