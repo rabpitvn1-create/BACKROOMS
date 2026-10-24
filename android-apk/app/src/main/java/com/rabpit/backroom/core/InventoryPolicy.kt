@@ -2,6 +2,28 @@ package com.rabpit.backroom.core
 
 data class InventoryProfile(val maxTypes: Int, val maxPerType: Int)
 
+/**
+ * Authoritative backpack occupancy: an owned, currently equipped item uses no
+ * backpack slot, regardless of how many equipment slots it occupies.
+ */
+object InventoryCapacityPolicy {
+  fun equippedItemIds(state: GameState, characterId: String): Set<String> =
+    state.equipment[characterId]?.slots.orEmpty().values.toSet()
+
+  fun consumesSlot(state: GameState, characterId: String, itemId: String): Boolean =
+    itemId in state.inventories[characterId]?.items.orEmpty() &&
+      itemId !in equippedItemIds(state, characterId)
+
+  fun usedSlots(state: GameState, characterId: String, inventory: InventoryState =
+    state.inventories[characterId] ?: InventoryState(characterId)): Int {
+    val equipped = equippedItemIds(state, characterId)
+    return inventory.items.keys.count { it !in equipped }
+  }
+
+  fun maxSlots(state: GameState, characterId: String): Int =
+    InventoryPolicy.profileFor(state, characterId).maxTypes
+}
+
 object InventoryPolicy {
   val CAO_MINH = InventoryProfile(maxTypes = 9, maxPerType = 999)
   val SPECIAL_COMPANION = InventoryProfile(maxTypes = 4, maxPerType = 20)
@@ -24,7 +46,10 @@ object InventoryPolicy {
     val old = inventory.items[normalized.itemId]
     val resultingQuantity = (old?.quantity ?: 0) + quantity
     if (resultingQuantity > profile.maxPerType) return "inventory_stack_limit"
-    if (old == null && inventory.items.size >= profile.maxTypes) return "inventory_slot_limit"
+    if (old == null && normalized.itemId !in InventoryCapacityPolicy.equippedItemIds(state, ownerId) &&
+        InventoryCapacityPolicy.usedSlots(state, ownerId, inventory) >= profile.maxTypes) {
+      return "inventory_slot_limit"
+    }
     return null
   }
 
