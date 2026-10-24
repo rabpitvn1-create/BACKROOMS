@@ -91,8 +91,8 @@ text = replace_once(
     "  private static final int MAX_SNAPSHOT_BASE64 = 1_500_000;",
     "  private static final int MAX_SNAPSHOT_BASE64 = 1_500_000;\n"
     "  // Canon Runtime 2 adapter surface: last provider response observed by postJson.\n"
-    "  private static volatile int lastProviderHttpStatus = -1;\n"
-    "  private static volatile long lastProviderRetryAfterMs = -1L;",
+    "  private final ThreadLocal<Integer> lastProviderHttpStatus = ThreadLocal.withInitial(() -> -1);\n"
+    "  private final ThreadLocal<Long> lastProviderRetryAfterMs = ThreadLocal.withInitial(() -> -1L);",
     "MainActivity provider status fields",
 )
 
@@ -123,8 +123,8 @@ text = replace_once(
     "    int status = connection.getResponseCode();\n"
     "    InputStream stream = status >= 200 && status < 300 ? connection.getInputStream() : connection.getErrorStream();",
     "    int status = connection.getResponseCode();\n"
-    "    lastProviderHttpStatus = status;\n"
-    "    lastProviderRetryAfterMs = parseRetryAfterMs(connection.getHeaderField(\"Retry-After\"));\n"
+    "    lastProviderHttpStatus.set(status);\n"
+    "    lastProviderRetryAfterMs.set(parseRetryAfterMs(connection.getHeaderField(\"Retry-After\")));\n"
     "    InputStream stream = status >= 200 && status < 300 ? connection.getInputStream() : connection.getErrorStream();",
     "postJson status capture",
 )
@@ -174,12 +174,14 @@ text = replace_once(
       throw new Exception("CR2 quota local_deterministic: " + ((AdmissionDecision.LocalDeterministic) decision).getState());
     }
     String reservationId = ((AdmissionDecision.SingleCall) decision).getReservationId();
+    lastProviderHttpStatus.set(-1);
+    lastProviderRetryAfterMs.set(-1L);
     try {
       String text = geminiText(prompt);
       governor.recordResult(new ProviderAttemptResult(
         "gemini", GEMINI_MODEL,
-        lastProviderHttpStatus < 0 ? null : lastProviderHttpStatus,
-        lastProviderRetryAfterMs < 0 ? null : lastProviderRetryAfterMs,
+        lastProviderHttpStatus.get() < 0 ? null : lastProviderHttpStatus.get(),
+        lastProviderRetryAfterMs.get() < 0 ? null : lastProviderRetryAfterMs.get(),
         null, null, false, null, reservationId));
       return text;
     } catch (Exception e) {
@@ -187,7 +189,7 @@ text = replace_once(
       governor.recordResult(new ProviderAttemptResult(
         "gemini", GEMINI_MODEL,
         code < 0 ? null : code,
-        code < 0 || lastProviderRetryAfterMs < 0 ? null : lastProviderRetryAfterMs,
+        code < 0 || lastProviderRetryAfterMs.get() < 0 ? null : lastProviderRetryAfterMs.get(),
         null, null, false, null, reservationId));
       throw e;
     }
