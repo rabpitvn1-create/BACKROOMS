@@ -159,17 +159,17 @@ object CombatRuntime {
         log += "Cao Minh dồn ưu thế vào đường thoát (${c.escapeProgress}%)."
       }
       Intent.ATTACK -> {
-        val roll = roll(c, 100)
+        val accuracyRoll = roll(c, 100)
         val rangeBonus = when (c.range) { RangeBand.CLOSE -> 18; RangeBand.NEAR -> 10; RangeBand.FAR -> -5 }
         val hitChance = (58 + rangeBonus + c.opening * 11 + c.momentum * 6 + PokerDiceCore.accuracyBonus(state)).coerceIn(20, 99)
-        if (roll < hitChance) {
+        if (accuracyRoll < hitChance) {
           val variance = 2 + roll(c.copy(eventCounter = c.eventCounter + 17), 7)
           val effective = CharacterStatEngine.effective(state, CAO_MINH_ID)
           val weaponDamage = CharacterStatEngine.weaponDamage(state, CAO_MINH_ID)
-          val critChance = CaoMinhCombatPassive.criticalChance(resolvedState, effective.criticalChancePercent)
+          val critChance = CaoMinhCombatPassive.criticalChance(state, effective.criticalChancePercent)
           val critical = roll(c.copy(eventCounter = c.eventCounter + 23), 100) < critChance
           val rawBase = weaponDamage + variance + c.opening * 5 + max(0, c.momentum) * 2
-          val base = CharacterStatCore.basicDamage(rawBase, effective.str, PokerDiceCore.attackPercent(resolvedState), CaoMinhCombatPassive.attackPercent(resolvedState))
+          val base = CharacterStatCore.basicDamage(rawBase, effective.str, PokerDiceCore.attackPercent(state), CaoMinhCombatPassive.attackPercent(state))
           val normalized = if (critical) CharacterStatCore.criticalDamage(base) else base
           val damage = min(max(1, normalized - profile.armor), max(1, profile.maxHp * 70 / 100))
           val hp = max(0, c.entityHp - damage)
@@ -208,7 +208,7 @@ object CombatRuntime {
     val defense = when (intent) { Intent.EVADE -> 34; Intent.GUARD -> 30; Intent.MOVE -> 18; Intent.READ -> 12; else -> 0 } +
       when (c.cover) { Cover.HARD -> 22; Cover.PARTIAL -> 10; Cover.EXPOSED -> 0 } + max(0, c.momentum) * 4 +
       PokerDiceCore.defenseBonus(state)
-    val playerEvasion = CharacterStatEngine.effective(resolvedState, CAO_MINH_ID).evasionPercent
+    val playerEvasion = CharacterStatEngine.effective(state, CAO_MINH_ID).evasionPercent
     val enemyChance = (profile.aggression * 8 - defense + max(0, -c.momentum) * 7 - playerEvasion).coerceIn(0, 88)
     if (incomingRoll < enemyChance) {
       val effective = CharacterStatEngine.effective(state, CAO_MINH_ID)
