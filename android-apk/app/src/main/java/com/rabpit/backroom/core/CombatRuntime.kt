@@ -52,7 +52,9 @@ object CombatRuntime {
     val amount: Int,
     val critical: Boolean = false,
     val actorId: String = CAO_MINH_ID,
-    val phase: String = "actor"
+    val phase: String = "actor",
+    val skill: String? = null,
+    val status: String? = null
   ) {
     fun toJson(): JSONObject = JSONObject().apply {
       put("target", target)
@@ -61,6 +63,8 @@ object CombatRuntime {
       put("critical", critical)
       put("flash", true)
       put("phase", phase)
+      skill?.let { put("skill", it) }
+      status?.let { put("status", it) }
     }
   }
 
@@ -91,7 +95,9 @@ object CombatRuntime {
     Profile("hotel_corpse_lure", "Hotel Corpse Lure", 110, 18, 5, 7),
     Profile("jeff_the_killer", "Jeff the Killer", 120, 20, 4, 9),
     Profile("jane_the_killer", "Jane the Killer", 120, 20, 4, 9),
-    Profile("slenderman", "Slenderman", 160, 23, 8, 10)
+    Profile("slenderman", "Slenderman", 160, 23, 8, 10),
+    // APK classes3.dex: DIEP_MINH_MAX_HP=2999, attack=10% target Max HP.
+    Profile("diep_minh", "Diệp Minh", 2999, 20, 3, 10)
   ).associateBy { it.key }
 
   fun active(state: GameState): Snapshot? = decode(state)?.takeIf { it.phase == Phase.ACTIVE }
@@ -134,12 +140,24 @@ object CombatRuntime {
 
   fun resolve(state: GameState, actionKind: String, action: String): Resolution {
     val current = active(state) ?: return Resolution(state, handled = false)
+    if (current.playerHp <= 0 || (state.characters[CAO_MINH_ID]?.vitalState?.currentHp ?: 0) <= 0) {
+      return Resolution(clearCombatOnly(state), handled = true, reply = "Cao Minh đã gục. Trận chiến kết thúc.")
+    }
     val profile = profiles[current.entityKey] ?: return Resolution(clear(state), handled = false)
     val intent = classify(actionKind, action)
     var c = current.copy(eventCounter = current.eventCounter + 1)
     val log = mutableListOf<String>()
     val feedback = mutableListOf<DamageFeedback>()
-    var resolvedState = state
+    val tick = CombatStatusLifecycle.advance(state)
+    var resolvedState = tick.state
+    feedback += tick.feedback
+    val activeHp = resolvedState.characters[CAO_MINH_ID]?.vitalState?.currentHp ?: 0
+    c = c.copy(playerHp = activeHp)
+    if (activeHp <= 0) {
+      return Resolution(clearCombatOnly(resolvedState), true,
+        "Cao Minh đã gục vì hiệu ứng trạng thái. Trận chiến kết thúc.",
+        feedback = feedback.toList())
+    }
 
     when (intent) {
       Intent.READ -> {
@@ -226,6 +244,12 @@ object CombatRuntime {
     log += followers.log
     feedback += followers.feedback
 
+    val restored = RestoredCompanionCombat.beforeEnemyResponse(resolvedState, c, profile, intent, actionKind, action)
+    resolvedState = restored.state
+    c = restored.combat
+    log += restored.log
+    feedback += restored.feedback
+
     if (c.entityHp <= 0) {
       val persisted = encode(resolvedState, c.copy(phase = Phase.RESOLVED, entityCondition = EntityCondition.DESTROYED))
       val cleared = clearCombatOnly(persisted)
@@ -246,7 +270,10 @@ object CombatRuntime {
     val enemyChance = (profile.aggression * 8 - defense + max(0, -c.momentum) * 7 - playerEvasion - followers.enemyAccuracyPenalty).coerceIn(0, 88)
     if (incomingRoll < enemyChance) {
       val effective = CharacterStatEngine.effective(state, CAO_MINH_ID)
-      val rawDamage = max(1, profile.attack + roll(c.copy(eventCounter = c.eventCounter + 47), 7) -
+      val rawDamage = if (profile.key == "diep_minh") {
+        // Boss attacks by percentage, independent of the ordinary attack stat.
+        max(1, ((effective.maxHp.toLong() * 10L) / 100L).toInt())
+      } else max(1, profile.attack + roll(c.copy(eventCounter = c.eventCounter + 47), 7) -
         when (c.cover) { Cover.HARD -> 8; Cover.PARTIAL -> 4; Cover.EXPOSED -> 0 })
       val damage = CharacterStatCore.defendedIncomingDamage(rawDamage, effective.def)
       val hp = max(0, c.playerHp - damage)
@@ -260,11 +287,50 @@ object CombatRuntime {
       c = counter.combat
       log += counter.log
       feedback += counter.feedback
+      val specialCounter = RestoredCompanionCombat.afterEnemyMiss(resolvedState, c, profile)
+      c = specialCounter.combat
+      log += specialCounter.log
+      feedback += specialCounter.feedback
       if (c.entityHp <= 0) {
         val persisted = encode(resolvedState, c.copy(phase = Phase.RESOLVED, entityCondition = EntityCondition.DESTROYED))
         return Resolution(clearCombatOnly(persisted), true,
           log.joinToString(" ") + " ${c.entityName} đã bị tiêu diệt.", entityDestroyed = true, feedback = feedback.toList())
       }
+    }
+
+    if (profile.key == "diep_minh" && c.entityHp > 0 && c.playerHp > 0 &&
+      c.eventCounter % 5 == 0) {
+      // APK classes3.dex: AoE every five combat turns, 5% target Max HP.
+      for (id in resolvedState.party.memberIds.distinct()) {
+        val member = resolvedState.characters[id] ?: continue
+        if (member.presence != CharacterPresence.ACTIVE || member.vitalState.currentHp <= 0) continue
+        val hpMax = CharacterStatEngine.effective(resolvedState, id).maxHp
+        val hpDamage = ((hpMax.toLong() * 5L) / 100L).coerceAtLeast(1L)
+          .coerceAtMost(member.vitalState.currentHp.toLong()).toInt()
+        if (hpDamage <= 0) continue
+        resolvedState = CharacterStatEngine.setCurrentHp(resolvedState, id,
+          member.vitalState.currentHp - hpDamage)
+        if (id == CAO_MINH_ID) c = c.copy(playerHp = (c.playerHp - hpDamage).coerceAtLeast(0))
+        feedback += DamageFeedback("actor", hpDamage, actorId = id, phase = "entity",
+          skill = "Đòn diện rộng của Diệp Minh")
+      }
+      log += "Diệp Minh tung đòn diện rộng: Party chịu 5% Max HP."
+    }
+
+    if (c.playerHp > 0 && c.entityHp > 0 && profile.key == "diep_minh") {
+      // APK boss rule: 30 HP restored after each completed enemy response.
+      val restored = (c.entityHp.toLong() + 30L).coerceAtMost(c.entityMaxHp.toLong()).toInt()
+      if (restored != c.entityHp) {
+        c = c.copy(entityHp = restored, entityCondition = condition(restored, c.entityMaxHp))
+        log += "Diệp Minh hồi phục 30 HP, tối đa ${c.entityMaxHp} HP."
+      }
+    }
+
+    if (c.playerHp <= 0) {
+      val knockedOut = encode(resolvedState, c.copy(phase = Phase.RESOLVED))
+      return Resolution(clearCombatOnly(knockedOut), true,
+        log.joinToString(" ") + " Cao Minh đã gục. Trận chiến kết thúc.",
+        feedback = feedback.toList())
     }
 
     c = c.copy(

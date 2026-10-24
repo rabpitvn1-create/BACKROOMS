@@ -30,6 +30,37 @@ class LevelTravelEngineTest {
     try { block(); fail("expected $message") } catch (e: IllegalStateException) { assertTrue(e.message.orEmpty(), e.message.orEmpty().contains(message)) }
   }
 
+  @Test fun unknownLevelIsHiddenFromPlayerUntilCoreIdentifiesExactNode() {
+    val engine = LevelTravelEngine(policy()) { 0.0 }
+    val initial = engine.start(GameState.initial(), "run")
+    val nodeId = LevelTravelEngine.read(initial).getString("nodeId")
+    assertEquals("LEVEL.NODE.0", nodeId)
+
+    val unknown = LevelTravelEngine.project(initial, JSONObject(initialUi()))
+    assertEquals("Chưa xác định", unknown.getString("displayLocation"))
+    assertEquals("MAIN_BACKROOMS — Cao Minh", unknown.getString("displayTitle"))
+    assertTrue("The Core must still know its actual location",
+      initial.world.getValue("location").contains("Level 0"))
+
+    val forged = LevelTravelEngine.protectCandidate(initial,
+      JSONObject(initialUi()).put("displayLocation", "Level 0 · The Lobby")
+        .put("displayTitle", "Level 0"), "quan sát")
+    assertEquals("Chưa xác định", forged.getString("displayLocation"))
+    assertEquals("MAIN_BACKROOMS — Cao Minh", forged.getString("displayTitle"))
+
+    val identified = initial.copy(metadata =
+      initial.metadata + ("knowledge.identifiedLevelNodeId" to nodeId))
+    val visible = LevelTravelEngine.project(identified, JSONObject(initialUi()))
+    assertEquals(identified.world.getValue("location"), visible.getString("displayLocation"))
+    assertEquals(identified.world.getValue("title"), visible.getString("displayTitle"))
+
+    // Knowledge of Level 0 cannot automatically identify a different Level.
+    val moved = atNode(identified, "LEVEL.NODE.1")
+    val hiddenAfterMove = LevelTravelEngine.project(moved, JSONObject(initialUi()))
+    assertEquals("Chưa xác định", hiddenAfterMove.getString("displayLocation"))
+    assertEquals("MAIN_BACKROOMS — Cao Minh", hiddenAfterMove.getString("displayTitle"))
+  }
+
   @Test fun newGameDrawsOnceAndSecondStartDoesNotReroll() {
     val rng = RandomSequence(0.95)
     val engine = LevelTravelEngine(policy(), rng)
@@ -362,6 +393,17 @@ class LevelTravelEngineTest {
     }
   }
 
+
+  @Test fun persistedCoreWithoutCurrentTravelRemainsUntouchedOnStartupFailure() {
+    val repo = MemoryRepository()
+    repo.save(GameState.initial())
+    val before = repo.raw
+    val f = facade(repo, LevelTravelEngine(policy()) { error("must_not_initialize_new_game") })
+    expectFailure("save_version_unsupported") {
+      f.resumeLevelGame(initialUi(), false)
+    }
+    assertEquals(before, repo.raw)
+  }
 
   @Test fun processDeathBeforeFirstBrowserAutosaveResumesSameNewGameWithoutRng() {
     val rng = RandomSequence(0.8)

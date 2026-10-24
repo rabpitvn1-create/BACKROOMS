@@ -2,13 +2,6 @@
 (function () {
   'use strict';
 
-  const bundledEntities = new Set([
-    'biological_pipeline', 'cable_mimic', 'clump', 'deathmoth', 'diep_minh',
-    'duller', 'false_puddle', 'hostile_faceling', 'hotel_corpse_lure',
-    'hound', 'jane_the_killer', 'jeff_the_killer', 'paintings',
-    'predatory_window', 'skin-stealer', 'slenderman', 'smiler',
-    'the_beast_of_level_5', 'wretch'
-  ]);
   const LOCAL_LEVEL_MAX = 6;
 
   function levelNumber(gameState) {
@@ -69,12 +62,16 @@
     image(stage, 'snapshot-background-img', scene, 'Bối cảnh Level hiện tại');
 
     const fighting = gameState.combat && gameState.combat.active === true;
+    // Character and Entity artwork is keyed by immutable gameplay IDs, not old APK files.
+    const art = window.backroomCloudinary;
     image(stage, 'snapshot-player-overlay',
-      fighting ? 'CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png' : 'CAO_MINH_OVERLAY_EXPLORER_IDLE.png',
+      art ? art.characterOverlay('cao-minh', fighting) || '' : '',
       'Cao Minh');
 
-    const entityKey = fighting ? String(gameState.combat.entityKey || '') : '';
-    image(stage, 'snapshot-entity', bundledEntities.has(entityKey) ? 'entity/' + entityKey + '.webp' : '',
+    const combatKey = fighting ? String(gameState.combat.entityKey || '') : '';
+    const visualKey = fighting ? String(window.backroomCombatEntityVisualKey || '') : '';
+    const entityKey = visualKey && art && art.entity(visualKey) ? visualKey : combatKey;
+    image(stage, 'snapshot-entity', fighting && art ? art.entity(entityKey) || '' : '',
       String(gameState.combat?.entityName || entityKey));
 
     let label = stage.querySelector('.snapshot-scene-label');

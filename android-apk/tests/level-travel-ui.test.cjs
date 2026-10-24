@@ -38,6 +38,10 @@ function boot() {
     return e;
   }
   elements.set('snapshot', element());
+  elements.set('location', Object.assign(element(), {
+    textContent: 'Level 0 / The Lobby — khu phòng vàng'
+  }));
+  elements.set('title', Object.assign(element(), {textContent: 'Level 0 / The Lobby'}));
   elements.set('startupRecovery', Object.assign(element(), {hidden: true}));
   elements.set('startupRecoveryMessage', element());
   elements.set('startNewGameFromRecovery', element());
@@ -74,6 +78,10 @@ assert.equal(starts, 2, 'unsupported old save must not silently start or reroll'
 assert.equal(invalid.submitEl.disabled, true);
 assert.equal(invalid.document.getElementById('startupRecovery').hidden, false,
   'an incompatible save must display recovery at the top of the screen');
+assert.equal(invalid.document.getElementById('location').textContent, 'Chưa xác định',
+  'a failed boot must not display a stale or guessed true Level');
+assert.equal(invalid.document.getElementById('title').textContent, 'MAIN_BACKROOMS — Cao Minh',
+  'a failed boot must not reveal a canonical Level in the heading');
 assert.match(invalid.document.getElementById('startupRecoveryMessage').textContent, /không tự chuyển đổi|không thể khởi tạo/i);
 invalid.document.getElementById('startNewGameFromRecovery').listeners.click();
 assert.equal(starts, 3, 'only explicit recovery creates another game');

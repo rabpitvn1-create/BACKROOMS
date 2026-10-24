@@ -151,9 +151,24 @@ class LevelTravelEngine(
       if (isExitAction(action) || Regex("(?i)\\b(?:level|tầng)\\s*[0-9ε]").containsMatchIn(location)) return false
       return Regex("^(?:(?:tôi|cao minh) )?(?:đi|bước|chạy|leo|bò|tiến|lùi|khám phá)\\b").containsMatchIn(a)
     }
+    private const val UNKNOWN_LOCATION = "Chưa xác định"
+    private const val UNKNOWN_TITLE = "MAIN_BACKROOMS — Cao Minh"
+    private const val IDENTIFIED_NODE_KEY = "knowledge.identifiedLevelNodeId"
+
+    /** Only a Core-verified identification of this exact node can reveal its canonical name. */
+    private fun presentLocation(state: GameState, output: JSONObject): JSONObject {
+      val identifiedNode = state.metadata[IDENTIFIED_NODE_KEY]
+      val currentNode = read(state).optString("nodeId")
+      val confirmed = currentNode.isNotBlank() && identifiedNode == currentNode
+      return output.put("displayLocation",
+        if (confirmed) state.world["location"] ?: UNKNOWN_LOCATION else UNKNOWN_LOCATION)
+        .put("displayTitle",
+          if (confirmed) state.world["title"] ?: UNKNOWN_TITLE else UNKNOWN_TITLE)
+    }
+
     fun protectCandidate(state: GameState, candidate: JSONObject, action: String): JSONObject {
       if (KEY !in state.world) return candidate
-      val output = JSONObject(candidate.toString())
+      val output = presentLocation(state, JSONObject(candidate.toString()))
       output.put("level", JSONObject(state.world.getValue("levelJson")))
       output.put("title", state.world.getValue("title"))
       if (!canMove(action, output.optString("location"))) output.put("location", state.world.getValue("location"))
@@ -169,6 +184,7 @@ class LevelTravelEngine(
     fun project(state: GameState, legacy: JSONObject): JSONObject {
       val output = JSONObject(legacy.toString())
       if (KEY !in state.world) return output
+      presentLocation(state, output)
       output.put(KEY, read(state)).put("level", JSONObject(state.world.getValue("levelJson")))
         .put("location", state.world.getValue("location")).put("title", state.world.getValue("title"))
         .put("levelBackground", state.world.getValue("levelBackground"))
