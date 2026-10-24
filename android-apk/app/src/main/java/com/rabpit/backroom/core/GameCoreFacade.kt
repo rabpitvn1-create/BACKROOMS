@@ -449,9 +449,11 @@ class GameCoreFacade @JvmOverloads internal constructor(
       })
       put("turns", JSONArray().apply {
         var previousPhase = ""
+        var previousActor = ""
         resolution.feedback.forEachIndexed { index, event ->
           val kind = if (event.phase == "entity") "entity" else "actor"
-          if (kind != previousPhase) {
+          val actingId = if (kind == "entity") "entity" else event.actorId
+          if (kind != previousPhase || actingId != previousActor) {
             put(JSONObject().put("kind", kind).put("eventIndex", index)
               .put("actorId", if (kind == "entity") "entity" else event.actorId)
               .put("actorName", if (kind == "entity") active.entityName else
@@ -459,6 +461,7 @@ class GameCoreFacade @JvmOverloads internal constructor(
               .put("entityKey", active.entityKey).put("entityName", active.entityName)
               .put("details", JSONArray()))
             previousPhase = kind
+            previousActor = actingId
           }
         }
       })
