@@ -30,7 +30,7 @@ class GameCoreFacade @JvmOverloads internal constructor(
         (persisted.world["levelTravelUiTurn"]?.toIntOrNull() ?: 1) >= (saved.world["levelTravelUiTurn"]?.toIntOrNull() ?: 1)) persisted else saved
     }
     val recovered = core.world["levelTravelUi"]?.let(::JSONObject) ?: legacy
-    val output = LevelTravelEngine.project(core, if (fresh) legacy else recovered)
+    val output = syncLegacy(if (fresh) legacy else recovered, core, incrementTurn = false)
     output.put("turn", core.world["levelTravelUiTurn"]?.toIntOrNull() ?: 1)
     if (fresh) {
       output.put("turn", 1)
@@ -56,7 +56,7 @@ class GameCoreFacade @JvmOverloads internal constructor(
       }
       if (LevelTravelEngine.KEY in core.world) {
         val legacy = core.world["levelTravelUi"]?.let(::JSONObject) ?: JSONObject(legacyStateJson)
-        val output = LevelTravelEngine.project(core, legacy)
+        val output = syncLegacy(legacy, core, incrementTurn = false)
         output.put("turn", core.world["levelTravelUiTurn"]?.toIntOrNull() ?: 1)
           .put("coreSnapshot", JSONObject(GameStateCodec.encode(core)))
         return output.toString()
@@ -269,8 +269,11 @@ class GameCoreFacade @JvmOverloads internal constructor(
   }
 
 
-  fun coreStats(legacyStateJson: String, characterId: String): String {
-    val state = loadOrMigrate(JSONObject(legacyStateJson))
+  @Suppress("UNUSED_PARAMETER") // Keep the Android bridge signature; UI JSON is not a save.
+  @Synchronized fun coreStats(legacyStateJson: String, characterId: String): String {
+    // The HUD renders before Level startup. A read must never create a partial run.
+    if (!repository.exists()) return "{}"
+    val state = repository.load()
     return PokerDiceCore.statsJson(state, characterId).toString()
   }
 
