@@ -368,7 +368,9 @@ object CharacterEquipmentSystem {
     val chars = next.characters.toMutableMap()
     next.characters.forEach { (id, character) ->
       val maxHp = CharacterStatCore.effective(next, id).maxHp
-      val hp = character.vitalState.currentHp.coerceIn(0, maxHp)
+      // A new game starts at full effective HP. Normalization of a live/save state
+      // must preserve the actual HP (including injuries) instead of healing it.
+      val hp = if (seedStarting) maxHp else character.vitalState.currentHp.coerceIn(0, maxHp)
       chars[id] = character.copy(
         vitalState = character.vitalState.copy(
           currentHp = hp,
