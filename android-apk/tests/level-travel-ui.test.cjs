@@ -31,12 +31,16 @@ const native = {
 function boot() {
   const elements = new Map();
   function element() {
-    const e = { style: {}, textContent: '', disabled: false, append() {}, before() {}, prepend() {},
+    const e = { style: {}, textContent: '', disabled: false, hidden: false, listeners: {},
+      append() {}, before() {}, prepend() {}, addEventListener(name, fn) {this.listeners[name] = fn;},
       getAttribute(name) { return this[name]; } };
     Object.defineProperty(e, 'id', { set(value) { elements.set(value, this); }, get() { return [...elements].find(([, v]) => v === this)?.[0]; } });
     return e;
   }
   elements.set('snapshot', element());
+  elements.set('startupRecovery', Object.assign(element(), {hidden: true}));
+  elements.set('startupRecoveryMessage', element());
+  elements.set('startNewGameFromRecovery', element());
   const context = { Android: native, confirm: () => true,
     document: { getElementById: id => elements.get(id), createElement: element, body: element() },
     localStorage: { getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value), removeItem: key => storage.delete(key) },
@@ -68,7 +72,11 @@ storage.set('backroom-apk-state', JSON.stringify({turn:1}));
 const invalid = boot();
 assert.equal(starts, 2, 'unsupported old save must not silently start or reroll');
 assert.equal(invalid.submitEl.disabled, true);
-invalid.resetGame();
-assert.equal(starts, 3);
-assert.equal(invalid.submitEl.disabled, false, 'reset must recover from a rejected save');
+assert.equal(invalid.document.getElementById('startupRecovery').hidden, false,
+  'an incompatible save must display recovery at the top of the screen');
+assert.match(invalid.document.getElementById('startupRecoveryMessage').textContent, /không tự chuyển đổi|không thể khởi tạo/i);
+invalid.document.getElementById('startNewGameFromRecovery').listeners.click();
+assert.equal(starts, 3, 'only explicit recovery creates another game');
+assert.equal(invalid.submitEl.disabled, false, 'explicit new game must restore input');
+assert.equal(invalid.document.getElementById('startupRecovery').hidden, true);
 console.log('PASS: startup, 100 renders, save/load, reopen, exit button, reset and rejected-save recovery');
