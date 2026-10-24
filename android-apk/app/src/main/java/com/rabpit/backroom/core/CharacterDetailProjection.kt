@@ -18,7 +18,8 @@ data class ItemDetailProjection(
   val restrictions: List<String> = emptyList(),
   val components: List<EquipmentComponent> = emptyList(),
   val iconRef: String? = null,
-  val bonuses: EquipmentBonuses = EquipmentBonuses()
+  val bonuses: EquipmentBonuses = EquipmentBonuses(),
+  val consumesInventorySlot: Boolean? = null
 )
 
 data class CharacterDetailProjection(
@@ -89,7 +90,8 @@ object CharacterDetailProjector {
         statItem = def?.weapon != null || def?.bonuses?.any() == true, classification = def?.classification?.name,
         weapon = def?.weapon, abilities = def?.abilities.orEmpty(), restrictions = def?.restrictions.orEmpty(),
         components = def?.components.orEmpty(), iconRef = def?.iconRef,
-        bonuses = def?.bonuses ?: EquipmentBonuses()
+        bonuses = def?.bonuses ?: EquipmentBonuses(),
+        consumesInventorySlot = InventoryCapacityPolicy.consumesSlot(normalized, characterId, item.itemId)
       )
     }
     val details = inventory.map(::itemDetail)
