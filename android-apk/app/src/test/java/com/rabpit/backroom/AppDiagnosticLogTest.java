@@ -12,6 +12,8 @@ public class AppDiagnosticLogTest {
     assertEquals("details_redacted",
       AppDiagnosticLog.safeCode("API_KEY=private-content"));
     assertEquals("details_redacted",
+      AppDiagnosticLog.safeCode("sk_ABC123identifierToken"));
+    assertEquals("details_redacted",
       AppDiagnosticLog.safeCode("https://provider.example/v1?key=secret"));
   }
 
