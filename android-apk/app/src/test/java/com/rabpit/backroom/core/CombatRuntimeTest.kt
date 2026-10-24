@@ -15,8 +15,9 @@ class CombatRuntimeTest {
     assertEquals("hound", combat!!.entityKey)
     assertEquals(80, combat.entityMaxHp)
     assertEquals(80, combat.entityHp)
-    assertEquals(100, combat.playerMaxHp)
-    assertEquals(100, combat.playerHp)
+    val effectiveMax = CharacterStatEngine.effective(started, CAO_MINH_ID).maxHp
+    assertEquals(effectiveMax, combat.playerMaxHp)
+    assertEquals(effectiveMax, combat.playerHp)
 
     val duplicate = CombatRuntime.start(started, "smiler")
     assertEquals("hound", CombatRuntime.active(duplicate)!!.entityKey)
