@@ -46,12 +46,31 @@ object CombatRuntime {
     val seed: Long
   )
 
+  /** Events are derived from real HP deltas and never persisted in save metadata. */
+  data class DamageFeedback(
+    val target: String,
+    val amount: Int,
+    val critical: Boolean = false,
+    val actorId: String = CAO_MINH_ID,
+    val phase: String = "actor"
+  ) {
+    fun toJson(): JSONObject = JSONObject().apply {
+      put("target", target)
+      put("actorId", actorId)
+      put("text", "-$amount HP")
+      put("critical", critical)
+      put("flash", true)
+      put("phase", phase)
+    }
+  }
+
   data class Resolution(
     val state: GameState,
     val handled: Boolean,
     val reply: String = "",
     val entityDestroyed: Boolean = false,
-    val escaped: Boolean = false
+    val escaped: Boolean = false,
+    val feedback: List<DamageFeedback> = emptyList()
   )
 
   private val profiles = listOf(
@@ -114,6 +133,7 @@ object CombatRuntime {
     val intent = classify(actionKind, action)
     var c = current.copy(eventCounter = current.eventCounter + 1)
     val log = mutableListOf<String>()
+    val feedback = mutableListOf<DamageFeedback>()
 
     when (intent) {
       Intent.READ -> {
@@ -173,6 +193,8 @@ object CombatRuntime {
           val normalized = if (critical) CharacterStatCore.criticalDamage(base) else base
           val damage = min(max(1, normalized - profile.armor), max(1, profile.maxHp * 70 / 100))
           val hp = max(0, c.entityHp - damage)
+          val dealt = c.entityHp - hp
+          if (dealt > 0) feedback += DamageFeedback("entity", dealt, critical)
           c = c.copy(
             entityHp = hp,
             entityCondition = condition(hp, c.entityMaxHp),
@@ -195,12 +217,12 @@ object CombatRuntime {
     if (c.entityHp <= 0) {
       val persisted = encode(state, c.copy(phase = Phase.RESOLVED, entityCondition = EntityCondition.DESTROYED))
       val cleared = clearCombatOnly(persisted)
-      return Resolution(cleared, true, log.joinToString(" ") + " ${c.entityName} đã bị tiêu diệt.", entityDestroyed = true)
+      return Resolution(cleared, true, log.joinToString(" ") + " ${c.entityName} đã bị tiêu diệt.", entityDestroyed = true, feedback = feedback.toList())
     }
     if (c.escapeProgress >= 100) {
       val persisted = encode(state, c.copy(phase = Phase.RESOLVED))
       val cleared = clearCombatOnly(persisted)
-      return Resolution(cleared, true, log.joinToString(" ") + " Cao Minh cắt được truy đuổi và thoát khỏi encounter.", escaped = true)
+      return Resolution(cleared, true, log.joinToString(" ") + " Cao Minh cắt được truy đuổi và thoát khỏi encounter.", escaped = true, feedback = feedback.toList())
     }
 
     // Enemy response. READ/guard/evasion reduce expected incoming damage; attacking blindly is riskier.
@@ -216,6 +238,8 @@ object CombatRuntime {
         when (c.cover) { Cover.HARD -> 8; Cover.PARTIAL -> 4; Cover.EXPOSED -> 0 })
       val damage = CharacterStatCore.defendedIncomingDamage(rawDamage, effective.def)
       val hp = max(0, c.playerHp - damage)
+      val dealt = c.playerHp - hp
+      if (dealt > 0) feedback += DamageFeedback("actor", dealt, phase = "entity")
       c = c.copy(playerHp = hp, momentum = max(-3, c.momentum - 1))
       log += "${c.entityName} phản công: Cao Minh -$damage HP (${c.playerHp}/${c.playerMaxHp})."
     } else {
@@ -228,7 +252,7 @@ object CombatRuntime {
       opening = max(0, c.opening - if (intent == Intent.READ) 0 else 1)
     )
     val next = encode(state, c)
-    return Resolution(next, true, log.joinToString(" "))
+    return Resolution(next, true, log.joinToString(" "), feedback = feedback.toList())
   }
 
   fun toJson(state: GameState): JSONObject? = decode(state)?.let { c -> JSONObject().apply {
@@ -283,7 +307,7 @@ object CombatRuntime {
       entityKey = key,
       entityName = m["${PREFIX}entityName"] ?: profile.displayName,
       phase = enumOr(Phase.ACTIVE, m["${PREFIX}phase"]),
-      playerHp = m[PLAYER_HP]?.toIntOrNull()?.coerceIn(0, playerMax) ?: playerMax,
+      playerHp = playerHp,
       playerMaxHp = playerMax,
       entityHp = hp,
       entityMaxHp = maxHp,
