@@ -228,14 +228,27 @@ class GameCoreFacade private constructor(
     val legacy = JSONObject(legacyStateJson)
     val current = loadOrMigrate(legacy)
     val eligible = actionKind.uppercase() in setOf("SEARCH", "EXPLORE") || CoreLootEngine.isExplorationAction(action)
-    if (!eligible || CombatRuntime.active(current) != null) {
-      return response(true, syncLegacy(legacy, current, false), null, "core_loot_ineligible")
-    }
-    val eventKey = "TURN_" + legacy.optInt("turn", 1).coerceAtLeast(1)
-    val outcome = CoreLootEngine.roll(current, CoreLootEngine.Source.EXPLORE, eventKey)
+    val outcome = if (eligible && CombatRuntime.active(current) == null) {
+      val eventKey = "TURN_" + legacy.optInt("turn", 1).coerceAtLeast(1)
+      CoreLootEngine.roll(current, CoreLootEngine.Source.EXPLORE, eventKey)
+    } else CoreLootEngine.Outcome(current, false)
     if (outcome.rolled) repository.save(outcome.state)
-    return response(true, syncLegacy(legacy, outcome.state, false), null,
-      if (outcome.dropped != null) "core_loot_discovered" else "core_loot_checked")
+
+    // This Core hook only owns world loot. Projecting the entire Core snapshot
+    // here would overwrite other narrative fields/party and unrelated inventory
+    // before the turn's actual action is validated.
+    val output = JSONObject(legacy.toString())
+    val flags = output.optJSONObject("flags")?.let { JSONObject(it.toString()) } ?: JSONObject()
+    flags.remove("worldItems")
+    val coreFlags = runCatching { JSONObject(outcome.state.world["flagsJson"] ?: "{}") }.getOrNull()
+    coreFlags?.optJSONArray("worldItems")?.let { flags.put("worldItems", JSONArray(it.toString())) }
+    output.put("flags", flags)
+    return response(true, output, null,
+      when {
+        !eligible -> "core_loot_ineligible"
+        outcome.dropped != null -> "core_loot_discovered"
+        else -> "core_loot_checked"
+      })
   }
 
   fun currentCoreState(): String = GameStateCodec.encode(repository.load())
