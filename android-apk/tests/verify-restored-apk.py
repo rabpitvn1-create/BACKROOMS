@@ -12,7 +12,7 @@ required_assets = {
     "index.html", "cloudinary-gameplay.js", "cloudinary-entity-combat.js",
     "character-level-ui.js", "combat-feedback-1193a.js",
     "combat-feedback-1193a.css", "snapshot-stage.js", "mobile-hud.js",
-    "loot-item-display.js", "level-travel.js",
+    "loot-item-display.js", "level-travel.js", "diagnostic-export.js",
 }
 required_classes = {
     "CombatRuntime", "RestoredCompanionCombat", "CombatStatusLifecycle",
@@ -27,11 +27,15 @@ with ZipFile(apk) as archive:
     required_scripts = [
         "cloudinary-gameplay.js", "cloudinary-entity-combat.js",
         "character-level-ui.js", "combat-feedback-1193a.js",
-        "snapshot-stage.js", "mobile-hud.js", "level-travel.js",
+        "snapshot-stage.js", "mobile-hud.js", "level-travel.js", "diagnostic-export.js",
     ]
     missing_scripts = [name for name in required_scripts if 'src="' + name + '"' not in index]
     if missing_scripts:
         raise SystemExit("APK index.html does not load: " + ", ".join(missing_scripts))
+    if 'id="exportDiagnosticsJson"' not in index:
+        raise SystemExit("Diagnostic export button not packaged")
+    if index.index('src="diagnostic-export.js"') > index.index('src="level-travel.js"'):
+        raise SystemExit("Diagnostics script must start before Level Travel boot")
     if "state.flags.iris=state.flags.iris" in index:
         raise SystemExit("Obsolete Iris initialization packaged in APK")
     registry = archive.read("assets/cloudinary-gameplay.js").decode("utf-8")
@@ -50,5 +54,7 @@ with ZipFile(apk) as archive:
     )
     if missing_classes:
         raise SystemExit("Restored Kotlin classes missing from DEX: " + ", ".join(missing_classes))
+    if b"Lcom/rabpit/backroom/AppDiagnosticLog;" not in dex:
+        raise SystemExit("Native diagnostic exporter class missing from DEX")
 print(f"APK integration integrity OK: {apk.name}, {len(required_assets)} assets, "
       f"{len(required_classes)} Kotlin classes, {len(dex_names)} DEX files")
