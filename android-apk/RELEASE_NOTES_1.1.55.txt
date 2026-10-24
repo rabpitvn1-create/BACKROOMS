@@ -6,5 +6,5 @@ Backroom 1.1.55
 - Enables the normal roaming Entity pool to appear across Levels 0-6 instead of being locked to original Level habitats.
 - Adds local Slenderman artwork/runtime mapping while keeping Jeff the Killer and Jane the Killer on their independent roaming encounter rolls.
 - Keeps Entity artwork visible only while the Entity is directly present in the active encounter, then clears it on defeat, escape or departure.
-- Retains the current party/follower systems, Game State Core, Gemini/Luna provider configuration, MadGod set behavior, fullscreen UI and survival systems.
+- Retains the current party/follower systems, Game State Core, Gemini/Luna provider configuration, fullscreen UI and survival systems.
 - Verifies unit tests, local Entity assets, APK signature, launcher, 16 KB native alignment and the published release asset before marking the release GREEN.

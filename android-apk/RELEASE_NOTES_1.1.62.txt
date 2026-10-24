@@ -6,5 +6,5 @@ Backroom 1.1.62 Debug
 - Tăng độ bền Entity: +30 Max HP, 25% né đòn thường và hồi 1 HP sau mỗi lượt combat còn sống.
 - Thêm Bandage hồi 10 HP và Antiseptic hồi 20 HP, không hồi sinh nhân vật đã 0 HP.
 - Thêm Lucia "Lục" làm follower tại Level 0 với 50% encounter khi EXPLORE, HP 100, ba slot trang bị và inventory quà tặng 3 loại x 100.
-- Giữ nguyên unified Entity pool, CombatRuntime visual authority, Snapshot cleanup, MadGod runtime equip và toàn bộ gameplay đã phát hành trước đó.
+- Giữ nguyên unified Entity pool, CombatRuntime visual authority, Snapshot cleanup, toàn bộ gameplay đã phát hành trước đó.
 - Production CI bắt buộc chạy full Android patch chain, runtime contracts, unit tests, debug APK build, package verification, artifact upload và release verification trước khi ghi trạng thái GREEN.
