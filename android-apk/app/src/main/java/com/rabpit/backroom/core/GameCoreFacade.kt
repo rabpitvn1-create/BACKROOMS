@@ -300,6 +300,9 @@ class GameCoreFacade @JvmOverloads internal constructor(
       output.put("combat", combat)
     }
     output.put("coreSystem", PokerDiceCore.statsJson(core, CAO_MINH_ID))
+    val progress = EntityExpRewards.progression(core, CAO_MINH_ID)
+    output.put("characterProgression", JSONObject().put("level",progress.level)
+      .put("exp",progress.exp).put("requiredExp",progress.requiredExp))
     return NamedFollowerRuntime.project(output, core)
   }
 
