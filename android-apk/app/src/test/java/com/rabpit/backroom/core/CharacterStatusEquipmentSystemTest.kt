@@ -50,4 +50,15 @@ class CharacterStatusEquipmentSystemTest {
     assertTrue(boosted < base)
     assertTrue(boosted > 0)
   }
+
+  @Test fun freshGameUsesFullEffectiveHpButNormalizationDoesNotHeal() {
+    val initial = GameState.initial()
+    val id = CAO_MINH_ID
+    val maxHp = CharacterStatCore.effective(initial, id).maxHp
+    assertTrue(maxHp > CharacterProgressionCore.BASE_MAX_HP)
+    assertEquals(maxHp, initial.characters.getValue(id).vitalState.currentHp)
+    val wounded = CharacterStatEngine.setCurrentHp(initial, id, 7)
+    val normalized = CharacterEquipmentSystem.normalize(wounded)
+    assertEquals(7, normalized.characters.getValue(id).vitalState.currentHp)
+  }
 }
