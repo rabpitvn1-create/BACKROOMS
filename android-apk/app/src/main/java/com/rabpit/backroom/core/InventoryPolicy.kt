@@ -44,8 +44,10 @@ object InventoryPolicy {
     if (ownerId == AN_NHIEN_ID && !AnNhienCanon.isFoodItem(normalized)) return "an_nhien_food_only"
     val profile = profileFor(state, ownerId)
     val old = inventory.items[normalized.itemId]
-    val resultingQuantity = (old?.quantity ?: 0) + quantity
-    if (resultingQuantity > profile.maxPerType) return "inventory_stack_limit"
+    // Subtraction bound-check avoids signed Int overflow from untrusted quantities.
+    if (quantity > profile.maxPerType || (old?.quantity ?: 0) > profile.maxPerType - quantity) {
+      return "inventory_stack_limit"
+    }
     if (old == null && normalized.itemId !in InventoryCapacityPolicy.equippedItemIds(state, ownerId) &&
         InventoryCapacityPolicy.usedSlots(state, ownerId, inventory) >= profile.maxTypes) {
       return "inventory_slot_limit"
