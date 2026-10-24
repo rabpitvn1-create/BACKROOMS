@@ -34,7 +34,7 @@
 <button id="mobileMenuClose" class="mobile-menu-close" type="button">✕ Đóng menu</button>
 <div class="card"><h2>Trạng thái</h2><div class="row"><b>Vị trí</b><span id="location"></span></div><div class="row"><b>Chế độ</b><span id="mode"></span></div><div class="row"><b>Nhân vật</b><span id="player"></span></div></div>
 <div class="card"><h2>Chỉ số hiện tại</h2><div id="playerStats"><div class="row"><b>HP</b><span>—</span></div><div class="row"><b>STR</b><span>—</span></div><div class="row"><b>DF</b><span>—</span></div><div class="row"><b>AGI</b><span>—</span></div><div class="row"><b>CRIT</b><span>—</span></div></div></div>
-<div class="card"><h2>Save / Load</h2><div class="actions"><button onclick="save()">Lưu</button><button onclick="load()">Tải</button><button class="wide" onclick="resetGame()">Bắt đầu lại từ đầu</button><button class="wide danger" onclick="clearSave()">Xóa save trên máy</button></div></div>
+<div class="card"><h2>Save / Load</h2><div class="actions"><button onclick="save()">Lưu</button><button onclick="load()">Tải</button><button class="wide" onclick="resetGame()">Bắt đầu lại từ đầu</button><button class="wide danger" onclick="clearSave()">Xóa save trên máy</button><button type="button" class="wide" id="exportDiagnosticsJson">Xuất log chẩn đoán (.json)</button></div><p id="diagnosticExportStatus" role="status" aria-live="polite" style="font-size:12px;color:#9aa4ad;margin:10px 0 0">Log chỉ chứa mã lỗi và trạng thái kỹ thuật, không chứa nội dung save hay API key.</p></div>
 <div class="card"><h2>Party</h2><div class="party-time" id="partyTime"></div><div id="party" class="party-grid"><div class="party-member" data-character="cao-minh"><img src="avatars/CAO_MINH_AVATAR.jpg" alt="Cao Minh"><strong>Cao Minh</strong></div></div></div>
 <div id="characterInventoryView" class="character-inventory-view" hidden>
   <div class="character-inventory-head"><button type="button" id="characterInventoryBack">← Trở lại</button><div><div class="eyebrow">CHARACTER DETAIL</div><h2 id="characterInventoryName">Cao Minh</h2></div></div>
@@ -710,6 +710,7 @@ render();
 <script src="loot-item-display.js"></script>
 <script src="snapshot-stage.js"></script>
 <script src="mobile-hud.js"></script>
+<script src="diagnostic-export.js"></script>
 <script src="level-travel.js"></script>
 </body>
 </html>
