@@ -12,7 +12,8 @@ class CharacterStats1193aRegressionTest {
     val effective = CharacterStatCore.effective(state, CAO_MINH_ID)
     assertEquals(listOf(9,9,9,9), listOf(effective.str, effective.def, effective.skl, effective.vit))
     assertEquals(70, effective.maxHp)
-    assertEquals(50, state.characters.getValue(CAO_MINH_ID).vitalState.currentHp)
+    // Fresh game initializes at effective max HP after Cao Minh's passives.
+    assertEquals(effective.maxHp, state.characters.getValue(CAO_MINH_ID).vitalState.currentHp)
     assertEquals(13, effective.criticalChancePercent)
     assertEquals(8, effective.evasionPercent)
     assertEquals(8, effective.resCriticalPercent)
