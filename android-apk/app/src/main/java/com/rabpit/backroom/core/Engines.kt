@@ -107,6 +107,7 @@ object InventoryEngine {
       ItemCommand.Operation.TRANSFER -> {
         if (EquipmentEngine.isEquipped(state, command.actorId, command.itemId)) return invalid(state, "item_equipped_locked")
         val targetId = command.targetId ?: return invalid(state, "target_required")
+        if (targetId == command.actorId) return invalid(state, "cannot_transfer_to_self")
         if (!state.characters.containsKey(targetId)) return invalid(state, "target_unknown")
         val owned = source.items[command.itemId] ?: return invalid(state, "item_not_owned")
         if (owned.quantity < command.quantity) return invalid(state, "insufficient_item_quantity")
