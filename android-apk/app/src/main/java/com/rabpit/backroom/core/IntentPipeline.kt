@@ -112,10 +112,18 @@ class DefaultActorResolver : ActorResolver {
 }
 
 class DefaultTargetResolver : TargetResolver {
-  override fun resolve(clause: String, context: GameContext): String? = context.actorAliases.entries
-    .firstOrNull { it.value != CAO_MINH_ID && Regex("\\b${Regex.escape(it.key)}\\b", RegexOption.IGNORE_CASE).containsMatchIn(clause) }?.value
+  override fun resolve(clause: String, context: GameContext): String? {
+    // Resolve both actor aliases and display names without partial Unicode matches.
+    val terms = context.actorAliases.entries.map { it.key to it.value } +
+      context.state.characters.values.map { it.name to it.id }
+    return terms.asSequence()
+      .filter { (name, id) -> name.isNotBlank() && id != CAO_MINH_ID }
+      .sortedByDescending { it.first.length }
+      .firstOrNull { (name, _) ->
+        Regex("(?<!\\p{L})${Regex.escape(name)}(?!\\p{L})", RegexOption.IGNORE_CASE).containsMatchIn(clause)
+      }?.second
+  }
 }
-
 class DefaultQuantityResolver : QuantityResolver {
   private val words = mapOf("một" to 1, "hai" to 2, "ba" to 3, "bốn" to 4, "năm" to 5, "sáu" to 6, "bảy" to 7, "tám" to 8, "chín" to 9, "mười" to 10)
   override fun resolve(clause: String): Int {
