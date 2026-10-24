@@ -36,6 +36,18 @@ sealed class CanonOutcome {
 object CanonRuntime2 {
   private const val TAG = "CanonRuntime2"
 
+  // Bundled asset is immutable for the life of this APK. Build the exact-ID,
+  // alias, tag, affordance and edge indexes once, not on every GM turn.
+  private val storeLock = Any()
+  @Volatile private var indexedStore: JsonCanonStore? = null
+
+  private fun storeFor(context: Context): JsonCanonStore =
+    indexedStore ?: synchronized(storeLock) {
+      indexedStore ?: JsonCanonStore.fromAssets(context.applicationContext).also {
+        indexedStore = it
+      }
+    }
+
   private val DEFAULT_PROFILE = ProviderProfile(
     kind = ContextProfile.STANDARD,
     providerId = "gemini"
@@ -66,7 +78,7 @@ object CanonRuntime2 {
       return CanonOutcome.FallbackToLegacy(REASON_DISABLED)
     }
     val store = try {
-      JsonCanonStore.fromAssets(context)
+      storeFor(context)
     } catch (e: Exception) {
       return CanonOutcome.FallbackToLegacy("$REASON_STORE_UNAVAILABLE:${e.javaClass.simpleName}")
     }
