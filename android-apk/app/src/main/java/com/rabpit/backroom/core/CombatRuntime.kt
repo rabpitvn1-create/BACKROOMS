@@ -91,7 +91,9 @@ object CombatRuntime {
     Profile("hotel_corpse_lure", "Hotel Corpse Lure", 110, 18, 5, 7),
     Profile("jeff_the_killer", "Jeff the Killer", 120, 20, 4, 9),
     Profile("jane_the_killer", "Jane the Killer", 120, 20, 4, 9),
-    Profile("slenderman", "Slenderman", 160, 23, 8, 10)
+    Profile("slenderman", "Slenderman", 160, 23, 8, 10),
+    // APK classes3.dex: DIEP_MINH_MAX_HP=2999, attack=10% target Max HP.
+    Profile("diep_minh", "Diệp Minh", 2999, 20, 3, 10)
   ).associateBy { it.key }
 
   fun active(state: GameState): Snapshot? = decode(state)?.takeIf { it.phase == Phase.ACTIVE }
@@ -249,7 +251,10 @@ object CombatRuntime {
     val enemyChance = (profile.aggression * 8 - defense + max(0, -c.momentum) * 7 - playerEvasion - followers.enemyAccuracyPenalty).coerceIn(0, 88)
     if (incomingRoll < enemyChance) {
       val effective = CharacterStatEngine.effective(state, CAO_MINH_ID)
-      val rawDamage = max(1, profile.attack + roll(c.copy(eventCounter = c.eventCounter + 47), 7) -
+      val rawDamage = if (profile.key == "diep_minh") {
+        // Boss attacks by percentage, independent of the ordinary attack stat.
+        max(1, ((effective.maxHp.toLong() * 10L) / 100L).toInt())
+      } else max(1, profile.attack + roll(c.copy(eventCounter = c.eventCounter + 47), 7) -
         when (c.cover) { Cover.HARD -> 8; Cover.PARTIAL -> 4; Cover.EXPOSED -> 0 })
       val damage = CharacterStatCore.defendedIncomingDamage(rawDamage, effective.def)
       val hp = max(0, c.playerHp - damage)
@@ -267,6 +272,15 @@ object CombatRuntime {
         val persisted = encode(resolvedState, c.copy(phase = Phase.RESOLVED, entityCondition = EntityCondition.DESTROYED))
         return Resolution(clearCombatOnly(persisted), true,
           log.joinToString(" ") + " ${c.entityName} đã bị tiêu diệt.", entityDestroyed = true, feedback = feedback.toList())
+      }
+    }
+
+    if (c.playerHp > 0 && c.entityHp > 0 && profile.key == "diep_minh") {
+      // APK boss rule: 30 HP restored after each completed enemy response.
+      val restored = (c.entityHp.toLong() + 30L).coerceAtMost(c.entityMaxHp.toLong()).toInt()
+      if (restored != c.entityHp) {
+        c = c.copy(entityHp = restored, entityCondition = condition(restored, c.entityMaxHp))
+        log += "Diệp Minh hồi phục 30 HP, tối đa ${c.entityMaxHp} HP."
       }
     }
 
