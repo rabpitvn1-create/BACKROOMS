@@ -5,7 +5,7 @@ import org.junit.Test
 
 /** Item actions are dispatched through StateReducer in this runtime generation. */
 class ItemDetailActionsTest {
-  private const val bandageId = "bandage"
+  private val bandageId = "bandage"
 
   private fun fresh(): GameState {
     val initial = GameState.initial()
