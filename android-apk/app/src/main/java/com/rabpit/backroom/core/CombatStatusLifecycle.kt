@@ -22,11 +22,15 @@ object CombatStatusLifecycle {
         if (duration != null && duration <= 0) { removed += statusId; continue }
 
         val kind = effect.type.trim().uppercase(java.util.Locale.ROOT)
-        val percent = when (kind) {
+        val defaultPercent = when (kind) {
           "BLEED", "BLEEDING" -> 3
           "POISON", "POISONED" -> 2
           else -> 0
         }
+        val percent = if (defaultPercent > 0)
+          effect.metadata["damagePercentMaxHp"]?.toIntOrNull()?.coerceIn(1, 25)
+            ?: defaultPercent
+        else 0
         if (percent > 0) {
           val current = next.characters[id]?.vitalState?.currentHp ?: 0
           if (current > 0) {
