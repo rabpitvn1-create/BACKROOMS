@@ -291,6 +291,7 @@ object EquipmentEngine {
     state.equipment[characterId]?.slots.orEmpty().values.any { it == itemId }
 
   fun equip(state: GameState, command: ItemCommand): ExecutionResult {
+    if (command.actorId == AN_NHIEN_ID) return invalid(state, "an_nhien_equipment_locked")
     val inventory = state.inventories[command.actorId] ?: return invalid(state, "item_not_owned")
     val owned = inventory.items[command.itemId] ?: return invalid(state, "item_not_owned")
     if (owned.quantity < 1) return invalid(state, "item_not_owned")
@@ -313,6 +314,7 @@ object EquipmentEngine {
   }
 
   fun unequip(state: GameState, command: ItemCommand): ExecutionResult {
+    if (command.actorId == AN_NHIEN_ID) return invalid(state, "an_nhien_equipment_locked")
     val equipment = state.equipment[command.actorId] ?: return invalid(state, "equipment_missing")
     if (command.itemId !in equipment.slots.values) return invalid(state, "item_not_equipped")
     val nextSlots = equipment.slots.filterValues { it != command.itemId }
@@ -325,6 +327,7 @@ object EquipmentEngine {
   }
 
   fun preview(state: GameState, characterId: String, itemId: String): EffectiveCharacterStats? {
+    if (characterId == AN_NHIEN_ID) return null
     val item = state.inventories[characterId]?.items?.get(itemId) ?: return null
     val def = EquipmentCatalog.definition(item.itemId) ?: return null
     val equipment = state.equipment[characterId] ?: EquipmentState(characterId)
