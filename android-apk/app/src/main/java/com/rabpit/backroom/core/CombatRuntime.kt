@@ -212,9 +212,9 @@ object CombatRuntime {
     val enemyChance = (profile.aggression * 8 - defense + max(0, -c.momentum) * 7 - playerEvasion).coerceIn(0, 88)
     if (incomingRoll < enemyChance) {
       val effective = CharacterStatEngine.effective(state, CAO_MINH_ID)
-      val mitigation = CombatStatMath.defenseReduction(effective.df) + CombatStatMath.agilityDefense(effective.agi)
-      val damage = max(1, profile.attack + roll(c.copy(eventCounter = c.eventCounter + 47), 7) -
-        when (c.cover) { Cover.HARD -> 8; Cover.PARTIAL -> 4; Cover.EXPOSED -> 0 } - mitigation)
+      val rawDamage = max(1, profile.attack + roll(c.copy(eventCounter = c.eventCounter + 47), 7) -
+        when (c.cover) { Cover.HARD -> 8; Cover.PARTIAL -> 4; Cover.EXPOSED -> 0 })
+      val damage = CharacterStatCore.defendedIncomingDamage(rawDamage, effective.def)
       val hp = max(0, c.playerHp - damage)
       c = c.copy(playerHp = hp, momentum = max(-3, c.momentum - 1))
       log += "${c.entityName} phản công: Cao Minh -$damage HP (${c.playerHp}/${c.playerMaxHp})."
