@@ -23,7 +23,7 @@ class InventoryCapacityNewGameTest {
     }
   }
 
-  @Test fun unequipMakesTheSameOwnedItemConsumeOneSlotAndReequipReleasesIt() {
+  @Test fun canonEquipmentDoesNotConsumeInventorySlotEvenWhileUnequipped() {
     val initial = freshAll()
     val unequip = EquipmentEngine.unequip(initial, ItemCommand(
       "U", null, CAO_MINH_ID, source=CommandSource.UI, operation=ItemCommand.Operation.UNEQUIP,
@@ -31,7 +31,7 @@ class InventoryCapacityNewGameTest {
     ))
     assertTrue(unequip.applied)
     assertTrue(unequip.state.inventories.getValue(CAO_MINH_ID).items.containsKey(CAO_MINH_HUYET_MA_CHIEN_KHAI_ID))
-    assertEquals(1, InventoryCapacityPolicy.usedSlots(unequip.state, CAO_MINH_ID))
+    assertEquals(0, InventoryCapacityPolicy.usedSlots(unequip.state, CAO_MINH_ID))
     val reEquip = EquipmentEngine.equip(unequip.state, ItemCommand(
       "E", null, CAO_MINH_ID, source=CommandSource.UI, operation=ItemCommand.Operation.EQUIP,
       itemId=CAO_MINH_HUYET_MA_CHIEN_KHAI_ID, itemName="Huyết Ma Chiến Khải", slot="armor"
@@ -59,6 +59,7 @@ class InventoryCapacityNewGameTest {
     assertEquals(0, kai.inventoryCapacityUsed)
     assertEquals(InventoryPolicy.CAO_MINH.maxTypes, kai.inventoryCapacityMax)
     assertEquals(3, kai.equipment.values.toSet().size)
-    assertEquals(3, kai.inventoryDetails.count { it.equipped })
+    assertEquals(0, kai.inventoryDetails.size)
+    assertEquals(3, kai.equipmentDetails.count { it.equipped })
   }
 }
