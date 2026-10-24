@@ -9,9 +9,23 @@
   var events = [];
   var exporting = false;
 
+  // Identifier-shaped secrets (including common API key formats) must not
+  // become diagnostic codes merely because they happen to match a regex.
+  var SAFE_CODES = new Set([
+    'unknown', 'unknown_failure', 'details_redacted',
+    'app', 'startup', 'javascript', 'turn', 'combat', 'storage', 'export',
+    'diagnostics_ready', 'response_received', 'uncaught_exception',
+    'unhandled_rejection', 'browser_save_parse_failed',
+    'save_version_unsupported', 'level_game_not_initialized',
+    'core_save_decode_failed', 'core_save_failed', 'level_travel_not_configured',
+    'stale_game_run', 'stale_level_turn', 'stale_exit_turn',
+    'exit_action_conflict', 'invalid_save', 'android_bridge_unavailable',
+    'requested', 'file_saved', 'cancelled', 'failed', 'bridge_unavailable',
+    'resume_success'
+  ]);
   function safeCode(value) {
     var code = String(value == null ? '' : value).trim();
-    return /^[a-z][a-z0-9_.-]{0,95}$/i.test(code) ? code : 'details_redacted';
+    return SAFE_CODES.has(code) ? code : 'details_redacted';
   }
   function safeScript(source) {
     var basename = String(source || '').split(/[\\/]/).pop();
