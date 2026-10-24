@@ -7,6 +7,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Bounded, on-device diagnostics. No logcat scraping, prompt bodies, credentials,
@@ -34,11 +37,29 @@ final class AppDiagnosticLog {
     record("app", "session_started");
   }
 
+  // A permissive identifier regex could export an API key that happens to
+  // contain only letters, digits or hyphens. Never echo unrecognized messages.
+  private static final Set<String> SAFE_CODES = new HashSet<>(Arrays.asList(
+    "unknown", "unknown_failure", "details_redacted",
+    "app", "startup", "javascript", "turn", "combat", "storage", "export",
+    "core_create", "core_diagnostics", "export_prepare", "export_picker",
+    "export_write", "startup_initialize", "startup_resume", "core_snapshot",
+    "core_stats", "core_upgrade", "turn_processing", "combat_action", "combat_dice",
+    "session_started", "diagnostics_ready", "response_received",
+    "uncaught_exception", "unhandled_rejection", "browser_save_parse_failed",
+    "save_version_unsupported", "level_game_not_initialized",
+    "core_save_decode_failed", "core_save_failed", "level_travel_not_configured",
+    "stale_game_run", "stale_level_turn", "stale_exit_turn",
+    "exit_action_conflict", "invalid_random_source", "invalid_save",
+    "native_exception", "requested", "file_saved", "cancelled", "failed",
+    "missing_report", "busy", "bridge_unavailable", "resume_success",
+    "core_unavailable", "invalid_ui_summary", "unavailable", "core_summary_failed"
+  ));
+
   static String safeCode(String value) {
     if (value == null) return "unknown";
-    String text = value.trim();
-    // Codes only, never raw text or potentially credential-bearing URLs.
-    return text.matches("[a-zA-Z][a-zA-Z0-9_.-]{0,95}") ? text : "details_redacted";
+    String code = value.trim();
+    return SAFE_CODES.contains(code) ? code : "details_redacted";
   }
 
   private static String safeNode(String value) {
