@@ -53,7 +53,7 @@ final class AppDiagnosticLog {
     "exit_action_conflict", "invalid_random_source", "invalid_save",
     "native_exception", "requested", "file_saved", "cancelled", "failed",
     "missing_report", "busy", "bridge_unavailable", "resume_success",
-    "core_unavailable", "invalid_ui_summary", "unavailable", "core_summary_failed"
+    "core_unavailable", "android_bridge_unavailable", "invalid_ui_summary", "unavailable", "core_summary_failed"
   ));
 
   static String safeCode(String value) {
