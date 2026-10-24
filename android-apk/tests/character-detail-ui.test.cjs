@@ -12,9 +12,17 @@ const escape = value => String(value ?? '').replace(/[&<>"']/g, c =>
 function fixture() {
   const nodes = new Map();
   function element() {
-    const node = {dataset:{}, hidden:false, innerHTML:'', textContent:'', listeners:{},
+    const node = {dataset:{}, hidden:false, innerHTML:'', textContent:'', listeners:{}, options:[],
       setAttribute(k,v) {this[k] = v;}, getAttribute(k) {return this[k];},
-      addEventListener(k,fn) {this.listeners[k] = fn;},
+      addEventListener(k,fn) {const prior=this.listeners[k];this.listeners[k]=prior?event=>{prior(event);fn(event);}:fn;},
+      appendChild(child) {
+        if (child.value) {this.options.push(child); if(!this.value)this.value=child.value;}
+        for(const match of (child.innerHTML||'').matchAll(/\bid="([^"]+)"/g)) {
+          const nested=element();nested.id=match[1];nested.value='';
+        }
+      },
+      replaceChildren() {this.options=[];this.value='';},
+      querySelector(selector) {return selector==='.equipment-detail-sheet'?element():null;},
       insertAdjacentHTML(_, text) {this.innerHTML += text;}, insertAdjacentElement() {},
       querySelectorAll(selector) {
         if (selector !== '.party-member[data-character]') return [];
@@ -61,7 +69,12 @@ function fixture() {
   vm.runInContext(scripts.find(x => x.includes("const party=document.getElementById('party')")),context);
   vm.runInContext(scripts.find(x => x.includes('window.renderCharacterStatusEquipment=render')),context);
   vm.runInContext(fs.readFileSync(path.join(assets,'cloudinary-gameplay.js'),'utf8'),context);
-  return {context,nodes,member,open(id) {
+  return {context,nodes,member,enableItemActions() {
+    const calls=[];context.busy=false;context.syncPrimaryActions=()=>{};
+    context.Android={itemAction:(raw,request)=>calls.push(JSON.parse(request))};
+    vm.runInContext(fs.readFileSync(path.join(assets,'item-detail-actions.js'),'utf8'),context);
+    return calls;
+  },open(id) {
     nodes.get('party').cards.find(x=>x['data-character']===id).listeners.click();
   },item(id) {
     const card = {getAttribute:()=>id};
@@ -100,4 +113,16 @@ test('equipment detail opens with the same resolved artwork on its first click',
   assert.equal(r.nodes.get('equipmentDetailModal').hidden,false);
   assert.equal(r.nodes.get('equipmentDetailName').textContent,'Huyết Ma Kiếm');
   assert.match(r.nodes.get('equipmentDetailIcon').innerHTML,/Item_Huyet_Ma_Kiem.webp/);
+});
+
+test('item controls reach the typed bridge for equipped gear and show native rejection', () => {
+  const r=fixture();const calls=r.enableItemActions();r.open('cao-minh');r.item('cao-minh:huyet-ma-kiem');
+  const equip=r.nodes.get('itemActionEquip');
+  assert.equal(equip.hidden,false);assert.equal(equip.textContent,'Tháo trang bị');
+  equip.listeners.click();assert.equal(calls.length,1);assert.equal(calls[0].operation,'UNEQUIP');
+  assert.equal(calls[0].actorId,'cao-minh');assert.equal(calls[0].itemId,'cao-minh:huyet-ma-kiem');
+  r.context.backroomItemAction(JSON.stringify({handled:false,error:'combat_active',reply:'Không thể thao tác trong combat.'}));
+  assert.equal(r.context.busy,false);assert.match(r.nodes.get('itemActionMessage').textContent,/combat/);
+  assert.equal(r.nodes.get('equipmentDetailModal').hidden,false);
+  assert.ok(html.includes('src="item-detail-actions.js"'),'the actual APK page must load the item bridge');
 });
