@@ -58,7 +58,7 @@ class ItemContentStateTest {
     assertNull(ItemContentRules.nextAfterUse(item))
   }
 
-  @Test fun reusableToolsRemainUsableAndPersistentContainersHonorExplicitPolicy() {
+  @Test fun reusableToolsStayUsableButResourceBottlesCannotBeReusedInfinitely() {
     val granted = StateReducer.execute(GameState.initial(), grant("Dụng cụ")).state
     val used = StateReducer.execute(granted, use())
     assertTrue(used.applied)
@@ -69,7 +69,7 @@ class ItemContentStateTest {
       grant("Chai nước", metadata = mapOf("containerPersistent" to "true"))).state
     val held = StateReducer.execute(persistent, use())
     assertTrue(held.applied)
-    assertEquals(1, held.state.inventories.getValue(CAO_MINH_ID).items.getValue("water").quantity)
+    assertFalse(held.state.inventories.getValue(CAO_MINH_ID).items.containsKey("water"))
   }
 
   @Test fun fractionalAmountsRemainRejected() {
