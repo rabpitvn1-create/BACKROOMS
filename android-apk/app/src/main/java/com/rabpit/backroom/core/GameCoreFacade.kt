@@ -592,6 +592,9 @@ class GameCoreFacade @JvmOverloads internal constructor(
   }
 
   fun currentCoreState(): String = GameStateCodec.encode(repository.load())
+  /** Diagnostic reads must never create a fresh state or change saved bytes. */
+  @Synchronized fun diagnosticCoreStateOrNull(): String? =
+    if (repository.exists()) GameStateCodec.encode(repository.load()) else null
   fun clear() { preparedNamedTurn = null; repository.clear() }
   override fun close() = Unit
 
