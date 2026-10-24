@@ -63,6 +63,86 @@ class GameCoreFacade private constructor(
     return response(true, result, null, "committed", reply)
   }
 
+
+  fun coreStats(legacyStateJson: String, characterId: String): String {
+    val state = loadOrMigrate(JSONObject(legacyStateJson))
+    return PokerDiceCore.statsJson(state, characterId).toString()
+  }
+
+  fun processCoreUpgrade(legacyStateJson: String, characterId: String, stat: String): String {
+    val legacy = JSONObject(legacyStateJson)
+    val current = loadOrMigrate(legacy)
+    if (CombatRuntime.active(current) != null) {
+      return response(false, syncLegacy(legacy, current, incrementTurn = false),
+        "combat_active", "core_upgrade_locked", "Không thể nâng Core khi combat đang hoạt động.")
+    }
+    return try {
+      val upgraded = PokerDiceCore.upgrade(current, characterId, stat)
+      repository.save(upgraded.state)
+      val projected = syncLegacy(legacy, upgraded.state, incrementTurn = false)
+      response(true, projected, null, "core_upgrade_committed",
+        upgraded.stat + " +" + "1 · -" + upgraded.cost + " Core · còn " + upgraded.coreRemaining + " Core.")
+    } catch (error: Exception) {
+      response(false, syncLegacy(legacy, current, incrementTurn = false),
+        error.message ?: "core_upgrade_failed", "core_upgrade_rejected")
+    }
+  }
+
+  fun prepareCombatDice(legacyStateJson: String, action: String): String {
+    val legacy = JSONObject(legacyStateJson)
+    val current = loadOrMigrate(legacy)
+    val combat = CombatRuntime.active(current)
+      ?: return response(false, syncLegacy(legacy, current, incrementTurn = false),
+        "combat_inactive", "combat_dice_inactive")
+    return try {
+      val next = PokerDiceCore.prepare(current, action, combat.encounterId)
+      repository.save(next)
+      response(true, syncLegacy(legacy, next, incrementTurn = false), null, "combat_dice_prepared")
+    } catch (error: Exception) {
+      response(false, syncLegacy(legacy, current, incrementTurn = false),
+        error.message ?: "combat_dice_prepare_failed", "combat_dice_rejected")
+    }
+  }
+
+  fun setCombatDiceHold(legacyStateJson: String, dieIndex: Int, held: Boolean): String {
+    val legacy = JSONObject(legacyStateJson)
+    val current = loadOrMigrate(legacy)
+    return try {
+      val next = PokerDiceCore.setHold(current, dieIndex, held)
+      repository.save(next)
+      response(true, syncLegacy(legacy, next, incrementTurn = false), null, "combat_dice_hold")
+    } catch (error: Exception) {
+      response(false, syncLegacy(legacy, current, incrementTurn = false),
+        error.message ?: "combat_dice_hold_failed", "combat_dice_rejected")
+    }
+  }
+
+  fun rerollCombatDice(legacyStateJson: String): String {
+    val legacy = JSONObject(legacyStateJson)
+    val current = loadOrMigrate(legacy)
+    return try {
+      val next = PokerDiceCore.reroll(current)
+      repository.save(next)
+      response(true, syncLegacy(legacy, next, incrementTurn = false), null, "combat_dice_rolled")
+    } catch (error: Exception) {
+      response(false, syncLegacy(legacy, current, incrementTurn = false),
+        error.message ?: "combat_dice_roll_failed", "combat_dice_rejected")
+    }
+  }
+
+  fun finishCombatDice(legacyStateJson: String): String {
+    val legacy = JSONObject(legacyStateJson)
+    val current = loadOrMigrate(legacy)
+    return try {
+      val next = PokerDiceCore.finish(current)
+      repository.save(next)
+      response(true, syncLegacy(legacy, next, incrementTurn = false), null, "combat_dice_finalized")
+    } catch (error: Exception) {
+      response(false, syncLegacy(legacy, current, incrementTurn = false),
+        error.message ?: "combat_dice_finish_failed", "combat_dice_rejected")
+    }
+  }
+
   fun currentCoreState(): String = GameStateCodec.encode(repository.load())
   fun clear() = repository.clear()
   override fun close() = Unit
@@ -106,6 +186,8 @@ class GameCoreFacade private constructor(
         )
       }
     }
+
+    current.filterKeys { EquipmentCatalog.definition(it) != null }.forEach { (id, stack) -> desiredById[id] = stack }
 
     (current.keys + desiredById.keys).sorted().forEachIndexed { index, id ->
       val old = current[id]?.quantity ?: 0; val desired = desiredById[id]?.quantity ?: 0
@@ -154,8 +236,9 @@ class GameCoreFacade private constructor(
       logger.log(PipelineLogEvent("GEMINI_REJECTED", turnId = turnId, source = CommandSource.GEMINI, details = mapOf("reason" to committed.error)))
       return response(false, before, committed.error, "gemini_delta_rejected")
     }
-    repository.save(committed.state)
-    val synchronized = syncLegacy(candidate, committed.state, incrementTurn = false)
+    val protectedState = CharacterProgressionCore.protectFromCandidate(pending.state, committed.state)
+    repository.save(protectedState)
+    val synchronized = syncLegacy(candidate, protectedState, incrementTurn = false)
     logger.log(PipelineLogEvent("GEMINI_COMMIT", turnId = turnId, source = CommandSource.GEMINI, details = mapOf("commands" to commands.size.toString(), "inventoryLocked" to inventoryLocked.toString())))
     return response(true, synchronized, null, "gemini_delta_committed")
   }
@@ -168,7 +251,7 @@ class GameCoreFacade private constructor(
   }
 
   private fun contextFor(state: GameState): GameContext {
-    val actors = state.characters.values.associate { it.name.lowercase() to it.id } + mapOf("cao minh" to CAO_MINH_ID, "lục trầm" to "luc-tram", "syvial" to "syvial")
+    val actors = state.characters.values.associate { it.name.lowercase() to it.id } + mapOf("cao minh" to CAO_MINH_ID, "lục trầm" to "luc-tram", "syvial" to "syvial", "an nhiên" to AN_NHIEN_ID, "an nhien" to AN_NHIEN_ID)
     val items = (state.inventories.values.flatMap { it.items.values } + state.vanKhoGioiChi.storedItems.values).associate { it.name.lowercase() to it.itemId }
     return GameContext(state, actors, items)
   }
@@ -206,6 +289,15 @@ class GameCoreFacade private constructor(
     return result
   }
 
+  private fun legacyEquipment(state: GameState): JSONObject = JSONObject().apply {
+    val slots = state.equipment[CAO_MINH_ID]?.slots.orEmpty()
+    listOf("weapon", "armor").forEach { slot ->
+      val id = slots[slot] ?: return@forEach
+      put(slot, JSONObject().put("id", id).put("name", CaoMinhStartingEquipment.displayName(id) ?: id).put("permanent", false).put("scalingMode", "BASE"))
+    }
+    slots["ring"]?.let { id -> put("ring", JSONObject().put("id", id).put("name", CaoMinhStartingEquipment.displayName(id) ?: id).put("permanent", false).put("scalingMode", "BASE")) }
+  }
+
   private fun syncLegacy(legacy: JSONObject, state: GameState, incrementTurn: Boolean): JSONObject {
     val output = JSONObject(legacy.toString())
     if (incrementTurn) output.put("turn", output.optInt("turn", 1) + 1)
@@ -216,6 +308,8 @@ class GameCoreFacade private constructor(
       state.time.lastAdvanceReason?.let { put("lastAdvanceReason", it) }
     })
     output.put("partyDetails", CharacterDetailJson.encodeParty(CharacterDetailProjector.projectParty(state)))
+    output.put("coreSystem", PokerDiceCore.statsJson(state, CAO_MINH_ID))
+    output.put("equipment",legacyEquipment(state))
     val caoMinhInventory = state.inventories[CAO_MINH_ID]?.items?.values.orEmpty()
     output.put("inventory", JSONArray().apply { caoMinhInventory.forEach { stack -> put(JSONObject().apply {
       put("id", stack.itemId); put("name", stack.name); put("quantity", stack.quantity)
@@ -262,6 +356,7 @@ class GameCoreFacade private constructor(
   private fun validationReply(reason: String): String {
     val message = when (reason) {
       "player_pickup_unavailable", "restore_narrative_only", "precise_content_amount_forbidden", "item_content_empty" -> "This action is not available."
+      "special_cheat_equipment_restricted" -> "Trang bị đặc biệt này chỉ có thể trang bị cho Cao Minh."
       "scan_source_missing", "scan_template_missing" -> "There is no object available for scanning or multiplying."
       "insufficient_item_quantity", "item_not_owned" -> "This action is not available."
       "party_full" -> "Party đã đủ tối đa bốn thành viên."

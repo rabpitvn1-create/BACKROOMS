@@ -12,10 +12,9 @@ old_inventory = r'''  private JSONArray sanitizedInventory(JSONArray current, JS
       Object item = proposed.opt(i);
       String name = itemName(item);
       boolean existing = arrayHasName(current, name);
-      boolean madGod = lower(name).contains("madgod");
       boolean almond = lower(name).contains("almond water");
-      boolean allowed = existing || (!madGod && almond && rollSuccess(rolls, "almondWater")) ||
-        (!madGod && !almond && rollSuccess(rolls, "loot"));
+      boolean allowed = existing || (almond && rollSuccess(rolls, "almondWater")) ||
+        (!almond && rollSuccess(rolls, "loot"));
       if (allowed) safe.put(item);
     }
     return safe;
@@ -36,7 +35,6 @@ new_inventory = r'''  private JSONArray sanitizedInventory(JSONArray current, JS
       Object item = proposed.opt(i);
       String name = itemName(item);
       boolean existing = arrayHasName(current, name);
-      boolean madGod = lower(name).contains("madgod");
       boolean almond = lower(name).contains("almond water");
       boolean allowed;
 
@@ -47,8 +45,6 @@ new_inventory = r'''  private JSONArray sanitizedInventory(JSONArray current, JS
         // The GM may add an item explicitly acquired from the established scene/state.
         // The prompt below remains responsible for rejecting nonexistent or invented objects.
         allowed = true;
-      } else if (madGod) {
-        allowed = rollSuccess(rolls, "madGodSet");
       } else if (almond) {
         // If this was not a water-discovery roll, do not delete established/passed-in water.
         allowed = !waterEligible || rollSuccess(rolls, "almondWater");

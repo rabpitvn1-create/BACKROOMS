@@ -29,6 +29,33 @@ class CombatFeedback1193aTest {
     assertTrue(result.feedback.all { it.amount > 0 })
   }
 
+  // Đại Ma Đầu runs in parallel with Đại Đạo Ma Tôn inside the single passive funnel
+  // (CharacterStatCore.effective) that every combat number in CombatRuntime reads:
+  // basic damage (effective.str), skill damage (effective.skl), crit chance
+  // (effective.criticalChancePercent), incoming damage (effective.def) and
+  // evasion/resistances (effective evasion/res fields). Base 100 is used because the
+  // two rounding conventions for additive passives (one combined percent vs one
+  // rounding per passive) agree exactly there: 100 + 10 (Đại Đạo) + 50 (Đại Ma Đầu) = 160.
+  @Test fun daiMaDauAppliesInParallelWithDaiDaoInEffectiveStats() {
+    val initial = GameState.initial()
+    val cao = initial.characters.getValue(CAO_MINH_ID)
+    val boosted = initial.copy(characters = initial.characters + (CAO_MINH_ID to cao.copy(
+      statProfile = cao.statProfile.copy(str = 100, def = 100, skl = 100, vit = 100)
+    )))
+    val effective = CharacterStatCore.effective(boosted, CAO_MINH_ID)
+    assertEquals(160, effective.str)
+    assertEquals(160, effective.def)
+    assertEquals(160, effective.skl)
+    assertEquals(160, effective.vit)
+    // Passives are Cao Minh-only: a companion's effective stats stay at base.
+    val allyProfile = CharacterStatProfiles.forId(LUC_TRAM_ID)
+    val allyEffective = CharacterStatCore.effective(initial, LUC_TRAM_ID)
+    assertEquals(allyProfile.str, allyEffective.str)
+    assertEquals(allyProfile.def, allyEffective.def)
+    assertEquals(allyProfile.skl, allyEffective.skl)
+    assertEquals(allyProfile.vit, allyEffective.vit)
+  }
+
   @Test fun lethalFeedbackIsClippedToActualHpAndSurvivesCombatCleanup() {
     val result = (0..200).asSequence().map { seed ->
       val state = started(seed).let { it.copy(metadata = it.metadata + ("combat.entityHp" to "1")) }

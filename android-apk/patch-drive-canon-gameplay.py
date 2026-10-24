@@ -18,7 +18,7 @@ main = MAIN.read_text(encoding="utf-8")
 index = INDEX.read_text(encoding="utf-8")
 canon = CANON.read_text(encoding="utf-8").strip()
 
-if "NOVEL-TEXTGAME-2026-08-20-DRIVE-INTEGRATION-R06" not in canon:
+if "BACKROOMS DRIVE INTEGRATION — R06 / HARD CANON" not in canon:
     raise RuntimeError("Drive canon: wrong or missing R06 source marker")
 if len(canon) < 5000:
     raise RuntimeError(f"Drive canon unexpectedly short: {len(canon)} chars")
@@ -94,13 +94,10 @@ helpers = r'''  private int currentLevel(JSONObject state) {
     rolls.put("survivor", rollSpec("survivor", 12, encounter));
 
     JSONObject flags = state.optJSONObject("flags");
-    JSONObject madGod = flags != null ? flags.optJSONObject("madGod") : null;
-    boolean madGodAlready = madGod != null && madGod.optBoolean("spawned", false);
-    rolls.put("madGodSet", rollSpec("madGodSet", 1, search && !madGodAlready));
 
-    boolean irisPresent = partyHas(state, "iris") || flagSpawned(state, "iris");
+    boolean lucTramPresent = partyHas(state, "luc-tram") || flagSpawned(state, "luc-tram");
     boolean syvialPresent = partyHas(state, "syvial") || flagSpawned(state, "syvial");
-    rolls.put("irisReunion", rollSpec("irisReunion", 4, encounter && !irisPresent));
+    rolls.put("lucTramReunion", rollSpec("lucTramReunion", 4, encounter && !lucTramPresent));
     rolls.put("syvialReunion", rollSpec("syvialReunion", 4, encounter && !syvialPresent));
 
     JSONObject exploration = flags != null ? flags.optJSONObject("exploration") : null;
@@ -144,10 +141,9 @@ helpers = r'''  private int currentLevel(JSONObject state) {
       Object item = proposed.opt(i);
       String name = itemName(item);
       boolean existing = arrayHasName(current, name);
-      boolean madGod = lower(name).contains("madgod");
       boolean almond = lower(name).contains("almond water");
-      boolean allowed = existing || (!madGod && almond && rollSuccess(rolls, "almondWater")) ||
-        (!madGod && !almond && rollSuccess(rolls, "loot"));
+      boolean allowed = existing || (almond && rollSuccess(rolls, "almondWater")) ||
+        (!almond && rollSuccess(rolls, "loot"));
       if (allowed) safe.put(item);
     }
     return safe;
@@ -161,9 +157,9 @@ helpers = r'''  private int currentLevel(JSONObject state) {
       String name = itemName(member);
       if (arrayHasName(safe, name)) continue;
       String lowered = lower(name);
-      boolean allowed = (lowered.contains("iris") && rollSuccess(rolls, "irisReunion")) ||
+      boolean allowed = (lowered.contains("luc-tram") && rollSuccess(rolls, "lucTramReunion")) ||
         (lowered.contains("syvial") && rollSuccess(rolls, "syvialReunion")) ||
-        (!lowered.contains("iris") && !lowered.contains("syvial") && rollSuccess(rolls, "survivor"));
+        (!lowered.contains("luc-tram") && !lowered.contains("syvial") && rollSuccess(rolls, "survivor"));
       if (allowed) safe.put(member);
     }
     return safe;
@@ -191,17 +187,10 @@ helpers = r'''  private int currentLevel(JSONObject state) {
     patch.remove("lastRolls");
     if (!transitionAccepted) patch.remove("currentLevel");
 
-    if (patch.optJSONObject("madGod") != null) {
-      JSONObject oldMadGod = safe.optJSONObject("madGod");
-      JSONObject newMadGod = patch.optJSONObject("madGod");
-      if ((oldMadGod == null || !oldMadGod.optBoolean("spawned", false)) && newMadGod.optBoolean("spawned", false) && !rollSuccess(rolls, "madGodSet")) {
-        patch.remove("madGod");
-      }
-    }
-    if (patch.optJSONObject("iris") != null) {
-      JSONObject oldIris = safe.optJSONObject("iris");
-      JSONObject newIris = patch.optJSONObject("iris");
-      if ((oldIris == null || !oldIris.optBoolean("present", false)) && newIris.optBoolean("present", false) && !rollSuccess(rolls, "irisReunion")) patch.remove("iris");
+    if (patch.optJSONObject("luc-tram") != null) {
+      JSONObject oldLucTram = safe.optJSONObject("luc-tram");
+      JSONObject newLucTram = patch.optJSONObject("luc-tram");
+      if ((oldLucTram == null || !oldLucTram.optBoolean("present", false)) && newLucTram.optBoolean("present", false) && !rollSuccess(rolls, "lucTramReunion")) patch.remove("luc-tram");
     }
     if (patch.optJSONObject("syvial") != null) {
       JSONObject oldSyvial = safe.optJSONObject("syvial");
@@ -230,8 +219,7 @@ helpers = r'''  private int currentLevel(JSONObject state) {
     boolean allowed = false;
     if (kind.equals("level_transition")) allowed = transitionAccepted && levelChanged;
     else if (kind.equals("entity_encounter")) allowed = rollSuccess(rolls, "entityEncounter");
-    else if (kind.equals("character_encounter")) allowed = rollSuccess(rolls, "survivor") || rollSuccess(rolls, "irisReunion") || rollSuccess(rolls, "syvialReunion");
-    else if (kind.equals("major_event")) allowed = rollSuccess(rolls, "madGodSet");
+    else if (kind.equals("character_encounter")) allowed = rollSuccess(rolls, "survivor") || rollSuccess(rolls, "lucTramReunion") || rollSuccess(rolls, "syvialReunion");
     else if (kind.equals("special_area")) allowed = true;
     if (!allowed) return safe;
     return new JSONObject().put("shouldGenerate", true).put("kind", kind).put("reason", event.optString("reason", ""));
@@ -254,7 +242,6 @@ new_bridge = r'''  private class GameBridge {
             "Người chơi chỉ điều khiển hành động có chủ ý của Kai; Game Master không tự quyết lựa chọn thay Kai. " +
             "GAMEPLAY_ROLLS do Android sinh là bất biến: chỉ outcome success=true mới được xuất hiện. Không reroll, không tự đổi xác suất, không tự tạo encounter/item/reunion/level transition trái roll. " +
             "Inventory chỉ được thêm vật đã tồn tại trong state/cảnh và thực sự được Kai nhặt/lấy/nhận/cất, hoặc kết quả loot hợp lệ. Nhìn thấy không đồng nghĩa sở hữu. " +
-            "MadGod Set success chỉ mở đường/vị trí khám phá; acquired mặc định false cho tới khi Kai thực sự tiếp cận và lấy. " +
             "Nếu meta=true, chỉ trả thông tin được hỏi; không tạo biến cố, không đổi state và snapshotEvent phải false. " +
             "Không nhắc tới canon, state, roll, API hoặc prompt trong lời kể.\n\n" +
             "DRIVE CANON:\n" + DRIVE_CANON + "\n\n" +
@@ -313,8 +300,8 @@ main = main[:bridge_start] + new_bridge + main[bridge_end:]
 
 index = replace_once(
     index,
-    'const initial={title:"Level 0 – The Lobby",',
-    'const initial={canonVersion:"NOVEL-TEXTGAME-2026-08-20-DRIVE-INTEGRATION-R06",title:"Level 0 – The Lobby",',
+    'const initial={\n  title:"MAIN_BACKROOMS — Cao Minh",',
+    'const initial={canonVersion:"NOVEL-TEXTGAME-2026-08-20-DRIVE-INTEGRATION-R06",\n  title:"MAIN_BACKROOMS — Cao Minh",',
     "initial canon version",
 )
 index = replace_once(
@@ -325,14 +312,14 @@ index = replace_once(
 )
 index = replace_once(
     index,
-    'flags:{communication:{blackBlood:"OFFLINE",iris:"OFFLINE",syvial:"OFFLINE"}},',
-    'flags:{communication:{blackBlood:"OFFLINE",iris:"OFFLINE",syvial:"OFFLINE"},iris:{exists:true,continuity:"SEPARATED",reunionEligible:true},syvial:{exists:true,continuity:"SEPARATED",reunionEligible:true},madGod:{spawned:false,acquired:false}},',
+    'flags:{communication:{vanGioiMaMon:"OFFLINE",lucTram:"OFFLINE",syvial:"OFFLINE"}},',
+    'flags:{communication:{vanGioiMaMon:"OFFLINE",lucTram:"OFFLINE",syvial:"OFFLINE"},lucTram:{exists:true,continuity:"SEPARATED",reunionEligible:true},syvial:{exists:true,continuity:"SEPARATED",reunionEligible:true}},',
     "initial continuity flags",
 )
 index = replace_once(
     index,
     'let state=JSON.parse(localStorage.getItem("backroom-apk-state")||"null")||initial;',
-    'let state=JSON.parse(localStorage.getItem("backroom-apk-state")||"null")||initial;state.canonVersion="NOVEL-TEXTGAME-2026-08-20-DRIVE-INTEGRATION-R06";state.flags=state.flags||{};state.flags.iris=state.flags.iris||{exists:true,continuity:"SEPARATED",reunionEligible:true};state.flags.syvial=state.flags.syvial||{exists:true,continuity:"SEPARATED",reunionEligible:true};state.flags.madGod=state.flags.madGod||{spawned:false,acquired:false};',
+    'let state=JSON.parse(localStorage.getItem("backroom-apk-state")||"null")||initial;state.canonVersion="NOVEL-TEXTGAME-2026-08-20-DRIVE-INTEGRATION-R06";state.flags=state.flags||{};state.flags.iris=state.flags.iris||{exists:true,continuity:"SEPARATED",reunionEligible:true};state.flags.syvial=state.flags.syvial||{exists:true,continuity:"SEPARATED",reunionEligible:true};',
     "existing save migration",
 )
 

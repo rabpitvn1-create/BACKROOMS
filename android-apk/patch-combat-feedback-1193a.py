@@ -26,7 +26,7 @@ s = replace(s, '  data class Resolution(\n', '''  // COMBAT_FEEDBACK_1193A: tran
     val amount: Int,
     val critical: Boolean = false,
     val status: FeedbackStatus? = null,
-    val actorId: String = KAI_ID,
+    val actorId: String = CAO_MINH_ID,
     val phase: String = "actor"
   ) {
     fun toJson(): JSONObject = JSONObject().apply {

@@ -38,7 +38,7 @@ if new_inventory_assertion not in text:
     text = text.replace(old_inventory_assertion, new_inventory_assertion, 1)
 
 # Keep the historical combined scan-source/template warning untouched here because the later
-# MadGod patch intentionally anchors on that exact line before adding its own validation messages.
+# A later patch intentionally anchors on that exact line before adding its own validation messages.
 translations = {
     '"precise_content_amount_forbidden" -> "This action is not available."': '"precise_content_amount_forbidden" -> "Hành động này không khả dụng với lượng nội dung được chỉ định."',
     '"item_content_empty" -> "This action is not available."': '"item_content_empty" -> "Vật phẩm này hiện không có nội dung khả dụng."',
@@ -60,32 +60,25 @@ FACADE.write_text(text, encoding="utf-8")
 java = MAIN.read_text(encoding="utf-8")
 old_world_inventory = r'''        boolean allowedNew = false;
         JSONObject beforeFlagsForItem = before.optJSONObject("flags");
-        JSONObject beforeMadGodForItem = beforeFlagsForItem != null ? beforeFlagsForItem.optJSONObject("madGod") : null;
         JSONObject explorationForItem = beforeFlagsForItem != null ? beforeFlagsForItem.optJSONObject("exploration") : null;
         JSONObject omnivaultForItem = beforeFlagsForItem != null ? beforeFlagsForItem.optJSONObject("omnivault") : null;
         boolean establishedStructured = false;
         if (explorationForItem != null) establishedStructured = lower(explorationForItem.toString()).contains(lower(name));
         if (!establishedStructured && omnivaultForItem != null) establishedStructured = lower(omnivaultForItem.toString()).contains(lower(name));
-        if (!establishedStructured && beforeMadGodForItem != null) establishedStructured = lower(beforeMadGodForItem.toString()).contains(lower(name));
-        boolean madGodAlreadySpawned = beforeMadGodForItem != null && beforeMadGodForItem.optBoolean("spawned", false);
         if (existing >= 0) allowedNew = true;
         else if (acquisitionIntent(action)) {
-          if (madGod) allowedNew = madGodAlreadySpawned && establishedStructured;
-          else if (almond) allowedNew = establishedStructured || rollSuccess(rolls, "almondWater");
+          if (almond) allowedNew = establishedStructured || rollSuccess(rolls, "almondWater");
           else if (containsAny(action, "copy", "sao chép")) allowedNew = establishedStructured;
           else allowedNew = establishedStructured || rollSuccess(rolls, "loot");
         }
 '''
 new_world_inventory = r'''        boolean allowedNew = false;
         JSONObject beforeFlagsForItem = before.optJSONObject("flags");
-        JSONObject beforeMadGodForItem = beforeFlagsForItem != null ? beforeFlagsForItem.optJSONObject("madGod") : null;
         JSONObject explorationForItem = beforeFlagsForItem != null ? beforeFlagsForItem.optJSONObject("exploration") : null;
         JSONObject omnivaultForItem = beforeFlagsForItem != null ? beforeFlagsForItem.optJSONObject("omnivault") : null;
         boolean establishedStructured = false;
         if (explorationForItem != null) establishedStructured = lower(explorationForItem.toString()).contains(lower(name));
         if (!establishedStructured && omnivaultForItem != null) establishedStructured = lower(omnivaultForItem.toString()).contains(lower(name));
-        if (!establishedStructured && beforeMadGodForItem != null) establishedStructured = lower(beforeMadGodForItem.toString()).contains(lower(name));
-        boolean madGodAlreadySpawned = beforeMadGodForItem != null && beforeMadGodForItem.optBoolean("spawned", false);
         String acquisitionBasis = lower(op.optString("basis", "")).trim();
         boolean worldAcquisition = acquisitionBasis.equals("world_consequence");
         boolean directAcquisition = acquisitionIntent(action);
@@ -93,7 +86,6 @@ new_world_inventory = r'''        boolean allowedNew = false;
         boolean almondRoll = rollSuccess(rolls, "almondWater");
         boolean lootRoll = rollSuccess(rolls, "loot");
         if (existing >= 0) allowedNew = true;
-        else if (madGod) allowedNew = directAcquisition && madGodAlreadySpawned && establishedStructured;
         else if (copyIntent) allowedNew = directAcquisition && establishedStructured;
         else if (almond) allowedNew = (directAcquisition || worldAcquisition) && (establishedStructured || almondRoll);
         else allowedNew = (directAcquisition || worldAcquisition) && (establishedStructured || lootRoll);
@@ -106,7 +98,7 @@ if new_world_inventory not in java:
 MAIN.write_text(java, encoding="utf-8")
 
 builder = KNOWLEDGE_BUILDER.read_text(encoding="utf-8")
-prompt_anchor = '      "Inventory chỉ đổi khi Kai thật sự lấy/nhận/copy/trao/mất/tiêu thụ vật; nhìn thấy không đồng nghĩa sở hữu. MadGod roll success chỉ mở discovery route, không tự đưa set vào inventory. " +\n'
+prompt_anchor = '      "Inventory chỉ đổi khi Kai thật sự lấy/nhận/copy/trao/mất/tiêu thụ vật; nhìn thấy không đồng nghĩa sở hữu. " +\n'
 world_prompt_line = r'''      "Khi GAMEPLAY_ROLLS hợp lệ tạo loot/Almond Water và reply xác nhận môi trường hoặc NPC thực sự giao vật đó cho Kai, bắt buộc kèm inventory_upsert với basis:\"world_consequence\" trong cùng response; nếu không có op hợp lệ thì không được kể rằng Kai đã nhận hoặc sở hữu vật. " +
 '''
 if world_prompt_line not in builder:

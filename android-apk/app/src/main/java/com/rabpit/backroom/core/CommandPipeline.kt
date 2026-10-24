@@ -26,8 +26,8 @@ class CommandResolver(
       GameIntent.DROP_ITEM -> item?.let { itemCommand(commandId, turnId, actor, target, source, ItemCommand.Operation.DROP, it, quantity) }
       GameIntent.USE_ITEM -> item?.let { itemCommand(commandId, turnId, actor, target, source, ItemCommand.Operation.USE, it, quantity) }
       GameIntent.TRANSFER_ITEM -> item?.let { itemCommand(commandId, turnId, actor, target, source, ItemCommand.Operation.TRANSFER, it, quantity) }
-      GameIntent.EQUIP_ITEM -> item?.let { itemCommand(commandId, turnId, actor, target, source, ItemCommand.Operation.EQUIP, it, quantity, "weapon") }
-      GameIntent.UNEQUIP_ITEM -> item?.let { itemCommand(commandId, turnId, actor, target, source, ItemCommand.Operation.UNEQUIP, it, quantity, "weapon") }
+      GameIntent.EQUIP_ITEM -> item?.let { itemCommand(commandId, turnId, actor, target, source, ItemCommand.Operation.EQUIP, it, quantity, equipmentSlot(it)) }
+      GameIntent.UNEQUIP_ITEM -> item?.let { itemCommand(commandId, turnId, actor, target, source, ItemCommand.Operation.UNEQUIP, it, quantity, equipmentSlot(it)) }
       GameIntent.VAN_KHO_GIOI_CHI_STORE -> item?.let { vaultCommand(commandId, turnId, actor, source, VanKhoGioiChiCommand.Operation.STORE, it, quantity) }
       GameIntent.VAN_KHO_GIOI_CHI_WITHDRAW -> item?.let { vaultCommand(commandId, turnId, actor, source, VanKhoGioiChiCommand.Operation.WITHDRAW, it, quantity) }
       GameIntent.VAN_KHO_GIOI_CHI_SCAN -> item?.let { vaultCommand(commandId, turnId, actor, source, VanKhoGioiChiCommand.Operation.SCAN, it, quantity) }
@@ -45,6 +45,8 @@ class CommandResolver(
       else -> null
     }
   }
+
+  private fun equipmentSlot(item: Pair<String,String>): String = CaoMinhStartingEquipment.slotFor(item.first,item.second) ?: if ((item.first+" "+item.second).contains("armor",true)||(item.first+" "+item.second).contains("giáp",true)) "armor" else "weapon"
 
   private fun itemCommand(id: String, turn: String, actor: String, target: String?, source: CommandSource, operation: ItemCommand.Operation, item: Pair<String, String>, quantity: Int, slot: String? = null) =
     ItemCommand(id, turn, actor, target, source, operation, item.first, item.second, quantity, slot)

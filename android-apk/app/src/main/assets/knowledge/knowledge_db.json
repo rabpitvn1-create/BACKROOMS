@@ -136,10 +136,19 @@
       "id": "CHAR.CAO_MINH.VAN_KHO_GIOI_CHI",
       "domain": "CHARACTER",
       "kind": "equipment",
-      "text": "Vạn Khố Giới Chỉ is Cao Minh's absolute storage ring: a storage space for inanimate objects that never acts on living beings. Physical storage is not limited by ordinary count/size/mass, but scan-copy memory has exactly 3 slots. Copies cannot themselves be scanned; each original can serve as a scan source once before being Marked. Restore/Hoàn nguyên has a per-item 24-hour cooldown after a successful restore. Scan/restore uses a light beam and can propagate across one continuous material block, but does not treat whole assembled systems such as buildings, motorcycles, tanks or complete cannons as one eligible object; personal armor and guns remain eligible complete items. It cannot scan or copy MadGod items.",
+      "text": "Vạn Khố Giới Chỉ is Cao Minh's absolute storage ring: a storage space for inanimate objects that never acts on living beings. Physical storage is not limited by ordinary count/size/mass, but scan-copy memory has exactly 3 slots. Copies cannot themselves be scanned; each original can serve as a scan source once before being Marked. Restore/Hoàn nguyên has a per-item 24-hour cooldown after a successful restore. Scan/restore uses a light beam and can propagate across one continuous material block, but does not treat whole assembled systems such as buildings, motorcycles, tanks or complete cannons as one eligible object; personal armor and guns remain eligible complete items. Signature equipment bound to Cao Minh himself cannot be scanned or copied.",
       "source": {"document": "02_CHARACTERS/Kai_Codex.docx (feature retained for Cao Minh and renamed by author decision 2026-10-24)", "anchor": "KAI-EQP-OMNIVAULT-01; KAI-WEAK-01"},
       "authority": "CHARACTER_CANON", "mutability": "IMMUTABLE", "priority": 46,
       "tags": ["cao-minh", "van kho gioi chi", "scan", "restore", "hoàn nguyên"], "references": [], "affordances": ["item_manipulation"]
+    },
+        {
+      "id": "CHAR.CAO_MINH.DAI_MA_DAU",
+      "domain": "CHARACTER",
+      "kind": "passive",
+      "text": "Đại Ma Đầu is Cao Minh's PASSIVE skill: always active, and active in parallel with Đại Đạo Ma Tôn. It grants +50% of Cao Minh's current stats (STR/DEF/SKL/VIT), recomputed from his current Base stats every time Effective Stats are calculated, so the bonus scales with his current stats as he grows stronger; Max HP derives from VIT as normal. Đại Ma Đầu occupies no equipment slot and does not stack through save-load or equip.",
+      "source": {"document": "Author decision 2026-10-24 (passive skill Đại Ma Đầu)", "anchor": "DAI-MA-DAU-01"},
+      "authority": "CHARACTER_CANON", "mutability": "IMMUTABLE", "priority": 52,
+      "tags": ["cao-minh", "dai ma dau", "passive"], "references": [], "affordances": ["direct_threat"]
     },
 
         {

@@ -8,8 +8,6 @@ import kotlin.math.min
 /** Authoritative, save-persistent combat state stored in GameState.metadata. */
 object CombatRuntime {
   private const val PREFIX = "combat."
-  private const val PLAYER_HP = "combat.playerHp"
-  private const val PLAYER_MAX_HP = "combat.playerMaxHp"
 
   enum class Phase { ACTIVE, RESOLVED }
   enum class RangeBand { CLOSE, NEAR, FAR }
@@ -82,8 +80,9 @@ object CombatRuntime {
   fun start(state: GameState, entityKey: String): GameState {
     if (active(state) != null) return state
     val profile = profiles[entityKey] ?: return state
-    val playerMax = state.metadata[PLAYER_MAX_HP]?.toIntOrNull()?.coerceIn(1, 999) ?: 100
-    val playerHp = state.metadata[PLAYER_HP]?.toIntOrNull()?.coerceIn(0, playerMax) ?: playerMax
+    val effective = CharacterStatEngine.effective(state, CAO_MINH_ID)
+    val playerMax = effective.maxHp
+    val playerHp = state.characters[CAO_MINH_ID]?.vitalState?.currentHp?.coerceIn(0, playerMax) ?: playerMax
     val seed = stableSeed(entityKey, state.turn.currentTurnId, state.time.elapsedSubjectiveMinutes)
     val snapshot = Snapshot(
       encounterId = "${state.turn.currentTurnId}:${entityKey}:${abs(seed)}",
@@ -131,7 +130,7 @@ object CombatRuntime {
           range = if (c.range == RangeBand.CLOSE) RangeBand.NEAR else c.range,
           momentum = (c.momentum + if (goodCounter) 2 else 1).coerceIn(-3, 3),
           opening = min(3, c.opening + if (goodCounter) 2 else 1),
-          escapeProgress = min(100, c.escapeProgress + if (goodCounter) 18 else 10),
+          escapeProgress = min(100, c.escapeProgress + (if (goodCounter) 18 else 10) + PokerDiceCore.escapeBonus(state)),
           cover = if (c.cover == Cover.EXPOSED) Cover.PARTIAL else c.cover
         )
         log += if (goodCounter) "Cao Minh né đúng telegraph, cướp thế chủ động." else "Cao Minh đổi góc và giảm áp lực trực diện."
@@ -155,18 +154,24 @@ object CombatRuntime {
         log += "Cao Minh khóa tư thế phòng thủ và ép ${c.entityName} phải lộ hướng tấn công."
       }
       Intent.ESCAPE -> {
-        val gain = 20 + c.momentum.coerceAtLeast(0) * 5 + when (c.cover) { Cover.HARD -> 15; Cover.PARTIAL -> 8; Cover.EXPOSED -> 0 }
+        val gain = 20 + c.momentum.coerceAtLeast(0) * 5 + when (c.cover) { Cover.HARD -> 15; Cover.PARTIAL -> 8; Cover.EXPOSED -> 0 } + PokerDiceCore.escapeBonus(state)
         c = c.copy(escapeProgress = min(100, c.escapeProgress + gain), momentum = min(3, c.momentum + 1))
         log += "Cao Minh dồn ưu thế vào đường thoát (${c.escapeProgress}%)."
       }
       Intent.ATTACK -> {
         val roll = roll(c, 100)
         val rangeBonus = when (c.range) { RangeBand.CLOSE -> 18; RangeBand.NEAR -> 10; RangeBand.FAR -> -5 }
-        val hitChance = (58 + rangeBonus + c.opening * 11 + c.momentum * 6).coerceIn(20, 96)
+        val hitChance = (58 + rangeBonus + c.opening * 11 + c.momentum * 6 + PokerDiceCore.accuracyBonus(state)).coerceIn(20, 99)
         if (roll < hitChance) {
-          val variance = 4 + roll(c.copy(eventCounter = c.eventCounter + 17), 9)
-          val base = 18 + variance + c.opening * 7 + max(0, c.momentum) * 3
-          val damage = max(1, base - profile.armor)
+          val variance = 2 + roll(c.copy(eventCounter = c.eventCounter + 17), 7)
+          val effective = CharacterStatEngine.effective(state, CAO_MINH_ID)
+          val weaponDamage = CharacterStatEngine.weaponDamage(state, CAO_MINH_ID)
+          val critChance = CaoMinhCombatPassive.criticalChance(resolvedState, effective.criticalChancePercent)
+          val critical = roll(c.copy(eventCounter = c.eventCounter + 23), 100) < critChance
+          val rawBase = weaponDamage + variance + c.opening * 5 + max(0, c.momentum) * 2
+          val base = CharacterStatCore.basicDamage(rawBase, effective.str, PokerDiceCore.attackPercent(resolvedState), CaoMinhCombatPassive.attackPercent(resolvedState))
+          val normalized = if (critical) CharacterStatCore.criticalDamage(base) else base
+          val damage = min(max(1, normalized - profile.armor), max(1, profile.maxHp * 70 / 100))
           val hp = max(0, c.entityHp - damage)
           c = c.copy(
             entityHp = hp,
@@ -201,10 +206,15 @@ object CombatRuntime {
     // Enemy response. READ/guard/evasion reduce expected incoming damage; attacking blindly is riskier.
     val incomingRoll = roll(c.copy(eventCounter = c.eventCounter + 31), 100)
     val defense = when (intent) { Intent.EVADE -> 34; Intent.GUARD -> 30; Intent.MOVE -> 18; Intent.READ -> 12; else -> 0 } +
-      when (c.cover) { Cover.HARD -> 22; Cover.PARTIAL -> 10; Cover.EXPOSED -> 0 } + max(0, c.momentum) * 4
-    val enemyChance = (profile.aggression * 8 - defense + max(0, -c.momentum) * 7).coerceIn(8, 88)
+      when (c.cover) { Cover.HARD -> 22; Cover.PARTIAL -> 10; Cover.EXPOSED -> 0 } + max(0, c.momentum) * 4 +
+      PokerDiceCore.defenseBonus(state)
+    val playerEvasion = CharacterStatEngine.effective(resolvedState, CAO_MINH_ID).evasionPercent
+    val enemyChance = (profile.aggression * 8 - defense + max(0, -c.momentum) * 7 - playerEvasion).coerceIn(0, 88)
     if (incomingRoll < enemyChance) {
-      val damage = max(1, profile.attack + roll(c.copy(eventCounter = c.eventCounter + 47), 7) - when (c.cover) { Cover.HARD -> 8; Cover.PARTIAL -> 4; Cover.EXPOSED -> 0 })
+      val effective = CharacterStatEngine.effective(state, CAO_MINH_ID)
+      val mitigation = CombatStatMath.defenseReduction(effective.df) + CombatStatMath.agilityDefense(effective.agi)
+      val damage = max(1, profile.attack + roll(c.copy(eventCounter = c.eventCounter + 47), 7) -
+        when (c.cover) { Cover.HARD -> 8; Cover.PARTIAL -> 4; Cover.EXPOSED -> 0 } - mitigation)
       val hp = max(0, c.playerHp - damage)
       c = c.copy(playerHp = hp, momentum = max(-3, c.momentum - 1))
       log += "${c.entityName} phản công: Cao Minh -$damage HP (${c.playerHp}/${c.playerMaxHp})."
@@ -244,8 +254,6 @@ object CombatRuntime {
     metadata["${PREFIX}entityKey"] = c.entityKey
     metadata["${PREFIX}entityName"] = c.entityName
     metadata["${PREFIX}phase"] = c.phase.name
-    metadata[PLAYER_HP] = c.playerHp.toString()
-    metadata[PLAYER_MAX_HP] = c.playerMaxHp.toString()
     metadata["${PREFIX}entityHp"] = c.entityHp.toString()
     metadata["${PREFIX}entityMaxHp"] = c.entityMaxHp.toString()
     metadata["${PREFIX}entityCondition"] = c.entityCondition.name
@@ -259,7 +267,7 @@ object CombatRuntime {
     metadata["${PREFIX}telegraphRevealed"] = c.telegraphRevealed.toString()
     metadata["${PREFIX}eventCounter"] = c.eventCounter.toString()
     metadata["${PREFIX}seed"] = c.seed.toString()
-    return state.copy(metadata = metadata)
+    return CharacterStatEngine.setCurrentHp(state.copy(metadata = metadata), CAO_MINH_ID, c.playerHp)
   }
 
   private fun decode(state: GameState): Snapshot? {
@@ -268,7 +276,8 @@ object CombatRuntime {
     val profile = profiles[key] ?: return null
     val maxHp = m["${PREFIX}entityMaxHp"]?.toIntOrNull()?.coerceAtLeast(1) ?: profile.maxHp
     val hp = m["${PREFIX}entityHp"]?.toIntOrNull()?.coerceIn(0, maxHp) ?: maxHp
-    val playerMax = m[PLAYER_MAX_HP]?.toIntOrNull()?.coerceAtLeast(1) ?: 100
+    val playerMax = CharacterStatEngine.effective(state, CAO_MINH_ID).maxHp
+    val playerHp = state.characters[CAO_MINH_ID]?.vitalState?.currentHp?.coerceIn(0, playerMax) ?: playerMax
     return Snapshot(
       encounterId = m["${PREFIX}encounterId"].orEmpty(),
       entityKey = key,
@@ -293,11 +302,7 @@ object CombatRuntime {
   }
 
   private fun clearCombatOnly(state: GameState): GameState {
-    val preservedHp = state.metadata[PLAYER_HP]
-    val preservedMax = state.metadata[PLAYER_MAX_HP]
-    val metadata = state.metadata.filterKeys { !it.startsWith(PREFIX) }.toMutableMap()
-    if (preservedHp != null) metadata[PLAYER_HP] = preservedHp
-    if (preservedMax != null) metadata[PLAYER_MAX_HP] = preservedMax
+    val metadata = state.metadata.filterKeys { !it.startsWith(PREFIX) }
     return state.copy(metadata = metadata)
   }
 

@@ -64,22 +64,6 @@ source = source[:start] + '''    EquipmentDefinition(
 ''' + source[end:]
 for slot, const in [('HEAD', 'KAI_DEMON_JAW_MASK_ID'), ('GAUNTLETS', 'KAI_TALON_GAUNTLETS_ID'), ('GREAVES', 'KAI_PHANTOM_GREAVES_ID')]:
     source = source.replace(f'      EquipmentSlot.{slot} to {const},\n', '')
-# The legacy cheat weapon remains available; its armor component is now intrinsic.
-start = source.index('    EquipmentDefinition(\n      id = MADGOD_SET_ID')
-end = source.index('\n  )\n\n  private val definitions', start)
-source = source[:start] + '''    EquipmentDefinition(
-      id = MADGOD_SET_ID, name = "Huyết Ma Kiếm · Ma Tôn", type = "SPECIAL SWORD", primarySlot = EquipmentSlot.WEAPON,
-      occupiesSlots = setOf(EquipmentSlot.WEAPON), rarity = "SPECIAL / CHEAT",
-      bonuses = EquipmentBonuses(crit = 12), weapon = WeaponGameplayStats(55),
-      abilities = listOf(ability("Bản mệnh ma kiếm", "Vũ khí cheat giữ projection DMG 55; giáp MadGod đã chuyển thành passive Ma Tôn Vạn Giới.")),
-      restrictions = listOf("Cao Minh Only", "Cannot Unequip after activation", "Cannot be copied or scanned"),
-      classification = ItemClassification.SPECIAL_CHEAT,
-      components = listOf(EquipmentComponent("Huyết Ma Kiếm", weapon = WeaponGameplayStats(55)))
-    )''' + source[end:]
-source = source.replace('    val hp = definitions.sumOf', '    val passive = if (characterId == KAI_ID) EquipmentBonuses(hp = MadGodCanon.ARMOR_HP, str = MadGodCanon.ARMOR_STR, df = MadGodCanon.ARMOR_DF, agi = MadGodCanon.ARMOR_AGI) else EquipmentBonuses()\n    val hp = definitions.sumOf')
-source = source.replace('(character.statProfile.baseMaxHp + hp)', '(character.statProfile.baseMaxHp + passive.hp + hp)')
-for key in ['str', 'df', 'agi', 'crit']:
-    source = source.replace(f'character.statProfile.{key} + {key},', f'character.statProfile.{key} + passive.{key} + {key},')
 equipment.write_text(source, encoding='utf-8')
 
 catalog = CORE / 'CompanionSkillCatalog.kt'
@@ -87,7 +71,7 @@ source = catalog.read_text(encoding='utf-8')
 start = source.index('  private val kai = listOf(')
 end = source.index('\n  private val lucia', start)
 source = source[:start] + '''  private val kai = listOf(
-    s("Ma Tôn Vạn Giới", "PASSIVE", "Luôn hoạt động", "+50 Max HP, +15 STR, +30 DF, +12 AGI; kế thừa bonus giáp MadGod theo gameplay hiện hành.", "Không chiếm ô trang bị, không nhân/stack qua save-load hoặc equip."),
+    s("Đại Ma Đầu", "PASSIVE", "Luôn hoạt động", "+50% stats hiện tại (STR/DEF/SKL/VIT) của Cao Minh, tính lại theo stats hiện tại mỗi lần tính Effective Stats; Max HP derive từ VIT; hoạt động song song với Đại Đạo Ma Tôn.", "Không chiếm ô trang bị, không stack qua save-load hoặc equip."),
     s("Huyết Ma Tứ Liên", "AUTO", "30% mỗi lượt TẤN CÔNG hợp lệ", "Đúng 4 trảm, 170% Weapon DMG; Chảy máu 3 turn x 5% Max HP."),
     s("Ma Tâm Trấn Hồn", "AUTO", "20% mỗi lượt TẤN CÔNG hợp lệ", "Đúng 4 trảm cùng điểm, 130% Weapon DMG; Choáng phản ứng hiện tại."),
     s("Huyết Ảnh Ma Độn", "AUTO", "20% mỗi lượt TẤN CÔNG hợp lệ", "Dịch chuyển theo Huyết Ma Kiếm, đúng 2 trảm, 147% Weapon DMG."),
@@ -153,37 +137,6 @@ stats = CORE / 'CharacterStats.kt'
 edit(stats, 'COMMANDER / SUPREME MARKSMAN / HIGH-MOBILITY COMBATANT', 'VẠN GIỚI MA TÔN / MA ĐẠO KIẾM TU')
 edit(stats, 'kai:passive-regeneration', 'cao_minh:passive-regeneration')
 
-projection = CORE / 'CharacterDetailProjection.kt'
-for key, value in [('str', 15), ('df', 30), ('agi', 12)]:
-    edit(projection, f'StatLineProjection(character.statProfile.{key},', f'StatLineProjection(character.statProfile.{key} + if (character.id == KAI_ID) {value} else 0,')
-
-madgod = CORE / 'MadGodCanon.kt'
-edit(madgod, 'mapOf("weapon" to MADGOD_SET_ID, "armor" to MADGOD_SET_ID)', 'mapOf("weapon" to MADGOD_SET_ID)')
-edit(madgod, 'MadGod Armor + MadGod Magnum', 'Huyết Ma Kiếm; phần giáp đã chuyển thành passive Ma Tôn Vạn Giới')
-edit(madgod, 'const val SET_NAME = "MadGod Set"', 'const val SET_NAME = "Huyết Ma Kiếm · Ma Tôn"')
-source = madgod.read_text(encoding='utf-8')
-start = source.index('  fun setItem()')
-end = source.index('\n  fun spawn(', start)
-source = source[:start] + '''  fun setItem() = EquipmentCatalog.stackFor(MADGOD_SET_ID).let {
-    it.copy(metadata = it.metadata + mapOf("madGod" to "true", "permanentWhenEquipped" to "true"))
-  }
-''' + source[end:]
-start = source.index('  fun legacy(s: GameState)')
-source = source[:start] + '''  fun legacy(s: GameState) = JSONObject().apply {
-    s.equipment[KAI_ID]?.slots.orEmpty().forEach { (slot, id) ->
-      put(slot, JSONObject().put("id", id)
-        .put("name", EquipmentCatalog.definition(id)?.name ?: id)
-        .put("permanent", isId(id)).put("scalingMode", SCALING_MODE))
-    }
-  }
-}
-'''
-madgod.write_text(source, encoding='utf-8')
-facade = CORE / 'GameCoreFacade.kt'
-edit(facade, 'MadGod Set đã ghi đè Huyết Ma Kiếm và Huyết Ma Chiến Khải của Cao Minh. Nhẫn Vạn Tàng được giữ nguyên.', 'Vũ khí MadGod đã trang bị; Ma Tôn Vạn Giới là passive và không chiếm ô giáp. Huyết Ma Chiến Khải và Nhẫn Vạn Tàng được giữ nguyên.')
-edit(facade, 'trang bị một lần sẽ kích hoạt đồng thời MadGod Armor và MadGod Magnum', 'trang bị một lần sẽ kích hoạt vũ khí; phần giáp đã chuyển thành passive Ma Tôn Vạn Giới')
-edit(facade, 'một lần Equip sẽ chiếm đồng thời slot vũ khí và giáp', 'chỉ chiếm slot vũ khí; giáp MadGod đã chuyển thành passive Ma Tôn Vạn Giới')
-
 tests = ROOT / 'app/src/test/java/com/rabpit/backroom/core'
 for path in tests.glob('*.kt'):
     text = path.read_text(encoding='utf-8')
@@ -192,16 +145,13 @@ for path in tests.glob('*.kt'):
     path.write_text(text, encoding='utf-8')
 
 # Update assertions whose contracts changed with the three-item loadout/passive split.
-for filename in ['CharacterStatusEquipmentSystemTest.kt', 'PokerDiceCoreBackportTest.kt', 'InventoryCapacityNewGameTest.kt', 'MadGodEquipmentTest.kt']:
+for filename in ['CharacterStatusEquipmentSystemTest.kt', 'PokerDiceCoreBackportTest.kt', 'InventoryCapacityNewGameTest.kt']:
     path = tests / filename
     text = path.read_text(encoding='utf-8')
     for old, new in [(140,175),(107,105),(109,126),(112,110),(165,175),(114,105),(121,126),(118,110),(113,107)]:
         text = text.replace(f'assertEquals({old},', f'assertEquals({new},')
     # Crit differs from DEF; keep the exact expected stat explicitly.
     text = text.replace('assertEquals(126, e.crit)', 'assertEquals(103, e.crit)').replace('assertEquals(126, before.crit)', 'assertEquals(103, before.crit)').replace('assertEquals(126, kai.crit.effective)', 'assertEquals(103, kai.crit.effective)')
-    text = text.replace('assertEquals(MADGOD_SET_ID, slots["armor"])', 'assertEquals(KAI_BLACKBLOOD_ARMOR_ID, slots["armor"])')
-    text = text.replace('assertEquals(MADGOD_SET_ID, r.state.equipment.getValue(KAI_ID).slots["armor"])', 'assertEquals(KAI_BLACKBLOOD_ARMOR_ID, r.state.equipment.getValue(KAI_ID).slots["armor"])')
-    text = text.replace('assertEquals(2, slots.values.count { it == MADGOD_SET_ID })', 'assertEquals(1, slots.values.count { it == MADGOD_SET_ID })')
     text = text.replace('setOf(EquipmentSlot.WEAPON, EquipmentSlot.ARMOR)', 'setOf(EquipmentSlot.WEAPON)')
     text = text.replace('assertEquals(50, def.bonuses.hp)', 'assertEquals(0, def.bonuses.hp)').replace('assertEquals(15, def.bonuses.str)', 'assertEquals(0, def.bonuses.str)').replace('assertEquals(30, def.bonuses.df)', 'assertEquals(0, def.bonuses.df)').replace('assertEquals(12, def.bonuses.agi)', 'assertEquals(0, def.bonuses.agi)').replace('assertEquals(50, d.bonuses.hp)', 'assertEquals(0, d.bonuses.hp)')
     for slot in ['head','gauntlets','greaves']:
@@ -227,7 +177,7 @@ path.write_text(text, encoding='utf-8')
 
 main = ROOT / 'app/src/main/java/com/rabpit/backroom/MainActivity.java'
 source = main.read_text(encoding='utf-8')
-kit = "CAO MINH — KIT 1.1.99\nMa Đạo Kiếm Tu / Vạn Giới Ma Tôn. Equipment: Huyết Ma Kiếm, Huyết Ma Chiến Khải, Nhẫn Vạn Tàng. Ma Tôn Vạn Giới là passive kế thừa giáp MadGod, không phải trang bị. Cao Minh dùng kiếm, thần niệm và ma nguyên; không dùng Magnum, đạn, combat HUD hoặc linked modules. Tên Nhẫn Vạn Tàng thay Omnivault; cơ chế storage/scan/copy hiện hành không thay đổi.\nKỹ năng và kết quả proc chỉ lấy từ authoritative combat state; không tự kích hoạt hoặc bịa damage. Giữ quyền quyết định hành động có chủ ý cho người chơi.\n"
+kit = "CAO MINH — KIT 1.1.99\nMa Đạo Kiếm Tu / Vạn Giới Ma Tôn. Equipment: Huyết Ma Kiếm, Huyết Ma Chiến Khải, Nhẫn Vạn Tàng. Đại Ma Đầu là passive nội tại, không phải trang bị. Cao Minh dùng kiếm, thần niệm và ma nguyên; không dùng Magnum, đạn, combat HUD hoặc linked modules. Tên Nhẫn Vạn Tàng thay Omnivault; cơ chế storage/scan/copy hiện hành không thay đổi.\nKỹ năng và kết quả proc chỉ lấy từ authoritative combat state; không tự kích hoạt hoặc bịa damage. Giữ quyền quyết định hành động có chủ ý cho người chơi.\n"
 skill_source = (CORE / 'CompanionSkillCatalog.kt').read_text(encoding='utf-8').split('  private val kai = listOf(', 1)[1].split('\n  private val lucia', 1)[0]
 for match in re.finditer(r's\("([^"]+)", "([^"]+)", "([^"]+)", "([^"]+)"', skill_source):
     name, kind, trigger, effect = match.groups()
@@ -258,7 +208,7 @@ class CaoMinhSkillsEquipmentTest {
   @Test fun skillListIncludesTheWhole199KitAndNoGunSkills() {
     val skills = CompanionSkillCatalog.forCharacter(KAI_ID)
     assertEquals(11, skills.size)
-    assertEquals("PASSIVE", skills.single { it.name == "Ma Tôn Vạn Giới" }.kind)
+    assertEquals("PASSIVE", skills.single { it.name == "Đại Ma Đầu" }.kind)
     assertTrue(skills.any { it.name == "Huyết Ma Nhị Thập Tứ Trảm" })
     assertFalse(skills.any { it.name == "Salvation" || it.name == "Guilty Crown Override" })
   }
@@ -280,5 +230,4 @@ class CaoMinhSkillsEquipmentTest {
 
 # Do not advertise a technological armor or change Cao Minh's avatar on the old cheat.
 html = ROOT / 'app/src/main/assets/index.html'
-edit(html, 'function madGodSetEquipped(){', 'function madGodSetEquipped(){return false;}\n  function legacyMadGodSetEquipped(){')
-print('Cao Minh 1.1.99 skills/equipment installed; Ma Tôn Vạn Giới is intrinsic; Nhẫn Vạn Tàng renamed.')
+print('Cao Minh 1.1.99 skills/equipment installed; Đại Ma Đầu is intrinsic; Nhẫn Vạn Tàng renamed.')

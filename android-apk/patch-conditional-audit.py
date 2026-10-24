@@ -42,7 +42,7 @@ helpers = r'''  private int proposedTurnRisk(JSONObject before, JSONObject gener
         else if ("inventory_upsert".equals(type) || "inventory_remove".equals(type) || "patch_player".equals(type)) score += 1;
         else if ("flag_patch".equals(type)) {
           String root = op.optString("root", "");
-          if (containsAny(root, "iris", "syvial", "survivorRegistry", "entityRegistry", "survivorsConfirmed", "entitiesConfirmedLocal", "madGod", "reunionPath")) score += 3;
+          if (containsAny(root, "iris", "syvial", "survivorRegistry", "entityRegistry", "survivorsConfirmed", "entitiesConfirmedLocal", "reunionPath")) score += 3;
           else if (containsAny(root, "omnivault", "communication", "exploration", "visualAreaKey", "visualEventKey", "entityEncounterKey")) score += 1;
         }
       }
@@ -132,8 +132,8 @@ helpers = r'''  private int proposedTurnRisk(JSONObject before, JSONObject gener
       feedback +
       "\n\nOPERATION TYPES: set_location{value}; set_level{level}; patch_player{patch}; inventory_upsert{item,basis}; inventory_remove{name,basis}; " +
       "party_upsert{member}; party_remove{name}; flag_patch{root,value}. " +
-      "Chỉ dùng flag root: exploration, communication, iris, syvial, jeff, madGod, omnivault, survivorRegistry, entityRegistry, survivorsConfirmed, entitiesConfirmedLocal, visualAreaKey, visualEventKey, entityEncounterKey, reunionPath. " +
-      "Inventory chỉ đổi khi Kai thật sự lấy/nhận/copy/trao/mất/tiêu thụ vật; nhìn thấy không đồng nghĩa sở hữu. MadGod roll success chỉ mở discovery route, không tự đưa set vào inventory. " +
+      "Chỉ dùng flag root: exploration, communication, iris, syvial, jeff, omnivault, survivorRegistry, entityRegistry, survivorsConfirmed, entitiesConfirmedLocal, visualAreaKey, visualEventKey, entityEncounterKey, reunionPath. " +
+      "Inventory chỉ đổi khi Kai thật sự lấy/nhận/copy/trao/mất/tiêu thụ vật; nhìn thấy không đồng nghĩa sở hữu. " +
       "JSON bắt buộc: {\"reply\":\"phản hồi Game Master bằng tiếng Việt tự nhiên\",\"ops\":[],\"snapshotEvent\":{\"shouldGenerate\":false,\"kind\":\"\",\"reason\":\"\"}}";
   }
 

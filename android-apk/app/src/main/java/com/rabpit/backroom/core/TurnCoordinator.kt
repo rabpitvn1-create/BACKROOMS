@@ -42,7 +42,8 @@ object TurnCoordinator {
       pending = null,
       completedTurnIds = execution.state.turn.completedTurnIds + pending.turnId
     ))
-    return TurnResult(completed, execution.copy(state = completed))
+    val regenerated = CharacterStatEngine.applyCompletedTurnRegen(completed, pending.turnId)
+    return TurnResult(regenerated, execution.copy(state = regenerated))
   }
 
   fun recover(state: GameState): PendingTurn? = state.turn.pending?.takeUnless {

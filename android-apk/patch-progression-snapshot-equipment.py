@@ -4,20 +4,19 @@ ROOT = Path(__file__).resolve().parent
 MAIN = ROOT / "app/src/main/java/com/rabpit/backroom/MainActivity.java"
 INDEX = ROOT / "app/src/main/assets/index.html"
 ENGINES = ROOT / "app/src/main/java/com/rabpit/backroom/core/Engines.kt"
-MADGOD_TEST = ROOT / "app/src/test/java/com/rabpit/backroom/core/MadGodEquipmentTest.kt"
 
 main = MAIN.read_text(encoding="utf-8")
 
 # Accept every authoritative equipment projection, not only the compact legacy `set` shape.
-old_equipment = "function equippedItem(s){try{var e=state&&state.equipment;if(!e)return null;if(e.set&&String(e.set.id||'')==='madgod:set'&&(s==='armor'||s==='weapon'))return e.set;return e[s]||null}catch(e){return null}}function madGodEquipped(s){var x=equippedItem(s);return !!(x&&String(x.id||'').indexOf('madgod:')===0)}"
-new_equipment = "function equippedItem(s){try{var e=state&&state.equipment||{};if(e.set&&String(e.set.id||e.set)==='madgod:set'&&(s==='armor'||s==='weapon'))return e.set;var direct=e[s];if(direct)return typeof direct==='string'?{id:direct,name:direct}:direct;var members=state&&state.partyDetails&&state.partyDetails.members;if(Array.isArray(members)){var kai=members.find(function(m){return String(m&&m.id)==='kai'});var value=kai&&kai.equipment&&kai.equipment[s];if(value)return typeof value==='string'?{id:value,name:value}:value}return null}catch(e){return null}}function madGodEquipped(s){var x=equippedItem(s);return !!(x&&String(x.id||x.name||x).toLowerCase().indexOf('madgod')>=0)}"
+old_equipment = "function equippedItem(s){try{var e=state&&state.equipment;if(!e)return null;return e[s]||null}catch(e){return null}}"
+new_equipment = "function equippedItem(s){try{var e=state&&state.equipment||{};var direct=e[s];if(direct)return typeof direct==='string'?{id:direct,name:direct}:direct;var members=state&&state.partyDetails&&state.partyDetails.members;if(Array.isArray(members)){var kai=members.find(function(m){return String(m&&m.id)==='kai'});var value=kai&&kai.equipment&&kai.equipment[s];if(value)return typeof value==='string'?{id:value,name:value}:value}return null}catch(e){return null}}"
 if old_equipment not in main:
-    raise RuntimeError("MadGod overlay equipment detector anchor missing")
+    raise RuntimeError("Overlay equipment detector anchor missing")
 main = main.replace(old_equipment, new_equipment, 1)
 
 badge_call = "box.appendChild(kai);appendEquipmentBadge(box);if(!r)"
 if badge_call not in main:
-    raise RuntimeError("Snapshot MadGod badge call anchor missing")
+    raise RuntimeError("Snapshot equipment badge call anchor missing")
 main = main.replace(badge_call, "box.appendChild(kai);if(!r)", 1)
 
 old_cache = "function cachedSnapshot(){try{var r=JSON.parse(localStorage.getItem('backroom-apk-snapshot')||'null');return r&&r.dataUri?r:null;}catch(e){return null;}}function renderSnapshot()"
@@ -121,42 +120,10 @@ main = main.replace(
 
 MAIN.write_text(main, encoding="utf-8")
 
-index = INDEX.read_text(encoding="utf-8")
-old_ui = "function madGodSetEquipped(){try{const e=state&&state.equipment;return !!(e&&e.set&&String(e.set.id||'')==='madgod:set')}catch(ignore){return false}}"
-new_ui = "function madGodSetEquipped(){try{const e=state&&state.equipment||{};if(e.set&&String(e.set.id||e.set)==='madgod:set')return true;if(['weapon','armor'].some(k=>String((e[k]&&e[k].id)||e[k]||'').toLowerCase().includes('madgod')))return true;const members=state&&state.partyDetails&&state.partyDetails.members;const kai=Array.isArray(members)&&members.find(m=>String(m&&m.id)==='kai');return !!(kai&&kai.equipment&&['weapon','armor'].some(k=>String((kai.equipment[k]&&kai.equipment[k].id)||kai.equipment[k]||'').toLowerCase().includes('madgod')))}catch(ignore){return false}}"
-if old_ui not in index:
-    raise RuntimeError("Character UI MadGod detector anchor missing")
-index = index.replace(old_ui, new_ui, 1)
-INDEX.write_text(index, encoding="utf-8")
 
-engines = ENGINES.read_text(encoding="utf-8")
-old_bind = '''          val boundSlots = equipment.slots + mapOf("weapon" to MADGOD_SET_ID, "armor" to MADGOD_SET_ID)
-          changed(state.copy(equipment = state.equipment + (command.actorId to equipment.copy(slots = boundSlots))), "item_equipped")
-'''
-new_bind = '''          val boundSlots = equipment.slots + mapOf("weapon" to MADGOD_SET_ID, "armor" to MADGOD_SET_ID)
-          val carried = removeItem(source, command.itemId, command.quantity) ?: return invalid(state, "insufficient_item_quantity")
-          changed(state.copy(
-            inventories = state.inventories + (command.actorId to carried),
-            equipment = state.equipment + (command.actorId to equipment.copy(slots = boundSlots))
-          ), "item_equipped")
-'''
-if old_bind not in engines:
-    raise RuntimeError("MadGod inventory-to-equipment binding anchor missing")
-engines = engines.replace(old_bind, new_bind, 1)
-ENGINES.write_text(engines, encoding="utf-8")
 
-test = MADGOD_TEST.read_text(encoding="utf-8")
-inventory_assert_anchor = '''    assertEquals(MADGOD_SET_ID, after["armor"])
-    assertEquals(KAI_OMNIVAULT_RING_ID, after["ring"])
-'''
-inventory_assert_replacement = inventory_assert_anchor + '''    assertFalse(equip.state.inventories.getValue(KAI_ID).items.containsKey(MADGOD_SET_ID))
-'''
-if inventory_assert_anchor not in test:
-    raise RuntimeError("MadGod equipped inventory regression anchor missing")
-test = test.replace(inventory_assert_anchor, inventory_assert_replacement, 1)
-MADGOD_TEST.write_text(test, encoding="utf-8")
 
-combined = MAIN.read_text(encoding="utf-8") + "\n" + INDEX.read_text(encoding="utf-8") + "\n" + ENGINES.read_text(encoding="utf-8") + "\n" + MADGOD_TEST.read_text(encoding="utf-8")
+combined = MAIN.read_text(encoding="utf-8") + "\n" + INDEX.read_text(encoding="utf-8") + "\n" + ENGINES.read_text(encoding="utf-8")
 for marker in (
     "sceneKey:visualSceneKey()",
     "r.sceneKey===visualSceneKey()",
@@ -165,16 +132,14 @@ for marker in (
     "exploration.put(\"minimumTurns\", 6)",
     "recordLevelProgress(state, oldLevel, newLevel)",
     "partyDetails&&state.partyDetails.members",
-    "val carried = removeItem(source, command.itemId, command.quantity)",
-    "assertFalse(equip.state.inventories.getValue(KAI_ID).items.containsKey(MADGOD_SET_ID))",
 ):
     if marker not in combined:
         raise RuntimeError("Progression/snapshot/equipment contract missing: " + marker)
 
 if "appendEquipmentBadge(box)" in MAIN.read_text(encoding="utf-8"):
-    raise RuntimeError("Snapshot MadGod text badge still renders over the overlay")
+    raise RuntimeError("Snapshot equipment text badge still renders over the overlay")
 
-print("Installed robust MadGod projection, scene-keyed Snapshot cache, location Level recognition, and six-turn progression gate.")
+print("Installed robust equipment projection, scene-keyed Snapshot cache, location Level recognition, and six-turn progression gate.")
 
 # Pressure Combat owns active encounters first. The unified pool patch then rewrites the completed
 # final runtime so Jeff/Jane share the single Entity encounter channel and cleanup persists in core.
