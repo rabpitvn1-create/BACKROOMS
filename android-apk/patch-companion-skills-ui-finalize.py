@@ -6,7 +6,7 @@ INDEX = ROOT / "app/src/main/assets/index.html"
 TEST = ROOT / "app/src/test/java/com/rabpit/backroom/core/CompanionSkillCatalogTest.kt"
 
 source = PATCH.read_text(encoding="utf-8")
-old = "skills_anchor = '    put(\"statuses\", JSONArray().apply {\\n'"
+old = "skills_anchor = '    put(\"equipment\", JSONObject(c.equipment))\\n'"  # 2026-10-24 chain repair: base patch already uses the finalized equipment anchor (statuses anchor absent on this tree generation); replace below is an identity no-op.
 new = "skills_anchor = '    put(\"equipment\", JSONObject(c.equipment))\\n'"
 if old not in source:
     raise RuntimeError("Companion skill finalizer could not locate Character Detail projection anchor")

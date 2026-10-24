@@ -8,7 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 DB_PATH = ROOT / "app/src/main/assets/knowledge/knowledge_db.json"
 DRIVE_CANON = (ROOT / "drive-canon.txt").read_text(encoding="utf-8")
-KAI_CANON = (ROOT / "kai-codex.txt").read_text(encoding="utf-8")
+CAO_MINH_CANON = (ROOT / "kai-codex.txt").read_text(encoding="utf-8")
 DB = json.loads(DB_PATH.read_text(encoding="utf-8"))
 RECORDS = {r["id"]: r for r in DB["records"]}
 
@@ -44,38 +44,38 @@ def old_drive_packet(case: dict) -> str:
         section(DRIVE_CANON, "GAMEPLAY HARD LOCK", "END DRIVE CANON R06"),
     ]
     action = case["action"].lower()
-    if any(k in action for k in ["entity", "hound", "smiler", "jeff", "almond", "item", "loot", "inventory", "omnivault", "water", "nước", "thuốc"]):
-        out.append(section(DRIVE_CANON, "ENTITY VÀ TÀI NGUYÊN", "IRIS / SYVIAL"))
-    if case.get("present") or any(k in action for k in ["iris", "syvial", "nói", "hỏi", "dialogue", "trò chuyện"]):
-        out.append(section(DRIVE_CANON, "IRIS / SYVIAL", "GAMEPLAY HARD LOCK"))
+    if any(k in action for k in ["entity", "hound", "smiler", "jeff", "almond", "item", "loot", "inventory", "vạn khố", "water", "nước", "thuốc"]):
+        out.append(section(DRIVE_CANON, "ENTITY VÀ TÀI NGUYÊN", "LỤC TRẦM / SYVIAL"))
+    if case.get("present") or any(k in action for k in ["lục trầm", "syvial", "nói", "hỏi", "dialogue", "trò chuyện"]):
+        out.append(section(DRIVE_CANON, "LỤC TRẦM / SYVIAL", "GAMEPLAY HARD LOCK"))
     return "\n\n".join(x for x in out if x)
 
 
-def old_kai_packet(case: dict) -> str:
+def old_cao_minh_packet(case: dict) -> str:
     out = [
-        section(KAI_CANON, "1. ĐỊNH DANH", "2. NGOẠI HÌNH"),
-        section(KAI_CANON, "3. TÍNH CÁCH / NGUYÊN TẮC", "4. PHONG CÁCH GIAO TIẾP"),
-        section(KAI_CANON, "4. PHONG CÁCH GIAO TIẾP", "5. NĂNG LỰC CHIẾN ĐẤU"),
-        section(KAI_CANON, "5. NĂNG LỰC CHIẾN ĐẤU", "6. SPARDA CORE"),
-        section(KAI_CANON, "6. SPARDA CORE", "7. DEVIL TRIGGER"),
-        section(KAI_CANON, "10. BLACKBLOOD ARMOR & MODULES", "11. OMNIVAULT RING / NHẪN VẠN TÀNG"),
-        section(KAI_CANON, "13. GIỚI HẠN THỰC SỰ", "14. ACTION LOCKS / CẤM MODEL TỰ BỊA"),
-        section(KAI_CANON, "14. ACTION LOCKS / CẤM MODEL TỰ BỊA", "END OF KAI OPERATIONAL CODEX"),
+        section(CAO_MINH_CANON, "1. ĐỊNH DANH", "2. NGOẠI HÌNH"),
+        section(CAO_MINH_CANON, "3. TÍNH CÁCH / NGUYÊN TẮC", "4. PHONG CÁCH GIAO TIẾP"),
+        section(CAO_MINH_CANON, "4. PHONG CÁCH GIAO TIẾP", "5. NĂNG LỰC CHIẾN ĐẤU"),
+        section(CAO_MINH_CANON, "5. NĂNG LỰC CHIẾN ĐẤU", "6. VẠN QUỶ MA TÂM"),
+        section(CAO_MINH_CANON, "6. VẠN QUỶ MA TÂM", "7. VẠN QUỶ MA THÂN"),
+        section(CAO_MINH_CANON, "10. HUYẾT MA CHIẾN KHẢI & CÁC PHẦN LIÊN KẾT", "11. VẠN KHỐ GIỚI CHỈ"),
+        section(CAO_MINH_CANON, "13. GIỚI HẠN THỰC SỰ", "14. ACTION LOCKS / CẤM MODEL TỰ BỊA"),
+        section(CAO_MINH_CANON, "14. ACTION LOCKS / CẤM MODEL TỰ BỊA", "END OF CAO MINH OPERATIONAL CODEX"),
     ]
     action = case["action"].lower()
     if any(k in action for k in ["bắn", "đánh", "combat", "tấn công", "entity", "hound", "smiler", "threat", "đe dọa"]):
         out.extend([
-            section(KAI_CANON, "7. DEVIL TRIGGER", "10. BLACKBLOOD ARMOR & MODULES"),
-            section(KAI_CANON, "12. PHONG CÁCH CHIẾN ĐẤU", "13. GIỚI HẠN THỰC SỰ"),
+            section(CAO_MINH_CANON, "7. VẠN QUỶ MA THÂN", "10. HUYẾT MA CHIẾN KHẢI & CÁC PHẦN LIÊN KẾT"),
+            section(CAO_MINH_CANON, "12. PHONG CÁCH CHIẾN ĐẤU", "13. GIỚI HẠN THỰC SỰ"),
         ])
-    if any(k in action for k in ["omnivault", "item", "inventory", "scan", "hoàn nguyên", "restore"]):
-        out.append(section(KAI_CANON, "11. OMNIVAULT RING / NHẪN VẠN TÀNG", "12. PHONG CÁCH CHIẾN ĐẤU"))
+    if any(k in action for k in ["vạn khố", "item", "inventory", "scan", "hoàn nguyên", "restore"]):
+        out.append(section(CAO_MINH_CANON, "11. VẠN KHỐ GIỚI CHỈ", "12. PHONG CÁCH CHIẾN ĐẤU"))
     return "\n\n".join(x for x in out if x)
 
 
 MANDATORY = {
     "GAME.TEXT.CORE", "GAME.GM.FAIRNESS", "WORLD.CORE", "WRITING.KNOWLEDGE_BOUNDARY",
-    "WRITING.COMPETENCE", "WRITING.PLAYER_AGENCY", "CHAR.KAI.RUNTIME_CORE"
+    "WRITING.COMPETENCE", "WRITING.PLAYER_AGENCY", "CHAR.CAO_MINH.RUNTIME_CORE"
 }
 
 
@@ -85,40 +85,40 @@ def select_new(case: dict) -> set[str]:
     present = set(case.get("present", []))
     action = case["action"].lower()
     scene = (action + " " + case.get("scene", "")).lower()
-    if "iris" in present:
-        selected |= {"CHAR.IRIS.RUNTIME_CORE", "REL.KAI.IRIS.BASELINE", "ADDR.IRIS.KAI"}
+    if "luc-tram" in present:
+        selected |= {"CHAR.LUC_TRAM.RUNTIME_CORE", "REL.CAO_MINH.LUC_TRAM.BASELINE", "ADDR.LUC_TRAM.CAO_MINH"}
     if "syvial" in present:
-        selected |= {"CHAR.SYVIAL.RUNTIME_CORE", "REL.KAI.SYVIAL.BASELINE", "ADDR.SYVIAL.KAI"}
-    if {"iris", "syvial"} <= present:
-        selected.add("REL.IRIS.SYVIAL.BASELINE")
+        selected |= {"CHAR.SYVIAL.RUNTIME_CORE", "REL.CAO_MINH.SYVIAL.BASELINE", "ADDR.SYVIAL.CAO_MINH"}
+    if {"luc-tram", "syvial"} <= present:
+        selected.add("REL.LUC_TRAM.SYVIAL.BASELINE")
     direct = {
-        "argus": "CHAR.IRIS.ARGUS", "terrain read": "CHAR.IRIS.ARGUS",
-        "thousandfold": "CHAR.IRIS.THOUSANDFOLD", "ivory": "CHAR.IRIS.IVORY_EBONY", "ebony": "CHAR.IRIS.IVORY_EBONY",
-        "field mednet": "CHAR.IRIS.SUPPORT", "field galley": "CHAR.IRIS.SUPPORT",
+        "thiên kiếm linh tâm": "CHAR.LUC_TRAM.THIEN_KIEM_LINH_TAM", "linh tâm": "CHAR.LUC_TRAM.THIEN_KIEM_LINH_TAM",
+        "thiên kiếm linh tâm": "CHAR.LUC_TRAM.THIEN_KIEM_LINH_TAM", "tịch quang": "CHAR.LUC_TRAM.TICH_QUANG", "thiên kiếm thất thức": "CHAR.LUC_TRAM.TICH_QUANG",
+        "kiếm khải": "CHAR.LUC_TRAM.THIEN_CO_BACH_KIM_KIEM_KHAI", "thiên kiếm thất thức": "CHAR.LUC_TRAM.THIEN_KIEM_THAT_THUC",
         "godkiller override": "CHAR.SYVIAL.GODKILLER_OVERRIDE", "lucifer core": "CHAR.SYVIAL.LUCIFER_CORE",
-        "sparda core": "CHAR.KAI.SPARDA_CORE", "white wraith": "CHAR.KAI.WHITE_WRAITH",
-        "omnivault": "CHAR.KAI.OMNIVAULT", "nhẫn vạn tàng": "CHAR.KAI.OMNIVAULT",
+        "vạn quỷ ma tâm": "CHAR.CAO_MINH.VAN_QUY_MA_TAM", "huyết ma kiếm": "CHAR.CAO_MINH.HUYET_MA_KIEM",
+        "vạn khố giới chỉ": "CHAR.CAO_MINH.VAN_KHO_GIOI_CHI", "vạn khố": "CHAR.CAO_MINH.VAN_KHO_GIOI_CHI",
     }
     for needle, rid in direct.items():
         if needle in action:
             selected.add(rid)
     if "godkiller" in action and "godkiller override" not in action:
         selected.add("CHAR.SYVIAL.GODKILLER")
-    if "devil trigger" in action:
-        selected.add("CHAR.KAI.DEVIL_TRIGGER")
+    if "vạn quỷ ma thân" in action or "devil trigger" in action:
+        selected.add("CHAR.CAO_MINH.VAN_QUY_MA_THAN")
         if "syvial" in present:
             selected.add("CHAR.SYVIAL.DEVIL_TRIGGER")
     if any(k in scene for k in ["dấu vết", "trace", "vết chân", "route", "đường đi", "góc chết", "vật che", "phục kích", "địa hình"]):
-        if "iris" in present:
-            selected.add("CHAR.IRIS.ARGUS")
+        if "luc-tram" in present:
+            selected.add("CHAR.LUC_TRAM.THIEN_KIEM_LINH_TAM")
     if any(k in scene for k in ["đe dọa", "threat", "tấn công", "combat", "entity", "hound", "smiler", "wretch", "skin-stealer", "jeff"]):
         selected.add("ENTITY.GLOBAL_HARD_LOCK")
         if "syvial" in present:
             selected.add("CHAR.SYVIAL.COMBAT")
-    if any(k in scene for k in ["bị thương", "vết thương", "medical", "sơ cứu"]) and "iris" in present:
-        selected.add("CHAR.IRIS.SUPPORT")
-    if any(k in scene for k in ["thức ăn", "nấu", "food", "cooking"]) and "iris" in present:
-        selected.add("CHAR.IRIS.SUPPORT")
+    if any(k in scene for k in ["bị thương", "vết thương", "medical", "sơ cứu"]) and "luc-tram" in present:
+        selected.add("CHAR.LUC_TRAM.RUNTIME_CORE")
+    if any(k in scene for k in ["thức ăn", "nấu", "food", "cooking"]) and "luc-tram" in present:
+        selected.add("CHAR.LUC_TRAM.RUNTIME_CORE")
     tag_map = {
         "hound": "ENTITY.HOUND", "false puddle": "ENTITY.FALSE_PUDDLE", "smiler": "ENTITY.SMILER",
         "skin-stealer": "ENTITY.SKIN_STEALER", "skin stealer": "ENTITY.SKIN_STEALER",
@@ -156,27 +156,27 @@ def old_packet_tokens(case: dict) -> int:
         "party": case.get("present", []), "flags": case.get("legacy_flags", {}),
         "log": case.get("log", [])[-6:],
     }
-    text = old_drive_packet(case) + "\n\n" + old_kai_packet(case) + "\n\n" + json.dumps(state, ensure_ascii=False) + "\n\n" + case["action"]
+    text = old_drive_packet(case) + "\n\n" + old_cao_minh_packet(case) + "\n\n" + json.dumps(state, ensure_ascii=False) + "\n\n" + case["action"]
     return toks(text)
 
 
 def old_supports(case: dict, rid: str) -> bool:
-    packet = (old_drive_packet(case) + "\n" + old_kai_packet(case)).lower()
+    packet = (old_drive_packet(case) + "\n" + old_cao_minh_packet(case)).lower()
     probes = {
-        "CHAR.IRIS.RUNTIME_CORE": ["iris / argus"],
-        "CHAR.IRIS.ARGUS": ["argus terrain read"],
-        "CHAR.IRIS.THOUSANDFOLD": ["thousandfold cognition"],
-        "CHAR.IRIS.IVORY_EBONY": ["ivory & ebony"],
-        "CHAR.IRIS.SUPPORT": ["field mednet", "field galley"],
-        "ADDR.IRIS.KAI": ["xưng “em”, gọi kai “anh”", "xưng \"em\", gọi kai \"anh\""],
-        "REL.IRIS.SYVIAL.BASELINE": ["bạn bè", "trusted teammates"],
+        "CHAR.LUC_TRAM.RUNTIME_CORE": ["lục trầm: nữ"],
+        "CHAR.LUC_TRAM.THIEN_KIEM_LINH_TAM": ["thiên kiếm linh tâm"],
+        "CHAR.LUC_TRAM.THIEN_KIEM_LINH_TAM": ["thiên kiếm linh tâm"],
+        "CHAR.LUC_TRAM.TICH_QUANG": ["tịch quang"],
+        "CHAR.LUC_TRAM.RUNTIME_CORE": ["lục trầm: nữ"],
+        "ADDR.LUC_TRAM.CAO_MINH": ["gọi hắn “các hạ”", "gọi hắn \"các hạ\""],
+        "REL.LUC_TRAM.SYVIAL.BASELINE": ["đều không phải procedural survivor"],
         "CHAR.SYVIAL.RUNTIME_CORE": ["syvial: con gái lucifer"],
         "CHAR.SYVIAL.COMBAT": ["kiếm sĩ siêu nhiên"],
-        "ADDR.SYVIAL.KAI": ["xưng “em”, gọi “anh” hoặc “kai”", "xưng \"em\", gọi \"anh\" hoặc \"kai\""],
-        "CHAR.KAI.OMNIVAULT": ["omnivault ring / nhẫn vạn tàng"],
-        "CHAR.KAI.GUILTY_CROWN_OVERRIDE": ["guilty crown override"],
+        "ADDR.SYVIAL.CAO_MINH": ["xưng “em”, gọi “anh” hoặc “cao minh”", "xưng \"em\", gọi \"anh\" hoặc \"cao minh\""],
+        "CHAR.CAO_MINH.VAN_KHO_GIOI_CHI": ["vạn khố giới chỉ"],
+        "CHAR.CAO_MINH.HUYET_MA_NHI_THAP_TU_TRAM": ["huyết ma nhị thập tứ trảm"],
         "STORY.MAIN.OBJECTIVE": ["mục tiêu dài hạn"],
-        "STORY.MAIN.SEPARATION": ["black_blood_link", "location unknown to kai"],
+        "STORY.MAIN.SEPARATION": ["không biết vị trí/tình trạng hiện tại của lục trầm"],
         "ENTITY.HOUND": ["hound"],
         "ENTITY.BEAST_LEVEL_5": ["the beast"],
         "ITEM.ALMOND_WATER": ["almond water"],
@@ -194,46 +194,46 @@ long_log = [
 
 CORPUS = [
     {
-        "name": "level0_quiet_exploration", "level": 0, "action": "Kai kiểm tra tường và các dấu mốc quanh hành lang.",
+        "name": "level0_quiet_exploration", "level": 0, "action": "Cao Minh kiểm tra tường và các dấu mốc quanh hành lang.",
         "present": [], "main_separated": True, "log": long_log,
-        "required": {"LEVEL.00", "CHAR.KAI.RUNTIME_CORE", "STORY.MAIN.OBJECTIVE", "STORY.MAIN.SEPARATION"},
+        "required": {"LEVEL.00", "CHAR.CAO_MINH.RUNTIME_CORE", "STORY.MAIN.OBJECTIVE", "STORY.MAIN.SEPARATION"},
         "quality": {"story_continuity_errors": {"STORY.MAIN.OBJECTIVE", "STORY.MAIN.SEPARATION"}}
     },
     {
-        "name": "iris_present_trace", "level": 1, "action": "Kai nhìn dấu vết lạ cạnh cột bê tông.", "scene": "dấu vết cần kiểm tra và một tuyến rút chưa chắc chắn",
-        "present": ["iris"], "log": long_log,
-        "required": {"CHAR.IRIS.RUNTIME_CORE", "CHAR.IRIS.ARGUS", "REL.KAI.IRIS.BASELINE", "ADDR.IRIS.KAI", "LEVEL.01"},
-        "quality": {"character_errors": {"CHAR.IRIS.RUNTIME_CORE"}, "address_errors": {"ADDR.IRIS.KAI"}, "ability_overreach": {"CHAR.IRIS.ARGUS"}}
+        "name": "luc_tram_present_trace", "level": 1, "action": "Cao Minh nhìn dấu vết lạ cạnh cột bê tông.", "scene": "dấu vết cần kiểm tra và một tuyến rút chưa chắc chắn",
+        "present": ["luc-tram"], "log": long_log,
+        "required": {"CHAR.LUC_TRAM.RUNTIME_CORE", "CHAR.LUC_TRAM.THIEN_KIEM_LINH_TAM", "REL.CAO_MINH.LUC_TRAM.BASELINE", "ADDR.LUC_TRAM.CAO_MINH", "LEVEL.01"},
+        "quality": {"character_errors": {"CHAR.LUC_TRAM.RUNTIME_CORE"}, "address_errors": {"ADDR.LUC_TRAM.CAO_MINH"}, "ability_overreach": {"CHAR.LUC_TRAM.THIEN_KIEM_LINH_TAM"}}
     },
     {
-        "name": "iris_thousandfold", "level": 2, "action": "Iris dùng Thousandfold Cognition để phân tích dữ kiện mâu thuẫn.",
-        "present": ["iris"], "log": long_log,
-        "required": {"CHAR.IRIS.THOUSANDFOLD", "CHAR.IRIS.RUNTIME_CORE", "ADDR.IRIS.KAI"},
-        "quality": {"ability_overreach": {"CHAR.IRIS.THOUSANDFOLD"}}
+        "name": "luc_tram_linh_tam", "level": 2, "action": "Lục Trầm dùng Thiên Kiếm Linh Tâm để phân tích dữ kiện mâu thuẫn.",
+        "present": ["luc-tram"], "log": long_log,
+        "required": {"CHAR.LUC_TRAM.THIEN_KIEM_LINH_TAM", "CHAR.LUC_TRAM.RUNTIME_CORE", "ADDR.LUC_TRAM.CAO_MINH"},
+        "quality": {"ability_overreach": {"CHAR.LUC_TRAM.THIEN_KIEM_LINH_TAM"}}
     },
     {
-        "name": "iris_field_mednet", "level": 3, "action": "Kai bị thương; Iris kiểm tra vết thương bằng Field MedNet.",
-        "present": ["iris"], "log": long_log,
-        "required": {"CHAR.IRIS.SUPPORT", "CHAR.IRIS.RUNTIME_CORE"},
-        "quality": {"ability_overreach": {"CHAR.IRIS.SUPPORT"}}
+        "name": "luc_tram_first_aid", "level": 3, "action": "Cao Minh bị thương; Lục Trầm kiểm tra vết thương.",
+        "present": ["luc-tram"], "log": long_log,
+        "required": {"CHAR.LUC_TRAM.RUNTIME_CORE", "CHAR.LUC_TRAM.RUNTIME_CORE"},
+        "quality": {"ability_overreach": {"CHAR.LUC_TRAM.RUNTIME_CORE"}}
     },
     {
         "name": "syvial_direct_threat", "level": 2, "action": "Một Hound lao vào từ hành lang hẹp.", "scene": "direct threat combat",
         "present": ["syvial"], "log": long_log,
-        "required": {"CHAR.SYVIAL.RUNTIME_CORE", "CHAR.SYVIAL.COMBAT", "REL.KAI.SYVIAL.BASELINE", "ADDR.SYVIAL.KAI", "ENTITY.HOUND"},
-        "quality": {"character_errors": {"CHAR.SYVIAL.RUNTIME_CORE"}, "address_errors": {"ADDR.SYVIAL.KAI"}, "competence_suppression": {"CHAR.SYVIAL.COMBAT"}}
+        "required": {"CHAR.SYVIAL.RUNTIME_CORE", "CHAR.SYVIAL.COMBAT", "REL.CAO_MINH.SYVIAL.BASELINE", "ADDR.SYVIAL.CAO_MINH", "ENTITY.HOUND"},
+        "quality": {"character_errors": {"CHAR.SYVIAL.RUNTIME_CORE"}, "address_errors": {"ADDR.SYVIAL.CAO_MINH"}, "competence_suppression": {"CHAR.SYVIAL.COMBAT"}}
     },
     {
-        "name": "both_followers_dialogue", "level": 4, "action": "Kai hỏi Iris và Syvial nghĩ gì về việc nghỉ ở đây.",
-        "present": ["iris", "syvial"], "log": long_log,
-        "required": {"CHAR.IRIS.RUNTIME_CORE", "CHAR.SYVIAL.RUNTIME_CORE", "ADDR.IRIS.KAI", "ADDR.SYVIAL.KAI", "REL.IRIS.SYVIAL.BASELINE"},
-        "quality": {"character_errors": {"CHAR.IRIS.RUNTIME_CORE", "CHAR.SYVIAL.RUNTIME_CORE"}, "address_errors": {"ADDR.IRIS.KAI", "ADDR.SYVIAL.KAI"}}
+        "name": "both_followers_dialogue", "level": 4, "action": "Cao Minh hỏi Lục Trầm và Syvial nghĩ gì về việc nghỉ ở đây.",
+        "present": ["luc-tram", "syvial"], "log": long_log,
+        "required": {"CHAR.LUC_TRAM.RUNTIME_CORE", "CHAR.SYVIAL.RUNTIME_CORE", "ADDR.LUC_TRAM.CAO_MINH", "ADDR.SYVIAL.CAO_MINH", "REL.LUC_TRAM.SYVIAL.BASELINE"},
+        "quality": {"character_errors": {"CHAR.LUC_TRAM.RUNTIME_CORE", "CHAR.SYVIAL.RUNTIME_CORE"}, "address_errors": {"ADDR.LUC_TRAM.CAO_MINH", "ADDR.SYVIAL.CAO_MINH"}}
     },
     {
-        "name": "omnivault_scan", "level": 1, "action": "Kai dùng Omnivault scan vật vô tri vừa tìm được.",
+        "name": "van_kho_scan", "level": 1, "action": "Cao Minh dùng Vạn Khố Giới Chỉ scan vật vô tri vừa tìm được.",
         "present": [], "log": long_log,
-        "required": {"CHAR.KAI.OMNIVAULT", "LEVEL.01"},
-        "quality": {"ability_overreach": {"CHAR.KAI.OMNIVAULT"}}
+        "required": {"CHAR.CAO_MINH.VAN_KHO_GIOI_CHI", "LEVEL.01"},
+        "quality": {"ability_overreach": {"CHAR.CAO_MINH.VAN_KHO_GIOI_CHI"}}
     },
     {
         "name": "level5_beast", "level": 5, "action": "Dấu vết cho thấy Beast of Level 5 có thể đang theo dõi nhóm.", "scene": "trace threat",
@@ -275,9 +275,9 @@ for case in CORPUS:
     old_missing += len(old_missing_ids)
     new_missing += len(new_missing_ids)
     # OLD compact packets are broad prose blobs. Count sections outside direct required needs as coarse irrelevant units.
-    old_units = 8 + (2 if any(k in case["action"].lower() for k in ["entity", "hound", "item", "omnivault", "water", "nước"]) else 0) + (1 if case.get("present") else 0)
+    old_units = 8 + (2 if any(k in case["action"].lower() for k in ["entity", "hound", "item", "vạn khố", "water", "nước"]) else 0) + (1 if case.get("present") else 0)
     old_irrelevant += max(0, old_units - len(required))
-    supportive = required | MANDATORY | {f"LEVEL.{case['level']:02d}", "ENTITY.GLOBAL_HARD_LOCK", "ITEM.GLOBAL_HARD_LOCK", "REL.KAI.IRIS.BASELINE", "REL.KAI.SYVIAL.BASELINE"}
+    supportive = required | MANDATORY | {f"LEVEL.{case['level']:02d}", "ENTITY.GLOBAL_HARD_LOCK", "ITEM.GLOBAL_HARD_LOCK", "REL.CAO_MINH.LUC_TRAM.BASELINE", "REL.CAO_MINH.SYVIAL.BASELINE"}
     new_irrelevant += len(selected - supportive)
     for quality, ids in case.get("quality", {}).items():
         if any(not old_supports(case, rid) for rid in ids):

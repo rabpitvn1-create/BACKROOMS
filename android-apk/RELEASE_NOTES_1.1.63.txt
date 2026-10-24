@@ -7,4 +7,4 @@ Backroom 1.1.63 Debug
 - Thêm nút Kỹ năng trong Character Detail. Danh sách skill mở thành bảng riêng để không làm rối Status, Equipment và Inventory.
 - Đưa Companion Skill Catalog, skill projection và UI contracts vào patch chain cuối để tránh bị các patch Character Detail cũ ghi đè.
 - Production CI 1.1.63 kiểm tra thêm các contract của Iris, Syvial, An Nhiên và Character Skill UI trước khi build, đóng gói, upload artifact và phát hành APK.
-- Giữ nguyên các hard lock đã phát hành cho Diệp Minh, Lucia, Kai Guilty Crown Override, Entity durability, healing items, unified Entity pool và MadGod equipment runtime.
+- Giữ nguyên các hard lock đã phát hành cho Diệp Minh, Lucia, Kai Guilty Crown Override, Entity durability, healing items, unified Entity pool và equipment runtime.

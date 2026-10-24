@@ -1,0 +1,19 @@
+/* Nunito from https://github.com/google/fonts/tree/main/ofl/nunito.
+   Bundled locally for offline play; license: fonts/OFL-Nunito.txt. */
+@font-face {
+  font-family: "Nunito";
+  src: url("fonts/Nunito-Variable.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 200 1000;
+  font-display: swap;
+}
+
+:root {
+  --game-font: "Nunito", sans-serif;
+  font-family: var(--game-font);
+}
+
+/* Include form controls, SVG text, generated labels and dynamic game panels. */
+*, ::before, ::after {
+  font-family: inherit;
+}

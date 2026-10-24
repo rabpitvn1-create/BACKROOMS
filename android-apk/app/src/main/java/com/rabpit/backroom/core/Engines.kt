@@ -99,16 +99,19 @@ object InventoryEngine {
         changed(state.copy(inventories = state.inventories + (command.actorId to addItem(source, item))), "inventory_pickup")
       }
       ItemCommand.Operation.DROP -> {
+        if (EquipmentEngine.isEquipped(state, command.actorId, command.itemId)) return invalid(state, "item_equipped_locked")
         val next = removeItem(source, command.itemId, command.quantity) ?: return invalid(state, "insufficient_item_quantity")
         changed(state.copy(inventories = state.inventories + (command.actorId to next)), "inventory_remove")
       }
       ItemCommand.Operation.USE -> useItem(state, source, command)
       ItemCommand.Operation.TRANSFER -> {
+        if (EquipmentEngine.isEquipped(state, command.actorId, command.itemId)) return invalid(state, "item_equipped_locked")
         val targetId = command.targetId ?: return invalid(state, "target_required")
+        if (targetId == command.actorId) return invalid(state, "cannot_transfer_to_self")
         if (!state.characters.containsKey(targetId)) return invalid(state, "target_unknown")
         val owned = source.items[command.itemId] ?: return invalid(state, "item_not_owned")
         if (owned.quantity < command.quantity) return invalid(state, "insufficient_item_quantity")
-        if (command.actorId == KAI_ID && InventoryPolicy.isKaiSignatureEquipment(state, owned)) return invalid(state, "signature_equipment_locked")
+        if (command.actorId == CAO_MINH_ID && InventoryPolicy.isCaoMinhSignatureEquipment(state, owned)) return invalid(state, "signature_equipment_locked")
         val transferred = ItemContentRules.normalize(owned).copy(quantity = command.quantity)
         val targetInventory = state.inventories[targetId] ?: InventoryState(targetId)
         val validation = InventoryPolicy.validateAddition(state, targetId, targetInventory, transferred, command.quantity)
@@ -117,19 +120,9 @@ object InventoryEngine {
         val to = addItem(targetInventory, transferred)
         changed(state.copy(inventories = state.inventories + (command.actorId to from) + (targetId to to)), "inventory_transfer")
       }
-      ItemCommand.Operation.EQUIP -> {
-        if ((source.items[command.itemId]?.quantity ?: 0) < command.quantity) return invalid(state, "item_not_owned")
-        val slot = command.slot ?: return invalid(state, "equipment_slot_required")
-        val equipment = state.equipment[command.actorId] ?: EquipmentState(command.actorId)
-        changed(state.copy(equipment = state.equipment + (command.actorId to equipment.copy(slots = equipment.slots + (slot to command.itemId)))), "item_equipped")
-      }
-      ItemCommand.Operation.UNEQUIP -> {
-        val slot = command.slot ?: return invalid(state, "equipment_slot_required")
-        val equipment = state.equipment[command.actorId] ?: return invalid(state, "equipment_missing")
-        if (equipment.slots[slot] != command.itemId) return invalid(state, "item_not_equipped")
-        changed(state.copy(equipment = state.equipment + (command.actorId to equipment.copy(slots = equipment.slots - slot))), "item_unequipped")
-      }
-      ItemCommand.Operation.STORE, ItemCommand.Operation.WITHDRAW -> invalid(state, "use_omnivault_command")
+      ItemCommand.Operation.EQUIP -> EquipmentEngine.equip(state, command)
+      ItemCommand.Operation.UNEQUIP -> EquipmentEngine.unequip(state, command)
+      ItemCommand.Operation.STORE, ItemCommand.Operation.WITHDRAW -> invalid(state, "use_vanKhoGioiChi_command")
     }
   }
 }
@@ -145,15 +138,18 @@ object PartyEngine {
       changed(state.copy(party = state.party.copy(memberIds = state.party.memberIds + command.targetId)), "party_member_added")
     }
     PartyCommand.Operation.REMOVE -> {
+      if (command.targetId == AN_NHIEN_ID) return invalid(state, "an_nhien_follower_locked")
       if (command.targetId == state.party.leaderId) return invalid(state, "cannot_remove_leader")
       if (command.targetId !in state.party.memberIds) return invalid(state, "not_in_party")
       changed(state.copy(party = state.party.copy(memberIds = state.party.memberIds - command.targetId)), "party_member_removed")
     }
     PartyCommand.Operation.SET_LEADER -> {
+      if (command.targetId == AN_NHIEN_ID) return invalid(state, "an_nhien_cannot_lead")
       if (command.targetId !in state.party.memberIds) return invalid(state, "leader_not_in_party")
       changed(state.copy(party = state.party.copy(leaderId = command.targetId)), "party_leader_changed")
     }
     PartyCommand.Operation.SEPARATE -> {
+      if (command.targetId == AN_NHIEN_ID) return invalid(state, "an_nhien_follower_locked")
       val character = state.characters[command.targetId] ?: return invalid(state, "target_unknown")
       changed(state.copy(characters = state.characters + (command.targetId to character.copy(presence = CharacterPresence.SEPARATED))), "party_member_separated")
     }

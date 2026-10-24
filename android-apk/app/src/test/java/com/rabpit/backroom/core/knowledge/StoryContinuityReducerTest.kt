@@ -12,26 +12,26 @@ class StoryContinuityReducerTest {
       .put("level", JSONObject().put("number", 0))
       .put("party", JSONArray())
       .put("flags", JSONObject()
-        .put("iris", JSONObject().put("continuity", "separated"))
+        .put("luc-tram", JSONObject().put("continuity", "separated"))
         .put("syvial", JSONObject().put("continuity", "separated"))
         .put("entityRegistry", JSONObject()))
 
     val after = JSONObject(before.toString())
       .put("turn", 8)
       .put("level", JSONObject().put("number", 1))
-      .put("party", JSONArray().put(JSONObject().put("id", "iris").put("name", "Iris")))
+      .put("party", JSONArray().put(JSONObject().put("id", "luc-tram").put("name", "Lục Trầm")))
     after.getJSONObject("flags")
-      .put("iris", JSONObject().put("continuity", "reunited"))
-      .put("communication", JSONObject().put("blackBlood", "partial"))
+      .put("luc-tram", JSONObject().put("continuity", "reunited"))
+      .put("communication", JSONObject().put("vanGioiMaMon", "partial"))
       .put("entityRegistry", JSONObject().put("Hound", JSONObject().put("confirmed", true)))
 
-    val rawAction = "Kai says a very long private line that must not become the long-term memory store."
+    val rawAction = "Cao Minh says a very long private line that must not become the long-term memory store."
     val reduced = JSONObject(StoryContinuityReducer.apply(before.toString(), after.toString(), rawAction))
     val continuity = reduced.getJSONObject("flags").getJSONObject("storyContinuity")
 
     val ids = allIds(continuity)
     assertTrue(ids.contains("EVT.8.LEVEL.0.1"))
-    assertTrue(ids.contains("EVT.8.PARTY.JOIN.iris"))
+    assertTrue(ids.contains("EVT.8.PARTY.JOIN.luc-tram"))
     assertTrue(ids.contains("DISC.ENTITY.HOUND"))
     assertTrue(ids.contains("MAIN.REUNITE.SYVIAL"))
     assertTrue(ids.contains("THREAD.REUNITE.SYVIAL"))
@@ -42,8 +42,8 @@ class StoryContinuityReducerTest {
       .mapNotNull { knowledge.optJSONObject(it) }
       .first { it.optString("factId") == "DISC.ENTITY.HOUND" }
     val knownBy = houndKnowledge.getJSONArray("knownBy").toString()
-    assertTrue(knownBy.contains("kai"))
-    assertTrue(knownBy.contains("iris"))
+    assertTrue(knownBy.contains("cao-minh"))
+    assertTrue(knownBy.contains("luc-tram"))
   }
 
   @Test fun boundedContinuityDoesNotGrowWithWholeCampaignLog() {

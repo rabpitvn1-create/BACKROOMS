@@ -6,7 +6,7 @@ import org.junit.Test
 class PhysiologyItemEffectTest {
   private fun stateWithPhysiology(): GameState {
     val base = GameState.initial()
-    val kai = base.characters.getValue(KAI_ID).copy(
+    val caoMinh = base.characters.getValue(CAO_MINH_ID).copy(
       physiology = PhysiologyState(
         minutesSinceFood = 240L,
         minutesSinceWater = 90L,
@@ -16,7 +16,7 @@ class PhysiologyItemEffectTest {
         thermalState = "normal"
       )
     )
-    return base.copy(characters = base.characters + (KAI_ID to kai))
+    return base.copy(characters = base.characters + (CAO_MINH_ID to caoMinh))
   }
 
   private fun grant(
@@ -30,7 +30,7 @@ class PhysiologyItemEffectTest {
       ItemCommand(
         commandId = "grant-$id",
         turnId = "TURN_1",
-        actorId = KAI_ID,
+        actorId = CAO_MINH_ID,
         source = CommandSource.SYSTEM,
         operation = ItemCommand.Operation.PICKUP,
         itemId = id,
@@ -47,7 +47,7 @@ class PhysiologyItemEffectTest {
     ItemCommand(
       commandId = commandId,
       turnId = "TURN_1",
-      actorId = KAI_ID,
+      actorId = CAO_MINH_ID,
       source = CommandSource.RULE,
       operation = ItemCommand.Operation.USE,
       itemId = itemId,
@@ -63,10 +63,10 @@ class PhysiologyItemEffectTest {
       mapOf("physiologyEffect" to "WATER")
     )
 
-    val result = use(granted, "use-water", "water")
+    val result = use(granted, "use-water", ItemContentRules.variantId("water-bottle", ContentState.FULL))
 
     assertTrue(result.applied)
-    val physiology = result.state.characters.getValue(KAI_ID).physiology
+    val physiology = result.state.characters.getValue(CAO_MINH_ID).physiology
     assertEquals(240L, physiology.minutesSinceFood)
     assertEquals(0L, physiology.minutesSinceWater)
     assertEquals(720L, physiology.minutesAwake)
@@ -81,10 +81,10 @@ class PhysiologyItemEffectTest {
       mapOf("physiologyEffect" to "FOOD")
     )
 
-    val result = use(granted, "use-food", "food")
+    val result = use(granted, "use-food", ItemContentRules.variantId("food-container", ContentState.FULL))
 
     assertTrue(result.applied)
-    val physiology = result.state.characters.getValue(KAI_ID).physiology
+    val physiology = result.state.characters.getValue(CAO_MINH_ID).physiology
     assertEquals(0L, physiology.minutesSinceFood)
     assertEquals(90L, physiology.minutesSinceWater)
     assertEquals(720L, physiology.minutesAwake)
@@ -105,22 +105,22 @@ class PhysiologyItemEffectTest {
     val result = use(granted, "use-ration", "ration-gel")
 
     assertTrue(result.applied)
-    val physiology = result.state.characters.getValue(KAI_ID).physiology
+    val physiology = result.state.characters.getValue(CAO_MINH_ID).physiology
     assertEquals(0L, physiology.minutesSinceFood)
     assertEquals(0L, physiology.minutesSinceWater)
-    assertFalse(result.state.inventories.getValue(KAI_ID).items.containsKey("ration-gel"))
+    assertFalse(result.state.inventories.getValue(CAO_MINH_ID).items.containsKey("ration-gel"))
     assertTrue("physiology_water_recorded" in result.events)
     assertTrue("physiology_food_recorded" in result.events)
   }
 
   @Test fun untaggedItemDoesNotMutatePhysiology() {
     val granted = grant(stateWithPhysiology(), "tool", "Small tool", emptyMap())
-    val before = granted.characters.getValue(KAI_ID).physiology
+    val before = granted.characters.getValue(CAO_MINH_ID).physiology
 
     val result = use(granted, "use-tool", "tool")
 
     assertTrue(result.applied)
-    assertEquals(before, result.state.characters.getValue(KAI_ID).physiology)
+    assertEquals(before, result.state.characters.getValue(CAO_MINH_ID).physiology)
   }
 
   @Test fun invalidEffectRejectsUseWithoutInventoryOrPhysiologyMutation() {
@@ -166,16 +166,16 @@ class PhysiologyItemEffectTest {
     val command = ItemCommand(
       commandId = "same-use",
       turnId = "TURN_1",
-      actorId = KAI_ID,
+      actorId = CAO_MINH_ID,
       source = CommandSource.RULE,
       operation = ItemCommand.Operation.USE,
-      itemId = "water",
+      itemId = ItemContentRules.variantId("water-bottle", ContentState.FULL),
       itemName = "water"
     )
 
     val first = StateReducer.execute(granted, command)
     assertTrue(first.applied)
-    assertEquals(0L, first.state.characters.getValue(KAI_ID).physiology.minutesSinceWater)
+    assertEquals(0L, first.state.characters.getValue(CAO_MINH_ID).physiology.minutesSinceWater)
 
     val second = StateReducer.execute(first.state, command)
     assertFalse(second.applied)

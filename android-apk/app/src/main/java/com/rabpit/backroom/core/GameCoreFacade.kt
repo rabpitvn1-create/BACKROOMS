@@ -35,7 +35,7 @@ class GameCoreFacade private constructor(
 
     // Restore is lore/narrative-only. Route prose to the GM, but authoritative state mutation is
     // explicitly suppressed again in processValidatedCandidate().
-    if (interpreted.candidates.any { it.intent == GameIntent.OMNIVAULT_RESTORE }) {
+    if (interpreted.candidates.any { it.intent == GameIntent.VAN_KHO_GIOI_CHI_RESTORE }) {
       return response(false, legacy, null, "fallback_required")
     }
 
@@ -63,6 +63,156 @@ class GameCoreFacade private constructor(
     return response(true, result, null, "committed", reply)
   }
 
+
+  fun coreStats(legacyStateJson: String, characterId: String): String {
+    val state = loadOrMigrate(JSONObject(legacyStateJson))
+    return PokerDiceCore.statsJson(state, characterId).toString()
+  }
+
+  fun processCoreUpgrade(legacyStateJson: String, characterId: String, stat: String): String {
+    val legacy = JSONObject(legacyStateJson)
+    val current = loadOrMigrate(legacy)
+    if (CombatRuntime.active(current) != null) {
+      return response(false, syncLegacy(legacy, current, incrementTurn = false),
+        "combat_active", "core_upgrade_locked", "Không thể nâng Core khi combat đang hoạt động.")
+    }
+    return try {
+      val upgraded = PokerDiceCore.upgrade(current, characterId, stat)
+      repository.save(upgraded.state)
+      val projected = syncLegacy(legacy, upgraded.state, incrementTurn = false)
+      response(true, projected, null, "core_upgrade_committed",
+        upgraded.stat + " +" + "1 · -" + upgraded.cost + " Core · còn " + upgraded.coreRemaining + " Core.")
+    } catch (error: Exception) {
+      response(false, syncLegacy(legacy, current, incrementTurn = false),
+        error.message ?: "core_upgrade_failed", "core_upgrade_rejected")
+    }
+  }
+
+  /**
+   * Dice operations only change Core combat/dice state. Preserve already
+   * validated narrative Party and Inventory from WebView between dice taps.
+   */
+  private fun projectCombatState(legacy: JSONObject, core: GameState): JSONObject {
+    val output = JSONObject(legacy.toString())
+    output.put("saveVersion", CURRENT_SAVE_VERSION)
+    val combat = CombatRuntime.toJson(core)
+    if (combat == null) output.remove("combat") else {
+      PokerDiceCore.diceJson(core)?.let { combat.put("diceState", it) }
+      output.put("combat", combat)
+    }
+    output.put("coreSystem", PokerDiceCore.statsJson(core, CAO_MINH_ID))
+    return output
+  }
+
+  fun prepareCombatDice(legacyStateJson: String, action: String): String {
+    val legacy = JSONObject(legacyStateJson)
+    val current = loadOrMigrate(legacy)
+    val combat = CombatRuntime.active(current)
+      ?: return response(false, projectCombatState(legacy, current),
+        "combat_inactive", "combat_dice_inactive")
+    return try {
+      val next = PokerDiceCore.prepare(current, action, combat.encounterId)
+      repository.save(next)
+      response(true, projectCombatState(legacy, next), null, "combat_dice_prepared")
+    } catch (error: Exception) {
+      response(false, projectCombatState(legacy, current),
+        error.message ?: "combat_dice_prepare_failed", "combat_dice_rejected")
+    }
+  }
+
+  fun setCombatDiceHold(legacyStateJson: String, dieIndex: Int, held: Boolean): String {
+    val legacy = JSONObject(legacyStateJson)
+    val current = loadOrMigrate(legacy)
+    return try {
+      val next = PokerDiceCore.setHold(current, dieIndex, held)
+      repository.save(next)
+      response(true, projectCombatState(legacy, next), null, "combat_dice_hold")
+    } catch (error: Exception) {
+      response(false, projectCombatState(legacy, current),
+        error.message ?: "combat_dice_hold_failed", "combat_dice_rejected")
+    }
+  }
+
+  fun rerollCombatDice(legacyStateJson: String): String {
+    val legacy = JSONObject(legacyStateJson)
+    val current = loadOrMigrate(legacy)
+    return try {
+      val next = PokerDiceCore.reroll(current)
+      repository.save(next)
+      response(true, projectCombatState(legacy, next), null, "combat_dice_rolled")
+    } catch (error: Exception) {
+      response(false, projectCombatState(legacy, current),
+        error.message ?: "combat_dice_roll_failed", "combat_dice_rejected")
+    }
+  }
+
+  fun finishCombatDice(legacyStateJson: String): String {
+    val legacy = JSONObject(legacyStateJson)
+    val current = loadOrMigrate(legacy)
+    return try {
+      val next = PokerDiceCore.finish(current)
+      repository.save(next)
+      response(true, projectCombatState(legacy, next), null, "combat_dice_finalized")
+    } catch (error: Exception) {
+      response(false, projectCombatState(legacy, current),
+        error.message ?: "combat_dice_finish_failed", "combat_dice_rejected")
+    }
+  }
+
+  /** Start combat only after Android's locked entity-encounter roll and key validation. */
+  fun startCombatState(legacyStateJson: String, entityKey: String): String {
+    val legacy = JSONObject(legacyStateJson)
+    val current = loadOrMigrate(legacy)
+    val started = CombatRuntime.start(current, entityKey.trim().lowercase())
+    val active = CombatRuntime.active(started)
+      ?: return response(false, projectCombatState(legacy, current), "entity_profile_unknown", "combat_start_rejected")
+    repository.save(started)
+    return response(true, projectCombatState(legacy, started), null, "combat_started", active.entityName)
+  }
+
+  /** Combat is authoritative and consumes exactly one finalized Poker Dice session. */
+  fun processCombat(legacyStateJson: String, actionKind: String, action: String): String {
+    val legacy = JSONObject(legacyStateJson)
+    val current = loadOrMigrate(legacy)
+    val active = CombatRuntime.active(current)
+      ?: return response(false, projectCombatState(legacy, current), "combat_inactive", "combat_rejected")
+    if (!PokerDiceCore.isFinalizedFor(current, action, active.encounterId)) {
+      return response(false, projectCombatState(legacy, current), "combat_dice_not_finalized", "combat_rejected")
+    }
+    val resolution = CombatRuntime.resolve(current, actionKind, action)
+    if (!resolution.handled) return response(false, projectCombatState(legacy, current), "combat_unhandled", "combat_rejected")
+    val completed = PokerDiceCore.clearDice(resolution.state)
+    repository.save(completed)
+    // Combat changes HP and the combat snapshot, not the already validated
+    // narrative inventory/party. The GM path is not yet wired into Core's
+    // candidate reducer; projecting all Core inventories here would erase
+    // unrelated objects/companions from the browser state.
+    val output = projectCombatState(legacy, completed)
+    output.put("turn", legacy.optInt("turn", 1) + 1)
+    completed.characters[CAO_MINH_ID]?.let { caoMinh ->
+      val player = output.optJSONObject("player") ?: JSONObject()
+      player.put("hp", caoMinh.vitalState.currentHp)
+      output.put("player", player)
+      output.optJSONObject("partyDetails")?.optJSONArray("members")?.let { members ->
+        for (i in 0 until members.length()) {
+          val member = members.optJSONObject(i) ?: continue
+          if (member.optString("id") == CAO_MINH_ID) {
+            member.put("currentHp", caoMinh.vitalState.currentHp)
+            member.put("maxHp", CharacterStatEngine.effective(completed, CAO_MINH_ID).maxHp)
+          }
+        }
+      }
+    }
+    output.put("coreSystem", PokerDiceCore.statsJson(completed, CAO_MINH_ID))
+    output.put("combatFeedback", JSONObject().apply {
+      put("id", "${active.encounterId}:${active.eventCounter + 1}")
+      put("encounterId", active.encounterId)
+      put("events", JSONArray().apply { resolution.feedback.forEach { put(it.toJson()) } })
+    })
+    appendLog(output, action, resolution.reply)
+    return response(true, output, null, "combat_committed", resolution.reply)
+  }
+
   fun currentCoreState(): String = GameStateCodec.encode(repository.load())
   fun clear() = repository.clear()
   override fun close() = Unit
@@ -80,9 +230,9 @@ class GameCoreFacade private constructor(
     val pending = TurnCoordinator.createPending(core, turnId, action)
     if (pending.error != null) return response(false, before, pending.error, "pending_rejected")
     val commands = mutableListOf<GameCommand>()
-    val current = pending.state.inventories[KAI_ID]?.items.orEmpty()
+    val current = pending.state.inventories[CAO_MINH_ID]?.items.orEmpty()
     val actionIntents = rules.interpretSync(action, contextFor(pending.state)).candidates.map { it.intent }.toSet()
-    val inventoryLocked = isDirectPlayerPickupAction(action) || GameIntent.PICKUP_ITEM in actionIntents || GameIntent.OMNIVAULT_RESTORE in actionIntents
+    val inventoryLocked = isDirectPlayerPickupAction(action) || GameIntent.PICKUP_ITEM in actionIntents || GameIntent.VAN_KHO_GIOI_CHI_RESTORE in actionIntents
 
     val desiredById = mutableMapOf<String, ItemStack>()
     if (inventoryLocked) {
@@ -107,12 +257,14 @@ class GameCoreFacade private constructor(
       }
     }
 
+    current.filterKeys { EquipmentCatalog.definition(it) != null }.forEach { (id, stack) -> desiredById[id] = stack }
+
     (current.keys + desiredById.keys).sorted().forEachIndexed { index, id ->
       val old = current[id]?.quantity ?: 0; val desired = desiredById[id]?.quantity ?: 0
       if (desired == old) return@forEachIndexed
       val stack = desiredById[id] ?: current.getValue(id)
       commands += ItemCommand(
-        "$turnId:GEMINI:INV:$index", turnId, KAI_ID, source = CommandSource.GEMINI,
+        "$turnId:GEMINI:INV:$index", turnId, CAO_MINH_ID, source = CommandSource.GEMINI,
         operation = if (desired > old) ItemCommand.Operation.PICKUP else ItemCommand.Operation.DROP,
         itemId = id, itemName = stack.name, quantity = kotlin.math.abs(desired - old), metadata = stack.metadata
       )
@@ -125,15 +277,15 @@ class GameCoreFacade private constructor(
       val id = member.optString("id").ifBlank { member.optString("name").trim().lowercase() }
       if (id.isNotBlank()) desiredParty[id] = member
     }
-    val currentFollowers = pending.state.party.memberIds.filter { it != KAI_ID }.toSet()
+    val currentFollowers = pending.state.party.memberIds.filter { it != CAO_MINH_ID }.toSet()
     (currentFollowers - desiredParty.keys).sorted().forEachIndexed { index, id ->
-      commands += PartyCommand("$turnId:GEMINI:PARTY_REMOVE:$index", turnId, KAI_ID, id, CommandSource.GEMINI, PartyCommand.Operation.REMOVE)
+      commands += PartyCommand("$turnId:GEMINI:PARTY_REMOVE:$index", turnId, CAO_MINH_ID, id, CommandSource.GEMINI, PartyCommand.Operation.REMOVE)
     }
     (desiredParty.keys - currentFollowers).sorted().forEachIndexed { index, id ->
       val member = desiredParty.getValue(id)
       val known = pending.state.characters[id]
       commands += PartyCommand(
-        "$turnId:GEMINI:PARTY_ADD:$index", turnId, KAI_ID, id, CommandSource.GEMINI, PartyCommand.Operation.ADD,
+        "$turnId:GEMINI:PARTY_ADD:$index", turnId, CAO_MINH_ID, id, CommandSource.GEMINI, PartyCommand.Operation.ADD,
         consentConfirmed = member.optBoolean("joinConfirmed", false) && known?.metadata?.get("joinEligible") == "true",
         targetPresent = member.optBoolean("present", false) && known?.presence == CharacterPresence.ACTIVE
       )
@@ -154,8 +306,9 @@ class GameCoreFacade private constructor(
       logger.log(PipelineLogEvent("GEMINI_REJECTED", turnId = turnId, source = CommandSource.GEMINI, details = mapOf("reason" to committed.error)))
       return response(false, before, committed.error, "gemini_delta_rejected")
     }
-    repository.save(committed.state)
-    val synchronized = syncLegacy(candidate, committed.state, incrementTurn = false)
+    val protectedState = CharacterProgressionCore.protectFromCandidate(pending.state, committed.state)
+    repository.save(protectedState)
+    val synchronized = syncLegacy(candidate, protectedState, incrementTurn = false)
     logger.log(PipelineLogEvent("GEMINI_COMMIT", turnId = turnId, source = CommandSource.GEMINI, details = mapOf("commands" to commands.size.toString(), "inventoryLocked" to inventoryLocked.toString())))
     return response(true, synchronized, null, "gemini_delta_committed")
   }
@@ -168,15 +321,15 @@ class GameCoreFacade private constructor(
   }
 
   private fun contextFor(state: GameState): GameContext {
-    val actors = state.characters.values.associate { it.name.lowercase() to it.id } + mapOf("kai" to KAI_ID, "iris" to "iris", "syvial" to "syvial")
-    val items = (state.inventories.values.flatMap { it.items.values } + state.omnivault.storedItems.values).associate { it.name.lowercase() to it.itemId }
+    val actors = state.characters.values.associate { it.name.lowercase() to it.id } + mapOf("cao minh" to CAO_MINH_ID, "lục trầm" to "luc-tram", "syvial" to "syvial", "an nhiên" to AN_NHIEN_ID, "an nhien" to AN_NHIEN_ID)
+    val items = (state.inventories.values.flatMap { it.items.values } + state.vanKhoGioiChi.storedItems.values).associate { it.name.lowercase() to it.itemId }
     return GameContext(state, actors, items)
   }
 
   private fun isDirectPlayerPickupAction(action: String): Boolean {
     val text = action.trim()
-    val omnivaultWithdrawal = Regex("(?:lấy|rút|triệu hồi).*(?:ra khỏi|khỏi|từ).*(?:omnivault|nhẫn|kho)", RegexOption.IGNORE_CASE).containsMatchIn(text)
-    if (omnivaultWithdrawal) return false
+    val vanKhoGioiChiWithdrawal = Regex("(?:lấy|rút|triệu hồi).*(?:ra khỏi|khỏi|từ).*(?:vạn khố giới chỉ|giới chỉ|nhẫn|kho)", RegexOption.IGNORE_CASE).containsMatchIn(text)
+    if (vanKhoGioiChiWithdrawal) return false
     val directVerb = Regex("(?:^|\\s)(?:nhặt|lượm|cầm\\s+lên|lấy(?:\\s+lên)?|thu\\s+hồi|tịch\\s+thu|nhận(?:\\s+lấy)?|pick\\s+up|take|receive)(?:\\s|$)", RegexOption.IGNORE_CASE)
     val inventoryAssertion = Regex("(?:thêm|bỏ|đưa).{0,80}(?:vào|trong)\\s+(?:inventory|kho đồ|túi đồ)", RegexOption.IGNORE_CASE)
     return directVerb.containsMatchIn(text) || inventoryAssertion.containsMatchIn(text)
@@ -190,7 +343,7 @@ class GameCoreFacade private constructor(
   private fun timeAdvanceCommand(turnId: String, action: String): TimeAdvanceCommand = TimeAdvanceCommand(
     commandId = "$turnId:SYSTEM:TIME",
     turnId = turnId,
-    actorId = KAI_ID,
+    actorId = CAO_MINH_ID,
     source = CommandSource.SYSTEM,
     minutes = TimeCostPolicy.estimateMinutes(action),
     reason = "player_action"
@@ -206,6 +359,15 @@ class GameCoreFacade private constructor(
     return result
   }
 
+  private fun legacyEquipment(state: GameState): JSONObject = JSONObject().apply {
+    val slots = state.equipment[CAO_MINH_ID]?.slots.orEmpty()
+    listOf("weapon", "armor").forEach { slot ->
+      val id = slots[slot] ?: return@forEach
+      put(slot, JSONObject().put("id", id).put("name", CaoMinhStartingEquipment.displayName(id) ?: id).put("permanent", false).put("scalingMode", "BASE"))
+    }
+    slots["ring"]?.let { id -> put("ring", JSONObject().put("id", id).put("name", CaoMinhStartingEquipment.displayName(id) ?: id).put("permanent", false).put("scalingMode", "BASE")) }
+  }
+
   private fun syncLegacy(legacy: JSONObject, state: GameState, incrementTurn: Boolean): JSONObject {
     val output = JSONObject(legacy.toString())
     if (incrementTurn) output.put("turn", output.optInt("turn", 1) + 1)
@@ -216,12 +378,23 @@ class GameCoreFacade private constructor(
       state.time.lastAdvanceReason?.let { put("lastAdvanceReason", it) }
     })
     output.put("partyDetails", CharacterDetailJson.encodeParty(CharacterDetailProjector.projectParty(state)))
-    val kaiInventory = state.inventories[KAI_ID]?.items?.values.orEmpty()
-    output.put("inventory", JSONArray().apply { kaiInventory.forEach { stack -> put(JSONObject().apply {
+    output.put("coreSystem", PokerDiceCore.statsJson(state, CAO_MINH_ID))
+    // The browser must receive combat/dice from Core, never from forged client JSON.
+    val combat = CombatRuntime.toJson(state)
+    if (combat != null) {
+      PokerDiceCore.diceJson(state)?.let { combat.put("diceState", it) }
+      output.put("combat", combat)
+    } else {
+      output.remove("combat")
+      output.remove("combatFeedback")
+    }
+    output.put("equipment",legacyEquipment(state))
+    val caoMinhInventory = state.inventories[CAO_MINH_ID]?.items?.values.orEmpty()
+    output.put("inventory", JSONArray().apply { caoMinhInventory.forEach { stack -> put(JSONObject().apply {
       put("id", stack.itemId); put("name", stack.name); put("quantity", stack.quantity)
       stack.condition?.let { put("state", it) }; put("metadata", JSONObject(stack.metadata))
     }) } })
-    output.put("party", JSONArray().apply { state.party.memberIds.filter { it != KAI_ID }.forEach { id ->
+    output.put("party", JSONArray().apply { state.party.memberIds.filter { it != CAO_MINH_ID }.forEach { id ->
       state.characters[id]?.let { character -> put(JSONObject().apply {
         put("id", character.id); put("name", character.name); character.avatarRef?.let { put("avatar", it) }
         put("presence", character.presence.name)
@@ -248,25 +421,26 @@ class GameCoreFacade private constructor(
 
   private fun eventReply(events: List<String>): String = when (events.lastOrNull { it != "time_advanced" }) {
     "inventory_pickup" -> "Inventory đã được cập nhật bởi một sự kiện vật phẩm hợp lệ."
-    "inventory_remove" -> "Vật phẩm đã được loại khỏi Inventory theo hành động của Kai."
+    "inventory_remove" -> "Vật phẩm đã được loại khỏi Inventory theo hành động của Cao Minh."
     "inventory_transfer" -> "Vật phẩm đã được chuyển giao."
     "item_equipped" -> "Vật phẩm đã được trang bị."
     "item_unequipped" -> "Vật phẩm đã được tháo khỏi trang bị."
-    "omnivault_stored" -> "Vật phẩm đã được cất vào Omnivault."
-    "omnivault_withdrawn" -> "Vật phẩm đã được lấy ra khỏi Omnivault."
-    "omnivault_scanned" -> "Omnivault đã ghi mẫu vào scan slot và đánh dấu bản gốc."
-    "omnivault_copied" -> "Omnivault đã tạo bản sao từ mẫu còn hiệu lực."
+    "vanKhoGioiChi_stored" -> "Vật phẩm đã được cất vào Vạn Khố Giới Chỉ."
+    "vanKhoGioiChi_withdrawn" -> "Vật phẩm đã được lấy ra khỏi Vạn Khố Giới Chỉ."
+    "vanKhoGioiChi_scanned" -> "Vạn Khố Giới Chỉ đã ghi mẫu vào scan slot và đánh dấu bản gốc."
+    "vanKhoGioiChi_copied" -> "Vạn Khố Giới Chỉ đã tạo bản sao từ mẫu còn hiệu lực."
     else -> "Hành động đã được Game State Core xác nhận."
   }
 
   private fun validationReply(reason: String): String {
     val message = when (reason) {
       "player_pickup_unavailable", "restore_narrative_only", "precise_content_amount_forbidden", "item_content_empty" -> "This action is not available."
+      "special_cheat_equipment_restricted" -> "Trang bị đặc biệt này chỉ có thể trang bị cho Cao Minh."
       "scan_source_missing", "scan_template_missing" -> "There is no object available for scanning or multiplying."
       "insufficient_item_quantity", "item_not_owned" -> "This action is not available."
       "party_full" -> "Party đã đủ tối đa bốn thành viên."
       "join_not_confirmed" -> "Yêu cầu gia nhập chưa đủ điều kiện hoặc chưa được NPC xác nhận."
-      "living_target_forbidden" -> "Omnivault không thể tác động lên sinh vật sống."
+      "living_target_forbidden" -> "Vạn Khố Giới Chỉ không thể tác động lên sinh vật sống."
       else -> "This action is not available."
     }
     return "[Warning] $message"

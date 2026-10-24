@@ -123,7 +123,7 @@ marker = "PRESSURE_COMBAT_HUD_V1"
 if marker not in html:
     hud = r'''
 <style id="pressureCombatStyle">
-#combatHud{display:none;border:1px solid #444b52;background:#0b0e10;padding:10px;margin:8px 0;font-family:system-ui,sans-serif}
+#combatHud{display:none;border:1px solid #444b52;background:#0b0e10;padding:10px;margin:8px 0;font-family:var(--game-font)}
 #combatHud.active{display:block}.combat-title{display:flex;justify-content:space-between;gap:8px;font-size:12px;font-weight:800;letter-spacing:.08em;margin-bottom:7px}.combat-row{display:grid;grid-template-columns:70px 1fr 62px;align-items:center;gap:7px;margin:5px 0;font-size:11px}.combat-bar{height:12px;background:#252b30;border:1px solid #343c43;overflow:hidden}.combat-fill{height:100%;background:linear-gradient(90deg,#757f88,#d8dee3);transition:width .18s ease}.combat-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.combat-meta span{border:1px solid #343c43;padding:3px 5px;font-size:10px;color:#c8d0d6}.combat-telegraph{margin-top:7px;font-size:11px;color:#f0c979}
 </style>
 <script>

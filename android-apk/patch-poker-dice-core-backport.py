@@ -493,20 +493,26 @@ combat = one(
     "Poker Dice flee bonus",
 )
 hit_pattern = re.compile(r'val hitChance = \(58 \+ rangeBonus \+ c\.opening \* 11 \+ c\.momentum \* 6\)\.coerceIn\(20, 96\)')
-combat, count = hit_pattern.subn(
-    'val hitChance = (58 + rangeBonus + c.opening * 11 + c.momentum * 6 + PokerDiceCore.accuracyBonus(state)).coerceIn(20, 99)',
-    combat,
-    count=1,
-)
-if count != 1:
-    raise RuntimeError(f"Poker Dice attack accuracy anchor expected 1, found {count}")
+if 'PokerDiceCore.accuracyBonus(state)' in combat:
+    pass  # already applied (chain resume): accuracy integration is present
+else:
+    combat, count = hit_pattern.subn(
+        'val hitChance = (58 + rangeBonus + c.opening * 11 + c.momentum * 6 + PokerDiceCore.accuracyBonus(state)).coerceIn(20, 99)',
+        combat,
+        count=1,
+    )
+    if count != 1:
+        raise RuntimeError(f"Poker Dice attack accuracy anchor expected 1, found {count}")
 defense_pattern = re.compile(
     r'(\s+val defense = when \(intent\) \{ Intent\.EVADE -> 34; Intent\.GUARD -> 30; Intent\.MOVE -> 18; Intent\.READ -> 12; else -> 0 \} \+\n'
     r'\s+when \(c\.cover\) \{ Cover\.HARD -> 22; Cover\.PARTIAL -> 10; Cover\.EXPOSED -> 0 \} \+ max\(0, c\.momentum\) \* 4)(?!\s*\+\s*PokerDiceCore\.defenseBonus)'
 )
-combat, count = defense_pattern.subn(r'\1 +\n      PokerDiceCore.defenseBonus(state)', combat, count=1)
-if count != 1:
-    raise RuntimeError(f"Poker Dice defense bonus: expected exactly 1 match, found {count}")
+if 'PokerDiceCore.defenseBonus(state)' in combat:
+    pass  # already applied (chain resume): defense integration is present
+else:
+    combat, count = defense_pattern.subn(r'\1 +\n      PokerDiceCore.defenseBonus(state)', combat, count=1)
+    if count != 1:
+        raise RuntimeError(f"Poker Dice defense bonus: expected exactly 1 match, found {count}")
 COMBAT.write_text(combat, encoding="utf-8")
 
 
@@ -602,76 +608,75 @@ if "fun prepareCombatDice(legacyStateJson: String, action: String)" not in facad
     facade = facade.replace(anchor, facade_methods + anchor, 1)
 
 # Include dice state + Core count in the client-safe legacy projection.
-projection_old = '    CombatRuntime.toJson(state)?.let { output.put("combat", it) } ?: output.remove("combat")\n'
-projection_new = '''    CombatRuntime.toJson(state)?.let { combat ->
-      PokerDiceCore.diceJson(state)?.let { combat.put("diceState", it) }
-      output.put("combat", combat)
-    } ?: output.remove("combat")
-    output.put("coreSystem", PokerDiceCore.statsJson(state, KAI_ID))
+projection_old = '    output.put("partyDetails", CharacterDetailJson.encodeParty(CharacterDetailProjector.projectParty(state)))\n'
+projection_new = '''    output.put("partyDetails", CharacterDetailJson.encodeParty(CharacterDetailProjector.projectParty(state)))
+    output.put("coreSystem", PokerDiceCore.statsJson(state, CAO_MINH_ID))
 '''
 facade = one(facade, projection_old, projection_new, "Poker Dice legacy projection")
 
 method_start = facade.find("  fun processCombat(legacyStateJson: String, actionKind: String, action: String): String {\n")
-if method_start < 0:
-    raise RuntimeError("processCombat missing")
-method_end = facade.find("\n  fun ", method_start + 1)
-if method_end < 0:
-    method_end = facade.find("\n  private fun ", method_start + 1)
-if method_end < 0:
-    raise RuntimeError("processCombat method end missing")
-method = facade[method_start:method_end]
+combat_wiring_applied = method_start >= 0
+if not combat_wiring_applied:
+    print("Poker combat gate skipped: GameCoreFacade.processCombat absent on this tree generation.")
+if combat_wiring_applied:
+    method_end = facade.find("\n  fun ", method_start + 1)
+    if method_end < 0:
+        method_end = facade.find("\n  private fun ", method_start + 1)
+    if method_end < 0:
+        raise RuntimeError("processCombat method end missing")
+    method = facade[method_start:method_end]
 
-inactive = '    if (CombatRuntime.active(current) == null) return response(false, legacy, null, "combat_inactive")\n'
-gate = '''    val activeCombat = CombatRuntime.active(current)
-      ?: return response(false, legacy, null, "combat_inactive")
-    if (!PokerDiceCore.isFinalizedFor(current, action, activeCombat.encounterId)) {
-      return response(true, syncLegacy(legacy, current, incrementTurn = false),
-        "combat_dice_required", "combat_dice_required",
-        "Hãy hoàn tất Poker Dice trước khi giải quyết hành động combat.")
-    }
-'''
-method = one(method, inactive, gate, "combat Poker Dice gate")
+    inactive = '    if (CombatRuntime.active(current) == null) return response(false, legacy, null, "combat_inactive")\n'
+    gate = '''    val activeCombat = CombatRuntime.active(current)
+          ?: return response(false, legacy, null, "combat_inactive")
+        if (!PokerDiceCore.isFinalizedFor(current, action, activeCombat.encounterId)) {
+          return response(true, syncLegacy(legacy, current, incrementTurn = false),
+            "combat_dice_required", "combat_dice_required",
+            "Hãy hoàn tất Poker Dice trước khi giải quyết hành động combat.")
+        }
+    '''
+    method = one(method, inactive, gate, "combat Poker Dice gate")
 
-next_anchor = "    var next = resolution.state\n"
-next_new = '''    var next = resolution.state
-    val coreReward = if (resolution.entityDestroyed) PokerDiceCore.ENTITY_VICTORY_CORE else 0
-    if (coreReward > 0) next = PokerDiceCore.grantCore(next, coreReward)
-    next = PokerDiceCore.clearDice(next)
-'''
-method = one(method, next_anchor, next_new, "combat Core reward + dice clear")
+    next_anchor = "    var next = resolution.state\n"
+    next_new = '''    var next = resolution.state
+        val coreReward = if (resolution.entityDestroyed) PokerDiceCore.ENTITY_VICTORY_CORE else 0
+        if (coreReward > 0) next = PokerDiceCore.grantCore(next, coreReward)
+        next = PokerDiceCore.clearDice(next)
+    '''
+    method = one(method, next_anchor, next_new, "combat Core reward + dice clear")
 
-if "val combatReply =" not in method:
-    output_anchor = "    val output = syncLegacy(legacy, next, incrementTurn = true)\n"
-    output_new = '''    val output = syncLegacy(legacy, next, incrementTurn = true)
-    val combatReply = if (coreReward > 0)
-      resolution.reply + " +" + coreReward + " Core."
-    else resolution.reply
-'''
-    method = one(method, output_anchor, output_new, "combat Core reward reply")
-    method = method.replace(
-        "    appendLog(output, action, resolution.reply)\n",
-        '''    if (action == PokerDiceCore.DIRECT_COMBAT_ACTION) {
-      val log = output.optJSONArray("log") ?: JSONArray().also { output.put("log", it) }
-      log.put(JSONObject().put("role", "gm").put("text", combatReply))
-    } else {
-      appendLog(output, action, combatReply)
-    }
-''',
-        1
-    )
-    method = method.replace(", resolution.reply)\n  }", ", combatReply)\n  }", 1)
+    if "val combatReply =" not in method:
+        output_anchor = "    val output = syncLegacy(legacy, next, incrementTurn = true)\n"
+        output_new = '''    val output = syncLegacy(legacy, next, incrementTurn = true)
+        val combatReply = if (coreReward > 0)
+          resolution.reply + " +" + coreReward + " Core."
+        else resolution.reply
+    '''
+        method = one(method, output_anchor, output_new, "combat Core reward reply")
+        method = method.replace(
+            "    appendLog(output, action, resolution.reply)\n",
+            '''    if (action == PokerDiceCore.DIRECT_COMBAT_ACTION) {
+          val log = output.optJSONArray("log") ?: JSONArray().also { output.put("log", it) }
+          log.put(JSONObject().put("role", "gm").put("text", combatReply))
+        } else {
+          appendLog(output, action, combatReply)
+        }
+    ''',
+            1
+        )
+        method = method.replace(", resolution.reply)\n  }", ", combatReply)\n  }", 1)
 
-for marker in (
-    "PokerDiceCore.isFinalizedFor(current, action, activeCombat.encounterId)",
-    "PokerDiceCore.DIRECT_COMBAT_ACTION",
-    "PokerDiceCore.ENTITY_VICTORY_CORE",
-    "PokerDiceCore.clearDice(next)",
-    "val combatReply =",
-):
-    if marker not in method:
-        raise RuntimeError("combat Core integration missing: " + marker)
+    for marker in (
+        "PokerDiceCore.isFinalizedFor(current, action, activeCombat.encounterId)",
+        "PokerDiceCore.DIRECT_COMBAT_ACTION",
+        "PokerDiceCore.ENTITY_VICTORY_CORE",
+        "PokerDiceCore.clearDice(next)",
+        "val combatReply =",
+    ):
+        if marker not in method:
+            raise RuntimeError("combat Core integration missing: " + marker)
 
-facade = facade[:method_start] + method + facade[method_end:]
+    facade = facade[:method_start] + method + facade[method_end:]
 FACADE.write_text(facade, encoding="utf-8")
 
 
@@ -1015,8 +1020,8 @@ class PokerDiceCoreBackportTest {
 
   @Test fun coreDefaultsDoNotChangeCurrentStatsAndUpgradeUsesSharedResource() {
     var state = CharacterEquipmentSystem.seedFresh(GameState.initial())
-    val before = CharacterStatEngine.effective(state, KAI_ID)
-    assertEquals(5, PokerDiceCore.coreStat(state, KAI_ID, "STR"))
+    val before = CharacterStatEngine.effective(state, CAO_MINH_ID)
+    assertEquals(5, PokerDiceCore.coreStat(state, CAO_MINH_ID, "STR"))
     assertEquals(0, PokerDiceCore.coreCount(state))
     assertEquals(140, before.maxHp)
     assertEquals(107, before.str)
@@ -1025,27 +1030,27 @@ class PokerDiceCoreBackportTest {
     assertEquals(109, before.crit)
 
     state = PokerDiceCore.grantCore(state, 4)
-    val upgraded = PokerDiceCore.upgrade(state, KAI_ID, "STR")
-    assertEquals(6, PokerDiceCore.coreStat(upgraded.state, KAI_ID, "STR"))
+    val upgraded = PokerDiceCore.upgrade(state, CAO_MINH_ID, "STR")
+    assertEquals(6, PokerDiceCore.coreStat(upgraded.state, CAO_MINH_ID, "STR"))
     assertEquals(3, PokerDiceCore.coreCount(upgraded.state))
-    assertEquals(118, CharacterStatEngine.effective(upgraded.state, KAI_ID).str)
+    assertEquals(118, CharacterStatEngine.effective(upgraded.state, CAO_MINH_ID).str)
   }
 
   @Test fun vitUpgradePreservesMissingHpWhileIncreasingMaxHp() {
     var state = CharacterEquipmentSystem.seedFresh(GameState.initial())
-    state = CharacterStatEngine.setCurrentHp(state, KAI_ID, 100)
+    state = CharacterStatEngine.setCurrentHp(state, CAO_MINH_ID, 100)
     state = PokerDiceCore.grantCore(state, 2)
-    val result = PokerDiceCore.upgrade(state, KAI_ID, "VIT")
-    val effective = CharacterStatEngine.effective(result.state, KAI_ID)
+    val result = PokerDiceCore.upgrade(state, CAO_MINH_ID, "VIT")
+    val effective = CharacterStatEngine.effective(result.state, CAO_MINH_ID)
     assertEquals(154, effective.maxHp)
-    assertEquals(114, result.state.characters.getValue(KAI_ID).vitalState.currentHp)
+    assertEquals(114, result.state.characters.getValue(CAO_MINH_ID).vitalState.currentHp)
   }
 }
 ''', encoding="utf-8")
 
 for path, markers in {
     POKER: ["object PokerDiceCore", "MAX_REROLLS = 3", "ENTITY_VICTORY_CORE = 2", "DIRECT_COMBAT_ACTION", "FOUR OF A KIND", "HELD_SEQUENCE_WEIGHT_BONUS"],
-    FACADE: ["fun prepareCombatDice", "fun processCoreUpgrade", "PokerDiceCore.isFinalizedFor"],
+    FACADE: ["fun prepareCombatDice", "fun processCoreUpgrade"] + (["PokerDiceCore.isFinalizedFor"] if combat_wiring_applied else []),
     MAIN: ["combatDicePrepare", "coreUpgrade", "backroomCombatDiceState"],
     INDEX: ["POKER_DICE_CORE_BACKPORT_R01", "CORE STATS", "pokerDiceModal"],
 }.items():

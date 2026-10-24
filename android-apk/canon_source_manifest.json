@@ -1,0 +1,448 @@
+{
+ "manifest_version": 2,
+ "generated": "2026-10-24 (v2.1: bổ sung 3 Google Doc sau khi connector Google Docs kết nối)",
+ "generated_by": "Canon Drive snapshot (Gate 1 completion) — PR #668",
+ "universe_id": "BACKROOMS_MAIN",
+ "database": {
+  "path": "android-apk/app/src/main/assets/knowledge/knowledge_db.json",
+  "schema_version": 2,
+  "record_count": 66
+ },
+ "sources": [
+  {
+   "document_id": "CAO_MINH_CODEX",
+   "repo_path": "android-apk/canon_sources/Asset/01_Character/CAO_MINH_CODEX.md",
+   "drive_path": "Novel/Asset/01_Character/CAO_MINH_CODEX.md",
+   "drive_file_id": "1Jd1qjQg4n-Vw6A51S2SoXH1xu3QKKDK9",
+   "sha256": "c8b4172d6f3df4dc3bc274331a0228712c518fe9ed8401c7b20fc2112e78b84a",
+   "bytes": 86645,
+   "status": "SNAPSHOTTED",
+   "record_ids": [
+    "CHAR.CAO_MINH.HUYET_MA_CHIEN_KHAI",
+    "CHAR.CAO_MINH.HUYET_MA_KIEM",
+    "CHAR.CAO_MINH.HUYET_MA_NHI_THAP_TU_TRAM",
+    "CHAR.CAO_MINH.IDENTITY",
+    "CHAR.CAO_MINH.RUNTIME_CORE",
+    "CHAR.CAO_MINH.VAN_QUY_MA_TAM",
+    "CHAR.CAO_MINH.VAN_QUY_MA_THAN",
+    "STORY.MAIN.LUC_TRAM_EXISTENCE",
+    "STORY.MAIN.OBJECTIVE",
+    "STORY.MAIN.SEPARATION"
+   ],
+   "note": "stored file"
+  },
+  {
+   "document_id": "LUC_TRAM_CODEX",
+   "repo_path": "android-apk/canon_sources/Asset/01_Character/LUC_TRAM_CODEX.md",
+   "drive_path": "Novel/Asset/01_Character/LUC_TRAM_CODEX.md",
+   "drive_file_id": "1_ivAnDOeKrUPzJRmlGFC-HQmeffcnPpF",
+   "sha256": "58e85b5dcdb5fe99b380e677cf4549395bdb65592872bfc877dbd09feec12152",
+   "bytes": 94888,
+   "status": "SNAPSHOTTED",
+   "record_ids": [
+    "ADDR.LUC_TRAM.CAO_MINH",
+    "CHAR.LUC_TRAM.COMBAT",
+    "CHAR.LUC_TRAM.RUNTIME_CORE",
+    "CHAR.LUC_TRAM.THIEN_CO_BACH_KIM_KIEM_KHAI",
+    "CHAR.LUC_TRAM.THIEN_KIEM_LINH_TAM",
+    "CHAR.LUC_TRAM.THIEN_KIEM_THAT_THUC",
+    "CHAR.LUC_TRAM.TICH_QUANG",
+    "CHAR.LUC_TRAM.UNKNOWN",
+    "REL.CAO_MINH.LUC_TRAM.BASELINE"
+   ],
+   "note": "stored file"
+  },
+  {
+   "document_id": "LUCIA_LUC_CODEX",
+   "repo_path": "android-apk/canon_sources/Asset/01_Character/LUCIA_LUC_CODEX.md",
+   "drive_path": "Novel/Asset/01_Character/LUCIA_LUC_CODEX.md",
+   "drive_file_id": "14lWdPRyPikab9529mlnBBVLMwL2btg3T",
+   "sha256": "827783336ac2a153492816c38ad764c7280d720bb8d15857d5e6d1d0a9533db0",
+   "bytes": 22948,
+   "status": "SNAPSHOTTED",
+   "record_ids": [],
+   "note": "stored file; chưa có record nào trích (nhân vật Lucia viết lại sau)"
+  },
+  {
+   "document_id": "TRAC_LAM_CODEX",
+   "repo_path": "android-apk/canon_sources/Asset/01_Character/TRAC_LAM_CODEX.md",
+   "drive_path": "Novel/Asset/01_Character/TRAC_LAM_CODEX.md",
+   "drive_file_id": "1lxfCped3eGNrJq_V69xVxj00hslTCwyu",
+   "sha256": "3d68ffc3ec70932d967145575c924b23bb763840ef3d783c72b2e889e7e39a62",
+   "bytes": 20819,
+   "status": "SNAPSHOTTED",
+   "record_ids": [],
+   "note": "stored file; chưa có record nào trích"
+  },
+  {
+   "document_id": "SYVIAL_CODEX",
+   "repo_path": "android-apk/canon_sources/Asset/01_Character/Syvial_Codex_extracted.md",
+   "drive_path": "Novel/Asset/01_Character/Syvial_Codex.docx",
+   "drive_file_id": "1MKOdp9XS7QIWvUwPIWayEw3vGqrTFYSJ",
+   "sha256": "ff5bba6479ef600b81f276dd27261aafe45db8f7bb9571cb10169660cda24278",
+   "bytes": 36080,
+   "status": "SNAPSHOTTED",
+   "record_ids": [
+    "ADDR.SYVIAL.CAO_MINH",
+    "CHAR.SYVIAL.COMBAT",
+    "CHAR.SYVIAL.DEVIL_TRIGGER",
+    "CHAR.SYVIAL.GODKILLER",
+    "CHAR.SYVIAL.GODKILLER_OVERRIDE",
+    "CHAR.SYVIAL.LUCIFER_CORE",
+    "CHAR.SYVIAL.RUNTIME_CORE",
+    "REL.CAO_MINH.SYVIAL.BASELINE"
+   ],
+   "note": "DOCX gốc 3227462 byte; bản trong repo là trích xuất văn bản (457 đoạn, 28178 ký tự), ảnh không trích xuất"
+  },
+  {
+   "document_id": "BACKROOMS_WORLD",
+   "repo_path": "android-apk/canon_sources/Asset/02_Level/BACKROOMS_WORLD.md",
+   "drive_path": "Novel/Asset/02_Level/BACKROOMS_WORLD.md",
+   "drive_file_id": "11LjYu7-KphPqKyLLeb4SVFEXEz23J7H0",
+   "sha256": "1718bd1801fd1cf926bb85d47e2055c7c580b8db90afcc9df664781db5078fc9",
+   "bytes": 21539,
+   "status": "SNAPSHOTTED",
+   "record_ids": [],
+   "note": "stored file; tài liệu world/level hiện hành trên Drive — các record LEVEL/WORLD cũ trỏ 01_WORLD/world.md|level.md (đã di chuyển/đổi tên)"
+  },
+  {
+   "document_id": "ENTITY",
+   "repo_path": "android-apk/canon_sources/Asset/03_Entity/Entity.md",
+   "drive_path": "Novel/Asset/03_Entity/Entity.md",
+   "drive_file_id": "1XkkV7v1T4-dkODVUEmZ64QtRRe3e6e0B",
+   "sha256": "8fc8c5602c807a03d9c18363d08c61a7da22a89a99c48cceb8842cbab1984c37",
+   "bytes": 9101,
+   "status": "SNAPSHOTTED",
+   "record_ids": [
+    "ENTITY.BEAST_LEVEL_5",
+    "ENTITY.BIOLOGICAL_PIPELINE",
+    "ENTITY.CABLE_MIMIC",
+    "ENTITY.DEATHMOTH",
+    "ENTITY.FALSE_PUDDLE",
+    "ENTITY.GLOBAL_HARD_LOCK",
+    "ENTITY.HOUND",
+    "ENTITY.JEFF",
+    "ENTITY.SKIN_STEALER",
+    "ENTITY.SMILER",
+    "ENTITY.WRETCH"
+   ],
+   "note": "stored file; bản hiện hành của 01_WORLD/entity.md (kiểm chứng bằng nội dung: đủ 7 entity cổ điển)"
+  },
+  {
+   "document_id": "NEW_ENTITIES_CODEX_R01",
+   "repo_path": "android-apk/canon_sources/Asset/03_Entity/NEW_ENTITIES_CODEX_R01.md",
+   "drive_path": "Novel/Asset/03_Entity/NEW_ENTITIES_CODEX_R01.md",
+   "drive_file_id": "1XRoBXISlL61kdIl56w5xzkkCdEOsQdWP",
+   "sha256": "035642f30c47dfc5b169197ead08662d9d9697eb2c3c6890c09da019c9df9e23",
+   "bytes": 26873,
+   "status": "SNAPSHOTTED",
+   "record_ids": [],
+   "note": "stored file; codex entity MỚI (ENT-926 Whistlers, ENT-927, ENT-LB LuckyBear, ENT-BR Brownies, ENT-LTH Lục Trầm Hắc Hóa) — chưa ingest thành record"
+  },
+  {
+   "document_id": "ASYNC_BACKROOMS_V2",
+   "repo_path": "android-apk/canon_sources/Asset/ASYNC_BackroomsV2.md",
+   "drive_path": "Novel/Asset/ASYNC_BackroomsV2.md",
+   "drive_file_id": "1cyE25sosTQCbDEJoSbIj9p6MBwn4of6K",
+   "sha256": "fc6f5539dace804963242e79dcf989ba0f1cb53a20fd1454ed92a615af146263",
+   "bytes": 1924,
+   "status": "SNAPSHOTTED",
+   "record_ids": [],
+   "note": "stored file"
+  },
+  {
+   "document_id": "BACKROOMS_LINH_KHI",
+   "repo_path": "android-apk/canon_sources/Asset/Backrooms_Linh_Khi.md",
+   "drive_path": "Novel/Asset/Backrooms_Linh_Khi.md",
+   "drive_file_id": "1qDmgI7Ak9JyM5gqsjIpL5AfZ6BpvdIz_",
+   "sha256": "604b0de1f4419a183a1626119d4480dba7a6d02db2f1ba32b42a436dce5a31e5",
+   "bytes": 2817,
+   "status": "SNAPSHOTTED",
+   "record_ids": [],
+   "note": "stored file"
+  },
+  {
+   "document_id": "BACKROOMS_LINH_KHI_ANH_HUONG_TU_SI",
+   "repo_path": "android-apk/canon_sources/Asset/Backrooms_Linh_Khi_Anh_Huong_Tu_Si.md",
+   "drive_path": "Novel/Asset/Backrooms_Linh_Khi_Anh_Huong_Tu_Si.md",
+   "drive_file_id": "1kuR1gi_cJQgSglSLkO7q9wkb-kVss_hR",
+   "sha256": "6b3565d38691150a813487e8504f9a1bd536b7d2a83876f253b740a517f63373",
+   "bytes": 4346,
+   "status": "SNAPSHOTTED",
+   "record_ids": [],
+   "note": "stored file"
+  },
+  {
+   "document_id": "TANG_KIEM_COC_HUYET_MA_KIEM_TICH_QUANG",
+   "repo_path": "android-apk/canon_sources/Asset/Tang_Kiem_Coc_Huyet_Ma_Kiem_Tich_Quang.md",
+   "drive_path": "Novel/Asset/Tang_Kiem_Coc_Huyet_Ma_Kiem_Tich_Quang.md",
+   "drive_file_id": "1rXgg0MZtgyJXCjWpmE6jZYwY75GwgmS4",
+   "sha256": "b54e8b7167f46ee4aedce05c1f33ff39e91a6cb5bdc419c5552666e4962fa825",
+   "bytes": 58890,
+   "status": "SNAPSHOTTED",
+   "record_ids": [],
+   "note": "stored file; canon Huyết Ma Kiếm + Tịch Quang"
+  },
+  {
+   "document_id": "HUYET_TAY_CAO_GIA",
+   "repo_path": "android-apk/canon_sources/Asset/Huyet_Tay_Cao_Gia.md",
+   "drive_path": "Novel/Asset/Huyet_Tay_Cao_Gia.md",
+   "drive_file_id": "1tWhTfmXc0W5iSD4ebkth5ERDtzfxVT0Z",
+   "sha256": "34aed7a5e64812750507450daef3a5c0377c34919f37f64fec36c640ab28730f",
+   "bytes": 25074,
+   "status": "SNAPSHOTTED",
+   "record_ids": [],
+   "note": "stored file; canon sự kiện Huyết Tẩy Cao Gia"
+  },
+  {
+   "document_id": "AI_NOVEL_GENERATION_INSTRUCTION",
+   "repo_path": "android-apk/canon_sources/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+   "drive_path": "Novel/Asset/AI_NOVEL_GENERATION_INSTRUCTION.md",
+   "drive_file_id": "1QyQA2ViiPHZFTdszsyEBLTLtbFUPjH13",
+   "sha256": "64907d43d1f3bc2cf01d16b68412e644e15c1686cbae81823c2d4fad5c892aa2",
+   "bytes": 8525,
+   "status": "SNAPSHOTTED",
+   "record_ids": [],
+   "note": "stored file"
+  },
+  {
+   "document_id": "RULES_BOOT",
+   "repo_path": "android-apk/canon_sources/Rules/00_RULES_BOOT.md",
+   "drive_path": "Novel/Rules/00_RULES_BOOT.md",
+   "drive_file_id": "1Do3Z035k7oM6ZCZKuzqG2EfRC4dtAA9l",
+   "sha256": "cb222cb42d2aba1a8f98ad5765e8d97247f371f1339f49ce0d17dd5ccedd49d7",
+   "bytes": 21987,
+   "status": "SNAPSHOTTED",
+   "record_ids": [],
+   "note": "stored file; tương ứng 00_RULES/00_RULES_BOOT.md trong Source Map"
+  },
+  {
+   "document_id": "CONVERSATION",
+   "repo_path": "android-apk/canon_sources/Rules/CONVERSATION.MD",
+   "drive_path": "Novel/Rules/CONVERSATION.MD",
+   "drive_file_id": "1sm6rB6YBbEcsAmqz8pMqpMDsbMRggpnH",
+   "sha256": "378d61baffa7d48edcd3479b5b95321d83c424880d24ac30d133cad80d28978e",
+   "bytes": 56523,
+   "status": "SNAPSHOTTED",
+   "record_ids": [
+    "WRITING.ADDRESS",
+    "WRITING.DIALOGUE"
+   ],
+   "note": "stored file; tương ứng 00_RULES/CONVERSATION.MD"
+  },
+  {
+   "document_id": "WORLDCODEX",
+   "repo_path": "android-apk/canon_sources/Rules/worldcodex.md",
+   "drive_path": "Novel/Rules/worldcodex.md",
+   "drive_file_id": "13NKL76GejQ8hSK_DQHDXsS1ujUkE623X",
+   "sha256": "7944609d827408a588deaa876cde4bb0afb84c8d93a157cf4ba574ac28aaaaa1",
+   "bytes": 6856,
+   "status": "SNAPSHOTTED",
+   "record_ids": [
+    "WRITING.KNOWLEDGE_BOUNDARY"
+   ],
+   "note": "stored file; tương ứng 00_RULES/worldcodex.md"
+  },
+  {
+   "document_id": "WAY_OF_WRITING",
+   "repo_path": "android-apk/canon_sources/Rules/WayOfWriting.md",
+   "drive_path": "Novel/Rules/WayOfWriting.md",
+   "drive_file_id": "1skjfzpvlKqsb1XYNZ0o0ZM-dJxQKldyz",
+   "sha256": "931c9a4661529aa57013018c7810eb4370da3f4b058e255ee5301d5b18bbadd6",
+   "bytes": 86807,
+   "status": "SNAPSHOTTED",
+   "record_ids": [
+    "WRITING.PROSE_POV"
+   ],
+   "note": "stored file; tương ứng 00_RULES/WayOfWriting.md"
+  },
+  {
+   "document_id": "VIVID_VERBS_GUIDE",
+   "repo_path": "android-apk/canon_sources/Rules/Vivid_Verbs_Guide.md",
+   "drive_path": "Novel/Rules/Vivid_Verbs_Guide.md",
+   "drive_file_id": "1qE1xyCEle0g-HBIqZ5qaOZghzNeUsRtc",
+   "sha256": "8cfb3376733364c4d1ff0606c40cf84aa0d2436ef62c43bb5c94a19b31755c2b",
+   "bytes": 21011,
+   "status": "SNAPSHOTTED",
+   "record_ids": [
+    "WRITING.VIVID_VERBS"
+   ],
+   "note": "stored file"
+  },
+  {
+   "document_id": "SUPERNATURAL_HORROR_CRAFT_GUIDE",
+   "repo_path": "android-apk/canon_sources/Rules/Supernatural_Horror_Craft_Guide.md",
+   "drive_path": "Novel/Rules/Supernatural_Horror_Craft_Guide.md",
+   "drive_file_id": "1RnnfGwcIo7aP8Wr5tVd1UFmrsHdbz0bP",
+   "sha256": "f26e88097df2949959e7ce1543d8106ab3bda0ee1cd252b97a3fd23127623683",
+   "bytes": 35096,
+   "status": "SNAPSHOTTED",
+   "record_ids": [
+    "WRITING.HORROR"
+   ],
+   "note": "stored file"
+  },
+  {
+   "document_id": "INTIMACY_WRITING_GUIDE",
+   "repo_path": "android-apk/canon_sources/Rules/Intimacy_Writing_Guide.md",
+   "drive_path": "Novel/Rules/Intimacy_Writing_Guide.md",
+   "drive_file_id": "1-n2xd1BeMo88u3E0T3jUl_-QxLYjYikH",
+   "sha256": "4a27abae4b9a9f85f005336bcba990ae037bec6056deac491f87c4d945d9e6f9",
+   "bytes": 32378,
+   "status": "SNAPSHOTTED",
+   "record_ids": [
+    "WRITING.INTIMACY"
+   ],
+   "note": "stored file"
+  },
+  {
+   "document_id": "DIALOGUE_BENCHMARKS",
+   "repo_path": "android-apk/canon_sources/Rules/Dialogue_Benchmarks.md",
+   "drive_path": "Novel/Rules/Dialogue_Benchmarks.md",
+   "drive_file_id": "1GkoEDxFryzhwOKfezDqYltb1UY1jIn-U",
+   "sha256": "76fb3056f497d642148bddffdbe42235c023b0eb7939c05902ee533e0dfc029e",
+   "bytes": 32412,
+   "status": "SNAPSHOTTED",
+   "record_ids": [
+    "WRITING.DIALOGUE_BENCHMARK"
+   ],
+   "note": "stored file"
+  },
+  {
+   "document_id": "NOVEL_HARD_BANS",
+   "repo_path": "android-apk/canon_sources/Rules/Những điều bắt buộc không được làm khi viết tiểu thuyết.md",
+   "drive_path": "Novel/Rules/Những điều bắt buộc không được làm khi viết tiểu thuyết.md",
+   "drive_file_id": "1xqeZuX_EnJqhR452JmlzCq6BYW2ZirCg",
+   "sha256": "59fa8b174cf7a1deafd580349c73a6a46f5c1b7671154f6a07c5a011a5d2c32c",
+   "bytes": 25242,
+   "status": "SNAPSHOTTED",
+   "record_ids": [],
+   "note": "stored file; tương ứng 00_RULES/Những điều bắt buộc không được làm khi viết tiểu thuyết.md"
+  },
+  {
+   "document_id": "HUONG_DAN",
+   "repo_path": "android-apk/canon_sources/Rules/HuongDan.txt",
+   "drive_path": "Novel/Rules/HuongDan.txt",
+   "drive_file_id": "1jTnzKVuKF3_HrXn8a1kkPTtzYNtEucQf",
+   "sha256": "de72bc9425470d79217bf40ffcc23297201c110517be9a23179fed0790794f6e",
+   "bytes": 10055,
+   "status": "SNAPSHOTTED",
+   "record_ids": [
+    "WRITING.GUIDE_SUPPLEMENT"
+   ],
+   "note": "stored file; tương ứng 00_RULES/HuongDan.txt"
+  },
+  {
+   "document_id": "DIEP_MINH_CODEX",
+   "repo_path": "android-apk/canon_sources/Asset/01_Character/DIEP_MINH_CODEX.md",
+   "drive_path": "Novel/Asset/01_Character/DIEP_MINH_CODEX",
+   "drive_file_id": "1i8Lb4rQubpzW3h-w4rCyg6o9MEe7JljPtt5VgPeeKcc",
+   "sha256": "3b80a16404ffa8b1b65705d503ab97ca15cbc8d88c15aae70d99a4b1d868b4e9",
+   "bytes": 29815,
+   "status": "SNAPSHOTTED",
+   "record_ids": [],
+   "note": "Google Doc; bản trong repo là trích xuất văn bản qua Google Docs connector (2026-10-24). Chưa có record nào trích tài liệu này."
+  },
+  {
+   "document_id": "HE_THONG_CANH_GIOI_TU_LUYEN_CANON",
+   "repo_path": "android-apk/canon_sources/Asset/HE_THONG_CANH_GIOI_TU_LUYEN_CANON.md",
+   "drive_path": "Novel/Asset/HE_THONG_CANH_GIOI_TU_LUYEN_CANON",
+   "drive_file_id": "1YWXIuaj_6aOHhjG8Glf9ARj77t5XrWL4vGUbH9gq_50",
+   "sha256": "a20082608849185609e91325d7c96d15ecc5b6a8395b784f9af623a83648fb02",
+   "bytes": 6360,
+   "status": "SNAPSHOTTED",
+   "record_ids": [],
+   "note": "Google Doc; bản trong repo là trích xuất văn bản qua Google Docs connector (2026-10-24). Chưa có record nào trích tài liệu này."
+  },
+  {
+   "document_id": "CANON_REGISTRY_R01",
+   "repo_path": "android-apk/canon_sources/Asset/CANON_REGISTRY_R01.md",
+   "drive_path": "Novel/Asset/CANON_REGISTRY_R01 - Characters Levels Entities",
+   "drive_file_id": "1Na1enfT6KMMWvTenOS6jusnUZs7pN3RhBSvjo2jByUA",
+   "sha256": "b1fde8827482bdc4673c47368d6855e5d0b8ed0477580601219766c5ff1972f8",
+   "bytes": 14185,
+   "status": "SNAPSHOTTED",
+   "record_ids": [],
+   "note": "Google Doc; bản trong repo là trích xuất văn bản qua Google Docs connector (2026-10-24). Chưa có record nào trích tài liệu này."
+  }
+ ],
+ "google_docs_not_snapshotted": [],
+ "missing_sources": [
+  {
+   "document": "05_TextGame/RULES/TEXT_GAME_RULES.md",
+   "status": "NOT_FOUND_ON_DRIVE",
+   "evidence": "Thư mục Novel/TextGame/RULES trống tại 2026-10-24; 00_RULES_BOOT.md vẫn route tới file này. Record phụ thuộc: GAME.TEXT.CORE, WRITING.PLAYER_AGENCY."
+  },
+  {
+   "document": "05_TextGame/RULES/GAME_MASTER_RULES.md",
+   "status": "NOT_FOUND_ON_DRIVE",
+   "evidence": "Thư mục Novel/TextGame/RULES trống tại 2026-10-24. Record phụ thuộc: GAME.GM.FAIRNESS, WRITING.PLAYER_AGENCY."
+  },
+  {
+   "document": "05_TextGame/STORY/MAIN_STORY.md",
+   "status": "NOT_FOUND_ON_DRIVE",
+   "evidence": "Thư mục Novel/TextGame/STORY trống tại 2026-10-24. Hàng Source Map chưa tạo được record: STORY.MAIN.PREMISE, STORY.MAIN.COMMS_INITIAL, STORY.MAIN.SYVIAL_EXISTENCE."
+  },
+  {
+   "document": "01_WORLD/items.md",
+   "status": "NOT_FOUND_ON_DRIVE",
+   "evidence": "Không có file items nào trong Asset/03_Entity hay TextGame/ITEMS tại 2026-10-24 (Greek Fire/Liquid Pain không xuất hiện trong bất kỳ tài liệu snapshot nào). Record phụ thuộc: ITEM.GLOBAL_HARD_LOCK, ITEM.ALMOND_WATER, ITEM.GREEK_FIRE, ITEM.LIQUID_PAIN."
+  },
+  {
+   "document": "05_TextGame/SAVE (campaign state)",
+   "status": "CONFIRMED_EMPTY",
+   "evidence": "Thư mục Novel/TextGame/SAVE trống — không import campaign state."
+  }
+ ],
+ "excluded_from_snapshot": [
+  {
+   "name": "__TEMP_LUC_CANON_SYNC_20261011.md",
+   "reason": "File tạm, trùng kích thước/nội dung với LUC_TRAM_CODEX.md — không phải nguồn canon độc lập."
+  },
+  {
+   "name": "Novel/TextGame/ITEMS/MADGOD_SET.md + MADGOD_SET.docx (2 bản)",
+   "reason": "Nội dung MadGod đã bị tác giả xoá khỏi game (purge 2026-10-24) — không đưa vào canon snapshot."
+  },
+  {
+   "name": "Novel/TextGame/ITEMS/RICE_AUTOMATIC.md",
+   "reason": "Không được KNOWLEDGE_SOURCE_MAP tham chiếu; ngoài phạm vi canon snapshot đợt này."
+  },
+  {
+   "name": "Novel/Characters (thư mục art) + ảnh/audio rải rác trong Novel",
+   "reason": "Tài sản hình ảnh/âm thanh, không phải tài liệu canon dạng văn bản."
+  }
+ ],
+ "record_coverage": {
+  "total_records": 66,
+  "with_content_sha256": 56,
+  "source_snapshotted": 53,
+  "anchor_unverified": [
+   "WRITING.DIALOGUE",
+   "LEVEL.04",
+   "LEVEL.06"
+  ],
+  "pending_source_snapshot": [
+   "GAME.TEXT.CORE",
+   "GAME.GM.FAIRNESS",
+   "WRITING.PLAYER_AGENCY",
+   "ITEM.GLOBAL_HARD_LOCK",
+   "ITEM.ALMOND_WATER",
+   "ITEM.GREEK_FIRE",
+   "ITEM.LIQUID_PAIN"
+  ],
+  "author_decision": [
+   "CHAR.CAO_MINH.VAN_KHO_GIOI_CHI",
+   "CHAR.CAO_MINH.DAI_MA_DAU"
+  ],
+  "known_missing_rows_remaining": [
+   "STORY.MAIN.PREMISE",
+   "STORY.MAIN.COMMS_INITIAL",
+   "STORY.MAIN.SYVIAL_EXISTENCE"
+  ]
+ },
+ "rules": [
+  "content_sha256 của record = SHA-256 của tài liệu nguồn CHÍNH (primary document) trong snapshot này.",
+  "Không thay thế tài liệu thiếu bằng tài liệu tương tự; nguồn thiếu giữ trạng thái NOT_FOUND_ON_DRIVE.",
+  "UNKNOWN không bao giờ được nâng cấp; REL.LUC_TRAM.SYVIAL.BASELINE giữ NO_SOURCE_BY_DESIGN."
+ ]
+}

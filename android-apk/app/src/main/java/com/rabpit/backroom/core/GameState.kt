@@ -1,35 +1,35 @@
 package com.rabpit.backroom.core
 
 const val CURRENT_SAVE_VERSION = 3
-const val KAI_ID = "kai"
-const val KAI_WHITE_WRAITH_ID = "kai:white-wraith-magnum"
-const val KAI_BLACKBLOOD_ARMOR_ID = "kai:blackblood-armor"
-const val KAI_OMNIVAULT_RING_ID = "kai:omnivault-ring"
+const val CAO_MINH_ID = "cao-minh"
+const val CAO_MINH_HUYET_MA_KIEM_ID = "cao-minh:huyet-ma-kiem"
+const val CAO_MINH_HUYET_MA_CHIEN_KHAI_ID = "cao-minh:huyet-ma-chien-khai"
+const val CAO_MINH_VAN_KHO_GIOI_CHI_ID = "cao-minh:van-kho-gioi-chi"
 
-object KaiStartingEquipment {
-  const val WEAPON_NAME = "W.W Magnum"
-  const val ARMOR_NAME = "Blackblood Armor & linked modules"
-  const val RING_NAME = "Omnivault Ring"
+object CaoMinhStartingEquipment {
+  const val WEAPON_NAME = "Huyết Ma Kiếm"
+  const val ARMOR_NAME = "Huyết Ma Chiến Khải"
+  const val RING_NAME = "Vạn Khố Giới Chỉ"
 
   val slots: Map<String, String> = linkedMapOf(
-    "weapon" to KAI_WHITE_WRAITH_ID,
-    "armor" to KAI_BLACKBLOOD_ARMOR_ID,
-    "ring" to KAI_OMNIVAULT_RING_ID
+    "weapon" to CAO_MINH_HUYET_MA_KIEM_ID,
+    "armor" to CAO_MINH_HUYET_MA_CHIEN_KHAI_ID,
+    "ring" to CAO_MINH_VAN_KHO_GIOI_CHI_ID
   )
 
   fun displayName(itemId: String): String? = when (itemId) {
-    KAI_WHITE_WRAITH_ID -> WEAPON_NAME
-    KAI_BLACKBLOOD_ARMOR_ID -> ARMOR_NAME
-    KAI_OMNIVAULT_RING_ID -> RING_NAME
+    CAO_MINH_HUYET_MA_KIEM_ID -> WEAPON_NAME
+    CAO_MINH_HUYET_MA_CHIEN_KHAI_ID -> ARMOR_NAME
+    CAO_MINH_VAN_KHO_GIOI_CHI_ID -> RING_NAME
     else -> null
   }
 
   fun slotFor(itemId: String, itemName: String): String? {
     val key = "$itemId $itemName".lowercase()
     return when {
-      key.contains("w.w magnum") || key.contains("white wraith") || key.contains("wraith magnum") -> "weapon"
-      key.contains("blackblood armor") || key.contains("black blood armor") -> "armor"
-      key.contains("omnivault ring") || key.contains("nhẫn omnivault") || key.contains("nhẫn vạn tàng") || key.contains("van tang") -> "ring"
+      key.contains("huyết ma kiếm") || key.contains("huyet ma kiem") -> "weapon"
+      key.contains("huyết ma chiến khải") || key.contains("huyet ma chien khai") -> "armor"
+      key.contains("vạn khố giới chỉ") || key.contains("nhẫn vạn khố") || key.contains("van kho gioi chi") || key.contains("nhẫn vạn tàng") || key.contains("van tang") -> "ring"
       else -> null
     }
   }
@@ -96,15 +96,18 @@ data class CharacterState(
   val equipmentId: String = id,
   val statusIds: Set<String> = emptySet(),
   val physiology: PhysiologyState = PhysiologyState(),
-  val metadata: Map<String, String> = emptyMap()
+  val metadata: Map<String, String> = emptyMap(),
+  // Appended to preserve all existing positional CharacterState constructor call sites.
+  val statProfile: CharacterStatProfile = CharacterStatProfiles.forId(id),
+  val vitalState: CharacterVitalState = CharacterStatProfiles.initialVitals(id)
 )
 
-data class PartyState(val leaderId: String = KAI_ID, val memberIds: List<String> = listOf(KAI_ID), val maxMembers: Int = 4)
+data class PartyState(val leaderId: String = CAO_MINH_ID, val memberIds: List<String> = listOf(CAO_MINH_ID), val maxMembers: Int = 4)
 
 data class ScanSlot(val slot: Int, val sourceItemId: String, val templateItem: ItemStack, val scannedAtEpochMs: Long)
 
-data class OmnivaultState(
-  val ownerId: String = KAI_ID,
+data class VanKhoGioiChiState(
+  val ownerId: String = CAO_MINH_ID,
   val storedItems: Map<String, ItemStack> = emptyMap(),
   val scanSlots: List<ScanSlot> = emptyList(),
   val markedSourceIds: Set<String> = emptySet(),
@@ -138,7 +141,7 @@ data class GameState(
   val inventories: Map<String, InventoryState> = emptyMap(),
   val equipment: Map<String, EquipmentState> = emptyMap(),
   val statuses: Map<String, StatusEffect> = emptyMap(),
-  val omnivault: OmnivaultState = OmnivaultState(),
+  val vanKhoGioiChi: VanKhoGioiChiState = VanKhoGioiChiState(),
   val turn: TurnState = TurnState(),
   val time: GameTimeState = GameTimeState(),
   val world: Map<String, String> = emptyMap(),
@@ -146,18 +149,31 @@ data class GameState(
   val metadata: Map<String, String> = emptyMap()
 ) {
   companion object {
-    fun initial(): GameState = GameState(
+    fun initial(): GameState = CharacterEquipmentSystem.seedFresh(GameState(
       characters = mapOf(
-        KAI_ID to CharacterState(
-          KAI_ID,
-          "Kai Akechi",
-          avatarRef = "avatars/kai_avatar.png",
+        CAO_MINH_ID to CharacterState(
+          CAO_MINH_ID,
+          "Cao Minh",
+          avatarRef = "avatars/CAO_MINH_AVATAR.jpg",
           physiology = PhysiologyState.freshRunBaseline(),
-          metadata = mapOf("inventoryProfile" to "kai")
-        )
+          metadata = mapOf("inventoryProfile" to "cao-minh")
+        ),
+        AN_NHIEN_ID to AnNhienCanon.character(),
+        LUC_TRAM_ID to SpecialFollowersCanon.lucTramCharacter(),
+        SYVIAL_ID to SpecialFollowersCanon.syvialCharacter()
       ),
-      inventories = mapOf(KAI_ID to InventoryState(KAI_ID)),
-      equipment = mapOf(KAI_ID to EquipmentState(KAI_ID, KaiStartingEquipment.slots))
-    )
+      inventories = mapOf(
+        CAO_MINH_ID to InventoryState(CAO_MINH_ID),
+        AN_NHIEN_ID to AnNhienCanon.inventory(),
+        LUC_TRAM_ID to InventoryState(LUC_TRAM_ID),
+        SYVIAL_ID to InventoryState(SYVIAL_ID)
+      ),
+      equipment = mapOf(
+        CAO_MINH_ID to EquipmentState(CAO_MINH_ID, CaoMinhStartingEquipment.slots),
+        AN_NHIEN_ID to AnNhienCanon.equipment(),
+        LUC_TRAM_ID to EquipmentState(LUC_TRAM_ID, SpecialFollowersCanon.lucTramEquipmentSlots),
+        SYVIAL_ID to EquipmentState(SYVIAL_ID, SpecialFollowersCanon.syvialEquipmentSlots)
+      )
+    ))
   }
 }

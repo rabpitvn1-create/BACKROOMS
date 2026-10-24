@@ -16,22 +16,22 @@ def replace_once(text: str, old: str, new: str, label: str) -> str:
 # 1) Seed An Nhien in the authoritative core without putting her in Party before encounter.
 path = CORE / "GameState.kt"
 text = path.read_text(encoding="utf-8")
-old = '''          metadata = mapOf("inventoryProfile" to "kai")
+old = '''          metadata = mapOf("inventoryProfile" to "cao-minh")
         )
       ),
-      inventories = mapOf(KAI_ID to InventoryState(KAI_ID)),
-      equipment = mapOf(KAI_ID to EquipmentState(KAI_ID, KaiStartingEquipment.slots))
+      inventories = mapOf(CAO_MINH_ID to InventoryState(CAO_MINH_ID)),
+      equipment = mapOf(CAO_MINH_ID to EquipmentState(CAO_MINH_ID, CaoMinhStartingEquipment.slots))
 '''
-new = '''          metadata = mapOf("inventoryProfile" to "kai")
+new = '''          metadata = mapOf("inventoryProfile" to "cao-minh")
         ),
         AN_NHIEN_ID to AnNhienCanon.character()
       ),
       inventories = mapOf(
-        KAI_ID to InventoryState(KAI_ID),
+        CAO_MINH_ID to InventoryState(CAO_MINH_ID),
         AN_NHIEN_ID to AnNhienCanon.inventory()
       ),
       equipment = mapOf(
-        KAI_ID to EquipmentState(KAI_ID, KaiStartingEquipment.slots),
+        CAO_MINH_ID to EquipmentState(CAO_MINH_ID, CaoMinhStartingEquipment.slots),
         AN_NHIEN_ID to AnNhienCanon.equipment()
       )
 '''
@@ -68,10 +68,10 @@ text = replace_once(
 )
 text = replace_once(
     text,
-    '''    if (characterId == KAI_ID) return KAI
+    '''    if (characterId == CAO_MINH_ID) return CAO_MINH
     val character = state.characters[characterId]
 ''',
-    '''    if (characterId == KAI_ID) return KAI
+    '''    if (characterId == CAO_MINH_ID) return CAO_MINH
     if (characterId == AN_NHIEN_ID) return AN_NHIEN
     val character = state.characters[characterId]
 ''',
@@ -254,8 +254,8 @@ path.write_text(text, encoding="utf-8")
 # 6) Make the intent/core resolver know her identity; all actual party/inventory mutations still use existing engines.
 path = CORE / "GameCoreFacade.kt"
 text = path.read_text(encoding="utf-8")
-old = '    val actors = state.characters.values.associate { it.name.lowercase() to it.id } + mapOf("kai" to KAI_ID, "iris" to "iris", "syvial" to "syvial")\n'
-new = '    val actors = state.characters.values.associate { it.name.lowercase() to it.id } + mapOf("kai" to KAI_ID, "iris" to "iris", "syvial" to "syvial", "an nhiên" to AN_NHIEN_ID, "an nhien" to AN_NHIEN_ID)\n'
+old = '    val actors = state.characters.values.associate { it.name.lowercase() to it.id } + mapOf("cao minh" to CAO_MINH_ID, "lục trầm" to "luc-tram", "syvial" to "syvial")\n'
+new = '    val actors = state.characters.values.associate { it.name.lowercase() to it.id } + mapOf("cao minh" to CAO_MINH_ID, "lục trầm" to "luc-tram", "syvial" to "syvial", "an nhiên" to AN_NHIEN_ID, "an nhien" to AN_NHIEN_ID)\n'
 text = replace_once(text, old, new, "An Nhien actor aliases")
 path.write_text(text, encoding="utf-8")
 
@@ -297,11 +297,11 @@ main = replace_once(
 main = replace_once(
     main,
     '''    rolls.put("survivor", thresholdRoll("survivor", 10000, 200, survivorAllowed, ""));
-    rolls.put("irisReunion", thresholdRoll("irisReunion", 1000000, 25, reunionEligibleAndroid(state, "iris"), ""));
+    rolls.put("lucTramReunion", thresholdRoll("lucTramReunion", 1000000, 25, reunionEligibleAndroid(state, "luc-tram"), ""));
 ''',
     '''    rolls.put("anNhienEncounter", thresholdRoll("anNhienEncounter", 1, 1, level == 0 && physical && !anNhienEncountered, " mandatory Level 0 follower"));
     rolls.put("survivor", thresholdRoll("survivor", 10000, 200, survivorAllowed && !(level == 0 && !anNhienEncountered), ""));
-    rolls.put("irisReunion", thresholdRoll("irisReunion", 1000000, 25, reunionEligibleAndroid(state, "iris"), ""));
+    rolls.put("lucTramReunion", thresholdRoll("lucTramReunion", 1000000, 25, reunionEligibleAndroid(state, "luc-tram"), ""));
 ''',
     "guaranteed An Nhien encounter roll"
 )
@@ -340,27 +340,27 @@ main = replace_once(main, old_transition, new_transition, "Level 0 exit gate")
 
 old_allowed = '''  private boolean characterAddAllowed(JSONObject before, String name, JSONObject rolls) {
     String value = lower(name);
-    if (value.contains("iris")) return presentCharacter(before, "iris") || rollSuccess(rolls, "irisReunion");
+    if (value.contains("luc-tram")) return presentCharacter(before, "luc-tram") || rollSuccess(rolls, "lucTramReunion");
 '''
 new_allowed = '''  private boolean characterAddAllowed(JSONObject before, String name, JSONObject rolls) {
     String value = lower(name);
     if (value.contains("an nhiên") || value.contains("an nhien") || value.contains("an-nhien")) return anNhienEncountered(before) || rollSuccess(rolls, "anNhienEncounter");
-    if (value.contains("iris")) return presentCharacter(before, "iris") || rollSuccess(rolls, "irisReunion");
+    if (value.contains("luc-tram")) return presentCharacter(before, "luc-tram") || rollSuccess(rolls, "lucTramReunion");
 '''
 main = replace_once(main, old_allowed, new_allowed, "An Nhien party authority")
 
-old_snapshot = '''    else if (kind.equals("character_encounter")) allowed = rollSuccess(rolls, "survivor") || rollSuccess(rolls, "irisReunion") || rollSuccess(rolls, "syvialReunion");
+old_snapshot = '''    else if (kind.equals("character_encounter")) allowed = rollSuccess(rolls, "survivor") || rollSuccess(rolls, "lucTramReunion") || rollSuccess(rolls, "syvialReunion");
 '''
-new_snapshot = '''    else if (kind.equals("character_encounter")) allowed = rollSuccess(rolls, "anNhienEncounter") || rollSuccess(rolls, "survivor") || rollSuccess(rolls, "irisReunion") || rollSuccess(rolls, "syvialReunion");
+new_snapshot = '''    else if (kind.equals("character_encounter")) allowed = rollSuccess(rolls, "anNhienEncounter") || rollSuccess(rolls, "survivor") || rollSuccess(rolls, "lucTramReunion") || rollSuccess(rolls, "syvialReunion");
 '''
 main = replace_once(main, old_snapshot, new_snapshot, "An Nhien snapshot event")
 
-old_tail = '''    flags.put("madGod", madGod).put("lastRolls", rolls);
+old_tail = '''    flags.put("lastRolls", rolls);
     state.put("flags", flags);
     return state;
   }
 '''
-new_tail = '''    flags.put("madGod", madGod).put("lastRolls", rolls);
+new_tail = '''    flags.put("lastRolls", rolls);
 
     boolean anNhienNow = anNhienEncountered(before) || rollSuccess(rolls, "anNhienEncounter");
     if (anNhienNow) {
@@ -397,7 +397,7 @@ new_tail = '''    flags.put("madGod", madGod).put("lastRolls", rolls);
 main = replace_once(main, old_tail, new_tail, "deterministic An Nhien encounter commit")
 
 prompt_marker = '"GAMEPLAY_ROLLS do Android sinh là bất biến: chỉ outcome success=true mới được xuất hiện. Không reroll, không tự đổi xác suất, không tự tạo encounter/item/reunion/level transition trái roll. " +\n'
-prompt_extra = prompt_marker + '            "AN NHIÊN HARD LOCK: bé gái 7 tuổi, con người, không phải Entity. anNhienEncounter success=true là cuộc gặp bắt buộc ở Level 0 và phải được kể trong lượt đó; sau khi gặp cô bé luôn theo Kai, không chiến đấu, không dùng vũ khí, không tự tách nhóm. Cô chỉ có +10% loot chance và +2% exit chance khi đang theo Kai, đúng như GAMEPLAY_ROLLS. Không tự thêm năng lực hoặc lore. " +\n'
+prompt_extra = prompt_marker + '            "AN NHIÊN HARD LOCK: bé gái 7 tuổi, con người, không phải Entity. anNhienEncounter success=true là cuộc gặp bắt buộc ở Level 0 và phải được kể trong lượt đó; sau khi gặp cô bé luôn theo Cao Minh, không chiến đấu, không dùng vũ khí, không tự tách nhóm. Cô chỉ có +10% loot chance và +2% exit chance khi đang theo Cao Minh, đúng như GAMEPLAY_ROLLS. Không tự thêm năng lực hoặc lore. " +\n'
 main = replace_once(main, prompt_marker, prompt_extra, "An Nhien GM hard lock")
 
 for marker in [

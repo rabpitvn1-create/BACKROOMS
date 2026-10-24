@@ -60,22 +60,22 @@ class AnNhienFollowerTest {
 
   @Test fun followerCannotBeRemovedSeparatedOrMadeLeader() {
     val base = GameState.initial()
-    val state = base.copy(party = base.party.copy(memberIds = listOf(KAI_ID, AN_NHIEN_ID)))
+    val state = base.copy(party = base.party.copy(memberIds = listOf(CAO_MINH_ID, AN_NHIEN_ID)))
 
     val remove = PartyEngine.execute(state, PartyCommand(
-      "remove-an", state.turn.currentTurnId, KAI_ID, AN_NHIEN_ID, CommandSource.SYSTEM, PartyCommand.Operation.REMOVE
+      "remove-an", state.turn.currentTurnId, CAO_MINH_ID, AN_NHIEN_ID, CommandSource.SYSTEM, PartyCommand.Operation.REMOVE
     ))
     assertFalse(remove.applied)
     assertEquals("an_nhien_follower_locked", remove.validation.reason)
 
     val separate = PartyEngine.execute(state, PartyCommand(
-      "separate-an", state.turn.currentTurnId, KAI_ID, AN_NHIEN_ID, CommandSource.SYSTEM, PartyCommand.Operation.SEPARATE
+      "separate-an", state.turn.currentTurnId, CAO_MINH_ID, AN_NHIEN_ID, CommandSource.SYSTEM, PartyCommand.Operation.SEPARATE
     ))
     assertFalse(separate.applied)
     assertEquals("an_nhien_follower_locked", separate.validation.reason)
 
     val leader = PartyEngine.execute(state, PartyCommand(
-      "leader-an", state.turn.currentTurnId, KAI_ID, AN_NHIEN_ID, CommandSource.SYSTEM, PartyCommand.Operation.SET_LEADER
+      "leader-an", state.turn.currentTurnId, CAO_MINH_ID, AN_NHIEN_ID, CommandSource.SYSTEM, PartyCommand.Operation.SET_LEADER
     ))
     assertFalse(leader.applied)
     assertEquals("an_nhien_cannot_lead", leader.validation.reason)
@@ -101,6 +101,20 @@ class AnNhienFollowerTest {
     ))
     assertFalse(result.applied)
     assertEquals("an_nhien_equipment_locked", result.validation.reason)
+  }
+
+  @Test fun fixedEquipmentCannotBeUnequippedOrPreviewed() {
+    val state = GameState.initial()
+    val result = InventoryEngine.execute(state, ItemCommand(
+      commandId = "unequip-an", turnId = state.turn.currentTurnId,
+      actorId = AN_NHIEN_ID, source = CommandSource.SYSTEM,
+      operation = ItemCommand.Operation.UNEQUIP, itemId = AN_NHIEN_OUTFIT_ID,
+      itemName = AnNhienCanon.OUTFIT_NAME, slot = "outfit"
+    ))
+    assertFalse(result.applied)
+    assertEquals("an_nhien_equipment_locked", result.validation.reason)
+    assertEquals(state, result.state)
+    assertEquals(null, EquipmentEngine.preview(state, AN_NHIEN_ID, AN_NHIEN_OUTFIT_ID))
   }
 
   @Test fun saveDecodeBackfillsAnNhienWithoutPuttingHerInParty() {

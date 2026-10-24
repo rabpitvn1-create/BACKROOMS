@@ -31,7 +31,7 @@ css = r'''
 .primary-action .action-icon{width:19px;height:19px;flex:0 0 19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .primary-action .footprint-icon ellipse,.primary-action .footprint-icon circle{fill:currentColor;stroke:none}
 .primary-action .ai-action-icon{width:22px;flex-basis:22px}
-.primary-action .ai-action-icon text{font:700 6.5px system-ui,sans-serif;fill:currentColor;stroke:none;letter-spacing:.2px}
+.primary-action .ai-action-icon text{font:700 6.5px var(--game-font);fill:currentColor;stroke:none;letter-spacing:.2px}
 .primary-action .ai-action-icon .spark{stroke-width:1.4}
 @media(max-width:390px){.primary-action-row{gap:5px}.primary-action{font-size:12px;padding:9px 5px;gap:5px}.primary-action .action-icon{width:17px;height:17px;flex-basis:17px}.primary-action .ai-action-icon{width:20px;flex-basis:20px}}
 '''

@@ -40,8 +40,9 @@ object AnNhienCanon {
         "npcType" to "follower",
         "entity" to "false",
         "joinEligible" to "true",
-        "mandatoryEncounter" to "true",
-        "encounterChance" to "100%",
+        "mandatoryEncounter" to "false",
+        "encounterChance" to "0.25%",
+        "encounterLevels" to "0-6",
         "nonCombat" to "true",
         "canUseWeapons" to "false",
         "followsPlayer" to "true",
@@ -54,12 +55,10 @@ object AnNhienCanon {
   }
 
   fun inventory(existing: InventoryState? = null): InventoryState {
-    val valid = existing?.items.orEmpty().values
-      .filter(::isFoodItem)
-      .sortedBy { it.itemId }
-      .take(2)
-      .associateBy { it.itemId }
-    return InventoryState(AN_NHIEN_ID, valid)
+    val all = existing?.items.orEmpty().values
+    val equipmentItems = all.filter { it.itemId == AN_NHIEN_OUTFIT_ID || it.itemId == AN_NHIEN_FOOTWEAR_ID }.associateBy { it.itemId }
+    val foodItems = all.filter(::isFoodItem).sortedBy { it.itemId }.take(2).associateBy { it.itemId }
+    return InventoryState(AN_NHIEN_ID, equipmentItems + foodItems)
   }
 
   fun equipment(): EquipmentState = EquipmentState(AN_NHIEN_ID, equipmentSlots)

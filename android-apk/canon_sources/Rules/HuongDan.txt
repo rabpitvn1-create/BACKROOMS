@@ -1,0 +1,174 @@
+[[AI_RETRIEVAL_LAYER_BEGIN]]
+SCHEMA: AI_RETRIEVAL_TXT
+DOCUMENT_ID: RULES.GUIDE
+FILE_NAME: HuongDan.txt
+ENCODING: UTF-8
+DOCUMENT_STATUS: ACTIVE_RUNTIME_RULES
+REVISION: HUMAN-CONVERSATION R03
+INDEX_LAYER_STATUS: NON-AUTHORITATIVE
+RULE_BLOCKS_STATUS: AUTHORITATIVE_FOR_SUPPLEMENT_ONLY
+CONTENT_RULE: Tài liệu này chỉ bổ trợ cách cảm xúc, hành động và phản ứng tồn tại trong văn xuôi quanh hội thoại. Thiết kế, sinh, hiện thực hóa lời nói và audit hội thoại thuộc thẩm quyền duy nhất của RULES.DIALOGUE.
+RETRIEVAL_RULE: Khi tra cứu một mã mục, đọc toàn bộ khối có cùng SECTION_ID. Khi tác vụ liên quan hội thoại, phải đọc 00_RULES_BOOT.md và CONVERSATION.MD; không dùng HuongDan.txt để dựng Conversation Engine, sơ đồ lượt nói hoặc checklist sinh câu.
+SECTION_INDEX_BEGIN
+HD-001 | DÒNG CẢM XÚC QUANH HỘI THOẠI
+HD-002 | CẢM XÚC KHÔNG PHẢI STATE CHANGE TỪNG LƯỢT
+HD-003 | CỬ CHỈ KHÔNG ĐƯỢC LÀ LỚP TRANG TRÍ
+HD-004 | CỔNG NỐI SANG RULES.DIALOGUE
+HD-005 | THOẠI CỤT — DELEGATED
+HD-006 | GIẢ SÂU — DELEGATED
+HD-007 | HỎI–ĐÁP DỮ LIỆU — DELEGATED
+HD-008 | ĐIỂM DỪNG — DELEGATED
+HD-009 | NHỊP HỘI THOẠI — CHỈ HẬU KIỂM
+HD-010 | CHẾ ĐỘ / CHIẾN THUẬT — CHỈ KHI THẬT SỰ CÓ
+HD-011 | LƯỢT NÓI NHỎ — DELEGATED
+HD-012 | AUDIT HỘI THOẠI — DELEGATED
+HD-013 | BÌNH THƯỜNG HƠN, ĐỜI HƠN — DELEGATED
+SECTION_INDEX_END
+[[AI_RETRIEVAL_LAYER_END]]
+
+[[AI_SECTION_BEGIN:HD-001]]
+DÒNG CẢM XÚC QUANH HỘI THOẠI
+
+Tài liệu này không quyết định cấu trúc hội thoại; phần đó thuộc `RULES.DIALOGUE`. Khối này chỉ kiểm cách cảm xúc đã xuất hiện tiếp tục tồn tại trong văn xuôi quanh lời nói.
+
+Một cảm xúc quan trọng không được biến mất chỉ vì chủ đề đổi, công việc chen vào hoặc nhân vật bắt đầu hợp tác trở lại. Nó có thể tiếp tục ở nền và ảnh hưởng một hoặc nhiều kênh khi thích hợp:
+
+- điều nhân vật chú ý hoặc cố không chú ý;
+- cách họ nghe một câu vốn bình thường;
+- mức kiên nhẫn, trực tiếp hoặc dè chừng;
+- khoảng cách cơ thể và cách sử dụng đồ vật;
+- lựa chọn thực tế;
+- mức sẵn lòng giúp, nhận giúp, giải thích hoặc tiếp tục nói;
+- điều quay trở lại sau vài lượt hoặc sau khi công việc tạm lắng.
+
+Không bắt buộc mọi câu kế tiếp phải biểu diễn cảm xúc đó. Một người đang giận vẫn có thể hỏi ăn gì, giữ cửa, đưa đồ hoặc tiếp tục làm việc. Một người lo lắng vẫn có thể nói chuyện bình thường trong vài lượt. Điều cần giữ là **không reset trạng thái vô cớ**.
+
+Cảm xúc có thể cùng tồn tại: giận nhưng vẫn hợp tác; thương nhưng vẫn từ chối; nhẹ nhõm nhưng vẫn cảnh giác; xấu hổ nhưng vẫn cãi. Không ép nhân vật vào trạng thái nhị phân.
+[[AI_SECTION_END:HD-001]]
+
+[[AI_SECTION_BEGIN:HD-002]]
+CẢM XÚC KHÔNG PHẢI STATE CHANGE TỪNG LƯỢT
+
+Không yêu cầu mỗi câu nói hoặc phản ứng phải làm thay đổi ngay cách hiểu, quan hệ, quyết định hay quyền chủ động.
+
+Một tác động cảm xúc có thể:
+
+- chỉ làm một câu sau nghe khác đi;
+- chưa được nhân vật hiểu ngay;
+- bị gạt sang bên vì đang có việc phải làm;
+- quay lại sau vài lượt;
+- tồn tại như sự khó chịu chưa gọi tên;
+- không làm đổi quyết định thực tế nhưng làm đổi cách hai người thực hiện quyết định đó.
+
+Chỉ coi cảm xúc là trang trí khi nó được nhấn mạnh như quan trọng nhưng qua một khoảng ngữ cảnh đủ dài lại không ảnh hưởng đến chú ý, lời nói, hành động, lựa chọn, quan hệ hoặc cách nhân vật tiếp nhận điều xảy ra.
+
+Không dùng quy tắc này để ép một "delta" sau mỗi lượt.
+[[AI_SECTION_END:HD-002]]
+
+[[AI_SECTION_BEGIN:HD-003]]
+CỬ CHỈ KHÔNG ĐƯỢC LÀ LỚP TRANG TRÍ
+
+Không lặp cơ học các cử chỉ như cau mày, siết tay, thở dài, cười nhạt, im lặng, quay mặt hoặc “ánh mắt tối lại” chỉ để báo rằng cảnh có cảm xúc.
+
+Giữ cử chỉ khi nó thuộc về việc người đó đang thật sự làm trong không gian hoặc khi nó làm ít nhất một việc có ý nghĩa:
+
+- tác động tới vật hoặc công việc đang diễn ra;
+- làm người khác nhận ra hoặc hiểu sai điều gì;
+- thay đổi khoảng cách, nhịp hành động hoặc khả năng tiếp tục nói;
+- phơi bày hay che giấu điều người đó không định nói thẳng;
+- tạo ra hậu quả mà cảnh sau đó còn sử dụng.
+
+Không cần gắn cử chỉ sau mọi câu. Nếu bỏ cử chỉ mà cuộc thoại vẫn hoàn toàn giống nhau, hãy kiểm xem nó có đang chỉ làm dấu cảm xúc hay không.
+[[AI_SECTION_END:HD-003]]
+
+[[AI_SECTION_BEGIN:HD-004]]
+CỔNG NỐI SANG RULES.DIALOGUE
+
+`HuongDan.txt` không được tạo hoặc duy trì một bộ luật hội thoại song song.
+
+Đặc biệt, **không dùng tại đây**:
+
+- Conversation Engine bắt buộc;
+- Pass A / sơ đồ tương tác trước khi sinh lời;
+- bảng mục tiêu giao tiếp / nỗi sợ / điều giấu / hiểu sai / rủi ro / chiến thuật cho mọi nhân vật;
+- yêu cầu mỗi nhịp phải có state change;
+- yêu cầu mỗi lượt phải phản ứng trực tiếp lượt ngay trước;
+- checklist audit dùng ngược thành công thức sinh câu.
+
+Phải mở và áp dụng trực tiếp `CONVERSATION.MD` — `RULES.DIALOGUE`.
+[[AI_SECTION_END:HD-004]]
+
+[[AI_SECTION_BEGIN:HD-005]]
+THOẠI CỤT — DELEGATED
+
+Nguồn thẩm quyền: `RULES.DIALOGUE`, phần guardrail về thoại cụt và **FRAGMENT CLUSTER TEST**. Số từ không phải tiêu chuẩn độc lập; không kéo dài bằng từ rỗng chỉ để vượt ngưỡng.
+[[AI_SECTION_END:HD-005]]
+
+[[AI_SECTION_BEGIN:HD-006]]
+GIẢ SÂU — DELEGATED
+
+Nguồn thẩm quyền: `RULES.DIALOGUE`, phần guardrail về ẩn dụ rỗng, triết lý giả và câu mơ hồ. Không biến nhân vật thành người phát ngôn cho một "câu đinh".
+[[AI_SECTION_END:HD-006]]
+
+[[AI_SECTION_BEGIN:HD-007]]
+HỎI–ĐÁP DỮ LIỆU — DELEGATED
+
+Nguồn thẩm quyền: `RULES.DIALOGUE`, đặc biệt các guardrail về dàn ý/canon đọc thành lời, câu hỏi mồi và giao diện canon. Kiểm trên toàn cuộc thoại, không chữa bằng cách cho người nghe né ngẫu nhiên.
+[[AI_SECTION_END:HD-007]]
+
+[[AI_SECTION_BEGIN:HD-008]]
+ĐIỂM DỪNG — DELEGATED
+
+Nguồn thẩm quyền: `RULES.DIALOGUE`, **STOPPING TEST**. Cuộc thoại được phép dừng khi công việc chen vào, người ta chưa biết nói thêm gì hoặc vấn đề thực tế đã đủ để hành động dù cảm xúc chưa khép.
+[[AI_SECTION_END:HD-008]]
+
+[[AI_SECTION_BEGIN:HD-009]]
+NHỊP HỘI THOẠI — CHỈ HẬU KIỂM
+
+Không dùng nhịp hai đến sáu lượt hoặc bất kỳ đơn vị lượt cố định nào để sinh hội thoại.
+
+Sau khi cuộc thoại đã tồn tại, có thể nhìn lại các cụm trao đổi để kiểm:
+
+- tình huống có còn nhân quả không;
+- người ta có đang mắc lại một điều cũ theo cách hợp lý không;
+- vấn đề có đổi hướng vì điều vừa xảy ra không;
+- cảm xúc có bị reset vô cớ không.
+
+Nguồn thẩm quyền: `RULES.DIALOGUE`, đặc biệt **HUMAN CONTINUITY TEST**.
+[[AI_SECTION_END:HD-009]]
+
+[[AI_SECTION_BEGIN:HD-010]]
+CHẾ ĐỘ / CHIẾN THUẬT — CHỈ KHI THẬT SỰ CÓ
+
+Không bắt mọi cuộc nói chuyện phải được phân loại thành một chế độ rồi sinh theo chế độ đó.
+
+Xung đột thật có thể có chiến thuật, đòn bẩy, che giấu hoặc thương lượng. Cảnh chuyên môn có thể cần giao tiếp ngắn và chính xác. Khẩn cấp có thể rút câu. Nhưng cảnh đời thường, thân mật hoặc hợp tác không được tự động chiến thuật hóa chỉ để tạo chiều sâu.
+
+Có nguyên nhân để nói không đồng nghĩa có chiến lược giao tiếp.
+
+Nguồn thẩm quyền: `RULES.DIALOGUE`.
+[[AI_SECTION_END:HD-010]]
+
+[[AI_SECTION_BEGIN:HD-011]]
+LƯỢT NÓI NHỎ — DELEGATED
+
+Nguồn thẩm quyền: `RULES.DIALOGUE`, mục tiêu **bình thường hơn, đời hơn**. Không coi xác nhận, hỏi lại, phàn nàn nhỏ, nhắc việc đang làm, câu vụng, tự sửa hoặc chuyển sang nhu cầu thực tế là thừa chỉ vì chúng không tạo bước ngoặt.
+[[AI_SECTION_END:HD-011]]
+
+[[AI_SECTION_BEGIN:HD-012]]
+AUDIT HỘI THOẠI — DELEGATED
+
+Nguồn thẩm quyền: `RULES.DIALOGUE`, phần **DIALOGUE AUDIT** và **REJECT GATE**.
+
+Các test trọng tâm hiện hành gồm: **DIALOGUE ISOLATION AUDIT, WHO-KNOWS-WHAT TEST, HUMAN CONTINUITY TEST, SPOKEN-LANGUAGE TEST, DEFAULT-RESPONSE TEST, EXPOSITION-PACKAGE TEST, RELATIONSHIP-PROCESSING TEST, MULTI-PARTY TEST, VOICE SWAP TEST, SHARED-AUTHORIAL-WIT TEST, FRAGMENT CLUSTER TEST, STOPPING TEST, ENDING-SUMMARY TEST**.
+
+Chỉ dùng sau khi cuộc thoại đã tồn tại. Không quay ngược chúng thành checklist để sinh từng câu.
+[[AI_SECTION_END:HD-012]]
+
+[[AI_SECTION_BEGIN:HD-013]]
+BÌNH THƯỜNG HƠN, ĐỜI HƠN — DELEGATED
+
+Nguồn thẩm quyền: `RULES.DIALOGUE`, mục **Mục tiêu mặc định — bình thường hơn, đời hơn** và phần **SPOKEN REALIZATION**.
+
+Không "làm tự nhiên" bằng cách cố thêm từ đệm, lặp, câu dang dở, tiếng lóng hoặc cử chỉ. Mục tiêu là không văn viết hóa lời nói của một con người cụ thể.
+[[AI_SECTION_END:HD-013]]

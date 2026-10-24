@@ -13,9 +13,6 @@ def replace_once(old: str, new: str, label: str):
 
 old_inventory = r'''        boolean allowedNew = acquisitionIntent(action);
         JSONObject beforeFlagsForItem = before.optJSONObject("flags");
-        JSONObject beforeMadGodForItem = beforeFlagsForItem != null ? beforeFlagsForItem.optJSONObject("madGod") : null;
-        boolean madGodAlreadySpawned = beforeMadGodForItem != null && beforeMadGodForItem.optBoolean("spawned", false);
-        if (madGod && !madGodAlreadySpawned) allowedNew = false;
         if (almond) {
           JSONObject waterRoll = rolls.optJSONObject("almondWater");
           if (waterRoll != null && waterRoll.optBoolean("eligible", false) && !waterRoll.optBoolean("success", false) && existing < 0) allowedNew = false;
@@ -23,18 +20,14 @@ old_inventory = r'''        boolean allowedNew = acquisitionIntent(action);
 '''
 new_inventory = r'''        boolean allowedNew = false;
         JSONObject beforeFlagsForItem = before.optJSONObject("flags");
-        JSONObject beforeMadGodForItem = beforeFlagsForItem != null ? beforeFlagsForItem.optJSONObject("madGod") : null;
         JSONObject explorationForItem = beforeFlagsForItem != null ? beforeFlagsForItem.optJSONObject("exploration") : null;
         JSONObject omnivaultForItem = beforeFlagsForItem != null ? beforeFlagsForItem.optJSONObject("omnivault") : null;
         boolean establishedStructured = false;
         if (explorationForItem != null) establishedStructured = lower(explorationForItem.toString()).contains(lower(name));
         if (!establishedStructured && omnivaultForItem != null) establishedStructured = lower(omnivaultForItem.toString()).contains(lower(name));
-        if (!establishedStructured && beforeMadGodForItem != null) establishedStructured = lower(beforeMadGodForItem.toString()).contains(lower(name));
-        boolean madGodAlreadySpawned = beforeMadGodForItem != null && beforeMadGodForItem.optBoolean("spawned", false);
         if (existing >= 0) allowedNew = true;
         else if (acquisitionIntent(action)) {
-          if (madGod) allowedNew = madGodAlreadySpawned && establishedStructured;
-          else if (almond) allowedNew = establishedStructured || rollSuccess(rolls, "almondWater");
+          if (almond) allowedNew = establishedStructured || rollSuccess(rolls, "almondWater");
           else if (containsAny(action, "copy", "sao chép")) allowedNew = establishedStructured;
           else allowedNew = establishedStructured || rollSuccess(rolls, "loot");
         }

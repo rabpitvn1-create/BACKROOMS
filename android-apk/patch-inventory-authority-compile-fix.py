@@ -19,7 +19,7 @@ if old in text:
     raise RuntimeError("Invalid Kotlin regex escape survived inventory authority compile fix")
 FACADE.write_text(text, encoding="utf-8")
 
-# MadGod's earlier resolver layer replaces the baseline literal slot with equipmentSlot(it).
+# An earlier resolver layer replaces the baseline literal slot with equipmentSlot(it).
 # The Omnivault finalizer deliberately owns the final slot resolver, so normalize only those
 # two branch anchors immediately before it runs. This preserves patch ordering rather than
 # teaching the finalizer to depend on whichever historical patch happened to run first.
@@ -42,11 +42,11 @@ for historical, normalized, label in anchor_pairs:
     elif normalized not in command:
         raise RuntimeError(f"Inventory authority {label} compatibility anchor missing")
 
-# Once both branches stop calling MadGod's historical equipmentSlot helper it is dead code.
+# Once both branches stop calling the historical equipmentSlot helper it is dead code.
 # Removing that one generated helper also restores the resolvedQuantity -> itemCommand adjacency
 # expected by the final authority patch, without changing the behavior of any surviving caller.
 slot_helper_pattern = re.compile(
-    r'  private fun equipmentSlot\(item: Pair<String,String>\): String = MadGodCanon\.slot\(item\.first,item\.second\).*?\n\n',
+    r'  private fun equipmentSlot\(item: Pair<String,String>\): String = .*?\n\n',
     re.DOTALL,
 )
 command, removed_helpers = slot_helper_pattern.subn('', command, count=1)
@@ -97,6 +97,6 @@ if copy_safe_healing_id not in HEALING.read_text(encoding="utf-8"):
 
 print("Healing contract compatibility restored without losing Omnivault copy identity.")
 
-# Final regression layer preserves pre-existing MadGod Omnivault bans and exact source
+# Final regression layer preserves pre-existing Omnivault bans and exact source
 # resolution after the identity rewrite, then updates stale natural-flow expectations.
 runpy.run_path(str(ROOT / "patch-omnivault-regression-compat.py"), run_name="__main__")

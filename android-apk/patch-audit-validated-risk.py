@@ -32,7 +32,7 @@ new_risk = r'''  private boolean jsonChanged(Object before, Object after) {
     JSONObject afterFlags = candidate.optJSONObject("flags");
     if (beforeFlags == null) beforeFlags = new JSONObject();
     if (afterFlags == null) afterFlags = new JSONObject();
-    for (String root : new String[] {"iris", "syvial", "survivorRegistry", "entityRegistry", "survivorsConfirmed", "entitiesConfirmedLocal", "madGod", "reunionPath"}) {
+    for (String root : new String[] {"iris", "syvial", "survivorRegistry", "entityRegistry", "survivorsConfirmed", "entitiesConfirmedLocal", "reunionPath"}) {
       if (jsonChanged(beforeFlags.opt(root), afterFlags.opt(root))) score += 3;
     }
     for (String root : new String[] {"omnivault", "communication", "exploration", "visualAreaKey", "visualEventKey", "entityEncounterKey"}) {

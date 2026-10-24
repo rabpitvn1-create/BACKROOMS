@@ -473,7 +473,7 @@ object OmnivaultEngine {
   private data class ScanSource(val kind: SourceKind, val key: String, val item: ItemStack, val worldIndex: Int? = null)
 
   fun execute(state: GameState, command: OmnivaultCommand): ExecutionResult {
-    if (command.actorId != KAI_ID) return invalid(state, "omnivault_owner_only")
+    if (command.actorId != CAO_MINH_ID) return invalid(state, "omnivault_owner_only")
     if (command.isLiving) return invalid(state, "living_target_forbidden")
     if (command.quantity <= 0) return invalid(state, "quantity_must_be_positive")
     if (command.operation == OmnivaultCommand.Operation.SCAN && command.isLargeAssembly) return invalid(state, "large_assembly_forbidden")
@@ -732,13 +732,13 @@ MAIN.write_text(main, encoding="utf-8")
 # broken model where copies merged into the original stack.
 # ---------------------------------------------------------------------------
 core_test = CORE_TEST.read_text(encoding="utf-8")
-old_core_copy = '''    val copied = StateReducer.execute(state, OmnivaultCommand("copy", "TURN_1", KAI_ID, source = CommandSource.RULE, operation = OmnivaultCommand.Operation.COPY, itemId = "original-4", itemName = "Item 4", quantity = 2))
-    assertEquals(3, copied.state.inventories.getValue(KAI_ID).items.getValue("original-4").quantity)
-    assertEquals("2", copied.state.inventories.getValue(KAI_ID).items.getValue("original-4").metadata["omnivaultCopyCount"])
+old_core_copy = '''    val copied = StateReducer.execute(state, OmnivaultCommand("copy", "TURN_1", CAO_MINH_ID, source = CommandSource.RULE, operation = OmnivaultCommand.Operation.COPY, itemId = "original-4", itemName = "Item 4", quantity = 2))
+    assertEquals(3, copied.state.inventories.getValue(CAO_MINH_ID).items.getValue("original-4").quantity)
+    assertEquals("2", copied.state.inventories.getValue(CAO_MINH_ID).items.getValue("original-4").metadata["omnivaultCopyCount"])
 '''
-new_core_copy = '''    val copied = StateReducer.execute(state, OmnivaultCommand("copy", "TURN_1", KAI_ID, source = CommandSource.RULE, operation = OmnivaultCommand.Operation.COPY, itemId = "original-4", itemName = "Item 4", quantity = 2))
-    assertEquals(1, copied.state.inventories.getValue(KAI_ID).items.getValue("original-4").quantity)
-    val copyStack = copied.state.inventories.getValue(KAI_ID).items.values.single { ItemIdentity.isOmnivaultCopy(it) }
+new_core_copy = '''    val copied = StateReducer.execute(state, OmnivaultCommand("copy", "TURN_1", CAO_MINH_ID, source = CommandSource.RULE, operation = OmnivaultCommand.Operation.COPY, itemId = "original-4", itemName = "Item 4", quantity = 2))
+    assertEquals(1, copied.state.inventories.getValue(CAO_MINH_ID).items.getValue("original-4").quantity)
+    val copyStack = copied.state.inventories.getValue(CAO_MINH_ID).items.values.single { ItemIdentity.isOmnivaultCopy(it) }
     assertEquals(2, copyStack.quantity)
     assertEquals("2", copyStack.metadata["omnivaultCopyCount"])
     assertFalse(copyStack.itemId == "original-4")
@@ -749,14 +749,14 @@ CORE_TEST.write_text(core_test, encoding="utf-8")
 if NATURAL_TEST.exists():
     natural = NATURAL_TEST.read_text(encoding="utf-8")
     natural = natural.replace('    assertEquals(9, copy.quantity)\n', '    assertEquals(10, copy.quantity)\n    assertEquals(10, copy.targetTotal)\n')
-    old_natural_result = '''    assertEquals(10, result.state.inventories.getValue(KAI_ID).items.getValue("almond-water").quantity)
-    assertEquals("9", result.state.inventories.getValue(KAI_ID).items.getValue("almond-water").metadata["omnivaultCopyCount"])
+    old_natural_result = '''    assertEquals(10, result.state.inventories.getValue(CAO_MINH_ID).items.getValue("almond-water").quantity)
+    assertEquals("9", result.state.inventories.getValue(CAO_MINH_ID).items.getValue("almond-water").metadata["omnivaultCopyCount"])
 '''
-    new_natural_result = '''    assertEquals(1, result.state.inventories.getValue(KAI_ID).items.getValue("almond-water").quantity)
-    val copyStack = result.state.inventories.getValue(KAI_ID).items.values.single { ItemIdentity.isOmnivaultCopy(it) }
+    new_natural_result = '''    assertEquals(1, result.state.inventories.getValue(CAO_MINH_ID).items.getValue("almond-water").quantity)
+    val copyStack = result.state.inventories.getValue(CAO_MINH_ID).items.values.single { ItemIdentity.isOmnivaultCopy(it) }
     assertEquals(9, copyStack.quantity)
     assertEquals("9", copyStack.metadata["omnivaultCopyCount"])
-    assertEquals(10, result.state.inventories.getValue(KAI_ID).items.values.filter { it.name == "Almond Water" }.sumOf { it.quantity })
+    assertEquals(10, result.state.inventories.getValue(CAO_MINH_ID).items.values.filter { it.name == "Almond Water" }.sumOf { it.quantity })
 '''
     natural = replace_once(natural, old_natural_result, new_natural_result, "Natural Scan-Copy identity expectation")
     NATURAL_TEST.write_text(natural, encoding="utf-8")
@@ -781,7 +781,7 @@ class OmnivaultInstanceAuthorityTest {
     val result = InventoryEngine.execute(state, ItemCommand(
       commandId = "pickup:$seed",
       turnId = state.turn.currentTurnId,
-      actorId = KAI_ID,
+      actorId = CAO_MINH_ID,
       source = CommandSource.SYSTEM,
       operation = ItemCommand.Operation.PICKUP,
       itemId = id,
@@ -796,7 +796,7 @@ class OmnivaultInstanceAuthorityTest {
     OmnivaultEngine.execute(state, OmnivaultCommand(
       commandId = commandId,
       turnId = state.turn.currentTurnId,
-      actorId = KAI_ID,
+      actorId = CAO_MINH_ID,
       source = CommandSource.RULE,
       operation = OmnivaultCommand.Operation.SCAN,
       itemId = id,
@@ -806,7 +806,7 @@ class OmnivaultInstanceAuthorityTest {
 
   @Test fun twoPhysicalOriginalsOfSameItemCanBeScannedIndependently() {
     var state = pickup(fresh(), "scrap", "Mảnh kim loại", 2, "two-scrap")
-    val ids = ItemIdentity.instanceIds(state.inventories.getValue(KAI_ID).items.getValue("scrap"))
+    val ids = ItemIdentity.instanceIds(state.inventories.getValue(CAO_MINH_ID).items.getValue("scrap"))
     assertEquals(2, ids.size)
     val first = scan(state, "scrap", "Mảnh kim loại", "scan:first")
     assertTrue(first.applied)
@@ -835,12 +835,12 @@ class OmnivaultInstanceAuthorityTest {
     var state = pickup(fresh(), "scrap", "Mảnh kim loại")
     state = scan(state, "scrap", "Mảnh kim loại", "scan:scrap").state
     val copied = OmnivaultEngine.execute(state, OmnivaultCommand(
-      commandId = "copy:scrap", turnId = state.turn.currentTurnId, actorId = KAI_ID, source = CommandSource.RULE,
+      commandId = "copy:scrap", turnId = state.turn.currentTurnId, actorId = CAO_MINH_ID, source = CommandSource.RULE,
       operation = OmnivaultCommand.Operation.COPY, itemId = "scrap", itemName = "Mảnh kim loại", quantity = 3
     ))
     assertTrue(copied.applied)
-    val original = copied.state.inventories.getValue(KAI_ID).items.getValue("scrap")
-    val copy = copied.state.inventories.getValue(KAI_ID).items.values.single { ItemIdentity.isOmnivaultCopy(it) }
+    val original = copied.state.inventories.getValue(CAO_MINH_ID).items.getValue("scrap")
+    val copy = copied.state.inventories.getValue(CAO_MINH_ID).items.values.single { ItemIdentity.isOmnivaultCopy(it) }
     assertEquals(1, original.quantity)
     assertEquals(3, copy.quantity)
     assertNotEquals(original.itemId, copy.itemId)
@@ -856,31 +856,31 @@ class OmnivaultInstanceAuthorityTest {
     state = scanned.state
     val slot = state.omnivault.scanSlots.single()
     val first = OmnivaultEngine.execute(state, OmnivaultCommand(
-      commandId = "copy:to10", turnId = state.turn.currentTurnId, actorId = KAI_ID, source = CommandSource.RULE,
+      commandId = "copy:to10", turnId = state.turn.currentTurnId, actorId = CAO_MINH_ID, source = CommandSource.RULE,
       operation = OmnivaultCommand.Operation.COPY, itemId = "almond-water", itemName = "Almond Water", quantity = 10,
       templateId = ItemIdentity.templateId(slot), targetTotal = 10
     ))
     assertTrue(first.applied)
-    assertEquals(10, first.state.inventories.getValue(KAI_ID).items.values.filter { it.name == "Almond Water" }.sumOf { it.quantity })
+    assertEquals(10, first.state.inventories.getValue(CAO_MINH_ID).items.values.filter { it.name == "Almond Water" }.sumOf { it.quantity })
     val second = OmnivaultEngine.execute(first.state, OmnivaultCommand(
-      commandId = "copy:to10:again", turnId = first.state.turn.currentTurnId, actorId = KAI_ID, source = CommandSource.RULE,
+      commandId = "copy:to10:again", turnId = first.state.turn.currentTurnId, actorId = CAO_MINH_ID, source = CommandSource.RULE,
       operation = OmnivaultCommand.Operation.COPY, itemId = "almond-water", itemName = "Almond Water", quantity = 10,
       templateId = ItemIdentity.templateId(slot), targetTotal = 10
     ))
     assertTrue(second.applied)
     assertTrue(second.events.contains("omnivault_copy_target_met"))
-    assertEquals(10, second.state.inventories.getValue(KAI_ID).items.values.filter { it.name == "Almond Water" }.sumOf { it.quantity })
+    assertEquals(10, second.state.inventories.getValue(CAO_MINH_ID).items.values.filter { it.name == "Almond Water" }.sumOf { it.quantity })
   }
 
   @Test fun copyQuantityIsNotBoundByNormal999PerTypeLimit() {
     var state = pickup(fresh(), "scrap", "Mảnh kim loại")
     state = scan(state, "scrap", "Mảnh kim loại", "scan:large-copy").state
     val copied = OmnivaultEngine.execute(state, OmnivaultCommand(
-      commandId = "copy:1500", turnId = state.turn.currentTurnId, actorId = KAI_ID, source = CommandSource.RULE,
+      commandId = "copy:1500", turnId = state.turn.currentTurnId, actorId = CAO_MINH_ID, source = CommandSource.RULE,
       operation = OmnivaultCommand.Operation.COPY, itemId = "scrap", itemName = "Mảnh kim loại", quantity = 1500
     ))
     assertTrue(copied.validation.reason ?: "copy failed", copied.applied)
-    assertEquals(1500, copied.state.inventories.getValue(KAI_ID).items.values.single { ItemIdentity.isOmnivaultCopy(it) }.quantity)
+    assertEquals(1500, copied.state.inventories.getValue(CAO_MINH_ID).items.values.single { ItemIdentity.isOmnivaultCopy(it) }.quantity)
   }
 
   @Test fun worldObjectCanBeScannedWithoutBeingPickedUp() {
@@ -894,7 +894,7 @@ class OmnivaultInstanceAuthorityTest {
     val state = fresh().copy(world = fresh().world + ("flagsJson" to flags.toString()))
     val result = scan(state, "medical:bandage", "Băng gạc", "scan:world-bandage")
     assertTrue(result.validation.reason ?: "world scan failed", result.applied)
-    assertFalse(result.state.inventories.getValue(KAI_ID).items.containsKey(BANDAGE_ID))
+    assertFalse(result.state.inventories.getValue(CAO_MINH_ID).items.containsKey(BANDAGE_ID))
     assertTrue("world:bandage:alpha" in result.state.omnivault.markedSourceIds)
     assertEquals("world:bandage:alpha", result.state.omnivault.scanSlots.single().templateItem.metadata["omnivaultSourceInstanceId"])
   }
@@ -932,15 +932,15 @@ class OmnivaultInstanceAuthorityTest {
       characters = fresh().characters + ("iris" to iris),
       inventories = fresh().inventories + ("iris" to InventoryState("iris"))
     )
-    val context = GameContext(state, actorAliases = linkedMapOf("kai" to KAI_ID, "iris" to "iris"))
+    val context = GameContext(state, actorAliases = linkedMapOf("kai" to CAO_MINH_ID, "iris" to "iris"))
     val resolver = CommandResolver()
     val npcCandidate = IntentCandidate("Iris đưa Kai Băng gạc", GameIntent.TRANSFER_ITEM, IntentConfidence.HIGH, 1f, CommandSource.RULE)
     val npc = resolver.resolve(npcCandidate, 0, state.turn.currentTurnId, context) as ItemCommand
     assertEquals("iris", npc.actorId)
-    assertEquals(KAI_ID, npc.targetId)
+    assertEquals(CAO_MINH_ID, npc.targetId)
     val kaiCandidate = IntentCandidate("Kai đưa Băng gạc cho Iris", GameIntent.TRANSFER_ITEM, IntentConfidence.HIGH, 1f, CommandSource.RULE)
     val kai = resolver.resolve(kaiCandidate, 1, state.turn.currentTurnId, context) as ItemCommand
-    assertEquals(KAI_ID, kai.actorId)
+    assertEquals(CAO_MINH_ID, kai.actorId)
     assertEquals("iris", kai.targetId)
   }
 }

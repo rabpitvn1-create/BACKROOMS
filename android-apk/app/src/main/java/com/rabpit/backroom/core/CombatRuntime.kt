@@ -8,8 +8,6 @@ import kotlin.math.min
 /** Authoritative, save-persistent combat state stored in GameState.metadata. */
 object CombatRuntime {
   private const val PREFIX = "combat."
-  private const val PLAYER_HP = "combat.playerHp"
-  private const val PLAYER_MAX_HP = "combat.playerMaxHp"
 
   enum class Phase { ACTIVE, RESOLVED }
   enum class RangeBand { CLOSE, NEAR, FAR }
@@ -48,12 +46,31 @@ object CombatRuntime {
     val seed: Long
   )
 
+  /** Events are derived from real HP deltas and never persisted in save metadata. */
+  data class DamageFeedback(
+    val target: String,
+    val amount: Int,
+    val critical: Boolean = false,
+    val actorId: String = CAO_MINH_ID,
+    val phase: String = "actor"
+  ) {
+    fun toJson(): JSONObject = JSONObject().apply {
+      put("target", target)
+      put("actorId", actorId)
+      put("text", "-$amount HP")
+      put("critical", critical)
+      put("flash", true)
+      put("phase", phase)
+    }
+  }
+
   data class Resolution(
     val state: GameState,
     val handled: Boolean,
     val reply: String = "",
     val entityDestroyed: Boolean = false,
-    val escaped: Boolean = false
+    val escaped: Boolean = false,
+    val feedback: List<DamageFeedback> = emptyList()
   )
 
   private val profiles = listOf(
@@ -82,9 +99,15 @@ object CombatRuntime {
   fun start(state: GameState, entityKey: String): GameState {
     if (active(state) != null) return state
     val profile = profiles[entityKey] ?: return state
-    val playerMax = state.metadata[PLAYER_MAX_HP]?.toIntOrNull()?.coerceIn(1, 999) ?: 100
-    val playerHp = state.metadata[PLAYER_HP]?.toIntOrNull()?.coerceIn(0, playerMax) ?: playerMax
-    val seed = stableSeed(entityKey, state.turn.currentTurnId, state.time.elapsedSubjectiveMinutes)
+    val effective = CharacterStatEngine.effective(state, CAO_MINH_ID)
+    val playerMax = effective.maxHp
+    val playerHp = state.characters[CAO_MINH_ID]?.vitalState?.currentHp?.coerceIn(0, playerMax) ?: playerMax
+    // Core turns can remain unchanged while the WebView resolves several
+    // encounters. A persistent serial prevents duplicate encounter IDs and
+    // repeated feedback-event keys after combat cleanup.
+    val previousSerial = state.metadata["encounter.serial"]?.toLongOrNull()?.coerceAtLeast(0L) ?: 0L
+    val serial = if (previousSerial == Long.MAX_VALUE) 1L else previousSerial + 1L
+    val seed = stableSeed(entityKey, "${state.turn.currentTurnId}:$serial", state.time.elapsedSubjectiveMinutes)
     val snapshot = Snapshot(
       encounterId = "${state.turn.currentTurnId}:${entityKey}:${abs(seed)}",
       entityKey = entityKey,
@@ -106,7 +129,7 @@ object CombatRuntime {
       eventCounter = 0,
       seed = seed
     )
-    return encode(state, snapshot)
+    return encode(state.copy(metadata = state.metadata + ("encounter.serial" to serial.toString())), snapshot)
   }
 
   fun resolve(state: GameState, actionKind: String, action: String): Resolution {
@@ -115,6 +138,7 @@ object CombatRuntime {
     val intent = classify(actionKind, action)
     var c = current.copy(eventCounter = current.eventCounter + 1)
     val log = mutableListOf<String>()
+    val feedback = mutableListOf<DamageFeedback>()
 
     when (intent) {
       Intent.READ -> {
@@ -123,7 +147,7 @@ object CombatRuntime {
           opening = min(3, c.opening + 1),
           momentum = min(3, c.momentum + 1)
         )
-        log += "Kai đọc được nhịp tấn công của ${c.entityName}; sơ hở tăng lên."
+        log += "Cao Minh đọc được nhịp tấn công của ${c.entityName}; sơ hở tăng lên."
       }
       Intent.EVADE -> {
         val goodCounter = c.telegraph in setOf("LUNGE", "GRAB", "RUSH")
@@ -131,10 +155,10 @@ object CombatRuntime {
           range = if (c.range == RangeBand.CLOSE) RangeBand.NEAR else c.range,
           momentum = (c.momentum + if (goodCounter) 2 else 1).coerceIn(-3, 3),
           opening = min(3, c.opening + if (goodCounter) 2 else 1),
-          escapeProgress = min(100, c.escapeProgress + if (goodCounter) 18 else 10),
+          escapeProgress = min(100, c.escapeProgress + (if (goodCounter) 18 else 10) + PokerDiceCore.escapeBonus(state)),
           cover = if (c.cover == Cover.EXPOSED) Cover.PARTIAL else c.cover
         )
-        log += if (goodCounter) "Kai né đúng telegraph, cướp thế chủ động." else "Kai đổi góc và giảm áp lực trực diện."
+        log += if (goodCounter) "Cao Minh né đúng telegraph, cướp thế chủ động." else "Cao Minh đổi góc và giảm áp lực trực diện."
       }
       Intent.MOVE -> {
         val nextRange = when (c.range) {
@@ -148,26 +172,34 @@ object CombatRuntime {
           escapeProgress = min(100, c.escapeProgress + 15),
           momentum = min(3, c.momentum + 1)
         )
-        log += "Kai tái định vị, kéo giãn khoảng cách và tìm vật che chắn."
+        log += "Cao Minh tái định vị, kéo giãn khoảng cách và tìm vật che chắn."
       }
       Intent.GUARD -> {
         c = c.copy(cover = Cover.HARD, momentum = min(3, c.momentum + 1), opening = min(3, c.opening + 1))
-        log += "Kai khóa tư thế phòng thủ và ép ${c.entityName} phải lộ hướng tấn công."
+        log += "Cao Minh khóa tư thế phòng thủ và ép ${c.entityName} phải lộ hướng tấn công."
       }
       Intent.ESCAPE -> {
-        val gain = 20 + c.momentum.coerceAtLeast(0) * 5 + when (c.cover) { Cover.HARD -> 15; Cover.PARTIAL -> 8; Cover.EXPOSED -> 0 }
+        val gain = 20 + c.momentum.coerceAtLeast(0) * 5 + when (c.cover) { Cover.HARD -> 15; Cover.PARTIAL -> 8; Cover.EXPOSED -> 0 } + PokerDiceCore.escapeBonus(state)
         c = c.copy(escapeProgress = min(100, c.escapeProgress + gain), momentum = min(3, c.momentum + 1))
-        log += "Kai dồn ưu thế vào đường thoát (${c.escapeProgress}%)."
+        log += "Cao Minh dồn ưu thế vào đường thoát (${c.escapeProgress}%)."
       }
       Intent.ATTACK -> {
-        val roll = roll(c, 100)
+        val accuracyRoll = roll(c, 100)
         val rangeBonus = when (c.range) { RangeBand.CLOSE -> 18; RangeBand.NEAR -> 10; RangeBand.FAR -> -5 }
-        val hitChance = (58 + rangeBonus + c.opening * 11 + c.momentum * 6).coerceIn(20, 96)
-        if (roll < hitChance) {
-          val variance = 4 + roll(c.copy(eventCounter = c.eventCounter + 17), 9)
-          val base = 18 + variance + c.opening * 7 + max(0, c.momentum) * 3
-          val damage = max(1, base - profile.armor)
+        val hitChance = (58 + rangeBonus + c.opening * 11 + c.momentum * 6 + PokerDiceCore.accuracyBonus(state)).coerceIn(20, 99)
+        if (accuracyRoll < hitChance) {
+          val variance = 2 + roll(c.copy(eventCounter = c.eventCounter + 17), 7)
+          val effective = CharacterStatEngine.effective(state, CAO_MINH_ID)
+          val weaponDamage = CharacterStatEngine.weaponDamage(state, CAO_MINH_ID)
+          val critChance = CaoMinhCombatPassive.criticalChance(state, effective.criticalChancePercent)
+          val critical = roll(c.copy(eventCounter = c.eventCounter + 23), 100) < critChance
+          val rawBase = weaponDamage + variance + c.opening * 5 + max(0, c.momentum) * 2
+          val base = CharacterStatCore.basicDamage(rawBase, effective.str, PokerDiceCore.attackPercent(state), CaoMinhCombatPassive.attackPercent(state))
+          val normalized = if (critical) CharacterStatCore.criticalDamage(base) else base
+          val damage = min(max(1, normalized - profile.armor), max(1, profile.maxHp * 70 / 100))
           val hp = max(0, c.entityHp - damage)
+          val dealt = c.entityHp - hp
+          if (dealt > 0) feedback += DamageFeedback("entity", dealt, critical)
           c = c.copy(
             entityHp = hp,
             entityCondition = condition(hp, c.entityMaxHp),
@@ -190,26 +222,33 @@ object CombatRuntime {
     if (c.entityHp <= 0) {
       val persisted = encode(state, c.copy(phase = Phase.RESOLVED, entityCondition = EntityCondition.DESTROYED))
       val cleared = clearCombatOnly(persisted)
-      return Resolution(cleared, true, log.joinToString(" ") + " ${c.entityName} đã bị tiêu diệt.", entityDestroyed = true)
+      return Resolution(cleared, true, log.joinToString(" ") + " ${c.entityName} đã bị tiêu diệt.", entityDestroyed = true, feedback = feedback.toList())
     }
     if (c.escapeProgress >= 100) {
       val persisted = encode(state, c.copy(phase = Phase.RESOLVED))
       val cleared = clearCombatOnly(persisted)
-      return Resolution(cleared, true, log.joinToString(" ") + " Kai cắt được truy đuổi và thoát khỏi encounter.", escaped = true)
+      return Resolution(cleared, true, log.joinToString(" ") + " Cao Minh cắt được truy đuổi và thoát khỏi encounter.", escaped = true, feedback = feedback.toList())
     }
 
     // Enemy response. READ/guard/evasion reduce expected incoming damage; attacking blindly is riskier.
     val incomingRoll = roll(c.copy(eventCounter = c.eventCounter + 31), 100)
     val defense = when (intent) { Intent.EVADE -> 34; Intent.GUARD -> 30; Intent.MOVE -> 18; Intent.READ -> 12; else -> 0 } +
-      when (c.cover) { Cover.HARD -> 22; Cover.PARTIAL -> 10; Cover.EXPOSED -> 0 } + max(0, c.momentum) * 4
-    val enemyChance = (profile.aggression * 8 - defense + max(0, -c.momentum) * 7).coerceIn(8, 88)
+      when (c.cover) { Cover.HARD -> 22; Cover.PARTIAL -> 10; Cover.EXPOSED -> 0 } + max(0, c.momentum) * 4 +
+      PokerDiceCore.defenseBonus(state)
+    val playerEvasion = CharacterStatEngine.effective(state, CAO_MINH_ID).evasionPercent
+    val enemyChance = (profile.aggression * 8 - defense + max(0, -c.momentum) * 7 - playerEvasion).coerceIn(0, 88)
     if (incomingRoll < enemyChance) {
-      val damage = max(1, profile.attack + roll(c.copy(eventCounter = c.eventCounter + 47), 7) - when (c.cover) { Cover.HARD -> 8; Cover.PARTIAL -> 4; Cover.EXPOSED -> 0 })
+      val effective = CharacterStatEngine.effective(state, CAO_MINH_ID)
+      val rawDamage = max(1, profile.attack + roll(c.copy(eventCounter = c.eventCounter + 47), 7) -
+        when (c.cover) { Cover.HARD -> 8; Cover.PARTIAL -> 4; Cover.EXPOSED -> 0 })
+      val damage = CharacterStatCore.defendedIncomingDamage(rawDamage, effective.def)
       val hp = max(0, c.playerHp - damage)
+      val dealt = c.playerHp - hp
+      if (dealt > 0) feedback += DamageFeedback("actor", dealt, phase = "entity")
       c = c.copy(playerHp = hp, momentum = max(-3, c.momentum - 1))
-      log += "${c.entityName} phản công: Kai -$damage HP (${c.playerHp}/${c.playerMaxHp})."
+      log += "${c.entityName} phản công: Cao Minh -$damage HP (${c.playerHp}/${c.playerMaxHp})."
     } else {
-      log += "${c.entityName} không xuyên được thế phòng thủ/di chuyển của Kai."
+      log += "${c.entityName} không xuyên được thế phòng thủ/di chuyển của Cao Minh."
     }
 
     c = c.copy(
@@ -218,7 +257,7 @@ object CombatRuntime {
       opening = max(0, c.opening - if (intent == Intent.READ) 0 else 1)
     )
     val next = encode(state, c)
-    return Resolution(next, true, log.joinToString(" "))
+    return Resolution(next, true, log.joinToString(" "), feedback = feedback.toList())
   }
 
   fun toJson(state: GameState): JSONObject? = decode(state)?.let { c -> JSONObject().apply {
@@ -244,8 +283,6 @@ object CombatRuntime {
     metadata["${PREFIX}entityKey"] = c.entityKey
     metadata["${PREFIX}entityName"] = c.entityName
     metadata["${PREFIX}phase"] = c.phase.name
-    metadata[PLAYER_HP] = c.playerHp.toString()
-    metadata[PLAYER_MAX_HP] = c.playerMaxHp.toString()
     metadata["${PREFIX}entityHp"] = c.entityHp.toString()
     metadata["${PREFIX}entityMaxHp"] = c.entityMaxHp.toString()
     metadata["${PREFIX}entityCondition"] = c.entityCondition.name
@@ -259,7 +296,7 @@ object CombatRuntime {
     metadata["${PREFIX}telegraphRevealed"] = c.telegraphRevealed.toString()
     metadata["${PREFIX}eventCounter"] = c.eventCounter.toString()
     metadata["${PREFIX}seed"] = c.seed.toString()
-    return state.copy(metadata = metadata)
+    return CharacterStatEngine.setCurrentHp(state.copy(metadata = metadata), CAO_MINH_ID, c.playerHp)
   }
 
   private fun decode(state: GameState): Snapshot? {
@@ -268,13 +305,14 @@ object CombatRuntime {
     val profile = profiles[key] ?: return null
     val maxHp = m["${PREFIX}entityMaxHp"]?.toIntOrNull()?.coerceAtLeast(1) ?: profile.maxHp
     val hp = m["${PREFIX}entityHp"]?.toIntOrNull()?.coerceIn(0, maxHp) ?: maxHp
-    val playerMax = m[PLAYER_MAX_HP]?.toIntOrNull()?.coerceAtLeast(1) ?: 100
+    val playerMax = CharacterStatEngine.effective(state, CAO_MINH_ID).maxHp
+    val playerHp = state.characters[CAO_MINH_ID]?.vitalState?.currentHp?.coerceIn(0, playerMax) ?: playerMax
     return Snapshot(
       encounterId = m["${PREFIX}encounterId"].orEmpty(),
       entityKey = key,
       entityName = m["${PREFIX}entityName"] ?: profile.displayName,
       phase = enumOr(Phase.ACTIVE, m["${PREFIX}phase"]),
-      playerHp = m[PLAYER_HP]?.toIntOrNull()?.coerceIn(0, playerMax) ?: playerMax,
+      playerHp = playerHp,
       playerMaxHp = playerMax,
       entityHp = hp,
       entityMaxHp = maxHp,
@@ -293,11 +331,7 @@ object CombatRuntime {
   }
 
   private fun clearCombatOnly(state: GameState): GameState {
-    val preservedHp = state.metadata[PLAYER_HP]
-    val preservedMax = state.metadata[PLAYER_MAX_HP]
-    val metadata = state.metadata.filterKeys { !it.startsWith(PREFIX) }.toMutableMap()
-    if (preservedHp != null) metadata[PLAYER_HP] = preservedHp
-    if (preservedMax != null) metadata[PLAYER_MAX_HP] = preservedMax
+    val metadata = state.metadata.filterKeys { !it.startsWith(PREFIX) }
     return state.copy(metadata = metadata)
   }
 

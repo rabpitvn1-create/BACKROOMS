@@ -16,12 +16,12 @@ def replace_once(text: str, old: str, new: str, label: str) -> str:
 # 1) An Nhien remains a Level-0-origin character, but encounter is no longer mandatory or Level-0-only.
 canon_path = CORE / "AnNhienCanon.kt"
 canon = canon_path.read_text(encoding="utf-8")
-canon = replace_once(
-    canon,
-    '        "mandatoryEncounter" to "true",\n        "encounterChance" to "100%",\n',
-    '        "mandatoryEncounter" to "false",\n        "encounterChance" to "0.25%",\n        "encounterLevels" to "0-6",\n',
-    "An Nhien optional 0.25 percent metadata",
-)
+_ann_old = '        "mandatoryEncounter" to "true",\n        "encounterChance" to "100%",\n'
+_ann_new = '        "mandatoryEncounter" to "false",\n        "encounterChance" to "0.25%",\n        "encounterLevels" to "0-6",\n'
+if _ann_old in canon:
+    canon = replace_once(canon, _ann_old, _ann_new, "An Nhien optional 0.25 percent metadata")
+elif _ann_new not in canon:
+    raise RuntimeError("An Nhien optional 0.25 percent metadata: neither old nor new state found")
 canon_path.write_text(canon, encoding="utf-8")
 
 
@@ -29,12 +29,11 @@ canon_path.write_text(canon, encoding="utf-8")
 special_path = CORE / "SpecialFollowersCanon.kt"
 special_path.write_text(r'''package com.rabpit.backroom.core
 
-const val IRIS_ID = "iris"
+const val LUC_TRAM_ID = "luc-tram"
 const val SYVIAL_ID = "syvial"
 
-const val IRIS_IVORY_ID = "iris:ivory"
-const val IRIS_EBONY_ID = "iris:ebony"
-const val IRIS_RECON_FRAME_ID = "iris:blackblood-recon-frame-r03"
+const val LUC_TRAM_TICH_QUANG_ID = "luc-tram:tich-quang"
+const val LUC_TRAM_KIEM_KHAI_ID = "luc-tram:thien-co-bach-kim-kiem-khai"
 const val SYVIAL_GODKILLER_ID = "syvial:godkiller"
 const val SYVIAL_LUCIFER_ARMOR_ID = "syvial:lucifer-armor"
 
@@ -42,10 +41,9 @@ object SpecialFollowersCanon {
   const val ENCOUNTER_CHANCE = "0.25%"
   const val ENCOUNTER_LEVELS = "0-6"
 
-  val irisEquipmentSlots: Map<String, String> = linkedMapOf(
-    "weapon_primary" to IRIS_IVORY_ID,
-    "weapon_secondary" to IRIS_EBONY_ID,
-    "armor" to IRIS_RECON_FRAME_ID
+  val lucTramEquipmentSlots: Map<String, String> = linkedMapOf(
+    "weapon" to LUC_TRAM_TICH_QUANG_ID,
+    "armor" to LUC_TRAM_KIEM_KHAI_ID
   )
 
   val syvialEquipmentSlots: Map<String, String> = linkedMapOf(
@@ -53,17 +51,17 @@ object SpecialFollowersCanon {
     "armor" to SYVIAL_LUCIFER_ARMOR_ID
   )
 
-  fun irisCharacter(existing: CharacterState? = null): CharacterState {
+  fun lucTramCharacter(existing: CharacterState? = null): CharacterState {
     val base = existing ?: CharacterState(
-      id = IRIS_ID,
-      name = "Iris",
+      id = LUC_TRAM_ID,
+      name = "Lục Trầm",
       physiology = PhysiologyState.freshRunBaseline()
     )
     return base.copy(
-      id = IRIS_ID,
-      name = "Iris",
-      inventoryId = IRIS_ID,
-      equipmentId = IRIS_ID,
+      id = LUC_TRAM_ID,
+      name = "Lục Trầm",
+      inventoryId = LUC_TRAM_ID,
+      equipmentId = LUC_TRAM_ID,
       metadata = base.metadata + mapOf(
         "npcType" to "follower",
         "joinEligible" to "true",
@@ -71,11 +69,11 @@ object SpecialFollowersCanon {
         "encounterChance" to ENCOUNTER_CHANCE,
         "encounterLevels" to ENCOUNTER_LEVELS,
         "combatant" to "true",
-        "role" to "Scout / Target Eliminator",
-        "combatStyle" to "Gunslinger",
-        "signatureWeapons" to "Ivory & Ebony",
-        "armor" to "Blackblood Recon Frame R03",
-        "canonRef" to "IRIS-BELIAL-BLACKBLOOD-CODEX-20260817-R05",
+        "role" to "Chính Đạo kiếm tu / Bạch Hồng Kiếm Nữ",
+        "combatStyle" to "Kiếm tu",
+        "signatureWeapon" to "Tịch Quang",
+        "armor" to "Thiên Cơ Bạch Kim Kiếm Khải",
+        "canonRef" to "LUC_TRAM_CODEX R05 + PROLOGUE ADDENDUM R06",
         "inventoryProfile" to "special_companion"
       )
     )
@@ -110,17 +108,17 @@ object SpecialFollowersCanon {
   }
 
   fun ensure(state: GameState): GameState {
-    val iris = irisCharacter(state.characters[IRIS_ID])
+    val lucTram = lucTramCharacter(state.characters[LUC_TRAM_ID])
     val syvial = syvialCharacter(state.characters[SYVIAL_ID])
-    val irisInventory = state.inventories[IRIS_ID] ?: InventoryState(IRIS_ID)
+    val lucTramInventory = state.inventories[LUC_TRAM_ID] ?: InventoryState(LUC_TRAM_ID)
     val syvialInventory = state.inventories[SYVIAL_ID] ?: InventoryState(SYVIAL_ID)
-    val irisEquipment = state.equipment[IRIS_ID]?.slots.orEmpty() + irisEquipmentSlots
+    val lucTramEquipment = state.equipment[LUC_TRAM_ID]?.slots.orEmpty() + lucTramEquipmentSlots
     val syvialEquipment = state.equipment[SYVIAL_ID]?.slots.orEmpty() + syvialEquipmentSlots
     return state.copy(
-      characters = state.characters + (IRIS_ID to iris) + (SYVIAL_ID to syvial),
-      inventories = state.inventories + (IRIS_ID to irisInventory) + (SYVIAL_ID to syvialInventory),
+      characters = state.characters + (LUC_TRAM_ID to lucTram) + (SYVIAL_ID to syvial),
+      inventories = state.inventories + (LUC_TRAM_ID to lucTramInventory) + (SYVIAL_ID to syvialInventory),
       equipment = state.equipment +
-        (IRIS_ID to EquipmentState(IRIS_ID, irisEquipment)) +
+        (LUC_TRAM_ID to EquipmentState(LUC_TRAM_ID, lucTramEquipment)) +
         (SYVIAL_ID to EquipmentState(SYVIAL_ID, syvialEquipment))
     )
   }
@@ -136,28 +134,28 @@ state = replace_once(
     '''        AN_NHIEN_ID to AnNhienCanon.character()
       ),
       inventories = mapOf(
-        KAI_ID to InventoryState(KAI_ID),
+        CAO_MINH_ID to InventoryState(CAO_MINH_ID),
         AN_NHIEN_ID to AnNhienCanon.inventory()
       ),
       equipment = mapOf(
-        KAI_ID to EquipmentState(KAI_ID, KaiStartingEquipment.slots),
+        CAO_MINH_ID to EquipmentState(CAO_MINH_ID, CaoMinhStartingEquipment.slots),
         AN_NHIEN_ID to AnNhienCanon.equipment()
       )
 ''',
     '''        AN_NHIEN_ID to AnNhienCanon.character(),
-        IRIS_ID to SpecialFollowersCanon.irisCharacter(),
+        LUC_TRAM_ID to SpecialFollowersCanon.lucTramCharacter(),
         SYVIAL_ID to SpecialFollowersCanon.syvialCharacter()
       ),
       inventories = mapOf(
-        KAI_ID to InventoryState(KAI_ID),
+        CAO_MINH_ID to InventoryState(CAO_MINH_ID),
         AN_NHIEN_ID to AnNhienCanon.inventory(),
-        IRIS_ID to InventoryState(IRIS_ID),
+        LUC_TRAM_ID to InventoryState(LUC_TRAM_ID),
         SYVIAL_ID to InventoryState(SYVIAL_ID)
       ),
       equipment = mapOf(
-        KAI_ID to EquipmentState(KAI_ID, KaiStartingEquipment.slots),
+        CAO_MINH_ID to EquipmentState(CAO_MINH_ID, CaoMinhStartingEquipment.slots),
         AN_NHIEN_ID to AnNhienCanon.equipment(),
-        IRIS_ID to EquipmentState(IRIS_ID, SpecialFollowersCanon.irisEquipmentSlots),
+        LUC_TRAM_ID to EquipmentState(LUC_TRAM_ID, SpecialFollowersCanon.lucTramEquipmentSlots),
         SYVIAL_ID to EquipmentState(SYVIAL_ID, SpecialFollowersCanon.syvialEquipmentSlots)
       )
 ''',
@@ -194,8 +192,8 @@ main = replace_once(
 )
 main = replace_once(
     main,
-    '    rolls.put("irisReunion", thresholdRoll("irisReunion", 1000000, 25, reunionEligibleAndroid(state, "iris"), ""));\n',
-    '    rolls.put("irisReunion", thresholdRoll("irisReunion", 10000, 25, physical && reunionEligibleAndroid(state, "iris"), " follower encounter"));\n',
+    '    rolls.put("lucTramReunion", thresholdRoll("lucTramReunion", 1000000, 25, reunionEligibleAndroid(state, "luc-tram"), ""));\n',
+    '    rolls.put("lucTramReunion", thresholdRoll("lucTramReunion", 10000, 25, physical && reunionEligibleAndroid(state, "luc-tram"), " follower encounter"));\n',
     "Iris 0.25 percent reunion roll",
 )
 main = replace_once(
@@ -292,11 +290,11 @@ tail_anchor = '''    state.put("flags", flags);
     return state;
   }
 '''
-tail_replacement = '''    if (rollSuccess(rolls, "irisReunion")) {
-      JSONObject iris = flags.optJSONObject("iris");
-      if (iris == null) iris = new JSONObject();
-      boolean irisJoined = ensureSpecialFollowerInLegacyParty(state, "iris", "Iris", false);
-      iris.put("exists", true)
+tail_replacement = '''    if (rollSuccess(rolls, "lucTramReunion")) {
+      JSONObject lucTram = flags.optJSONObject("luc-tram");
+      if (lucTram == null) lucTram = new JSONObject();
+      boolean lucTramJoined = ensureSpecialFollowerInLegacyParty(state, "luc-tram", "Lục Trầm", false);
+      lucTram.put("exists", true)
         .put("encountered", true)
         .put("present", true)
         .put("spawned", true)
@@ -304,8 +302,8 @@ tail_replacement = '''    if (rollSuccess(rolls, "irisReunion")) {
         .put("reunionEligible", false)
         .put("continuity", "REUNITED")
         .put("levelEncountered", currentLevel(before))
-        .put("joinPending", !irisJoined);
-      flags.put("iris", iris);
+        .put("joinPending", !lucTramJoined);
+      flags.put("luc-tram", lucTram);
     }
 
     if (rollSuccess(rolls, "syvialReunion")) {
@@ -333,28 +331,28 @@ main = replace_once(main, tail_anchor, tail_replacement, "Iris Syvial determinis
 # Keep the AN NHIEN prefix because the later Jeff patch inserts its own lock immediately after this line.
 old_prompt = ('            "AN NHIÊN HARD LOCK: bé gái 7 tuổi, con người, không phải Entity. '
               'anNhienEncounter success=true là cuộc gặp bắt buộc ở Level 0 và phải được kể trong lượt đó; '
-              'sau khi gặp cô bé luôn theo Kai, không chiến đấu, không dùng vũ khí, không tự tách nhóm. '
-              'Cô chỉ có +10% loot chance và +2% exit chance khi đang theo Kai, đúng như GAMEPLAY_ROLLS. '
+              'sau khi gặp cô bé luôn theo Cao Minh, không chiến đấu, không dùng vũ khí, không tự tách nhóm. '
+              'Cô chỉ có +10% loot chance và +2% exit chance khi đang theo Cao Minh, đúng như GAMEPLAY_ROLLS. '
               'Không tự thêm năng lực hoặc lore. " +\n')
 new_prompt = ('            "AN NHIÊN HARD LOCK: bé gái 7 tuổi, con người, không phải Entity. '
               'anNhienEncounter là roll độc lập 0.2500% trên mỗi lượt physical đủ điều kiện ở Level 0–6 khi chưa gặp; '
               'không còn là cuộc gặp bắt buộc ở Level 0 và không được chặn việc rời Level 0. '
-              'Chỉ khi success=true mới được cho An Nhiên xuất hiện trong lượt đó. Sau khi gặp, cô là follower của Kai nếu Party còn chỗ; '
+              'Chỉ khi success=true mới được cho An Nhiên xuất hiện trong lượt đó. Sau khi gặp, cô là follower của Cao Minh nếu Party còn chỗ; '
               'nếu Party đầy thì giữ cô present với joinPending=true thay vì đuổi một thành viên khác. Cô không chiến đấu, không dùng vũ khí, '
-              'và chỉ có +10% loot chance cùng +2% exit chance khi thực sự đang theo Kai. Không tự thêm năng lực hoặc lore. " +\n'
-              '            "IRIS / SYVIAL FOLLOWER LOCK: irisReunion và syvialReunion là hai roll độc lập 0.2500% trên mỗi lượt physical đủ điều kiện ở Level 0–6. '
-              'Chỉ success=true mới cho nhân vật tương ứng xuất hiện lần đầu/reunion. Khi gặp và Party còn chỗ, Iris hoặc Syvial tự gia nhập với role=follower; '
-              'nếu Party đầy thì đánh dấu present + joinPending, tuyệt đối không tự đuổi thành viên khác. Iris giữ canon Scout / Target Eliminator, Gunslinger với Ivory & Ebony và Blackblood Recon Frame R03; '
-              'không tự gán cấp chiến lực cho Iris. Syvial giữ canon UR+, GodKiller và Lucifer Armor. Không hạ năng lực hoặc bịa thêm canon để cân bằng gameplay. " +\n')
+              'và chỉ có +10% loot chance cùng +2% exit chance khi thực sự đang theo Cao Minh. Không tự thêm năng lực hoặc lore. " +\n'
+              '            "LỤC TRẦM / SYVIAL FOLLOWER LOCK: lucTramReunion và syvialReunion là hai roll độc lập 0.2500% trên mỗi lượt physical đủ điều kiện ở Level 0–6. '
+              'Chỉ success=true mới cho nhân vật tương ứng xuất hiện lần đầu/reunion. Khi gặp và Party còn chỗ, Lục Trầm hoặc Syvial tự gia nhập với role=follower; '
+              'nếu Party đầy thì đánh dấu present + joinPending, tuyệt đối không tự đuổi thành viên khác. Lục Trầm giữ canon Chính Đạo kiếm tu, Bạch Hồng Kiếm Nữ, bản mệnh kiếm Tịch Quang và Thiên Cơ Bạch Kim Kiếm Khải; '
+              'không tự gán cấp chiến lực cho Lục Trầm. Syvial giữ canon UR+, GodKiller và Lucifer Armor. Không hạ năng lực hoặc bịa thêm canon để cân bằng gameplay. " +\n')
 main = replace_once(main, old_prompt, new_prompt, "special follower GM lock")
 
 for marker in [
     'thresholdRoll("anNhienEncounter", 10000, 25, physical && !anNhienEncountered',
-    'thresholdRoll("irisReunion", 10000, 25, physical && reunionEligibleAndroid(state, "iris")',
+    'thresholdRoll("lucTramReunion", 10000, 25, physical && reunionEligibleAndroid(state, "luc-tram")',
     'thresholdRoll("syvialReunion", 10000, 25, physical && reunionEligibleAndroid(state, "syvial")',
-    'ensureSpecialFollowerInLegacyParty(state, "iris", "Iris", false)',
+    'ensureSpecialFollowerInLegacyParty(state, "luc-tram", "Lục Trầm", false)',
     'ensureSpecialFollowerInLegacyParty(state, "syvial", "Syvial", false)',
-    'IRIS / SYVIAL FOLLOWER LOCK:',
+    'LỤC TRẦM / SYVIAL FOLLOWER LOCK:',
 ]:
     if marker not in main:
         raise RuntimeError(f"special follower runtime contract missing: {marker}")
@@ -362,7 +360,7 @@ for marker in [
 for forbidden in [
     'thresholdRoll("anNhienEncounter", 1, 1',
     'currentLevel(before) == 0 && !anNhienEncountered(before)',
-    'thresholdRoll("irisReunion", 1000000, 25',
+    'thresholdRoll("lucTramReunion", 1000000, 25',
     'thresholdRoll("syvialReunion", 1000000, 25',
     'party.remove(party.length() - 1)',
 ]:
@@ -383,18 +381,18 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SpecialFollowersTest {
-  @Test fun irisAndSyvialAreSeededAsOptionalFollowersOutsideParty() {
+  @Test fun lucTramAndSyvialAreSeededAsOptionalFollowersOutsideParty() {
     val state = GameState.initial()
-    val iris = state.characters[IRIS_ID]!!
+    val lucTram = state.characters[LUC_TRAM_ID]!!
     val syvial = state.characters[SYVIAL_ID]!!
 
-    assertEquals("follower", iris.metadata["npcType"])
-    assertEquals("true", iris.metadata["joinEligible"])
-    assertEquals("0.25%", iris.metadata["encounterChance"])
-    assertEquals("0-6", iris.metadata["encounterLevels"])
-    assertEquals("Scout / Target Eliminator", iris.metadata["role"])
-    assertNull(iris.metadata["combatTier"])
-    assertEquals(SpecialFollowersCanon.irisEquipmentSlots, state.equipment[IRIS_ID]!!.slots)
+    assertEquals("follower", lucTram.metadata["npcType"])
+    assertEquals("true", lucTram.metadata["joinEligible"])
+    assertEquals("0.25%", lucTram.metadata["encounterChance"])
+    assertEquals("0-6", lucTram.metadata["encounterLevels"])
+    assertEquals("Chính Đạo kiếm tu / Bạch Hồng Kiếm Nữ", lucTram.metadata["role"])
+    assertNull(lucTram.metadata["combatTier"])
+    assertEquals(SpecialFollowersCanon.lucTramEquipmentSlots, state.equipment[LUC_TRAM_ID]!!.slots)
 
     assertEquals("follower", syvial.metadata["npcType"])
     assertEquals("true", syvial.metadata["joinEligible"])
@@ -402,7 +400,7 @@ class SpecialFollowersTest {
     assertEquals("UR+", syvial.metadata["combatTier"])
     assertEquals(SpecialFollowersCanon.syvialEquipmentSlots, state.equipment[SYVIAL_ID]!!.slots)
 
-    assertFalse(IRIS_ID in state.party.memberIds)
+    assertFalse(LUC_TRAM_ID in state.party.memberIds)
     assertFalse(SYVIAL_ID in state.party.memberIds)
     assertEquals("false", state.characters[AN_NHIEN_ID]!!.metadata["mandatoryEncounter"])
     assertEquals("0.25%", state.characters[AN_NHIEN_ID]!!.metadata["encounterChance"])
@@ -411,26 +409,26 @@ class SpecialFollowersTest {
   @Test fun decodeBackfillsSpecialFollowersWithoutForcingThemIntoParty() {
     val base = GameState.initial()
     val stripped = base.copy(
-      characters = base.characters - IRIS_ID - SYVIAL_ID,
-      inventories = base.inventories - IRIS_ID - SYVIAL_ID,
-      equipment = base.equipment - IRIS_ID - SYVIAL_ID
+      characters = base.characters - LUC_TRAM_ID - SYVIAL_ID,
+      inventories = base.inventories - LUC_TRAM_ID - SYVIAL_ID,
+      equipment = base.equipment - LUC_TRAM_ID - SYVIAL_ID
     )
     val decoded = GameStateCodec.decode(GameStateCodec.encode(stripped))
-    assertTrue(IRIS_ID in decoded.characters)
+    assertTrue(LUC_TRAM_ID in decoded.characters)
     assertTrue(SYVIAL_ID in decoded.characters)
-    assertTrue(IRIS_ID in decoded.inventories)
+    assertTrue(LUC_TRAM_ID in decoded.inventories)
     assertTrue(SYVIAL_ID in decoded.inventories)
-    assertFalse(IRIS_ID in decoded.party.memberIds)
+    assertFalse(LUC_TRAM_ID in decoded.party.memberIds)
     assertFalse(SYVIAL_ID in decoded.party.memberIds)
   }
 
-  @Test fun kaiAndAllThreeSpecialFollowersFitExactlyInParty() {
+  @Test fun caoMinhAndAllThreeSpecialFollowersFitExactlyInParty() {
     var state = GameState.initial()
-    for ((index, id) in listOf(AN_NHIEN_ID, IRIS_ID, SYVIAL_ID).withIndex()) {
+    for ((index, id) in listOf(AN_NHIEN_ID, LUC_TRAM_ID, SYVIAL_ID).withIndex()) {
       val result = PartyEngine.execute(state, PartyCommand(
         commandId = "add-special-$index",
         turnId = state.turn.currentTurnId,
-        actorId = KAI_ID,
+        actorId = CAO_MINH_ID,
         targetId = id,
         source = CommandSource.SYSTEM,
         operation = PartyCommand.Operation.ADD,
@@ -441,14 +439,14 @@ class SpecialFollowersTest {
       state = result.state
     }
     assertEquals(4, state.party.memberIds.size)
-    assertEquals(listOf(KAI_ID, AN_NHIEN_ID, IRIS_ID, SYVIAL_ID), state.party.memberIds)
+    assertEquals(listOf(CAO_MINH_ID, AN_NHIEN_ID, LUC_TRAM_ID, SYVIAL_ID), state.party.memberIds)
   }
 }
 ''', encoding="utf-8")
 
 required_files = {
-    special_path: ["object SpecialFollowersCanon", '"Scout / Target Eliminator"', '"combatTier" to "UR+"'],
-    test_path: ["kaiAndAllThreeSpecialFollowersFitExactlyInParty", 'assertNull(iris.metadata["combatTier"])'],
+    special_path: ["object SpecialFollowersCanon", '"Chính Đạo kiếm tu / Bạch Hồng Kiếm Nữ"', '"combatTier" to "UR+"'],
+    test_path: ["caoMinhAndAllThreeSpecialFollowersFitExactlyInParty", 'assertNull(lucTram.metadata["combatTier"])'],
 }
 for path, markers in required_files.items():
     content = path.read_text(encoding="utf-8")

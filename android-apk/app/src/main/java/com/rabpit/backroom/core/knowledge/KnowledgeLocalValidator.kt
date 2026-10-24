@@ -28,26 +28,26 @@ object KnowledgeLocalValidator {
     }
 
     // Code-known immutable capability contradictions.
-    if (mentionsAny(reply, "sparda core cạn", "sparda core hết", "hết quỷ lực", "cạn quỷ lực") && mentionsAny(reply, "kai", "twilight")) {
-      issue("competence_suppression", "Kai hết/cạn quỷ lực", "Kai Codex locks Sparda Core as an infinite power source without intrinsic depletion.")
+    if (mentionsAny(reply, "vạn quỷ ma tâm cạn", "ma tâm cạn", "ma tâm hết", "hết ma nguyên", "cạn ma nguyên") && mentionsAny(reply, "cao minh")) {
+      issue("competence_suppression", "Cao Minh hết/cạn ma nguyên", "Cao Minh Codex locks Vạn Quỷ Ma Tâm as his Đạo Cơ, Ma Hải and central ma-origin source; do not invent intrinsic depletion of his ma nguyên.")
     }
     if (mentionsAny(reply, "lucifer core cạn", "lucifer core hết", "syvial hết quỷ lực", "syvial cạn quỷ lực")) {
       issue("competence_suppression", "Syvial hết/cạn quỷ lực", "Syvial Codex locks Lucifer Core as an infinite power source without intrinsic depletion.")
     }
-    if (mentionsAny(reply, "devil trigger hết thời gian", "devil trigger cooldown", "devil trigger hồi chiêu", "devil trigger phản phệ")) {
-      issue("ability_overreach", "Invented Devil Trigger limit", "Current Kai/Syvial codices do not permit an invented intrinsic duration cap/cooldown/backlash.")
+    if (mentionsAny(reply, "vạn quỷ ma thân hết thời gian", "vạn quỷ ma thân cooldown", "vạn quỷ ma thân hồi chiêu", "vạn quỷ ma thân phản phệ", "devil trigger hết thời gian", "devil trigger cooldown", "devil trigger hồi chiêu", "devil trigger phản phệ")) {
+      issue("ability_overreach", "Invented Vạn Quỷ Ma Thân/Devil Trigger limit", "Current Cao Minh/Syvial codices do not permit an invented intrinsic duration cap/cooldown/backlash.")
     }
-    if (mentionsAny(reply, "argus nhìn xuyên tường", "argus xuyên tường", "argus drone", "drone của iris", "iris nhìn xuyên tường")) {
-      issue("ability_overreach", "ARGUS remote/omniscient sensing", "Iris Codex explicitly denies wall vision, remote cameras/drone mesh and omniscience for ARGUS Terrain Read.")
+    if (mentionsAny(reply, "linh tâm đọc suy nghĩ", "linh tâm đọc được suy nghĩ", "linh tâm biết thiện ác", "linh tâm phân biệt thiện ác", "linh tâm tự nhận entity", "linh tâm biết trước luật")) {
+      issue("ability_overreach", "Thiên Kiếm Linh Tâm mind-reading/omniscience", "Lục Trầm Codex explicitly denies that Thiên Kiếm Linh Tâm reads minds, judges good/evil, auto-detects Entities or foreknows Level rules.")
     }
-    if (mentionsAny(reply, "thousandfold khiến cơ thể", "cơ thể iris nhanh gấp 1000", "iris nhanh gấp 1.000")) {
-      issue("ability_overreach", "Thousandfold accelerates Iris's body", "Thousandfold accelerates information processing up to 1:1000, not her body 1000x.")
+    if (mentionsAny(reply, "hai thanh tịch quang", "tịch quang thứ hai", "thêm một thanh tịch quang", "hai tịch quang")) {
+      issue("ability_overreach", "Multiple Tịch Quang swords", "Lục Trầm Codex locks Tịch Quang as her single bản mệnh sword; she does not carry a second one.")
     }
     if (mentionsAny(reply, "godkiller gunblade", "godkiller là súng", "godkiller biến thành súng")) {
       issue("ability_overreach", "GodKiller as firearm/gunblade", "Syvial Codex locks GodKiller as a purely mechanical greatsword.")
     }
-    if (mentionsAny(reply, "omnivault cất iris", "omnivault cất syvial", "omnivault cất người", "omnivault chứa người", "omnivault scan iris", "omnivault scan syvial")) {
-      issue("ability_overreach", "Omnivault acts on a living being", "Kai Codex locks Omnivault to inanimate objects only.")
+    if (mentionsAny(reply, "vạn khố giới chỉ cất lục trầm", "vạn khố giới chỉ cất syvial", "vạn khố giới chỉ cất người", "vạn khố giới chỉ chứa người", "giới chỉ cất người", "giới chỉ chứa người", "vạn khố giới chỉ scan lục trầm", "vạn khố giới chỉ scan syvial")) {
+      issue("ability_overreach", "Vạn Khố Giới Chỉ acts on a living being", "Cao Minh Codex locks Vạn Khố Giới Chỉ to inanimate objects only.")
     }
 
     // Project Entity hard lock is code-known and unambiguous.

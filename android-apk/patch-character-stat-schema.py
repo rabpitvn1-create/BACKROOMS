@@ -74,10 +74,10 @@ data class EffectiveCharacterStats(
 )
 
 object CharacterStatProfiles {
-  private val kai = CharacterStatProfile(
+  private val caoMinh = CharacterStatProfile(
     baseMaxHp = 100,
     energy = EnergyProfile.infinite(),
-    regen = HpRegenRule(4, "kai:passive-regeneration", true),
+    regen = HpRegenRule(4, "cao-minh:passive-regeneration", true),
     str = 82,
     df = 78,
     agi = 92,
@@ -86,10 +86,10 @@ object CharacterStatProfiles {
     statSource = StatSource.GAMEPLAY_NORMALIZED
   )
 
-  private val iris = CharacterStatProfile(
+  private val lucTram = CharacterStatProfile(
     baseMaxHp = 100,
     energy = EnergyProfile.infinite(),
-    regen = HpRegenRule(4, "iris:passive-regeneration", true),
+    regen = HpRegenRule(4, "luc-tram:passive-regeneration", true),
     str = 58,
     df = 60,
     agi = 84,
@@ -125,8 +125,8 @@ object CharacterStatProfiles {
   private val fallback = CharacterStatProfile()
 
   fun forId(characterId: String): CharacterStatProfile = when (characterId.trim().lowercase()) {
-    "kai" -> kai
-    "iris" -> iris
+    "cao-minh" -> caoMinh
+    "luc-tram" -> lucTram
     "syvial" -> syvial
     "an-nhien", "an_nhien", "annhien" -> anNhien
     else -> fallback
@@ -289,20 +289,20 @@ import org.junit.Test
 
 class CharacterStatSchemaTest {
   @Test fun namedProfilesUseGameplayNormalizedBaselines() {
-    val kai = CharacterStatProfiles.forId(KAI_ID)
-    assertEquals(100, kai.baseMaxHp)
-    assertEquals(EnergyMode.INFINITE, kai.energy.mode)
-    assertEquals(4, kai.regen.amountPerCompletedTurn)
-    assertEquals(82, kai.str)
-    assertEquals(78, kai.df)
-    assertEquals(92, kai.agi)
-    assertEquals(95, kai.crit)
-    assertEquals(StatSource.GAMEPLAY_NORMALIZED, kai.statSource)
+    val caoMinh = CharacterStatProfiles.forId(CAO_MINH_ID)
+    assertEquals(100, caoMinh.baseMaxHp)
+    assertEquals(EnergyMode.INFINITE, caoMinh.energy.mode)
+    assertEquals(4, caoMinh.regen.amountPerCompletedTurn)
+    assertEquals(82, caoMinh.str)
+    assertEquals(78, caoMinh.df)
+    assertEquals(92, caoMinh.agi)
+    assertEquals(95, caoMinh.crit)
+    assertEquals(StatSource.GAMEPLAY_NORMALIZED, caoMinh.statSource)
 
-    val iris = CharacterStatProfiles.forId("iris")
-    assertEquals(listOf(58, 60, 84, 90), listOf(iris.str, iris.df, iris.agi, iris.crit))
-    assertEquals(EnergyMode.INFINITE, iris.energy.mode)
-    assertEquals(4, iris.regen.amountPerCompletedTurn)
+    val lucTram = CharacterStatProfiles.forId("luc-tram")
+    assertEquals(listOf(58, 60, 84, 90), listOf(lucTram.str, lucTram.df, lucTram.agi, lucTram.crit))
+    assertEquals(EnergyMode.INFINITE, lucTram.energy.mode)
+    assertEquals(4, lucTram.regen.amountPerCompletedTurn)
 
     val syvial = CharacterStatProfiles.forId("syvial")
     assertEquals(listOf(94, 84, 96, 88), listOf(syvial.str, syvial.df, syvial.agi, syvial.crit))
@@ -327,25 +327,25 @@ class CharacterStatSchemaTest {
 
   @Test fun codecPersistsAuthoritativeProfileAndVitals() {
     val custom = CharacterState(
-      id = KAI_ID,
-      name = "Kai Akechi",
-      statProfile = CharacterStatProfiles.forId(KAI_ID),
+      id = CAO_MINH_ID,
+      name = "Cao Minh",
+      statProfile = CharacterStatProfiles.forId(CAO_MINH_ID),
       vitalState = CharacterVitalState(63, CharacterCondition.WOUNDED, "TURN_12")
     )
-    val state = GameState.initial().copy(characters = GameState.initial().characters + (KAI_ID to custom))
+    val state = GameState.initial().copy(characters = GameState.initial().characters + (CAO_MINH_ID to custom))
     val decoded = GameStateCodec.decode(GameStateCodec.encode(state))
-    val kai = decoded.characters.getValue(KAI_ID)
-    assertEquals(custom.statProfile, kai.statProfile)
-    assertEquals(custom.vitalState, kai.vitalState)
+    val caoMinh = decoded.characters.getValue(CAO_MINH_ID)
+    assertEquals(custom.statProfile, caoMinh.statProfile)
+    assertEquals(custom.vitalState, caoMinh.vitalState)
   }
 
   @Test fun currentSaveWithoutNewFieldsBackfillsProfileWithoutBreakingLoad() {
     val root = JSONObject(GameStateCodec.encode(GameState.initial()))
-    val kai = root.getJSONObject("characters").getJSONObject(KAI_ID)
-    kai.remove("statProfile")
-    kai.remove("vitalState")
-    val decoded = GameStateCodec.decode(root.toString()).characters.getValue(KAI_ID)
-    assertEquals(CharacterStatProfiles.forId(KAI_ID), decoded.statProfile)
+    val caoMinh = root.getJSONObject("characters").getJSONObject(CAO_MINH_ID)
+    caoMinh.remove("statProfile")
+    caoMinh.remove("vitalState")
+    val decoded = GameStateCodec.decode(root.toString()).characters.getValue(CAO_MINH_ID)
+    assertEquals(CharacterStatProfiles.forId(CAO_MINH_ID), decoded.statProfile)
     assertEquals(100, decoded.vitalState.currentHp)
   }
 }

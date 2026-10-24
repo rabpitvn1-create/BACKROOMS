@@ -248,21 +248,21 @@ policy = POLICY.read_text(encoding="utf-8")
 if 'val LUCIA = InventoryProfile(maxTypes = 3, maxPerType = 100)' not in policy:
     policy = replace_once(
         policy,
-        '''  val SPECIAL_COMPANION = InventoryProfile(maxTypes = 6, maxPerType = 20)
-  val NORMAL = InventoryProfile(maxTypes = 2, maxPerType = 2)
+        '''  val SPECIAL_COMPANION = InventoryProfile(maxTypes = 4, maxPerType = 20)
 ''',
-        '''  val SPECIAL_COMPANION = InventoryProfile(maxTypes = 6, maxPerType = 20)
+        '''  val SPECIAL_COMPANION = InventoryProfile(maxTypes = 4, maxPerType = 20)
   val LUCIA = InventoryProfile(maxTypes = 3, maxPerType = 100)
-  val NORMAL = InventoryProfile(maxTypes = 2, maxPerType = 2)
 ''',
         "Lucia inventory profile",
     )
 policy = replace_once(
     policy,
-    '''    if (characterId == KAI_ID) return KAI
+    '''    if (characterId == CAO_MINH_ID) return CAO_MINH
+    if (characterId == AN_NHIEN_ID) return AN_NHIEN
     val character = state.characters[characterId]
 ''',
-    '''    if (characterId == KAI_ID) return KAI
+    '''    if (characterId == CAO_MINH_ID) return CAO_MINH
+    if (characterId == AN_NHIEN_ID) return AN_NHIEN
     if (characterId == LUCIA_ID) return LUCIA
     val character = state.characters[characterId]
 ''',

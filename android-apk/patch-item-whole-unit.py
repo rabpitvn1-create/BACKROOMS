@@ -54,9 +54,9 @@ gate = '''
 '''
 if 'fun blocksTextItemAction(' not in s:
     s = s.replace('  companion object {', gate + '  companion object {', 1)
-    s = s.replace('    val state = loadOrMigrate(legacy)\n    if (MadGodCanon.cheat(action))', '''    val state = loadOrMigrate(legacy)
+    s = s.replace('    val state = loadOrMigrate(legacy)\n', '''    val state = loadOrMigrate(legacy)
     if (blocksTextItemAction(action)) return response(true, syncLegacy(legacy, state, false), "item_ui_required", "item_ui_required", "Hãy nhấn vào item và chọn Dùng, Chuyển hoặc Bỏ.")
-    if (MadGodCanon.cheat(action))''', 1)
+''', 1)
     s = s.replace('    val core = loadOrMigrate(before)\n    val turnId', '''    val core = loadOrMigrate(before)
     if (blocksTextItemAction(action)) return response(false, syncLegacy(before, core, false), "item_ui_required", "item_ui_required")
     val turnId''', 1)
