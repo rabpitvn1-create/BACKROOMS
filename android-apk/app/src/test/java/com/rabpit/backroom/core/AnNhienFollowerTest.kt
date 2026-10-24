@@ -103,6 +103,20 @@ class AnNhienFollowerTest {
     assertEquals("an_nhien_equipment_locked", result.validation.reason)
   }
 
+  @Test fun fixedEquipmentCannotBeUnequippedOrPreviewed() {
+    val state = GameState.initial()
+    val result = InventoryEngine.execute(state, ItemCommand(
+      commandId = "unequip-an", turnId = state.turn.currentTurnId,
+      actorId = AN_NHIEN_ID, source = CommandSource.SYSTEM,
+      operation = ItemCommand.Operation.UNEQUIP, itemId = AN_NHIEN_OUTFIT_ID,
+      itemName = AnNhienCanon.OUTFIT_NAME, slot = "outfit"
+    ))
+    assertFalse(result.applied)
+    assertEquals("an_nhien_equipment_locked", result.validation.reason)
+    assertEquals(state, result.state)
+    assertEquals(null, EquipmentEngine.preview(state, AN_NHIEN_ID, AN_NHIEN_OUTFIT_ID))
+  }
+
   @Test fun saveDecodeBackfillsAnNhienWithoutPuttingHerInParty() {
     val old = GameState.initial().copy(
       characters = GameState.initial().characters - AN_NHIEN_ID,
