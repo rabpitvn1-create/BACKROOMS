@@ -67,9 +67,9 @@ private fun useItem(state: GameState, source: InventoryState, command: ItemComma
   if (consumedOnUse) {
     val next = removeItem(source, command.itemId, command.quantity) ?: return invalid(state, "insufficient_item_quantity")
     val inventoryResult = changed(state.copy(inventories = state.inventories + (command.actorId to next)), "item_consumed")
-    return finishItemUse(state, inventoryResult, command, physiologyEffects)
+    return LootItemCatalog.applyHeal(state, finishItemUse(state, inventoryResult, command, physiologyEffects), command, owned)
   }
-  return finishItemUse(state, changed(state, "item_used"), command, physiologyEffects)
+  return LootItemCatalog.applyHeal(state, finishItemUse(state, changed(state, "item_used"), command, physiologyEffects), command, owned)
 }
 
 object InventoryEngine {
