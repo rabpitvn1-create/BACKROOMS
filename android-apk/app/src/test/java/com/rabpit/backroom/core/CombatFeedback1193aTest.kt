@@ -150,4 +150,15 @@ class CombatFeedback1193aTest {
     assertFalse(replay.getBoolean("handled"))
   }
 
+  @Test fun repeatedEncountersNeverReuseTheSameFeedbackIdentity() {
+    val firstState = CombatRuntime.start(GameState.initial(), "hound")
+    val first = CombatRuntime.active(firstState)!!.encounterId
+    val cleared = CombatRuntime.clear(firstState)
+    assertNull(CombatRuntime.active(cleared))
+    val again = CombatRuntime.start(cleared, "hound")
+    val second = CombatRuntime.active(again)!!.encounterId
+    assertNotEquals(first, second)
+    assertEquals("2", again.metadata["encounter.serial"])
+  }
+
 }
