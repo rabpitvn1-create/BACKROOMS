@@ -689,8 +689,8 @@
     // Combat Core may settle the last Entity in the first Party action. Keep
     // the authoritative final turn cues on screen BEFORE projecting inactive
     // combat, otherwise the renderer removes Entity/Lucia overlays immediately.
-    var incomingCombat;
-    try{incomingCombat=JSON.parse(json).combat;}catch(_){}
+    var incoming=null,incomingCombat=null;
+    try{incoming=JSON.parse(json);incomingCombat=incoming&&incoming.combat;}catch(_){}
     if(before&&before.active===true&&rawPacket&&Array.isArray(rawPacket.turns)&&
        rawPacket.turns.some(function(c){return c&&c.kind==='wave';})){
       window.backroomCombatEntityVisualKey=String(before.entityKey||'');
