@@ -1,8 +1,5 @@
 package com.rabpit.backroom.core
 
-const val CAO_MINH_DEMON_JAW_MASK_ID = "cao-minh:demon-jaw-mask"
-const val CAO_MINH_TALON_GAUNTLETS_ID = "cao-minh:talon-gauntlets"
-const val CAO_MINH_PHANTOM_GREAVES_ID = "cao-minh:phantom-greaves"
 const val LUC_TRAM_TICH_QUANG_SET_ID = "luc-tram:tich-quang"
 
 enum class EquipmentSlot(val key: String) {
@@ -77,107 +74,62 @@ object EquipmentCatalog {
 
   private val all = listOf(
     EquipmentDefinition(
-      id = CAO_MINH_HUYET_MA_KIEM_ID, name = "Huyết Ma Kiếm", type = "MA ĐẠO ĐẠI KIẾM", primarySlot = EquipmentSlot.WEAPON,
-      bonuses = EquipmentBonuses(),
-      weapon = WeaponGameplayStats(32, "∞", 600, listOf("Single Shot", "Full Auto")),
+      id = CAO_MINH_HUYET_MA_KIEM_ID, name = "Huyết Ma Kiếm", type = "BẢN MỆNH MA KIẾM", primarySlot = EquipmentSlot.WEAPON,
+      weapon = WeaponGameplayStats(32),
       abilities = listOf(
-        ability("Demonic Ammunition", "Đạn được hình thành trực tiếp từ Sparda Core.", "Không dùng magazine vật lý làm nguồn đạn chính."),
-        ability("Single Shot", "Bắn từng viên với nhịp ngắm chính xác."),
-        ability("Full Auto", "Cơ cấu có khả năng bắn tự động tới khoảng 600 RPM.", "RPM không đồng nghĩa một Action bắn 600 viên."),
-        ability("Core Self-Repair", "Tự sửa chữa cấu trúc bằng quỷ lực từ Sparda Core.", "Armor/weapon repair không hồi HP nhân vật."),
-        ability("Guilty Crown Compatibility", "Tương thích Guilty Crown Override.", "Override giữ đúng 24 shots khi đủ điều kiện canon; không phải passive instant-kill.")
+        ability("Kiếm Thể", "Chém, đâm, đỡ, khóa, phá pháp bằng chính thân kiếm."),
+        ability("Ngự Kiếm", "Dùng thần niệm điều khiển kiếm rời tay, đổi hướng và truy kích khi có dấu vết mục tiêu cùng quỹ đạo hợp lệ."),
+        ability("Huyết Sát Ma Khí", "Vạn Quỷ Ma Tâm gia cường lưỡi kiếm hoặc phóng kiếm áp bằng ma nguyên."),
+        ability("Bản Mệnh Tái Sinh", "Vạn Quỷ Ma Tâm từng bước tái tạo chính thanh kiếm đã hỏng; không tự sinh kiếm thứ hai.")
       ),
-      canonRef = "KAI-AKECHI-CODEX"
+      canonRef = "CAO_MINH_CODEX R17"
     ),
     EquipmentDefinition(
-      id = CAO_MINH_HUYET_MA_CHIEN_KHAI_ID, name = "Huyết Ma Chiến Khải", type = "ARMOR", primarySlot = EquipmentSlot.ARMOR,
-      bonuses = EquipmentBonuses(),
+      id = CAO_MINH_HUYET_MA_CHIEN_KHAI_ID, name = "Huyết Ma Chiến Khải", type = "BẢN MỆNH MA KHẢI", primarySlot = EquipmentSlot.ARMOR,
       abilities = listOf(
-        ability("Physical Enhancement", "Tăng sức mạnh và tốc độ vận động."),
-        ability("Impact Dispersion", "Hấp thụ và phân tán lực va chạm."),
-        ability("Stealth Movement", "Giảm tiếng bước chân và hỗ trợ di chuyển kín đáo."),
-        ability("Environmental Protection", "Bảo vệ trước độc tố, nhiệt, lạnh và áp suất."),
-        ability("Core Self-Repair", "Tự sửa chữa bằng Sparda Core."),
-        ability("Battlefield Tracking", "Theo dõi chiến trường, hỗ trợ combat analysis và đồng bộ dữ liệu tác chiến."),
-        ability("Omnivault Integration", "Kết nối trực tiếp Omnivault Ring.")
+        ability("Ma Khải Đồng Bộ", "Ma Kim và huyết văn ngưng kết từ Vạn Quỷ Ma Tâm, vận hành như lớp da thứ hai; tăng bộc phát và phân tán lực đánh."),
+        ability("Ma Trảo", "Giáp cẳng tay và bàn tay hóa trảo để cắt, bám, khóa hoặc xé pháp khí cự ly gần."),
+        ability("Huyết Ấn", "Ma niệm ở lòng bàn tay kéo vật vô chủ hoặc vật đã khóa bằng thần thức trong phạm vi gần."),
+        ability("Đạp Hư Ma Văn", "Bộc phát thân pháp, đạp lên ma nguyên ngưng tụ, đổi hướng giữa không trung và giảm lực tiếp đất."),
+        ability("Thu Liễm Khí Tức", "Có thể chủ động làm mờ ma văn và huyết sát khí để di chuyển kín đáo."),
+        ability("Bản Mệnh Tái Ngưng Kết", "Giáp vỡ được Vạn Quỷ Ma Tâm từng bước tái ngưng kết; không đồng nghĩa hồi HP nhân vật.")
       ),
-      restrictions = listOf("Không áp Heavy Armor mobility penalty; canon xác định giáp vận hành như phần mở rộng của cơ thể."),
-      canonRef = "KAI-AKECHI-CODEX"
+      restrictions = listOf("Không phạt tốc độ di chuyển; giáp đồng bộ với kiếm thuật và nhục thân."),
+      canonRef = "CAO_MINH_CODEX R17"
     ),
     EquipmentDefinition(
-      id = CAO_MINH_DEMON_JAW_MASK_ID, name = "Demon Jaw Mask", type = "HEAD / MASK", primarySlot = EquipmentSlot.HEAD,
-      bonuses = EquipmentBonuses(),
+      id = CAO_MINH_VAN_KHO_GIOI_CHI_ID, name = "Vạn Khố Giới Chỉ", type = "PHÁP BẢO KHÔNG GIAN", primarySlot = EquipmentSlot.RING,
       abilities = listOf(
-        ability("Head & Neck Protection", "Bảo vệ đầu, cổ và phần dưới khuôn mặt."),
-        ability("Toxin Filtration", "Lọc khí độc."),
-        ability("Enhanced Vision", "Enhanced vision, motion tracking và biological analysis."),
-        ability("Demonic Identification", "Nhận diện demonic-energy."),
-        ability("Encrypted Communication", "Liên lạc mã hóa và combat HUD."),
-        ability("Target-Lock Assistance", "Hỗ trợ khóa mục tiêu.", "Chỉ hỗ trợ, không tạo auto-hit.")
+        ability("Vạn Khố", "Lưu trữ vật vô tri với dung lượng không giới hạn theo canon; không tác động sinh vật sống."),
+        ability("Quét Mẫu", "Có đúng 3 ô mẫu. Chỉ quét vật gốc chưa Marked; bản sao không được làm nguồn quét."),
+        ability("Sao Chép", "Tạo bản sao vật vô tri từ mẫu còn hiệu lực; mẫu bị ghi đè không thể tiếp tục sinh bản sao."),
+        ability("Hoàn Nguyên", "Hoàn nguyên vật hợp lệ về trạng thái tốt nhất từng có.", "Cooldown 24 giờ riêng cho vật vừa hoàn nguyên thành công."),
+        ability("Triệu Hồi", "Đưa vật đã lưu hoặc mẫu hợp lệ đến vị trí được chỉ định."),
+        ability("Tái Trang Bị", "Khôi phục hoặc thay thế trang bị hợp lệ khi các điều kiện vật phẩm được đáp ứng.")
       ),
-      canonRef = "KAI-AKECHI-CODEX"
+      restrictions = listOf("Không quét hoặc sao chép bản mệnh trang bị gắn với Cao Minh.", "Không quét/hoàn nguyên nguyên khối công trình hoặc hệ lớn lắp ghép."),
+      canonRef = "CAO_MINH_CODEX R17 + VAN_KHO_RUNTIME"
     ),
     EquipmentDefinition(
-      id = CAO_MINH_TALON_GAUNTLETS_ID, name = "Talon Gauntlets", type = "GAUNTLETS", primarySlot = EquipmentSlot.GAUNTLETS,
-      bonuses = EquipmentBonuses(),
+      id = LUC_TRAM_KIEM_KHAI_ID, name = "Thiên Cơ Bạch Kim Kiếm Khải", type = "TIÊN HIỆP KIẾM KHẢI", primarySlot = EquipmentSlot.ARMOR,
       abilities = listOf(
-        ability("Mechanical Talons", "Triển khai móng vuốt cơ khí và tăng lực đấm."),
-        ability("Grip / Hook / Climbing", "Hỗ trợ grip, hook, climbing và di chuyển trên bề mặt."),
-        ability("Short-Range EM Field", "Tạo trường điện từ tầm ngắn tác động lên vật thể kim loại."),
-        ability("Weapon Control", "Có thể giật, khóa hoặc nghiền vũ khí khi đủ gần.")
+        ability("Bạch Linh Kim Hộ Thể", "Giáp trắng viền vàng dẫn linh lực, khớp đen linh hoạt; bảo vệ yếu huyệt mà không khóa kiếm thế."),
+        ability("Kiếm Trận Hộ Vệ", "Hỗ trợ giữ tuyến rút lui, đỡ đòn phá trận, che chắn đồng đội và người bị thương."),
+        ability("Linh Lực Gia Tốc", "Hỗ trợ bộc phát thân pháp và phân tán lực đổi hướng giữa không trung.")
       ),
-      canonRef = "KAI-AKECHI-CODEX"
+      restrictions = listOf("Pháp bảo thuần tu tiên, không có AI, cảm biến điện tử, súng, tên lửa hoặc động cơ hiện đại."),
+      canonRef = "LUC_TRAM_CODEX R05"
     ),
     EquipmentDefinition(
-      id = CAO_MINH_PHANTOM_GREAVES_ID, name = "Phantom Greaves", type = "GREAVES", primarySlot = EquipmentSlot.GREAVES,
-      bonuses = EquipmentBonuses(),
+      id = LUC_TRAM_TICH_QUANG_SET_ID, name = "Tịch Quang", type = "BẢN MỆNH LINH KIẾM", primarySlot = EquipmentSlot.WEAPON,
+      weapon = WeaponGameplayStats(24),
       abilities = listOf(
-        ability("Burst Acceleration", "Tăng gia tốc chân và burst movement."),
-        ability("Traversal", "High jump, air-direction correction và wall running."),
-        ability("Impact Reduction", "Giảm impact khi tiếp đất."),
-        ability("Kinetic Kick", "Tăng lực đá và hỗ trợ pursuit trên địa hình phức tạp.")
+        ability("Thiên Kiếm Thất Thức", "Vận dụng kiếm thế linh hoạt: phá vọng, xuyên điểm yếu, phản kiếm và bảo vệ tuyến rút lui."),
+        ability("Kiếm Niệm Hồi Kiếm", "Có thể gọi Tịch Quang trở về tay trong phạm vi thần niệm cảm nhận hợp lệ."),
+        ability("Kiếm Ý Dẫn Lực", "Đổi góc nhanh, chém khớp, phá pháp khí và mượn lực phản đòn.")
       ),
-      canonRef = "KAI-AKECHI-CODEX"
-    ),
-    EquipmentDefinition(
-      id = CAO_MINH_VAN_KHO_GIOI_CHI_ID, name = "Vạn Khố Giới Chỉ", type = "UTILITY EQUIPMENT", primarySlot = EquipmentSlot.RING,
-      abilities = listOf(
-        ability("Infinite Physical Storage", "Lưu trữ vật vô tri không giới hạn theo canon.", "Không tác động lên sinh vật sống."),
-        ability("Scan Template", "Lưu mẫu để sao chép.", "Có đúng 3 template slots."),
-        ability("Copy", "Tạo bản sao từ template còn tồn tại.", "Không tự tăng số template slot."),
-        ability("Summon", "Triệu hồi vật đã lưu hoặc template hợp lệ."),
-        ability("Rapid Re-Equip", "Hỗ trợ khôi phục hoặc thay thế trang bị gần như tức thời khi điều kiện hợp lệ.")
-      ),
-      restrictions = listOf("Giới hạn Omnivault lấy trực tiếp từ Character Codex; không tác động lên sinh vật sống."),
-      canonRef = "KAI-AKECHI-CODEX"
-    ),
-    EquipmentDefinition(
-      id = LUC_TRAM_KIEM_KHAI_ID, name = "Thiên Cơ Bạch Kim Kiếm Khải", type = "KIẾM KHẢI", primarySlot = EquipmentSlot.ARMOR,
-      bonuses = EquipmentBonuses(),
-      abilities = listOf(
-        ability("Recon Protection", "Bảo vệ trước va đập, mảnh văng và môi trường ở mức trinh sát chiến đấu."),
-        ability("Dual-Gun Stabilization", "Ổn định vai, cẳng tay, cổ tay, tư thế và phân bố lực khi sử dụng song súng."),
-        ability("Sensor Suite", "Range sensor, motion sensor và environmental sensor."),
-        ability("ARGUS Terrain Read Support", "Hỗ trợ ARGUS Terrain Read từ dữ liệu quan sát/cảm biến hợp lệ."),
-        ability("Mobile Firing Support", "Hỗ trợ bắn từ góc khó hoặc trong khi di chuyển.")
-      ),
-      restrictions = listOf("Không có drone.", "Không có missile, shoulder cannon, launcher hoặc remote camera mesh."),
-      canonRef = "IRIS-BELIAL-BLACKBLOOD-CODEX-20260817-R05"
-    ),
-    EquipmentDefinition(
-      id = LUC_TRAM_TICH_QUANG_SET_ID, name = "Tịch Quang", type = "KIẾM", primarySlot = EquipmentSlot.WEAPON,
-      bonuses = EquipmentBonuses(),
-      weapon = WeaponGameplayStats(24, "∞", null, listOf("Independent Dual Fire")),
-      abilities = listOf(
-        ability("Demonic Ammunition", "Mỗi viên đạn hình thành trực tiếp từ quỷ lực của Iris.", "ENE ∞ không tạo damage, RPM, độ bền hoặc accuracy vô hạn."),
-        ability("Independent Dual Fire", "Ivory và Ebony có thể dùng riêng hoặc đồng thời; một khẩu hỏng không tự vô hiệu khẩu còn lại."),
-        ability("Twosome Time", "Hai tuyến ngắm độc lập cho phép xử lý hai hướng hoặc hai mục tiêu khi điều kiện cho phép."),
-        ability("Rain Storm", "Bắn song súng trong chuyển động trên không.", "Không cho phép bay hoặc lơ lửng."),
-        ability("Honeycomb Fire", "Tập trung cả hai khẩu lên cùng vùng/mục tiêu.", "Bị giới hạn bởi cơ cấu súng, tư thế, ổn định, đường bắn và action economy."),
-        ability("Charged Shot", "Nén thêm quỷ lực trước khi bắn để tăng uy lực.", "ENE ∞ không tạo Charged Shot DMG ∞; CombatRuntime áp trần gameplay mỗi Action.")
-      ),
-      components = listOf(EquipmentComponent("Ivory"), EquipmentComponent("Ebony")),
-      canonRef = "IRIS-BELIAL-BLACKBLOOD-CODEX-20260817-R05"
+      restrictions = listOf("Linh kiếm không tự tái sinh vô hạn; hư hại nặng cần vật liệu và thời gian tu sửa."),
+      canonRef = "LUC_TRAM_CODEX R05"
     ),
     EquipmentDefinition(
       id = SYVIAL_GODKILLER_ID, name = "GodKiller", type = "MECHANICAL GREATSWORD", primarySlot = EquipmentSlot.WEAPON,
@@ -229,9 +181,6 @@ object EquipmentCatalog {
     CAO_MINH_ID -> linkedMapOf(
       EquipmentSlot.WEAPON to CAO_MINH_HUYET_MA_KIEM_ID,
       EquipmentSlot.ARMOR to CAO_MINH_HUYET_MA_CHIEN_KHAI_ID,
-      EquipmentSlot.HEAD to CAO_MINH_DEMON_JAW_MASK_ID,
-      EquipmentSlot.GAUNTLETS to CAO_MINH_TALON_GAUNTLETS_ID,
-      EquipmentSlot.GREAVES to CAO_MINH_PHANTOM_GREAVES_ID,
       EquipmentSlot.RING to CAO_MINH_VAN_KHO_GIOI_CHI_ID
     )
     LUC_TRAM_ID -> linkedMapOf(EquipmentSlot.WEAPON to LUC_TRAM_TICH_QUANG_SET_ID, EquipmentSlot.ARMOR to LUC_TRAM_KIEM_KHAI_ID)
