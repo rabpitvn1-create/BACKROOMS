@@ -151,7 +151,7 @@ data class GameState(
         CAO_MINH_ID to CharacterState(
           CAO_MINH_ID,
           "Cao Minh",
-          avatarRef = "avatars/cao_minh_avatar.png",
+          avatarRef = "avatars/CAO_MINH_AVATAR.jpg",
           physiology = PhysiologyState.freshRunBaseline(),
           metadata = mapOf("inventoryProfile" to "cao-minh")
         )
