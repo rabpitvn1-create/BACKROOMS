@@ -74,3 +74,11 @@ Số liệu nền của corpus:
 - Việc bật rộng CR2 vẫn phải chờ: runtime Kotlin sau feature flag
   `CANON_RUNTIME_2_ENABLED` (mặc định OFF), đo trên thiết bị thật, và corpus gắn nhãn
   lớn hơn. Xem lộ trình gate trong `CANON_RUNTIME_2_README.md`.
+
+## Hiệu chuẩn lại sau Drive snapshot (2026-10-24)
+
+Corpus tăng 55 → 66 record sau khi snapshot toàn bộ tài liệu Canon từ Google Drive (xem `canon_source_manifest.json` v2). Hai kịch bản benchmark đổi kết quả vì lý do corpus, đã xử lý như sau:
+
+- **(a1) STANDARD 3200 → 3600**: tập required của scene đối thoại có Lục Trầm tăng thêm record gác OPEN `CHAR.LUC_TRAM.UNKNOWN` (affordance `dialogue`, ~163 token) và record UNKNOWN mà nó tham chiếu `REL.LUC_TRAM.SYVIAL.BASELINE` (~194 token). Đây là hành vi đúng theo thiết kế — canon "chưa thiết lập" phải hiện diện để GM không tự bịa — nên profile được hiệu chuẩn lại thay vì cắt record.
+- **(e) COMPACT báo missing-required tường minh**: cùng scene vượt COMPACT 2600 một cách hợp lệ; kịch bản nay kiểm tra đúng hợp đồng thiết kế (COMPACT báo thiếu tường minh + trọn record, RICH 3900 chứa đủ, không missing).
+- Kết quả sau hiệu chuẩn: **8/8 PASS** trên corpus 66 record. Lưu ý khi hiệu chuẩn profile Kotlin thật: ngân sách STANDARD phải tính cả các record gác OPEN của nhân vật hiện diện, không chỉ record nội dung.
