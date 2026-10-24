@@ -89,4 +89,58 @@ class CombatFeedback1193aTest {
     assertTrue(result.state.metadata.keys.none { it.contains("feedback", ignoreCase = true) })
     assertTrue(result.feedback.all { it.toJson().optString("actorId") == CAO_MINH_ID })
   }
+  private class MemorySave(var state: GameState) : SaveRepository {
+    override fun save(state: GameState) { this.state = state }
+    override fun load(): GameState = state
+    override fun exists(): Boolean = true
+    override fun clear() { state = GameState.initial() }
+  }
+
+  private fun facade(save: MemorySave): GameCoreFacade {
+    val ctor = GameCoreFacade::class.java.getDeclaredConstructor(
+      SaveRepository::class.java, GamePipelineLogger::class.java)
+    ctor.isAccessible = true
+    return ctor.newInstance(save, NoOpGamePipelineLogger)
+  }
+
+  @Test fun combatBridgeRequiresLockedDiceAndPreservesOtherNarrativeState() {
+    val save = MemorySave(GameState.initial())
+    val core = facade(save)
+    val legacy = org.json.JSONObject()
+      .put("turn", 3)
+      .put("inventory", org.json.JSONArray().put(org.json.JSONObject().put("name", "Vật phẩm đã xác nhận")))
+      .put("party", org.json.JSONArray().put(org.json.JSONObject().put("id", LUC_TRAM_ID).put("name", "Lục Trầm")))
+    val started = org.json.JSONObject(core.startCombatState(legacy.toString(), "hound"))
+    assertTrue(started.toString(), started.getBoolean("handled"))
+    assertTrue(started.getJSONObject("state").getJSONObject("combat").getBoolean("active"))
+    assertNotNull(CombatRuntime.active(save.state))
+
+    val action = PokerDiceCore.DIRECT_COMBAT_ACTION
+    val denied = org.json.JSONObject(core.processCombat(legacy.toString(), "EXECUTE", action))
+    assertFalse(denied.getBoolean("handled"))
+    assertEquals("combat_dice_not_finalized", denied.getString("error"))
+    assertEquals(3, denied.getJSONObject("state").getInt("turn"))
+
+    val prepared = org.json.JSONObject(core.prepareCombatDice(legacy.toString(), action))
+    assertTrue(prepared.toString(), prepared.getBoolean("handled"))
+    assertNotNull(prepared.getJSONObject("state").getJSONObject("combat").optJSONObject("diceState"))
+    val finalDice = org.json.JSONObject(core.finishCombatDice(legacy.toString()))
+    assertTrue(finalDice.toString(), finalDice.getBoolean("handled"))
+    assertTrue(finalDice.getJSONObject("state").getJSONObject("combat")
+      .getJSONObject("diceState").getBoolean("finalized"))
+
+    val finished = org.json.JSONObject(core.processCombat(legacy.toString(), "EXECUTE", action))
+    assertTrue(finished.toString(), finished.getBoolean("handled"))
+    val out = finished.getJSONObject("state")
+    assertEquals(4, out.getInt("turn"))
+    assertEquals(legacy.getJSONArray("inventory").toString(), out.getJSONArray("inventory").toString())
+    assertEquals(legacy.getJSONArray("party").toString(), out.getJSONArray("party").toString())
+    val feedback = out.getJSONObject("combatFeedback")
+    assertTrue(feedback.getString("encounterId").isNotBlank())
+    assertFalse(save.state.metadata.keys.any { it.contains("feedback", ignoreCase = true) })
+
+    val replay = org.json.JSONObject(core.processCombat(legacy.toString(), "EXECUTE", action))
+    assertFalse(replay.getBoolean("handled"))
+  }
+
 }
