@@ -29,9 +29,14 @@
     return;
   }
   const key = 'backroom-apk-state';
+  // Expire Gemini-era generated image cache; Core game/save state is untouched.
+  try { localStorage.removeItem('backroom-apk-snapshot'); } catch (_) {}
   const oldRender = window.render;
   function drawTravel() {
     if (typeof oldRender === 'function') oldRender();
+    if (window.backroomSnapshotStage) window.backroomSnapshotStage.render(state);
+    if (window.backroomLuciaVisuals) window.backroomLuciaVisuals.renderOverlay(state);
+    if (window.backroomNamedFollowers) window.backroomNamedFollowers.renderOverlay(state);
     const t = state && state.levelTravel;
     if (!t) return;
     let panel = document.getElementById('level-travel-panel');

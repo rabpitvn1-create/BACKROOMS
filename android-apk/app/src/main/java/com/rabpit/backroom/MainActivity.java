@@ -32,13 +32,10 @@ import java.util.Locale;
 import java.util.Iterator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class MainActivity extends Activity {
   private WebView webView;
   private final ExecutorService io = Executors.newSingleThreadExecutor();
-  private final ExecutorService imageIo = Executors.newSingleThreadExecutor();
-  private final AtomicInteger latestSnapshotTurn = new AtomicInteger(0);
   private GameCoreFacade gameCore;
   private QuotaGovernor canonQuotaGovernor;
 
@@ -48,9 +45,7 @@ public class MainActivity extends Activity {
     return core;
   }
   private static final String GEMINI_MODEL = "gemini-3.6-flash";
-  private static final String GEMINI_IMAGE_MODEL = "gemini-3.1-flash-image";
   private static final int[] RETRYABLE = {408, 429, 500, 502, 503, 504};
-  private static final int MAX_SNAPSHOT_BASE64 = 1_500_000;
   // Only used by the CR2 quota adapter; single-threaded turn I/O owns updates.
   private final ThreadLocal<Integer> lastProviderHttpStatus = ThreadLocal.withInitial(() -> -1);
   private final ThreadLocal<Long> lastProviderRetryAfterMs = ThreadLocal.withInitial(() -> -1L);
@@ -82,7 +77,6 @@ public class MainActivity extends Activity {
   @Override protected void onDestroy() {
     if (gameCore != null) gameCore.close();
     io.shutdownNow();
-    imageIo.shutdownNow();
     if (webView != null) webView.destroy();
     super.onDestroy();
   }
@@ -95,17 +89,12 @@ public class MainActivity extends Activity {
       "st.textContent='button{transition:transform 80ms ease,background 120ms ease,border-color 120ms ease;touch-action:manipulation;-webkit-tap-highlight-color:rgba(255,255,255,.12)}button:active:not(:disabled){transform:scale(.965);background:#303840;border-color:#77828c}button:disabled{opacity:.48;cursor:not-allowed}.snapshot-placeholder{display:grid;place-items:center;gap:7px;text-align:center;color:#69737c}.snapshot-placeholder b{font-size:12px;letter-spacing:.16em}.snapshot-placeholder small{color:#56616a}.message.pending{opacity:.72}.message.pending .text{color:#aeb7be}';" +
       "document.head.appendChild(st);" +
       "function scrollBottom(){var l=document.getElementById('log');if(l)requestAnimationFrame(function(){l.scrollTop=l.scrollHeight;});}" +
-      "function equippedItem(s){try{var e=state&&state.equipment;if(!e)return null;return e[s]||null}catch(e){return null}}function kaiOverlaySource(){return 'kai_snapshot_overlay.webp'}function appendEquipmentBadge(b){}function cachedSnapshot(){try{var r=JSON.parse(localStorage.getItem('backroom-apk-snapshot')||'null');return r&&Number(r.turn)===Number(state&&state.turn)&&r.dataUri?r:null;}catch(e){return null;}}function renderSnapshot(){if(window.backroomSnapshotStage)window.backroomSnapshotStage.render(state,cachedSnapshot());window.backroomLuciaVisuals.renderOverlay(state);window.backroomNamedFollowers.renderOverlay(state);}" +
-      "function requestSnapshot(){if(!state||!state.levelTravel)return;if(!window.Android||typeof Android.requestSnapshot!=='function'){var s=document.getElementById('status');if(s)s.textContent='Không tìm thấy Android snapshot bridge.';return;}var s=document.getElementById('status');if(s)s.textContent='Gemini đang tạo snapshot…';Android.requestSnapshot(JSON.stringify(state));}" +
-      "window.requestSnapshot=requestSnapshot;" +
+      "function equippedItem(s){try{var e=state&&state.equipment;if(!e)return null;return e[s]||null}catch(e){return null}}function kaiOverlaySource(){return 'kai_snapshot_overlay.webp'}function appendEquipmentBadge(b){}function renderSnapshot(){if(window.backroomSnapshotStage)window.backroomSnapshotStage.render(state);window.backroomLuciaVisuals.renderOverlay(state);window.backroomNamedFollowers.renderOverlay(state);}" +
       "var oldRender=window.render;if(typeof oldRender==='function'){window.render=function(){oldRender();renderSnapshot();scrollBottom();};}" +
-      "var actions=document.querySelector('.actions');if(actions&&!document.getElementById('snapshotButton')){var b=document.createElement('button');b.id='snapshotButton';b.type='button';b.textContent='Tạo Snapshot';b.addEventListener('click',requestSnapshot);var wide=actions.querySelector('.wide');if(wide)actions.insertBefore(b,wide);else actions.appendChild(b);}" +
-      "var oldTurn=window.backroomTurn;window.backroomTurn=function(json){if(typeof oldTurn==='function')oldTurn(json);document.querySelectorAll('[data-pending=\"1\"]').forEach(function(n){n.remove();});var s=document.getElementById('status');if(s)s.textContent='Turn '+state.turn+' đã lưu trên máy. Đang tạo snapshot…';renderSnapshot();scrollBottom();requestSnapshot();};" +
+      "var oldTurn=window.backroomTurn;window.backroomTurn=function(json){if(typeof oldTurn==='function')oldTurn(json);document.querySelectorAll('[data-pending=\"1\"]').forEach(function(n){n.remove();});var s=document.getElementById('status');if(s)s.textContent='Turn '+state.turn+' đã lưu trên máy.';renderSnapshot();scrollBottom();};" +
       "var oldError=window.backroomError;window.backroomError=function(message){document.querySelectorAll('[data-pending=\"1\"]').forEach(function(n){n.remove();});if(typeof oldError==='function')oldError(message);scrollBottom();};" +
-      "window.backroomSnapshot=function(payload){try{var r=JSON.parse(payload);if(!state||Number(r.turn)!==Number(state.turn))return;if(!r.dataUri)return;localStorage.setItem('backroom-apk-snapshot',JSON.stringify({turn:r.turn,model:r.model||'Gemini',dataUri:r.dataUri}));renderSnapshot();var s=document.getElementById('status');if(s)s.textContent='Snapshot Turn '+state.turn+' đã tạo bằng '+(r.model||'Gemini')+'.';}catch(e){var s=document.getElementById('status');if(s)s.textContent='Snapshot trả về không hợp lệ.';}};" +
-      "window.backroomSnapshotError=function(payload){try{var r=JSON.parse(payload);if(state&&Number(r.turn)!==Number(state.turn))return;var s=document.getElementById('status');if(s)s.textContent='Snapshot lỗi: '+(r.message||'Không thể tạo ảnh.');}catch(e){var s=document.getElementById('status');if(s)s.textContent='Snapshot lỗi.';}};" +
       "var f=document.getElementById('form');if(f){f.addEventListener('submit',function(){var a=document.getElementById('action');var text=a?a.value.trim():'';if(!text)return;var l=document.getElementById('log');if(!l)return;var player=document.createElement('article');player.className='message player pending';player.setAttribute('data-pending','1');player.innerHTML='<div class=\"role\">BẠN</div><div class=\"text\"></div>';player.querySelector('.text').textContent=text;l.appendChild(player);var gm=document.createElement('article');gm.className='message pending';gm.setAttribute('data-pending','1');gm.innerHTML='<div class=\"role\">GAME MASTER</div><div class=\"text\">Đang xử lý lượt…</div>';l.appendChild(gm);scrollBottom();},true);}" +
-      "renderSnapshot();scrollBottom();if(typeof state!=='undefined'&&state&&state.levelTravel&&!cachedSnapshot())setTimeout(requestSnapshot,700);" +
+      "renderSnapshot();scrollBottom();" +
       "})();";
     webView.evaluateJavascript(script, null);
   }
@@ -276,121 +265,6 @@ public class MainActivity extends Activity {
     while (keys.hasNext()) {
       String key = keys.next();
       target.put(key, patch.get(key));
-    }
-  }
-
-  private SnapshotImage findSnapshotImage(JSONObject result) {
-    JSONArray steps = result.optJSONArray("steps");
-    if (steps == null) return null;
-    for (int i = steps.length() - 1; i >= 0; i--) {
-      JSONObject step = steps.optJSONObject(i);
-      if (step == null || !"model_output".equals(step.optString("type"))) continue;
-      JSONArray content = step.optJSONArray("content");
-      if (content == null) continue;
-      for (int j = content.length() - 1; j >= 0; j--) {
-        JSONObject part = content.optJSONObject(j);
-        if (part == null || !"image".equals(part.optString("type"))) continue;
-        String data = part.optString("data", "");
-        if (data.isEmpty()) continue;
-        String mimeType = part.optString("mime_type", "image/jpeg");
-        return new SnapshotImage(data, mimeType);
-      }
-    }
-    return null;
-  }
-
-  private SnapshotImage geminiImage(String prompt) throws Exception {
-    Exception last = null;
-    for (String key : geminiKeys()) {
-      if (key == null || key.isEmpty()) continue;
-      for (int attempt = 0; attempt < 2; attempt++) {
-        try {
-          JSONObject input = new JSONObject().put("type", "text").put("text", prompt);
-          JSONObject format = new JSONObject()
-            .put("type", "image")
-            .put("mime_type", "image/jpeg")
-            .put("aspect_ratio", "16:9")
-            .put("image_size", "512");
-          JSONObject body = new JSONObject()
-            .put("model", GEMINI_IMAGE_MODEL)
-            .put("input", new JSONArray().put(input))
-            .put("response_format", format);
-          JSONObject result = new JSONObject(postJson("https://generativelanguage.googleapis.com/v1beta/interactions", key, "x-goog-api-key", body));
-          SnapshotImage image = findSnapshotImage(result);
-          if (image == null || image.data.isEmpty()) throw new Exception("Gemini image không trả ảnh.");
-          if (image.data.length() > MAX_SNAPSHOT_BASE64) throw new Exception("Snapshot quá lớn để hiển thị trong APK.");
-          return image;
-        } catch (Exception e) {
-          last = e;
-          int code = e instanceof HttpError ? ((HttpError)e).status : 0;
-          if (attempt == 0 && (code == 0 || retryable(code))) {
-            try { Thread.sleep(400); } catch (InterruptedException ignored) {}
-            continue;
-          }
-          break;
-        }
-      }
-    }
-    throw last != null ? last : new Exception("Không có Gemini API key để tạo snapshot.");
-  }
-
-  private String clipped(Object value, int max) {
-    String text = value == null ? "" : String.valueOf(value);
-    return text.length() > max ? text.substring(text.length() - max) : text;
-  }
-
-  private String snapshotPrompt(JSONObject state) {
-    StringBuilder recent = new StringBuilder();
-    JSONArray log = state.optJSONArray("log");
-    if (log != null) {
-      int start = Math.max(0, log.length() - 4);
-      for (int i = start; i < log.length(); i++) {
-        JSONObject entry = log.optJSONObject(i);
-        if (entry == null) continue;
-        if (recent.length() > 0) recent.append("\n\n");
-        recent.append("player".equals(entry.optString("role")) ? "PLAYER: " : "GM: ");
-        recent.append(clipped(entry.optString("text", ""), 1800));
-      }
-    }
-
-    return "Create one cinematic 16:9 visual snapshot of the CURRENT END STATE of this Backrooms text game.\n" +
-      "Show the present scene only, not a montage. Cao Minh is the main character. " +
-      "Do not invent NPCs, monsters, exits, loot, injuries, weapons, text, HUD, blood or props that are not explicitly present in the state. " +
-      "If party is empty, Cao Minh is alone. Level 0 uses stale yellow wallpaper, damp carpet, fluorescent ceiling panels and oppressive empty office-like geometry. " +
-      "Photorealistic cinematic game concept art, grounded anatomy and materials, no written text in the image.\n\n" +
-      "Turn: " + state.optInt("turn", 1) + "\n" +
-      "Location: " + clipped(state.optString("location", ""), 1200) + "\n" +
-      "Player: " + clipped(state.optJSONObject("player"), 1800) + "\n" +
-      "Party: " + clipped(state.optJSONArray("party"), 1600) + "\n" +
-      "Inventory: " + clipped(state.optJSONArray("inventory"), 2200) + "\n" +
-      "Relevant flags: " + clipped(state.optJSONObject("flags"), 2200) + "\n\n" +
-      "Recent context, final lines take priority:\n" + recent;
-  }
-
-  private void requestSnapshotInternal(String stateJson) {
-    try {
-      JSONObject snapshotState = new JSONObject(stateJson);
-      int turn = snapshotState.optInt("turn", 1);
-      latestSnapshotTurn.updateAndGet(current -> Math.max(current, turn));
-      SnapshotImage image = geminiImage(snapshotPrompt(snapshotState));
-      if (turn != latestSnapshotTurn.get()) return;
-      JSONObject payload = new JSONObject()
-        .put("turn", turn)
-        .put("model", GEMINI_IMAGE_MODEL)
-        .put("dataUri", "data:" + image.mimeType + ";base64," + image.data);
-      emit("backroomSnapshot", payload.toString());
-    } catch (Exception e) {
-      try {
-        JSONObject state = new JSONObject(stateJson);
-        int turn = state.optInt("turn", 1);
-        if (turn != latestSnapshotTurn.get()) return;
-        JSONObject payload = new JSONObject()
-          .put("turn", turn)
-          .put("message", e.getMessage() == null ? "Không thể tạo snapshot." : e.getMessage());
-        emit("backroomSnapshotError", payload.toString());
-      } catch (Exception ignored) {
-        emit("backroomSnapshotError", "{\"turn\":0,\"message\":\"Không thể tạo snapshot.\"}");
-      }
     }
   }
 
@@ -1214,18 +1088,6 @@ public class MainActivity extends Activity {
       io.execute(() -> emitCombatDiceResult(() -> requireGameCore().finishCombatDice(stateJson)));
     }
 
-    @JavascriptInterface public void requestSnapshot(String stateJson) {
-      imageIo.execute(() -> requestSnapshotInternal(stateJson));
-    }
-  }
-
-  private static class SnapshotImage {
-    final String data;
-    final String mimeType;
-    SnapshotImage(String data, String mimeType) {
-      this.data = data;
-      this.mimeType = mimeType == null || mimeType.isEmpty() ? "image/jpeg" : mimeType;
-    }
   }
 
   private static class HttpError extends Exception {

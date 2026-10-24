@@ -104,17 +104,23 @@ test('Combat swaps Cao Minh overlay, displays confirmed Entity, then cleans it u
     'CAO_MINH_OVERLAY_EXPLORER_IDLE.png');
 });
 
-test('Gemini Snapshot is only displayed for its matching turn', () => {
+test('Generated image payloads are ignored; only curated fixed backgrounds are rendered', () => {
   const {box, state, render} = snapshotBoot();
   const stage = box.querySelector('.snapshot-stage');
   render(state, {turn: 1, dataUri: 'data:image/png;base64,aGVsbG8='});
   assert.equal(stage.querySelector('.snapshot-background-img').getAttribute('src'),
-    'data:image/png;base64,aGVsbG8=');
-  assert.equal(stage.querySelector('.snapshot-scene-label').hidden, true);
-  render({...state, turn: 2}, {turn: 1, dataUri: 'data:image/png;base64,aGVsbG8='});
-  assert.equal(stage.querySelector('.snapshot-background-img').getAttribute('src'),
     'level_snapshots/level_2.webp');
+  assert.equal(stage.querySelector('.snapshot-scene-label').hidden, true);
+  const other = {...state, levelTravel: {nodeId: 'LEVEL.NODE.9'},
+    level: {number: 9}, levelBackground: 'data:image/png;base64,Zm9yZ2Vk'};
+  render(other, {turn: 1, dataUri: 'data:image/png;base64,aGVsbG8='});
+  assert.equal(stage.querySelector('.snapshot-background-img'), null,
+    'an injected data URI must never become the backdrop');
   assert.equal(stage.querySelector('.snapshot-scene-label').hidden, false);
+  other.levelBackground = 'https://res.cloudinary.com/csz2me5b/image/upload/curated/level_9.webp';
+  render(other);
+  assert.equal(stage.querySelector('.snapshot-background-img').getAttribute('src'),
+    other.levelBackground, 'curated static art remains available for unbundled Levels');
 });
 
 test('Mobile HUD opens from header and closes with Escape or a Party selection', () => {
@@ -150,6 +156,9 @@ test('WebView and HTML use the Snapshot stage and visible recovery/menu controls
   assert.match(html, /id="startupRecovery"/);
   assert.match(html, /src="snapshot-stage\.js"/);
   assert.match(html, /src="mobile-hud\.js"/);
-  assert.match(java, /window\.backroomSnapshotStage\.render\(state,cachedSnapshot\(\)\)/);
+  assert.match(java, /window\.backroomSnapshotStage\.render\(state\)/);
+  assert.doesNotMatch(java, /geminiImage\(|requestSnapshotInternal\(|@JavascriptInterface public void requestSnapshot\(/);
+  assert.doesNotMatch(java, /backroom-apk-snapshot|Gemini đang tạo snapshot/);
+  assert.doesNotMatch(snapshotSource, /dataUri|Snapshot Gemini/);
   assert.doesNotMatch(java, /box\.textContent=''/);
 });
