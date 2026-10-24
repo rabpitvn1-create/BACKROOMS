@@ -62,7 +62,7 @@ object CharacterDetailJson {
     put("id", x.id); put("name", x.name); put("quantity", x.quantity)
     x.type?.let { put("type", it) }; x.slot?.let { put("slot", it) }; x.rarity?.let { put("rarity", it) }
     put("equipped", x.equipped); put("equippedSlots", JSONArray(x.equippedSlots)); put("statItem", x.statItem)
-    put("consumesInventorySlot", !x.equipped)
+    put("consumesInventorySlot", x.consumesInventorySlot ?: !x.equipped)
     x.iconRef?.let { put("icon", it) }
     if (x.bonuses.any()) put("equipmentModifiers", JSONObject()
       .put("DEF", x.bonuses.defPercent).put("VIT", x.bonuses.vitPercent)
