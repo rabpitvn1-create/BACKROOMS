@@ -7,7 +7,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.util.ArrayDeque;
-import java.util.Iterator;
 
 /**
  * Bounded, on-device diagnostics. No logcat scraping, prompt bodies, credentials,
@@ -103,6 +102,28 @@ final class AppDiagnosticLog {
       out.put("levelNodeId", safeNode(input.optString("levelNodeId", "")));
     if (input.has("startupErrorCode"))
       out.put("startupErrorCode", safeCode(input.optString("startupErrorCode", "")));
+    JSONArray source = input.optJSONArray("events");
+    JSONArray whitelisted = new JSONArray();
+    if (source != null) {
+      for (int i = Math.max(0, source.length() - MAX_EVENTS); i < source.length(); i++) {
+        JSONObject event = source.optJSONObject(i);
+        if (event == null) continue;
+        JSONObject item = new JSONObject()
+          .put("timestampMs", Math.max(0L, Math.min(9000000000000000L,
+            event.optLong("timestampMs", 0L))))
+          .put("stage", safeCode(event.optString("stage")))
+          .put("code", safeCode(event.optString("code")));
+        if (event.has("line")) item.put("line",
+          Math.max(0, Math.min(1000000, event.optInt("line"))));
+        if (event.has("column")) item.put("column",
+          Math.max(0, Math.min(1000000, event.optInt("column"))));
+        String script = event.optString("source", "");
+        if (script.matches("[a-zA-Z0-9_.-]+\\.(?:js|html)"))
+          item.put("script", script);
+        whitelisted.put(item);
+      }
+    }
+    out.put("events", whitelisted);
     return out;
   }
 
