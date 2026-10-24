@@ -1,31 +1,35 @@
 package com.rabpit.backroom.core
 
-import org.json.JSONObject
 import org.junit.Assert.*
 import org.junit.Test
 
+/**
+ * Checks the live single-hit CombatRuntime contract. The previous 1.1.93a test
+ * referenced poison procs and bridge APIs removed from this runtime generation.
+ * Feedback below is always based on actual HP mutations, never guessed from log text.
+ */
 class CombatFeedback1193aTest {
   private fun started(seed: Int = 0): GameState {
     val state = CombatRuntime.start(GameState.initial(), "hound")
     return state.copy(metadata = state.metadata + ("combat.seed" to seed.toString()))
   }
 
-  @Test fun poisonFeedbackRecordsGrossDamageBeforeEntityRegen() {
-    val state = started().let { it.copy(metadata = it.metadata + ("combat.caoMinhProc3" to "1")) }
-    val before = CombatRuntime.active(state)!!
-    val result = CombatRuntime.resolve(state, "SEARCH", "Quan sát")
-    val poison = result.feedback.single { it.status == CombatRuntime.FeedbackStatus.POISON }
-    assertEquals(before.entityMaxHp * 3 / 100, poison.amount)
-    assertEquals("entity", poison.target)
-    assertEquals(poison.amount - 1, before.entityHp - CombatRuntime.active(result.state)!!.entityHp)
+  @Test fun feedbackDoesNotInventPoisonForRetiredProcMetadata() {
+    val results = (0..200).map { seed ->
+      val state = started(seed).copy(metadata = started(seed).metadata + ("combat.caoMinhProc3" to "1"))
+      CombatRuntime.resolve(state, "EXECUTE", "Tấn công")
+    }
+    assertTrue(results.any { it.feedback.any { event -> event.target == "entity" } })
+    assertTrue(results.all { it.feedback.all { event -> event.amount > 0 && event.toJson().getString("text") == "-${event.amount} HP" } })
+    assertTrue(results.all { it.feedback.none { event -> event.toJson().has("status") } })
   }
 
   @Test fun criticalFlagComesFromTheRuntimeRoll() {
     val result = (0..200).asSequence().map { seed ->
-      val state = started(seed).let { it.copy(metadata = it.metadata + ("combat.daiDaoMaTonStacks" to "5")) }
+      val state = started(seed).copy(metadata = started(seed).metadata + ("combat.daiDaoMaTonStacks" to "5"))
       CombatRuntime.resolve(state, "EXECUTE", "Tấn công")
-    }.first { it.feedback.any { hit -> hit.critical } }
-    assertTrue(result.feedback.first().critical)
+    }.first { it.feedback.any { event -> event.critical } }
+    assertTrue(result.feedback.any { it.target == "entity" && it.critical })
     assertTrue(result.feedback.all { it.amount > 0 })
   }
 
@@ -66,37 +70,23 @@ class CombatFeedback1193aTest {
     assertFalse(result.state.metadata.keys.any { it.contains("feedback", ignoreCase = true) })
   }
 
-  @Test fun incomingDamageIsReportedEvenWhenTheSameTurnHealsThePlayer() {
+  @Test fun incomingDamageFeedbackEqualsRealHpDecrease() {
     val result = (0..200).asSequence().map { seed ->
       val state = started(seed)
-      CombatRuntime.active(state)!!.playerHp to CombatRuntime.resolve(state, "EXECUTE", "Đứng yên")
-    }.first { (_, r) -> r.feedback.any { it.target == "actor" } }
-    val damage = result.second.feedback.filter { it.target == "actor" }.sumOf { it.amount }
-    val finalHp = result.second.state.characters[CAO_MINH_ID]!!.vitalState.currentHp
-    assertTrue(damage > result.first - finalHp)
+      state.characters.getValue(CAO_MINH_ID).vitalState.currentHp to
+        CombatRuntime.resolve(state, "EXECUTE", "Đứng yên")
+    }.first { (_, resolution) -> resolution.feedback.any { it.target == "actor" } }
+    val total = result.second.feedback.filter { it.target == "actor" }.sumOf { it.amount }
+    val finalHp = result.second.state.characters.getValue(CAO_MINH_ID).vitalState.currentHp
+    assertEquals(result.first - finalHp, total)
+    assertEquals("entity", result.second.feedback.single { it.target == "actor" }.phase)
   }
 
-  private class MemorySave(var state: GameState) : SaveRepository {
-    override fun save(state: GameState) { this.state = state }
-    override fun load() = state
-    override fun exists() = true
-    override fun clear() { state = GameState.initial() }
-  }
-
-  @Test fun facadePublishesFreshEventsAndDropsClientEchoes() {
-    val combat = started().let { it.copy(metadata = it.metadata + ("combat.caoMinhProc3" to "1")) }
-    val active = CombatRuntime.active(combat)!!
-    val action = PokerDiceCore.DIRECT_COMBAT_ACTION
-    val saved = MemorySave(PokerDiceCore.finish(PokerDiceCore.prepare(combat, action, active.encounterId)))
-    val ctor = GameCoreFacade::class.java.getDeclaredConstructor(SaveRepository::class.java, GamePipelineLogger::class.java)
-    ctor.isAccessible = true
-    val facade = ctor.newInstance(saved, NoOpGamePipelineLogger)
-    val legacy = JSONObject().put("turn", 1).put("combatFeedback", JSONObject().put("id", "forged"))
-    val output = JSONObject(facade.processCombat(legacy.toString(), "EXECUTE", action)).getJSONObject("state")
-    val packet = output.getJSONObject("combatFeedback")
-    assertEquals("${active.encounterId}:1", packet.getString("id"))
-    assertTrue(packet.getJSONArray("events").length() > 0)
-    val refreshed = JSONObject(facade.startCombatState(output.toString(), "hound"))
-    assertFalse(refreshed.has("combatFeedback"))
+  @Test fun feedbackIsTransientAndDoesNotBecomeSaveMetadata() {
+    val result = (0..200).asSequence().map { seed ->
+      CombatRuntime.resolve(started(seed), "EXECUTE", "Tấn công")
+    }.first { it.feedback.isNotEmpty() }
+    assertTrue(result.state.metadata.keys.none { it.contains("feedback", ignoreCase = true) })
+    assertTrue(result.feedback.all { it.toJson().optString("actorId") == CAO_MINH_ID })
   }
 }
