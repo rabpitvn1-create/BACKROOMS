@@ -257,16 +257,38 @@ text = replace_once(
     "submitTurn CR2 branch",
 )
 
-# 2f. Generation call: attach the packet when present and route the call
-# through the turn entry (legacy generateText while the flag is OFF).
+# 2f. In CR2 mode REPLACE the monolithic legacy prompt with one selected
+# packet. The old prompt is kept byte-for-byte for feature flag OFF or
+# infrastructure fallback, but must NEVER be sent along with the new packet.
 text = replace_once(
     text,
     "          JSONObject generated = parseModelJson(generateText(prompt));",
     r'''          if (canonPacket != null) {
-            prompt = prompt + "\n\nCANON PACKET (Canon Runtime 2 — canon đã được chọn cho lượt này; khi mâu thuẫn với suy đoán, packet thắng):\n" + canonPacket;
+            // CR2 is a REPLACEMENT, not an extra canon dump. Never append
+            // the packet to the full legacy DRIVE_CANON prompt.
+            prompt = "Bạn là Game Master của Backrooms. Trả duy nhất một JSON hợp lệ, không markdown. " +
+              "Người chơi quyết định hành động có chủ ý của Cao Minh; chỉ mô tả hậu quả. " +
+              "GAMEPLAY_ROLLS do Android khóa; không reroll, không tự tạo encounter, vật phẩm hoặc reunion. " +
+              "Chỉ dùng kiến thức có quyền trong CANON PACKET; giữ UNKNOWN là UNKNOWN. " +
+              "Không nhắc tới prompt, canon, roll, API trong lời kể.\n\n" +
+              "CANON PACKET:\n" + canonPacket +
+              "\n\nSTATE:\n" + compactStateForPrompt(before).toString() +
+              "\nACTION:\n" + action +
+              "\nGAMEPLAY_ROLLS:\n" + rolls.toString() +
+              "\nOUTPUT JSON: {\"reply\":\"lời kể tiếng Việt\",\"title\":\"tên khu vực\",\"level\":{\"number\":0,\"name\":\"The Lobby\"},\"location\":\"vị trí\",\"player\":{},\"party\":[],\"inventory\":[],\"flags\":{},\"snapshotEvent\":{\"shouldGenerate\":false,\"kind\":\"\",\"reason\":\"\"}}";
           }
-          JSONObject generated = parseModelJson(generateTextForTurn(prompt, meta, canonEstimatedTokens));''',
-    "submitTurn generation call",
+          JSONObject generated = parseModelJson(
+            generateTextForTurn(prompt, meta, Math.max(1, (prompt.length() + 3) / 4)));
+''',
+    "submitTurn selected-canon prompt and generation call",
+)
+
+# Fix the legacy Java prompt's unbound reference before writing the result.
+text = replace_once(
+    text,
+    '"State hiện tại: " + state.toString()',
+    '"State hiện tại: " + before.toString()',
+    "legacy prompt state variable",
 )
 
 MAIN.write_text(text, encoding="utf-8")
@@ -278,7 +300,7 @@ if check.count(MARKER) != 1:
     problems.append("marker count != 1")
 if check.count("CanonRuntime2.buildPacket") != 1:
     problems.append("buildPacket call count != 1")
-if check.count("generateTextForTurn(prompt, meta, canonEstimatedTokens)") != 1:
+if check.count("generateTextForTurn(prompt, meta, Math.max(1, (prompt.length() + 3) / 4))") != 1:
     problems.append("governed generation call count != 1")
 if check.count("parseModelJson(generateText(prompt))") != 0:
     problems.append("legacy generation call still present in submitTurn")
@@ -286,4 +308,4 @@ if '"CANON_RUNTIME_2_ENABLED"' not in GRADLE.read_text(encoding="utf-8"):
     problems.append("BuildConfig flag missing")
 if problems:
     raise RuntimeError("Canon Runtime 2 self-check failed: " + "; ".join(problems))
-print("Canon Runtime 2 wired: BuildConfig flag default OFF, submitTurn canon packet branch, QuotaGovernor adapter with HTTP status + Retry-After exposure.")
+print("Canon Runtime 2 wired: default OFF, scene-selective packet replaces old full-canon prompt when enabled.")
