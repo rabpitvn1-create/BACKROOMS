@@ -596,35 +596,8 @@ public class MainActivity extends Activity {
         continue;
       }
 
-      if (type.equals("inventory_upsert")) {
-        JSONObject item = op.optJSONObject("item");
-        if (item == null) continue;
-        String name = item.optString("name", "").trim();
-        if (name.isEmpty()) continue;
-        JSONArray inventory = state.optJSONArray("inventory");
-        if (inventory == null) inventory = new JSONArray();
-        int existing = arrayIndexByName(inventory, name);
-        boolean almond = lower(name).contains("almond water");
-        boolean allowedNew = acquisitionIntent(action);
-        if (almond) {
-          JSONObject waterRoll = rolls.optJSONObject("almondWater");
-          if (waterRoll != null && waterRoll.optBoolean("eligible", false) && !waterRoll.optBoolean("success", false) && existing < 0) allowedNew = false;
-        }
-        if (existing >= 0) inventory.put(existing, new JSONObject(item.toString()));
-        else if (allowedNew) inventory.put(new JSONObject(item.toString()));
-        state.put("inventory", inventory);
-        continue;
-      }
-
-      if (type.equals("inventory_remove")) {
-        String name = op.optString("name", "").trim();
-        JSONArray inventory = state.optJSONArray("inventory");
-        int existing = arrayIndexByName(inventory, name);
-        boolean consequence = "world_consequence".equals(lower(op.optString("basis", ""))) &&
-          (rollSuccess(rolls, "hazard") || rollSuccess(rolls, "entityEncounter"));
-        if (inventory != null && existing >= 0 && (removalIntent(action) || consequence)) inventory.remove(existing);
-        continue;
-      }
+      // GM operations never mutate Item ownership.
+      if (type.equals("inventory_upsert") || type.equals("inventory_remove")) continue;
 
       if (type.equals("party_upsert")) {
         JSONObject member = op.optJSONObject("member");
