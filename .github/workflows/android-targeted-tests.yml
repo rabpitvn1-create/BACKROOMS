@@ -54,6 +54,7 @@ jobs:
           python3 android-apk/patch-level-travel.py
           git diff --exit-code -- android-apk/app/src/main
           node android-apk/tests/level-travel-ui.test.cjs
+          node --test android-apk/tests/snapshot-hud-regression.test.cjs
       - name: Compile application and execute full Android unit regression suite
         working-directory: android-apk
         run: gradle :app:testDebugUnitTest --no-daemon

@@ -11,19 +11,27 @@
 
 .character-role{margin-top:4px;color:#93a0a8;font-size:11px;letter-spacing:.04em}.character-core-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:10px 0}.character-core-stat{border:1px solid #30383d;background:#0a0d0f;padding:9px}.character-core-stat b{display:block;color:#7e8992;font-size:10px;letter-spacing:.12em}.character-core-stat strong{display:block;margin-top:4px;font-size:17px}.equipment-card,.inventory-item-card{display:grid;grid-template-columns:38px 1fr auto;gap:9px;align-items:center;border:1px solid #313940;background:#0b0f12;padding:8px;cursor:pointer}.equipment-card:hover,.inventory-item-card:hover{border-color:#52606a}.equipment-card-icon{width:38px;height:38px;display:grid;place-items:center;border:1px solid #39434a;background:#11171b;font-weight:900;font-size:11px}.equipment-card-main{min-width:0}.equipment-card-main strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.equipment-card-main small{display:block;color:#7f8b93;margin-top:3px}.equipment-badges{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}.equipment-badge{border:1px solid #45515a;padding:3px 5px;font-size:8px;letter-spacing:.08em}.equipment-badge.equipped{border-color:#3c8466;color:#8ed3b1}.equipment-badge.cheat{border-color:#8c7042;color:#e4c07e}.equipment-detail-modal{position:fixed;inset:0;z-index:120;background:rgba(0,0,0,.72);display:flex;align-items:flex-end;justify-content:center}.equipment-detail-modal[hidden]{display:none}.equipment-detail-sheet{position:relative;width:min(720px,100%);max-height:88vh;overflow:auto;background:#0b0e11;border:1px solid #3a444b;border-bottom:0;padding:18px}.equipment-detail-close{position:absolute;right:10px;top:10px;width:38px;height:38px}.equipment-detail-header{display:grid;grid-template-columns:58px 1fr;gap:12px;align-items:center;padding-right:42px}.equipment-detail-icon{width:58px;height:58px;border:1px solid #46525a;display:grid;place-items:center;font-weight:900}.equipment-detail-header h2{margin:3px 0}.equipment-detail-meta{color:#89949c;font-size:11px}.equipment-detail-sheet section{border-top:1px solid #2c3338;margin-top:15px;padding-top:13px}.equipment-detail-sheet section h3{font-size:11px;letter-spacing:.14em;margin:0 0 9px}.equipment-detail-row,.ability-row,.restriction-row{border:1px solid #2e373d;padding:8px;margin-top:6px}.equipment-detail-row{display:flex;justify-content:space-between;gap:12px}.ability-row strong{display:block}.ability-row p{margin:5px 0 0;color:#c0c8cd;font-size:12px}.ability-row em{display:block;margin-top:5px;color:#d0af77;font-style:normal;font-size:11px}.restriction-row{color:#c7b38b;font-size:12px}.stat-delta-positive{color:#8fd2ad}.stat-delta-negative{color:#dc9b9b}@media(max-width:520px){.character-core-stats{grid-template-columns:1fr 1fr}.equipment-detail-sheet{padding:14px}.equipment-card,.inventory-item-card{grid-template-columns:34px 1fr}.equipment-badges{grid-column:2;justify-content:flex-start}}
 </style>
+<link rel="stylesheet" href="mobile-hud.css">
 <script src="lucia-visuals.js"></script>
 <script src="named-follower-visuals.js"></script>
 </head>
 <body>
 <main class="shell">
 <section class="game">
-<header class="topbar"><div><div class="eyebrow">BACKROOM TEXT GAME</div><h1 id="title"></h1></div><div class="turn">TURN <strong id="turn"></strong></div></header>
+<header class="topbar"><div><div class="eyebrow">BACKROOM TEXT GAME</div><h1 id="title"></h1></div><div class="topbar-controls"><div class="turn">TURN <strong id="turn"></strong></div><button type="button" id="mobileMenuButton" class="mobile-menu-trigger" aria-controls="sidePanel" aria-expanded="false">☰ MENU</button></div></header>
+<div id="startupRecovery" class="startup-recovery" hidden role="alert">
+  <strong>Không thể mở game hiện hành</strong>
+  <p id="startupRecoveryMessage">Dữ liệu hiện tại không thể được khởi tạo.</p>
+  <button type="button" id="startNewGameFromRecovery">Bắt đầu game mới</button>
+</div>
 <div class="snapshot" id="snapshot">SNAPSHOT — Android bản đầu chưa tạo ảnh tự động</div>
 <div class="log" id="log"></div>
 <form class="composer" id="form"><textarea id="action" placeholder="Cao Minh làm gì trong Turn hiện tại?" rows="3"></textarea><button id="submit">THỰC HIỆN</button></form>
 <div class="status" id="status"></div>
 </section>
-<aside class="side">
+<button id="mobileMenuBackdrop" class="mobile-menu-backdrop" type="button" hidden aria-label="Đóng menu"></button>
+<aside class="side" id="sidePanel">
+<button id="mobileMenuClose" class="mobile-menu-close" type="button">✕ Đóng menu</button>
 <div class="card"><h2>Trạng thái</h2><div class="row"><b>Vị trí</b><span id="location"></span></div><div class="row"><b>Chế độ</b><span id="mode"></span></div><div class="row"><b>Nhân vật</b><span id="player"></span></div></div>
 <div class="card"><h2>Chỉ số hiện tại</h2><div id="playerStats"><div class="row"><b>HP</b><span>—</span></div><div class="row"><b>STR</b><span>—</span></div><div class="row"><b>DF</b><span>—</span></div><div class="row"><b>AGI</b><span>—</span></div><div class="row"><b>CRIT</b><span>—</span></div></div></div>
 <div class="card"><h2>Save / Load</h2><div class="actions"><button onclick="save()">Lưu</button><button onclick="load()">Tải</button><button class="wide" onclick="resetGame()">Bắt đầu lại từ đầu</button><button class="wide danger" onclick="clearSave()">Xóa save trên máy</button></div></div>
@@ -697,6 +705,8 @@ render();
 <script src="cloudinary-entity-combat.js"></script>
 <script src="combat-feedback-1193a.js"></script>
 <script src="loot-item-display.js"></script>
+<script src="snapshot-stage.js"></script>
+<script src="mobile-hud.js"></script>
 <script src="level-travel.js"></script>
 </body>
 </html>
