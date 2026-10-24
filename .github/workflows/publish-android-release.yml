@@ -51,20 +51,11 @@ jobs:
       - name: Run Android JVM regression suite
         working-directory: android-apk
         run: gradle :app:testDebugUnitTest --no-daemon
-      - name: Assemble debug APK with configured text providers
+      - name: Ensure shared credentials cannot enter public APK
+        run: python3 android-apk/tests/verify-provider-config.py
+      - name: Assemble debug APK without bundled credentials
         working-directory: android-apk
-        env:
-          GEHIHI_API_KEY: ${{ secrets.GEHIHI_API_KEY }}
-          GEHIHI_BASE_URL: ${{ secrets.GEHIHI_BASE_URL }}
-          GEHIHI_MODEL: ${{ secrets.GEHIHI_MODEL }}
-          GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 }}
-          GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
-          GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
-          GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
-          GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
-        run: |
-          python3 tests/verify-provider-config.py
-          gradle :app:assembleDebug --no-daemon
+        run: gradle :app:assembleDebug --no-daemon
       - name: Verify packaged gameplay UI and provider router
         run: python3 android-apk/tests/verify-restored-apk.py android-apk/app/build/outputs/apk/debug/app-debug.apk
       - name: Publish GitHub Release and checksum
@@ -85,13 +76,12 @@ jobs:
           cp "$APK" "Backroom-$VERSION.apk"
           sha256sum "Backroom-$VERSION.apk" > "Backroom-$VERSION.apk.sha256"
           cat > release-notes.md <<'NOTES'
-          Backroom Android Debug — Snapshot and mobile HUD recovery release.
-          - Core-owned Level Travel: random fresh Level 0–10 and three consecutive 50% exit successes.
-          - Core-owned world loot, validated pickup, and whole-unit consumables.
-          - Canon equipment separated from carried Inventory, including Huyết Ma modules.
-          - Named follower integration and Canon Runtime corrections retained.
-          - Snapshot uses curated fixed backgrounds and Cao Minh/Entity overlays only; no Gemini-generated images or image API requests.
-          - Mobile menu is reachable from the header; incompatible saves show an explicit New Game recovery action.
+          Backroom Android Debug — gameplay UI and provider connection recovery.
+          - Restore a single Level scene, Cao Minh on the right, combat overlays and effective stats.
+          - Restore Explore, Execute and Search actions, item operations and Core combat initiation.
+          - Repair Gehihi-first / Gemini K1-K5 text provider routing and gameplay UI tests.
+          - Public APK embeds no provider API credentials. Configure your own keys in the in-game AI settings menu; credentials are encrypted with Android Keystore.
+          - Keep deterministic Core state, Level Travel and save/load for the current game format.
 
           Debug APK for testing; not a signed production build.
           NOTES
