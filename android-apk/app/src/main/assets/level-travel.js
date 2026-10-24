@@ -12,10 +12,13 @@
     const incompatible = /save_version_unsupported|unsupported save|coreSnapshot|level_game_not_initialized/.test(detail);
     const message = incompatible
       ? 'Dữ liệu lưu hiện có không thuộc định dạng game hiện hành. Game không tự chuyển đổi hay xóa save cũ.'
-      : 'Game Core không thể khởi động. Dữ liệu hiện có chưa bị xóa.';
+      : detail.includes('core_save_decode_failed')
+        ? 'Save Core bị lỗi giải mã; dữ liệu gốc vẫn được giữ nguyên.'
+        : 'Game Core không thể khởi động. Dữ liệu hiện có chưa bị xóa.';
     if (recovery) recovery.hidden = false;
     if (recoveryMessage) recoveryMessage.textContent = message +
-      ' Chỉ chọn “Bắt đầu game mới” nếu bạn muốn thay thế dữ liệu đang lưu.';
+      ' Mã lỗi: ' + (detail.replace(/[\\r\\n<>]/g, ' ').slice(0, 220) || 'unknown') +
+      '. Chỉ chọn “Bắt đầu game mới” nếu bạn muốn thay thế dữ liệu đang lưu.';
     statusEl.textContent = message;
     submitEl.disabled = true;
   }
