@@ -31,9 +31,10 @@ object ItemContentRules {
         it.trim().uppercase() in setOf("WATER", "FOOD")
       } == true
     val consumed = when {
+      resourceUnit -> true // No empty-container state: using food, water or fuel consumes a whole unit.
       metadata.containsKey("consumedOnUse") -> metadata["consumedOnUse"].equals("true", true)
       metadata["containerPersistent"].equals("true", true) -> false
-      else -> metadata["consumable"].equals("true", true) || resourceUnit
+      else -> metadata["consumable"].equals("true", true)
     }
     return normalized.copy(
       contentState = ContentState.NONE,
