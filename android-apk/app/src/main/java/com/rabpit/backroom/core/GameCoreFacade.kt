@@ -47,7 +47,13 @@ class GameCoreFacade @JvmOverloads internal constructor(
   /** App startup resumes the committed Core even if the WebView autosave never completed. */
   @Synchronized fun resumeLevelGame(legacyStateJson: String, hasBrowserSave: Boolean): String {
     if (repository.exists()) {
-      val core = repository.load()
+      val core = try {
+        repository.load()
+      } catch (error: Exception) {
+        // Recovery is allowed only from an explicitly supplied snapshot using
+        // the current save schema. Never delete or overwrite corrupted bytes.
+        throw IllegalStateException("core_save_decode_failed", error)
+      }
       if (LevelTravelEngine.KEY in core.world) {
         val legacy = core.world["levelTravelUi"]?.let(::JSONObject) ?: JSONObject(legacyStateJson)
         val output = LevelTravelEngine.project(core, legacy)
