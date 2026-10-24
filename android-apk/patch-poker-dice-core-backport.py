@@ -521,8 +521,11 @@ COMBAT.write_text(combat, encoding="utf-8")
 # ---------------------------------------------------------------------------
 facade = FACADE.read_text(encoding="utf-8")
 facade_methods = r'''
-  fun coreStats(legacyStateJson: String, characterId: String): String {
-    val state = loadOrMigrate(JSONObject(legacyStateJson))
+  @Suppress("UNUSED_PARAMETER") // Keep the Android bridge signature; UI JSON is not a save.
+  @Synchronized fun coreStats(legacyStateJson: String, characterId: String): String {
+    // The HUD renders before Level startup. A read must never create a partial run.
+    if (!repository.exists()) return "{}"
+    val state = repository.load()
     return PokerDiceCore.statsJson(state, characterId).toString()
   }
 

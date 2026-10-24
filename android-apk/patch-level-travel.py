@@ -27,7 +27,7 @@ if 'fun initializeLevelGame(' not in s:
         (persisted.world["levelTravelUiTurn"]?.toIntOrNull() ?: 1) >= (saved.world["levelTravelUiTurn"]?.toIntOrNull() ?: 1)) persisted else saved
     }
     val recovered = core.world["levelTravelUi"]?.let(::JSONObject) ?: legacy
-    val output = LevelTravelEngine.project(core, if (fresh) legacy else recovered)
+    val output = syncLegacy(if (fresh) legacy else recovered, core, incrementTurn = false)
     output.put("turn", core.world["levelTravelUiTurn"]?.toIntOrNull() ?: 1)
     if (fresh) {
       output.put("turn", 1)
@@ -47,7 +47,7 @@ if 'fun initializeLevelGame(' not in s:
       val core = repository.load()
       if (LevelTravelEngine.KEY in core.world) {
         val legacy = core.world["levelTravelUi"]?.let(::JSONObject) ?: JSONObject(legacyStateJson)
-        val output = LevelTravelEngine.project(core, legacy)
+        val output = syncLegacy(legacy, core, incrementTurn = false)
         output.put("turn", core.world["levelTravelUiTurn"]?.toIntOrNull() ?: 1)
           .put("coreSnapshot", JSONObject(GameStateCodec.encode(core)))
         return output.toString()
