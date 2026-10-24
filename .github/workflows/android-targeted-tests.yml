@@ -61,3 +61,5 @@ jobs:
       - name: Package debug APK
         working-directory: android-apk
         run: gradle :app:assembleDebug --no-daemon
+      - name: Verify restored runtime inside packaged APK
+        run: python3 android-apk/tests/verify-restored-apk.py android-apk/app/build/outputs/apk/debug/app-debug.apk
