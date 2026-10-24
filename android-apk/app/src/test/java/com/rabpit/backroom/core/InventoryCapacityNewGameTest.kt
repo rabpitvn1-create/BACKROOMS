@@ -58,8 +58,8 @@ class InventoryCapacityNewGameTest {
     assertEquals(listOf(9,9,9,9), listOf(kai.str.effective, kai.def.effective, kai.skl.effective, kai.vit.effective))
     assertEquals(0, kai.inventoryCapacityUsed)
     assertEquals(InventoryPolicy.CAO_MINH.maxTypes, kai.inventoryCapacityMax)
-    assertEquals(3, kai.equipment.values.toSet().size)
+    assertEquals(5, kai.equipment.values.toSet().size)
     assertEquals(0, kai.inventoryDetails.size)
-    assertEquals(3, kai.equipmentDetails.count { it.equipped })
+    assertEquals(5, kai.equipmentDetails.count { it.equipped })
   }
 }
