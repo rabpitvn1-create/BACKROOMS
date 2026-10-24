@@ -1,6 +1,6 @@
 {
  "manifest_version": 2,
- "generated": "2026-10-24",
+ "generated": "2026-10-24 (v2.1: bổ sung 3 Google Doc sau khi connector Google Docs kết nối)",
  "generated_by": "Canon Drive snapshot (Gate 1 completion) — PR #668",
  "universe_id": "BACKROOMS_MAIN",
  "database": {
@@ -331,31 +331,42 @@
     "WRITING.GUIDE_SUPPLEMENT"
    ],
    "note": "stored file; tương ứng 00_RULES/HuongDan.txt"
-  }
- ],
- "google_docs_not_snapshotted": [
+  },
   {
-   "name": "DIEP_MINH_CODEX",
+   "document_id": "DIEP_MINH_CODEX",
+   "repo_path": "android-apk/canon_sources/Asset/01_Character/DIEP_MINH_CODEX.md",
    "drive_path": "Novel/Asset/01_Character/DIEP_MINH_CODEX",
    "drive_file_id": "1i8Lb4rQubpzW3h-w4rCyg6o9MEe7JljPtt5VgPeeKcc",
-   "status": "NOT_SNAPSHOTTED",
-   "reason": "Google Docs connector chưa kết nối tại thời điểm snapshot; cần kết nối để xuất nội dung."
+   "sha256": "3b80a16404ffa8b1b65705d503ab97ca15cbc8d88c15aae70d99a4b1d868b4e9",
+   "bytes": 29815,
+   "status": "SNAPSHOTTED",
+   "record_ids": [],
+   "note": "Google Doc; bản trong repo là trích xuất văn bản qua Google Docs connector (2026-10-24). Chưa có record nào trích tài liệu này."
   },
   {
-   "name": "HE_THONG_CANH_GIOI_TU_LUYEN_CANON",
+   "document_id": "HE_THONG_CANH_GIOI_TU_LUYEN_CANON",
+   "repo_path": "android-apk/canon_sources/Asset/HE_THONG_CANH_GIOI_TU_LUYEN_CANON.md",
    "drive_path": "Novel/Asset/HE_THONG_CANH_GIOI_TU_LUYEN_CANON",
    "drive_file_id": "1YWXIuaj_6aOHhjG8Glf9ARj77t5XrWL4vGUbH9gq_50",
-   "status": "NOT_SNAPSHOTTED",
-   "reason": "Google Docs connector chưa kết nối tại thời điểm snapshot."
+   "sha256": "a20082608849185609e91325d7c96d15ecc5b6a8395b784f9af623a83648fb02",
+   "bytes": 6360,
+   "status": "SNAPSHOTTED",
+   "record_ids": [],
+   "note": "Google Doc; bản trong repo là trích xuất văn bản qua Google Docs connector (2026-10-24). Chưa có record nào trích tài liệu này."
   },
   {
-   "name": "CANON_REGISTRY_R01 - Characters Levels Entities",
+   "document_id": "CANON_REGISTRY_R01",
+   "repo_path": "android-apk/canon_sources/Asset/CANON_REGISTRY_R01.md",
    "drive_path": "Novel/Asset/CANON_REGISTRY_R01 - Characters Levels Entities",
    "drive_file_id": "1Na1enfT6KMMWvTenOS6jusnUZs7pN3RhBSvjo2jByUA",
-   "status": "NOT_SNAPSHOTTED",
-   "reason": "Google Docs connector chưa kết nối tại thời điểm snapshot."
+   "sha256": "b1fde8827482bdc4673c47368d6855e5d0b8ed0477580601219766c5ff1972f8",
+   "bytes": 14185,
+   "status": "SNAPSHOTTED",
+   "record_ids": [],
+   "note": "Google Doc; bản trong repo là trích xuất văn bản qua Google Docs connector (2026-10-24). Chưa có record nào trích tài liệu này."
   }
  ],
+ "google_docs_not_snapshotted": [],
  "missing_sources": [
   {
    "document": "05_TextGame/RULES/TEXT_GAME_RULES.md",
