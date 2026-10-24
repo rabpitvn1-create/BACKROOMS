@@ -287,6 +287,10 @@ object CombatRuntime {
       c = counter.combat
       log += counter.log
       feedback += counter.feedback
+      val specialCounter = RestoredCompanionCombat.afterEnemyMiss(resolvedState, c, profile)
+      c = specialCounter.combat
+      log += specialCounter.log
+      feedback += specialCounter.feedback
       if (c.entityHp <= 0) {
         val persisted = encode(resolvedState, c.copy(phase = Phase.RESOLVED, entityCondition = EntityCondition.DESTROYED))
         return Resolution(clearCombatOnly(persisted), true,
