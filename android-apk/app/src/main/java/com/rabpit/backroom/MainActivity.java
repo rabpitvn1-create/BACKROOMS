@@ -946,7 +946,7 @@ public class MainActivity extends Activity {
 
   private class GameBridge {
     @JavascriptInterface public void exportDiagnosticLog(String uiSummaryJson) {
-      exportDiagnosticLog(uiSummaryJson);
+      MainActivity.this.exportDiagnosticLog(uiSummaryJson);
     }
 
     @JavascriptInterface public void resetCore() {
