@@ -87,10 +87,12 @@ test('JSON report sends technical fields and excludes secrets, narrative and raw
 test('log is bounded across events and strips arbitrary error payloads', () => {
   const h = harness();
   for (let i = 0; i < 150; i++) h.context.backroomDiagnosticRecord('combat', 'error with secret');
+  h.context.backroomDiagnosticRecord('startup', 'sk_ABC123identifierToken');
   assert.equal(h.context.backroomDiagnosticEvents().length, 80);
   assert.ok(h.context.backroomDiagnosticEvents().every(e => e.code === 'details_redacted'));
   const persisted = h.store.get('backroom-diagnostic-events-v1');
   assert.equal(JSON.parse(persisted).length, 80);
+  assert.doesNotMatch(persisted, /sk_ABC123identifierToken/);
   h.button.callbacks.click();
   assert.equal(JSON.parse(h.calls[0]).events.length, 80);
 });
