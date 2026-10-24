@@ -1,0 +1,37 @@
+name: PR Android targeted unit tests
+
+on:
+  pull_request:
+    paths:
+      - "android-apk/app/src/main/**"
+      - "android-apk/app/src/test/**"
+      - "android-apk/app/build.gradle"
+      - ".github/workflows/android-targeted-tests.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compile-and-focused-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK 35
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.13"
+      - name: Compile application and test sources; run targeted regression tests
+        working-directory: android-apk
+        run: |
+          gradle :app:testDebugUnitTest --no-daemon \
+            --tests com.rabpit.backroom.core.CombatFeedback1193aTest \
+            --tests com.rabpit.backroom.core.CharacterStatusEquipmentSystemTest \
+            --tests com.rabpit.backroom.core.CharacterStats1193aRegressionTest
