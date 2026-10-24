@@ -1,5 +1,11 @@
 from pathlib import Path
 
+# Anchors re-based for the Cao Minh generation (CR2 Gate 0 finding, 2026-10-24):
+# the devil-trigger lookup is Syvial-only in the current engine
+# (CHAR.KAI.DEVIL_TRIGGER no longer exists) and isMainCampaignSeparated uses the
+# local variable `lucTram`, not `iris`. Only anchor strings were updated to the
+# current canon ids/names; the transformations this patch performs are unchanged.
+
 ENGINE = Path(__file__).resolve().parent / "app/src/main/java/com/rabpit/backroom/core/knowledge/KnowledgeContextEngine.kt"
 text = ENGINE.read_text(encoding="utf-8")
 
@@ -9,10 +15,7 @@ if old not in text:
     raise RuntimeError("Knowledge references parser anchor not found")
 text = text.replace(old, new, 1)
 
-old = '''      if (hasAny(actionText, "devil trigger")) {
-        direct += "CHAR.KAI.DEVIL_TRIGGER"
-        if ("syvial" in presentActors) direct += "CHAR.SYVIAL.DEVIL_TRIGGER"
-      }
+old = '''      if (hasAny(actionText, "devil trigger") && "syvial" in presentActors) direct += "CHAR.SYVIAL.DEVIL_TRIGGER"
       direct.forEach { add(it, "direct structured lookup") }
 
       // Exact entity/item terms use tag indexes, not semantic retrieval.
@@ -23,10 +26,7 @@ old = '''      if (hasAny(actionText, "devil trigger")) {
         }
       }
 '''
-new = '''      if (hasAny(actionText, "devil trigger")) {
-        direct += "CHAR.KAI.DEVIL_TRIGGER"
-        if ("syvial" in presentActors) direct += "CHAR.SYVIAL.DEVIL_TRIGGER"
-      }
+new = '''      if (hasAny(actionText, "devil trigger") && "syvial" in presentActors) direct += "CHAR.SYVIAL.DEVIL_TRIGGER"
       if (hasAny(actionText, "nói", "hỏi", "trả lời", "trò chuyện", "nói chuyện", "dialogue", "talk", "tell")) {
         direct += "WRITING.DIALOGUE"
       }
@@ -52,10 +52,10 @@ text = text.replace(old, new, 1)
 if 'flags?.opt("entityRegistry")' in text or 'current entity registry tag' in text:
     raise RuntimeError("Historical Entity registry retrieval must not exist")
 
-old = '''      return iris.contains("separated") || syvial.contains("separated") ||
+old = '''      return lucTram.contains("separated") || syvial.contains("separated") ||
         (presentActors.size == 1 && state.optInt("turn", 1) <= 3)
 '''
-new = '''      return iris.contains("separated") || syvial.contains("separated")
+new = '''      return lucTram.contains("separated") || syvial.contains("separated")
 '''
 if old not in text:
     raise RuntimeError("Main campaign separation heuristic anchor not found")
