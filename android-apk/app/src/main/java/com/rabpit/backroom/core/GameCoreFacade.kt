@@ -430,7 +430,38 @@ class GameCoreFacade @JvmOverloads internal constructor(
     output.put("combatFeedback", JSONObject().apply {
       put("id", "${active.encounterId}:${active.eventCounter + 1}")
       put("encounterId", active.encounterId)
-      put("events", JSONArray().apply { resolution.feedback.forEach { put(it.toJson()) } })
+      put("events", JSONArray().apply {
+        resolution.feedback.forEach { event ->
+          put(event.toJson().apply {
+            put("sourceName", when (event.actorId) {
+              CAO_MINH_ID -> "Cao Minh"
+              NGUYEN_QUOC_NAM_ID -> "Nguyễn Quốc Nam"
+              HUA_TIEU_LAN_ID -> "Hứa Tiểu Lan"
+              else -> completed.characters[event.actorId]?.name ?: active.entityName
+            })
+            if (event.target == "entity") {
+              put("entityName", active.entityName)
+              if (resolution.entityDestroyed) put("remainingHp", 0)
+              put("maxHp", active.entityMaxHp)
+            }
+          })
+        }
+      })
+      put("turns", JSONArray().apply {
+        var previousPhase = ""
+        resolution.feedback.forEachIndexed { index, event ->
+          val kind = if (event.phase == "entity") "entity" else "actor"
+          if (kind != previousPhase) {
+            put(JSONObject().put("kind", kind).put("eventIndex", index)
+              .put("actorId", if (kind == "entity") "entity" else event.actorId)
+              .put("actorName", if (kind == "entity") active.entityName else
+                completed.characters[event.actorId]?.name ?: "Cao Minh")
+              .put("entityKey", active.entityKey).put("entityName", active.entityName)
+              .put("details", JSONArray()))
+            previousPhase = kind
+          }
+        }
+      })
     })
     val lootReply = loot?.dropped?.let { " ${it.name} xuất hiện tại vị trí Entity bị tiêu diệt." }.orEmpty()
     val expReply = expReward?.takeIf { it.amount > 0 }?.let {
