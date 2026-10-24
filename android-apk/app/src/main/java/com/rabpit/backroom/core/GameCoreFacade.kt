@@ -88,18 +88,34 @@ class GameCoreFacade private constructor(
     }
   }
 
+  /**
+   * Dice operations only change Core combat/dice state. Preserve already
+   * validated narrative Party and Inventory from WebView between dice taps.
+   */
+  private fun projectCombatState(legacy: JSONObject, core: GameState): JSONObject {
+    val output = JSONObject(legacy.toString())
+    output.put("saveVersion", CURRENT_SAVE_VERSION)
+    val combat = CombatRuntime.toJson(core)
+    if (combat == null) output.remove("combat") else {
+      PokerDiceCore.diceJson(core)?.let { combat.put("diceState", it) }
+      output.put("combat", combat)
+    }
+    output.put("coreSystem", PokerDiceCore.statsJson(core, CAO_MINH_ID))
+    return output
+  }
+
   fun prepareCombatDice(legacyStateJson: String, action: String): String {
     val legacy = JSONObject(legacyStateJson)
     val current = loadOrMigrate(legacy)
     val combat = CombatRuntime.active(current)
-      ?: return response(false, syncLegacy(legacy, current, incrementTurn = false),
+      ?: return response(false, projectCombatState(legacy, current),
         "combat_inactive", "combat_dice_inactive")
     return try {
       val next = PokerDiceCore.prepare(current, action, combat.encounterId)
       repository.save(next)
-      response(true, syncLegacy(legacy, next, incrementTurn = false), null, "combat_dice_prepared")
+      response(true, projectCombatState(legacy, next), null, "combat_dice_prepared")
     } catch (error: Exception) {
-      response(false, syncLegacy(legacy, current, incrementTurn = false),
+      response(false, projectCombatState(legacy, current),
         error.message ?: "combat_dice_prepare_failed", "combat_dice_rejected")
     }
   }
@@ -110,9 +126,9 @@ class GameCoreFacade private constructor(
     return try {
       val next = PokerDiceCore.setHold(current, dieIndex, held)
       repository.save(next)
-      response(true, syncLegacy(legacy, next, incrementTurn = false), null, "combat_dice_hold")
+      response(true, projectCombatState(legacy, next), null, "combat_dice_hold")
     } catch (error: Exception) {
-      response(false, syncLegacy(legacy, current, incrementTurn = false),
+      response(false, projectCombatState(legacy, current),
         error.message ?: "combat_dice_hold_failed", "combat_dice_rejected")
     }
   }
@@ -123,9 +139,9 @@ class GameCoreFacade private constructor(
     return try {
       val next = PokerDiceCore.reroll(current)
       repository.save(next)
-      response(true, syncLegacy(legacy, next, incrementTurn = false), null, "combat_dice_rolled")
+      response(true, projectCombatState(legacy, next), null, "combat_dice_rolled")
     } catch (error: Exception) {
-      response(false, syncLegacy(legacy, current, incrementTurn = false),
+      response(false, projectCombatState(legacy, current),
         error.message ?: "combat_dice_roll_failed", "combat_dice_rejected")
     }
   }
@@ -136,9 +152,9 @@ class GameCoreFacade private constructor(
     return try {
       val next = PokerDiceCore.finish(current)
       repository.save(next)
-      response(true, syncLegacy(legacy, next, incrementTurn = false), null, "combat_dice_finalized")
+      response(true, projectCombatState(legacy, next), null, "combat_dice_finalized")
     } catch (error: Exception) {
-      response(false, syncLegacy(legacy, current, incrementTurn = false),
+      response(false, projectCombatState(legacy, current),
         error.message ?: "combat_dice_finish_failed", "combat_dice_rejected")
     }
   }
@@ -149,9 +165,9 @@ class GameCoreFacade private constructor(
     val current = loadOrMigrate(legacy)
     val started = CombatRuntime.start(current, entityKey.trim().lowercase())
     val active = CombatRuntime.active(started)
-      ?: return response(false, syncLegacy(legacy, current, false), "entity_profile_unknown", "combat_start_rejected")
+      ?: return response(false, projectCombatState(legacy, current), "entity_profile_unknown", "combat_start_rejected")
     repository.save(started)
-    return response(true, syncLegacy(legacy, started, false), null, "combat_started", active.entityName)
+    return response(true, projectCombatState(legacy, started), null, "combat_started", active.entityName)
   }
 
   /** Combat is authoritative and consumes exactly one finalized Poker Dice session. */
@@ -159,26 +175,20 @@ class GameCoreFacade private constructor(
     val legacy = JSONObject(legacyStateJson)
     val current = loadOrMigrate(legacy)
     val active = CombatRuntime.active(current)
-      ?: return response(false, syncLegacy(legacy, current, false), "combat_inactive", "combat_rejected")
+      ?: return response(false, projectCombatState(legacy, current), "combat_inactive", "combat_rejected")
     if (!PokerDiceCore.isFinalizedFor(current, action, active.encounterId)) {
-      return response(false, syncLegacy(legacy, current, false), "combat_dice_not_finalized", "combat_rejected")
+      return response(false, projectCombatState(legacy, current), "combat_dice_not_finalized", "combat_rejected")
     }
     val resolution = CombatRuntime.resolve(current, actionKind, action)
-    if (!resolution.handled) return response(false, syncLegacy(legacy, current, false), "combat_unhandled", "combat_rejected")
+    if (!resolution.handled) return response(false, projectCombatState(legacy, current), "combat_unhandled", "combat_rejected")
     val completed = PokerDiceCore.clearDice(resolution.state)
     repository.save(completed)
     // Combat changes HP and the combat snapshot, not the already validated
     // narrative inventory/party. The GM path is not yet wired into Core's
     // candidate reducer; projecting all Core inventories here would erase
     // unrelated objects/companions from the browser state.
-    val output = JSONObject(legacy.toString())
+    val output = projectCombatState(legacy, completed)
     output.put("turn", legacy.optInt("turn", 1) + 1)
-    output.put("saveVersion", CURRENT_SAVE_VERSION)
-    val remainingCombat = CombatRuntime.toJson(completed)
-    if (remainingCombat == null) output.remove("combat") else {
-      PokerDiceCore.diceJson(completed)?.let { remainingCombat.put("diceState", it) }
-      output.put("combat", remainingCombat)
-    }
     completed.characters[CAO_MINH_ID]?.let { caoMinh ->
       val player = output.optJSONObject("player") ?: JSONObject()
       player.put("hp", caoMinh.vitalState.currentHp)
