@@ -9,6 +9,8 @@
   const recoveryButton = document.getElementById('startNewGameFromRecovery');
   function showRecovery(error) {
     const detail = String(error && error.message || error || '');
+    if (typeof window.backroomDiagnosticRecord === 'function')
+      window.backroomDiagnosticRecord('startup', detail || 'unknown_failure');
     const incompatible = /save_version_unsupported|unsupported save|coreSnapshot|level_game_not_initialized/.test(detail);
     const message = incompatible
       ? 'Dữ liệu lưu hiện có không thuộc định dạng game hiện hành. Game không tự chuyển đổi hay xóa save cũ.'
@@ -123,6 +125,8 @@
     window.save();
     drawTravel();
     hideRecovery();
+    if (typeof window.backroomDiagnosticRecord === 'function')
+      window.backroomDiagnosticRecord('startup', 'resume_success');
   } catch (error) {
     showRecovery(error);
   }
