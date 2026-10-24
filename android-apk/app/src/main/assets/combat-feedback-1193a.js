@@ -15,32 +15,8 @@
   // Party and Entity are independent visual slots; turn authority remains Core.
   var partyFocusEpoch=0;
   var knownPortraits={};
-  // Visible alpha bounds, measured from bundled sprites (alpha > 16). Canvas
-  // dimensions alone make Catherine shorter and leave Lucia floating above ground.
-  var partyPortraitBounds={
-    'CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png':[1122,1402,1,0,1122,1385],
-    'CAO_MINH_OVERLAY_EXPLORER_IDLE.png':[1122,1402,54,16,1019,1388],
-    'LUCIA_LUC_OVERLAY.png':[1024,1536,7,11,1024,1528],
-    'Catherine.webp':[941,1672,2,113,941,1611],
-    'Janet.webp':[941,1672,15,2,936,1652],
-    'NguyenQuocNam.webp':[941,1672,33,30,941,1646],
-    'HuaTieuLan.webp':[1024,1536,11,63,1023,1490],
-    'LucTram.webp':[941,1672,6,9,941,1648]
-  };
   function fitCombatPortrait(image,snapshot){
-    if(!image||!image.style||typeof image.style.setProperty!=='function')return;
-    var name=String(image.src||'').split('/').pop(),b=partyPortraitBounds[name];
-    if(!b&&image.naturalWidth&&image.naturalHeight)b=[image.naturalWidth,image.naturalHeight,0,0,image.naturalWidth,image.naturalHeight];
-    if(!b)return;
-    var rect=snapshot.getBoundingClientRect();
-    var w=snapshot.clientWidth||rect.width,h=snapshot.clientHeight||rect.height;
-    // One target height for every actor, including square avatar fallbacks. Reserve
-    // width for the broadest portrait, so narrow screens do not shrink only one actor.
-    var visibleHeight=Math.min(h*.90,w*.84/1.04),scale=visibleHeight/(b[5]-b[3]);
-    image.style.setProperty('--combat-portrait-height',(b[1]*scale)+'px');
-    image.style.setProperty('--combat-portrait-width',(b[0]*scale)+'px');
-    image.style.setProperty('--combat-portrait-bottom',(h*.05-(b[1]-b[5])*scale)+'px');
-    image.style.setProperty('--combat-portrait-right',(w*.05-(b[0]-b[4])*scale)+'px');
+    if(window.backroomSpriteLayout)window.backroomSpriteLayout.fit(image,snapshot,'right');
   }
   function prepareCombatPortrait(image,snapshot){
     fitCombatPortrait(image,snapshot);

@@ -82,12 +82,19 @@ public class MainActivity extends Activity {
     webView.setWebViewClient(new WebViewClient() {
       @Override public void onPageFinished(WebView view, String url) {
         super.onPageFinished(view, url);
+        ImmersiveGameWindow.applySafeArea(view, view.getRootWindowInsets());
         installUiEnhancements();
       }
     });
     webView.addJavascriptInterface(new GameBridge(), "Android");
     setContentView(webView);
+    ImmersiveGameWindow.install(this, webView);
     webView.loadUrl("file:///android_asset/index.html");
+  }
+
+  @Override public void onWindowFocusChanged(boolean hasFocus) {
+    super.onWindowFocusChanged(hasFocus);
+    if (hasFocus) ImmersiveGameWindow.hide(this);
   }
 
   private void exportDiagnosticLog(String summaryJson) {

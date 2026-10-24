@@ -119,8 +119,8 @@ test('Core-selected area artwork is the single backdrop even inside a bundled ma
   render(state);
   assert.equal(box.querySelector('.snapshot-background-img').getAttribute('src'),state.levelBackground);
   const css=fs.readFileSync(path.join(assets,'mobile-hud.css'),'utf8');
-  assert.match(css,/img\.snapshot-player-overlay\s*\{[^}]*right:1%; left:auto/);
-  assert.match(css,/img\.snapshot-entity\s*\{[^}]*left:1%; right:auto/);
+  assert.match(css,/img\.snapshot-player-overlay\s*\{[^}]*right:var\(--sprite-offset,1%\); left:auto/);
+  assert.match(css,/img\.snapshot-entity\s*\{[^}]*left:var\(--sprite-offset,1%\); right:auto/);
 });
 
 test('Generated image payloads are ignored; only curated fixed backgrounds are rendered', () => {

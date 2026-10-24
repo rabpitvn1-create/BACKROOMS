@@ -57,7 +57,7 @@ jobs:
           python3 android-apk/patch-level-travel.py
           git diff --exit-code -- android-apk/app/src/main
           node android-apk/tests/level-travel-ui.test.cjs
-          node --test android-apk/tests/snapshot-hud-regression.test.cjs android-apk/tests/character-detail-ui.test.cjs android-apk/tests/primary-actions-ui.test.cjs android-apk/tests/provider-settings-ui.test.cjs
+          node --test android-apk/tests/snapshot-hud-regression.test.cjs android-apk/tests/sprite-grounding.test.cjs android-apk/tests/character-detail-ui.test.cjs android-apk/tests/primary-actions-ui.test.cjs android-apk/tests/provider-settings-ui.test.cjs
           python3 android-apk/tests/run-provider-router-test.py
       - name: Verify diagnostic log export and redaction
         run: node --test android-apk/tests/diagnostic-export.test.cjs

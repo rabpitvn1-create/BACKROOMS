@@ -52,6 +52,15 @@
     }
     if (node.getAttribute('src') !== src) node.setAttribute('src', src);
     node.alt = alt;
+    if (className !== 'snapshot-background-img' && window.backroomSpriteLayout) {
+      const box = document.getElementById('snapshot');
+      const side = className === 'snapshot-entity' ? 'left' : 'right';
+      window.backroomSpriteLayout.fit(node, box, side);
+      if (!node.dataset.groundingBound) {
+        node.dataset.groundingBound = 'true';
+        node.addEventListener('load', () => window.backroomSpriteLayout.fit(node, box, side));
+      }
+    }
   }
 
   function render(gameState) {
