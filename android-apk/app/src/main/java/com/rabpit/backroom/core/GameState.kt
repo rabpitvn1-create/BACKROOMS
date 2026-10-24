@@ -10,29 +10,16 @@ object CaoMinhStartingEquipment {
   const val WEAPON_NAME = "Huyết Ma Kiếm"
   const val ARMOR_NAME = "Huyết Ma Chiến Khải"
   const val RING_NAME = "Vạn Khố Giới Chỉ"
-  const val HUYET_MA_KIEM_DMG = 500
-  const val HUYET_MA_CHIEN_KHAI_DF = 500
-  const val HUYET_MA_CHIEN_KHAI_STR = 100
-  const val HUYET_MA_CHIEN_KHAI_AGI = 100
-  const val HUYET_MA_CHIEN_KHAI_HP = 100
-  const val HUYET_MA_CHIEN_KHAI_ENE = 100
-  const val HUYET_MA_CHIEN_KHAI_CRIT = 100
 
   val slots: Map<String, String> = linkedMapOf(
     "weapon" to CAO_MINH_HUYET_MA_KIEM_ID,
     "armor" to CAO_MINH_HUYET_MA_CHIEN_KHAI_ID,
-    "head" to CAO_MINH_DEMON_JAW_MASK_ID,
-    "gauntlets" to CAO_MINH_TALON_GAUNTLETS_ID,
-    "greaves" to CAO_MINH_PHANTOM_GREAVES_ID,
     "ring" to CAO_MINH_VAN_KHO_GIOI_CHI_ID
   )
 
   fun displayName(itemId: String): String? = when (itemId) {
     CAO_MINH_HUYET_MA_KIEM_ID -> WEAPON_NAME
     CAO_MINH_HUYET_MA_CHIEN_KHAI_ID -> ARMOR_NAME
-    CAO_MINH_DEMON_JAW_MASK_ID -> "Demon Jaw Mask"
-    CAO_MINH_TALON_GAUNTLETS_ID -> "Talon Gauntlets"
-    CAO_MINH_PHANTOM_GREAVES_ID -> "Phantom Greaves"
     CAO_MINH_VAN_KHO_GIOI_CHI_ID -> RING_NAME
     else -> null
   }
@@ -42,9 +29,6 @@ object CaoMinhStartingEquipment {
     return when {
       key.contains("huyết ma kiếm") || key.contains("huyet ma kiem") -> "weapon"
       key.contains("huyết ma chiến khải") || key.contains("huyet ma chien khai") -> "armor"
-      key.contains("demon jaw") -> "head"
-      key.contains("talon gauntlet") -> "gauntlets"
-      key.contains("phantom greave") -> "greaves"
       key.contains("vạn khố giới chỉ") || key.contains("nhẫn vạn khố") || key.contains("van kho gioi chi") || key.contains("nhẫn vạn tàng") || key.contains("van tang") -> "ring"
       else -> null
     }
@@ -170,7 +154,7 @@ data class GameState(
         CAO_MINH_ID to CharacterState(
           CAO_MINH_ID,
           "Cao Minh",
-          avatarRef = "avatars/cao_minh_avatar.png",
+          avatarRef = "avatars/CAO_MINH_AVATAR.jpg",
           physiology = PhysiologyState.freshRunBaseline(),
           metadata = mapOf("inventoryProfile" to "cao-minh")
         ),
