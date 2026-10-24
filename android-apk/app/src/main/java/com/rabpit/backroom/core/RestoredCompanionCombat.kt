@@ -94,6 +94,28 @@ internal object RestoredCompanionCombat {
     return Result(state, combat, log, feedback)
   }
 
+  fun afterEnemyMiss(
+    state: GameState,
+    snapshot: CombatRuntime.Snapshot,
+    profile: CombatRuntime.Profile
+  ): Result {
+    val id = SYVIAL_ID
+    val actor = state.characters[id] ?: return Result(state, snapshot)
+    if (id !in state.party.memberIds || actor.presence != CharacterPresence.ACTIVE ||
+      actor.vitalState.currentHp <= 0 || snapshot.entityHp <= 0) return Result(state, snapshot)
+    val weaponId = state.equipment[actor.equipmentId]?.slots?.get(EquipmentSlot.WEAPON.key)
+      ?: return Result(state, snapshot)
+    val weapon = EquipmentCatalog.definition(weaponId)?.weapon?.dmg
+      ?.takeIf { it > 0 } ?: return Result(state, snapshot)
+    if (roll(snapshot, "$id:counterphase", 100) >= 30) return Result(state, snapshot)
+    val raw = (weapon.toLong() * 125L / 100L).coerceIn(1L, Int.MAX_VALUE.toLong()).toInt()
+    val dealt = min(snapshot.entityHp, max(1, raw - profile.armor))
+    val next = snapshot.copy(entityHp = snapshot.entityHp - dealt)
+    return Result(state, next,
+      listOf("Syvial — Counterphase: -$dealt HP."),
+      listOf(CombatRuntime.DamageFeedback("entity", dealt, actorId=id, skill="Counterphase")))
+  }
+
   private fun roll(c: CombatRuntime.Snapshot, salt: String, bound: Int): Int {
     var value = c.seed xor (c.eventCounter.toLong() * -7046029254386353131L) xor salt.hashCode().toLong()
     value = (value xor (value ushr 30)) * -4658895280553007687L
