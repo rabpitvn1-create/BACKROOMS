@@ -2181,6 +2181,1225 @@
    "truth_status": "CONFIRMED",
    "knowledge_visibility": "META",
    "review_status": "SOURCE_SNAPSHOTTED"
+  },
+  {
+   "id": "CHAR.NGUYEN_QUOC_NAM.RUNTIME_CORE",
+   "schema_version": 2,
+   "universe_id": "BACKROOMS_MAIN",
+   "entity_id": "CHAR.NGUYEN_QUOC_NAM",
+   "domain": "CHARACTER",
+   "kind": "hard-lock",
+   "authority": "AUTHOR_APPROVED_SOURCE",
+   "mutability": "AUTHOR_ONLY",
+   "truth_status": "CONFIRMED",
+   "knowledge_visibility": "ACTOR_AWARE",
+   "spoiler_policy": "SHOW_IF_RELEVANT",
+   "text": "Nguyễn Quốc Nam, nam 36 tuổi, giảng viên y khoa từ TP.HCM năm 2001; con người hữu hạn, hỗ trợ súng ngắn và sơ cứu. Chỉ hiện diện/gia nhập theo Core. Không tự biết mọi Entity, Exit hoặc chữa bệnh bằng siêu năng lực.",
+   "tags": [
+    "follower_core"
+   ],
+   "affordances": [],
+   "references": [],
+   "activation": {
+    "require_actor_present_or_subject": "CHAR.NGUYEN_QUOC_NAM",
+    "deny_if_unauthorized_pov": true,
+    "level_scope": "ANY",
+    "min_evidence": "CONFIRMED",
+    "any_scene_intent": []
+   },
+   "priority": 45,
+   "review_status": "EXTRACTED_FROM_SOURCE",
+   "source": {
+    "document_id": "NGUYEN_QUOC_NAM_CODEX",
+    "document": "Novel/Characters/NGUYEN_QUOC_NAM_CODEX.md",
+    "anchor": "## I. Danh tính",
+    "content_sha256": "5ca7f3cb26177aadf3fccdb06dadf608b721e88306c14491e1b9f7f42211c317",
+    "approved_revision": "R01",
+    "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+    "drive_file_id": "1UdRk6_7ALgYgm9eEMI25S9l32p-7NX0f"
+   }
+  },
+  {
+   "id": "CHAR.NGUYEN_QUOC_NAM.IDENTITY",
+   "schema_version": 2,
+   "universe_id": "BACKROOMS_MAIN",
+   "entity_id": "CHAR.NGUYEN_QUOC_NAM",
+   "domain": "CHARACTER",
+   "kind": "canon-card",
+   "authority": "AUTHOR_APPROVED_SOURCE",
+   "mutability": "AUTHOR_ONLY",
+   "truth_status": "CONFIRMED",
+   "knowledge_visibility": "ACTOR_AWARE",
+   "spoiler_policy": "SHOW_IF_RELEVANT",
+   "text": "Nguyễn Quốc Nam là người Việt Nam, 36 tuổi khi mất tích năm 2001, sinh năm 1965 nhưng chưa chốt ngày sinh. Anh giảng dạy tại Trường Đại học Y Dược TP.HCM trong bối cảnh hư cấu; chuyên môn xử trí ban đầu, đánh giá nguy cơ và cấp cứu ngoại viện. Chưa có quan hệ quá khứ với các follower khác.",
+   "tags": [
+    "follower_persona"
+   ],
+   "affordances": [
+    "follower_persona"
+   ],
+   "references": [],
+   "activation": {
+    "require_actor_present_or_subject": "CHAR.NGUYEN_QUOC_NAM",
+    "deny_if_unauthorized_pov": true,
+    "level_scope": "ANY",
+    "min_evidence": "CONFIRMED",
+    "any_scene_intent": [
+     "follower_persona"
+    ]
+   },
+   "priority": 70,
+   "review_status": "EXTRACTED_FROM_SOURCE",
+   "source": {
+    "document_id": "NGUYEN_QUOC_NAM_CODEX",
+    "document": "Novel/Characters/NGUYEN_QUOC_NAM_CODEX.md",
+    "anchor": "## I. Danh tính",
+    "content_sha256": "5ca7f3cb26177aadf3fccdb06dadf608b721e88306c14491e1b9f7f42211c317",
+    "approved_revision": "R01",
+    "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+    "drive_file_id": "1UdRk6_7ALgYgm9eEMI25S9l32p-7NX0f"
+   }
+  },
+  {
+   "id": "CHAR.NGUYEN_QUOC_NAM.FAMILY",
+   "schema_version": 2,
+   "universe_id": "BACKROOMS_MAIN",
+   "entity_id": "CHAR.NGUYEN_QUOC_NAM",
+   "domain": "CHARACTER",
+   "kind": "canon-card",
+   "authority": "AUTHOR_APPROVED_SOURCE",
+   "mutability": "AUTHOR_ONLY",
+   "truth_status": "CONFIRMED",
+   "knowledge_visibility": "ACTOR_AWARE",
+   "spoiler_policy": "SHOW_IF_RELEVANT",
+   "text": "Nam có vợ Nguyễn Hồng Lan và con gái Nguyễn Thùy Dương, 6 tuổi năm 2001. Hai mẹ con còn ở ngoài Backrooms và không biết anh sống hay chết; tuyệt đối không spawn họ, đưa vào Party hoặc tự tạo cuộc đoàn tụ. Nét Vẽ Của Dương là mảnh giấy con vẽ, chỉ là vật lưu niệm, không có cộng chỉ số. Đây là điều Nam biết về gia đình; Cao Minh chỉ biết khi có lời kể/sự kiện đã xác nhận.",
+   "tags": [
+    "follower_family"
+   ],
+   "affordances": [
+    "follower_family"
+   ],
+   "references": [],
+   "activation": {
+    "require_actor_present_or_subject": "CHAR.NGUYEN_QUOC_NAM",
+    "deny_if_unauthorized_pov": true,
+    "level_scope": "ANY",
+    "min_evidence": "CONFIRMED",
+    "any_scene_intent": [
+     "follower_family"
+    ]
+   },
+   "priority": 70,
+   "review_status": "EXTRACTED_FROM_SOURCE",
+   "source": {
+    "document_id": "NGUYEN_QUOC_NAM_CODEX",
+    "document": "Novel/Characters/NGUYEN_QUOC_NAM_CODEX.md",
+    "anchor": "## I. Danh tính",
+    "content_sha256": "5ca7f3cb26177aadf3fccdb06dadf608b721e88306c14491e1b9f7f42211c317",
+    "approved_revision": "R01",
+    "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+    "drive_file_id": "1UdRk6_7ALgYgm9eEMI25S9l32p-7NX0f",
+    "secondary_anchors": [
+     "## II. Gia cảnh và đời sống trước khi mất tích"
+    ]
+   }
+  },
+  {
+   "id": "CHAR.NGUYEN_QUOC_NAM.ORIGIN",
+   "schema_version": 2,
+   "universe_id": "BACKROOMS_MAIN",
+   "entity_id": "CHAR.NGUYEN_QUOC_NAM",
+   "domain": "CHARACTER",
+   "kind": "canon-card",
+   "authority": "AUTHOR_APPROVED_SOURCE",
+   "mutability": "AUTHOR_ONLY",
+   "truth_status": "CONFIRMED",
+   "knowledge_visibility": "ACTOR_AWARE",
+   "spoiler_policy": "SHOW_IF_RELEVANT",
+   "text": "Cuối năm 2001, sau giờ giảng Nam đi vào cầu thang phụ một tòa nhà y khoa. Cửa tầng dưới dẫn đến hành lang thảm ẩm tường vàng, khi quay lại cửa biến mất. Anh cố ghi dấu mốc, sống sót và tìm đường về; chưa xác nhận tình trạng hiện tại của vợ con.",
+   "tags": [
+    "follower_history"
+   ],
+   "affordances": [
+    "follower_history"
+   ],
+   "references": [],
+   "activation": {
+    "require_actor_present_or_subject": "CHAR.NGUYEN_QUOC_NAM",
+    "deny_if_unauthorized_pov": true,
+    "level_scope": "ANY",
+    "min_evidence": "CONFIRMED",
+    "any_scene_intent": [
+     "follower_history"
+    ]
+   },
+   "priority": 70,
+   "review_status": "EXTRACTED_FROM_SOURCE",
+   "source": {
+    "document_id": "NGUYEN_QUOC_NAM_CODEX",
+    "document": "Novel/Characters/NGUYEN_QUOC_NAM_CODEX.md",
+    "anchor": "## II. Gia cảnh và đời sống trước khi mất tích",
+    "content_sha256": "5ca7f3cb26177aadf3fccdb06dadf608b721e88306c14491e1b9f7f42211c317",
+    "approved_revision": "R01",
+    "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+    "drive_file_id": "1UdRk6_7ALgYgm9eEMI25S9l32p-7NX0f"
+   }
+  },
+  {
+   "id": "CHAR.NGUYEN_QUOC_NAM.VISUAL",
+   "schema_version": 2,
+   "universe_id": "BACKROOMS_MAIN",
+   "entity_id": "CHAR.NGUYEN_QUOC_NAM",
+   "domain": "CHARACTER",
+   "kind": "canon-card",
+   "authority": "AUTHOR_APPROVED_SOURCE",
+   "mutability": "AUTHOR_ONLY",
+   "truth_status": "CONFIRMED",
+   "knowledge_visibility": "ACTOR_AWARE",
+   "spoiler_policy": "SHOW_IF_RELEVANT",
+   "text": "Nam tóc đen dày hơi rối, kính gọng mảnh, sơ mi trắng ngà xắn tay mở cổ, quần tây tối màu, thắt lưng da, đồng hồ mặt tròn và giày da đen buộc dây. Hai tay giữ súng ngắn bán tự động; không áo giáp, không biểu tượng quân hàm. Khẩu súng chưa rõ hãng/mẫu; Nam nhặt nó trong Backrooms, không mang từ trường đại học.",
+   "tags": [
+    "follower_visual"
+   ],
+   "affordances": [
+    "follower_visual"
+   ],
+   "references": [],
+   "activation": {
+    "require_actor_present_or_subject": "CHAR.NGUYEN_QUOC_NAM",
+    "deny_if_unauthorized_pov": true,
+    "level_scope": "ANY",
+    "min_evidence": "CONFIRMED",
+    "any_scene_intent": [
+     "follower_visual"
+    ]
+   },
+   "priority": 70,
+   "review_status": "EXTRACTED_FROM_SOURCE",
+   "source": {
+    "document_id": "NGUYEN_QUOC_NAM_CODEX",
+    "document": "Novel/Characters/NGUYEN_QUOC_NAM_CODEX.md",
+    "anchor": "## III. Ngoại hình và trang phục",
+    "content_sha256": "5ca7f3cb26177aadf3fccdb06dadf608b721e88306c14491e1b9f7f42211c317",
+    "approved_revision": "R01",
+    "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+    "drive_file_id": "1UdRk6_7ALgYgm9eEMI25S9l32p-7NX0f"
+   }
+  },
+  {
+   "id": "CHAR.NGUYEN_QUOC_NAM.PERSONA",
+   "schema_version": 2,
+   "universe_id": "BACKROOMS_MAIN",
+   "entity_id": "CHAR.NGUYEN_QUOC_NAM",
+   "domain": "CHARACTER",
+   "kind": "canon-card",
+   "authority": "AUTHOR_APPROVED_SOURCE",
+   "mutability": "AUTHOR_ONLY",
+   "truth_status": "CONFIRMED",
+   "knowledge_visibility": "ACTOR_AWARE",
+   "spoiler_policy": "SHOW_IF_RELEVANT",
+   "text": "Nam cẩn trọng, lý trí, quan sát trước khi nói. Khẩn cấp anh ra chỉ dẫn ngắn rõ; gặp người bị thương thường cứu trước khi truy hỏi. Anh cứng rắn với hành động bốc đồng gây nguy hiểm, nhưng không vô cảm; hay nhìn đồng hồ và giữ nét vẽ của con gần ngực. Anh thiếu kinh nghiệm quân sự, thể lực hữu hạn, kính có thể nứt và thiếu thuốc men.",
+   "tags": [
+    "follower_persona"
+   ],
+   "affordances": [
+    "follower_persona"
+   ],
+   "references": [],
+   "activation": {
+    "require_actor_present_or_subject": "CHAR.NGUYEN_QUOC_NAM",
+    "deny_if_unauthorized_pov": true,
+    "level_scope": "ANY",
+    "min_evidence": "CONFIRMED",
+    "any_scene_intent": [
+     "follower_persona"
+    ]
+   },
+   "priority": 70,
+   "review_status": "EXTRACTED_FROM_SOURCE",
+   "source": {
+    "document_id": "NGUYEN_QUOC_NAM_CODEX",
+    "document": "Novel/Characters/NGUYEN_QUOC_NAM_CODEX.md",
+    "anchor": "## IV. Tính cách",
+    "content_sha256": "5ca7f3cb26177aadf3fccdb06dadf608b721e88306c14491e1b9f7f42211c317",
+    "approved_revision": "R01",
+    "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+    "drive_file_id": "1UdRk6_7ALgYgm9eEMI25S9l32p-7NX0f"
+   }
+  },
+  {
+   "id": "CHAR.NGUYEN_QUOC_NAM.LIMITS",
+   "schema_version": 2,
+   "universe_id": "BACKROOMS_MAIN",
+   "entity_id": "CHAR.NGUYEN_QUOC_NAM",
+   "domain": "CHARACTER",
+   "kind": "hard-lock",
+   "authority": "AUTHOR_APPROVED_SOURCE",
+   "mutability": "AUTHOR_ONLY",
+   "truth_status": "CONFIRMED",
+   "knowledge_visibility": "ACTOR_AWARE",
+   "spoiler_policy": "SHOW_IF_RELEVANT",
+   "text": "Nam không bất tử, hồi sinh, chẩn đoán mọi bệnh bằng một cái nhìn hay chữa vết thương chí mạng trong một lượt. Không biết Exit hoặc tạo thuốc/đạn vô hạn. Sơ cứu hồi HP không đồng nghĩa chữa mọi thương tích/debuff; súng và đạn hữu hạn theo truyện dù Core chưa theo dõi từng viên.",
+   "tags": [
+    "follower_core"
+   ],
+   "affordances": [],
+   "references": [],
+   "activation": {
+    "require_actor_present_or_subject": "CHAR.NGUYEN_QUOC_NAM",
+    "deny_if_unauthorized_pov": true,
+    "level_scope": "ANY",
+    "min_evidence": "CONFIRMED",
+    "any_scene_intent": []
+   },
+   "priority": 45,
+   "review_status": "EXTRACTED_FROM_SOURCE",
+   "source": {
+    "document_id": "NGUYEN_QUOC_NAM_CODEX",
+    "document": "Novel/Characters/NGUYEN_QUOC_NAM_CODEX.md",
+    "anchor": "## IV. Tính cách",
+    "content_sha256": "5ca7f3cb26177aadf3fccdb06dadf608b721e88306c14491e1b9f7f42211c317",
+    "approved_revision": "R01",
+    "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+    "drive_file_id": "1UdRk6_7ALgYgm9eEMI25S9l32p-7NX0f"
+   }
+  },
+  {
+   "id": "CHAR.NGUYEN_QUOC_NAM.EQUIPMENT",
+   "schema_version": 2,
+   "universe_id": "BACKROOMS_MAIN",
+   "entity_id": "CHAR.NGUYEN_QUOC_NAM",
+   "domain": "CHARACTER",
+   "kind": "canon-card",
+   "authority": "AUTHOR_APPROVED_SOURCE",
+   "mutability": "AUTHOR_ONLY",
+   "truth_status": "CONFIRMED",
+   "knowledge_visibility": "ACTOR_AWARE",
+   "spoiler_policy": "SHOW_IF_RELEVANT",
+   "text": "Nam sở hữu Hành Lang 01 (nam:corridor-pistol), súng ngắn 19 Weapon DMG, 8 viên đang nạp và một băng dự phòng chưa rõ số viên; Áo Sơ Mi Ca Trực +10% VIT, không phải giáp; Đồng Hồ Lời Hứa +10% DEX, không đo sinh hiệu/phân tích Entity/liên lạc thế giới thực; Giày Hành Lang +10% DEF, không xuyên tường hoặc triệt tiếng bước chân. Bốn món là đồ cá nhân, không nằm trong loot pool toàn cầu.",
+   "tags": [
+    "follower_equipment"
+   ],
+   "affordances": [
+    "follower_equipment"
+   ],
+   "references": [],
+   "activation": {
+    "require_actor_present_or_subject": "CHAR.NGUYEN_QUOC_NAM",
+    "deny_if_unauthorized_pov": true,
+    "level_scope": "ANY",
+    "min_evidence": "CONFIRMED",
+    "any_scene_intent": [
+     "follower_equipment"
+    ]
+   },
+   "priority": 70,
+   "review_status": "EXTRACTED_FROM_SOURCE",
+   "source": {
+    "document_id": "NGUYEN_QUOC_NAM_CODEX",
+    "document": "Novel/Characters/NGUYEN_QUOC_NAM_CODEX.md",
+    "anchor": "## V. Trang bị (gameplay)",
+    "content_sha256": "5ca7f3cb26177aadf3fccdb06dadf608b721e88306c14491e1b9f7f42211c317",
+    "approved_revision": "R01",
+    "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+    "drive_file_id": "1UdRk6_7ALgYgm9eEMI25S9l32p-7NX0f"
+   }
+  },
+  {
+   "id": "CHAR.NGUYEN_QUOC_NAM.SKILLS",
+   "schema_version": 2,
+   "universe_id": "BACKROOMS_MAIN",
+   "entity_id": "CHAR.NGUYEN_QUOC_NAM",
+   "domain": "CHARACTER",
+   "kind": "canon-card",
+   "authority": "AUTHOR_APPROVED_SOURCE",
+   "mutability": "AUTHOR_ONLY",
+   "truth_status": "CONFIRMED",
+   "knowledge_visibility": "ACTOR_AWARE",
+   "spoiler_policy": "SHOW_IF_RELEVANT",
+   "text": "Nam ACTIVE trong Party: Quan Sát Lâm Sàng +8 điểm % Accuracy cú bắn thường, tối đa99%, Entity vẫn có thể né. Sau trúng thường, Phát Bắn Kiềm Chế proc25% gây120% current Weapon DMG trừ Armor, không liên hoàn/không ở Ultimate. GUARD: Sơ Cứu Tại Chỗ một lần/encounter, tối đa12% MaxHP cho người còn sống bị thương nặng nhất theo tỷ lệHP, không hồi sinh/chữa debuff. EVADE: Entity -12 điểm % Accuracy phản ứng hiện tại. READ: Đánh Giá Nguy Cơ +1Opening trong cap Core, không tìm Exit.",
+   "tags": [
+    "follower_combat"
+   ],
+   "affordances": [
+    "follower_combat"
+   ],
+   "references": [],
+   "activation": {
+    "require_actor_present_or_subject": "CHAR.NGUYEN_QUOC_NAM",
+    "deny_if_unauthorized_pov": true,
+    "level_scope": "ANY",
+    "min_evidence": "CONFIRMED",
+    "any_scene_intent": [
+     "follower_combat"
+    ]
+   },
+   "priority": 70,
+   "review_status": "EXTRACTED_FROM_SOURCE",
+   "source": {
+    "document_id": "NGUYEN_QUOC_NAM_CODEX",
+    "document": "Novel/Characters/NGUYEN_QUOC_NAM_CODEX.md",
+    "anchor": "## VI. Năm kỹ năng thường",
+    "content_sha256": "5ca7f3cb26177aadf3fccdb06dadf608b721e88306c14491e1b9f7f42211c317",
+    "approved_revision": "R01",
+    "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+    "drive_file_id": "1UdRk6_7ALgYgm9eEMI25S9l32p-7NX0f"
+   }
+  },
+  {
+   "id": "CHAR.NGUYEN_QUOC_NAM.ULTIMATE",
+   "schema_version": 2,
+   "universe_id": "BACKROOMS_MAIN",
+   "entity_id": "CHAR.NGUYEN_QUOC_NAM",
+   "domain": "CHARACTER",
+   "kind": "canon-card",
+   "authority": "AUTHOR_APPROVED_SOURCE",
+   "mutability": "AUTHOR_ONLY",
+   "truth_status": "CONFIRMED",
+   "knowledge_visibility": "ACTOR_AWARE",
+   "spoiler_policy": "SHOW_IF_RELEVANT",
+   "text": "Lời Hứa Trở Về: Poker Dice đã chốt SSF hoặc FSF, Nam ACTIVE trong Party và Party ATTACK; một phát285% current Weapon DMG, trừ Armor một lần, bỏ Evasion, không Critical hoặc proc Phát Bắn Kiềm Chế. Là tính toán góc bắn, không thần lực của gia đình, không đổi hoàn cảnh vợ con hoặc xuyên luật bất khả chiến bại.",
+   "tags": [
+    "follower_combat"
+   ],
+   "affordances": [
+    "follower_combat"
+   ],
+   "references": [],
+   "activation": {
+    "require_actor_present_or_subject": "CHAR.NGUYEN_QUOC_NAM",
+    "deny_if_unauthorized_pov": true,
+    "level_scope": "ANY",
+    "min_evidence": "CONFIRMED",
+    "any_scene_intent": [
+     "follower_combat"
+    ]
+   },
+   "priority": 70,
+   "review_status": "EXTRACTED_FROM_SOURCE",
+   "source": {
+    "document_id": "NGUYEN_QUOC_NAM_CODEX",
+    "document": "Novel/Characters/NGUYEN_QUOC_NAM_CODEX.md",
+    "anchor": "## VII. Ultimate: Lời Hứa Trở Về",
+    "content_sha256": "5ca7f3cb26177aadf3fccdb06dadf608b721e88306c14491e1b9f7f42211c317",
+    "approved_revision": "R01",
+    "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+    "drive_file_id": "1UdRk6_7ALgYgm9eEMI25S9l32p-7NX0f"
+   }
+  },
+  {
+   "id": "CHAR.NGUYEN_QUOC_NAM.ENCOUNTER",
+   "schema_version": 2,
+   "universe_id": "BACKROOMS_MAIN",
+   "entity_id": "CHAR.NGUYEN_QUOC_NAM",
+   "domain": "CHARACTER",
+   "kind": "canon-card",
+   "authority": "AUTHOR_APPROVED_SOURCE",
+   "mutability": "AUTHOR_ONLY",
+   "truth_status": "CONFIRMED",
+   "knowledge_visibility": "ACTOR_AWARE",
+   "spoiler_policy": "SHOW_IF_RELEVANT",
+   "text": "Gặp đầu Nguyễn Quốc Nam:5% mỗi Explorer action vật lý hợp lệ trên mọi Level/sub-level/AREA, vé d10000[5000,5499], không đè Entity[0,3499]/Catherine[3500,3999]/Janet[4000,4499]/TiểuLan[4500,4999]. Không spawn combat/meta/pending; chỉ tả sau Core xác nhận. Cuộc gặp không tự gia nhập: cần lời mời và đồng thuận riêng; người thân không spawn cùng. Cảnh gợi ý: Nam hỏi người lạ có bị thương, hạ súng khi thấy không có ý tấn công, hỏi thời gian ở đây có giống bên ngoài.",
+   "tags": [
+    "follower_encounter"
+   ],
+   "affordances": [
+    "first_encounter_nguyen_quoc_nam"
+   ],
+   "references": [],
+   "activation": {
+    "require_actor_present_or_subject": "CHAR.NGUYEN_QUOC_NAM",
+    "deny_if_unauthorized_pov": true,
+    "level_scope": "ANY",
+    "min_evidence": "CONFIRMED",
+    "any_scene_intent": [
+     "first_encounter_nguyen_quoc_nam"
+    ]
+   },
+   "priority": 70,
+   "review_status": "EXTRACTED_FROM_SOURCE",
+   "source": {
+    "document_id": "NGUYEN_QUOC_NAM_CODEX",
+    "document": "Novel/Characters/NGUYEN_QUOC_NAM_CODEX.md",
+    "anchor": "## VIII. Lần gặp đầu và tỷ lệ",
+    "content_sha256": "5ca7f3cb26177aadf3fccdb06dadf608b721e88306c14491e1b9f7f42211c317",
+    "approved_revision": "R01",
+    "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+    "drive_file_id": "1UdRk6_7ALgYgm9eEMI25S9l32p-7NX0f"
+   }
+  },
+  {
+   "id": "CHAR.NGUYEN_QUOC_NAM.ASSETS",
+   "schema_version": 2,
+   "universe_id": "BACKROOMS_MAIN",
+   "entity_id": "CHAR.NGUYEN_QUOC_NAM",
+   "domain": "CHARACTER",
+   "kind": "canon-card",
+   "authority": "AUTHOR_APPROVED_SOURCE",
+   "mutability": "AUTHOR_ONLY",
+   "truth_status": "CONFIRMED",
+   "knowledge_visibility": "RESTRICTED",
+   "spoiler_policy": "NEVER_SHOW",
+   "text": "Nguồn ảnh Nam:NguyenQuocNam.webp, avatarNguyenQuocNam_avatar.webp và bốn iconWebP128×128 cắt đúng ảnh673.png. Không tự vẽ lại nhân vật, thêm phép hoặc nhầm Nam với Cao Minh/NPC khác.",
+   "tags": [
+    "follower_assets"
+   ],
+   "affordances": [
+    "follower_assets"
+   ],
+   "references": [],
+   "activation": {
+    "require_actor_present_or_subject": "CHAR.NGUYEN_QUOC_NAM",
+    "deny_if_unauthorized_pov": true,
+    "level_scope": "ANY",
+    "min_evidence": "CONFIRMED",
+    "any_scene_intent": [
+     "follower_assets"
+    ]
+   },
+   "priority": 70,
+   "review_status": "EXTRACTED_FROM_SOURCE",
+   "source": {
+    "document_id": "NGUYEN_QUOC_NAM_CODEX",
+    "document": "Novel/Characters/NGUYEN_QUOC_NAM_CODEX.md",
+    "anchor": "## IX. Tài nguyên và bất biến Canon",
+    "content_sha256": "5ca7f3cb26177aadf3fccdb06dadf608b721e88306c14491e1b9f7f42211c317",
+    "approved_revision": "R01",
+    "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+    "drive_file_id": "1UdRk6_7ALgYgm9eEMI25S9l32p-7NX0f"
+   }
+  },
+  {
+   "id": "CHAR.HUA_TIEU_LAN.RUNTIME_CORE",
+   "schema_version": 2,
+   "universe_id": "BACKROOMS_MAIN",
+   "entity_id": "CHAR.HUA_TIEU_LAN",
+   "domain": "CHARACTER",
+   "kind": "hard-lock",
+   "authority": "AUTHOR_APPROVED_SOURCE",
+   "mutability": "AUTHOR_ONLY",
+   "truth_status": "CONFIRMED",
+   "knowledge_visibility": "ACTOR_AWARE",
+   "spoiler_policy": "SHOW_IF_RELEVANT",
+   "text": "Hứa Tiểu Lan, Tứ tiểu thư Hứa gia, người sống18 tuổi từ Sài Gòn–Chợ Lớn năm1895 trong nhánh lịch sử hư cấu; thiện xạ súng trường Trường Xuân. Với Cao Minh luôn xưng tôi/gọi Cao công tử. Không bất tử/phép thuật, không tự join hay đi theo khi bị từ chối; Cao Minh không có ký ức về cô.",
+   "tags": [
+    "follower_core"
+   ],
+   "affordances": [],
+   "references": [],
+   "activation": {
+    "require_actor_present_or_subject": "CHAR.HUA_TIEU_LAN",
+    "deny_if_unauthorized_pov": true,
+    "level_scope": "ANY",
+    "min_evidence": "CONFIRMED",
+    "any_scene_intent": []
+   },
+   "priority": 45,
+   "review_status": "EXTRACTED_FROM_SOURCE",
+   "source": {
+    "document_id": "HUA_TIEU_LAN_CODEX",
+    "document": "Novel/Characters/HUA_TIEU_LAN_CODEX.md",
+    "anchor": "# II. Danh tính và gia cảnh",
+    "content_sha256": "967a91b638900c0d48699cb083c8547ad9539bf8656844f5d50b38b8525f190a",
+    "approved_revision": "R02",
+    "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+    "drive_file_id": "16BiJr87vNY66dAQg2adavBXGQYZEv6IV"
+   }
+  },
+  {
+   "id": "CHAR.HUA_TIEU_LAN.HISTORICAL_LOCK",
+   "schema_version": 2,
+   "universe_id": "BACKROOMS_MAIN",
+   "entity_id": "CHAR.HUA_TIEU_LAN",
+   "domain": "CHARACTER",
+   "kind": "canon-card",
+   "authority": "AUTHOR_APPROVED_SOURCE",
+   "mutability": "AUTHOR_ONLY",
+   "truth_status": "CONFIRMED",
+   "knowledge_visibility": "ACTOR_AWARE",
+   "spoiler_policy": "SHOW_IF_RELEVANT",
+   "text": "Trong lịch sử thay thế có chủ ý của game, Tiểu Lan là con gái ruột Hứa Bổn Hòa. Không gán điều này thành gia phả lịch sử thật. Cô sống, không bệnh phong/chết/thành hồn ma; năm1895 không dùng dinh thự Phó Đức Chính xây nhiều thập niên sau.",
+   "tags": [
+    "follower_history"
+   ],
+   "affordances": [
+    "follower_history"
+   ],
+   "references": [],
+   "activation": {
+    "require_actor_present_or_subject": "CHAR.HUA_TIEU_LAN",
+    "deny_if_unauthorized_pov": true,
+    "level_scope": "ANY",
+    "min_evidence": "CONFIRMED",
+    "any_scene_intent": [
+     "follower_history"
+    ]
+   },
+   "priority": 70,
+   "review_status": "EXTRACTED_FROM_SOURCE",
+   "source": {
+    "document_id": "HUA_TIEU_LAN_CODEX",
+    "document": "Novel/Characters/HUA_TIEU_LAN_CODEX.md",
+    "anchor": "# I. Ranh giới lịch sử và hư cấu",
+    "content_sha256": "967a91b638900c0d48699cb083c8547ad9539bf8656844f5d50b38b8525f190a",
+    "approved_revision": "R02",
+    "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+    "drive_file_id": "16BiJr87vNY66dAQg2adavBXGQYZEv6IV"
+   }
+  },
+  {
+   "id": "CHAR.HUA_TIEU_LAN.IDENTITY",
+   "schema_version": 2,
+   "universe_id": "BACKROOMS_MAIN",
+   "entity_id": "CHAR.HUA_TIEU_LAN",
+   "domain": "CHARACTER",
+   "kind": "canon-card",
+   "authority": "AUTHOR_APPROVED_SOURCE",
+   "mutability": "AUTHOR_ONLY",
+   "truth_status": "CONFIRMED",
+   "knowledge_visibility": "ACTOR_AWARE",
+   "spoiler_policy": "SHOW_IF_RELEVANT",
+   "text": "Hứa Tiểu Lan sinh1877, biến mất đúng sinh nhật18 năm1895, ngày/tháng chưa chốt; biết tiếng Việt, Hoa và Pháp trong thiết lập hư cấu. Là con thứ tư, con gái duy nhất, được ba anh trai yêu thương. Cha tôn trọng tự quyết, không ép duyên/kế nghiệp. Mẹ còn sống, nghiêm lễ giáo nhưng ủng hộ luyện súng; chưa đặt tên mẹ/anh trai.",
+   "tags": [
+    "follower_family"
+   ],
+   "affordances": [
+    "follower_family"
+   ],
+   "references": [],
+   "activation": {
+    "require_actor_present_or_subject": "CHAR.HUA_TIEU_LAN",
+    "deny_if_unauthorized_pov": true,
+    "level_scope": "ANY",
+    "min_evidence": "CONFIRMED",
+    "any_scene_intent": [
+     "follower_family"
+    ]
+   },
+   "priority": 70,
+   "review_status": "EXTRACTED_FROM_SOURCE",
+   "source": {
+    "document_id": "HUA_TIEU_LAN_CODEX",
+    "document": "Novel/Characters/HUA_TIEU_LAN_CODEX.md",
+    "anchor": "# II. Danh tính và gia cảnh",
+    "content_sha256": "967a91b638900c0d48699cb083c8547ad9539bf8656844f5d50b38b8525f190a",
+    "approved_revision": "R02",
+    "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+    "drive_file_id": "16BiJr87vNY66dAQg2adavBXGQYZEv6IV"
+   }
+  },
+  {
+   "id": "CHAR.HUA_TIEU_LAN.ORIGIN",
+   "schema_version": 2,
+   "universe_id": "BACKROOMS_MAIN",
+   "entity_id": "CHAR.HUA_TIEU_LAN",
+   "domain": "CHARACTER",
+   "kind": "canon-card",
+   "authority": "AUTHOR_APPROVED_SOURCE",
+   "mutability": "AUTHOR_ONLY",
+   "truth_status": "CONFIRMED",
+   "knowledge_visibility": "ACTOR_AWARE",
+   "spoiler_policy": "SHOW_IF_RELEVANT",
+   "text": "Tiểu Lan được dạy ngôn ngữ, tính toán, quan sát và lễ nghi; luyện bắn mục tiêu có giám sát với một cựu xạ thủ chưa rõ danh tính, không từng tham gia quân đội/chiến tranh. Sinh nhật18 năm1895, cô kiểm tra tiếng đồng hồ trong hành lang lạ ở kho nhà đương thời của gia đình rồi lạc vào Backrooms. Người nhà không biết cô ở đâu; không có quyền gia tộc điều khiển Backrooms.",
+   "tags": [
+    "follower_history"
+   ],
+   "affordances": [
+    "follower_history"
+   ],
+   "references": [],
+   "activation": {
+    "require_actor_present_or_subject": "CHAR.HUA_TIEU_LAN",
+    "deny_if_unauthorized_pov": true,
+    "level_scope": "ANY",
+    "min_evidence": "CONFIRMED",
+    "any_scene_intent": [
+     "follower_history"
+    ]
+   },
+   "priority": 70,
+   "review_status": "EXTRACTED_FROM_SOURCE",
+   "source": {
+    "document_id": "HUA_TIEU_LAN_CODEX",
+    "document": "Novel/Characters/HUA_TIEU_LAN_CODEX.md",
+    "anchor": "# III. Những năm tháng trước khi biến mất",
+    "content_sha256": "967a91b638900c0d48699cb083c8547ad9539bf8656844f5d50b38b8525f190a",
+    "approved_revision": "R02",
+    "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+    "drive_file_id": "16BiJr87vNY66dAQg2adavBXGQYZEv6IV"
+   }
+  },
+  {
+   "id": "CHAR.HUA_TIEU_LAN.VISUAL",
+   "schema_version": 2,
+   "universe_id": "BACKROOMS_MAIN",
+   "entity_id": "CHAR.HUA_TIEU_LAN",
+   "domain": "CHARACTER",
+   "kind": "canon-card",
+   "authority": "AUTHOR_APPROVED_SOURCE",
+   "mutability": "AUTHOR_ONLY",
+   "truth_status": "CONFIRMED",
+   "knowledge_visibility": "ACTOR_AWARE",
+   "spoiler_policy": "SHOW_IF_RELEVANT",
+   "text": "Tiểu Lan tóc đen búi cao băng trắng, bông tai ngọc trai; áo dài hai tà xanh lam nhạt họa tiết cúc trắng, cổ cao tay dài, quần trắng rộng, giày trắng thấp gót và vòng cẩm thạch xanh. Súng trường cổ báng gỗ sẫm, nòng thép đen, chi tiết đồng; chưa rõ hãng/khóa nòng/cỡ đạn. Không tự thêm nhiều tà áo hoặc biến áo thành giáp.",
+   "tags": [
+    "follower_visual"
+   ],
+   "affordances": [
+    "follower_visual"
+   ],
+   "references": [],
+   "activation": {
+    "require_actor_present_or_subject": "CHAR.HUA_TIEU_LAN",
+    "deny_if_unauthorized_pov": true,
+    "level_scope": "ANY",
+    "min_evidence": "CONFIRMED",
+    "any_scene_intent": [
+     "follower_visual"
+    ]
+   },
+   "priority": 70,
+   "review_status": "EXTRACTED_FROM_SOURCE",
+   "source": {
+    "document_id": "HUA_TIEU_LAN_CODEX",
+    "document": "Novel/Characters/HUA_TIEU_LAN_CODEX.md",
+    "anchor": "# IV. Ngoại hình và trang phục (theo hình 677.png)",
+    "content_sha256": "967a91b638900c0d48699cb083c8547ad9539bf8656844f5d50b38b8525f190a",
+    "approved_revision": "R02",
+    "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+    "drive_file_id": "16BiJr87vNY66dAQg2adavBXGQYZEv6IV"
+   }
+  },
+  {
+   "id": "CHAR.HUA_TIEU_LAN.PERSONA",
+   "schema_version": 2,
+   "universe_id": "BACKROOMS_MAIN",
+   "entity_id": "CHAR.HUA_TIEU_LAN",
+   "domain": "CHARACTER",
+   "kind": "canon-card",
+   "authority": "AUTHOR_APPROVED_SOURCE",
+   "mutability": "AUTHOR_ONLY",
+   "truth_status": "CONFIRMED",
+   "knowledge_visibility": "ACTOR_AWARE",
+   "spoiler_policy": "SHOW_IF_RELEVANT",
+   "text": "Tiểu Lan lễ độ, bình tĩnh, kín đáo, tự trọng và bướng khi bị xem là tiểu thư được nuông chiều. Cô chọn vị trí/đo khoảng cách trước khi bắn, không xem thường người yếu. Sợ gia đình nghĩ mình trốn đi và cha già đi ngoài kia; tự trách quá khứ là cảm nhận của cô, không là phán quyết đạo đức thế giới.",
+   "tags": [
+    "follower_persona"
+   ],
+   "affordances": [
+    "follower_persona"
+   ],
+   "references": [],
+   "activation": {
+    "require_actor_present_or_subject": "CHAR.HUA_TIEU_LAN",
+    "deny_if_unauthorized_pov": true,
+    "level_scope": "ANY",
+    "min_evidence": "CONFIRMED",
+    "any_scene_intent": [
+     "follower_persona"
+    ]
+   },
+   "priority": 70,
+   "review_status": "EXTRACTED_FROM_SOURCE",
+   "source": {
+    "document_id": "HUA_TIEU_LAN_CODEX",
+    "document": "Novel/Characters/HUA_TIEU_LAN_CODEX.md",
+    "anchor": "# V. Tính cách, động cơ và giới hạn",
+    "content_sha256": "967a91b638900c0d48699cb083c8547ad9539bf8656844f5d50b38b8525f190a",
+    "approved_revision": "R02",
+    "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+    "drive_file_id": "16BiJr87vNY66dAQg2adavBXGQYZEv6IV"
+   }
+  },
+  {
+   "id": "CHAR.HUA_TIEU_LAN.LIMITS",
+   "schema_version": 2,
+   "universe_id": "BACKROOMS_MAIN",
+   "entity_id": "CHAR.HUA_TIEU_LAN",
+   "domain": "CHARACTER",
+   "kind": "hard-lock",
+   "authority": "AUTHOR_APPROVED_SOURCE",
+   "mutability": "AUTHOR_ONLY",
+   "truth_status": "CONFIRMED",
+   "knowledge_visibility": "ACTOR_AWARE",
+   "spoiler_policy": "SHOW_IF_RELEVANT",
+   "text": "Tiểu Lan là người hữu hạn, có thể bị thương/hết đạn/mệt/chết; súng dài bất tiện ở hành lang hẹp, nạp chậm, áo dài vướng khi leo, thiếu kinh nghiệm Entity. Không biết Exit bằng ý chí, không kéo người thân vào Backrooms, không cướp súng/xóa luật sinh tồn. Cao Minh không có ký ức về cô; không tự tạo cơ chế hồi phục ký ức.",
+   "tags": [
+    "follower_core"
+   ],
+   "affordances": [],
+   "references": [],
+   "activation": {
+    "require_actor_present_or_subject": "CHAR.HUA_TIEU_LAN",
+    "deny_if_unauthorized_pov": true,
+    "level_scope": "ANY",
+    "min_evidence": "CONFIRMED",
+    "any_scene_intent": []
+   },
+   "priority": 45,
+   "review_status": "EXTRACTED_FROM_SOURCE",
+   "source": {
+    "document_id": "HUA_TIEU_LAN_CODEX",
+    "document": "Novel/Characters/HUA_TIEU_LAN_CODEX.md",
+    "anchor": "# V. Tính cách, động cơ và giới hạn",
+    "content_sha256": "967a91b638900c0d48699cb083c8547ad9539bf8656844f5d50b38b8525f190a",
+    "approved_revision": "R02",
+    "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+    "drive_file_id": "16BiJr87vNY66dAQg2adavBXGQYZEv6IV",
+    "secondary_anchors": [
+     "# V-B. Cao Minh, khuôn mặt Anh Tý và mối tình qua hai kiếp"
+    ]
+   }
+  },
+  {
+   "id": "CHAR.HUA_TIEU_LAN.TRAGEDY",
+   "schema_version": 2,
+   "universe_id": "BACKROOMS_MAIN",
+   "entity_id": "CHAR.HUA_TIEU_LAN",
+   "domain": "CHARACTER",
+   "kind": "canon-card",
+   "authority": "AUTHOR_APPROVED_SOURCE",
+   "mutability": "AUTHOR_ONLY",
+   "truth_status": "CONFIRMED",
+   "knowledge_visibility": "ACTOR_AWARE",
+   "spoiler_policy": "SHOW_IF_RELEVANT",
+   "text": "Tiểu Lan từng yêu Anh Tý, chàng phu xe nghèo. Mẹ nhờ gia nhân đưa tiền cứu trợ thiên tai qua Anh Tý; Tiểu Lan nghe thiếu, hiểu lầm chàng vụ lợi và dùng địa vị sỉ nhục xuất thân chàng. Anh Tý lặng lẽ rời đi, không phản bội. Sau khi mẹ kể sự thật, cô đi tìm xin lỗi nhưng nghe chàng chết do tai nạn trên đường về nhà. Tên đầy đủ/tuổi/quê/ngày chết/chi tiết tai nạn chưa chốt. Cha mẹ không được suy diễn thành người cấm duyên.",
+   "tags": [
+    "follower_history"
+   ],
+   "affordances": [
+    "follower_history"
+   ],
+   "references": [],
+   "activation": {
+    "require_actor_present_or_subject": "CHAR.HUA_TIEU_LAN",
+    "deny_if_unauthorized_pov": true,
+    "level_scope": "ANY",
+    "min_evidence": "CONFIRMED",
+    "any_scene_intent": [
+     "follower_history"
+    ]
+   },
+   "priority": 70,
+   "review_status": "EXTRACTED_FROM_SOURCE",
+   "source": {
+    "document_id": "HUA_TIEU_LAN_CODEX",
+    "document": "Novel/Characters/HUA_TIEU_LAN_CODEX.md",
+    "anchor": "# V-A. Anh Tý và tình yêu bị chính Tiểu Lan đánh mất",
+    "content_sha256": "967a91b638900c0d48699cb083c8547ad9539bf8656844f5d50b38b8525f190a",
+    "approved_revision": "R02",
+    "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+    "drive_file_id": "16BiJr87vNY66dAQg2adavBXGQYZEv6IV"
+   }
+  },
+  {
+   "id": "CHAR.HUA_TIEU_LAN.FIRST_ENCOUNTER",
+   "schema_version": 2,
+   "universe_id": "BACKROOMS_MAIN",
+   "entity_id": "CHAR.HUA_TIEU_LAN",
+   "domain": "CHARACTER",
+   "kind": "canon-card",
+   "authority": "AUTHOR_APPROVED_SOURCE",
+   "mutability": "AUTHOR_ONLY",
+   "truth_status": "CONFIRMED",
+   "knowledge_visibility": "ACTOR_AWARE",
+   "spoiler_policy": "SHOW_IF_RELEVANT",
+   "text": "Chỉ lần gặp đầu được Core xác nhận: Tiểu Lan thấy khuôn mặt Cao Minh, bật khóc, ôm và gọi thành tiếng Anh Tý; đây là ngoại lệ xưng hô duy nhất. Cô đau đớn, cố bình tĩnh, xin lỗi vì đường đột và nói hắn giống người từng yêu. Cao Minh hoàn toàn không biết cô và không được đánh thức ký ức; hành động/phản ứng có chủ ý của hắn do người chơi quyết định. Cô xin đồng hành; đề nghị không tự gia nhập Party hay bắt người chơi đáp tình cảm.",
+   "tags": [
+    "follower_encounter"
+   ],
+   "affordances": [
+    "first_encounter_hua_tieu_lan"
+   ],
+   "references": [],
+   "activation": {
+    "require_actor_present_or_subject": "CHAR.HUA_TIEU_LAN",
+    "deny_if_unauthorized_pov": true,
+    "level_scope": "ANY",
+    "min_evidence": "CONFIRMED",
+    "any_scene_intent": [
+     "first_encounter_hua_tieu_lan"
+    ]
+   },
+   "priority": 70,
+   "review_status": "EXTRACTED_FROM_SOURCE",
+   "source": {
+    "document_id": "HUA_TIEU_LAN_CODEX",
+    "document": "Novel/Characters/HUA_TIEU_LAN_CODEX.md",
+    "anchor": "# V-B. Cao Minh, khuôn mặt Anh Tý và mối tình qua hai kiếp",
+    "content_sha256": "967a91b638900c0d48699cb083c8547ad9539bf8656844f5d50b38b8525f190a",
+    "approved_revision": "R02",
+    "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+    "drive_file_id": "16BiJr87vNY66dAQg2adavBXGQYZEv6IV"
+   }
+  },
+  {
+   "id": "ADDR.HUA_TIEU_LAN.CAO_MINH",
+   "schema_version": 2,
+   "universe_id": "BACKROOMS_MAIN",
+   "entity_id": "CHAR.HUA_TIEU_LAN",
+   "domain": "RELATIONSHIP",
+   "kind": "address-lock",
+   "authority": "AUTHOR_APPROVED_SOURCE",
+   "mutability": "AUTHOR_ONLY",
+   "truth_status": "CONFIRMED",
+   "knowledge_visibility": "ACTOR_AWARE",
+   "spoiler_policy": "SHOW_IF_RELEVANT",
+   "text": "Tiểu Lan luôn xưng tôi/gọi Cao công tử. Chỉ trong lần gặp đầu mất kiểm soát cô gọi Anh Tý thành tiếng; sau đó tên này chỉ ở suy nghĩ/khi cô ở một mình. Không đổi sang anh/em khi thân thiết. Không để Cao Minh tự nhận biết chuyện chuyển sinh hoặc nhớ tiền kiếp.",
+   "tags": [
+    "follower_core"
+   ],
+   "affordances": [],
+   "references": [],
+   "activation": {
+    "require_actor_present_or_subject": "CHAR.HUA_TIEU_LAN",
+    "deny_if_unauthorized_pov": true,
+    "level_scope": "ANY",
+    "min_evidence": "CONFIRMED",
+    "any_scene_intent": []
+   },
+   "priority": 45,
+   "review_status": "EXTRACTED_FROM_SOURCE",
+   "source": {
+    "document_id": "HUA_TIEU_LAN_CODEX",
+    "document": "Novel/Characters/HUA_TIEU_LAN_CODEX.md",
+    "anchor": "# V-B. Cao Minh, khuôn mặt Anh Tý và mối tình qua hai kiếp",
+    "content_sha256": "967a91b638900c0d48699cb083c8547ad9539bf8656844f5d50b38b8525f190a",
+    "approved_revision": "R02",
+    "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+    "drive_file_id": "16BiJr87vNY66dAQg2adavBXGQYZEv6IV"
+   }
+  },
+  {
+   "id": "CHAR.HUA_TIEU_LAN.FEELINGS",
+   "schema_version": 2,
+   "universe_id": "BACKROOMS_MAIN",
+   "entity_id": "CHAR.HUA_TIEU_LAN",
+   "domain": "CHARACTER",
+   "kind": "canon-card",
+   "authority": "AUTHOR_APPROVED_SOURCE",
+   "mutability": "AUTHOR_ONLY",
+   "truth_status": "CONFIRMED",
+   "knowledge_visibility": "ACTOR_AWARE",
+   "spoiler_policy": "SHOW_IF_RELEVANT",
+   "text": "Tiểu Lan xin đồng hành để giúp/bảo vệ Cao Minh, không ép hắn nhớ hay đáp lại. Nếu bị từ chối, cô xin lỗi rồi rời đi, không lén theo hoặc cưỡng ép xuất hiện. Nếu tình cờ tái ngộ hợp lệ, cô cố bình thường nhưng còn tình cảm. Trong giả định Cao Minh yêu Lục Trầm, cô ghen/đau nhưng vẫn bảo vệ cả hai, không phá hoại; đây không khẳng định hắn đã yêu Lục Trầm. Khi được Lục Trầm hỏi trực tiếp, cô thành thật nhận tình cảm và chân thành chúc phúc nếu hắn chọn nàng.",
+   "tags": [
+    "follower_relationship"
+   ],
+   "affordances": [
+    "follower_relationship"
+   ],
+   "references": [],
+   "activation": {
+    "require_actor_present_or_subject": "CHAR.HUA_TIEU_LAN",
+    "deny_if_unauthorized_pov": true,
+    "level_scope": "ANY",
+    "min_evidence": "CONFIRMED",
+    "any_scene_intent": [
+     "follower_relationship"
+    ]
+   },
+   "priority": 70,
+   "review_status": "EXTRACTED_FROM_SOURCE",
+   "source": {
+    "document_id": "HUA_TIEU_LAN_CODEX",
+    "document": "Novel/Characters/HUA_TIEU_LAN_CODEX.md",
+    "anchor": "# V-B. Cao Minh, khuôn mặt Anh Tý và mối tình qua hai kiếp",
+    "content_sha256": "967a91b638900c0d48699cb083c8547ad9539bf8656844f5d50b38b8525f190a",
+    "approved_revision": "R02",
+    "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+    "drive_file_id": "16BiJr87vNY66dAQg2adavBXGQYZEv6IV"
+   }
+  },
+  {
+   "id": "CHAR.HUA_TIEU_LAN.REINCARNATION_SECRET",
+   "schema_version": 2,
+   "universe_id": "BACKROOMS_MAIN",
+   "entity_id": "CHAR.HUA_TIEU_LAN",
+   "domain": "CHARACTER",
+   "kind": "canon-card",
+   "authority": "AUTHOR_APPROVED_SOURCE",
+   "mutability": "AUTHOR_ONLY",
+   "truth_status": "CONFIRMED",
+   "knowledge_visibility": "RESTRICTED",
+   "spoiler_policy": "NEVER_SHOW",
+   "text": "Sự thật hậu trường: Anh Tý chuyển sinh thành Cao Minh, cùng khuôn mặt kiếp trước. Cao Minh không có bất kỳ ký ức nào về Anh Tý, Tiểu Lan hoặc tình xưa. Tiểu Lan không tự động biết có chuyển sinh, không có cảm ứng linh hồn/nhận diện siêu nhiên. Không tiết lộ sự thật này cho GM packet hoặc suy thành nghĩa vụ yêu/gia nhập Party.",
+   "tags": [
+    "follower_secret"
+   ],
+   "affordances": [
+    "follower_secret"
+   ],
+   "references": [],
+   "activation": {
+    "require_actor_present_or_subject": "CHAR.HUA_TIEU_LAN",
+    "deny_if_unauthorized_pov": true,
+    "level_scope": "ANY",
+    "min_evidence": "CONFIRMED",
+    "any_scene_intent": [
+     "follower_secret"
+    ]
+   },
+   "priority": 70,
+   "review_status": "EXTRACTED_FROM_SOURCE",
+   "source": {
+    "document_id": "HUA_TIEU_LAN_CODEX",
+    "document": "Novel/Characters/HUA_TIEU_LAN_CODEX.md",
+    "anchor": "# V-B. Cao Minh, khuôn mặt Anh Tý và mối tình qua hai kiếp",
+    "content_sha256": "967a91b638900c0d48699cb083c8547ad9539bf8656844f5d50b38b8525f190a",
+    "approved_revision": "R02",
+    "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+    "drive_file_id": "16BiJr87vNY66dAQg2adavBXGQYZEv6IV"
+   },
+   "known_by": [
+    "hua_tieu_lan"
+   ]
+  },
+  {
+   "id": "CHAR.HUA_TIEU_LAN.UNKNOWN_FIELDS",
+   "schema_version": 2,
+   "universe_id": "BACKROOMS_MAIN",
+   "entity_id": "CHAR.HUA_TIEU_LAN",
+   "domain": "CHARACTER",
+   "kind": "canon-card",
+   "authority": "AUTHOR_APPROVED_SOURCE",
+   "mutability": "AUTHOR_ONLY",
+   "truth_status": "UNKNOWN",
+   "knowledge_visibility": "ACTOR_AWARE",
+   "spoiler_policy": "SHOW_IF_RELEVANT",
+   "text": "UNKNOWN: câu23 chưa được tác giả trả lời; chưa chốt Tiểu Lan sẽ tự trừng phạt suốt đời, đón nhận hạnh phúc hay học tha thứ. Chưa chốt tên đầy đủ/tuổi/quê Anh Tý, tên mẹ/ba anh trai, chi tiết/ngày tai nạn, kết cục tình cảm. Không tự điền hay nâng những điều này thành sự thật.",
+   "tags": [
+    "follower_persona"
+   ],
+   "affordances": [
+    "follower_persona"
+   ],
+   "references": [],
+   "activation": {
+    "require_actor_present_or_subject": "CHAR.HUA_TIEU_LAN",
+    "deny_if_unauthorized_pov": true,
+    "level_scope": "ANY",
+    "min_evidence": "UNKNOWN",
+    "any_scene_intent": [
+     "follower_persona"
+    ]
+   },
+   "priority": 70,
+   "review_status": "EXTRACTED_FROM_SOURCE",
+   "source": {
+    "document_id": "HUA_TIEU_LAN_CODEX",
+    "document": "Novel/Characters/HUA_TIEU_LAN_CODEX.md",
+    "anchor": "# XI. Trạng thái chốt Canon R02",
+    "content_sha256": "967a91b638900c0d48699cb083c8547ad9539bf8656844f5d50b38b8525f190a",
+    "approved_revision": "R02",
+    "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+    "drive_file_id": "16BiJr87vNY66dAQg2adavBXGQYZEv6IV"
+   }
+  },
+  {
+   "id": "CHAR.HUA_TIEU_LAN.EQUIPMENT",
+   "schema_version": 2,
+   "universe_id": "BACKROOMS_MAIN",
+   "entity_id": "CHAR.HUA_TIEU_LAN",
+   "domain": "CHARACTER",
+   "kind": "canon-card",
+   "authority": "AUTHOR_APPROVED_SOURCE",
+   "mutability": "AUTHOR_ONLY",
+   "truth_status": "CONFIRMED",
+   "knowledge_visibility": "ACTOR_AWARE",
+   "spoiler_policy": "SHOW_IF_RELEVANT",
+   "text": "Trường Xuân(tieu-lan:truong-xuan):súng trường cổ25WeaponDMG,1loaded/finite reserve, không liên thanh/xuyên tường. Lam Cúc Áo Dài+10%AGI, không chống đạn; Vòng Ngọc Bình An+10%DEX, không phép chữa/liên lạc; Bạch Liên Hài+10%DEF, không đi trên không. Thiệp Mời Sinh Nhật chỉ là lưu niệm ghi tuổi18, không cộng chỉ số/mật mã Exit. Đồ cá nhân không ở lootpool toàn cầu.",
+   "tags": [
+    "follower_equipment"
+   ],
+   "affordances": [
+    "follower_equipment"
+   ],
+   "references": [],
+   "activation": {
+    "require_actor_present_or_subject": "CHAR.HUA_TIEU_LAN",
+    "deny_if_unauthorized_pov": true,
+    "level_scope": "ANY",
+    "min_evidence": "CONFIRMED",
+    "any_scene_intent": [
+     "follower_equipment"
+    ]
+   },
+   "priority": 70,
+   "review_status": "EXTRACTED_FROM_SOURCE",
+   "source": {
+    "document_id": "HUA_TIEU_LAN_CODEX",
+    "document": "Novel/Characters/HUA_TIEU_LAN_CODEX.md",
+    "anchor": "# VI. Trang bị gameplay, giữ nhất quán với ảnh",
+    "content_sha256": "967a91b638900c0d48699cb083c8547ad9539bf8656844f5d50b38b8525f190a",
+    "approved_revision": "R02",
+    "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+    "drive_file_id": "16BiJr87vNY66dAQg2adavBXGQYZEv6IV"
+   }
+  },
+  {
+   "id": "CHAR.HUA_TIEU_LAN.SKILLS",
+   "schema_version": 2,
+   "universe_id": "BACKROOMS_MAIN",
+   "entity_id": "CHAR.HUA_TIEU_LAN",
+   "domain": "CHARACTER",
+   "kind": "canon-card",
+   "authority": "AUTHOR_APPROVED_SOURCE",
+   "mutability": "AUTHOR_ONLY",
+   "truth_status": "CONFIRMED",
+   "knowledge_visibility": "ACTOR_AWARE",
+   "spoiler_policy": "SHOW_IF_RELEVANT",
+   "text": "Tiểu Lan ACTIVE trong Party: Tĩnh Tâm Ngắm Bắn +12 điểm % Accuracy cú bắn thường, cap 99%, Entity vẫn né riêng. Trúng thường proc 25% Một Phát Định Đoạt: +150% current Weapon DMG, riêng hiệu ứng bỏ 20% Armor, cùng một viên đạn, không ở Ultimate. EVADE: Bộ Pháp Tà Lụa giảm 12 điểm % Accuracy Entity phản ứng hiện tại. READ: Ngắm Qua Hoa Cúc +1 Opening trong cap Core, không tìm Exit. Entity hụt và cô ACTIVE: proc 20% Tài Bắn Phản Xạ 110% Weapon DMG trừ Armor, không thêm turn, không ép bắn khi có người trong đường đạn.",
+   "tags": [
+    "follower_combat"
+   ],
+   "affordances": [
+    "follower_combat"
+   ],
+   "references": [],
+   "activation": {
+    "require_actor_present_or_subject": "CHAR.HUA_TIEU_LAN",
+    "deny_if_unauthorized_pov": true,
+    "level_scope": "ANY",
+    "min_evidence": "CONFIRMED",
+    "any_scene_intent": [
+     "follower_combat"
+    ]
+   },
+   "priority": 70,
+   "review_status": "EXTRACTED_FROM_SOURCE",
+   "source": {
+    "document_id": "HUA_TIEU_LAN_CODEX",
+    "document": "Novel/Characters/HUA_TIEU_LAN_CODEX.md",
+    "anchor": "# VII. Năm kỹ năng thường",
+    "content_sha256": "967a91b638900c0d48699cb083c8547ad9539bf8656844f5d50b38b8525f190a",
+    "approved_revision": "R02",
+    "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+    "drive_file_id": "16BiJr87vNY66dAQg2adavBXGQYZEv6IV"
+   }
+  },
+  {
+   "id": "CHAR.HUA_TIEU_LAN.ULTIMATE",
+   "schema_version": 2,
+   "universe_id": "BACKROOMS_MAIN",
+   "entity_id": "CHAR.HUA_TIEU_LAN",
+   "domain": "CHARACTER",
+   "kind": "canon-card",
+   "authority": "AUTHOR_APPROVED_SOURCE",
+   "mutability": "AUTHOR_ONLY",
+   "truth_status": "CONFIRMED",
+   "knowledge_visibility": "ACTOR_AWARE",
+   "spoiler_policy": "SHOW_IF_RELEVANT",
+   "text": "Bách Hoa Nhất Tiễn: khi Poker Dice đã chốt SSF/FSF, Party ATTACK và Tiểu Lan ACTIVE, một viên đạn 320% current Weapon DMG, trừ Armor một lần, bỏ Evasion, không Critical/Một Phát Định Đoạt. Không triệu hồi hoa, mưa đạn, xuyên không, tự kết liễu boss hoặc sinh đạn vô hạn.",
+   "tags": [
+    "follower_combat"
+   ],
+   "affordances": [
+    "follower_combat"
+   ],
+   "references": [],
+   "activation": {
+    "require_actor_present_or_subject": "CHAR.HUA_TIEU_LAN",
+    "deny_if_unauthorized_pov": true,
+    "level_scope": "ANY",
+    "min_evidence": "CONFIRMED",
+    "any_scene_intent": [
+     "follower_combat"
+    ]
+   },
+   "priority": 70,
+   "review_status": "EXTRACTED_FROM_SOURCE",
+   "source": {
+    "document_id": "HUA_TIEU_LAN_CODEX",
+    "document": "Novel/Characters/HUA_TIEU_LAN_CODEX.md",
+    "anchor": "# VIII. Ultimate: BÁCH HOA NHẤT TIỄN",
+    "content_sha256": "967a91b638900c0d48699cb083c8547ad9539bf8656844f5d50b38b8525f190a",
+    "approved_revision": "R02",
+    "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+    "drive_file_id": "16BiJr87vNY66dAQg2adavBXGQYZEv6IV"
+   }
+  },
+  {
+   "id": "CHAR.HUA_TIEU_LAN.ENCOUNTER",
+   "schema_version": 2,
+   "universe_id": "BACKROOMS_MAIN",
+   "entity_id": "CHAR.HUA_TIEU_LAN",
+   "domain": "CHARACTER",
+   "kind": "canon-card",
+   "authority": "AUTHOR_APPROVED_SOURCE",
+   "mutability": "AUTHOR_ONLY",
+   "truth_status": "CONFIRMED",
+   "knowledge_visibility": "ACTOR_AWARE",
+   "spoiler_policy": "SHOW_IF_RELEVANT",
+   "text": "Gặp đầu Tiểu Lan: 5% mỗi Explorer action vật lý hợp lệ ở mọi Level/sublevel/AREA, vé d10000 [4500,4999], chung với Entity [0,3499], Catherine [3500,3999], Janet [4000,4499], Nam [5000,5499]. Không spawn status/meta/combat/pending. Kết quả Core commit mới đánh encountered, lệnh hủy không đánh dấu. Gặp không tự gia nhập; cần lời mời/đồng thuận, không ưu tiên spawn vì tình cảm.",
+   "tags": [
+    "follower_encounter"
+   ],
+   "affordances": [
+    "first_encounter_hua_tieu_lan"
+   ],
+   "references": [],
+   "activation": {
+    "require_actor_present_or_subject": "CHAR.HUA_TIEU_LAN",
+    "deny_if_unauthorized_pov": true,
+    "level_scope": "ANY",
+    "min_evidence": "CONFIRMED",
+    "any_scene_intent": [
+     "first_encounter_hua_tieu_lan"
+    ]
+   },
+   "priority": 70,
+   "review_status": "EXTRACTED_FROM_SOURCE",
+   "source": {
+    "document_id": "HUA_TIEU_LAN_CODEX",
+    "document": "Novel/Characters/HUA_TIEU_LAN_CODEX.md",
+    "anchor": "# IX. Encounter và tiến trình gia nhập",
+    "content_sha256": "967a91b638900c0d48699cb083c8547ad9539bf8656844f5d50b38b8525f190a",
+    "approved_revision": "R02",
+    "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+    "drive_file_id": "16BiJr87vNY66dAQg2adavBXGQYZEv6IV"
+   }
+  },
+  {
+   "id": "CHAR.HUA_TIEU_LAN.ASSETS",
+   "schema_version": 2,
+   "universe_id": "BACKROOMS_MAIN",
+   "entity_id": "CHAR.HUA_TIEU_LAN",
+   "domain": "CHARACTER",
+   "kind": "canon-card",
+   "authority": "AUTHOR_APPROVED_SOURCE",
+   "mutability": "AUTHOR_ONLY",
+   "truth_status": "CONFIRMED",
+   "knowledge_visibility": "RESTRICTED",
+   "spoiler_policy": "NEVER_SHOW",
+   "text": "Nguồn ảnh duy nhất 677.png; alpha WebP HuaTieuLan.webp, avatar HuaTieuLan_avatar.webp, bốn icon VP8 WebP 128×128 từ đúng ảnh. Codex R02 và ảnh đã trên Drive trước GitHub; không vẽ lại nhân vật.",
+   "tags": [
+    "follower_assets"
+   ],
+   "affordances": [
+    "follower_assets"
+   ],
+   "references": [],
+   "activation": {
+    "require_actor_present_or_subject": "CHAR.HUA_TIEU_LAN",
+    "deny_if_unauthorized_pov": true,
+    "level_scope": "ANY",
+    "min_evidence": "CONFIRMED",
+    "any_scene_intent": [
+     "follower_assets"
+    ]
+   },
+   "priority": 70,
+   "review_status": "EXTRACTED_FROM_SOURCE",
+   "source": {
+    "document_id": "HUA_TIEU_LAN_CODEX",
+    "document": "Novel/Characters/HUA_TIEU_LAN_CODEX.md",
+    "anchor": "# X. Tài nguyên",
+    "content_sha256": "967a91b638900c0d48699cb083c8547ad9539bf8656844f5d50b38b8525f190a",
+    "approved_revision": "R02",
+    "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+    "drive_file_id": "16BiJr87vNY66dAQg2adavBXGQYZEv6IV"
+   }
   }
  ],
  "recordCount": 66

@@ -160,19 +160,25 @@ data class GameState(
         ),
         AN_NHIEN_ID to AnNhienCanon.character(),
         LUC_TRAM_ID to SpecialFollowersCanon.lucTramCharacter(),
-        SYVIAL_ID to SpecialFollowersCanon.syvialCharacter()
+        SYVIAL_ID to SpecialFollowersCanon.syvialCharacter(),
+        NGUYEN_QUOC_NAM_ID to VietnameseFollowersCanon.character(NGUYEN_QUOC_NAM_ID),
+        HUA_TIEU_LAN_ID to VietnameseFollowersCanon.character(HUA_TIEU_LAN_ID)
       ),
       inventories = mapOf(
         CAO_MINH_ID to InventoryState(CAO_MINH_ID),
         AN_NHIEN_ID to AnNhienCanon.inventory(),
         LUC_TRAM_ID to InventoryState(LUC_TRAM_ID),
-        SYVIAL_ID to InventoryState(SYVIAL_ID)
+        SYVIAL_ID to InventoryState(SYVIAL_ID),
+        NGUYEN_QUOC_NAM_ID to InventoryState(NGUYEN_QUOC_NAM_ID),
+        HUA_TIEU_LAN_ID to InventoryState(HUA_TIEU_LAN_ID)
       ),
       equipment = mapOf(
         CAO_MINH_ID to EquipmentState(CAO_MINH_ID, CaoMinhStartingEquipment.slots),
         AN_NHIEN_ID to AnNhienCanon.equipment(),
         LUC_TRAM_ID to EquipmentState(LUC_TRAM_ID, SpecialFollowersCanon.lucTramEquipmentSlots),
-        SYVIAL_ID to EquipmentState(SYVIAL_ID, SpecialFollowersCanon.syvialEquipmentSlots)
+        SYVIAL_ID to EquipmentState(SYVIAL_ID, SpecialFollowersCanon.syvialEquipmentSlots),
+        NGUYEN_QUOC_NAM_ID to EquipmentState(NGUYEN_QUOC_NAM_ID, VietnameseFollowersCanon.startingLoadout(NGUYEN_QUOC_NAM_ID).mapKeys { it.key.key }),
+        HUA_TIEU_LAN_ID to EquipmentState(HUA_TIEU_LAN_ID, VietnameseFollowersCanon.startingLoadout(HUA_TIEU_LAN_ID).mapKeys { it.key.key })
       )
     ))
   }

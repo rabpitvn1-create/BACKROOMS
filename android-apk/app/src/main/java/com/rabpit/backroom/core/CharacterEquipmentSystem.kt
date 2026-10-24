@@ -4,7 +4,7 @@ const val LUC_TRAM_TICH_QUANG_SET_ID = "luc-tram:tich-quang"
 
 enum class EquipmentSlot(val key: String) {
   WEAPON("weapon"), ARMOR("armor"), HEAD("head"), GAUNTLETS("gauntlets"), GREAVES("greaves"),
-  RING("ring"), SPECIAL("special"), OUTFIT("outfit"), FOOTWEAR("footwear");
+  RING("ring"), SPECIAL("special"), OUTFIT("outfit"), FOOTWEAR("footwear"), WRIST("wrist");
 
   companion object {
     fun fromRaw(raw: String?): EquipmentSlot? {
@@ -15,6 +15,7 @@ enum class EquipmentSlot(val key: String) {
         "head", "mask", "helmet" -> HEAD
         "gauntlet", "gauntlets", "gloves" -> GAUNTLETS
         "greave", "greaves", "boots" -> GREAVES
+        "wrist", "watch", "bracelet", "bangle" -> WRIST
         "ring" -> RING
         "special" -> SPECIAL
         "outfit" -> OUTFIT
@@ -27,11 +28,18 @@ enum class EquipmentSlot(val key: String) {
 
 enum class ItemClassification { CANONICAL, SPECIAL_CHEAT, GENERAL }
 
-class EquipmentBonuses {
-  fun any() = false
-  override fun equals(other: Any?): Boolean = other is EquipmentBonuses
-  override fun hashCode(): Int = 0
-  override fun toString(): String = "EquipmentBonuses()"
+/** Percentage modifiers; AGI/DEX source labels map to Evasion/Accuracy, not retired stats. */
+data class EquipmentBonuses(
+  val defPercent: Int = 0,
+  val vitPercent: Int = 0,
+  val accuracyPercent: Int = 0,
+  val evasionPercent: Int = 0
+) {
+  fun any() = defPercent != 0 || vitPercent != 0 || accuracyPercent != 0 || evasionPercent != 0
+  operator fun plus(other: EquipmentBonuses) = EquipmentBonuses(
+    defPercent + other.defPercent, vitPercent + other.vitPercent,
+    accuracyPercent + other.accuracyPercent, evasionPercent + other.evasionPercent
+  )
 }
 
 data class WeaponGameplayStats(
@@ -66,7 +74,8 @@ data class EquipmentDefinition(
   val restrictions: List<String> = emptyList(),
   val classification: ItemClassification = ItemClassification.CANONICAL,
   val canonRef: String? = null,
-  val components: List<EquipmentComponent> = emptyList()
+  val components: List<EquipmentComponent> = emptyList(),
+  val iconRef: String? = null
 )
 
 object EquipmentCatalog {
@@ -170,7 +179,7 @@ object EquipmentCatalog {
     )
   )
 
-  private val definitions = all.associateBy { it.id }
+  private val definitions = (all + VietnameseFollowersCanon.definitions).associateBy { it.id }
 
   fun definition(itemId: String): EquipmentDefinition? = when (itemId) {
     LUC_TRAM_TICH_QUANG_ID -> definitions[LUC_TRAM_TICH_QUANG_SET_ID]
@@ -186,7 +195,7 @@ object EquipmentCatalog {
     LUC_TRAM_ID -> linkedMapOf(EquipmentSlot.WEAPON to LUC_TRAM_TICH_QUANG_SET_ID, EquipmentSlot.ARMOR to LUC_TRAM_KIEM_KHAI_ID)
     SYVIAL_ID -> linkedMapOf(EquipmentSlot.WEAPON to SYVIAL_GODKILLER_ID, EquipmentSlot.ARMOR to SYVIAL_LUCIFER_ARMOR_ID)
     AN_NHIEN_ID -> linkedMapOf(EquipmentSlot.OUTFIT to AN_NHIEN_OUTFIT_ID, EquipmentSlot.FOOTWEAR to AN_NHIEN_FOOTWEAR_ID)
-    else -> emptyMap()
+    else -> VietnameseFollowersCanon.startingLoadout(characterId)
   }
 
   fun stackFor(itemId: String): ItemStack {
@@ -211,6 +220,19 @@ object EquipmentCatalog {
 }
 
 object CharacterStatEngine {
+  fun equippedBonuses(state: GameState, characterId: String): EquipmentBonuses {
+    val character = state.characters[characterId] ?: return EquipmentBonuses()
+    val owned = state.inventories[character.inventoryId]?.items.orEmpty()
+    return state.equipment[character.equipmentId]?.slots.orEmpty().values.distinct()
+      .filter { (owned[it]?.quantity ?: 0) > 0 }
+      .mapNotNull { EquipmentCatalog.definition(it)?.bonuses }
+      .fold(EquipmentBonuses()) { total, bonus -> total + bonus }
+  }
+
+  fun attackAccuracy(state: GameState, characterId: String, baseChance: Int): Int =
+    CharacterStatCore.scaleByPercent(baseChance.coerceAtLeast(0),
+      100 + equippedBonuses(state, characterId).accuracyPercent).coerceIn(0, 99)
+
   fun effective(state: GameState, characterId: String): EffectiveCharacterStats =
     CharacterStatCore.effective(state, characterId)
 

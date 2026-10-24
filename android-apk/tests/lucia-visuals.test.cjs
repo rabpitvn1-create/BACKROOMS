@@ -10,14 +10,19 @@ const source = fs.readFileSync(path.join(root, 'app/src/main/assets/lucia-visual
 function fixture() {
   const box = {
     children: [], style: {},
-    querySelector() { return this.children.find(image => image.className === 'snapshot-lucia'); },
+    querySelector(selector) {
+      if(selector === '.snapshot-lucia') return this.children.find(image => image.className === 'snapshot-lucia');
+      const id = selector.match(/data-named-follower="([^"]+)"/);
+      return id && this.children.find(image => image.attributes && image.attributes['data-named-follower'] === id[1]);
+    },
+    querySelectorAll() { return this.children.filter(image => ['snapshot-lucia','snapshot-named-follower'].includes(image.className)); },
     appendChild(image) { this.children.push(image); },
     set textContent(_) { this.children = []; }
   };
   const document = {
     getElementById(id) { return id === 'snapshot' ? box : null; },
     createElement() {
-      const image = {style: {}};
+      const image = {style: {}, attributes: {}, setAttribute(k,v){this.attributes[k]=v}};
       image.remove = () => { box.children = box.children.filter(child => child !== image); };
       return image;
     }
@@ -25,6 +30,7 @@ function fixture() {
   const context = {window: {}, document, localStorage: {getItem() { return null; }}};
   vm.createContext(context);
   vm.runInContext(source, context);
+  vm.runInContext(fs.readFileSync(path.join(root, 'app/src/main/assets/named-follower-visuals.js'), 'utf8'), context);
   return {box, context, api: context.window.backroomLuciaVisuals};
 }
 

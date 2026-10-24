@@ -175,16 +175,17 @@ object CharacterStatCore {
 
   fun effective(state: GameState, characterId: String): EffectiveCharacterStats {
     val p = state.characters[characterId]?.statProfile ?: CharacterStatProfiles.forId(characterId)
+    val gear = CharacterStatEngine.equippedBonuses(state, characterId)
     val str = (p.str.coerceIn(5, 999) + passiveBonus(p.str, characterId)).coerceAtMost(CharacterProgressionCore.MAX_STAT)
-    val def = (p.def.coerceIn(5, 999) + passiveBonus(p.def, characterId)).coerceAtMost(CharacterProgressionCore.MAX_STAT)
+    val def = (scaleByPercent(p.def.coerceIn(5, 999), 100 + gear.defPercent) + passiveBonus(p.def, characterId)).coerceAtMost(CharacterProgressionCore.MAX_STAT)
     val skl = (p.skl.coerceIn(5, 999) + passiveBonus(p.skl, characterId)).coerceAtMost(CharacterProgressionCore.MAX_STAT)
-    val vit = (p.vit.coerceIn(5, 999) + passiveBonus(p.vit, characterId)).coerceAtMost(CharacterProgressionCore.MAX_STAT)
+    val vit = (scaleByPercent(p.vit.coerceIn(5, 999), 100 + gear.vitPercent) + passiveBonus(p.vit, characterId)).coerceAtMost(CharacterProgressionCore.MAX_STAT)
     val maxHp = scaleByPercent(CharacterProgressionCore.BASE_MAX_HP, CharacterProgressionCore.statPercent(vit))
     return EffectiveCharacterStats(
       maxHp = maxHp,
       str = str, def = def, skl = skl, vit = vit,
       criticalChancePercent = criticalChance(skl),
-      evasionPercent = evasion(vit),
+      evasionPercent = scaleByPercent(evasion(vit), 100 + gear.evasionPercent).coerceAtMost(35),
       resCriticalPercent = criticalResistance(def),
       resEvasionPercent = evasionResistance(skl),
       criticalDamagePercent = CRITICAL_DAMAGE_PERCENT,

@@ -244,7 +244,11 @@ class JsonCanonStore private constructor(
     internal fun actorIdForEntity(entityId: String): String? {
       val parts = entityId.split('.')
       if (parts.size < 2 || parts[0] != "CHAR") return null
-      return parts[1].lowercase().replace('_', '-')
+      return when (parts[1]) {
+        "NGUYEN_QUOC_NAM" -> "nguyen_quoc_nam"
+        "HUA_TIEU_LAN" -> "hua_tieu_lan"
+        else -> parts[1].lowercase().replace('_', '-')
+      }
     }
   }
 }

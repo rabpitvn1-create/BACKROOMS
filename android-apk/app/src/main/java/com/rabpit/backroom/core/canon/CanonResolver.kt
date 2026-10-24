@@ -69,6 +69,16 @@ class CanonResolver(private val store: CanonStore) {
       if (record.universeId != scene.universeId) {
         return GateVerdict.Deny("gate0: universe ${record.universeId} outside scene universe ${scene.universeId}")
       }
+      // Newly ingested named followers require confirmed scene presence and a selected
+      // category even when the player mentions their name. A name never opens a codex.
+      if (record.entityId in setOf("CHAR.NGUYEN_QUOC_NAM", "CHAR.HUA_TIEU_LAN")) {
+        val actor = actorIdForEntity(record.entityId)
+        if (actor !in scene.actorsPresent) return GateVerdict.Deny("named follower is not confirmed present")
+        val intents = record.activation.anySceneIntent
+        if (intents.isNotEmpty() && intents.none { it in scene.actionIntents }) {
+          return GateVerdict.Deny("named follower category is not selected for this action")
+        }
+      }
       val levelScope = record.activation.levelScope
       if (levelScope != CanonActivation.LEVEL_SCOPE_ANY && levelScope != scene.levelId) {
         return GateVerdict.Deny("gate0: level scope $levelScope outside current level ${scene.levelId}")
@@ -188,6 +198,13 @@ class CanonResolver(private val store: CanonStore) {
     scene.actorsPresent.forEach { actor ->
       val segment = idSegment(actor)
       candidateReasons["CHAR.$segment.RUNTIME_CORE"] = "present actor runtime core"
+      if (actor in setOf("nguyen_quoc_nam", "hua_tieu_lan")) {
+        candidateReasons["CHAR.$segment.LIMITS"] = "named follower capability limits"
+        if ("first_encounter_$actor" in scene.actionIntents) {
+          candidateReasons["CHAR.$segment.ENCOUNTER"] = "locked first encounter"
+          if (actor == "hua_tieu_lan") candidateReasons["CHAR.$segment.FIRST_ENCOUNTER"] = "locked first meeting address exception"
+        }
+      }
       if (actor != scene.povActorId) {
         candidateReasons["REL.$povSegment.$segment.BASELINE"] = "present relationship edge"
         candidateReasons["ADDR.$segment.$povSegment"] = "present address lock"
@@ -331,7 +348,7 @@ class CanonResolver(private val store: CanonStore) {
   private fun actorIdForEntity(entityId: String?): String? {
     val raw = entityId ?: return null
     if (!raw.startsWith("CHAR.")) return null
-    return raw.removePrefix("CHAR.").lowercase(Locale.ROOT).replace('_', '-')
+    return JsonCanonStore.actorIdForEntity(raw)
   }
 
   /**
