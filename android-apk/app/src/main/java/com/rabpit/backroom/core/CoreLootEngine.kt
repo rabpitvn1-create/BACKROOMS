@@ -20,7 +20,7 @@ object CoreLootEngine {
     ItemStack("medical:antiseptic", "Thuốc sát trùng", metadata = mapOf("consumable" to "true", "consumedOnUse" to "true")),
     ItemStack("almond-water", "Almond Water", metadata = mapOf("consumable" to "true", "physiologyEffect" to "WATER")),
     ItemStack("food-ration", "Hộp thức ăn", metadata = mapOf("consumable" to "true", "physiologyEffect" to "FOOD"))
-  )
+  ) + LootItemCatalog.droppable.map { it.stack() }
 
   fun isExplorationAction(action: String): Boolean {
     val words = action.trim().lowercase()
