@@ -21,6 +21,11 @@
       '. Chỉ chọn “Bắt đầu game mới” nếu bạn muốn thay thế dữ liệu đang lưu.';
     statusEl.textContent = message;
     submitEl.disabled = true;
+    // A cached browser label is not proof of Core identity after boot failed.
+    const place = document.getElementById('location');
+    if (place) place.textContent = 'Chưa xác định';
+    const heading = document.getElementById('title');
+    if (heading) heading.textContent = 'MAIN_BACKROOMS — Cao Minh';
   }
   function hideRecovery() {
     if (recovery) recovery.hidden = true;
@@ -70,7 +75,7 @@
     document.getElementById('level-travel-attempt').disabled = busy || Boolean(state.combat && state.combat.active);
     const image = document.getElementById('level-travel-background');
     if (image.getAttribute('src') !== state.levelBackground) image.src = state.levelBackground;
-    image.alt = state.title || 'Địa điểm hiện tại';
+    image.alt = state.displayTitle || 'Địa điểm chưa xác định';
     document.getElementById('level-travel-streak').textContent = 'Chuỗi thoát: ' + t.exitStreak + '/3 · Mỗi lần thử: 50%';
   }
   window.render = drawTravel;
