@@ -93,6 +93,14 @@ object CharacterDetailProjector {
       )
     }
     val details = inventory.map(::itemDetail)
+    // Canon owner gear is projected only under Equipment, not carried Inventory.
+    val carriedIds = inventory.filter {
+      InventoryCapacityPolicy.consumesSlot(normalized, characterId, it.itemId)
+    }.map { it.itemId }.toSet()
+    val carriedDetails = details.filter { it.id in carriedIds }
+    val equipmentDetails = details.filter {
+      it.equipped || InventoryCapacityPolicy.isOwnerCanon(characterId, it.id)
+    }
     val gear = CharacterStatEngine.equippedBonuses(normalized, characterId)
     fun statLine(raw: Int, value: Int, percent: Int = 0): StatLineProjection {
       val equipmentBonus = (CharacterStatCore.scaleByPercent(raw, 100 + percent) - raw)
@@ -121,10 +129,10 @@ object CharacterDetailProjector {
       criticalResistancePercent = effective.resCriticalPercent,
       evasionResistancePercent = effective.resEvasionPercent,
       injuries = c.injuries.toList(), physiology = PhysiologyStatusPolicy.derive(c.physiology),
-      inventory = inventory.toList(), inventoryDetails = details,
+      inventory = inventory.filter { it.itemId in carriedIds }, inventoryDetails = carriedDetails,
       inventoryCapacityUsed = InventoryCapacityPolicy.usedSlots(normalized, c.id),
       inventoryCapacityMax = InventoryCapacityPolicy.maxSlots(normalized, c.id),
-      equipment = equipment, equipmentDetails = details.filter { it.equipped },
+      equipment = equipment, equipmentDetails = equipmentDetails,
       passives = CompanionSkillCatalog.forCharacter(c.id).filter { it.kind == "PASSIVE" }.map { it.name },
       statusEffects = c.statusIds.mapNotNull(normalized.statuses::get)
     )
