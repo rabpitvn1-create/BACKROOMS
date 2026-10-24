@@ -37,6 +37,12 @@ public class MainActivity extends Activity {
   private final AtomicInteger latestSnapshotTurn = new AtomicInteger(0);
   private GameCoreFacade gameCore;
   private QuotaGovernor canonQuotaGovernor;
+
+  private GameCoreFacade requireGameCore() {
+    GameCoreFacade core = gameCore;
+    if (core == null) throw new IllegalStateException("Game State Core chưa khởi tạo.");
+    return core;
+  }
   private static final String GEMINI_MODEL = "gemini-3.6-flash";
   private static final String GEMINI_IMAGE_MODEL = "gemini-3.1-flash-image";
   private static final int[] RETRYABLE = {408, 429, 500, 502, 503, 504};
