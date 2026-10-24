@@ -167,7 +167,33 @@ class GameCoreFacade private constructor(
     if (!resolution.handled) return response(false, syncLegacy(legacy, current, false), "combat_unhandled", "combat_rejected")
     val completed = PokerDiceCore.clearDice(resolution.state)
     repository.save(completed)
-    val output = syncLegacy(legacy, completed, incrementTurn = true)
+    // Combat changes HP and the combat snapshot, not the already validated
+    // narrative inventory/party. The GM path is not yet wired into Core's
+    // candidate reducer; projecting all Core inventories here would erase
+    // unrelated objects/companions from the browser state.
+    val output = JSONObject(legacy.toString())
+    output.put("turn", legacy.optInt("turn", 1) + 1)
+    output.put("saveVersion", CURRENT_SAVE_VERSION)
+    val remainingCombat = CombatRuntime.toJson(completed)
+    if (remainingCombat == null) output.remove("combat") else {
+      PokerDiceCore.diceJson(completed)?.let { remainingCombat.put("diceState", it) }
+      output.put("combat", remainingCombat)
+    }
+    completed.characters[CAO_MINH_ID]?.let { caoMinh ->
+      val player = output.optJSONObject("player") ?: JSONObject()
+      player.put("hp", caoMinh.vitalState.currentHp)
+      output.put("player", player)
+      output.optJSONObject("partyDetails")?.optJSONArray("members")?.let { members ->
+        for (i in 0 until members.length()) {
+          val member = members.optJSONObject(i) ?: continue
+          if (member.optString("id") == CAO_MINH_ID) {
+            member.put("currentHp", caoMinh.vitalState.currentHp)
+            member.put("maxHp", CharacterStatEngine.effective(completed, CAO_MINH_ID).maxHp)
+          }
+        }
+      }
+    }
+    output.put("coreSystem", PokerDiceCore.statsJson(completed, CAO_MINH_ID))
     output.put("combatFeedback", JSONObject().apply {
       put("id", "${active.encounterId}:${active.eventCounter + 1}")
       put("encounterId", active.encounterId)
