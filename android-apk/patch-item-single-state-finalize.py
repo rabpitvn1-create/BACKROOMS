@@ -45,3 +45,6 @@ print("Single-state Item contract validated: no partial/empty variants, whole-un
 
 # The final loot gate must run after the one-state and Omnivault transformations.
 runpy.run_path(str(ROOT / "patch-core-loot-authority-finalize.py"), run_name="__main__")
+
+# Travel must remain authoritative after all generated bridge/reducer patches.
+runpy.run_path(str(ROOT / "patch-level-travel.py"), run_name="__main__")

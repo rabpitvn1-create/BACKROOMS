@@ -61,7 +61,8 @@ class LegacyJsonSceneResolver : SceneResolver {
     return SceneSnapshot(
       turnId = "TURN_$turn",
       gameStateRevision = turn,
-      levelId = "LEVEL.%02d".format(Locale.ROOT, currentLevel(state)),
+      levelId = state.optJSONObject("level")?.optString("canonScope")?.takeIf { it.isNotBlank() }
+        ?: "LEVEL.%02d".format(Locale.ROOT, currentLevel(state)),
       povActorId = CAO_MINH_ID,
       actorsPresent = actors,
       entityEncounters = encounters,
@@ -76,7 +77,8 @@ class LegacyJsonSceneResolver : SceneResolver {
       knownByByFact = resolveKnownBy(continuity),
       storyThreadsActive = resolveActiveThreads(continuity),
       rollsLocked = rollsResult.isSuccess && rolls.has("turn"),
-      isMeta = isMeta
+      isMeta = isMeta,
+      locationNodeId = state.optJSONObject("levelTravel")?.optString("nodeId")?.takeIf { it.isNotBlank() }
     )
   }
 

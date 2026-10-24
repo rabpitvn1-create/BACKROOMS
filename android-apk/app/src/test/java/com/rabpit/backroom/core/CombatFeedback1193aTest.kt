@@ -98,9 +98,11 @@ class CombatFeedback1193aTest {
 
   private fun facade(save: MemorySave): GameCoreFacade {
     val ctor = GameCoreFacade::class.java.getDeclaredConstructor(
-      SaveRepository::class.java, GamePipelineLogger::class.java)
+      SaveRepository::class.java, GamePipelineLogger::class.java, LevelTravelEngine::class.java)
     ctor.isAccessible = true
-    return ctor.newInstance(save, NoOpGamePipelineLogger)
+    val policyFile = listOf("src/main/assets/knowledge/level_travel_policy.json", "app/src/main/assets/knowledge/level_travel_policy.json", "android-apk/app/src/main/assets/knowledge/level_travel_policy.json")
+      .map { java.io.File(it) }.first { it.isFile }
+    return ctor.newInstance(save, NoOpGamePipelineLogger, LevelTravelEngine(LevelTravelPolicy(org.json.JSONObject(policyFile.readText()))))
   }
 
   @Test fun combatBridgeRequiresLockedDiceAndPreservesOtherNarrativeState() {

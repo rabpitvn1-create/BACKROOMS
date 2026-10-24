@@ -56,5 +56,6 @@ data class SceneSnapshot(
   val knownByByFact: Map<String, Set<String>>,
   val storyThreadsActive: Set<String>,
   val rollsLocked: Boolean,
-  val isMeta: Boolean
+  val isMeta: Boolean,
+  val locationNodeId: String? = null
 )

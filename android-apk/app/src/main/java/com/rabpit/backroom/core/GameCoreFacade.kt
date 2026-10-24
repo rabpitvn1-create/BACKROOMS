@@ -6,10 +6,117 @@ import org.json.JSONObject
 
 class GameCoreFacade private constructor(
   private val repository: SaveRepository,
-  private val logger: GamePipelineLogger
+  private val logger: GamePipelineLogger,
+  private val levelEngine: LevelTravelEngine
 ) : AutoCloseable {
   private val rules = RuleIntentInterpreter()
   private val resolver = CommandResolver()
+
+  /** Only the explicit New Game path may draw a starting Level. No old-save conversion. */
+  @Synchronized fun initializeLevelGame(legacyStateJson: String, fresh: Boolean): String {
+    val legacy = JSONObject(legacyStateJson)
+    var core = if (fresh) levelEngine.start(GameState.initial().copy(world = mapOf(
+      "flagsJson" to (legacy.optJSONObject("flags") ?: JSONObject()).toString()
+    ))) else {
+      val snapshot = legacy.getJSONObject("coreSnapshot")
+      require(snapshot.getInt("saveVersion") == CURRENT_SAVE_VERSION) { "save_version_unsupported" }
+      val saved = GameStateCodec.decode(snapshot).also { LevelTravelEngine.read(it) }
+      val persisted = if (repository.exists()) repository.load() else null
+      if (persisted != null && persisted.world[LevelTravelEngine.KEY] != null &&
+        LevelTravelEngine.read(persisted).getString("runId") == LevelTravelEngine.read(saved).getString("runId") &&
+        (persisted.world["levelTravelUiTurn"]?.toIntOrNull() ?: 1) >= (saved.world["levelTravelUiTurn"]?.toIntOrNull() ?: 1)) persisted else saved
+    }
+    val recovered = core.world["levelTravelUi"]?.let(::JSONObject) ?: legacy
+    val output = LevelTravelEngine.project(core, if (fresh) legacy else recovered)
+    output.put("turn", core.world["levelTravelUiTurn"]?.toIntOrNull() ?: 1)
+    if (fresh) {
+      output.put("turn", 1)
+      output.put("log", JSONArray().put(JSONObject().put("role", "gm").put("text",
+        "Cao Minh xuất hiện tại " + output.getString("location") + ". Liên lạc với Lục Trầm và Syvial vẫn gián đoạn.")))
+    }
+    output.remove("coreSnapshot")
+    core = core.copy(world = core.world + ("levelTravelUi" to output.toString()))
+    repository.save(core)
+    output.put("coreSnapshot", JSONObject(GameStateCodec.encode(core)))
+    return output.toString()
+  }
+
+  /** App startup resumes the committed Core even if the WebView autosave never completed. */
+  @Synchronized fun resumeLevelGame(legacyStateJson: String, hasBrowserSave: Boolean): String {
+    if (repository.exists()) {
+      val core = repository.load()
+      if (LevelTravelEngine.KEY in core.world) {
+        val legacy = core.world["levelTravelUi"]?.let(::JSONObject) ?: JSONObject(legacyStateJson)
+        val output = LevelTravelEngine.project(core, legacy)
+        output.put("turn", core.world["levelTravelUiTurn"]?.toIntOrNull() ?: 1)
+          .put("coreSnapshot", JSONObject(GameStateCodec.encode(core)))
+        return output.toString()
+      }
+      error("save_version_unsupported")
+    }
+    return initializeLevelGame(legacyStateJson, !hasBrowserSave)
+  }
+
+  /** Runs before ALL local/GM action handlers; a valid exit is fully resolved locally. */
+  @Synchronized fun processLevelAction(legacyStateJson: String, action: String): String {
+    val legacy = JSONObject(legacyStateJson)
+    val current = repository.load()
+    val expected = legacy.getJSONObject(LevelTravelEngine.KEY)
+    check(LevelTravelEngine.read(current).getString("runId") == expected.getString("runId")) { "stale_game_run" }
+    if (!LevelTravelEngine.isExitAction(action)) {
+      check(legacy.getInt("turn") == (current.world["levelTravelUiTurn"]?.toIntOrNull() ?: 1)) { "stale_level_turn" }
+      return response(false, LevelTravelEngine.project(current, legacy).apply { remove("exitResult") }, null, "not_exit_action")
+    }
+    return try {
+      val runId = legacy.getJSONObject(LevelTravelEngine.KEY).getString("runId")
+      val turn = legacy.getInt("turn")
+      val outcome = levelEngine.attempt(current, runId, turn, action)
+      if (outcome.state == current) {
+        val latest = LevelTravelEngine.project(current, current.world["levelTravelUi"]?.let(::JSONObject) ?: legacy)
+        latest.put("turn", current.world["levelTravelUiTurn"]?.toIntOrNull() ?: turn + 1)
+        latest.put("exitResult", outcome.receipt).put("coreSnapshot", JSONObject(GameStateCodec.encode(current)))
+        return response(true, latest, null, "core_exit_duplicate")
+      }
+      val output = LevelTravelEngine.project(outcome.state, legacy)
+      output.put("turn", turn + 1).put("exitResult", outcome.receipt)
+      output.put("flags", JSONObject(outcome.state.world["flagsJson"] ?: "{}"))
+      val r = outcome.receipt
+      val reply = when {
+        r.getBoolean("completed") -> "Thoát thành công 3/3. Cao Minh tới " + output.getString("location") + ". Chuỗi thoát mới: 0/3."
+        r.getBoolean("success") -> "Lần thử thoát thành công: " + r.getInt("streak") + "/3. Cao Minh vẫn ở địa điểm hiện tại."
+        else -> "Lần thử thoát thất bại. Chuỗi trở về 0/3; Cao Minh vẫn ở địa điểm hiện tại."
+      }
+      appendLog(output, action, reply)
+      output.remove("coreSnapshot")
+      val committed = outcome.state.copy(world = outcome.state.world + ("levelTravelUi" to output.toString()))
+      if (outcome.state != current) repository.save(committed)
+      output.put("coreSnapshot", JSONObject(GameStateCodec.encode(if (outcome.state != current) committed else current)))
+      response(true, output, null, "core_exit_committed", reply)
+    } catch (error: Exception) {
+      // Never route a rejected/failed exit to the GM to invent a different result.
+      throw IllegalStateException(error.message ?: "exit_transaction_failed", error)
+    }
+  }
+
+  /** Persist validated local movement; the GM never owns Level identity or streak. */
+  @Synchronized fun finishLevelTurn(beforeJson: String, candidateJson: String, action: String): String {
+    val current = repository.load()
+    val before = JSONObject(beforeJson)
+    val travel = LevelTravelEngine.read(current)
+    val expected = before.getJSONObject(LevelTravelEngine.KEY)
+    check(travel.getString("runId") == expected.getString("runId") &&
+      travel.getInt("revision") == expected.getInt("revision") &&
+      before.getInt("turn") == (current.world["levelTravelUiTurn"]?.toIntOrNull() ?: 1)) { "stale_level_turn" }
+    val candidate = LevelTravelEngine.protectCandidate(current, JSONObject(candidateJson), action)
+    candidate.remove("coreSnapshot")
+    val next = current.copy(world = current.world + mapOf(
+      "location" to candidate.getString("location"), "flagsJson" to candidate.getJSONObject("flags").toString(),
+      "levelTravelUiTurn" to candidate.getInt("turn").toString(), "levelTravelUi" to candidate.toString()
+    ))
+    repository.save(next)
+    candidate.put("coreSnapshot", JSONObject(GameStateCodec.encode(next)))
+    return candidate.toString()
+  }
 
   /** Fast deterministic pass. Gemini is never called from this method. */
   fun processRule(legacyStateJson: String, action: String): String {
@@ -262,7 +369,7 @@ class GameCoreFacade private constructor(
    */
   fun processValidatedCandidate(beforeJson: String, candidateJson: String, action: String): String {
     val before = JSONObject(beforeJson)
-    val candidate = JSONObject(candidateJson)
+    val candidate = LevelTravelEngine.protectCandidate(loadOrMigrate(before), JSONObject(candidateJson), action)
     val core = loadOrMigrate(before)
     val turnId = nextTurnId(before, core)
     val pending = TurnCoordinator.createPending(core, turnId, action)
@@ -442,6 +549,11 @@ class GameCoreFacade private constructor(
     state.world["title"]?.let { output.put("title", it) }
     state.world["levelJson"]?.let { output.put("level", JSONObject(it)) }
     state.world["flagsJson"]?.let { output.put("flags", JSONObject(it)) }
+    if (LevelTravelEngine.KEY in state.world) {
+      val projected = LevelTravelEngine.project(state, output)
+      projected.keys().forEach { output.put(it, projected.get(it)) }
+      output.put("coreSnapshot", JSONObject(GameStateCodec.encode(state)))
+    }
     state.metadata["legacyPlayerJson"]?.let { output.put("player", JSONObject(it)) }
     return output
   }
@@ -486,7 +598,8 @@ class GameCoreFacade private constructor(
 
   companion object {
     @JvmStatic fun create(context: Context, debugLogging: Boolean = false): GameCoreFacade = GameCoreFacade(
-      SharedPreferencesSaveRepository(context.applicationContext), AndroidGamePipelineLogger(debugLogging)
+      SharedPreferencesSaveRepository(context.applicationContext), AndroidGamePipelineLogger(debugLogging),
+      LevelTravelEngine(LevelTravelPolicy(JSONObject(context.assets.open("knowledge/level_travel_policy.json").bufferedReader().use { it.readText() })))
     )
   }
 }

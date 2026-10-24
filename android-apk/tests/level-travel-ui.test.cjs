@@ -1,0 +1,74 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const path = require('node:path');
+const ui = fs.readFileSync(path.join(__dirname, '../app/src/main/assets/level-travel.js'), 'utf8');
+const storage = new Map();
+let starts = 0;
+let core;
+let latest;
+let submissions = 0;
+const native = {
+  initializeLevelGame(raw, fresh) {
+    const input = JSON.parse(raw);
+    if (fresh) {
+      starts++;
+      core = { world: { levelTravel: { runId: 'run-' + starts, exitStreak: 0 } } };
+      latest = { ...input, levelTravel: core.world.levelTravel, coreSnapshot: core,
+        title: 'Level ' + starts, levelBackground: 'https://res.cloudinary.com/test/' + starts };
+      return JSON.stringify(latest);
+    }
+    if (!input.coreSnapshot) throw Error('unsupported save');
+    core = input.coreSnapshot;
+    return raw;
+  },
+  resumeLevelGame(raw, hasBrowserSave) {
+    if (core) return JSON.stringify(latest);
+    return this.initializeLevelGame(raw, !hasBrowserSave);
+  },
+  levelCoreSnapshot() { return JSON.stringify(core); }
+};
+function boot() {
+  const elements = new Map();
+  function element() {
+    const e = { style: {}, textContent: '', disabled: false, append() {}, before() {}, prepend() {},
+      getAttribute(name) { return this[name]; } };
+    Object.defineProperty(e, 'id', { set(value) { elements.set(value, this); }, get() { return [...elements].find(([, v]) => v === this)?.[0]; } });
+    return e;
+  }
+  elements.set('snapshot', element());
+  const context = { Android: native, confirm: () => true,
+    document: { getElementById: id => elements.get(id), createElement: element, body: element() },
+    localStorage: { getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value), removeItem: key => storage.delete(key) },
+    submitEl: element(), statusEl: element(), actionEl: element(),
+    formEl: { requestSubmit() { submissions++; } } };
+  context.window = context;
+  vm.createContext(context);
+  vm.runInContext('const initial={turn:1}; let state={turn:1}; let busy=false; function render(){};', context);
+  vm.runInContext(ui, context);
+  return context;
+}
+const first = boot();
+assert.equal(starts, 1, 'first game must be initialized once');
+for (let i = 0; i < 100; i++) first.render();
+first.save();
+assert.equal(starts, 1, 'render/save cannot initialize another game');
+first.load();
+assert.equal(starts, 1, 'load cannot reroll');
+first.document.getElementById('level-travel-attempt').onclick();
+assert.equal(first.actionEl.value, 'Thử thoát Level');
+assert.equal(submissions, 1);
+const reopened = boot();
+assert.equal(starts, 1, 'reopen must load the current save');
+reopened.resetGame();
+assert.equal(starts, 2, 'explicit reset creates one new game');
+assert.equal(reopened.submitEl.disabled, false);
+core = null;
+storage.set('backroom-apk-state', JSON.stringify({turn:1}));
+const invalid = boot();
+assert.equal(starts, 2, 'unsupported old save must not silently start or reroll');
+assert.equal(invalid.submitEl.disabled, true);
+invalid.resetGame();
+assert.equal(starts, 3);
+assert.equal(invalid.submitEl.disabled, false, 'reset must recover from a rejected save');
+console.log('PASS: startup, 100 renders, save/load, reopen, exit button, reset and rejected-save recovery');

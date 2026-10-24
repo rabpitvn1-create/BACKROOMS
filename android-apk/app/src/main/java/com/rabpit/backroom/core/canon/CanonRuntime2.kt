@@ -1,5 +1,6 @@
 package com.rabpit.backroom.core.canon
 
+import org.json.JSONObject
 import android.content.Context
 import android.util.Log
 
@@ -74,13 +75,14 @@ object CanonRuntime2 {
     rollsJson: String,
     isMeta: Boolean
   ): CanonOutcome {
-    if (!CanonRuntime2Flags.isEnabled(context)) {
+    if (!CanonRuntime2Flags.isEnabled(context) && !JSONObject(stateJson).has("levelTravel")) {
       return CanonOutcome.FallbackToLegacy(REASON_DISABLED)
     }
     val store = try {
       storeFor(context)
     } catch (e: Exception) {
-      return CanonOutcome.FallbackToLegacy("$REASON_STORE_UNAVAILABLE:${e.javaClass.simpleName}")
+      return if (JSONObject(stateJson).has("levelTravel")) CanonOutcome.SafeLocalResolution("$REASON_STORE_UNAVAILABLE:${e.javaClass.simpleName}", emptyList())
+      else CanonOutcome.FallbackToLegacy("$REASON_STORE_UNAVAILABLE:${e.javaClass.simpleName}")
     }
     return try {
       val snapshot = store.snapshot()
@@ -99,10 +101,12 @@ object CanonRuntime2 {
             emptyList()
           )
         is ContextPacketResult.PackError ->
-          CanonOutcome.FallbackToLegacy("$REASON_PACK_ERROR:${result.message}")
+          if (JSONObject(stateJson).has("levelTravel")) CanonOutcome.SafeLocalResolution("$REASON_PACK_ERROR:${result.message}", emptyList())
+          else CanonOutcome.FallbackToLegacy("$REASON_PACK_ERROR:${result.message}")
       }
     } catch (e: Exception) {
-      CanonOutcome.FallbackToLegacy("$REASON_INTERNAL_ERROR:${e.javaClass.simpleName}")
+      if (JSONObject(stateJson).has("levelTravel")) CanonOutcome.SafeLocalResolution("$REASON_INTERNAL_ERROR:${e.javaClass.simpleName}", emptyList())
+      else CanonOutcome.FallbackToLegacy("$REASON_INTERNAL_ERROR:${e.javaClass.simpleName}")
     }
   }
 

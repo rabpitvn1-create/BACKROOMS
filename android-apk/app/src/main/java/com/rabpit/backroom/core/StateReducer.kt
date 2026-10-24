@@ -60,11 +60,15 @@ object StateReducer {
           if (current.has("worldItems")) proposed.put("worldItems", current.getJSONArray("worldItems"))
           proposed.toString()
         }
+        // LEVEL_TRAVEL_REDUCER_AUTHORITY: validation is not permission to teleport.
+        val spatial = if (LevelTravelEngine.KEY in state.world) LevelTravelEngine.protectCandidate(state,
+          JSONObject().put("location", command.location ?: state.world["location"])
+            .put("flags", JSONObject(protectedFlags ?: "{}")), state.turn.pending?.input.orEmpty()) else null
         val worldPatch = mapOfNotNull(
-          "location" to command.location,
-          "title" to command.title,
-          "levelJson" to command.levelJson,
-          "flagsJson" to protectedFlags
+          "location" to (spatial?.getString("location") ?: command.location),
+          "title" to (spatial?.getString("title") ?: command.title),
+          "levelJson" to (spatial?.getJSONObject("level")?.toString() ?: command.levelJson),
+          "flagsJson" to (spatial?.getJSONObject("flags")?.toString() ?: protectedFlags)
         )
         val metadataPatch = mapOfNotNull("legacyPlayerJson" to command.playerJson)
         changed(state.copy(world = state.world + worldPatch, metadata = state.metadata + metadataPatch), "validated_world_state")

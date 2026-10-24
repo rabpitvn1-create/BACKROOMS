@@ -232,6 +232,7 @@ class ContextCompiler {
    */
   private fun sceneSection(scene: SceneSnapshot): String = buildString {
     appendLine("Turn=${scene.turnId} | Level=${scene.levelId} | POV=${scene.povActorId}")
+    scene.locationNodeId?.let { appendLine("Location node=$it") }
     appendLine("Actors=${scene.actorsPresent.joinToString(", ")}")
     val confirmed = scene.entityEncounters
       .filter { it.status == EncounterStatus.CONFIRMED_PRESENT }

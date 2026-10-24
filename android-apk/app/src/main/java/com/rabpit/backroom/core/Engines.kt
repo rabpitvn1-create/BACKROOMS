@@ -114,7 +114,8 @@ object InventoryEngine {
 }
 
 object PartyEngine {
-  fun execute(state: GameState, command: PartyCommand): ExecutionResult = when (command.operation) {
+  fun execute(state: GameState, command: PartyCommand): ExecutionResult {
+    return when (command.operation) {
     PartyCommand.Operation.ADD -> {
       if (!state.characters.containsKey(command.targetId)) return invalid(state, "target_unknown")
       if (!command.targetPresent) return invalid(state, "target_not_present")
@@ -140,6 +141,7 @@ object PartyEngine {
       changed(state.copy(characters = state.characters + (command.targetId to character.copy(presence = CharacterPresence.SEPARATED))), "party_member_separated")
     }
     PartyCommand.Operation.FOLLOW, PartyCommand.Operation.QUERY -> ExecutionResult(state, applied = false)
+    }
   }
 }
 

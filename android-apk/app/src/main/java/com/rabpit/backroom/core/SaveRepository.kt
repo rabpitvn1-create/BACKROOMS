@@ -13,7 +13,7 @@ class SharedPreferencesSaveRepository(context: Context) : SaveRepository {
   private val preferences = context.getSharedPreferences("backroom_game_state_core", Context.MODE_PRIVATE)
 
   @Synchronized override fun save(state: GameState) {
-    preferences.edit().putString(KEY_STATE, GameStateCodec.encode(state)).commit()
+    check(preferences.edit().putString(KEY_STATE, GameStateCodec.encode(state)).commit()) { "core_save_failed" }
   }
 
   @Synchronized override fun load(): GameState {
