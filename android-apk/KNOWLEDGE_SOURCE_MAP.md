@@ -175,3 +175,15 @@ The required Drive save files are currently absent from the Drive folder, so the
 The current build-time runtime is patch-generated. `patch-ai-orchestrator.py` extracts broad string sections from `drive-canon.txt` and `kai-codex.txt` (file names unchanged in this pass; `kai-codex.txt` content is now the Cao Minh operational codex and the former gun-skills addendum file now carries Cao Minh's automatic sword skills — file renames are a separate follow-up); `compactStateForPrompt` copies most legacy state and retains six recent log entries; routing uses keyword helpers such as dialogue/combat/item/entity plus limited presence checks. `patch-conditional-audit.py` already skips the AI critic below a risk threshold, but critic calls duplicate a broad canon/state slice.
 
 Those files are not a canon source for the new database. They are retained only as OLD-system input for benchmark comparison.
+
+---
+
+## Addendum 2026-10-24 — Drive snapshot (Gate 1 completion, PR #668)
+
+Toàn bộ tài liệu nguồn còn tồn tại trên Google Drive đã được snapshot vào `android-apk/canon_sources/` kèm SHA-256 trong `canon_source_manifest.json` (manifest v2). Các thay đổi so với bản đồ gốc:
+
+- Thư mục nguồn trên Drive hiện tại là `Novel/Rules` (tương ứng `00_RULES/*` trong bản đồ) và `Novel/Asset/01_Character | 02_Level | 03_Entity`. `01_WORLD/entity.md` nay là `Asset/03_Entity/Entity.md` (kiểm chứng bằng nội dung); `01_WORLD/world.md`/`level.md` được thay bằng `Asset/02_Level/BACKROOMS_WORLD.md` ở cấp thư viện (một số anchor level cũ — Level 4, Level 6, Parking Zone — không còn xuất hiện trong tài liệu hiện hành, đã đánh dấu `ANCHOR_UNVERIFIED`).
+- **Không còn trên Drive**: `05_TextGame/RULES/TEXT_GAME_RULES.md`, `05_TextGame/RULES/GAME_MASTER_RULES.md`, `05_TextGame/STORY/MAIN_STORY.md`, `01_WORLD/items.md` (thư mục TextGame/RULES và TextGame/STORY trống). Các record phụ thuộc giữ `PENDING_SOURCE_SNAPSHOT` với lý do tường minh; 3 hàng `STORY.MAIN.PREMISE`, `STORY.MAIN.COMMS_INITIAL`, `STORY.MAIN.SYVIAL_EXISTENCE` chưa tạo được record.
+- Đã tạo 11 record còn thiếu từ nguồn thật; DB hiện 66 record (65 CONFIRMED / 1 UNKNOWN).
+- 3 Google Doc chưa snapshot được vì connector Google Docs chưa kết nối: `DIEP_MINH_CODEX`, `HE_THONG_CANH_GIOI_TU_LUYEN_CANON`, `CANON_REGISTRY_R01`.
+- Canon mới chưa ingest thành record: `Asset/03_Entity/NEW_ENTITIES_CODEX_R01.md`, codex Lucia/Trác Lâm/Diệp Minh — chờ chỉ đạo của tác giả.

@@ -30,7 +30,7 @@ Năm thành phần:
    (`truth_status`), phạm vi tri thức (`knowledge_visibility`), điều kiện kích hoạt,
    cạnh quan hệ (`references`) và nguồn (`source.document/anchor/hash`).
    Dữ liệu hiện hành: `app/src/main/assets/knowledge/knowledge_db.json`
-   (schemaVersion 2, 55 record).
+   (schemaVersion 2, 66 record — 55 gốc + 11 bổ sung từ snapshot Drive 2026-10-24).
 2. **Scene-first Resolver** — đầu vào là `SceneSnapshot` chuẩn hoá từ Game State
    (Level, actor hiện diện, entity đã xác nhận, intent, vật trong focus), **không**
    phải câu chữ tự do của người chơi. Truy xuất đi qua các cổng theo thứ tự:
@@ -138,7 +138,7 @@ thật sự chưa snapshot được, kèm `review_status = "PENDING_SOURCE_SNAPS
 ### Ba điều cấm khi thêm Canon
 
 - **Cấm bịa provenance**: không có hash/anchor giả. Chưa có snapshot thì để null +
-  cờ chờ, như 40/55 record hiện tại đang làm (xem baseline report mục provenance).
+  cờ chờ (sau snapshot 2026-10-24 chỉ còn 7/66 record chờ vì tài liệu gốc không còn trên Drive — xem `canon_source_manifest.json` mục `missing_sources`).
 - **Cấm UNKNOWN promotion**: record `UNKNOWN` (hiện có đúng 1:
   `REL.LUC_TRAM.SYVIAL.BASELINE`) không bao giờ được viết lại thành khẳng định canon,
   không được dùng làm căn cứ suy ra record CONFIRMED khác.
@@ -150,7 +150,7 @@ thật sự chưa snapshot được, kèm `review_status = "PENDING_SOURCE_SNAPS
 | Gate | Trạng thái | Sản phẩm / nơi xem |
 |---|---|---|
 | 0 — Audit & baseline | ✅ Xong | `CANON_BASELINE_REPORT.md` (execution-path map, 12 mục không được phá) |
-| 1 — Ingest nguồn thật + manifest | ✅ Xong | `knowledge_db.json` v2 (55 record, 54 CONFIRMED / 1 UNKNOWN, 100% record có provenance hoặc cờ chờ snapshot tường minh), `canon_source_manifest.json` (22 nguồn) |
+| 1 — Ingest nguồn thật + manifest | ✅ Xong + snapshot Drive đầy đủ (2026-10-24) | `knowledge_db.json` v2 (**66 record**, 65 CONFIRMED / 1 UNKNOWN), `canon_sources/` (24 tài liệu, SHA-256 khớp Drive), `canon_source_manifest.json` v2 (24 nguồn + 3 Google Doc chờ kết nối + 4 nguồn NOT_FOUND_ON_DRIVE giữ nguyên trạng thái chờ, không thay thế). 56/66 record có `content_sha256` từ tài liệu nguồn chính; 11 record mới tạo từ nguồn thật (CHAR.CAO_MINH.IDENTITY, CHAR.LUC_TRAM.COMBAT, CHAR.LUC_TRAM.UNKNOWN, STORY.MAIN.LUC_TRAM_EXISTENCE, WRITING.ADDRESS/PROSE_POV/VIVID_VERBS/HORROR/INTIMACY/DIALOGUE_BENCHMARK/GUIDE_SUPPLEMENT). 3 hàng Source Map còn thiếu vì MAIN_STORY.md không còn trên Drive: STORY.MAIN.PREMISE, STORY.MAIN.COMMS_INITIAL, STORY.MAIN.SYVIAL_EXISTENCE |
 | 2 — CanonStore v2 + indexed lookup | ✅ Code đã có (chưa compile bằng toolchain thật) | Package `core/canon` (`CanonStore`, `JsonCanonStore`), sau feature flag `CANON_RUNTIME_2_ENABLED` (đã vào `app/build.gradle`, mặc định OFF) |
 | 3 — SceneResolver + CanonResolver + ContextCompiler | ✅ Code đã có (chưa compile bằng toolchain thật) | `SceneResolver`/`LegacyJsonSceneResolver`, `CanonResolver`, `ContextCompiler` + facade `CanonRuntime2`/`CanonOutcome` trong package `core/canon`; wiring vào `submitTurn` qua `patch-canon-runtime-2.py` (đã kiểm chứng áp sạch + idempotent trên bản sao) |
 | 4 — Durable Story Memory + deterministic guards | ⏳ Chưa làm | Mở rộng `StoryContinuityReducer`, giữ nguyên hợp đồng hiện hữu |
