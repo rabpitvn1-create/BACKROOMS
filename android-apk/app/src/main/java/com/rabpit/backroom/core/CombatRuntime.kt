@@ -139,6 +139,7 @@ object CombatRuntime {
     var c = current.copy(eventCounter = current.eventCounter + 1)
     val log = mutableListOf<String>()
     val feedback = mutableListOf<DamageFeedback>()
+    var resolvedState = state
 
     when (intent) {
       Intent.READ -> {
@@ -219,13 +220,19 @@ object CombatRuntime {
       }
     }
 
+    val followers = VietnameseFollowerCombat.beforeEnemyResponse(resolvedState, c, profile, intent, actionKind, action)
+    resolvedState = followers.state
+    c = followers.combat
+    log += followers.log
+    feedback += followers.feedback
+
     if (c.entityHp <= 0) {
-      val persisted = encode(state, c.copy(phase = Phase.RESOLVED, entityCondition = EntityCondition.DESTROYED))
+      val persisted = encode(resolvedState, c.copy(phase = Phase.RESOLVED, entityCondition = EntityCondition.DESTROYED))
       val cleared = clearCombatOnly(persisted)
       return Resolution(cleared, true, log.joinToString(" ") + " ${c.entityName} đã bị tiêu diệt.", entityDestroyed = true, feedback = feedback.toList())
     }
     if (c.escapeProgress >= 100) {
-      val persisted = encode(state, c.copy(phase = Phase.RESOLVED))
+      val persisted = encode(resolvedState, c.copy(phase = Phase.RESOLVED))
       val cleared = clearCombatOnly(persisted)
       return Resolution(cleared, true, log.joinToString(" ") + " Cao Minh cắt được truy đuổi và thoát khỏi encounter.", escaped = true, feedback = feedback.toList())
     }
@@ -236,7 +243,7 @@ object CombatRuntime {
       when (c.cover) { Cover.HARD -> 22; Cover.PARTIAL -> 10; Cover.EXPOSED -> 0 } + max(0, c.momentum) * 4 +
       PokerDiceCore.defenseBonus(state)
     val playerEvasion = CharacterStatEngine.effective(state, CAO_MINH_ID).evasionPercent
-    val enemyChance = (profile.aggression * 8 - defense + max(0, -c.momentum) * 7 - playerEvasion).coerceIn(0, 88)
+    val enemyChance = (profile.aggression * 8 - defense + max(0, -c.momentum) * 7 - playerEvasion - followers.enemyAccuracyPenalty).coerceIn(0, 88)
     if (incomingRoll < enemyChance) {
       val effective = CharacterStatEngine.effective(state, CAO_MINH_ID)
       val rawDamage = max(1, profile.attack + roll(c.copy(eventCounter = c.eventCounter + 47), 7) -
@@ -249,6 +256,15 @@ object CombatRuntime {
       log += "${c.entityName} phản công: Cao Minh -$damage HP (${c.playerHp}/${c.playerMaxHp})."
     } else {
       log += "${c.entityName} không xuyên được thế phòng thủ/di chuyển của Cao Minh."
+      val counter = VietnameseFollowerCombat.afterEnemyMiss(resolvedState, c, profile)
+      c = counter.combat
+      log += counter.log
+      feedback += counter.feedback
+      if (c.entityHp <= 0) {
+        val persisted = encode(resolvedState, c.copy(phase = Phase.RESOLVED, entityCondition = EntityCondition.DESTROYED))
+        return Resolution(clearCombatOnly(persisted), true,
+          log.joinToString(" ") + " ${c.entityName} đã bị tiêu diệt.", entityDestroyed = true, feedback = feedback.toList())
+      }
     }
 
     c = c.copy(
@@ -256,7 +272,7 @@ object CombatRuntime {
       telegraphRevealed = false,
       opening = max(0, c.opening - if (intent == Intent.READ) 0 else 1)
     )
-    val next = encode(state, c)
+    val next = encode(resolvedState, c)
     return Resolution(next, true, log.joinToString(" "), feedback = feedback.toList())
   }
 
@@ -337,6 +353,12 @@ object CombatRuntime {
 
   private fun classify(actionKind: String, raw: String): Intent {
     val text = raw.lowercase()
+    when (actionKind.uppercase(java.util.Locale.ROOT)) {
+      "PARTY_ATTACK" -> return Intent.ATTACK
+      "PARTY_GUARD" -> return Intent.GUARD
+      "PARTY_EVADE" -> return Intent.EVADE
+      "PARTY_READ" -> return Intent.READ
+    }
     if (containsAny(text, "bắn", "đánh", "chém", "đâm", "tấn công", "shoot", "attack", "fire")) return Intent.ATTACK
     if (containsAny(text, "né", "lách", "dodge", "evade", "tránh")) return Intent.EVADE
     if (containsAny(text, "chạy thoát", "bỏ chạy", "thoát", "escape", "flee")) return Intent.ESCAPE

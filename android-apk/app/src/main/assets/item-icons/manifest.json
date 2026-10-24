@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "icons": {
+    "nam:corridor-pistol": {
+      "path": "item-icons/nam-pistol.webp",
+      "sha256": "44c6732ed47ad033d42a7aac44f7947f0e035b85b667748c1689eca69a9eb54f"
+    },
+    "nam:lecturer-shirt": {
+      "path": "item-icons/nam-shirt.webp",
+      "sha256": "40eaa1f50f34c1866c719d9cef876bbd4171a93a8af35166fc57aab10c9054d3"
+    },
+    "nam:promise-watch": {
+      "path": "item-icons/nam-watch.webp",
+      "sha256": "69ef83e32c5dda86617ab5511f6455b1c5ca5483a75abebb5deee9e9dba838f0"
+    },
+    "nam:corridor-shoes": {
+      "path": "item-icons/nam-shoes.webp",
+      "sha256": "dc6f8e68dae9520c3d3821441cff6162e09159eb797f6cbaaa4c754497282832"
+    },
+    "tieu-lan:truong-xuan": {
+      "path": "item-icons/tieu-lan-rifle.webp",
+      "sha256": "c175d28e3af6a5ce1eaabbd2d1fd5b8d0a5704f05cb8a16ea7970c0fe7492d56"
+    },
+    "tieu-lan:lam-cuc-ao-dai": {
+      "path": "item-icons/tieu-lan-ao-dai.webp",
+      "sha256": "b9855de04722e4d40afdf75298c8673d686b525a67be863679d4ac198e4efe61"
+    },
+    "tieu-lan:jade-bangle": {
+      "path": "item-icons/tieu-lan-jade-bracelet.webp",
+      "sha256": "d48f81047c04af06eb0d92a64dbf123812dc8e7c95276d01239541c1d7b77991"
+    },
+    "tieu-lan:white-heels": {
+      "path": "item-icons/tieu-lan-shoes.webp",
+      "sha256": "a61cc5b284cb8da374569804275124ee7c7ca3c1d0d3692a3a9fb1bded88ae4d"
+    }
+  }
+}

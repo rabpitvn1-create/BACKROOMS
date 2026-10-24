@@ -39,7 +39,7 @@ object LuciaCanon {
   const val AGE = 19
   const val HOME_LEVEL = 0
   const val ENCOUNTER_CHANCE = "50%"
-  const val AVATAR_REF = "avatars/lucia_avatar.jpg"
+  const val AVATAR_REF = "avatars/LUCIA_LUC_AVATAR.png"
 
   val equipmentSlots: Map<String, String> = linkedMapOf(
     "weapon" to LUCIA_M4A1_ID,

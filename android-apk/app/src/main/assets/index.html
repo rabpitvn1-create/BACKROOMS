@@ -11,6 +11,8 @@
 
 .character-role{margin-top:4px;color:#93a0a8;font-size:11px;letter-spacing:.04em}.character-core-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:10px 0}.character-core-stat{border:1px solid #30383d;background:#0a0d0f;padding:9px}.character-core-stat b{display:block;color:#7e8992;font-size:10px;letter-spacing:.12em}.character-core-stat strong{display:block;margin-top:4px;font-size:17px}.equipment-card,.inventory-item-card{display:grid;grid-template-columns:38px 1fr auto;gap:9px;align-items:center;border:1px solid #313940;background:#0b0f12;padding:8px;cursor:pointer}.equipment-card:hover,.inventory-item-card:hover{border-color:#52606a}.equipment-card-icon{width:38px;height:38px;display:grid;place-items:center;border:1px solid #39434a;background:#11171b;font-weight:900;font-size:11px}.equipment-card-main{min-width:0}.equipment-card-main strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.equipment-card-main small{display:block;color:#7f8b93;margin-top:3px}.equipment-badges{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}.equipment-badge{border:1px solid #45515a;padding:3px 5px;font-size:8px;letter-spacing:.08em}.equipment-badge.equipped{border-color:#3c8466;color:#8ed3b1}.equipment-badge.cheat{border-color:#8c7042;color:#e4c07e}.equipment-detail-modal{position:fixed;inset:0;z-index:120;background:rgba(0,0,0,.72);display:flex;align-items:flex-end;justify-content:center}.equipment-detail-modal[hidden]{display:none}.equipment-detail-sheet{position:relative;width:min(720px,100%);max-height:88vh;overflow:auto;background:#0b0e11;border:1px solid #3a444b;border-bottom:0;padding:18px}.equipment-detail-close{position:absolute;right:10px;top:10px;width:38px;height:38px}.equipment-detail-header{display:grid;grid-template-columns:58px 1fr;gap:12px;align-items:center;padding-right:42px}.equipment-detail-icon{width:58px;height:58px;border:1px solid #46525a;display:grid;place-items:center;font-weight:900}.equipment-detail-header h2{margin:3px 0}.equipment-detail-meta{color:#89949c;font-size:11px}.equipment-detail-sheet section{border-top:1px solid #2c3338;margin-top:15px;padding-top:13px}.equipment-detail-sheet section h3{font-size:11px;letter-spacing:.14em;margin:0 0 9px}.equipment-detail-row,.ability-row,.restriction-row{border:1px solid #2e373d;padding:8px;margin-top:6px}.equipment-detail-row{display:flex;justify-content:space-between;gap:12px}.ability-row strong{display:block}.ability-row p{margin:5px 0 0;color:#c0c8cd;font-size:12px}.ability-row em{display:block;margin-top:5px;color:#d0af77;font-style:normal;font-size:11px}.restriction-row{color:#c7b38b;font-size:12px}.stat-delta-positive{color:#8fd2ad}.stat-delta-negative{color:#dc9b9b}@media(max-width:520px){.character-core-stats{grid-template-columns:1fr 1fr}.equipment-detail-sheet{padding:14px}.equipment-card,.inventory-item-card{grid-template-columns:34px 1fr}.equipment-badges{grid-column:2;justify-content:flex-start}}
 </style>
+<script src="lucia-visuals.js"></script>
+<script src="named-follower-visuals.js"></script>
 </head>
 <body>
 <main class="shell">
@@ -224,8 +226,8 @@ function chips(items){return items&&items.length?items.map(x=>"<span>"+esc(typeo
 function render(){titleEl.textContent=state.title;turnEl.textContent=state.turn;locationEl.textContent=state.location;modeEl.textContent=state.mode;playerEl.textContent=state.player?.name||"Cao Minh";partyEl.innerHTML=chips(state.party);if(inventoryEl)inventoryEl.innerHTML=chips(state.inventory);logEl.innerHTML=(state.log||[]).map(x=>"<article class='message "+(x.role==="player"?"player":"")+"'><div class='role'>"+(x.role==="player"?"BẠN":"GAME MASTER")+"</div><div class='text'>"+esc(x.text)+"</div></article>").join("");logEl.scrollTop=logEl.scrollHeight;statusEl.textContent="Save được lưu riêng trên thiết bị này."}
 function save(){localStorage.setItem("backroom-apk-state",JSON.stringify(state));statusEl.textContent="Đã lưu save trên máy."}
 function load(){state=JSON.parse(localStorage.getItem("backroom-apk-state")||"null")||initial;render()}
-function resetGame(){if(confirm("Bắt đầu lại từ Turn 1?")){state=JSON.parse(JSON.stringify(initial));save();render()}}
-function clearSave(){if(confirm("Xóa save trên máy?")){localStorage.removeItem("backroom-apk-state");state=JSON.parse(JSON.stringify(initial));render()}}
+function resetGame(){if(confirm("Bắt đầu lại từ Turn 1?")){if(window.Android&&typeof Android.resetCore==='function')Android.resetCore();state=JSON.parse(JSON.stringify(initial));save();render()}}
+function clearSave(){if(confirm("Xóa save trên máy?")){localStorage.removeItem("backroom-apk-state");if(window.Android&&typeof Android.resetCore==='function')Android.resetCore();state=JSON.parse(JSON.stringify(initial));render()}}
 formEl.addEventListener("submit",e=>{e.preventDefault();const a=actionEl.value.trim();if(!a||busy)return;if(!window.Android){statusEl.textContent="Không tìm thấy Android bridge.";return}busy=true;submitEl.disabled=true;statusEl.textContent="Gemini đang xử lý lượt…";window.Android.submitTurn(JSON.stringify(state),a)});
 window.backroomTurn=json=>{state=JSON.parse(json);actionEl.value="";busy=false;submitEl.disabled=false;save();statusEl.textContent="Turn "+state.turn+" đã lưu trên máy.";render()};
 window.backroomError=message=>{busy=false;submitEl.disabled=false;statusEl.textContent="Lỗi Gemini: "+message};
@@ -268,10 +270,10 @@ render();
   function bandClass(value){const v=String(value||'UNKNOWN').toUpperCase();return v==='SEVERE'||v==='CRITICAL'?'status-danger':v==='MILD'||v==='MODERATE'?'status-warning':'status-normal'}
   function detailMembers(){
     const members=state&&state.partyDetails&&Array.isArray(state.partyDetails.members)?state.partyDetails.members:null;
-    if(members&&members.length)return members;
+    if(members&&members.length)return members.map(window.backroomNamedFollowers.withAvatar);
     const fallback=[{id:'cao-minh',name:'Cao Minh',avatar:'avatars/CAO_MINH_AVATAR.jpg',presence:'ACTIVE',isLeader:true,physiology:{hunger:'UNKNOWN',thirst:'UNKNOWN',sleepDeprivation:'UNKNOWN'},inventory:leaderItems(),equipment:signatureEquipment,statuses:[],injuries:[]}];
     if(Array.isArray(state&&state.party))state.party.forEach(x=>{if(x&&x.id&&x.id!=='cao-minh')fallback.push({id:x.id,name:x.name||x.id,avatar:x.avatar,presence:x.presence||'ACTIVE',isLeader:false,physiology:{hunger:'UNKNOWN',thirst:'UNKNOWN',sleepDeprivation:'UNKNOWN'},inventory:[],equipment:{},statuses:[],injuries:[]})});
-    return fallback;
+    return fallback.map(window.backroomNamedFollowers.withAvatar);
   }
   function memberById(id){return detailMembers().find(x=>String(x.id)===String(id))||detailMembers()[0]}
   function statusRows(member){
@@ -342,6 +344,8 @@ render();
     repairState();
     priorRender();
     renderPartyCards();
+    window.backroomLuciaVisuals.renderOverlay(state);
+    window.backroomNamedFollowers.renderOverlay(state);
     if(view&&!view.hidden)renderMemberDetail(memberById(selectedCharacterId));
   };
   repairState();
@@ -377,9 +381,10 @@ render();
   function hpText(member){if(!member||member.currentHp==null||member.maxHp==null)return '—';return String(member.currentHp)+' / '+String(member.maxHp)}
   function iconFor(item){return String((item&&item.type)||'EQ').split(/[ /_-]+/).filter(Boolean).map(x=>x[0]).join('').slice(0,3).toUpperCase()||'EQ'}
   function itemById(member,id){return (member&&member.inventory||[]).find(x=>String(x.id)===String(id))||(member&&member.equipmentItems||[]).find(x=>String(x.id)===String(id))}
+  function iconMarkup(item){return item&&item.icon?'<img src="'+e(item.icon)+'" alt="" style="width:100%;height:100%;object-fit:contain">':e(iconFor(item))}
   function card(item,slot){
     const badges=[];if(item.equipped)badges.push('<span class="equipment-badge equipped">EQUIPPED</span>');if(item.statItem)badges.push('<span class="equipment-badge">STAT ITEM</span>');if(item.classification==='SPECIAL_CHEAT')badges.push('<span class="equipment-badge cheat">SPECIAL / CHEAT</span>');
-    return '<div class="'+(slot?'equipment-card':'inventory-item-card')+'" data-item-id="'+e(item.id)+'"><div class="equipment-card-icon">'+e(iconFor(item))+'</div><div class="equipment-card-main"><strong>'+e(item.name||item.id)+'</strong><small>'+e(slot?String(slot).toUpperCase():(item.rarity||('×'+(item.quantity||1))))+'</small></div><div class="equipment-badges">'+badges.join('')+'</div></div>';
+    return '<div class="'+(slot?'equipment-card':'inventory-item-card')+'" data-item-id="'+e(item.id)+'"><div class="equipment-card-icon">'+iconMarkup(item)+'</div><div class="equipment-card-main"><strong>'+e(item.name||item.id)+'</strong><small>'+e(slot?String(slot).toUpperCase():(item.rarity||('×'+(item.quantity||1))))+'</small></div><div class="equipment-badges">'+badges.join('')+'</div></div>';
   }
   function render(member){
     if(!member)return;
@@ -387,7 +392,7 @@ render();
     const mstats=member.stats||{};
     const rows=[
       ['HP',hpText(member)],['ENE',member.energy||'N/A'],['HP REGEN',(Number(member.hpRegen)||0)>0?('+'+member.hpRegen+' / completed turn'):'0'],['CONDITION',member.condition||'HEALTHY'],
-      ['STR',statText(mstats.STR)],['DF',statText(mstats.DF)],['AGI',statText(mstats.AGI)],['CRIT',statText(mstats.CRIT)]
+      ['STR',statText(mstats.STR)],['DEF',statText(mstats.DEF)],['SKL',statText(mstats.SKL)],['VIT',statText(mstats.VIT)]
     ];
     if(member.combatStatus){rows.push(['CRIT %',member.combatStatus.criticalChancePercent!=null?String(member.combatStatus.criticalChancePercent)+'%':'—'],['EVASION %',member.combatStatus.evasionPercent!=null?String(member.combatStatus.evasionPercent)+'%':'—'])}
     if(status)status.innerHTML='<div class="character-core-stats">'+rows.map(r=>'<div class="character-core-stat"><b>'+e(r[0])+'</b><strong>'+e(r[1])+'</strong></div>').join('')+'</div>'+
@@ -397,10 +402,10 @@ render();
     if(equipment){const rendered=[];Object.keys(eq).sort().forEach(slot=>{const id=eq[slot],item=details.find(x=>String(x.id)===String(id))||itemById(member,id);if(item)rendered.push(card(item,slot))});equipment.innerHTML=rendered.length?rendered.join(''):'<span>Không có trang bị được ghi nhận.</span>'}
     if(inventory){inventory.innerHTML=(member.inventory||[]).map(x=>card(x,null)).join('')||'<span>Trống.</span>'}
   }
-  function statRows(item){const w=item.weapon||{},rows=[];if(w.DMG!=null)rows.push(['DMG',w.DMG]);if(w.ammo!=null)rows.push(['Ammo',w.ammo]);if(w.rpm!=null)rows.push(['Full Auto',w.rpm+' RPM']);return rows
+  function statRows(item){const w=item.weapon||{},rows=[];const bonuses=item.equipmentModifiers||{};Object.keys(bonuses).forEach(k=>{if(Number(bonuses[k]))rows.push([k,'+'+Number(bonuses[k])+'%'])});if(w.DMG!=null)rows.push(['DMG',w.DMG]);if(w.ammo!=null)rows.push(['Ammo',w.ammo]);if(w.rpm!=null)rows.push(['Full Auto',w.rpm+' RPM']);return rows
   }
   function comparisonRows(c){return[]}
-  function openItem(item){if(!item||!modal)return;q('equipmentDetailName').textContent=item.name||item.id;q('equipmentDetailIcon').textContent=iconFor(item);q('equipmentDetailClass').textContent=item.classification==='SPECIAL_CHEAT'?'SPECIAL / CHEAT':(item.type||'ITEM');q('equipmentDetailMeta').textContent=[item.type,item.slot,item.rarity,item.equipped?'EQUIPPED':'UNEQUIPPED'].filter(Boolean).join(' · ');
+  function openItem(item){if(!item||!modal)return;q('equipmentDetailName').textContent=item.name||item.id;q('equipmentDetailIcon').innerHTML=iconMarkup(item);q('equipmentDetailClass').textContent=item.classification==='SPECIAL_CHEAT'?'SPECIAL / CHEAT':(item.type||'ITEM');q('equipmentDetailMeta').textContent=[item.type,item.slot,item.rarity,item.equipped?'EQUIPPED':'UNEQUIPPED'].filter(Boolean).join(' · ');
     const sr=statRows(item);q('equipmentDetailStats').innerHTML=sr.length?sr.map(r=>'<div class="equipment-detail-row"><span>'+e(r[0])+'</span><strong>'+e(r[1])+'</strong></div>').join(''):'<div class="equipment-detail-row"><span>Combat bonus</span><strong>0</strong></div>';
     const compare=item.comparison||((item.classification==='SPECIAL_CHEAT')?item.baseItemEffect:null),cr=comparisonRows(compare);const cs=q('equipmentDetailComparisonSection');cs.hidden=!cr.length;q('equipmentDetailComparison').innerHTML=cr.map(r=>'<div class="equipment-detail-row"><span>'+e(r[0])+'</span><strong class="'+(r[2]>=0?'stat-delta-positive':'stat-delta-negative')+'">'+e(r[1])+'</strong></div>').join('');
     const abs=item.abilities||[];q('equipmentDetailAbilities').innerHTML=abs.length?abs.map(a=>'<div class="ability-row"><strong>'+e(a.name)+'</strong><p>'+e(a.description)+'</p>'+(a.limit?'<em>'+e(a.limit)+'</em>':'')+'</div>').join(''):'<div class="ability-row"><p>Không có Special Ability được ghi nhận.</p></div>';
@@ -427,10 +432,9 @@ render();
     if(showName)rows.push(['Nhân vật',member.name||member.id||'—']);
     rows.push(['HP',mHpText(member)]);
     rows.push(['STR',mStatText(st.STR)]);
-    rows.push(['DF',mStatText(st.DF)]);
-    rows.push(['AGI',mStatText(st.AGI)]);
-    rows.push(['CRIT',mStatText(st.CRIT)]);
-    ['DEF','SKL','VIT'].forEach(k=>{if(st[k]!=null)rows.push([k,mStatText(st[k])])});
+    rows.push(['DEF',mStatText(st.DEF)]);
+    rows.push(['SKL',mStatText(st.SKL)]);
+    rows.push(['VIT',mStatText(st.VIT)]);
     if(Array.isArray(member.passives)&&member.passives.length)rows.push(['Passive',member.passives.filter(Boolean).join(' · ')]);
     return rows;
   }
@@ -456,6 +460,7 @@ render();
 .poker-dice-meta{margin-top:8px;color:#c5c3a8;font-size:11px}.poker-dice-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;margin-top:12px}
 .poker-die{position:relative;min-width:0;aspect-ratio:1/1.18;padding:4px;border:1px solid transparent!important;border-radius:7px!important;background:transparent!important;display:grid;place-items:center}.poker-die img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 4px 4px #0008)}.poker-die.held img{filter:drop-shadow(0 0 2px #9be1bc) drop-shadow(0 0 8px #9be1bc99) drop-shadow(0 4px 4px #0008)}.poker-die.held:after{content:"HOLD";position:absolute;bottom:2px;left:50%;transform:translateX(-50%);font-size:8px;font-weight:800;letter-spacing:.08em;color:#9be1bc;text-shadow:0 0 7px #9be1bc88}
 .poker-die.rolling img{visibility:hidden}.poker-die.rolling:before{content:"";position:absolute;inset:5%;background:url('dice/roll-3d.png') 0 0/2400% 100% no-repeat;animation:poker-die-roll .68s steps(23,end) infinite}@keyframes poker-die-roll{to{background-position:100% 0}}@media(prefers-reduced-motion:reduce){.poker-die.rolling:before{display:none}.poker-die.rolling img{visibility:visible}}
+.poker-dice-command{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}.poker-dice-command[hidden]{display:none}.poker-dice-command button{min-height:42px;padding:8px}
 .poker-dice-hand{min-height:26px;margin-top:10px;text-align:center;font-size:17px;font-weight:800;letter-spacing:.06em;color:#e6cf77;text-shadow:0 1px 2px #000}.poker-dice-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.poker-dice-roll,.poker-dice-finish{min-height:48px;border-radius:7px!important;font-weight:800;letter-spacing:.1em}.poker-dice-roll{border-color:#4f9479!important;background:#14251f!important;color:#dff7ec}.poker-dice-finish{border-color:#8b6047!important;background:#281c18!important;color:#f2ddd0}
 .core-progression-panel{margin-top:10px;border:1px solid #3b3524;background:linear-gradient(145deg,#171813,#0b0e10);padding:10px;border-radius:7px}.core-progression-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}.core-progression-head b{font-size:10px;letter-spacing:.12em;color:#d5c67d}.core-balance{font-size:12px;font-weight:800;color:#f6c85f}.core-progression-row{display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:7px;align-items:center;padding:6px 0;border-top:1px solid #25291f}.core-progression-row:first-of-type{border-top:0}.core-progression-stat{font-weight:900;color:#eef1f3}.core-progression-value{min-width:0;color:#aeb8bf;font-size:11px}.core-progression-upgrade{min-width:72px;padding:7px 8px!important;border-radius:7px!important;font-size:10px}
 </style>
@@ -464,6 +469,7 @@ render();
   <section class="poker-dice-sheet" role="dialog" aria-modal="true" aria-labelledby="pokerDiceTitle">
     <div class="poker-dice-head"><div><div class="poker-dice-kicker">COMBAT</div><h2 id="pokerDiceTitle">POKER DICE</h2></div></div>
     <div class="poker-dice-meta" id="pokerDiceMeta"></div>
+    <div class="poker-dice-command" id="pokerDiceCommand"><button type="button" data-party-combat="ATTACK">Tấn công</button><button type="button" data-party-combat="GUARD">Phòng thủ</button><button type="button" data-party-combat="EVADE">Né tránh</button><button type="button" data-party-combat="READ">Quan sát</button></div>
     <div class="poker-dice-row" id="pokerDiceRow"></div>
     <div class="poker-dice-hand" id="pokerDiceHand"></div>
     <div class="poker-dice-actions"><button type="button" class="poker-dice-roll" id="pokerDiceRoll">ROLL</button><button type="button" class="poker-dice-finish" id="pokerDiceFinish">FINISH</button></div>
@@ -476,6 +482,21 @@ render();
   var modal=document.getElementById("pokerDiceModal"),row=document.getElementById("pokerDiceRow"),meta=document.getElementById("pokerDiceMeta"),hand=document.getElementById("pokerDiceHand");
   var roll=document.getElementById("pokerDiceRoll"),finish=document.getElementById("pokerDiceFinish");
   var DIRECT_COMBAT_ACTION="Cả Party cùng tấn công",submitAfterFinalize=false;
+  var selectedCombatAction=null;
+  var partyCommands={ATTACK:DIRECT_COMBAT_ACTION,GUARD:"Cả Party cùng phòng thủ",EVADE:"Cả Party cùng né tránh",READ:"Cả Party cùng quan sát"};
+  var commandChoices=document.getElementById("pokerDiceCommand");
+  function lockedCombatAction(){var d=dice();return d&&d.action?String(d.action):selectedCombatAction||DIRECT_COMBAT_ACTION}
+  function renderCommandChoices(){
+    if(!commandChoices)return;
+    commandChoices.hidden=!!dice();
+    commandChoices.querySelectorAll('[data-party-combat]').forEach(function(button){button.disabled=!!window.__combatDiceBusy||!!window.__directCombatPreparing||!!window.__directCombatResolving||!!window.__combatFeedbackBusy});
+  }
+  if(commandChoices)commandChoices.addEventListener("click",function(event){
+    var button=event.target.closest('[data-party-combat]');
+    if(!button||button.disabled||dice()||!combatActive())return;
+    var action=partyCommands[button.getAttribute('data-party-combat')];if(!action)return;
+    selectedCombatAction=action;ensureDirectCombatDice();
+  });
   window.__combatDiceBusy=false;window.__directCombatPreparing=false;window.__directCombatResolving=false;
 
   function combatActive(){return !!(typeof state!=="undefined"&&state&&state.combat&&state.combat.active===true)}
@@ -484,9 +505,9 @@ render();
   function hide(){modal.hidden=true;modal.setAttribute("aria-hidden","true");document.body.classList.remove("poker-dice-open")}
   function setBusy(value){window.__combatDiceBusy=!!value;if(typeof busy!=="undefined")busy=!!value||!modal.hidden;if(typeof window.renderCombatActionBar==="function")window.renderCombatActionBar()}
   function renderDice(){
-    var d=dice();if(!d){row.textContent="";hand.textContent="";meta.textContent="Đang chuẩn bị lượt combat…";return}
+    renderCommandChoices();var d=dice();if(!d){row.textContent="";hand.textContent="";meta.textContent=window.__directCombatPreparing?"Đang chuẩn bị lượt combat…":"Chọn hành động của Party trước khi gieo xúc xắc.";roll.disabled=true;finish.disabled=true;return}
     document.getElementById("pokerDiceTitle").textContent="POKER DICE";
-    meta.textContent="ROLL "+String(d.rerollsUsed||0)+"/"+String(d.maxRerolls||3)+" · chạm xúc xắc để HOLD";
+    meta.textContent=lockedCombatAction()+" · ROLL "+String(d.rerollsUsed||0)+"/"+String(d.maxRerolls||3)+" · chạm xúc xắc để HOLD";
     row.textContent="";
     var values=Array.isArray(d.values)?d.values:[],held=Array.isArray(d.held)?d.held:[];
     for(var i=0;i<5;i++){(function(index){
@@ -501,7 +522,9 @@ render();
   }
 
   function ensureDirectCombatDice(){
+    if(window.__combatFeedbackBusy){hide();return}
     if(!combatActive()){
+      selectedCombatAction=null;
       window.__directCombatPreparing=false;window.__directCombatResolving=false;hide();
       if(typeof busy!=="undefined")busy=false;
       if(typeof window.renderCombatActionBar==="function")window.renderCombatActionBar();
@@ -515,10 +538,15 @@ render();
       if(d.finalized===true&&!window.__directCombatResolving){
         window.__directCombatResolving=true;setBusy(true);
         if(statusEl)statusEl.textContent="Poker Dice đã chốt. Đang tiếp tục combat…";
-        Android.submitAction(JSON.stringify(state),"EXECUTE",DIRECT_COMBAT_ACTION);
+        Android.submitAction(JSON.stringify(state),"EXECUTE",lockedCombatAction());
         return;
       }
       if(statusEl)statusEl.textContent="Poker Dice · "+String(d.hand||"");
+      return;
+    }
+    if(!selectedCombatAction){
+      window.__combatDiceBusy=false;if(typeof busy!=="undefined")busy=true;
+      renderDice();if(statusEl)statusEl.textContent="Chọn Tấn công, Phòng thủ, Né tránh hoặc Quan sát cho Party.";
       return;
     }
     if(window.__directCombatPreparing||window.__directCombatResolving)return;
@@ -528,7 +556,7 @@ render();
     }
     window.__directCombatPreparing=true;setBusy(true);renderDice();
     if(statusEl)statusEl.textContent="Đang vào combat…";
-    Android.combatDicePrepare(JSON.stringify(state),DIRECT_COMBAT_ACTION);
+    Android.combatDicePrepare(JSON.stringify(state),selectedCombatAction);
   }
   window.ensureDirectCombatDice=ensureDirectCombatDice;
 
@@ -547,7 +575,7 @@ render();
       if(submitAfterFinalize&&d&&d.finalized===true){
         submitAfterFinalize=false;window.__directCombatResolving=true;setBusy(true);
         if(statusEl)statusEl.textContent="Poker Dice đã chốt. Đang giải quyết combat…";
-        Android.submitAction(JSON.stringify(state),"EXECUTE",DIRECT_COMBAT_ACTION);
+        Android.submitAction(JSON.stringify(state),"EXECUTE",lockedCombatAction());
         return;
       }
       if(typeof busy!=="undefined")busy=true;
@@ -598,6 +626,7 @@ render();
 
   var previousRender=window.render;if(typeof previousRender==="function")window.render=function(){var result=previousRender.apply(this,arguments);renderCorePanel();ensureDirectCombatDice();return result};
   var previousTurn=window.backroomTurn;if(typeof previousTurn==="function")window.backroomTurn=function(json){
+    selectedCombatAction=null;
     var result=previousTurn.call(this,json);
     window.__combatDiceBusy=false;window.__combatDiceRolling=false;window.__directCombatPreparing=false;window.__directCombatResolving=false;submitAfterFinalize=false;
     renderCorePanel();

@@ -60,6 +60,8 @@ object CharacterStatProfiles {
     "luc-tram" -> "CHÍNH ĐẠO KIẾM TU / BẠCH HỒNG KIẾM NỮ"
     "syvial" -> "HIGH-SPEED SWORDSMAN / ASSAULT / COUNTER / EXECUTION"
     "lucia" -> "TACTICAL RIFLEWOMAN / SQUAD LEADER / FOLLOWER"
+    NGUYEN_QUOC_NAM_ID -> "PISTOL SUPPORT / FIELD MEDIC / FOLLOWER"
+    HUA_TIEU_LAN_ID -> "ANTIQUE RIFLE MARKSWOMAN / COUNTER / FOLLOWER"
     "an-nhien", "an_nhien", "annhien" -> "PROTECTED FOLLOWER / NON-COMBAT"
     else -> "UNSPECIFIED"
   }
