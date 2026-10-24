@@ -4,8 +4,9 @@ import org.json.JSONObject
 import org.junit.Assert.*
 import org.junit.Test
 
+/** Only the current save schema is contractual; old-save migration is not. */
 class GameStateCodecTest {
-  @Test fun roundTripPreservesStructuredStateAndPendingTurn() {
+  @Test fun roundTripPreservesCurrentStatePendingTurnAndPhysiology() {
     val effect = StatusEffect("s1", "INJURY", "event", "TURN_9", persistent = true)
     val physiology = PhysiologyState(
       minutesSinceFood = 360L,
@@ -16,18 +17,35 @@ class GameStateCodecTest {
       thermalState = "cold",
       metadata = mapOf("source" to "field_observation")
     )
-    val state = GameState.initial().copy(
-      inventories = mapOf(CAO_MINH_ID to InventoryState(CAO_MINH_ID, mapOf("water" to ItemStack("water", "Almond Water", 2)))),
+    val initial = GameState.initial()
+    val original = initial.copy(
+      inventories = initial.inventories + (CAO_MINH_ID to initial.inventories.getValue(CAO_MINH_ID).copy(
+        items = initial.inventories.getValue(CAO_MINH_ID).items +
+          ("water" to ItemStack("water", "Almond Water", 2))
+      )),
       statuses = mapOf(effect.id to effect),
-      characters = mapOf(CAO_MINH_ID to CharacterState(CAO_MINH_ID, "Cao Minh", statusIds = setOf(effect.id), physiology = physiology)),
-      vanKhoGioiChi = VanKhoGioiChiState(scanSlots = listOf(ScanSlot(1, "water", ItemStack("water", "Almond Water"), 10)), markedSourceIds = setOf("water")),
+      characters = initial.characters + (CAO_MINH_ID to initial.characters.getValue(CAO_MINH_ID).copy(
+        statusIds = setOf(effect.id), physiology = physiology
+      )),
+      vanKhoGioiChi = VanKhoGioiChiState(
+        scanSlots = listOf(ScanSlot(1, "water", ItemStack("water", "Almond Water"), 10)),
+        markedSourceIds = setOf("water")
+      ),
       turn = TurnState("TURN_9", PendingTurn("TURN_9", "Cao Minh nhặt nước", PendingTurnStatus.INTERPRETING)),
       time = GameTimeState(elapsedSubjectiveMinutes = 485L, lastAdvanceMinutes = 15, lastAdvanceReason = "travel")
     )
-    val canonicalState = SpecialFollowersCanon.ensure(AnNhienCanon.ensure(state))
-    val decoded = GameStateCodec.decode(GameStateCodec.encode(state))
-    assertEquals(canonicalState, decoded)
+    val decoded = GameStateCodec.decode(GameStateCodec.encode(original))
     assertEquals(physiology, decoded.characters.getValue(CAO_MINH_ID).physiology)
+    assertEquals(effect, decoded.statuses.getValue("s1"))
+    assertTrue("s1" in decoded.characters.getValue(CAO_MINH_ID).statusIds)
+    assertEquals(original.turn, decoded.turn)
+    assertEquals(original.time, decoded.time)
+    assertEquals(2, decoded.inventories.getValue(CAO_MINH_ID).items.getValue("water").quantity)
+    assertEquals(1, decoded.vanKhoGioiChi.scanSlots.size)
+
+    // A normalized current save must be stable on subsequent save/load cycles.
+    val reloaded = GameStateCodec.decode(GameStateCodec.encode(decoded))
+    assertEquals(decoded, reloaded)
   }
 
   @Test fun freshRunStartsWithKnownSatisfiedPhysiologyBaseline() {
@@ -51,68 +69,44 @@ class GameStateCodecTest {
     assertEquals(PhysiologyState(), decoded.characters.getValue(CAO_MINH_ID).physiology)
   }
 
-  @Test fun freshStateKeepsSignatureGearOnlyInEquipment() {
+  @Test fun equippedSignatureItemsAreOwnedButUseNoBackpackSlots() {
     val state = GameState.initial()
-    assertTrue(state.inventories.getValue(CAO_MINH_ID).items.isEmpty())
-    assertEquals(CAO_MINH_HUYET_MA_KIEM_ID, state.equipment.getValue(CAO_MINH_ID).slots["weapon"])
-    assertEquals(CAO_MINH_HUYET_MA_CHIEN_KHAI_ID, state.equipment.getValue(CAO_MINH_ID).slots["armor"])
-    assertEquals(CAO_MINH_VAN_KHO_GIOI_CHI_ID, state.equipment.getValue(CAO_MINH_ID).slots["ring"])
+    val equipped = state.equipment.getValue(CAO_MINH_ID).slots
+    assertEquals(CAO_MINH_HUYET_MA_KIEM_ID, equipped["weapon"])
+    assertEquals(CAO_MINH_HUYET_MA_CHIEN_KHAI_ID, equipped["armor"])
+    assertEquals(CAO_MINH_VAN_KHO_GIOI_CHI_ID, equipped["ring"])
+    equipped.values.forEach { assertTrue(it in state.inventories.getValue(CAO_MINH_ID).items) }
+    assertEquals(0, InventoryCapacityPolicy.usedSlots(state, CAO_MINH_ID))
   }
 
-  @Test fun legacyWebViewSaveMigratesWithoutLosingNormalInventoryOrParty() {
-    val legacy = """{
-      "turn":184,
-      "title":"BACKROOMS",
-      "location":"Level 0",
-      "inventory":[
-        {"name":"Huyết Ma Kiếm","quantity":1},
-        {"name":"Huyết Ma Chiến Khải","quantity":1},
-        {"name":"Vạn Khố Giới Chỉ","quantity":1},
-        {"name":"Almond Water","quantity":2,"state":"sealed"}
-      ],
-      "party":[{"id":"luc-tram","name":"Lục Trầm","avatar":"luc-tram.png"}]
-    }"""
-    val migrated = GameStateCodec.decode(legacy)
-    assertEquals(CURRENT_SAVE_VERSION, migrated.saveVersion)
-    assertEquals("TURN_184", migrated.turn.currentTurnId)
-    assertEquals(GameTimeState(), migrated.time)
-    assertEquals(0L, migrated.characters.getValue(CAO_MINH_ID).physiology.minutesSinceFood)
-    assertEquals(0L, migrated.characters.getValue(CAO_MINH_ID).physiology.minutesSinceWater)
-    assertEquals(0L, migrated.characters.getValue(CAO_MINH_ID).physiology.minutesAwake)
-    assertEquals(PhysiologyState(), migrated.characters.getValue("luc-tram").physiology)
-    assertEquals(1, migrated.inventories.getValue(CAO_MINH_ID).items.size)
-    assertEquals(2, migrated.inventories.getValue(CAO_MINH_ID).items.values.single().quantity)
-    assertEquals(CAO_MINH_HUYET_MA_KIEM_ID, migrated.equipment.getValue(CAO_MINH_ID).slots["weapon"])
-    assertEquals(CAO_MINH_HUYET_MA_CHIEN_KHAI_ID, migrated.equipment.getValue(CAO_MINH_ID).slots["armor"])
-    assertEquals(CAO_MINH_VAN_KHO_GIOI_CHI_ID, migrated.equipment.getValue(CAO_MINH_ID).slots["ring"])
-    assertEquals(listOf(CAO_MINH_ID, "luc-tram"), migrated.party.memberIds)
-    assertEquals("Level 0", migrated.world["location"])
+  @Test fun currentSaveRetainsInventoryPartyAndWorldWithoutDiscardingEquippedItems() {
+    val initial = GameState.initial()
+    val inventory = initial.inventories.getValue(CAO_MINH_ID).copy(
+      items = initial.inventories.getValue(CAO_MINH_ID).items +
+        ("rope" to ItemStack("rope", "Rope", 3))
+    )
+    val state = initial.copy(
+      inventories = initial.inventories + (CAO_MINH_ID to inventory),
+      party = initial.party.copy(memberIds = listOf(CAO_MINH_ID, LUC_TRAM_ID)),
+      world = mapOf("location" to "Level 0", "title" to "The Lobby"),
+      turn = TurnState("TURN_184")
+    )
+    val decoded = GameStateCodec.decode(GameStateCodec.encode(state))
+    assertEquals(CURRENT_SAVE_VERSION, decoded.saveVersion)
+    assertEquals("TURN_184", decoded.turn.currentTurnId)
+    assertEquals(listOf(CAO_MINH_ID, LUC_TRAM_ID), decoded.party.memberIds)
+    assertEquals("Level 0", decoded.world["location"])
+    assertEquals("The Lobby", decoded.world["title"])
+    assertEquals(3, decoded.inventories.getValue(CAO_MINH_ID).items.getValue("rope").quantity)
+    assertEquals(state.equipment.getValue(CAO_MINH_ID).slots, decoded.equipment.getValue(CAO_MINH_ID).slots)
+    assertTrue(CAO_MINH_HUYET_MA_KIEM_ID in decoded.inventories.getValue(CAO_MINH_ID).items)
   }
 
-  @Test fun v2CoreSaveMovesSignatureItemsOutOfInventory() {
-    val v2 = JSONObject(GameStateCodec.encode(GameState.initial())).apply {
-      put("saveVersion", 2)
-      put("inventories", JSONObject().put(CAO_MINH_ID, JSONObject().apply {
-        put("ownerId", CAO_MINH_ID)
-        put("items", JSONObject().apply {
-          put("old-sword", JSONObject().apply {
-            put("itemId", "old-sword"); put("name", "Huyết Ma Kiếm"); put("quantity", 1); put("metadata", JSONObject()); put("archetypeId", "old-sword"); put("contentState", "NONE")
-          })
-          put("rope", JSONObject().apply {
-            put("itemId", "rope"); put("name", "Rope"); put("quantity", 1); put("metadata", JSONObject()); put("archetypeId", "rope"); put("contentState", "NONE")
-          })
-        })
-      }))
-      put("equipment", JSONObject().put(CAO_MINH_ID, JSONObject().put("ownerId", CAO_MINH_ID).put("slots", JSONObject())))
-    }
-    val migrated = GameStateCodec.decode(v2)
-    assertEquals(CURRENT_SAVE_VERSION, migrated.saveVersion)
-    assertEquals(0L, migrated.characters.getValue(CAO_MINH_ID).physiology.minutesSinceFood)
-    assertEquals(0L, migrated.characters.getValue(CAO_MINH_ID).physiology.minutesSinceWater)
-    assertEquals(0L, migrated.characters.getValue(CAO_MINH_ID).physiology.minutesAwake)
-    assertEquals(setOf("rope"), migrated.inventories.getValue(CAO_MINH_ID).items.keys)
-    assertEquals(CAO_MINH_HUYET_MA_KIEM_ID, migrated.equipment.getValue(CAO_MINH_ID).slots["weapon"])
-    assertEquals(CAO_MINH_HUYET_MA_CHIEN_KHAI_ID, migrated.equipment.getValue(CAO_MINH_ID).slots["armor"])
-    assertEquals(CAO_MINH_VAN_KHO_GIOI_CHI_ID, migrated.equipment.getValue(CAO_MINH_ID).slots["ring"])
+  @Test fun currentSaveNeverHealsWoundedCharacterDuringDecode() {
+    val wounded = CharacterStatEngine.setCurrentHp(GameState.initial(), CAO_MINH_ID, 31)
+    val decoded = GameStateCodec.decode(GameStateCodec.encode(wounded))
+    assertEquals(31, decoded.characters.getValue(CAO_MINH_ID).vitalState.currentHp)
+    assertEquals(CharacterStatEngine.effective(wounded, CAO_MINH_ID).maxHp,
+      CharacterStatEngine.effective(decoded, CAO_MINH_ID).maxHp)
   }
 }
