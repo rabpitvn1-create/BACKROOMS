@@ -81,6 +81,35 @@ object CompanionSkillCatalog {
     s("Bách Hoa Nhất Tiễn", "ULTIMATE", "Poker Dice đã chốt SSF/FSF cho đúng encounter/hành động; Tiểu Lan ACTIVE, Party TẤN CÔNG", "Một phát 320% current Weapon DMG, trừ Armor một lần, bỏ qua Evasion; không Critical hoặc Một Phát Định Đoạt.", "Không tự kết liễu boss hoặc sinh đạn vô hạn.")
   )
 
+  private val catherine = listOf(
+    s("Đồng Tử Hổ Phách", "PASSIVE", "Catherine bắn thường", "+10 điểm phần trăm Accuracy"),
+    s("Khúc Đạn Hồi Âm", "AUTO", "30% sau phát bắn trúng", "Bồi thêm 125% Weapon DMG"),
+    s("Hoa Hồng Xuyên Giáp", "AUTO", "25% sau phát bắn trúng", "155% Weapon DMG, bỏ qua 30% Armor"),
+    s("Valse Đỏ", "UTILITY", "Khi Party EVADE", "Entity -15 điểm phần trăm Accuracy"),
+    s("Phản Xạ Màn Nhung", "COUNTER", "20% khi Entity hụt", "110% Weapon DMG"),
+    s("Dạ Khúc Mười Ba Phát", "ULTIMATE", "Khi Poker Dice SSF/FSF và Catherine có thể tham chiến", "13 quỹ đạo, 325% Weapon DMG, bỏ qua Evasion")
+  )
+
+  private val janet = listOf(
+    s("Ragin' Cajun", "PASSIVE", "Khi ATTACK cận chiến", "+10 điểm phần trăm Accuracy"),
+    s("Bayou Swing", "AUTO", "30% sau đòn gậy trúng", "Bồi 125% Weapon DMG"),
+    s("Barbed Encore", "AUTO", "25% sau đòn gậy trúng", "140% Weapon DMG, bỏ qua 20% Armor"),
+    s("Redline Sidestep", "UTILITY", "Khi EVADE", "+12 Escape Progress"),
+    s("Ride or Die", "UTILITY", "Khi GUARD", "Entity -15 điểm phần trăm Accuracy"),
+    s("Last Inning // Bayou Thunder", "ULTIMATE", "Khi Poker Dice SSF/FSF và Janet cận chiến", "330% Weapon DMG, bỏ qua Evasion")
+  )
+
+  private val tracLam = listOf(
+    s("Kỷ Luật SRU-03", "PASSIVE", "Khi Trác Lâm ATTACK", "+8 điểm phần trăm Accuracy"),
+    s("Khóa Mục Tiêu", "PASSIVE", "Khi ATTACK", "+10 điểm phần trăm Accuracy"),
+    s("Hỏa Lực Chế Áp", "UTILITY", "Khi EVADE", "Entity -12 điểm phần trăm Accuracy"),
+    s("Đánh Giá Dị Thường", "UTILITY", "Khi READ", "+1 Opening"),
+    s("Song Nòng Tiếp Ứng", "AUTO", "30% sau phát trúng", "120% Weapon DMG bổ sung"),
+    s("Đạn Xuyên Tuyến", "AUTO", "25% sau phát trúng", "135% Weapon DMG, xuyên 25% Armor"),
+    s("Chặn Đường Tiến", "AUTO", "20% sau phát trúng", "Entity -10 điểm phần trăm Accuracy"),
+    s("ECHO-17: Phá Tuyến", "ULTIMATE", "Khi Poker Dice SSF/FSF và Trác Lâm có thể tham chiến", "320% Weapon DMG, bỏ qua Evasion")
+  )
+
   fun forCharacter(characterId: String): List<CharacterSkillDefinition> = when (characterId) {
     CAO_MINH_ID -> caoMinh
     LUC_TRAM_ID -> lucTram
@@ -89,6 +118,9 @@ object CompanionSkillCatalog {
     "lucia" -> lucia
     NGUYEN_QUOC_NAM_ID -> quocNam
     HUA_TIEU_LAN_ID -> tieuLan
+    "catherine" -> catherine
+    "janet" -> janet
+    "trac_lam" -> tracLam
     else -> emptyList()
   }
 }
