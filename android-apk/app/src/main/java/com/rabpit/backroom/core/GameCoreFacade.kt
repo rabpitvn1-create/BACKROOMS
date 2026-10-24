@@ -431,7 +431,10 @@ class GameCoreFacade @JvmOverloads internal constructor(
       put("id", "${active.encounterId}:${active.eventCounter + 1}")
       put("encounterId", active.encounterId)
       put("events", JSONArray().apply {
+        var entityHpRemaining = active.entityHp
         resolution.feedback.forEach { event ->
+          if (event.target == "entity") entityHpRemaining =
+            (entityHpRemaining - event.amount.coerceAtLeast(0)).coerceAtLeast(0)
           put(event.toJson().apply {
             put("sourceName", when (event.actorId) {
               CAO_MINH_ID -> "Cao Minh"
@@ -441,7 +444,7 @@ class GameCoreFacade @JvmOverloads internal constructor(
             })
             if (event.target == "entity") {
               put("entityName", active.entityName)
-              if (resolution.entityDestroyed) put("remainingHp", 0)
+              put("remainingHp", entityHpRemaining)
               put("maxHp", active.entityMaxHp)
             }
           })
