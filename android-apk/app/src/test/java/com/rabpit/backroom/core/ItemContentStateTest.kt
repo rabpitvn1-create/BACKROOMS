@@ -3,48 +3,75 @@ package com.rabpit.backroom.core
 import org.junit.Assert.*
 import org.junit.Test
 
+/** Item quantities are whole units; contents never split an item into variants. */
 class ItemContentStateTest {
-  private fun grant(name: String, quantity: Int = 1) = ItemCommand(
-    "grant-water", "TURN_1", CAO_MINH_ID, source = CommandSource.SYSTEM,
-    operation = ItemCommand.Operation.PICKUP, itemId = "water", itemName = name, quantity = quantity
+  private fun grant(name: String, quantity: Int = 1, metadata: Map<String, String> = emptyMap()) = ItemCommand(
+    "grant:$name:$quantity", "TURN_1", CAO_MINH_ID, source = CommandSource.SYSTEM,
+    operation = ItemCommand.Operation.PICKUP, itemId = "water", itemName = name,
+    quantity = quantity, metadata = metadata
   )
-  private fun use(id: String = ItemContentRules.variantId("water-bottle", ContentState.FULL), quantity: Int = 1) = ItemCommand(
-    "use-water:$id", "TURN_1", CAO_MINH_ID, source = CommandSource.UI,
+  private fun use(id: String = "water", quantity: Int = 1, commandId: String = "use:1") = ItemCommand(
+    commandId, "TURN_1", CAO_MINH_ID, source = CommandSource.UI,
     operation = ItemCommand.Operation.USE, itemId = id, itemName = id, quantity = quantity
   )
-  @Test fun usingFullBottleProducesLowThenEmptyVariant() {
-    val fullId = ItemContentRules.variantId("water-bottle", ContentState.FULL)
-    val lowId = ItemContentRules.variantId("water-bottle", ContentState.LOW)
-    val emptyId = ItemContentRules.variantId("water-bottle", ContentState.EMPTY)
+
+  @Test fun usingBottleConsumesOneWholeItemWithoutCreatingAContainerVariant() {
     val granted = StateReducer.execute(GameState.initial(), grant("Chai nước")).state
-    assertTrue(fullId in granted.inventories.getValue(CAO_MINH_ID).items)
+    assertEquals(ContentState.NONE, granted.inventories.getValue(CAO_MINH_ID).items.getValue("water").contentState)
 
     val used = StateReducer.execute(granted, use())
     assertTrue(used.validation.reason, used.applied)
-    assertFalse(fullId in used.state.inventories.getValue(CAO_MINH_ID).items)
-    assertEquals(ContentState.LOW, used.state.inventories.getValue(CAO_MINH_ID).items.getValue(lowId).contentState)
-    assertTrue("item_content_reduced" in used.events)
+    val items = used.state.inventories.getValue(CAO_MINH_ID).items
+    assertFalse(items.containsKey("water"))
+    assertFalse(items.keys.any { it.startsWith("water-bottle:") || it.contains(":low") || it.contains(":empty") })
+    assertTrue("item_consumed" in used.events)
 
-    val emptied = StateReducer.execute(used.state, use(id = lowId))
-    assertTrue(emptied.validation.reason, emptied.applied)
-    assertEquals(ContentState.EMPTY, emptied.state.inventories.getValue(CAO_MINH_ID).items.getValue(emptyId).contentState)
-    assertTrue("item_content_emptied" in emptied.events)
-    val cannotUseEmpty = StateReducer.execute(emptied.state, use(id = emptyId))
-    assertFalse(cannotUseEmpty.applied)
-    assertEquals("item_content_empty", cannotUseEmpty.validation.reason)
+    val again = StateReducer.execute(used.state, use(commandId = "use:2"))
+    assertFalse(again.applied)
+    assertEquals("item_not_owned", again.validation.reason)
   }
 
-  @Test fun usingTwoStackMembersLeavesOneFullAndTwoLowUnits() {
-    val fullId = ItemContentRules.variantId("water-bottle", ContentState.FULL)
-    val lowId = ItemContentRules.variantId("water-bottle", ContentState.LOW)
+  @Test fun stackUseOnlyDecrementsRequestedWholeUnits() {
     val granted = StateReducer.execute(GameState.initial(), grant("Chai nước", 3)).state
-    val result = StateReducer.execute(granted, use(quantity = 2))
-    assertTrue(result.validation.reason, result.applied)
-    val items = result.state.inventories.getValue(CAO_MINH_ID).items
-    assertEquals(1, items.getValue(fullId).quantity)
-    assertEquals(2, items.getValue(lowId).quantity)
-    assertEquals(ContentState.LOW, items.getValue(lowId).contentState)
+    val used = StateReducer.execute(granted, use(quantity = 2))
+    assertTrue(used.validation.reason, used.applied)
+    val items = used.state.inventories.getValue(CAO_MINH_ID).items
+    assertEquals(1, items.getValue("water").quantity)
+    assertEquals(1, items.keys.count { it == "water" })
+    assertFalse(items.keys.any { it.startsWith("water-bottle:") })
+
+    val last = StateReducer.execute(used.state, use(commandId = "use:2"))
+    assertTrue(last.applied)
+    assertFalse(last.state.inventories.getValue(CAO_MINH_ID).items.containsKey("water"))
   }
+
+  @Test fun normalizingAnItemKeepsIdentityAndRemovesLegacyContentMetadata() {
+    val item = ItemContentRules.normalize(ItemStack("water", "Chai nước",
+      metadata = mapOf("contentState" to "LOW", "remainingContent" to "ít",
+        "contentPercent" to "50", "physiologyEffect" to "WATER")))
+    assertEquals("water", item.itemId)
+    assertEquals(ContentState.NONE, item.contentState)
+    assertTrue(item.metadata["consumedOnUse"].equals("true", true))
+    assertFalse(item.metadata.containsKey("contentState"))
+    assertFalse(item.metadata.containsKey("remainingContent"))
+    assertFalse(item.metadata.containsKey("contentPercent"))
+    assertNull(ItemContentRules.nextAfterUse(item))
+  }
+
+  @Test fun reusableToolsRemainUsableAndPersistentContainersHonorExplicitPolicy() {
+    val granted = StateReducer.execute(GameState.initial(), grant("Dụng cụ")).state
+    val used = StateReducer.execute(granted, use())
+    assertTrue(used.applied)
+    assertEquals(granted.inventories, used.state.inventories)
+    assertNotNull(ItemContentRules.nextAfterUse(granted.inventories.getValue(CAO_MINH_ID).items.getValue("water")))
+
+    val persistent = StateReducer.execute(GameState.initial(),
+      grant("Chai nước", metadata = mapOf("containerPersistent" to "true"))).state
+    val held = StateReducer.execute(persistent, use())
+    assertTrue(held.applied)
+    assertEquals(1, held.state.inventories.getValue(CAO_MINH_ID).items.getValue("water").quantity)
+  }
+
   @Test fun fractionalAmountsRemainRejected() {
     for (name in listOf("Chai nước 200ml", "Chai nước một nửa")) {
       val result = StateReducer.execute(GameState.initial(), grant(name))
@@ -52,30 +79,13 @@ class ItemContentStateTest {
       assertEquals("precise_content_amount_forbidden", result.validation.reason)
     }
   }
-  @Test fun normalizationUsesStableVariantIdentityAndStripsUntrustedContentAmounts() {
-    val item = ItemContentRules.normalize(ItemStack("bottle", "Chai nước",
-      metadata = mapOf("contentState" to "LOW", "remainingContent" to "một ít", "contentPercent" to "50")))
-    assertEquals(ItemContentRules.variantId("water-bottle", ContentState.LOW), item.itemId)
-    assertEquals(ContentState.LOW, item.contentState)
-    assertEquals("LOW", item.metadata["contentState"])
-    assertFalse(item.metadata.containsKey("remainingContent"))
-    assertFalse(item.metadata.containsKey("contentPercent"))
-    val empty = ItemContentRules.nextAfterUse(item)
-    assertNotNull(empty)
-    assertEquals(ContentState.EMPTY, empty!!.contentState)
-    assertEquals(ItemContentRules.variantId("water-bottle", ContentState.EMPTY), empty.itemId)
-  }
-  @Test fun reusableToolDoesNotLoseQuantityOrProduceContainerVariant() {
-    val granted = StateReducer.execute(GameState.initial(), grant("Dụng cụ")).state
-    // Generic tools have no bottle content profile and retain their own item ID.
-    val result = StateReducer.execute(granted, use(id = "water"))
-    assertTrue(result.applied)
-    assertEquals(granted.inventories, result.state.inventories)
-  }
+
   @Test fun restoreRemainsNarrativeOnlyAndCannotManufactureItems() {
     val granted = StateReducer.execute(GameState.initial(), grant("Chai nước")).state
-    val result = StateReducer.execute(granted, VanKhoGioiChiCommand("restore", "TURN_1", CAO_MINH_ID, source = CommandSource.UI,
-      operation = VanKhoGioiChiCommand.Operation.RESTORE, itemId = "water", itemName = "Chai nước", timestampEpochMs = 1000L))
+    val result = StateReducer.execute(granted, VanKhoGioiChiCommand(
+      "restore", "TURN_1", CAO_MINH_ID, source = CommandSource.UI,
+      operation = VanKhoGioiChiCommand.Operation.RESTORE, itemId = "water",
+      itemName = "Chai nước", timestampEpochMs = 1000L))
     assertFalse(result.applied)
     assertEquals("restore_narrative_only", result.validation.reason)
     assertEquals(granted.inventories, result.state.inventories)
