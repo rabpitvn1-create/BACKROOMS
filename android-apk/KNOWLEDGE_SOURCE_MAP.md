@@ -187,3 +187,14 @@ Toàn bộ tài liệu nguồn còn tồn tại trên Google Drive đã được
 - Đã tạo 11 record còn thiếu từ nguồn thật; DB hiện 66 record (65 CONFIRMED / 1 UNKNOWN).
 - 3 Google Doc (`DIEP_MINH_CODEX`, `HE_THONG_CANH_GIOI_TU_LUYEN_CANON`, `CANON_REGISTRY_R01`) đã được bổ sung vào `canon_sources/` ở bản v2.1 của manifest sau khi connector Google Docs kết nối (cùng ngày 2026-10-24) — dạng trích xuất văn bản, chưa có record nào trích các tài liệu này.
 - Canon mới chưa ingest thành record: `Asset/03_Entity/NEW_ENTITIES_CODEX_R01.md`, codex Lucia/Trác Lâm/Diệp Minh — chờ chỉ đạo của tác giả.
+
+## Nam R01 / Hứa Tiểu Lan R02 — 2026-10-24
+
+Source: `Novel/Characters`, exact UTF-8 bytes in `canon_sources/Characters/`. All extracted records use source heading anchors + SHA-256; source revision is author-approved, extraction remains labeled `EXTRACTED_FROM_SOURCE`.
+
+| Source | Revision | Record IDs | SHA-256 |
+|---|---|---|---|
+| NGUYEN_QUOC_NAM_CODEX | R01 | `CHAR.NGUYEN_QUOC_NAM.RUNTIME_CORE`, `CHAR.NGUYEN_QUOC_NAM.IDENTITY`, `CHAR.NGUYEN_QUOC_NAM.FAMILY`, `CHAR.NGUYEN_QUOC_NAM.ORIGIN`, `CHAR.NGUYEN_QUOC_NAM.VISUAL`, `CHAR.NGUYEN_QUOC_NAM.PERSONA`, `CHAR.NGUYEN_QUOC_NAM.LIMITS`, `CHAR.NGUYEN_QUOC_NAM.EQUIPMENT`, `CHAR.NGUYEN_QUOC_NAM.SKILLS`, `CHAR.NGUYEN_QUOC_NAM.ULTIMATE`, `CHAR.NGUYEN_QUOC_NAM.ENCOUNTER`, `CHAR.NGUYEN_QUOC_NAM.ASSETS` | `5ca7f3cb26177aadf3fccdb06dadf608b721e88306c14491e1b9f7f42211c317` |
+| HUA_TIEU_LAN_CODEX | R02 | `CHAR.HUA_TIEU_LAN.RUNTIME_CORE`, `CHAR.HUA_TIEU_LAN.HISTORICAL_LOCK`, `CHAR.HUA_TIEU_LAN.IDENTITY`, `CHAR.HUA_TIEU_LAN.ORIGIN`, `CHAR.HUA_TIEU_LAN.VISUAL`, `CHAR.HUA_TIEU_LAN.PERSONA`, `CHAR.HUA_TIEU_LAN.LIMITS`, `CHAR.HUA_TIEU_LAN.TRAGEDY`, `CHAR.HUA_TIEU_LAN.FIRST_ENCOUNTER`, `ADDR.HUA_TIEU_LAN.CAO_MINH`, `CHAR.HUA_TIEU_LAN.FEELINGS`, `CHAR.HUA_TIEU_LAN.REINCARNATION_SECRET`, `CHAR.HUA_TIEU_LAN.UNKNOWN_FIELDS`, `CHAR.HUA_TIEU_LAN.EQUIPMENT`, `CHAR.HUA_TIEU_LAN.SKILLS`, `CHAR.HUA_TIEU_LAN.ULTIMATE`, `CHAR.HUA_TIEU_LAN.ENCOUNTER`, `CHAR.HUA_TIEU_LAN.ASSETS` | `967a91b638900c0d48699cb083c8547ad9539bf8656844f5d50b38b8525f190a` |
+
+Runtime: only committed ACTIVE Party/followerEncounters or the Core-locked first-encounter preview may select these actors. Core/limits/address cards are bounded; visual, persona, history/family, equipment and combat cards require matching scene intent. `CHAR.HUA_TIEU_LAN.REINCARNATION_SECRET` is RESTRICTED + NEVER_SHOW; `UNKNOWN_FIELDS` remains UNKNOWN. Source AGI/DEX bonuses use Evasion/Accuracy modifiers in the current STR/DEF/SKL/VIT schema.

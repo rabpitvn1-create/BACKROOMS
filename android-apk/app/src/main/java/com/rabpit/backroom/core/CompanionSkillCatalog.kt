@@ -63,12 +63,32 @@ object CompanionSkillCatalog {
     s("M4A1 Joint Attack", "COMMAND", "Khi người chơi ra lệnh cả Cao Minh và Lucia cùng tấn công", "Lucia có resolution bắn M4A1 riêng và vẫn chịu Entity Evasion gate.")
   )
 
+  private val quocNam = listOf(
+    s("Quan Sát Lâm Sàng", "PASSIVE", "Nam ACTIVE, Party TẤN CÔNG, bắn thường", "+8 điểm phần trăm Accuracy cho Nam, tối đa 99%; Entity vẫn có lượt né riêng."),
+    s("Phát Bắn Kiềm Chế", "AUTO", "25% sau phát bắn thường trúng, không ở lượt Ultimate", "Phát bồi 120% current Weapon DMG, trừ Armor; không proc liên hoàn."),
+    s("Sơ Cứu Tại Chỗ", "UTILITY", "Nam ACTIVE, Party PHÒNG THỦ; một lần mỗi encounter", "Hồi tối đa 12% Max HP cho một thành viên ACTIVE còn sống bị thương nặng nhất theo phần trăm HP; không vượt Max HP.", "Không hồi sinh hoặc chữa debuff."),
+    s("Giữ Khoảng Cách", "UTILITY", "Nam ACTIVE, Party NÉ TRÁNH", "Entity -12 điểm phần trăm Accuracy trong phản ứng hiện tại."),
+    s("Đánh Giá Nguy Cơ", "UTILITY", "Nam ACTIVE, Party QUAN SÁT", "+1 Opening trong giới hạn Core; không biết vị trí Exit."),
+    s("Lời Hứa Trở Về", "ULTIMATE", "Poker Dice đã chốt SSF/FSF cho đúng encounter/hành động; Nam ACTIVE, Party TẤN CÔNG", "Một phát 285% current Weapon DMG, trừ Armor một lần, bỏ qua Evasion; không Critical hoặc Phát Bắn Kiềm Chế.", "Không biến đổi hoàn cảnh vợ con ngoài Backrooms.")
+  )
+
+  private val tieuLan = listOf(
+    s("Tĩnh Tâm Ngắm Bắn", "PASSIVE", "Tiểu Lan ACTIVE, Party TẤN CÔNG, bắn thường", "+12 điểm phần trăm Accuracy, tối đa 99%; Entity vẫn có lượt né riêng."),
+    s("Một Phát Định Đoạt", "AUTO", "25% sau phát bắn thường trúng, không ở lượt Ultimate", "Sát thương bổ sung 150% current Weapon DMG, bỏ qua 20% Armor riêng hiệu ứng này.", "Là điểm yếu trúng bởi cùng viên đạn, không sinh đạn mới."),
+    s("Bộ Pháp Tà Lụa", "UTILITY", "Tiểu Lan ACTIVE, Party NÉ TRÁNH", "Entity -12 điểm phần trăm Accuracy trong phản ứng hiện tại."),
+    s("Ngắm Qua Hoa Cúc", "UTILITY", "Tiểu Lan ACTIVE, Party QUAN SÁT", "+1 Opening trong giới hạn Core; không phát hiện Exit bằng phép thuật."),
+    s("Tài Bắn Phản Xạ", "COUNTER", "20% khi Entity hụt đòn và Tiểu Lan ACTIVE", "Phản kích 110% current Weapon DMG, trừ Armor, không thêm turn riêng."),
+    s("Bách Hoa Nhất Tiễn", "ULTIMATE", "Poker Dice đã chốt SSF/FSF cho đúng encounter/hành động; Tiểu Lan ACTIVE, Party TẤN CÔNG", "Một phát 320% current Weapon DMG, trừ Armor một lần, bỏ qua Evasion; không Critical hoặc Một Phát Định Đoạt.", "Không tự kết liễu boss hoặc sinh đạn vô hạn.")
+  )
+
   fun forCharacter(characterId: String): List<CharacterSkillDefinition> = when (characterId) {
     CAO_MINH_ID -> caoMinh
     LUC_TRAM_ID -> lucTram
     SYVIAL_ID -> syvial
     AN_NHIEN_ID -> anNhien
     "lucia" -> lucia
+    NGUYEN_QUOC_NAM_ID -> quocNam
+    HUA_TIEU_LAN_ID -> tieuLan
     else -> emptyList()
   }
 }

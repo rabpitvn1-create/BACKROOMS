@@ -82,3 +82,13 @@ Corpus tăng 55 → 66 record sau khi snapshot toàn bộ tài liệu Canon từ
 - **(a1) STANDARD 3200 → 3600**: tập required của scene đối thoại có Lục Trầm tăng thêm record gác OPEN `CHAR.LUC_TRAM.UNKNOWN` (affordance `dialogue`, ~163 token) và record UNKNOWN mà nó tham chiếu `REL.LUC_TRAM.SYVIAL.BASELINE` (~194 token). Đây là hành vi đúng theo thiết kế — canon "chưa thiết lập" phải hiện diện để GM không tự bịa — nên profile được hiệu chuẩn lại thay vì cắt record.
 - **(e) COMPACT báo missing-required tường minh**: cùng scene vượt COMPACT 2600 một cách hợp lệ; kịch bản nay kiểm tra đúng hợp đồng thiết kế (COMPACT báo thiếu tường minh + trọn record, RICH 3900 chứa đủ, không missing).
 - Kết quả sau hiệu chuẩn: **8/8 PASS** trên corpus 66 record. Lưu ý khi hiệu chuẩn profile Kotlin thật: ngân sách STANDARD phải tính cả các record gác OPEN của nhân vật hiện diện, không chỉ record nội dung.
+
+## Nam R01 / Hứa Tiểu Lan R02 — ingest ngày 2026-10-24
+
+- Corpus: 66 → 96 records; 30 thẻ từ hai nguồn raw trong `canon_sources/Characters/`, SHA-256 và heading anchors đã kiểm tra. Coverage: Nam 9/9 headings, Tiểu Lan 13/13 headings. Không đổi 7 nguồn chờ snapshot hoặc 3 anchors chưa xác minh của corpus cũ.
+- Gate v1 đã chạy sau ingest: exit 0; p95 3400 token theo estimator cũ.
+- Gate CR2 đã chạy sau ingest: 8/8 PASS trên corpus 96 records. Đây là regression các scene cũ, không phải benchmark chất lượng lời kể cho hai nhân vật mới.
+- Bộ chọn mới dùng exact committed actor IDs hoặc Core-locked first-encounter preview, rồi chọn từng nhóm thẻ theo intent; packet đường CR2 OFF có ngân sách 1400 token ước lượng, thêm/bỏ nguyên record. CR2 ON dùng cùng records và scope guards trong resolver.
+- `REINCARNATION_SECRET` là RESTRICTED + NEVER_SHOW; `UNKNOWN_FIELDS` giữ UNKNOWN. Thông tin tài nguyên ảnh không được gửi làm canon kể chuyện. WORLD/META được parser nhận đúng các giá trị đã tồn tại trong corpus thật.
+- Test Kotlin mới: `VietnameseFollowersCanonTest`, `VietnameseFollowerCanonContextTest` (runtime semantics, scope, spoiler, UNKNOWN, provenance, ngân sách, save/load hiện tại); kết quả compile/JUnit được báo riêng ở PR, không suy từ benchmark Python.
+- Chưa đo độ trễ, token usage hoặc chất lượng văn xuôi bằng provider thật/thiết bị Android.

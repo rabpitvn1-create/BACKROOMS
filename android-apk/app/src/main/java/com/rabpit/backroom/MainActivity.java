@@ -8,6 +8,8 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import com.rabpit.backroom.core.GameCoreFacade;
+import com.rabpit.backroom.core.NamedFollowerRuntime;
+import com.rabpit.backroom.core.VietnameseFollowerCanonContext;
 import com.rabpit.backroom.core.canon.AdmissionDecision;
 import com.rabpit.backroom.core.canon.CanonOutcome;
 import com.rabpit.backroom.core.canon.CanonRuntime2;
@@ -93,7 +95,7 @@ public class MainActivity extends Activity {
       "st.textContent='button{transition:transform 80ms ease,background 120ms ease,border-color 120ms ease;touch-action:manipulation;-webkit-tap-highlight-color:rgba(255,255,255,.12)}button:active:not(:disabled){transform:scale(.965);background:#303840;border-color:#77828c}button:disabled{opacity:.48;cursor:not-allowed}.snapshot-placeholder{display:grid;place-items:center;gap:7px;text-align:center;color:#69737c}.snapshot-placeholder b{font-size:12px;letter-spacing:.16em}.snapshot-placeholder small{color:#56616a}.message.pending{opacity:.72}.message.pending .text{color:#aeb7be}';" +
       "document.head.appendChild(st);" +
       "function scrollBottom(){var l=document.getElementById('log');if(l)requestAnimationFrame(function(){l.scrollTop=l.scrollHeight;});}" +
-      "function equippedItem(s){try{var e=state&&state.equipment;if(!e)return null;return e[s]||null}catch(e){return null}}function kaiOverlaySource(){return 'kai_snapshot_overlay.webp'}function appendEquipmentBadge(b){}function cachedSnapshot(){try{var r=JSON.parse(localStorage.getItem('backroom-apk-snapshot')||'null');return r&&Number(r.turn)===Number(state&&state.turn)&&r.dataUri?r:null;}catch(e){return null;}}function renderSnapshot(){var box=document.getElementById('snapshot');if(!box)return;box.textContent='';var r=cachedSnapshot();if(r){var img=document.createElement('img');img.src=r.dataUri;img.alt='Snapshot Turn '+(state.turn||'');box.appendChild(img);}else{var p=document.createElement('div');p.className='snapshot-placeholder';p.innerHTML='<b>GEMINI SNAPSHOT</b><small>Chưa có ảnh của turn hiện tại.</small>';box.appendChild(p);}}" +
+      "function equippedItem(s){try{var e=state&&state.equipment;if(!e)return null;return e[s]||null}catch(e){return null}}function kaiOverlaySource(){return 'kai_snapshot_overlay.webp'}function appendEquipmentBadge(b){}function cachedSnapshot(){try{var r=JSON.parse(localStorage.getItem('backroom-apk-snapshot')||'null');return r&&Number(r.turn)===Number(state&&state.turn)&&r.dataUri?r:null;}catch(e){return null;}}function renderSnapshot(){var box=document.getElementById('snapshot');if(!box)return;box.textContent='';var r=cachedSnapshot();if(r){var img=document.createElement('img');img.src=r.dataUri;img.alt='Snapshot Turn '+(state.turn||'');box.appendChild(img);}else{var p=document.createElement('div');p.className='snapshot-placeholder';p.innerHTML='<b>GEMINI SNAPSHOT</b><small>Chưa có ảnh của turn hiện tại.</small>';box.appendChild(p);}window.backroomLuciaVisuals.renderOverlay(state);window.backroomNamedFollowers.renderOverlay(state);}" +
       "function requestSnapshot(){if(!window.Android||typeof Android.requestSnapshot!=='function'){var s=document.getElementById('status');if(s)s.textContent='Không tìm thấy Android snapshot bridge.';return;}var s=document.getElementById('status');if(s)s.textContent='Gemini đang tạo snapshot…';Android.requestSnapshot(JSON.stringify(state));}" +
       "window.requestSnapshot=requestSnapshot;" +
       "var oldRender=window.render;if(typeof oldRender==='function'){window.render=function(){oldRender();renderSnapshot();scrollBottom();};}" +
@@ -832,7 +834,6 @@ public class MainActivity extends Activity {
 
     int level = Math.max(0, Math.min(6, currentLevel(state)));
     int[] hazardThresholds = {400, 700, 1000, 1200, 300, 1000, 1200};
-    int[] entityThresholds = {5, 200, 350, 350, 10, 400, 5};
     int[] lootThresholds = {35, 120, 100, 150, 180, 100, 45};
     int[] waterThresholds = {20, 70, 35, 20, 120, 60, 35};
 
@@ -859,7 +860,7 @@ public class MainActivity extends Activity {
     rolls.put("hazard", thresholdRoll("hazard", 10000, anNhienHazardThreshold, physical,
       anNhienFollowing ? " -25% Có Gì Đó Sai Sai" : ""));
     String entitySuffix = level == 0 || level == 4 || level == 6 ? " incursion/roaming only" : "";
-    rolls.put("entityEncounter", thresholdRoll("entityEncounter", 10000, entityThresholds[level], physical && entityAllowed, entitySuffix));
+    // Entity and named followers receive one shared Core d10000 ticket before generation.
     rolls.put("loot", thresholdRoll("loot", 10000, Math.min(10000, lootThresholds[level] + (anNhienFollowing ? 1000 : 0)), search, anNhienFollowing ? " +10% An Nhiên" : ""));
     rolls.put("almondWater", thresholdRoll("almondWater", 10000, waterThresholds[level], search && water, ""));
 
@@ -900,6 +901,7 @@ public class MainActivity extends Activity {
       Object member = proposed.opt(i);
       String name = itemName(member);
       if (arrayHasName(safe, name)) continue;
+      if (member instanceof JSONObject && (NamedFollowerRuntime.managed((JSONObject) member) || NamedFollowerRuntime.protectedRelative((JSONObject) member))) continue;
       String lowered = lower(name);
       boolean allowed = (lowered.contains("luc-tram") && rollSuccess(rolls, "lucTramReunion")) ||
         (lowered.contains("syvial") && rollSuccess(rolls, "syvialReunion")) ||
@@ -989,6 +991,10 @@ public class MainActivity extends Activity {
   }
 
   private class GameBridge {
+    @JavascriptInterface public void resetCore() {
+      io.execute(() -> requireGameCore().clear());
+    }
+
     // LEVEL_TRAVEL_BRIDGE: synchronous startup/restore; never invoked by rendering.
     @JavascriptInterface public String initializeLevelGame(String stateJson, boolean fresh) {
       return requireGameCore().initializeLevelGame(stateJson, fresh);
@@ -1009,7 +1015,20 @@ public class MainActivity extends Activity {
             return;
           }
           JSONObject before = levelAction.getJSONObject("state");
-          boolean meta = isMetaAction(action);
+          JSONObject pickupResult = new JSONObject(requireGameCore().processWorldPickup(before.toString(), action));
+          if (pickupResult.optBoolean("handled", false)) {
+            emit("backroomTurn", pickupResult.getJSONObject("state").toString());
+            return;
+          }
+          JSONObject namedRule = new JSONObject(requireGameCore().processNamedFollowerRule(before.toString(), action));
+          if (namedRule.optBoolean("handled", false)) {
+            JSONObject namedState = namedRule.getJSONObject("state");
+            if (!namedRule.has("error")) namedState = new JSONObject(requireGameCore().finishLevelTurn(
+              before.toString(), namedState.toString(), action));
+            emit("backroomTurn", namedState.toString());
+            return;
+          }
+          boolean meta = isMetaAction(action) || NamedFollowerRuntime.isMetaAction(action);
           if (!meta) {
             JSONObject lootResult = new JSONObject(requireGameCore().processExplorationLoot(before.toString(), action));
             if (!lootResult.optBoolean("handled", false) || lootResult.optJSONObject("state") == null)
@@ -1017,6 +1036,9 @@ public class MainActivity extends Activity {
             before = lootResult.getJSONObject("state");
           }
           JSONObject rolls = makeGameplayRolls(before, action, meta);
+          JSONObject namedPrepared = new JSONObject(requireGameCore().prepareNamedFollowerTurn(before.toString(), action, rolls.toString()));
+          before = namedPrepared.getJSONObject("state");
+          rolls = namedPrepared.getJSONObject("rolls");
           // CANON_RUNTIME_2_WIRING: OFF leaves the original GM path unchanged.
           String canonPacket = null;
           if (CanonRuntime2Flags.isEnabled(MainActivity.this) || before.has("levelTravel")) {
@@ -1075,6 +1097,8 @@ public class MainActivity extends Activity {
               "\nGAMEPLAY_ROLLS:\n" + rolls.toString() +
               "\nOUTPUT JSON: {\"reply\":\"lời kể tiếng Việt\",\"title\":\"tên khu vực\",\"level\":{\"number\":0,\"name\":\"The Lobby\"},\"location\":\"vị trí\",\"player\":{},\"party\":[],\"inventory\":[],\"flags\":{},\"snapshotEvent\":{\"shouldGenerate\":false,\"kind\":\"\",\"reason\":\"\"}}";
           }
+          prompt += "\nNAMED FOLLOWER RULES: Named encounters are confirmed only by locked success rolls. First encounter does not join Party. Only after an explicit player invitation and NPC consent may the proposed party contain that exact id with joinConfirmed=true. Do not create relatives, revive dead actors, invent memories or choose Cao Minh's voluntary actions.\n" +
+            (canonPacket == null ? VietnameseFollowerCanonContext.build(MainActivity.this, before.toString(), action, rolls.toString()) : "");
           prompt = "LEVEL TRAVEL HARD LOCK: Core alone selects Level and exit result. Ordinary turns preserve Level and exitStreak. Never narrate escape, a different Level, or a successful exit roll; explicit exit actions are handled locally at 50% and 3 consecutive successes. Describe only current scene; local movement must follow the player action.\n" + prompt;
           JSONObject generated = parseModelJson(
             generateTextForTurn(prompt, Math.max(1, (prompt.length() + 3) / 4)));
@@ -1108,6 +1132,11 @@ public class MainActivity extends Activity {
           log.put(new JSONObject().put("role", "player").put("text", action));
           log.put(new JSONObject().put("role", "gm").put("text", reply));
           state.put("log", log);
+          if (!meta) {
+            JSONArray proposedParty = generated.optJSONArray("party");
+            state = new JSONObject(requireGameCore().commitNamedFollowerTurn(before.toString(), state.toString(), action,
+              proposedParty == null ? "[]" : proposedParty.toString()));
+          }
           // Start an authoritative encounter only on a locked success roll and
           // a profile key accepted by CombatRuntime. GM prose alone is insufficient.
           if (!meta && rollSuccess(rolls, "entityEncounter")) {

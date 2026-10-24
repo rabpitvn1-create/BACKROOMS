@@ -98,3 +98,6 @@ runpy.run_path(str(ROOT / "patch-newgame-inventory-capacity.py"), run_name="__ma
 # Final candidate-inventory semantics: capacity validation must evaluate the Inventory instance being
 # mutated, while equipped Items cost zero slots and displaced equipment costs a carried slot.
 runpy.run_path(str(ROOT / "patch-inventory-capacity-final-fix.py"), run_name="__main__")
+
+# Final Canon linked armor modules, after every generated equipment rewrite.
+runpy.run_path(str(ROOT / "patch-cao-minh-huyet-ma-modules-finalize.py"), run_name="__main__")

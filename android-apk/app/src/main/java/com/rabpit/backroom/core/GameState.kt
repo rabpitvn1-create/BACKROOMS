@@ -4,22 +4,30 @@ const val CURRENT_SAVE_VERSION = 3
 const val CAO_MINH_ID = "cao-minh"
 const val CAO_MINH_HUYET_MA_KIEM_ID = "cao-minh:huyet-ma-kiem"
 const val CAO_MINH_HUYET_MA_CHIEN_KHAI_ID = "cao-minh:huyet-ma-chien-khai"
+const val CAO_MINH_HUYET_MA_GAUNTLETS_ID = "cao-minh:huyet-ma-gauntlets"
+const val CAO_MINH_HUYET_MA_BOOTS_ID = "cao-minh:huyet-ma-boots"
 const val CAO_MINH_VAN_KHO_GIOI_CHI_ID = "cao-minh:van-kho-gioi-chi"
 
 object CaoMinhStartingEquipment {
   const val WEAPON_NAME = "Huyết Ma Kiếm"
   const val ARMOR_NAME = "Huyết Ma Chiến Khải"
+  const val GAUNTLETS_NAME = "Găng Huyết Ma"
+  const val BOOTS_NAME = "Giày Huyết Ma"
   const val RING_NAME = "Vạn Khố Giới Chỉ"
 
   val slots: Map<String, String> = linkedMapOf(
     "weapon" to CAO_MINH_HUYET_MA_KIEM_ID,
     "armor" to CAO_MINH_HUYET_MA_CHIEN_KHAI_ID,
+    "gauntlets" to CAO_MINH_HUYET_MA_GAUNTLETS_ID,
+    "greaves" to CAO_MINH_HUYET_MA_BOOTS_ID,
     "ring" to CAO_MINH_VAN_KHO_GIOI_CHI_ID
   )
 
   fun displayName(itemId: String): String? = when (itemId) {
     CAO_MINH_HUYET_MA_KIEM_ID -> WEAPON_NAME
     CAO_MINH_HUYET_MA_CHIEN_KHAI_ID -> ARMOR_NAME
+    CAO_MINH_HUYET_MA_GAUNTLETS_ID -> GAUNTLETS_NAME
+    CAO_MINH_HUYET_MA_BOOTS_ID -> BOOTS_NAME
     CAO_MINH_VAN_KHO_GIOI_CHI_ID -> RING_NAME
     else -> null
   }
@@ -29,6 +37,8 @@ object CaoMinhStartingEquipment {
     return when {
       key.contains("huyết ma kiếm") || key.contains("huyet ma kiem") -> "weapon"
       key.contains("huyết ma chiến khải") || key.contains("huyet ma chien khai") -> "armor"
+      key.contains("huyết ma gauntlet") || key.contains("huyet ma gauntlet") || key.contains("găng huyết ma") || key.contains("gang huyet ma") -> "gauntlets"
+      key.contains("huyết ma boot") || key.contains("huyet ma boot") || key.contains("giày huyết ma") || key.contains("giay huyet ma") -> "greaves"
       key.contains("vạn khố giới chỉ") || key.contains("nhẫn vạn khố") || key.contains("van kho gioi chi") || key.contains("nhẫn vạn tàng") || key.contains("van tang") -> "ring"
       else -> null
     }
@@ -160,19 +170,25 @@ data class GameState(
         ),
         AN_NHIEN_ID to AnNhienCanon.character(),
         LUC_TRAM_ID to SpecialFollowersCanon.lucTramCharacter(),
-        SYVIAL_ID to SpecialFollowersCanon.syvialCharacter()
+        SYVIAL_ID to SpecialFollowersCanon.syvialCharacter(),
+        NGUYEN_QUOC_NAM_ID to VietnameseFollowersCanon.character(NGUYEN_QUOC_NAM_ID),
+        HUA_TIEU_LAN_ID to VietnameseFollowersCanon.character(HUA_TIEU_LAN_ID)
       ),
       inventories = mapOf(
         CAO_MINH_ID to InventoryState(CAO_MINH_ID),
         AN_NHIEN_ID to AnNhienCanon.inventory(),
         LUC_TRAM_ID to InventoryState(LUC_TRAM_ID),
-        SYVIAL_ID to InventoryState(SYVIAL_ID)
+        SYVIAL_ID to InventoryState(SYVIAL_ID),
+        NGUYEN_QUOC_NAM_ID to InventoryState(NGUYEN_QUOC_NAM_ID),
+        HUA_TIEU_LAN_ID to InventoryState(HUA_TIEU_LAN_ID)
       ),
       equipment = mapOf(
         CAO_MINH_ID to EquipmentState(CAO_MINH_ID, CaoMinhStartingEquipment.slots),
         AN_NHIEN_ID to AnNhienCanon.equipment(),
         LUC_TRAM_ID to EquipmentState(LUC_TRAM_ID, SpecialFollowersCanon.lucTramEquipmentSlots),
-        SYVIAL_ID to EquipmentState(SYVIAL_ID, SpecialFollowersCanon.syvialEquipmentSlots)
+        SYVIAL_ID to EquipmentState(SYVIAL_ID, SpecialFollowersCanon.syvialEquipmentSlots),
+        NGUYEN_QUOC_NAM_ID to EquipmentState(NGUYEN_QUOC_NAM_ID, VietnameseFollowersCanon.startingLoadout(NGUYEN_QUOC_NAM_ID).mapKeys { it.key.key }),
+        HUA_TIEU_LAN_ID to EquipmentState(HUA_TIEU_LAN_ID, VietnameseFollowersCanon.startingLoadout(HUA_TIEU_LAN_ID).mapKeys { it.key.key })
       )
     ))
   }

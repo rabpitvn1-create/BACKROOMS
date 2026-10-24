@@ -16,7 +16,10 @@ data class ItemDetailProjection(
   val weapon: WeaponGameplayStats? = null,
   val abilities: List<EquipmentAbility> = emptyList(),
   val restrictions: List<String> = emptyList(),
-  val components: List<EquipmentComponent> = emptyList()
+  val components: List<EquipmentComponent> = emptyList(),
+  val iconRef: String? = null,
+  val bonuses: EquipmentBonuses = EquipmentBonuses(),
+  val consumesInventorySlot: Boolean? = null
 )
 
 data class CharacterDetailProjection(
@@ -77,6 +80,9 @@ object CharacterDetailProjector {
     val base = c.statProfile
     val inventory = normalized.inventories[c.inventoryId]?.items?.values.orEmpty().sortedBy { it.itemId }
     val equipment = normalized.equipment[c.equipmentId]?.slots.orEmpty().toSortedMap()
+    val equippedIds = equipment.values.toSet()
+    fun carried(itemId: String) = itemId !in equippedIds &&
+      !InventoryCapacityPolicy.isOwnerCanon(characterId, itemId)
     fun itemDetail(item: ItemStack): ItemDetailProjection {
       val def = EquipmentCatalog.definition(item.itemId)
       val slots = equipment.filterValues { it == item.itemId }.keys.sorted()
@@ -84,12 +90,26 @@ object CharacterDetailProjector {
         id = item.itemId, name = def?.name ?: item.name, quantity = item.quantity,
         type = def?.type, slot = def?.primarySlot?.key ?: item.metadata["slot"], rarity = def?.rarity,
         equipped = slots.isNotEmpty(), equippedSlots = slots,
-        statItem = def?.weapon != null, classification = def?.classification?.name,
+        statItem = def?.weapon != null || def?.bonuses?.any() == true, classification = def?.classification?.name,
         weapon = def?.weapon, abilities = def?.abilities.orEmpty(), restrictions = def?.restrictions.orEmpty(),
-        components = def?.components.orEmpty()
+        components = def?.components.orEmpty(), iconRef = def?.iconRef,
+        bonuses = def?.bonuses ?: EquipmentBonuses(),
+        consumesInventorySlot = carried(item.itemId)
       )
     }
     val details = inventory.map(::itemDetail)
+    // Canon owner gear is projected only under Equipment, not carried Inventory.
+    val carriedIds = inventory.filter { carried(it.itemId) }.map { it.itemId }.toSet()
+    val carriedDetails = details.filter { it.id in carriedIds }
+    val equipmentDetails = details.filter {
+      it.equipped || InventoryCapacityPolicy.isOwnerCanon(characterId, it.id)
+    }
+    val gear = CharacterStatEngine.equippedBonuses(normalized, characterId)
+    fun statLine(raw: Int, value: Int, percent: Int = 0): StatLineProjection {
+      val equipmentBonus = (CharacterStatCore.scaleByPercent(raw, 100 + percent) - raw)
+        .coerceIn(0, (CharacterProgressionCore.MAX_STAT - raw).coerceAtLeast(0))
+      return StatLineProjection(raw, equipmentBonus, value, value - raw - equipmentBonus)
+    }
     return CharacterDetailProjection(
       id = c.id, name = c.name, avatarRef = c.avatarRef, presence = c.presence,
       isLeader = normalized.party.leaderId == c.id, healthState = c.healthState,
@@ -102,20 +122,20 @@ object CharacterDetailProjector {
       },
       regenPerCompletedTurn = effective.regenPerCompletedTurn,
       condition = c.vitalState.condition,
-      str = StatLineProjection(base.str, 0, effective.str),
-      def = StatLineProjection(base.def, 0, effective.def),
-      skl = StatLineProjection(base.skl, 0, effective.skl),
-      vit = StatLineProjection(base.vit, 0, effective.vit),
+      str = statLine(base.str, effective.str),
+      def = statLine(base.def, effective.def, gear.defPercent),
+      skl = statLine(base.skl, effective.skl),
+      vit = statLine(base.vit, effective.vit, gear.vitPercent),
       criticalChancePercent = effective.criticalChancePercent,
       criticalDamagePercent = effective.criticalDamagePercent,
       evasionPercent = effective.evasionPercent,
       criticalResistancePercent = effective.resCriticalPercent,
       evasionResistancePercent = effective.resEvasionPercent,
       injuries = c.injuries.toList(), physiology = PhysiologyStatusPolicy.derive(c.physiology),
-      inventory = inventory.toList(), inventoryDetails = details,
+      inventory = inventory.filter { it.itemId in carriedIds }, inventoryDetails = carriedDetails,
       inventoryCapacityUsed = InventoryCapacityPolicy.usedSlots(normalized, c.id),
       inventoryCapacityMax = InventoryCapacityPolicy.maxSlots(normalized, c.id),
-      equipment = equipment, equipmentDetails = details.filter { it.equipped },
+      equipment = equipment, equipmentDetails = equipmentDetails,
       passives = CompanionSkillCatalog.forCharacter(c.id).filter { it.kind == "PASSIVE" }.map { it.name },
       statusEffects = c.statusIds.mapNotNull(normalized.statuses::get)
     )

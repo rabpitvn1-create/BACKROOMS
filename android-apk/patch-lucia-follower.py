@@ -39,7 +39,7 @@ object LuciaCanon {
   const val AGE = 19
   const val HOME_LEVEL = 0
   const val ENCOUNTER_CHANCE = "50%"
-  const val AVATAR_REF = "avatars/lucia_avatar.jpg"
+  const val AVATAR_REF = "avatars/LUCIA_LUC_AVATAR.png"
 
   val equipmentSlots: Map<String, String> = linkedMapOf(
     "weapon" to LUCIA_M4A1_ID,
@@ -154,26 +154,35 @@ STATS.write_text(stats, encoding="utf-8")
 # as first-class slots rather than pretending a knife is armor or a watch is a ring.
 # ---------------------------------------------------------------------------
 system = SYSTEM.read_text(encoding="utf-8")
-system = replace_once(
-    system,
-    '''  RING("ring"), SPECIAL("special"), OUTFIT("outfit"), FOOTWEAR("footwear");
-''',
-    '''  RING("ring"), SPECIAL("special"), BLADE("blade"), WRIST("wrist"), OUTFIT("outfit"), FOOTWEAR("footwear");
-''',
-    "Lucia equipment slot enum",
-)
-system = replace_once(
-    system,
-    '''        "special" -> SPECIAL
-        "outfit" -> OUTFIT
-''',
-    '''        "special" -> SPECIAL
-        "blade", "knife" -> BLADE
-        "wrist", "watch" -> WRIST
-        "outfit" -> OUTFIT
-''',
-    "Lucia equipment slot resolver",
-)
+# Current Core already exposes WRIST for Nguyễn Quốc Nam/Hứa Tiểu Lan.
+# Add only BLADE and do not overwrite the shared WRIST routing.
+if 'BLADE("blade")' not in system:
+    if 'SPECIAL("special"), OUTFIT("outfit"), FOOTWEAR("footwear"), WRIST("wrist");' in system:
+        system = replace_once(
+            system,
+            'SPECIAL("special"), OUTFIT("outfit"), FOOTWEAR("footwear"), WRIST("wrist");',
+            'SPECIAL("special"), BLADE("blade"), OUTFIT("outfit"), FOOTWEAR("footwear"), WRIST("wrist");',
+            "Lucia Blade slot on Nam/Lan enabled Core"
+        )
+    else:
+        system = replace_once(
+            system,
+            'RING("ring"), SPECIAL("special"), OUTFIT("outfit"), FOOTWEAR("footwear");',
+            'RING("ring"), SPECIAL("special"), BLADE("blade"), WRIST("wrist"), OUTFIT("outfit"), FOOTWEAR("footwear");',
+            "Lucia Blade and Wrist slots on Core"
+        )
+if '"blade", "knife" -> BLADE' not in system:
+    system = replace_once(system,
+        '        "special" -> SPECIAL\n',
+        '        "special" -> SPECIAL\n        "blade", "knife" -> BLADE\n',
+        "Lucia blade resolver"
+    )
+if '"wrist", "watch" -> WRIST' not in system and '"wrist", "watch", "bracelet", "bangle" -> WRIST' not in system:
+    system = replace_once(system,
+        '        "blade", "knife" -> BLADE\n',
+        '        "blade", "knife" -> BLADE\n        "wrist", "watch" -> WRIST\n',
+        "Lucia wrist resolver"
+    )
 
 if 'id = LUCIA_M4A1_ID' not in system:
     insert_anchor = '''    EquipmentDefinition(
@@ -187,12 +196,12 @@ if 'id = LUCIA_M4A1_ID' not in system:
         ability("Fire Discipline", "Lucia ưu tiên điểm xạ và tiết kiệm đạn trong môi trường chưa xác định.")
       ),
       restrictions = listOf("Đạn vật lý hữu hạn: 60 viên nạp + 90 viên dự phòng lúc bắt đầu."),
-      canonRef = "LUCIA-LUC-FOLLOWER-20260823"
+      canonRef = "LUCIA-LUC-FOLLOWER-20260823", iconRef = "https://res.cloudinary.com/csz2me5b/image/upload/v1792832694/Item_M4A1.webp"
     ),
     EquipmentDefinition(
       id = LUCIA_KNIFE_ID, name = "Dao găm chiến đấu", type = "COMBAT KNIFE", primarySlot = EquipmentSlot.BLADE,
       weapon = WeaponGameplayStats(16),
-      canonRef = "LUCIA-LUC-FOLLOWER-20260823"
+      canonRef = "LUCIA-LUC-FOLLOWER-20260823", iconRef = "https://res.cloudinary.com/csz2me5b/image/upload/v1792832693/Item_Combat_Knife.webp"
     ),
     EquipmentDefinition(
       id = LUCIA_WATCH_ID, name = "Đồng hồ định vị quân sự", type = "MILITARY WATCH", primarySlot = EquipmentSlot.WRIST,
@@ -200,28 +209,24 @@ if 'id = LUCIA_M4A1_ID' not in system:
         ability("Local Time Reference", "Giữ mốc thời gian cục bộ để Lucia ghi chép hành trình."),
         ability("Navigation Hardware", "Phần cứng định vị vẫn tồn tại nhưng đã mất tín hiệu vệ tinh trong Backrooms.", "Không cung cấp GPS hoặc la bàn tuyệt đối ở Level 0.")
       ),
-      canonRef = "LUCIA-LUC-FOLLOWER-20260823"
+      canonRef = "LUCIA-LUC-FOLLOWER-20260823", iconRef = "https://res.cloudinary.com/csz2me5b/image/upload/v1792832692/Item_Military_Watch.webp"
     ),
 '''
     if insert_anchor not in system:
         raise RuntimeError("Lucia equipment definition anchor missing")
     system = system.replace(insert_anchor, lucia_defs + insert_anchor, 1)
 
-system = replace_once(
-    system,
-    '''    AN_NHIEN_ID -> linkedMapOf(EquipmentSlot.OUTFIT to AN_NHIEN_OUTFIT_ID, EquipmentSlot.FOOTWEAR to AN_NHIEN_FOOTWEAR_ID)
-    else -> emptyMap()
-''',
-    '''    AN_NHIEN_ID -> linkedMapOf(EquipmentSlot.OUTFIT to AN_NHIEN_OUTFIT_ID, EquipmentSlot.FOOTWEAR to AN_NHIEN_FOOTWEAR_ID)
-    LUCIA_ID -> linkedMapOf(
+if '    LUCIA_ID -> linkedMapOf(' not in system:
+    anchor = '    AN_NHIEN_ID -> linkedMapOf(EquipmentSlot.OUTFIT to AN_NHIEN_OUTFIT_ID, EquipmentSlot.FOOTWEAR to AN_NHIEN_FOOTWEAR_ID)\n'
+    if system.count(anchor) != 1:
+        raise RuntimeError("Lucia starting loadout insertion anchor missing")
+    added = '''    LUCIA_ID -> linkedMapOf(
       EquipmentSlot.WEAPON to LUCIA_M4A1_ID,
       EquipmentSlot.BLADE to LUCIA_KNIFE_ID,
       EquipmentSlot.WRIST to LUCIA_WATCH_ID
     )
-    else -> emptyMap()
-''',
-    "Lucia starting loadout",
-)
+'''
+    system = system.replace(anchor, anchor + added, 1)
 
 # Lucia is guaranteed to exist after every normalization/load without forcing her into Party.
 if 'val input = LuciaCanon.ensure(source)' not in system:

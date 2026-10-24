@@ -4,18 +4,21 @@ import android.content.Context
 import org.json.JSONArray
 import org.json.JSONObject
 
-class GameCoreFacade private constructor(
+class GameCoreFacade @JvmOverloads internal constructor(
   private val repository: SaveRepository,
   private val logger: GamePipelineLogger,
-  private val levelEngine: LevelTravelEngine
+  private val levelEngine: LevelTravelEngine? = null,
+  private val namedTicket: () -> Int = { kotlin.random.Random.nextInt(10000) }
 ) : AutoCloseable {
   private val rules = RuleIntentInterpreter()
   private val resolver = CommandResolver()
+  private data class PreparedNamedTurn(val base: GameState, val plan: NamedFollowerRuntime.Plan)
+  private var preparedNamedTurn: PreparedNamedTurn? = null
 
   /** Only the explicit New Game path may draw a starting Level. No old-save conversion. */
   @Synchronized fun initializeLevelGame(legacyStateJson: String, fresh: Boolean): String {
     val legacy = JSONObject(legacyStateJson)
-    var core = if (fresh) levelEngine.start(GameState.initial().copy(world = mapOf(
+    var core = if (fresh) requireNotNull(levelEngine) { "level_travel_not_configured" }.start(GameState.initial().copy(world = mapOf(
       "flagsJson" to (legacy.optJSONObject("flags") ?: JSONObject()).toString()
     ))) else {
       val snapshot = legacy.getJSONObject("coreSnapshot")
@@ -70,7 +73,7 @@ class GameCoreFacade private constructor(
     return try {
       val runId = legacy.getJSONObject(LevelTravelEngine.KEY).getString("runId")
       val turn = legacy.getInt("turn")
-      val outcome = levelEngine.attempt(current, runId, turn, action)
+      val outcome = requireNotNull(levelEngine) { "level_travel_not_configured" }.attempt(current, runId, turn, action)
       if (outcome.state == current) {
         val latest = LevelTravelEngine.project(current, current.world["levelTravelUi"]?.let(::JSONObject) ?: legacy)
         latest.put("turn", current.world["levelTravelUiTurn"]?.toIntOrNull() ?: turn + 1)
@@ -116,6 +119,95 @@ class GameCoreFacade private constructor(
     repository.save(next)
     candidate.put("coreSnapshot", JSONObject(GameStateCodec.encode(next)))
     return candidate.toString()
+  }
+
+  fun processNamedFollowerRule(legacyStateJson: String, action: String): String {
+    val legacy = JSONObject(legacyStateJson)
+    val current = loadOrMigrate(legacy)
+    val result = NamedFollowerItemActions.tryExecute(current, action, nextTurnId(legacy, current))
+      ?: return response(false, legacy, null, "not_named_follower_item_action")
+    val output = NamedFollowerRuntime.project(legacy, result.state)
+    if (result.error == null) {
+      output.put("turn", legacy.optInt("turn", 1) + 1)
+      output.put("gameTime", JSONObject().put("elapsedSubjectiveMinutes", result.state.time.elapsedSubjectiveMinutes))
+      if (CAO_MINH_ID in result.changedOwners) {
+        val oldItems = current.inventories[CAO_MINH_ID]?.items.orEmpty()
+        val newItems = result.state.inventories[CAO_MINH_ID]?.items.orEmpty()
+        val changedNames = result.changedItems.flatMap { listOfNotNull(oldItems[it]?.name, newItems[it]?.name) }.toSet()
+        val inventory = JSONArray()
+        val original = legacy.optJSONArray("inventory") ?: JSONArray()
+        for (i in 0 until original.length()) {
+          val item = original.optJSONObject(i) ?: continue
+          if (item.optString("id") !in result.changedItems && item.optString("name") !in changedNames) inventory.put(item)
+        }
+        result.changedItems.mapNotNull(newItems::get).forEach { item ->
+          inventory.put(JSONObject().put("id", item.itemId).put("name", item.name)
+            .put("quantity", item.quantity).put("metadata", JSONObject(item.metadata)))
+        }
+        output.put("inventory", inventory)
+      }
+      repository.save(result.state)
+      preparedNamedTurn = null
+    }
+    appendLog(output, action, result.reply)
+    return response(true, output, result.error, "named_follower_item_action", result.reply)
+  }
+
+  /** A serial Android request owns this plan. Browser/GM roll JSON never commits it. */
+  fun prepareNamedFollowerTurn(legacyStateJson: String, action: String, rollsJson: String): String {
+    val legacy = JSONObject(legacyStateJson)
+    val current = loadOrMigrate(legacy)
+    val rolls = JSONObject(rollsJson)
+    val turnId = nextTurnId(legacy, current)
+    val flags = legacy.optJSONObject("flags")
+    val cached = preparedNamedTurn?.takeIf { it.base == current && it.plan.turnId == turnId && it.plan.action == action }
+    val prepared = cached ?: PreparedNamedTurn(current, NamedFollowerRuntime.plan(
+      current, turnId, action, namedTicket(), rolls.optBoolean("meta", false),
+      flags?.optBoolean("survivorEncountersAllowed", true) ?: true,
+      flags?.optBoolean("entityEncountersAllowed", true) ?: true))
+    if (!rolls.optBoolean("meta", false)) {
+      check(turnId !in current.turn.completedTurnIds) { "turn_already_completed" }
+      preparedNamedTurn = prepared
+    }
+    val locked = NamedFollowerRuntime.rolls(prepared.plan)
+    locked.keys().forEach { key -> rolls.put(key, locked.get(key)) }
+    return JSONObject().put("state", NamedFollowerRuntime.project(legacy, current)).put("rolls", rolls).toString()
+  }
+
+  fun commitNamedFollowerTurn(beforeJson: String, candidateJson: String, action: String, proposedPartyJson: String): String {
+    val before = JSONObject(beforeJson)
+    val candidate = JSONObject(candidateJson)
+    val prepared = checkNotNull(preparedNamedTurn) { "named_follower_plan_missing" }
+    val current = loadOrMigrate(before)
+    check(prepared.base == current && prepared.plan.action == action && prepared.plan.turnId == nextTurnId(before, current)) {
+      "named_follower_plan_stale"
+    }
+    val party = candidate.optJSONArray("party") ?: JSONArray()
+    val otherIds = (0 until party.length()).mapNotNull(party::optJSONObject)
+      .filterNot { NamedFollowerRuntime.managed(it) || NamedFollowerRuntime.protectedRelative(it) }
+      .map { it.optString("id").ifBlank { it.optString("name") } }.distinct()
+    val result = NamedFollowerRuntime.apply(current, prepared.plan, JSONArray(proposedPartyJson), otherIds.size)
+    val pending = TurnCoordinator.createPending(result.state, prepared.plan.turnId, action)
+    check(pending.error == null) { pending.error.orEmpty() }
+    val projected = NamedFollowerRuntime.project(candidate, result.state)
+    val commands = listOf(
+      ValidatedLegacyStateCommand("${prepared.plan.turnId}:NAMED:WORLD", prepared.plan.turnId,
+        source = CommandSource.SYSTEM, location = projected.optString("location"),
+        levelJson = projected.optJSONObject("level")?.toString(),
+        flagsJson = projected.optJSONObject("flags")?.toString(), validatedByGameEngine = true),
+      timeAdvanceCommand(prepared.plan.turnId, action))
+    val committed = TurnCoordinator.commit(pending.state, commands)
+    check(committed.error == null) { committed.error.orEmpty() }
+    val output = NamedFollowerRuntime.project(projected, committed.state)
+    output.put("gameTime", JSONObject().put("elapsedSubjectiveMinutes", committed.state.time.elapsedSubjectiveMinutes))
+    if (result.notices.isNotEmpty()) {
+      val log = output.optJSONArray("log") ?: JSONArray()
+      result.notices.forEach { log.put(JSONObject().put("role", "gm").put("text", it)) }
+      output.put("log", log)
+    }
+    repository.save(committed.state)
+    preparedNamedTurn = null
+    return output.toString()
   }
 
   /** Fast deterministic pass. Gemini is never called from this method. */
@@ -208,7 +300,7 @@ class GameCoreFacade private constructor(
       output.put("combat", combat)
     }
     output.put("coreSystem", PokerDiceCore.statsJson(core, CAO_MINH_ID))
-    return output
+    return NamedFollowerRuntime.project(output, core)
   }
 
   fun prepareCombatDice(legacyStateJson: String, action: String): String {
@@ -315,6 +407,18 @@ class GameCoreFacade private constructor(
         }
       }
     }
+    output.optJSONObject("partyDetails")?.optJSONArray("members")?.let { members ->
+      for (i in 0 until members.length()) {
+        val member = members.optJSONObject(i) ?: continue
+        val id = member.optString("id")
+        val c = completed.characters[id] ?: continue
+        if (id in VietnameseFollowersCanon.ids || current.characters[id]?.vitalState != c.vitalState) {
+          member.put("currentHp", c.vitalState.currentHp)
+          member.put("maxHp", CharacterStatEngine.effective(completed, id).maxHp)
+          member.put("condition", c.vitalState.condition.name)
+        }
+      }
+    }
     output.put("coreSystem", PokerDiceCore.statsJson(completed, CAO_MINH_ID))
     output.put("combatFeedback", JSONObject().apply {
       put("id", "${active.encounterId}:${active.eventCounter + 1}")
@@ -358,8 +462,84 @@ class GameCoreFacade private constructor(
       })
   }
 
+  /**
+   * An explicit pickup transfers only a verified Core-generated world instance.
+   * Neither WebView state nor GM-generated Item fields can grant ownership.
+   */
+  @Synchronized fun processWorldPickup(legacyStateJson: String, action: String): String {
+    val legacy = JSONObject(legacyStateJson)
+    val match = Regex("^(?:(?:tôi|cao minh)\\s+)?(?:nhặt|lấy|cầm|thu hồi)\\s+(.+)$",
+      RegexOption.IGNORE_CASE).matchEntire(action.trim())
+      ?: return response(false, legacy, null, "not_world_pickup")
+    val wanted = match.groupValues[1].trim().trimEnd('.', '!', '?').lowercase()
+    if (wanted.isBlank() || wanted.startsWith("không ") || wanted.startsWith("đừng ")) {
+      return response(false, legacy, null, "not_world_pickup")
+    }
+    val current = loadOrMigrate(legacy)
+    val travel = LevelTravelEngine.read(current)
+    val expected = legacy.optJSONObject(LevelTravelEngine.KEY)
+      ?: return response(true, legacy, "level_game_not_initialized", "world_pickup_rejected")
+    check(expected.optString("runId") == travel.getString("runId") &&
+      legacy.optInt("turn", -1) == (current.world["levelTravelUiTurn"]?.toIntOrNull() ?: 1)) {
+      "stale_world_pickup"
+    }
+    check(CombatRuntime.active(current) == null) { "world_pickup_combat_active" }
+    val flags = JSONObject(current.world["flagsJson"] ?: "{}")
+    val worldItems = flags.optJSONArray("worldItems") ?: JSONArray()
+    val available = (0 until worldItems.length()).mapNotNull { i ->
+      val item = worldItems.optJSONObject(i) ?: return@mapNotNull null
+      if (item.optBoolean("available", true) && item.optInt("quantity", 0) > 0 &&
+        item.optString("instanceId").startsWith("core:")) i else null
+    }
+    val found = available.filter { i ->
+      val item = worldItems.getJSONObject(i)
+      val id = item.optString("id").lowercase()
+      val name = item.optString("name").lowercase()
+      id.isNotBlank() && name.isNotBlank() &&
+        (wanted.contains(name) || wanted.contains(id) ||
+          (available.size == 1 && wanted in setOf("vật phẩm", "đồ", "món đồ")))
+    }
+    if (found.size != 1) return response(true, syncLegacy(legacy, current, false),
+      if (found.isEmpty()) "world_item_not_found" else "world_item_ambiguous",
+      "world_pickup_rejected", "Không tìm thấy đúng một vật phẩm đã xuất hiện để nhặt.")
+    val index = found.single()
+    val item = worldItems.getJSONObject(index)
+    val turnId = nextTurnId(legacy, current)
+    val pending = TurnCoordinator.createPending(current, turnId, action)
+    check(pending.error == null) { pending.error ?: "world_pickup_pending" }
+    val command = ItemCommand("$turnId:SYSTEM:WORLD_PICKUP:$index", turnId, CAO_MINH_ID,
+      source = CommandSource.SYSTEM, operation = ItemCommand.Operation.PICKUP,
+      itemId = item.getString("id"), itemName = item.getString("name"), quantity = 1,
+      metadata = jsonObjectStrings(item.optJSONObject("metadata")))
+    val committed = TurnCoordinator.commit(pending.state, listOf(command, timeAdvanceCommand(turnId, action)))
+    if (committed.error != null) return response(true, syncLegacy(legacy, current, false),
+      committed.error, "world_pickup_rejected", validationReply(committed.error))
+    val nextItems = JSONArray()
+    for (i in 0 until worldItems.length()) {
+      val entry = JSONObject(worldItems.getJSONObject(i).toString())
+      if (i == index) entry.put("available", false)
+      nextItems.put(entry)
+    }
+    flags.put("worldItems", nextItems)
+    val changed = committed.state.copy(world = committed.state.world +
+      ("flagsJson" to flags.toString()))
+    val projected = syncLegacy(legacy, changed, incrementTurn = true)
+    projected.remove("exitResult")
+    val reply = "Cao Minh nhặt " + item.getString("name") + " và cất vào Inventory."
+    appendLog(projected, action, reply)
+    projected.remove("coreSnapshot")
+    val persisted = changed.copy(world = changed.world + mapOf(
+      "levelTravelUiTurn" to projected.getInt("turn").toString(),
+      "levelTravelUi" to projected.toString()
+    ))
+    repository.save(persisted)
+    preparedNamedTurn = null
+    projected.put("coreSnapshot", JSONObject(GameStateCodec.encode(persisted)))
+    return response(true, projected, null, "world_pickup_committed", reply)
+  }
+
   fun currentCoreState(): String = GameStateCodec.encode(repository.load())
-  fun clear() = repository.clear()
+  fun clear() { preparedNamedTurn = null; repository.clear() }
   override fun close() = Unit
 
   /**
@@ -460,7 +640,7 @@ class GameCoreFacade private constructor(
 
   private fun loadOrMigrate(legacy: JSONObject): GameState {
     if (repository.exists()) return repository.load()
-    val migrated = GameStateCodec.decode(legacy)
+    val migrated = GameStateCodec.decode(NamedFollowerRuntime.initialLegacy(legacy))
     repository.save(migrated)
     return migrated
   }
@@ -534,7 +714,9 @@ class GameCoreFacade private constructor(
       output.remove("combatFeedback")
     }
     output.put("equipment",legacyEquipment(state))
-    val caoMinhInventory = state.inventories[CAO_MINH_ID]?.items?.values.orEmpty()
+    val caoMinhInventory = state.inventories[CAO_MINH_ID]?.items?.values.orEmpty().filter {
+      InventoryCapacityPolicy.consumesSlot(state, CAO_MINH_ID, it.itemId)
+    }
     output.put("inventory", JSONArray().apply { caoMinhInventory.forEach { stack -> put(JSONObject().apply {
       put("id", stack.itemId); put("name", stack.name); put("quantity", stack.quantity)
       stack.condition?.let { put("state", it) }; put("metadata", JSONObject(stack.metadata))
@@ -599,7 +781,7 @@ class GameCoreFacade private constructor(
   companion object {
     @JvmStatic fun create(context: Context, debugLogging: Boolean = false): GameCoreFacade = GameCoreFacade(
       SharedPreferencesSaveRepository(context.applicationContext), AndroidGamePipelineLogger(debugLogging),
-      LevelTravelEngine(LevelTravelPolicy(JSONObject(context.assets.open("knowledge/level_travel_policy.json").bufferedReader().use { it.readText() })))
+      levelEngine = LevelTravelEngine(LevelTravelPolicy(JSONObject(context.assets.open("knowledge/level_travel_policy.json").bufferedReader().use { it.readText() })))
     )
   }
 }

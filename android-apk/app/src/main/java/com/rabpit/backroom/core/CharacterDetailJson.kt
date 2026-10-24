@@ -61,8 +61,12 @@ object CharacterDetailJson {
   private fun item(x: ItemDetailProjection) = JSONObject().apply {
     put("id", x.id); put("name", x.name); put("quantity", x.quantity)
     x.type?.let { put("type", it) }; x.slot?.let { put("slot", it) }; x.rarity?.let { put("rarity", it) }
-    put("equipped", x.equipped); put("equippedSlots", JSONArray(x.equippedSlots)); put("statItem", x.weapon != null)
-    put("consumesInventorySlot", !x.equipped)
+    put("equipped", x.equipped); put("equippedSlots", JSONArray(x.equippedSlots)); put("statItem", x.statItem)
+    put("consumesInventorySlot", x.consumesInventorySlot ?: !x.equipped)
+    x.iconRef?.let { put("icon", it) }
+    if (x.bonuses.any()) put("equipmentModifiers", JSONObject()
+      .put("DEF", x.bonuses.defPercent).put("VIT", x.bonuses.vitPercent)
+      .put("Accuracy", x.bonuses.accuracyPercent).put("Evasion", x.bonuses.evasionPercent))
     x.classification?.let { put("classification", it) }; x.weapon?.let { put("weapon", weapon(it)) }
     put("abilities", JSONArray().apply { x.abilities.forEach { a -> put(JSONObject().put("name", a.name).put("description", a.description).also { o -> a.importantLimit?.let { o.put("limit", it) } }) } })
     put("restrictions", JSONArray(x.restrictions))

@@ -1,0 +1,25 @@
+{
+  "source": "Bảng ánh xạ Cloudinary JSON.json",
+  "assets": [
+    {
+      "category": "CHARACTERS",
+      "source_name": "LUC_TRAM_OVERLAY.png",
+      "drive_id": "1M876xffPaGaYY8k2waX5h1ff5JcmxJVp",
+      "public_id": "Character_Luc_Tram_Overlay",
+      "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832713/Character_Luc_Tram_Overlay.png",
+      "path": "characters/LUC_TRAM_OVERLAY.png",
+      "sha256": "38b0501ec67e76a589bf83f63254d71cf5d8ab991a5c32393db0de49c01a1704",
+      "bytes": 1971181
+    },
+    {
+      "category": "CHARACTERS",
+      "source_name": "LUC_TRAM_AVATAR.png",
+      "drive_id": "1qauFB8EC6jDhVPOxVdrlXU_PLUFa_GHk",
+      "public_id": "Character_Luc_Tram_Avatar",
+      "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832711/Character_Luc_Tram_Avatar.png",
+      "path": "characters/LUC_TRAM_AVATAR.png",
+      "sha256": "5c173938c555412e84e10509fedf7017977d3405efd3402f2b647598f1f26575",
+      "bytes": 2592039
+    }
+  ]
+}

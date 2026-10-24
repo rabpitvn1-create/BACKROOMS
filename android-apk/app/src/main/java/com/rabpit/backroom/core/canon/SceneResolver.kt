@@ -1,6 +1,7 @@
 package com.rabpit.backroom.core.canon
 
 import com.rabpit.backroom.core.CAO_MINH_ID
+import com.rabpit.backroom.core.VietnameseFollowerCanonContext
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.Locale
@@ -54,7 +55,7 @@ class LegacyJsonSceneResolver : SceneResolver {
     )
 
     val turn = state.optInt("turn", 1).coerceAtLeast(1)
-    val actors = resolvePresence(state)
+    val actors = resolvePresence(state) + VietnameseFollowerCanonContext.presentActors(state, rolls)
     val encounters = resolveEncounters(state, flags, rolls, narrativeText)
     val continuity = flags?.optJSONObject("storyContinuity")
 
@@ -70,7 +71,7 @@ class LegacyJsonSceneResolver : SceneResolver {
         .filter { it.status != EncounterStatus.CONFIRMED_PRESENT }
         .map { it.entityId }
         .toSet(),
-      actionIntents = resolveActionIntents(sceneText),
+      actionIntents = resolveActionIntents(sceneText) + VietnameseFollowerCanonContext.sceneIntents(state, action, rolls),
       actionTextNormalized = actionText,
       objectsInFocus = resolveObjectsInFocus(state, narrativeText),
       knownFacts = resolveKnownFacts(continuity),

@@ -1,12 +1,12 @@
 {
   "manifest_version": 2,
-  "generated": "2026-10-24 (v2.1: bổ sung 3 Google Doc sau khi connector Google Docs kết nối)",
+  "generated": "2026-10-24 (merged: named followers and Level travel supplements)",
   "generated_by": "Canon Drive snapshot (Gate 1 completion) — PR #668",
   "universe_id": "BACKROOMS_MAIN",
   "database": {
     "path": "android-apk/app/src/main/assets/knowledge/knowledge_db.json",
     "schema_version": 2,
-    "record_count": 66,
+    "record_count": 96,
     "supplemental_packs": [
       {
         "path": "android-apk/app/src/main/assets/knowledge/level_0_canon_cards.json",
@@ -116,12 +116,7 @@
       "sha256": "1718bd1801fd1cf926bb85d47e2055c7c580b8db90afcc9df664781db5078fc9",
       "bytes": 21539,
       "status": "SNAPSHOTTED",
-      "record_ids": [
-        "LEVEL.07",
-        "LEVEL.08",
-        "LEVEL.09",
-        "LEVEL.10"
-      ],
+      "record_ids": [],
       "note": "stored file; tài liệu world/level hiện hành trên Drive — các record LEVEL/WORLD cũ trỏ 01_WORLD/world.md|level.md (đã di chuyển/đổi tên)"
     },
     {
@@ -385,6 +380,92 @@
       "note": "Google Doc; bản trong repo là trích xuất văn bản qua Google Docs connector (2026-10-24). Chưa có record nào trích tài liệu này."
     },
     {
+      "document_id": "NGUYEN_QUOC_NAM_CODEX",
+      "repo_path": "android-apk/canon_sources/Characters/NGUYEN_QUOC_NAM_CODEX.md",
+      "drive_path": "Novel/Characters/NGUYEN_QUOC_NAM_CODEX.md",
+      "drive_file_id": "1UdRk6_7ALgYgm9eEMI25S9l32p-7NX0f",
+      "sha256": "5ca7f3cb26177aadf3fccdb06dadf608b721e88306c14491e1b9f7f42211c317",
+      "bytes": 10860,
+      "status": "SNAPSHOTTED",
+      "revision": "R01",
+      "review_status": "EXTRACTED_FROM_SOURCE",
+      "approval_basis": "User-directed full integration of author-approved Drive codex",
+      "record_ids": [
+        "CHAR.NGUYEN_QUOC_NAM.RUNTIME_CORE",
+        "CHAR.NGUYEN_QUOC_NAM.IDENTITY",
+        "CHAR.NGUYEN_QUOC_NAM.FAMILY",
+        "CHAR.NGUYEN_QUOC_NAM.ORIGIN",
+        "CHAR.NGUYEN_QUOC_NAM.VISUAL",
+        "CHAR.NGUYEN_QUOC_NAM.PERSONA",
+        "CHAR.NGUYEN_QUOC_NAM.LIMITS",
+        "CHAR.NGUYEN_QUOC_NAM.EQUIPMENT",
+        "CHAR.NGUYEN_QUOC_NAM.SKILLS",
+        "CHAR.NGUYEN_QUOC_NAM.ULTIMATE",
+        "CHAR.NGUYEN_QUOC_NAM.ENCOUNTER",
+        "CHAR.NGUYEN_QUOC_NAM.ASSETS"
+      ],
+      "section_coverage": {
+        "## I. Danh tính": "INGESTED",
+        "## II. Gia cảnh và đời sống trước khi mất tích": "INGESTED",
+        "## III. Ngoại hình và trang phục": "INGESTED",
+        "## IV. Tính cách": "INGESTED",
+        "## V. Trang bị (gameplay)": "INGESTED",
+        "## VI. Năm kỹ năng thường": "INGESTED",
+        "## VII. Ultimate: Lời Hứa Trở Về": "INGESTED",
+        "## VIII. Lần gặp đầu và tỷ lệ": "INGESTED",
+        "## IX. Tài nguyên và bất biến Canon": "INGESTED"
+      },
+      "note": "Source snapshot preserves every section; runtime retrieves bounded whole cards by confirmed scene/intent. REINCARNATION_SECRET never shown; UNKNOWN_FIELDS stays UNKNOWN."
+    },
+    {
+      "document_id": "HUA_TIEU_LAN_CODEX",
+      "repo_path": "android-apk/canon_sources/Characters/HUA_TIEU_LAN_CODEX.md",
+      "drive_path": "Novel/Characters/HUA_TIEU_LAN_CODEX.md",
+      "drive_file_id": "16BiJr87vNY66dAQg2adavBXGQYZEv6IV",
+      "sha256": "967a91b638900c0d48699cb083c8547ad9539bf8656844f5d50b38b8525f190a",
+      "bytes": 21753,
+      "status": "SNAPSHOTTED",
+      "revision": "R02",
+      "review_status": "EXTRACTED_FROM_SOURCE",
+      "approval_basis": "User-directed full integration of author-approved Drive codex",
+      "record_ids": [
+        "CHAR.HUA_TIEU_LAN.RUNTIME_CORE",
+        "CHAR.HUA_TIEU_LAN.HISTORICAL_LOCK",
+        "CHAR.HUA_TIEU_LAN.IDENTITY",
+        "CHAR.HUA_TIEU_LAN.ORIGIN",
+        "CHAR.HUA_TIEU_LAN.VISUAL",
+        "CHAR.HUA_TIEU_LAN.PERSONA",
+        "CHAR.HUA_TIEU_LAN.LIMITS",
+        "CHAR.HUA_TIEU_LAN.TRAGEDY",
+        "CHAR.HUA_TIEU_LAN.FIRST_ENCOUNTER",
+        "ADDR.HUA_TIEU_LAN.CAO_MINH",
+        "CHAR.HUA_TIEU_LAN.FEELINGS",
+        "CHAR.HUA_TIEU_LAN.REINCARNATION_SECRET",
+        "CHAR.HUA_TIEU_LAN.UNKNOWN_FIELDS",
+        "CHAR.HUA_TIEU_LAN.EQUIPMENT",
+        "CHAR.HUA_TIEU_LAN.SKILLS",
+        "CHAR.HUA_TIEU_LAN.ULTIMATE",
+        "CHAR.HUA_TIEU_LAN.ENCOUNTER",
+        "CHAR.HUA_TIEU_LAN.ASSETS"
+      ],
+      "section_coverage": {
+        "# I. Ranh giới lịch sử và hư cấu": "INGESTED",
+        "# II. Danh tính và gia cảnh": "INGESTED",
+        "# III. Những năm tháng trước khi biến mất": "INGESTED",
+        "# IV. Ngoại hình và trang phục (theo hình 677.png)": "INGESTED",
+        "# V. Tính cách, động cơ và giới hạn": "INGESTED",
+        "# V-A. Anh Tý và tình yêu bị chính Tiểu Lan đánh mất": "INGESTED",
+        "# V-B. Cao Minh, khuôn mặt Anh Tý và mối tình qua hai kiếp": "INGESTED",
+        "# VI. Trang bị gameplay, giữ nhất quán với ảnh": "INGESTED",
+        "# VII. Năm kỹ năng thường": "INGESTED",
+        "# VIII. Ultimate: BÁCH HOA NHẤT TIỄN": "INGESTED",
+        "# IX. Encounter và tiến trình gia nhập": "INGESTED",
+        "# X. Tài nguyên": "INGESTED",
+        "# XI. Trạng thái chốt Canon R02": "INGESTED"
+      },
+      "note": "Source snapshot preserves every section; runtime retrieves bounded whole cards by confirmed scene/intent. REINCARNATION_SECRET never shown; UNKNOWN_FIELDS stays UNKNOWN."
+    },
+    {
       "document_id": "LEVEL0_CLOUDINARY_MAPPING",
       "repo_path": "android-apk/canon_sources/Asset/02_Level/LEVEL_0_CLOUDINARY_MAPPING.json",
       "origin": "USER_UPLOAD",
@@ -594,14 +675,14 @@
       "reason": "Không được KNOWLEDGE_SOURCE_MAP tham chiếu; ngoài phạm vi canon snapshot đợt này."
     },
     {
-      "name": "Novel/Characters (thư mục art) + ảnh/audio rải rác trong Novel",
-      "reason": "Tài sản hình ảnh/âm thanh, không phải tài liệu canon dạng văn bản."
+      "name": "Novel/Characters artwork/audio outside the explicitly ingested named follower assets",
+      "reason": "Historical snapshot excluded art/audio, not text canon. Nam R01 / Hứa Tiểu Lan R02 are now explicitly ingested from Novel/Characters in sources; asset provenance is tracked separately."
     }
   ],
   "record_coverage": {
-    "total_records": 66,
-    "with_content_sha256": 56,
-    "source_snapshotted": 53,
+    "total_records": 96,
+    "with_content_sha256": 86,
+    "source_snapshotted": 83,
     "anchor_unverified": [
       "WRITING.DIALOGUE",
       "LEVEL.04",

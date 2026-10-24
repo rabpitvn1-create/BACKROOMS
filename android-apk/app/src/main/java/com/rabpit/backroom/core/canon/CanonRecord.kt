@@ -21,7 +21,7 @@ import kotlin.math.ceil
  */
 enum class TruthStatus { CONFIRMED, RUMORED, INFERRED, UNKNOWN, CONTRADICTED, DEPRECATED_SOURCE }
 
-enum class KnowledgeVisibility { PUBLIC, ACTOR_AWARE, RESTRICTED }
+enum class KnowledgeVisibility { PUBLIC, ACTOR_AWARE, RESTRICTED, WORLD, META }
 
 enum class SpoilerPolicy { SHOW_IF_RELEVANT, HIDE_UNTIL_DISCLOSED, NEVER_SHOW }
 

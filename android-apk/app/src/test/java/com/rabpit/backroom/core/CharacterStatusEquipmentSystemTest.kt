@@ -17,7 +17,7 @@ class CharacterStatusEquipmentSystemTest {
   @Test fun startingEquipmentMatchesCurrentSwordCanon() {
     val state = GameState.initial()
     val equipped = state.equipment.getValue(CAO_MINH_ID).slots
-    assertEquals(setOf("weapon", "armor", "ring"), equipped.keys)
+    assertEquals(setOf("weapon", "armor", "gauntlets", "greaves", "ring"), equipped.keys)
     assertEquals("avatars/CAO_MINH_AVATAR.jpg", state.characters.getValue(CAO_MINH_ID).avatarRef)
     val sword = EquipmentCatalog.definition(CAO_MINH_HUYET_MA_KIEM_ID)!!
     assertEquals("CAO_MINH_CODEX R17", sword.canonRef)
