@@ -64,21 +64,11 @@ jobs:
       - name: Compile application and execute full Android unit regression suite
         working-directory: android-apk
         run: gradle :app:testDebugUnitTest --no-daemon
-      - name: Package debug APK with configured text providers
+      - name: Ensure shared credentials cannot enter public APK
+        run: python3 android-apk/tests/verify-provider-config.py
+      - name: Package debug APK without bundled credentials
         working-directory: android-apk
-        env:
-          GEHIHI_API_KEY: ${{ secrets.GEHIHI_API_KEY }}
-          GEHIHI_BASE_URL: ${{ secrets.GEHIHI_BASE_URL }}
-          GEHIHI_MODEL: ${{ secrets.GEHIHI_MODEL }}
-          GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 }}
-          GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
-          GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
-          GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
-          GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
-          TRUSTED_BUILD: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository }}
-        run: |
-          if [ "$TRUSTED_BUILD" = true ]; then python3 tests/verify-provider-config.py; fi
-          gradle :app:assembleDebug --no-daemon
+        run: gradle :app:assembleDebug --no-daemon
       - name: Verify restored runtime inside packaged APK
         run: python3 android-apk/tests/verify-restored-apk.py android-apk/app/build/outputs/apk/debug/app-debug.apk
       - name: Upload verified debug APK artifact
