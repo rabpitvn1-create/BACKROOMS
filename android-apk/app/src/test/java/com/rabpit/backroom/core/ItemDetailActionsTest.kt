@@ -1,99 +1,110 @@
 package com.rabpit.backroom.core
 
-import org.json.JSONObject
 import org.junit.Assert.*
 import org.junit.Test
 
+/** Item actions are dispatched through StateReducer in this runtime generation. */
 class ItemDetailActionsTest {
-  private class MemorySave(var state: GameState) : SaveRepository {
-    override fun save(state: GameState) { this.state = state }
-    override fun load() = state
-    override fun exists() = true
-    override fun clear() = Unit
-  }
+  private const val bandageId = "bandage"
+
   private fun fresh(): GameState {
-    val initial = CharacterEquipmentSystem.seedFresh(GameState.initial())
-    return initial.copy(party = initial.party.copy(memberIds = listOf(CAO_MINH_ID, LUC_TRAM_ID)),
-      inventories = initial.inventories + (CAO_MINH_ID to InventoryState(CAO_MINH_ID, initial.inventories.getValue(CAO_MINH_ID).items +
-        (BANDAGE_ID to HealingItems.normalize(ItemStack(BANDAGE_ID, "Băng gạc", 3))!!))))
-  }
-  private fun facade(save: MemorySave): GameCoreFacade {
-    val constructor = GameCoreFacade::class.java.getDeclaredConstructor(SaveRepository::class.java, GamePipelineLogger::class.java)
-    constructor.isAccessible = true
-    return constructor.newInstance(save, NoOpGamePipelineLogger)
-  }
-  private fun request(operation: String, quantity: Number = 1, actor: String = CAO_MINH_ID, target: String? = null, item: String = BANDAGE_ID) =
-    JSONObject().put("operation", operation).put("actorId", actor).put("itemId", item).put("quantity", quantity).also { if (target != null) it.put("targetId", target) }.toString()
-  private fun run(save: MemorySave, request: String, turn: Int = 1) = JSONObject(facade(save).processItemAction("""{"turn":$turn,"log":[]}""", request))
-
-  @Test fun useCommitsExactOwnedItemAndAdvancesTurn() {
-    val save = MemorySave(fresh())
-    val result = run(save, request("USE"))
-    assertTrue(result.toString(), result.getBoolean("handled"))
-    assertEquals(2, save.state.inventories.getValue(CAO_MINH_ID).items.getValue(BANDAGE_ID).quantity)
-    assertEquals(2, result.getJSONObject("state").getInt("turn"))
-    assertTrue(save.state.turn.completedTurnIds.contains("TURN_1"))
-  }
-  @Test fun transferMovesRequestedQuantityToChosenMember() {
-    val save = MemorySave(fresh())
-    assertTrue(run(save, request("TRANSFER", 2, target = LUC_TRAM_ID)).getBoolean("handled"))
-    assertEquals(1, save.state.inventories.getValue(CAO_MINH_ID).items.getValue(BANDAGE_ID).quantity)
-    assertEquals(2, save.state.inventories.getValue(LUC_TRAM_ID).items.getValue(BANDAGE_ID).quantity)
-  }
-  @Test fun followerCanDropItsOwnItemWithoutAffectingLeader() {
-    val initial = fresh()
-    val save = MemorySave(initial.copy(inventories = initial.inventories + (LUC_TRAM_ID to InventoryState(LUC_TRAM_ID, mapOf("scrap" to ItemStack("scrap", "Mảnh vụn", 2))))))
-    assertTrue(run(save, request("DROP", 1, LUC_TRAM_ID, item = "scrap")).getBoolean("handled"))
-    assertEquals(1, save.state.inventories.getValue(LUC_TRAM_ID).items.getValue("scrap").quantity)
-    assertEquals(initial.inventories[CAO_MINH_ID], save.state.inventories[CAO_MINH_ID])
-  }
-  @Test fun invalidRequestsNeverConsumeItemsOrAdvanceTime() {
-    for (request in listOf(request("DROP", 0), request("DROP", -1), request("DROP", 1.5), request("DROP", 4),
-      request("PICKUP"), request("TRANSFER", target = CAO_MINH_ID), request("TRANSFER", target = "missing"),
-      request("DROP", actor = "missing"), request("USE", item = "missing"))) {
-      val save = MemorySave(fresh()); val before = save.state
-      assertFalse(request, run(save, request).getBoolean("handled"))
-      assertEquals(before, save.state)
-    }
-  }
-  @Test fun equippedDropAndFullRecipientRejectAtomically() {
-    val initial = fresh()
-    val cases = listOf(
-      initial to request("DROP", item = CAO_MINH_HUYET_MA_KIEM_ID),
-      initial.copy(inventories = initial.inventories + (LUC_TRAM_ID to InventoryState(LUC_TRAM_ID,
-        (1..6).associate { "scrap$it" to ItemStack("scrap$it", "Mảnh $it") }))) to request("TRANSFER", target = LUC_TRAM_ID)
+    val initial = GameState.initial()
+    val owned = ItemStack(bandageId, "Băng gạc", 3,
+      metadata = mapOf("consumable" to "true", "consumedOnUse" to "true"))
+    return initial.copy(
+      party = initial.party.copy(memberIds = listOf(CAO_MINH_ID, LUC_TRAM_ID)),
+      inventories = initial.inventories + (CAO_MINH_ID to
+        initial.inventories.getValue(CAO_MINH_ID).copy(items =
+          initial.inventories.getValue(CAO_MINH_ID).items + (bandageId to owned)))
     )
-    for ((state, request) in cases) {
-      val save = MemorySave(state)
-      assertFalse(run(save, request).getBoolean("handled"))
-      assertEquals(state, save.state)
-    }
-  }
-  @Test fun staleTurnCannotRepeatSuccessfulDrop() {
-    val save = MemorySave(fresh())
-    assertTrue(run(save, request("DROP")).getBoolean("handled"))
-    val after = save.state
-    assertFalse(run(save, request("DROP")).getBoolean("handled"))
-    assertEquals(after, save.state)
-  }
-  @Test fun executeTextCannotUseTransferOrDropItems() {
-    for (action in listOf("Dùng Băng gạc", "Chuyển Băng gạc cho Lục Trầm", "Bỏ xuống Băng gạc", "Uống một nửa chai nước")) {
-      val save = MemorySave(fresh()); val before = save.state
-      val core = facade(save)
-      assertTrue(action, core.blocksTextItemAction(action))
-      val result = JSONObject(core.processRule("""{"turn":1,"log":[]}""", action))
-      assertEquals("item_ui_required", result.getString("error"))
-      assertEquals(1, result.getJSONObject("state").getInt("turn"))
-      assertEquals(before, save.state)
-      val candidate = JSONObject(core.processValidatedCandidate("""{"turn":1}""", "{}", action))
-      assertFalse(candidate.getBoolean("handled"))
-      assertEquals(before, save.state)
-    }
-  }
-  @Test fun executeStillAcceptsOrdinaryExplorationInput() {
-    val core = facade(MemorySave(fresh()))
-    assertFalse(core.blocksTextItemAction("Quan sát hành lang"))
-    assertFalse(core.blocksTextItemAction("Kiểm tra túi đồ"))
   }
 
+  private fun command(op: ItemCommand.Operation, quantity: Int = 1,
+                      actor: String = CAO_MINH_ID, target: String? = null,
+                      item: String = bandageId, id: String = "UI:ITEM") =
+    ItemCommand(id, null, actor, targetId = target, source = CommandSource.UI,
+      operation = op, itemId = item, itemName = if (item == bandageId) "Băng gạc" else item,
+      quantity = quantity)
+
+  @Test fun consumingOwnedItemDecrementsExactlyOne() {
+    val result = StateReducer.execute(fresh(), command(ItemCommand.Operation.USE))
+    assertTrue(result.validation.reason, result.applied)
+    assertEquals(2, result.state.inventories.getValue(CAO_MINH_ID).items.getValue(bandageId).quantity)
+    assertTrue(result.state.turn.executedCommandIds.contains("UI:ITEM"))
+  }
+
+  @Test fun transferMovesQuantityBetweenOwners() {
+    val result = StateReducer.execute(fresh(),
+      command(ItemCommand.Operation.TRANSFER, quantity = 2, target = LUC_TRAM_ID))
+    assertTrue(result.validation.reason, result.applied)
+    assertEquals(1, result.state.inventories.getValue(CAO_MINH_ID).items.getValue(bandageId).quantity)
+    assertEquals(2, result.state.inventories.getValue(LUC_TRAM_ID).items.getValue(bandageId).quantity)
+  }
+
+  @Test fun followerCanDropOwnItemWithoutChangingLeaderInventory() {
+    val initial = fresh().let { it.copy(inventories = it.inventories +
+      (LUC_TRAM_ID to InventoryState(LUC_TRAM_ID, mapOf("scrap" to ItemStack("scrap", "Mảnh vụn", 2))))) }
+    val result = StateReducer.execute(initial, command(ItemCommand.Operation.DROP,
+      actor = LUC_TRAM_ID, item = "scrap"))
+    assertTrue(result.validation.reason, result.applied)
+    assertEquals(1, result.state.inventories.getValue(LUC_TRAM_ID).items.getValue("scrap").quantity)
+    assertEquals(initial.inventories[CAO_MINH_ID], result.state.inventories[CAO_MINH_ID])
+  }
+
+  @Test fun invalidCommandsAreAtomic() {
+    val invalid = listOf(
+      command(ItemCommand.Operation.DROP, quantity = 0),
+      command(ItemCommand.Operation.DROP, quantity = -1),
+      command(ItemCommand.Operation.DROP, quantity = 4),
+      command(ItemCommand.Operation.PICKUP),
+      command(ItemCommand.Operation.TRANSFER, target = CAO_MINH_ID),
+      command(ItemCommand.Operation.TRANSFER, target = "missing"),
+      command(ItemCommand.Operation.DROP, actor = "missing"),
+      command(ItemCommand.Operation.USE, item = "missing")
+    )
+    invalid.forEach { cmd ->
+      val initial = fresh()
+      val result = StateReducer.execute(initial, cmd)
+      assertFalse(cmd.toString(), result.applied)
+      assertEquals(initial, result.state)
+    }
+  }
+
+  @Test fun cannotDropEquippedGearOrTransferIntoFullInventory() {
+    val initial = fresh()
+    val equipped = StateReducer.execute(initial,
+      command(ItemCommand.Operation.DROP, item = CAO_MINH_HUYET_MA_KIEM_ID))
+    assertFalse(equipped.applied)
+    assertEquals(initial, equipped.state)
+
+    val full = initial.copy(inventories = initial.inventories +
+      (LUC_TRAM_ID to InventoryState(LUC_TRAM_ID, (1..4).associate {
+        "scrap$it" to ItemStack("scrap$it", "Mảnh $it")
+      })))
+    val transfer = StateReducer.execute(full,
+      command(ItemCommand.Operation.TRANSFER, target = LUC_TRAM_ID))
+    assertFalse(transfer.applied)
+    assertEquals("inventory_slot_limit", transfer.validation.reason)
+    assertEquals(full, transfer.state)
+  }
+
+  @Test fun duplicateCommandCannotConsumeItemAgain() {
+    val initial = fresh()
+    val cmd = command(ItemCommand.Operation.DROP, id = "fixed-id")
+    val once = StateReducer.execute(initial, cmd)
+    assertTrue(once.applied)
+    val again = StateReducer.execute(once.state, cmd)
+    assertFalse(again.applied)
+    assertTrue(again.duplicate)
+    assertEquals(once.state, again.state)
+  }
+
+  @Test fun quotedNegatedOrRememberedActionsCannotBecomeCommands() {
+    val parser = RuleIntentInterpreter()
+    val context = GameContext(fresh())
+    listOf("Không nhặt băng gạc", "Cao Minh nhớ lần trước mình dùng băng gạc",
+      "Lục Trầm nói: “dùng băng gạc”").forEach { action ->
+      assertEquals(GameIntent.NO_ACTION, parser.interpretSync(action, context).candidates.single().intent)
+    }
+  }
 }
