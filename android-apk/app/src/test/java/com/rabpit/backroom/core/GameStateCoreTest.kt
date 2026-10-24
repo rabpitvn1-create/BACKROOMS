@@ -32,15 +32,18 @@ class GameStateCoreTest {
     assertFalse(dropped.state.inventories.getValue(CAO_MINH_ID).items.containsKey("water"))
   }
 
-  @Test fun playerPickupIsRejectedButStoryGrantIsAllowed() {
+  @Test fun onlyCoreSystemPickupCanGrantOwnership() {
     val playerPickup = StateReducer.execute(base(), item("water", ItemCommand.Operation.PICKUP, source = CommandSource.RULE))
     assertFalse(playerPickup.applied)
     assertEquals("player_pickup_unavailable", playerPickup.validation.reason)
     assertTrue(playerPickup.state.inventories.getValue(CAO_MINH_ID).items.isEmpty())
 
     val storyGrant = StateReducer.execute(base(), item("water", ItemCommand.Operation.PICKUP, source = CommandSource.GEMINI))
-    assertTrue(storyGrant.applied)
-    assertEquals(1, storyGrant.state.inventories.getValue(CAO_MINH_ID).items.getValue("water").quantity)
+    assertFalse(storyGrant.applied)
+    assertEquals("player_pickup_unavailable", storyGrant.validation.reason)
+    val coreGrant = StateReducer.execute(base(), item("water", ItemCommand.Operation.PICKUP, source = CommandSource.SYSTEM))
+    assertTrue(coreGrant.applied)
+    assertEquals(1, coreGrant.state.inventories.getValue(CAO_MINH_ID).items.getValue("water").quantity)
   }
 
   @Test fun transferRequiresOwnershipAndKnownTarget() {
