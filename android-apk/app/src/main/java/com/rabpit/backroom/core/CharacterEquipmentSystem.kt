@@ -305,6 +305,9 @@ object EquipmentEngine {
     val nextSlots = equipment.slots.toMutableMap()
     targetSlots.forEach { nextSlots[it] = command.itemId }
     val raw = state.copy(equipment = state.equipment + (command.actorId to equipment.copy(slots = nextSlots)))
+    if (InventoryCapacityPolicy.usedSlots(raw, command.actorId) > InventoryCapacityPolicy.maxSlots(raw, command.actorId)) {
+      return invalid(state, "inventory_slot_limit")
+    }
     val adjusted = CharacterStatEngine.preserveMissingHp(state, raw, command.actorId)
     return changed(adjusted, "item_equipped")
   }
@@ -314,6 +317,9 @@ object EquipmentEngine {
     if (command.itemId !in equipment.slots.values) return invalid(state, "item_not_equipped")
     val nextSlots = equipment.slots.filterValues { it != command.itemId }
     val raw = state.copy(equipment = state.equipment + (command.actorId to equipment.copy(slots = nextSlots)))
+    if (InventoryCapacityPolicy.usedSlots(raw, command.actorId) > InventoryCapacityPolicy.maxSlots(raw, command.actorId)) {
+      return invalid(state, "inventory_slot_limit")
+    }
     val adjusted = CharacterStatEngine.preserveMissingHp(state, raw, command.actorId)
     return changed(adjusted, "item_unequipped")
   }
@@ -333,13 +339,14 @@ object EquipmentEngine {
 object CharacterEquipmentSystem {
   private const val SCHEMA_VERSION = "2-core-stats-1193a"
 
-  fun seedFresh(state: GameState): GameState = normalizeInternal(state, true)
-  fun normalize(state: GameState): GameState = normalizeInternal(state, state.metadata["characterEquipmentSchemaVersion"] != SCHEMA_VERSION)
+  fun seedFresh(state: GameState): GameState = normalizeInternal(state, seedStarting = true, fresh = true)
+  fun normalize(state: GameState): GameState =
+    normalizeInternal(state, seedStarting = state.metadata["characterEquipmentSchemaVersion"] != SCHEMA_VERSION, fresh = false)
 
-  private fun normalizeInternal(source: GameState, seedStarting: Boolean): GameState {
-    // Preserve the follower compatibility installed earlier in the patch chain.
-    // Lucia exists in Core state without being forced into Party.
-    val input = LuciaCanon.ensure(source)
+  private fun normalizeInternal(source: GameState, seedStarting: Boolean, fresh: Boolean): GameState {
+    // Only GameState.initial() may start at full effective HP. Loading a state
+    // without an equipment schema marker must never silently heal the player.
+    val input = source
     val inventories = input.inventories.toMutableMap()
     val equipment = input.equipment.toMutableMap()
     input.characters.keys.forEach { characterId ->
@@ -370,7 +377,7 @@ object CharacterEquipmentSystem {
       val maxHp = CharacterStatCore.effective(next, id).maxHp
       // A new game starts at full effective HP. Normalization of a live/save state
       // must preserve the actual HP (including injuries) instead of healing it.
-      val hp = if (seedStarting) maxHp else character.vitalState.currentHp.coerceIn(0, maxHp)
+      val hp = if (fresh) maxHp else character.vitalState.currentHp.coerceIn(0, maxHp)
       chars[id] = character.copy(
         vitalState = character.vitalState.copy(
           currentHp = hp,
