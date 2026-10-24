@@ -67,7 +67,8 @@ class ItemContentStateTest {
   }
   @Test fun reusableToolDoesNotLoseQuantityOrProduceContainerVariant() {
     val granted = StateReducer.execute(GameState.initial(), grant("Dụng cụ")).state
-    val result = StateReducer.execute(granted, use())
+    // Generic tools have no bottle content profile and retain their own item ID.
+    val result = StateReducer.execute(granted, use(id = "water"))
     assertTrue(result.applied)
     assertEquals(granted.inventories, result.state.inventories)
   }
