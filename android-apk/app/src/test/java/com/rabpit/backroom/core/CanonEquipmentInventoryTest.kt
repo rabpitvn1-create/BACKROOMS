@@ -72,6 +72,28 @@ class CanonEquipmentInventoryTest {
     assertEquals(2, InventoryCapacityPolicy.usedSlots(state, CAO_MINH_ID, withCarried))
   }
 
+  @Test fun caoMinhHuyetMaModulesUseExactSlotsAndCloudinaryMapping() {
+    val state = GameState.initial()
+    val loadout = EquipmentCatalog.startingLoadout(CAO_MINH_ID)
+    assertEquals(5, loadout.size)
+    val gauntlets = requireNotNull(EquipmentCatalog.definition(CAO_MINH_HUYET_MA_GAUNTLETS_ID))
+    val boots = requireNotNull(EquipmentCatalog.definition(CAO_MINH_HUYET_MA_BOOTS_ID))
+    assertEquals(EquipmentSlot.GAUNTLETS, gauntlets.primarySlot)
+    assertEquals(EquipmentSlot.GREAVES, boots.primarySlot)
+    assertEquals("Găng Huyết Ma", gauntlets.name)
+    assertEquals("Giày Huyết Ma", boots.name)
+    assertEquals("https://res.cloudinary.com/csz2me5b/image/upload/v1792832619/Item_Cao_Minh_Huyet_Ma_Gauntlets.webp", gauntlets.iconRef)
+    assertEquals("https://res.cloudinary.com/csz2me5b/image/upload/v1792832622/Item_Cao_Minh_Huyet_Ma_Boots.webp", boots.iconRef)
+    assertEquals(0, InventoryCapacityPolicy.usedSlots(state, CAO_MINH_ID))
+    assertEquals(0, gauntlets.bonuses.defPercent + gauntlets.bonuses.vitPercent)
+    assertEquals(0, boots.bonuses.defPercent + boots.bonuses.vitPercent)
+    val detail = requireNotNull(CharacterDetailProjector.projectCharacter(state, CAO_MINH_ID))
+    assertTrue(detail.inventory.isEmpty())
+    assertEquals(5, detail.equipmentDetails.size)
+    assertTrue(detail.equipmentDetails.any { it.id == gauntlets.id && it.iconRef == gauntlets.iconRef })
+    assertTrue(detail.equipmentDetails.any { it.id == boots.id && it.iconRef == boots.iconRef })
+  }
+
   @Test fun canonVisualsAreAttachedOnlyWhenSourceAssetsExist() {
     val registered = listOf(
       CAO_MINH_HUYET_MA_KIEM_ID, CAO_MINH_HUYET_MA_CHIEN_KHAI_ID,
