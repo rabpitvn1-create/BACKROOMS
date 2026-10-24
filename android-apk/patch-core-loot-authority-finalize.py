@@ -119,4 +119,15 @@ if "ITEM LOOT AUTHORITY:" not in main:
             '          prompt = "' + directive + '\\n" + prompt;\n' + anchor, 1)
 
 MAIN.write_text(main, encoding="utf-8")
+
+# Keep the deterministic item-image UI connected after generated HTML patches.
+INDEX = ROOT / "app/src/main/assets/index.html"
+html = INDEX.read_text(encoding="utf-8")
+if '<script src="loot-item-display.js"></script>' not in html:
+    if "</body>" not in html:
+        raise RuntimeError("Missing HTML body end for loot image UI")
+    html = html.replace("</body>", '<script src="loot-item-display.js"></script>\\n</body>', 1)
+    INDEX.write_text(html, encoding="utf-8")
+if not (ROOT / "app/src/main/assets/loot-item-display.js").is_file():
+    raise RuntimeError("Core-loot image UI script is missing from APK assets")
 print("Core-only loot authority preserved: ENTITY=80%, EXPLORE=8%, GM inventory and world loot read-only.")
