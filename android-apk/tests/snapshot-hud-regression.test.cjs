@@ -72,7 +72,8 @@ test('Snapshot opens with bundled Level background and Cao Minh overlay without 
     'level_snapshots/level_2.webp');
   assert.equal(stage.querySelector('.snapshot-player-overlay').getAttribute('src'),
     'CAO_MINH_OVERLAY_EXPLORER_IDLE.png');
-  assert.equal(stage.querySelector('.snapshot-scene-label').hidden, false);
+  assert.equal(stage.querySelector('.snapshot-scene-label').hidden, true,
+    'a bundled background must not display a missing-image label');
   assert.equal(box.childNodes.some(x => x.nodeType === 3), false);
 });
 
