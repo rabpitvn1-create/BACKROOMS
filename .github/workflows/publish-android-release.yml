@@ -46,7 +46,7 @@ jobs:
           git diff --exit-code -- android-apk/app/src/main
           node --test android-apk/tests/lucia-visuals.test.cjs android-apk/tests/named-follower-visuals.test.cjs android-apk/tests/party-combat-choice.test.cjs
           node android-apk/tests/level-travel-ui.test.cjs
-          node --test android-apk/tests/snapshot-hud-regression.test.cjs android-apk/tests/character-detail-ui.test.cjs android-apk/tests/primary-actions-ui.test.cjs
+          node --test android-apk/tests/snapshot-hud-regression.test.cjs android-apk/tests/character-detail-ui.test.cjs android-apk/tests/primary-actions-ui.test.cjs android-apk/tests/provider-settings-ui.test.cjs
           python3 android-apk/tests/run-provider-router-test.py
       - name: Run Android JVM regression suite
         working-directory: android-apk
