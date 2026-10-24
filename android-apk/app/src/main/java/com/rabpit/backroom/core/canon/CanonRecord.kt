@@ -209,7 +209,12 @@ data class CanonRecord(
       json: JSONObject, id: String, vararg keys: String
     ): T? {
       val raw = keys.firstNotNullOfOrNull { key -> json.optString(key).takeIf { it.isNotBlank() } } ?: return null
-      return runCatching { enumValueOf<T>(raw.trim().uppercase(Locale.ROOT)) }
+      // Database v2 stores WORLD/META labels. Both are GM-visible global context,
+      // not character secrets; normalize them before applying the strict enum.
+      val normalized = raw.trim().uppercase(Locale.ROOT)
+      val alias = if (T::class == KnowledgeVisibility::class &&
+        (normalized == "WORLD" || normalized == "META")) "PUBLIC" else normalized
+      return runCatching { enumValueOf<T>(alias) }
         .getOrElse { throw IllegalArgumentException("Canon record $id has unknown enum value: $raw") }
     }
 
