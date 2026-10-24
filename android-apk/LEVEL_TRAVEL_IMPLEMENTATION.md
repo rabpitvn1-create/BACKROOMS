@@ -29,18 +29,25 @@ It references the packaged CR2 node IDs and Cloudinary visuals. Entry IDs are st
 arrival anchors; generic “điểm vào” labels do not invent a room, maze or safe zone.
 
 - Starting pool: main Levels **0–10**, chosen once for a fresh run.
-- Normal destination pool: main Levels **0–10**, **0.1**, **0.7**; current ID is excluded.
-- Independently escapable nodes currently configured: those 13 nodes plus **0.5**.
+- Destination pool: main Levels **0–10** plus all **29 standalone sublevels/named
+  AREA nodes** in the packaged registry, including Red Rooms, Dullness, Level ε,
+  Manila Room, LS-2 and the named areas of later Levels. All **40 nodes** may be
+  entered and independently exited with the same 50% / streak 3/3 transaction.
+  The current ID and targets forbidden by inbound hard locks are excluded.
+- This explicit author approval supplies the gameplay entry/exit policy even when
+  a special area's Canon does not previously define an independent exit. It does
+  not promote `INFERRED`/`UNKNOWN` lore or invent environmental rules.
 - Canon hard lock: **0.5 → 0.7 only**, and **0.5 may be entered only from 0.2**.
-  Thus unrestricted destination randomization is incompatible with the 0.5 source.
-  The valid configuration keeps a one-element exit pool for 0.5. Its inbound 0.2
-  route is not made reachable by inventing an independent policy for 0.2.
-- Levels **11–13**, other sublevels, Red Rooms, Dullness, Level ε and other registry
-  areas remain explicitly unconfigured for independent travel pending approved
-  destination/entry policies. The same engine supports them when configured; a
-  visual, a parent/child relationship or nearby numeric ID never creates a route.
-- Missing/empty policy and conflicting hard constraints fail before exit RNG and
-  preserve state. No automatic parent return or fabricated destination is used.
+  Level 0.2 is now enabled, so 0.5 is reachable through its permitted source.
+  Its exit still requires streak 3/3 and uses a one-element destination pool.
+- New Game remains limited to main Levels **0–10**. Main Levels **11–13** themselves
+  are still excluded; named sublevels/areas under them are approved destinations
+  using their exact node cards, keeping missing lore `UNKNOWN`.
+- Nested **ZONE/SUB** image nodes remain local scene subdivisions rather than
+  independently randomized destinations. Registry parent/child relationships do
+  not create travel edges or bypass streak 3/3.
+- Unknown IDs, empty configured pools and conflicting hard constraints fail before
+  exit RNG and preserve state. No automatic parent return is used.
 
 Descriptive examples of gradual main-Level transitions in the old context are not
 exclusive destination locks. The task authorizes the explicit gameplay random pool.
@@ -101,8 +108,10 @@ node tests/level-travel-ui.test.cjs
 python3 patch-level-travel.py
 ```
 
-Local result: **37 focused JUnit tests passed**, the UI lifecycle test passed, and all
+Local result: **39 focused JUnit tests passed**, the UI lifecycle test passed, and all
 140 configured IDs/Canon references/Cloudinary URLs match the packaged registries.
+Special-area regression additionally checks shipped entry/exit pools, failed-combo
+reset, save/load, duplicate attempts and exact Canon packets for all 40 enabled nodes.
 Fresh generation from the pre-feature PR snapshot matches the checked-in runtime;
 reapplying the finalizer makes no changes.
 

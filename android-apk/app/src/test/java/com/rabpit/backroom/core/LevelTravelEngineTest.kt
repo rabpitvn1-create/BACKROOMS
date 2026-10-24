@@ -81,10 +81,10 @@ class LevelTravelEngineTest {
     assertEquals(0, streak(failed.state)); assertEquals(50, failed.receipt.getInt("chancePercent"))
   }
 
-  @Test fun unknownRoutesAndHardLockConflictsDoNotDrawOrChangeState() {
+  @Test fun visualOnlyRoomNodesAndHardLockConflictsDoNotDrawOrChangeState() {
     val rng = RandomSequence(0.0)
     val engine = LevelTravelEngine(policy(), rng)
-    val unknown = atNode(engine.start(GameState.initial(), "run"), "LEVEL.NODE.1.2")
+    val unknown = atNode(engine.start(GameState.initial(), "run"), "LEVEL.NODE.0.DULLNESS.ZONE_01")
     val encoded = GameStateCodec.encode(unknown)
     expectFailure("exit_unconfigured") { attempt(engine, unknown, 1) }
     assertEquals(encoded, GameStateCodec.encode(unknown)); assertEquals(1, rng.calls)
@@ -253,32 +253,83 @@ class LevelTravelEngineTest {
     assertEquals(3, rng.calls)
   }
 
-  @Test fun specialIndependentAreasUseSameStreakEngineWhenPolicyIsApproved() {
-    val config = policyJson()
-    val nodes = config.getJSONArray("nodes")
-    val id = "LEVEL.NODE.0.RED_ROOMS"
-    for (i in 0 until nodes.length()) if (nodes.getJSONObject(i).getString("id") == id) {
-      nodes.getJSONObject(i).put("independentExit", true).put("destinations", JSONArray().put("LEVEL.NODE.9"))
+  @Test fun shippedSpecialAreasCanBeEnteredAndExitedOnlyAtThreeSuccesses() {
+    val p = policy()
+    listOf("LEVEL.NODE.0.RED_ROOMS", "LEVEL.NODE.0.DULLNESS", "LEVEL.NODE.0.EPSILON").forEach { special ->
+      val entering = p.destinations("LEVEL.NODE.0")
+      val leaving = p.destinations(special)
+      assertTrue("$special must be reachable", special in entering)
+      val rng = RandomSequence(0.0, 0.0, 0.0, 0.0, (entering.indexOf(special) + 0.1) / entering.size,
+        0.0, 0.0, 0.0, (leaving.indexOf("LEVEL.NODE.9") + 0.1) / leaving.size)
+      val engine = LevelTravelEngine(p, rng)
+      var state = engine.start(GameState.initial(), "run")
+      repeat(2) { state = attempt(engine, state, it + 1).state; assertEquals("LEVEL.NODE.0", id(state)) }
+      state = attempt(engine, state, 3).state
+      assertEquals(special, id(state)); assertEquals(0, streak(state))
+      assertEquals(special, JSONObject(state.world.getValue("levelJson")).getString("id"))
+      assertEquals(p.node(special).getString("background"), state.world["levelBackground"])
+      repeat(2) { state = attempt(engine, state, it + 4).state; assertEquals(special, id(state)) }
+      val escaped = attempt(engine, state, 6)
+      assertEquals("LEVEL.NODE.9", id(escaped.state)); assertEquals(0, streak(escaped.state))
+      assertEquals(escaped.state, attempt(engine, escaped.state, 6).state)
+      assertEquals(9, rng.calls)
     }
-    val rng = RandomSequence(0.0, 0.0, 0.0, 0.0, 0.0)
-    val e = LevelTravelEngine(LevelTravelPolicy(config), rng)
-    var state = atNode(e.start(GameState.initial(), "run"), id)
-    repeat(2) { state = attempt(e, state, it + 1).state; assertEquals(id, id(state)) }
-    state = attempt(e, state, 3).state
-    assertEquals("LEVEL.NODE.9", id(state)); assertEquals(0, streak(state))
+  }
+
+  @Test fun allStandaloneSublevelsAndAreasHaveInboundAndIndependentExitPolicies() {
+    val p = policy()
+    val rootNodes = p.nodes.values.filter { it.getString("kind") in setOf("SUBLEVEL", "AREA") }
+    assertEquals(29, rootNodes.size)
+    rootNodes.forEach { node ->
+      val target = node.getString("id")
+      assertTrue("$target must be enabled", node.getBoolean("independentExit"))
+      val from = if (target == "LEVEL.NODE.0.5") "LEVEL.NODE.0.2" else "LEVEL.NODE.0"
+      assertTrue("$target must be reachable from $from", target in p.destinations(from))
+      assertTrue(p.destinations(target).isNotEmpty())
+      assertFalse(target in p.destinations(target))
+    }
+    assertEquals(listOf("LEVEL.NODE.0.7"), p.destinations("LEVEL.NODE.0.5"))
+    assertFalse("LEVEL.NODE.0.5" in p.destinations("LEVEL.NODE.0"))
+    assertEquals((0..10).map { "LEVEL.NODE.$it" }, p.startingIds)
+  }
+
+  @Test fun failureInSpecialAreaResetsComboAndSaveLoadKeepsCurrentNode() {
+    val p = policy()
+    val special = "LEVEL.NODE.0.DULLNESS"
+    val entering = p.destinations("LEVEL.NODE.0")
+    val rng = RandomSequence(0.0, 0.0, 0.0, 0.0, (entering.indexOf(special) + 0.1) / entering.size,
+      0.0, 0.0, 0.5)
+    val engine = LevelTravelEngine(p, rng)
+    var state = engine.start(GameState.initial(), "run")
+    repeat(5) { state = attempt(engine, state, it + 1).state }
+    assertEquals(special, id(state)); assertEquals(2, streak(state))
+    state = GameStateCodec.decode(GameStateCodec.encode(state))
+    val unchanged = LevelTravelEngine.protectCandidate(state, JSONObject().put("location", "another Level"), "quan sát")
+    assertEquals(special, unchanged.getJSONObject("levelTravel").getString("nodeId"))
+    assertEquals(2, unchanged.getJSONObject("levelTravel").getInt("exitStreak"))
+    state = attempt(engine, state, 6).state
+    assertEquals(special, id(state)); assertEquals(0, streak(state))
+    assertEquals(8, rng.calls)
   }
 
   @Test fun allEnabledScenesCompileCurrentCanonWithinBudget() {
     val store = JsonCanonStore.parseWithSupplements(assets("knowledge_db.json"), listOf(assets("level_0_canon_cards.json"), assets("level_1plus_canon_cards.json")))
     val p = policy()
-    p.startingIds.forEachIndexed { index, node ->
-      val e = LevelTravelEngine(p) { (index + 0.1) / p.startingIds.size }
-      val ui = LevelTravelEngine.project(e.start(GameState.initial(), "run"), JSONObject(initialUi()))
-      assertEquals(node, ui.getJSONObject("level").getString("id"))
+    p.nodes.values.filter { it.getBoolean("independentExit") }.forEach { node ->
+      val id = node.getString("id")
+      val ui = JSONObject(initialUi())
+        .put("level", JSONObject().put("id", id).put("canonScope", node.getString("scope")))
+        .put("levelTravel", JSONObject().put("nodeId", id))
+        .put("location", node.getString("entryLocation"))
       val scene = LegacyJsonSceneResolver().resolve(ui.toString(), "quan sát", """{"turn":1}""", false)
       val selection = CanonResolver(store).resolve(scene, store.snapshot())
       val result = ContextCompiler().compile(scene, selection, ProviderProfile(), ContextBudget(10000, 1000, 500, 10000, 6000))
-      assertTrue("$node: $result", result is ContextPacketResult.Ready)
+      assertTrue("$id: $result", result is ContextPacketResult.Ready)
+      val records = selection.required + selection.optional
+      assertTrue("$id card missing", records.any { it.id == id })
+      assertFalse(records.any { it.id.startsWith("LEVEL.NODE.") && it.id != id })
+      val source = store.loadRecordsByIds(setOf(id), store.snapshot()).single()
+      assertEquals(source.truthStatus, records.single { it.id == id }.truthStatus)
     }
   }
 
