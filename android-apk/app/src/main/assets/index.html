@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Backroom</title>
 <link rel="stylesheet" href="typography.css">
+<link rel="stylesheet" href="combat-feedback-1193a.css">
 <style>
 *{box-sizing:border-box}body{margin:0;background:#080a0c;color:#eef1f3;font:15px var(--game-font)}.shell{min-height:100vh;padding:10px;background:radial-gradient(circle at top,#161b20,#07090b 75%)}.game,.card{border:1px solid #2b3137;background:#0e1114;box-shadow:0 20px 60px #0007}.topbar{display:flex;justify-content:space-between;gap:12px;padding:16px;border-bottom:1px solid #2b3137}.eyebrow,.role{color:#8f9aa4;font-size:10px;font-weight:800;letter-spacing:.16em}h1{margin:4px 0 0;font-size:23px}.turn{color:#9aa4ad;font-size:12px;letter-spacing:.1em}.turn strong{font-size:21px;color:white}.snapshot{height:300px;margin:8px 10px 10px;border:1px solid #252b31;display:grid;place-items:center;background:#0b0d0f;color:#69737c;border-radius:10px;overflow:hidden}.snapshot img{width:100%;height:100%;object-fit:cover}.log{height:42vh;overflow:auto;padding:10px;display:grid;gap:10px}.message{border-left:3px solid #454e56;padding:11px;background:#111519}.message.player{border-left-color:#8b949e;background:#15191d}.role{margin-bottom:6px}.text{white-space:pre-wrap;line-height:1.55}.composer{display:grid;gap:8px;padding:10px}textarea,button{font:inherit}textarea{min-height:80px;background:#090c0f;color:white;border:1px solid #30373e;padding:10px}button{border:1px solid #3a4249;background:#1a2025;color:#eff2f4;padding:12px;font-weight:700}.status{border-top:1px solid #252b31;padding:10px;color:#9aa4ad;font-size:12px}.side{display:grid;gap:10px;margin-top:10px}.card{padding:14px}.card h2{font-size:13px;letter-spacing:.1em;margin:0 0 10px}.row{display:grid;grid-template-columns:90px 1fr;padding:6px 0;border-bottom:1px solid #22282d;color:#dce2e5}.row b{color:#78838c;font-weight:400}.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.actions .wide{grid-column:1/-1}.danger{background:#241616;color:#e6b1b1;border-color:#663b3b}.chips{display:flex;flex-wrap:wrap;gap:6px}.chips span{border:1px solid #313940;padding:5px 7px;font-size:12px}.party-time{min-height:16px;margin:-2px 0 9px;color:#78838c;font-size:11px}.party-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.party-member{border:1px solid #313940;background:#111519;padding:7px;display:grid;gap:6px;text-align:center;cursor:pointer;min-width:0}.party-member img,.party-avatar-placeholder{width:100%;aspect-ratio:1/1;object-fit:cover;border:1px solid #333b42;background:#0b0e11}.party-avatar-placeholder{display:grid;place-items:center;color:#78838c;font-size:18px;font-weight:800}.party-member strong{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.party-member .party-state{color:#84909a;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.party-member.empty{cursor:default;opacity:.45}.party-member.empty .party-avatar-placeholder{font-size:11px}.character-inventory-view{position:fixed;inset:0;z-index:50;background:#080a0c;padding:14px;overflow:auto}.character-inventory-head{display:flex;align-items:center;gap:12px;border-bottom:1px solid #2b3137;padding-bottom:12px}.character-inventory-head button{width:auto}.character-inventory-head h2{margin:3px 0 0}.character-profile{display:grid;grid-template-columns:110px 1fr;gap:14px;align-items:center;padding:16px 0}.character-profile img{width:110px;height:110px;object-fit:cover;border:1px solid #3b444c}.inventory-capacity{font-size:18px;font-weight:800}.inventory-limit{margin-top:5px;color:#8f9aa4;font-size:12px}.character-section{border:1px solid #2b3137;background:#0e1114;padding:14px;margin-top:10px}.character-section h3{margin:0 0 10px;font-size:12px;letter-spacing:.12em;text-transform:uppercase}.equipment-list,.character-status-list{display:grid;gap:7px}.equipment-list span,.character-status-row{border:1px solid #313940;padding:9px;color:#dce2e5}.character-status-row{display:grid;grid-template-columns:minmax(90px,35%) 1fr;gap:8px}.character-status-row b{color:#78838c;font-weight:400}.status-normal{color:#9aa4ad}.status-warning{color:#d6c28a}.status-danger{color:#df9a9a}@media(max-width:520px){.party-grid{grid-template-columns:repeat(4,1fr)}.party-member{padding:4px}.party-member strong{font-size:9px}.party-member .party-state{font-size:8px}}
 
@@ -562,7 +563,7 @@ render();
   };
 
   function selectedCharacter(){
-    var view=document.getElementById("characterInventoryView"),id=view&&view.dataset.characterId||"kai";
+    var view=document.getElementById("characterInventoryView"),id=view&&view.dataset.characterId||"cao-minh";
     var members=state&&state.partyDetails&&Array.isArray(state.partyDetails.members)?state.partyDetails.members:[];
     return members.find(function(m){return String(m&&m.id||"")===String(id)})||members[0]||{id:id};
   }
@@ -571,7 +572,7 @@ render();
   }
   function renderCorePanel(){
     var host=document.getElementById("characterStatusList");if(!host)return;
-    var member=selectedCharacter(),id=String(member&&member.id||"kai"),data=readCoreStats(id);if(!data||!data.stats)return;
+    var member=selectedCharacter(),id=String(member&&member.id||"cao-minh"),data=readCoreStats(id);if(!data||!data.stats)return;
     var panel=document.getElementById("coreProgressionPanel");if(!panel){panel=document.createElement("section");panel.id="coreProgressionPanel";panel.className="core-progression-panel";host.appendChild(panel)}
     panel.textContent="";
     var head=document.createElement("div");head.className="core-progression-head";head.innerHTML="<b>CORE STATS</b><span class='core-balance'>Core "+Number(data.sharedCore||0)+"</span>";panel.appendChild(head);
@@ -628,7 +629,7 @@ render();
   if(!view||!modal||!close||!title||!list)return;
   const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   function members(){return typeof state!=='undefined'&&state&&state.partyDetails&&Array.isArray(state.partyDetails.members)?state.partyDetails.members:[]}
-  function selected(){const id=view.dataset.characterId||'kai';return members().find(member=>String(member.id)===String(id))||members()[0]||null}
+  function selected(){const id=view.dataset.characterId||'cao-minh';return members().find(member=>String(member.id)===String(id))||members()[0]||null}
   function skills(){const member=selected();return member&&Array.isArray(member.skills)?member.skills:[]}
   function ensureButton(){
     let button=document.getElementById('characterSkillsButton');
@@ -653,5 +654,6 @@ render();
   ensureButton();
 })();
 </script>
+<script src="combat-feedback-1193a.js"></script>
 </body>
 </html>
