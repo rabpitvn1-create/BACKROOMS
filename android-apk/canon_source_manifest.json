@@ -13,6 +13,12 @@
         "record_count": 109,
         "source_document_id": "LEVEL0_CLOUDINARY_MAPPING",
         "review_status": "PENDING_AUTHOR_REVIEW"
+      },
+      {
+        "path": "android-apk/app/src/main/assets/knowledge/level_1plus_canon_cards.json",
+        "record_count": 38,
+        "source_document_id": "LEVEL1PLUS_CLOUDINARY_MAPPING",
+        "review_status": "PENDING_AUTHOR_REVIEW"
       }
     ]
   },
@@ -110,7 +116,12 @@
       "sha256": "1718bd1801fd1cf926bb85d47e2055c7c580b8db90afcc9df664781db5078fc9",
       "bytes": 21539,
       "status": "SNAPSHOTTED",
-      "record_ids": [],
+      "record_ids": [
+        "LEVEL.07",
+        "LEVEL.08",
+        "LEVEL.09",
+        "LEVEL.10"
+      ],
       "note": "stored file; tài liệu world/level hiện hành trên Drive — các record LEVEL/WORLD cũ trỏ 01_WORLD/world.md|level.md (đã di chuyển/đổi tên)"
     },
     {
@@ -493,6 +504,52 @@
         "LEVEL.NODE.0.ZONE_08.SUB_04"
       ],
       "note": "109 CR2 Level 0 node cards / 135 visuals; environment original proposals marked INFERRED and pending author review; no routes."
+    },
+    {
+      "document_id": "LEVEL1PLUS_CLOUDINARY_MAPPING",
+      "repo_path": "android-apk/canon_sources/Asset/02_Level/LEVEL_0_CLOUDINARY_MAPPING.json",
+      "original_filename": "Bảng ánh xạ Cloudinary JSON.json",
+      "origin": "USER_UPLOAD",
+      "sha256": "45d0f2d006c3734573517863b7c438e3fce75a0c198af8776f24b889775f254f",
+      "bytes": 88195,
+      "status": "SNAPSHOTTED",
+      "record_ids": [
+        "LEVEL.11",
+        "LEVEL.12",
+        "LEVEL.13",
+        "LEVEL.NODE.1",
+        "LEVEL.NODE.1.2",
+        "LEVEL.NODE.1.5",
+        "LEVEL.NODE.1.BASE_ALPHA",
+        "LEVEL.NODE.1.TRADERS_VAULT",
+        "LEVEL.NODE.10",
+        "LEVEL.NODE.10.1",
+        "LEVEL.NODE.11",
+        "LEVEL.NODE.11.3",
+        "LEVEL.NODE.11.AFTER_HOURS",
+        "LEVEL.NODE.11.ASSET_11P1",
+        "LEVEL.NODE.11.RADIO_BACKROOMS_STUDIO",
+        "LEVEL.NODE.11.SCENE_01P2",
+        "LEVEL.NODE.11.THE_HEADQUARTERS",
+        "LEVEL.NODE.12",
+        "LEVEL.NODE.13",
+        "LEVEL.NODE.2",
+        "LEVEL.NODE.2.OFFICE_SPACE_EL3A",
+        "LEVEL.NODE.3",
+        "LEVEL.NODE.4",
+        "LEVEL.NODE.4.THE_OFFICE_MARKET",
+        "LEVEL.NODE.5",
+        "LEVEL.NODE.5.1",
+        "LEVEL.NODE.6",
+        "LEVEL.NODE.6.1",
+        "LEVEL.NODE.7",
+        "LEVEL.NODE.7.7",
+        "LEVEL.NODE.7.THE_HADAL_ZONE",
+        "LEVEL.NODE.8",
+        "LEVEL.NODE.8.THE_SANCTUM_SUBTERRANEOUS",
+        "LEVEL.NODE.9"
+      ],
+      "note": "This 306-row upload covers all levels. Level 1–13 supplemental pack: 31 location cards + LEVEL.11–13 existence records. Level 7–10 baseline cards rely on BACKROOMS_WORLD.md, not image lore."
     }
   ],
   "google_docs_not_snapshotted": [],
@@ -568,10 +625,17 @@
       "STORY.MAIN.COMMS_INITIAL",
       "STORY.MAIN.SYVIAL_EXISTENCE"
     ],
-    "cr2_effective_total_records": 175,
+    "cr2_effective_total_records": 213,
     "level0_visual_nodes": 109,
     "level0_cloudinary_images": 135,
-    "level0_proposed_cards": 109
+    "level0_proposed_cards": 109,
+    "level1plus_visual_nodes": 31,
+    "level1plus_cloudinary_images": 45,
+    "level1plus_supplemental_records": 38,
+    "level1plus_baseline_world_records": 4,
+    "level11_to_13_lore_pending": 3,
+    "combined_visual_nodes": 140,
+    "combined_cloudinary_images": 180
   },
   "rules": [
     "content_sha256 của record = SHA-256 của tài liệu nguồn CHÍNH (primary document) trong snapshot này.",

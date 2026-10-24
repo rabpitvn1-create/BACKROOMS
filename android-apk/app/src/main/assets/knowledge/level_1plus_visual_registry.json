@@ -1,0 +1,560 @@
+{
+  "schema_version": 1,
+  "source_sha256": "45d0f2d006c3734573517863b7c438e3fce75a0c198af8776f24b889775f254f",
+  "source_document_id": "LEVEL1PLUS_CLOUDINARY_MAPPING",
+  "level_count": 13,
+  "node_count": 31,
+  "visual_count": 45,
+  "route_links_defined": false,
+  "nodes": [
+    {
+      "node_key": "1",
+      "canon_id": "LEVEL.NODE.1",
+      "parent_node_key": null,
+      "display_name": "Level 1 — Habitable Zone",
+      "node_kind": "LEVEL",
+      "images": [
+        {
+          "source_name": "level_01__snapshot_001.webp",
+          "drive_id": "13UT4FxIATlKRksjbjp5yznmPe8ywR82V",
+          "public_id": "Level_1_Parking_Zone_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832049/Level_1_Parking_Zone_01.webp"
+        },
+        {
+          "source_name": "level_01__snapshot_002.webp",
+          "drive_id": "1iRiRUz58e9rJXz3kDu4iMp40R6Uxb6aK",
+          "public_id": "Level_1_Parking_Zone_02",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832046/Level_1_Parking_Zone_02.webp"
+        },
+        {
+          "source_name": "level_01__snapshot_003.webp",
+          "drive_id": "19ezVM21Ri_WuXapELEp04-5JGnS0nlWd",
+          "public_id": "Level_1_Parking_Zone_03",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832050/Level_1_Parking_Zone_03.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "1.2",
+      "canon_id": "LEVEL.NODE.1.2",
+      "parent_node_key": "1",
+      "display_name": "Level 1.2",
+      "node_kind": "SUBLEVEL",
+      "images": [
+        {
+          "source_name": "level_01p2__snapshot_001.webp",
+          "drive_id": "1S3mUVpZ1dgX7IYew8aWjNWEaG6UYahGu",
+          "public_id": "Level_1_2_Sub_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832079/Level_1_2_Sub_01.webp"
+        },
+        {
+          "source_name": "level_01p2__snapshot_002.webp",
+          "drive_id": "1VRvtDp4aqopwQMrjYeL9NwTsMC35JzK3",
+          "public_id": "Level_1_2_Sub_02",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832021/Level_1_2_Sub_02.webp"
+        },
+        {
+          "source_name": "level_01p2__snapshot_003.webp",
+          "drive_id": "1AUWDCWxIl9uNAq8qTJceOzQiVnATUEq1",
+          "public_id": "Level_1_2_Sub_03",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832020/Level_1_2_Sub_03.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "1.5",
+      "canon_id": "LEVEL.NODE.1.5",
+      "parent_node_key": "1",
+      "display_name": "Level 1.5",
+      "node_kind": "SUBLEVEL",
+      "images": [
+        {
+          "source_name": "level_01p5__snapshot_001.webp",
+          "drive_id": "1tOotyRoYmquYaQ8JA_p_EG4EszsX_nqH",
+          "public_id": "Level_1_5_Sub_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832080/Level_1_5_Sub_01.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "1/base_alpha",
+      "canon_id": "LEVEL.NODE.1.BASE_ALPHA",
+      "parent_node_key": "1",
+      "display_name": "Level 1 / Base Alpha",
+      "node_kind": "AREA",
+      "images": [
+        {
+          "source_name": "area_01__base_alpha__snapshot_001.webp",
+          "drive_id": "1mulS6AQrDntOIPgQONZqzKtnWcfIFjco",
+          "public_id": "Level_1_Base_Alpha_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832091/Level_1_Base_Alpha_01.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "1/traders_vault",
+      "canon_id": "LEVEL.NODE.1.TRADERS_VAULT",
+      "parent_node_key": "1",
+      "display_name": "Level 1 / Traders Vault",
+      "node_kind": "AREA",
+      "images": [
+        {
+          "source_name": "area_01__traders_vault__reference_snapshot_001.webp",
+          "drive_id": "1vXtbQeRwq5ehyXGY2UTrha19s77v08yc",
+          "public_id": "Level_1_Traders_Vault_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832086/Level_1_Traders_Vault_01.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "2",
+      "canon_id": "LEVEL.NODE.2",
+      "parent_node_key": null,
+      "display_name": "Level 2 — Abandoned Utility Halls / Pipe Dreams",
+      "node_kind": "LEVEL",
+      "images": [
+        {
+          "source_name": "level_02__snapshot_001.webp",
+          "drive_id": "1LEuBBiKLs2CETuvihQP_34iHXlolM0XY",
+          "public_id": "Level_2_Pipe_Dreams_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832047/Level_2_Pipe_Dreams_01.webp"
+        },
+        {
+          "source_name": "level_02__snapshot_002.webp",
+          "drive_id": "1YXRTIZ1XxifMwXTASVvg4L01bSS0rxHN",
+          "public_id": "Level_2_Pipe_Dreams_02",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832051/Level_2_Pipe_Dreams_02.webp"
+        },
+        {
+          "source_name": "level_02__snapshot_003.webp",
+          "drive_id": "1x_W8m5DiZoYFEZ1TyeU_sgPsmpTCNahc",
+          "public_id": "Level_2_Pipe_Dreams_03",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832052/Level_2_Pipe_Dreams_03.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "2/office_space_el3a",
+      "canon_id": "LEVEL.NODE.2.OFFICE_SPACE_EL3A",
+      "parent_node_key": "2",
+      "display_name": "Level 2 / Office Space EL3A",
+      "node_kind": "AREA",
+      "images": [
+        {
+          "source_name": "area_02__office_space_el3a__reference_snapshot_001.webp",
+          "drive_id": "13dRuovrdqZ5nFL7LxfaDiKfPACNwmsJB",
+          "public_id": "Level_2_Office_Space_EL3A_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832087/Level_2_Office_Space_EL3A_01.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "3",
+      "canon_id": "LEVEL.NODE.3",
+      "parent_node_key": null,
+      "display_name": "Level 3 — Electrical Station",
+      "node_kind": "LEVEL",
+      "images": [
+        {
+          "source_name": "level_03__snapshot_001.webp",
+          "drive_id": "1uCbObm8CvLcbAVibLHu1El57C4HWbTey",
+          "public_id": "Level_3_Electrical_Station_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832053/Level_3_Electrical_Station_01.webp"
+        },
+        {
+          "source_name": "level_03__snapshot_002.webp",
+          "drive_id": "1PS5c3omiML-xTXK7X6kerUbzEYiXZv6v",
+          "public_id": "Level_3_Electrical_Station_02",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832054/Level_3_Electrical_Station_02.webp"
+        },
+        {
+          "source_name": "level_03__snapshot_003.webp",
+          "drive_id": "1Gh4lBFDXKPbdnAgQq1PMZ6PHfGLW4W2O",
+          "public_id": "Level_3_Electrical_Station_03",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832053/Level_3_Electrical_Station_03.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "4",
+      "canon_id": "LEVEL.NODE.4",
+      "parent_node_key": null,
+      "display_name": "Level 4 — Abandoned Office",
+      "node_kind": "LEVEL",
+      "images": [
+        {
+          "source_name": "level_04__snapshot_001.webp",
+          "drive_id": "1LuUs_RxHgvHzs9VlKx5SiM6t06-pzm5c",
+          "public_id": "Level_4_Abandoned_Office_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832055/Level_4_Abandoned_Office_01.webp"
+        },
+        {
+          "source_name": "level_04__snapshot_002.webp",
+          "drive_id": "1b6Tw8wdzHBSmQ3Pn_qW4kqu32esgckQp",
+          "public_id": "Level_4_Abandoned_Office_02",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832056/Level_4_Abandoned_Office_02.webp"
+        },
+        {
+          "source_name": "level_04__snapshot_003.webp",
+          "drive_id": "1mVAXfcP7jWqpf5NYyzdr6xGSxXGuPUjA",
+          "public_id": "Level_4_Abandoned_Office_03",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832057/Level_4_Abandoned_Office_03.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "4/the_office_market",
+      "canon_id": "LEVEL.NODE.4.THE_OFFICE_MARKET",
+      "parent_node_key": "4",
+      "display_name": "Level 4 / The Office Market",
+      "node_kind": "AREA",
+      "images": [
+        {
+          "source_name": "area_04__the_office_market__snapshot_001.webp",
+          "drive_id": "16P0Klj1AfvWrA5E_PUnimT-ckG_a1ZPM",
+          "public_id": "Level_4_The_Office_Market_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832085/Level_4_The_Office_Market_01.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "5",
+      "canon_id": "LEVEL.NODE.5",
+      "parent_node_key": null,
+      "display_name": "Level 5 — Terror Hotel",
+      "node_kind": "LEVEL",
+      "images": [
+        {
+          "source_name": "level_05__snapshot_001.webp",
+          "drive_id": "14BueUhtCYHyGNRI9VR7vMWWVLIVUQ-sP",
+          "public_id": "Level_5_Terror_Hotel_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832058/Level_5_Terror_Hotel_01.webp"
+        },
+        {
+          "source_name": "level_05__snapshot_002.webp",
+          "drive_id": "1A90uBBoLxgdmq1Tv1iLuZv1yafUMUwWO",
+          "public_id": "Level_5_Terror_Hotel_02",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832058/Level_5_Terror_Hotel_02.webp"
+        },
+        {
+          "source_name": "level_05__snapshot_003.webp",
+          "drive_id": "15si8iDkZi6ryGkbu6jNW3O7YBww4P4gA",
+          "public_id": "Level_5_Terror_Hotel_03",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832061/Level_5_Terror_Hotel_03.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "5.1",
+      "canon_id": "LEVEL.NODE.5.1",
+      "parent_node_key": "5",
+      "display_name": "Level 5.1",
+      "node_kind": "SUBLEVEL",
+      "images": [
+        {
+          "source_name": "level_05p1__snapshot_001.webp",
+          "drive_id": "1nIF2wDRLqgHk68i3jBD6mM3uag4fXYcz",
+          "public_id": "Level_5_1_Sub_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832096/Level_5_1_Sub_01.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "6",
+      "canon_id": "LEVEL.NODE.6",
+      "parent_node_key": null,
+      "display_name": "Level 6 — Lights Out",
+      "node_kind": "LEVEL",
+      "images": [
+        {
+          "source_name": "level_06__snapshot_001.webp",
+          "drive_id": "1MlcclRC2DVHl8YV9DUqbkktR5i6on4fm",
+          "public_id": "Level_6_Lights_Out_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832059/Level_6_Lights_Out_01.webp"
+        },
+        {
+          "source_name": "level_06__snapshot_002.webp",
+          "drive_id": "1erKPfyxhI2RF6xERpIrMt25p2-A7V7yN",
+          "public_id": "Level_6_Lights_Out_02",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832062/Level_6_Lights_Out_02.webp"
+        },
+        {
+          "source_name": "level_06__snapshot_003.webp",
+          "drive_id": "1XDr1NqFJeJQAGDIEKqEx-SUqukmS3LCt",
+          "public_id": "Level_6_Lights_Out_03",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832063/Level_6_Lights_Out_03.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "6.1",
+      "canon_id": "LEVEL.NODE.6.1",
+      "parent_node_key": "6",
+      "display_name": "Level 6.1",
+      "node_kind": "SUBLEVEL",
+      "images": [
+        {
+          "source_name": "level_06p1__snapshot_001.webp",
+          "drive_id": "11O2wVqDHxMxd1A-FSqfS52KBiTcQjl_z",
+          "public_id": "Level_6_1_Sub_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832097/Level_6_1_Sub_01.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "7",
+      "canon_id": "LEVEL.NODE.7",
+      "parent_node_key": null,
+      "display_name": "Level 7 — Thalassophobia",
+      "node_kind": "LEVEL",
+      "images": [
+        {
+          "source_name": "level_07__snapshot_001.webp",
+          "drive_id": "1fpJSpOEE-Npbi7IS24_Y-ykVlxJ9rAsy",
+          "public_id": "Level_7_Thalassophobia_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832060/Level_7_Thalassophobia_01.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "7.7",
+      "canon_id": "LEVEL.NODE.7.7",
+      "parent_node_key": "7",
+      "display_name": "Level 7.7",
+      "node_kind": "SUBLEVEL",
+      "images": [
+        {
+          "source_name": "level_07p7__snapshot_001.webp",
+          "drive_id": "1wsBUKnboeUhGOJQgfg9HNmeZlg8b9_Z0",
+          "public_id": "Level_7_7_Sub_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832095/Level_7_7_Sub_01.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "7/the_hadal_zone",
+      "canon_id": "LEVEL.NODE.7.THE_HADAL_ZONE",
+      "parent_node_key": "7",
+      "display_name": "Level 7 / The Hadal Zone",
+      "node_kind": "AREA",
+      "images": [
+        {
+          "source_name": "area_07__the_hadal_zone__snapshot_001.webp",
+          "drive_id": "1lA9GDelMsqt3Ktw56sFkmdzvuh6D27mr",
+          "public_id": "Level_7_The_Hadal_Zone_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832092/Level_7_The_Hadal_Zone_01.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "8",
+      "canon_id": "LEVEL.NODE.8",
+      "parent_node_key": null,
+      "display_name": "Level 8 — Cave Systems",
+      "node_kind": "LEVEL",
+      "images": [
+        {
+          "source_name": "level_08__snapshot_001.webp",
+          "drive_id": "1LiTxIg2iX7obaMaTVrq_192lIFf0OSie",
+          "public_id": "Level_8_Cave_Systems_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832071/Level_8_Cave_Systems_01.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "8/the_sanctum_subterraneous",
+      "canon_id": "LEVEL.NODE.8.THE_SANCTUM_SUBTERRANEOUS",
+      "parent_node_key": "8",
+      "display_name": "Level 8 / The Sanctum Subterraneous",
+      "node_kind": "AREA",
+      "images": [
+        {
+          "source_name": "area_08__the_sanctum_subterraneous__snapshot_001.webp",
+          "drive_id": "1Wb4yCG3gOomjuaXdhivuwNRfQXmIcydl",
+          "public_id": "Level_8_The_Sanctum_Subterraneous_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832093/Level_8_The_Sanctum_Subterraneous_01.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "9",
+      "canon_id": "LEVEL.NODE.9",
+      "parent_node_key": null,
+      "display_name": "Level 9 — The Suburbs",
+      "node_kind": "LEVEL",
+      "images": [
+        {
+          "source_name": "level_09__snapshot_001.webp",
+          "drive_id": "1sJNh-XwQI74cF_KAlPInBXm-sLoq6aTy",
+          "public_id": "Level_9_The_Suburbs_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832072/Level_9_The_Suburbs_01.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "10",
+      "canon_id": "LEVEL.NODE.10",
+      "parent_node_key": null,
+      "display_name": "Level 10 — Bumper Crop",
+      "node_kind": "LEVEL",
+      "images": [
+        {
+          "source_name": "level_10__snapshot_001.webp",
+          "drive_id": "1xjGrMJ4dHPhSl-Yam5Qz8muCTPNi0lzV",
+          "public_id": "Level_10_Bumper_Crop_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832073/Level_10_Bumper_Crop_01.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "10.1",
+      "canon_id": "LEVEL.NODE.10.1",
+      "parent_node_key": "10",
+      "display_name": "Level 10.1",
+      "node_kind": "SUBLEVEL",
+      "images": [
+        {
+          "source_name": "level_10p1__snapshot_001.webp",
+          "drive_id": "10TgRAQ2eL_Cn1qqjmUqPTqd-Hvo7VSSu",
+          "public_id": "Level_10_1_Sub_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832081/Level_10_1_Sub_01.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "11",
+      "canon_id": "LEVEL.NODE.11",
+      "parent_node_key": null,
+      "display_name": "Level 11 — Main",
+      "node_kind": "LEVEL",
+      "images": [
+        {
+          "source_name": "level_11__snapshot_001.webp",
+          "drive_id": "1DjiYu3O9Pyge9rjcObjcbELvKa2Yl-iS",
+          "public_id": "Level_11_Main_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832074/Level_11_Main_01.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "11.3",
+      "canon_id": "LEVEL.NODE.11.3",
+      "parent_node_key": "11",
+      "display_name": "Level 11.3",
+      "node_kind": "SUBLEVEL",
+      "images": [
+        {
+          "source_name": "level_11p3__snapshot_001.webp",
+          "drive_id": "1kjqDdb-BZRLcM7KTV3xS4WJqm6VP_ORQ",
+          "public_id": "Level_11_3_Sub_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832083/Level_11_3_Sub_01.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "11/after_hours",
+      "canon_id": "LEVEL.NODE.11.AFTER_HOURS",
+      "parent_node_key": "11",
+      "display_name": "Level 11 / After Hours",
+      "node_kind": "AREA",
+      "images": [
+        {
+          "source_name": "area_11__after_hours__snapshot_001.webp",
+          "drive_id": "1XxtnHFHpfP54PsHi37Za2Td427kGVwSq",
+          "public_id": "Level_11_After_Hours_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832098/Level_11_After_Hours_01.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "11/asset_11p1",
+      "canon_id": "LEVEL.NODE.11.ASSET_11P1",
+      "parent_node_key": "11",
+      "display_name": "Level 11 / Asset 11p1",
+      "node_kind": "AREA",
+      "images": [
+        {
+          "source_name": "area_11__asset_11p1__snapshot_001.webp",
+          "drive_id": "1wXT2ekL-SB5IptCeXBQsmp1fZ6TD8RM_",
+          "public_id": "Level_11_Asset_11p1_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832089/Level_11_Asset_11p1_01.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "11/radio_backrooms_studio",
+      "canon_id": "LEVEL.NODE.11.RADIO_BACKROOMS_STUDIO",
+      "parent_node_key": "11",
+      "display_name": "Level 11 / Radio Backrooms Studio",
+      "node_kind": "AREA",
+      "images": [
+        {
+          "source_name": "area_11__radio_backrooms_studio__reference_snapshot_001.webp",
+          "drive_id": "1rhJSWS35jwRnKM7cS0kl008mecpd3inv",
+          "public_id": "Level_11_Radio_Backrooms_Studio_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832100/Level_11_Radio_Backrooms_Studio_01.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "11/scene_01p2",
+      "canon_id": "LEVEL.NODE.11.SCENE_01P2",
+      "parent_node_key": "11",
+      "display_name": "Level 11 / Scene 01p2",
+      "node_kind": "AREA",
+      "images": [
+        {
+          "source_name": "area_11__scene_01p2__snapshot_001.webp",
+          "drive_id": "1ZP363VDF8kKksjtqWZ8GqWKyMS86iQeu",
+          "public_id": "Level_11_Scene_01p2_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832088/Level_11_Scene_01p2_01.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "11/the_headquarters",
+      "canon_id": "LEVEL.NODE.11.THE_HEADQUARTERS",
+      "parent_node_key": "11",
+      "display_name": "Level 11 / The Headquarters",
+      "node_kind": "AREA",
+      "images": [
+        {
+          "source_name": "area_11__the_headquarters__reference_snapshot_001.webp",
+          "drive_id": "1uqyDC7i6yu98-DCzwIbA4AC8I2EtlQLS",
+          "public_id": "Level_11_The_Headquarters_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832099/Level_11_The_Headquarters_01.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "12",
+      "canon_id": "LEVEL.NODE.12",
+      "parent_node_key": null,
+      "display_name": "Level 12 — Main",
+      "node_kind": "LEVEL",
+      "images": [
+        {
+          "source_name": "level_12__snapshot_001.webp",
+          "drive_id": "1fSDEkFwcaGR9wTD1xpcnWucisr2rv5ps",
+          "public_id": "Level_12_Main_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832067/Level_12_Main_01.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "13",
+      "canon_id": "LEVEL.NODE.13",
+      "parent_node_key": null,
+      "display_name": "Level 13 — Main",
+      "node_kind": "LEVEL",
+      "images": [
+        {
+          "source_name": "level_13__snapshot_001.webp",
+          "drive_id": "1JDhEFYmwhVz5R5ImPHKkQKrWotcZA_km",
+          "public_id": "Level_13_Main_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832068/Level_13_Main_01.webp"
+        }
+      ]
+    }
+  ]
+}
