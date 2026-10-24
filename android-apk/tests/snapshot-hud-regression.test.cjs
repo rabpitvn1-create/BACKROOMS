@@ -6,6 +6,7 @@ const vm = require('node:vm');
 
 const assets = path.join(__dirname, '../app/src/main/assets');
 const snapshotSource = fs.readFileSync(path.join(assets, 'snapshot-stage.js'), 'utf8');
+const cloudinarySource = fs.readFileSync(path.join(assets, 'cloudinary-gameplay.js'), 'utf8');
 const menuSource = fs.readFileSync(path.join(assets, 'mobile-hud.js'), 'utf8');
 
 function element() {
@@ -58,20 +59,25 @@ function snapshotBoot(initial) {
   const state = initial || {turn: 1, levelTravel: {nodeId: 'LEVEL.NODE.2'}, level: {number: 2}};
   const scope = {window: {}, state, document: {
     getElementById: id => id === 'snapshot' ? box : null,
+    querySelectorAll: () => [],
     createElement: element
   }};
+  vm.runInNewContext(cloudinarySource, scope);
   vm.runInNewContext(snapshotSource, scope);
-  return {box, state, render: scope.window.backroomSnapshotStage.render};
+  return {box, state, art: scope.window.backroomCloudinary,
+    render: scope.window.backroomSnapshotStage.render};
 }
 
 test('Snapshot opens with bundled Level background and Cao Minh overlay without Gemini', () => {
-  const {box} = snapshotBoot();
+  const {box, art} = snapshotBoot();
   const stage = box.querySelector('.snapshot-stage');
   assert.ok(stage);
   assert.equal(stage.querySelector('.snapshot-background-img').getAttribute('src'),
     'level_snapshots/level_2.webp');
+  assert.match(stage.querySelector('.snapshot-player-overlay').getAttribute('src'),
+    /^https:\\/\\/res\\.cloudinary\\.com\\/csz2me5b\\/image\\/upload\\//);
   assert.equal(stage.querySelector('.snapshot-player-overlay').getAttribute('src'),
-    'CAO_MINH_OVERLAY_EXPLORER_IDLE.png');
+    art.characterOverlay('cao-minh', false));
   assert.equal(stage.querySelector('.snapshot-scene-label').hidden, true,
     'a bundled background must not display a missing-image label');
   assert.equal(box.childNodes.some(x => x.nodeType === 3), false);
@@ -91,18 +97,18 @@ test('Repeated Snapshot renders preserve follower layers and combat effect DOM',
 });
 
 test('Combat swaps Cao Minh overlay, displays confirmed Entity, then cleans it up', () => {
-  const {box, state, render} = snapshotBoot();
+  const {box, state, art, render} = snapshotBoot();
   state.combat = {active: true, entityKey: 'smiler', entityName: 'Smiler'};
   render(state, null);
   const stage = box.querySelector('.snapshot-stage');
   assert.equal(stage.querySelector('.snapshot-player-overlay').getAttribute('src'),
-    'CAO_MINH_OVERLAY_ENTITY_ENCOUNTER.png');
-  assert.equal(stage.querySelector('.snapshot-entity').getAttribute('src'), 'entity/smiler.webp');
+    art.characterOverlay('cao-minh', true));
+  assert.equal(stage.querySelector('.snapshot-entity').getAttribute('src'), art.entity('smiler'));
   state.combat = null;
   render(state, null);
   assert.equal(stage.querySelector('.snapshot-entity'), null);
   assert.equal(stage.querySelector('.snapshot-player-overlay').getAttribute('src'),
-    'CAO_MINH_OVERLAY_EXPLORER_IDLE.png');
+    art.characterOverlay('cao-minh', false));
 });
 
 test('Generated image payloads are ignored; only curated fixed backgrounds are rendered', () => {
