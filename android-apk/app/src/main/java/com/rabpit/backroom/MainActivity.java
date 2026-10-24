@@ -1139,6 +1139,7 @@ public class MainActivity extends Activity {
       try {
         return requireGameCore().coreStats(stateJson, characterId);
       } catch (Exception error) {
+        diagnosticLog.recordException("core_stats", error);
         return "{}";
       }
     }
