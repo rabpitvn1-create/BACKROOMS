@@ -4,6 +4,10 @@ Status: SOURCE MAP / implementation prerequisite
 
 This file maps runtime facts to their authoritative Google Drive source. It is intentionally independent from `drive-canon.txt`, current prompts, legacy compact canon, and old patches. Those implementation artifacts are audit inputs only.
 
+## Canon Runtime 2.0 (CR2)
+
+Bản đồ nguồn này là đầu vào provenance của **Canon Runtime 2.0** — kiến trúc truy xuất Canon theo scene (scene-first, qua các cổng scope/ID/alias/edge/affordance) thay cho việc nạp tri thức theo từ khoá. Mọi record trong `knowledge_db.json` (schemaVersion 2) đều truy vết về tài liệu trong bản đồ này qua `source.document`/`source.anchor`, đúng thứ tự authority ở mục dưới. Người hoặc mô hình làm sau cần đọc thêm, theo thứ tự: [`CANON_RUNTIME_2_README.md`](CANON_RUNTIME_2_README.md) (hướng dẫn tích hợp Canon + quy trình ingest 4 bước + các bất biến bắt buộc), [`docs/BACKROOMS_CANON_RUNTIME_2_ARCHITECTURE.md`](../docs/BACKROOMS_CANON_RUNTIME_2_ARCHITECTURE.md) (tài liệu thiết kế gốc đầy đủ), và [`canon_source_manifest.json`](canon_source_manifest.json) (manifest nguồn: hash, trạng thái duyệt, record_ids của từng nguồn). Trạng thái triển khai theo Gate nằm trong README trên; kết quả đo nằm ở `CANON_RUNTIME_2_EVALUATION.md`.
+
 ## Authority order
 
 1. Latest explicit user instruction.
