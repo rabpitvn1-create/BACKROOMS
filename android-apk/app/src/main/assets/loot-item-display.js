@@ -36,8 +36,15 @@
       const icon = card.querySelector('.equipment-card-icon');
       if (!icon) return;
       // Avoid refetching/replacing an already displayed Cloudinary image.
-      if (icon.querySelector('.core-loot-image')) return;
-      icon.replaceChildren(image);
+      if (!icon.querySelector('.core-loot-image')) icon.replaceChildren(image);
+      const percent = assets[id][2];
+      const description = card.querySelector('.equipment-card-main');
+      if (percent && description && !description.querySelector('.core-loot-heal')) {
+        const badge = document.createElement('small');
+        badge.className = 'core-loot-heal';
+        badge.textContent = 'Hồi ' + percent + '% Max HP khi dùng';
+        description.appendChild(badge);
+      }
     });
   }
 
@@ -89,7 +96,9 @@
       title.textContent = String(item.name || item.id || 'Vật phẩm');
       text.appendChild(title);
       const note = document.createElement('small');
-      note.textContent = '×' + Math.max(1, Number(item.quantity) || 1) + ' · Nhặt qua hành động trong game';
+      const heal = assets[String(item.id || '')]?.[2];
+      note.textContent = '×' + Math.max(1, Number(item.quantity) || 1) +
+        (heal ? ' · Hồi ' + heal + '% Max HP' : '') + ' · Chưa nhặt';
       text.appendChild(note);
       entry.appendChild(text);
       section.appendChild(entry);
@@ -102,6 +111,19 @@
     const image = imageFor(card.getAttribute('data-item-id'));
     const icon = document.getElementById('equipmentDetailIcon');
     if (icon && image) icon.replaceChildren(image);
+    const itemId = card.getAttribute('data-item-id');
+    const percent = assets[itemId]?.[2];
+    const stats = document.getElementById('equipmentDetailStats');
+    if (percent && stats && !stats.querySelector('.core-loot-heal')) {
+      const row = document.createElement('div');
+      row.className = 'equipment-detail-row core-loot-heal';
+      const label = document.createElement('span');
+      label.textContent = 'HP RESTORE';
+      const value = document.createElement('strong');
+      value.textContent = '+' + percent + '% Max HP';
+      row.append(label, value);
+      stats.appendChild(row);
+    }
   }
   document.getElementById('characterInventoryView')?.addEventListener('click', showDetailImage);
 
