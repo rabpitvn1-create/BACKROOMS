@@ -11,7 +11,10 @@ Ordinary actions consume no exit RNG and preserve streak. Successful exit attemp
 configured destination and commits arrival, location, streak reset, receipt and
 continuity together. No next-turn transition is queued.
 
-The UI provides **Thử thoát Level**. Core also accepts a small complete-action grammar
+The UI uses **Khám phá**, **Tìm kiếm** and **Thực hiện**, without a dedicated exit
+button. Exploration/search provide the normal scene interaction; the player can
+use **Thực hiện** to enter an explicit exit action. The streak remains read-only.
+Core accepts a small complete-action grammar
 (e.g. `thử thoát`, `thử thoát khỏi level hiện tại`, `đi qua lối thoát`, `exit level`).
 Searching for an exit, mentioning one, hypothetical/negated requests, dialogue,
 rest, combat and ordinary movement do not become exit attempts. Active combat
