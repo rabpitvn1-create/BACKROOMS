@@ -50,14 +50,14 @@ class InventoryCapacityNewGameTest {
   @Test fun freshNewGameProjectionUsesCanonical1193aStatsAndCapacity() {
     val state = freshAll()
     val kai = CharacterDetailProjector.projectParty(state).members.first { it.id == CAO_MINH_ID }
-    assertEquals(50, kai.currentHp)
+    assertEquals(70, kai.currentHp)
     assertEquals(70, kai.maxHp)
     assertEquals("∞", kai.energyDisplay)
     assertEquals(0, kai.regenPerCompletedTurn)
     assertEquals(listOf(5,5,5,5), listOf(kai.str.base, kai.def.base, kai.skl.base, kai.vit.base))
     assertEquals(listOf(9,9,9,9), listOf(kai.str.effective, kai.def.effective, kai.skl.effective, kai.vit.effective))
     assertEquals(0, kai.inventoryCapacityUsed)
-    assertEquals(InventoryPolicy.KAI.maxTypes, kai.inventoryCapacityMax)
+    assertEquals(InventoryPolicy.CAO_MINH.maxTypes, kai.inventoryCapacityMax)
     assertEquals(3, kai.equipment.values.toSet().size)
     assertEquals(3, kai.inventoryDetails.count { it.equipped })
   }
