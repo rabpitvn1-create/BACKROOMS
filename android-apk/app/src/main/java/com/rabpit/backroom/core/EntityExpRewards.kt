@@ -20,7 +20,7 @@ object EntityExpRewards {
 
   fun requiredExp(level: Int): Int {
     val l=level.coerceIn(1, MAX_LEVEL)
-    return if(l==MAX_LEVEL) 0 else (10L*l*l).coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+    return if(l==MAX_LEVEL) 0 else (8L*l + 10L).coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
   }
 
   fun progression(state: GameState, characterId: String): Progression {
@@ -56,8 +56,9 @@ object EntityExpRewards {
     if(encounterId.isBlank()||entityKey.isBlank()||characterId !in state.characters)return Reward(state,0,0,false)
     val marker=REWARDED+encounterId
     if(marker in state.metadata)return Reward(state,0,0,true)
-    val worldLevel=state.world["level"]?.toIntOrNull()
-      ?: state.world["currentLevel"]?.toIntOrNull() ?: 0
+    val worldLevel = runCatching {
+      org.json.JSONObject(state.world["levelJson"] ?: "{}").optInt("number", 0)
+    }.getOrDefault(0)
     val exp=(BASE_EXP.toLong()+PER_BACKROOMS_LEVEL.toLong()*worldLevel.coerceAtLeast(0).toLong())
       .coerceIn(1,Int.MAX_VALUE.toLong()).toInt()
     val awarded=grantExp(state,characterId,exp)
