@@ -181,13 +181,18 @@ class GameCoreFacade private constructor(
     }
     val resolution = CombatRuntime.resolve(current, actionKind, action)
     if (!resolution.handled) return response(false, projectCombatState(legacy, current), "combat_unhandled", "combat_rejected")
-    val completed = PokerDiceCore.clearDice(resolution.state)
+    var completed = PokerDiceCore.clearDice(resolution.state)
+    val loot = if (resolution.entityDestroyed) {
+      CoreLootEngine.roll(completed, CoreLootEngine.Source.ENTITY, active.encounterId)
+    } else null
+    if (loot != null) completed = loot.state
     repository.save(completed)
     // Combat changes HP and the combat snapshot, not the already validated
     // narrative inventory/party. The GM path is not yet wired into Core's
     // candidate reducer; projecting all Core inventories here would erase
     // unrelated objects/companions from the browser state.
     val output = projectCombatState(legacy, completed)
+    completed.world["flagsJson"]?.let { output.put("flags", JSONObject(it)) }
     output.put("turn", legacy.optInt("turn", 1) + 1)
     completed.characters[CAO_MINH_ID]?.let { caoMinh ->
       val player = output.optJSONObject("player") ?: JSONObject()
@@ -209,8 +214,27 @@ class GameCoreFacade private constructor(
       put("encounterId", active.encounterId)
       put("events", JSONArray().apply { resolution.feedback.forEach { put(it.toJson()) } })
     })
-    appendLog(output, action, resolution.reply)
-    return response(true, output, null, "combat_committed", resolution.reply)
+    val lootReply = loot?.dropped?.let { " ${it.name} xuất hiện tại vị trí Entity bị tiêu diệt." }.orEmpty()
+    val reply = resolution.reply + lootReply
+    appendLog(output, action, reply)
+    return response(true, output, null, "combat_committed", reply)
+  }
+
+  /**
+   * Roll a discovery independently of GM output, before the narration request.
+   * The roll is idempotent for the current UI turn even if the request is retried.
+   */
+  @Synchronized fun processExplorationLoot(legacyStateJson: String, action: String): String {
+    val legacy = JSONObject(legacyStateJson)
+    val current = loadOrMigrate(legacy)
+    if (!CoreLootEngine.isExplorationAction(action) || CombatRuntime.active(current) != null) {
+      return response(true, syncLegacy(legacy, current, false), null, "core_loot_ineligible")
+    }
+    val eventKey = "TURN_" + legacy.optInt("turn", 1).coerceAtLeast(1)
+    val outcome = CoreLootEngine.roll(current, CoreLootEngine.Source.EXPLORE, eventKey)
+    if (outcome.rolled) repository.save(outcome.state)
+    return response(true, syncLegacy(legacy, outcome.state, false), null,
+      if (outcome.dropped != null) "core_loot_discovered" else "core_loot_checked")
   }
 
   fun currentCoreState(): String = GameStateCodec.encode(repository.load())
@@ -232,7 +256,7 @@ class GameCoreFacade private constructor(
     val commands = mutableListOf<GameCommand>()
     val current = pending.state.inventories[CAO_MINH_ID]?.items.orEmpty()
     val actionIntents = rules.interpretSync(action, contextFor(pending.state)).candidates.map { it.intent }.toSet()
-    val inventoryLocked = isDirectPlayerPickupAction(action) || GameIntent.PICKUP_ITEM in actionIntents || GameIntent.VAN_KHO_GIOI_CHI_RESTORE in actionIntents
+    val inventoryLocked = true // INVENTORY_AUTHORITY: candidate snapshots are read-only
 
     val desiredById = mutableMapOf<String, ItemStack>()
     if (inventoryLocked) {
