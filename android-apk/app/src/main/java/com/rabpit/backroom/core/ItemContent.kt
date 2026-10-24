@@ -19,9 +19,9 @@ object ItemContentRules {
   fun hasForbiddenPreciseAmount(text: String): Boolean = forbiddenAmount.containsMatchIn(text)
 
   fun normalize(item: ItemStack): ItemStack {
-    // Canonical healing items keep their stable IDs; Omnivault copies keep their
-    // distinct copy IDs through HealingItems.normalize().
-    val normalized = HealingItems.normalize(item) ?: item
+    // The healing catalog is injected by the release patch chain. Standalone
+    // Core compiles without it; generated builds apply its canonicalization.
+    val normalized = item
     val name = normalized.name.lowercase()
     val metadata = normalized.metadata - deprecatedContentKeys
     val resourceUnit = name.contains("chai nước") || name.contains("hộp thức ăn") ||
