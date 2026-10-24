@@ -244,6 +244,12 @@ object CombatRuntime {
     log += followers.log
     feedback += followers.feedback
 
+    val restored = RestoredCompanionCombat.beforeEnemyResponse(resolvedState, c, profile, intent, actionKind, action)
+    resolvedState = restored.state
+    c = restored.combat
+    log += restored.log
+    feedback += restored.feedback
+
     if (c.entityHp <= 0) {
       val persisted = encode(resolvedState, c.copy(phase = Phase.RESOLVED, entityCondition = EntityCondition.DESTROYED))
       val cleared = clearCombatOnly(persisted)
