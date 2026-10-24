@@ -940,6 +940,7 @@ public class MainActivity extends Activity {
     JSONObject safe = current == null ? new JSONObject() : new JSONObject(current.toString());
     if (proposed == null) return safe;
     JSONObject patch = new JSONObject(proposed.toString());
+    patch.remove("worldItems"); // Only CoreLootEngine may create world loot.
     patch.remove("lastRolls");
     if (!transitionAccepted) patch.remove("currentLevel");
 
