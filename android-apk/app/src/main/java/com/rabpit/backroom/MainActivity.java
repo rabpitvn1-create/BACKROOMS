@@ -874,6 +874,10 @@ public class MainActivity extends Activity {
     rolls.put("exitProbe", exitProbe);
     // Compatibility alias for the older Android reducer. Both keys point to the exact same locked result; no reroll occurs.
     rolls.put("levelExit", new JSONObject(exitProbe.toString()).put("label", "levelExit"));
+    // These obsolete narrator-driven loot rolls are inert. CoreLootEngine is
+    // the sole authority for 80% Entity defeat and 8% exploration item drops.
+    rolls.put("loot", new JSONObject().put("label", "loot").put("eligible", false).put("success", false));
+    rolls.put("almondWater", new JSONObject().put("label", "almondWater").put("eligible", false).put("success", false));
     return rolls;
   }
 
