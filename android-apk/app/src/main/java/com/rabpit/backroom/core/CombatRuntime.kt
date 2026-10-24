@@ -288,6 +288,25 @@ object CombatRuntime {
       }
     }
 
+    if (profile.key == "diep_minh" && c.entityHp > 0 && c.playerHp > 0 &&
+      c.eventCounter % 5 == 0) {
+      // APK classes3.dex: AoE every five combat turns, 5% target Max HP.
+      for (id in resolvedState.party.memberIds.distinct()) {
+        val member = resolvedState.characters[id] ?: continue
+        if (member.presence != CharacterPresence.ACTIVE || member.vitalState.currentHp <= 0) continue
+        val hpMax = CharacterStatEngine.effective(resolvedState, id).maxHp
+        val hpDamage = ((hpMax.toLong() * 5L) / 100L).coerceAtLeast(1L)
+          .coerceAtMost(member.vitalState.currentHp.toLong()).toInt()
+        if (hpDamage <= 0) continue
+        resolvedState = CharacterStatEngine.setCurrentHp(resolvedState, id,
+          member.vitalState.currentHp - hpDamage)
+        if (id == CAO_MINH_ID) c = c.copy(playerHp = (c.playerHp - hpDamage).coerceAtLeast(0))
+        feedback += DamageFeedback("actor", hpDamage, actorId = id, phase = "entity",
+          skill = "Đòn diện rộng của Diệp Minh")
+      }
+      log += "Diệp Minh tung đòn diện rộng: Party chịu 5% Max HP."
+    }
+
     if (c.playerHp > 0 && c.entityHp > 0 && profile.key == "diep_minh") {
       // APK boss rule: 30 HP restored after each completed enemy response.
       val restored = (c.entityHp.toLong() + 30L).coerceAtMost(c.entityMaxHp.toLong()).toInt()
