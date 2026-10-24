@@ -8,6 +8,8 @@ on:
       - "android-apk/app/build.gradle"
       - "android-apk/patch-level-travel.py"
       - "android-apk/tests/level-travel-ui.test.cjs"
+      - "android-apk/tests/diagnostic-export.test.cjs"
+      - "android-apk/tests/verify-restored-apk.py"
       - ".github/workflows/android-targeted-tests.yml"
   workflow_dispatch:
 
