@@ -224,10 +224,11 @@ class GameCoreFacade private constructor(
    * Roll a discovery independently of GM output, before the narration request.
    * The roll is idempotent for the current UI turn even if the request is retried.
    */
-  @Synchronized fun processExplorationLoot(legacyStateJson: String, action: String): String {
+  @JvmOverloads @Synchronized fun processExplorationLoot(legacyStateJson: String, action: String, actionKind: String = ""): String {
     val legacy = JSONObject(legacyStateJson)
     val current = loadOrMigrate(legacy)
-    if (!CoreLootEngine.isExplorationAction(action) || CombatRuntime.active(current) != null) {
+    val eligible = actionKind.uppercase() in setOf("SEARCH", "EXPLORE") || CoreLootEngine.isExplorationAction(action)
+    if (!eligible || CombatRuntime.active(current) != null) {
       return response(true, syncLegacy(legacy, current, false), null, "core_loot_ineligible")
     }
     val eventKey = "TURN_" + legacy.optInt("turn", 1).coerceAtLeast(1)
