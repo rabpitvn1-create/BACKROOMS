@@ -74,8 +74,8 @@ test('Snapshot opens with bundled Level background and Cao Minh overlay without 
   assert.ok(stage);
   assert.equal(stage.querySelector('.snapshot-background-img').getAttribute('src'),
     'level_snapshots/level_2.webp');
-  assert.match(stage.querySelector('.snapshot-player-overlay').getAttribute('src'),
-    /^https:\\/\\/res\\.cloudinary\\.com\\/csz2me5b\\/image\\/upload\\//);
+  assert.ok(stage.querySelector('.snapshot-player-overlay').getAttribute('src')
+    .startsWith('https://res.cloudinary.com/csz2me5b/image/upload/'));
   assert.equal(stage.querySelector('.snapshot-player-overlay').getAttribute('src'),
     art.characterOverlay('cao-minh', false));
   assert.equal(stage.querySelector('.snapshot-scene-label').hidden, true,
