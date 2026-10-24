@@ -24,7 +24,8 @@ object ItemContentRules {
     val normalized = item
     val name = normalized.name.lowercase()
     val metadata = normalized.metadata - deprecatedContentKeys
-    val resourceUnit = name.contains("chai nước") || name.contains("hộp thức ăn") ||
+    val resourceUnit = name.contains("chai nước") || name.contains("almond water") ||
+      name.contains("nước hạnh nhân") || name.contains("hộp thức ăn") ||
       name.contains("hộp đồ ăn") || name.contains("bình nhiên liệu") ||
       name.contains("can nhiên liệu") || name.contains("viên đạn") ||
       metadata["physiologyEffect"]?.split(',', ';', '|')?.any {
