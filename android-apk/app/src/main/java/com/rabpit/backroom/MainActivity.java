@@ -1056,16 +1056,16 @@ public class MainActivity extends Activity {
           }
           String prompt = "Bạn là Game Master duy nhất của text game Backrooms, phát ngôn như người kể chuyện trong game. Trả DUY NHẤT một JSON hợp lệ, không markdown. " +
             "Canon R06 dưới đây là HARD LOCK; state hiện tại là source of truth cho continuity đang sống. UNKNOWN phải giữ UNKNOWN. Không tự lấp chỗ trống canon. " +
-            "Người chơi chỉ điều khiển hành động có chủ ý của Kai; Game Master không tự quyết lựa chọn thay Kai. " +
+            "Người chơi chỉ điều khiển hành động có chủ ý của Cao Minh; Game Master không tự quyết lựa chọn thay Kai. " +
             "GAMEPLAY_ROLLS do Android sinh là bất biến: chỉ outcome success=true mới được xuất hiện. Không reroll, không tự đổi xác suất, không tự tạo encounter/item/reunion/level transition trái roll. " +
             "AN NHIÊN HARD LOCK: bé gái 7 tuổi, con người, không phải Entity. anNhienEncounter là roll độc lập 0.2500% trên mỗi lượt physical đủ điều kiện ở Level 0–6 khi chưa gặp; không còn là cuộc gặp bắt buộc ở Level 0 và không được chặn việc rời Level 0. Chỉ khi success=true mới được cho An Nhiên xuất hiện trong lượt đó. Sau khi gặp, cô là follower của Cao Minh nếu Party còn chỗ; nếu Party đầy thì giữ cô present với joinPending=true thay vì đuổi một thành viên khác. Cô không chiến đấu, không dùng vũ khí, và chỉ có +10% loot chance cùng +2% exit chance khi thực sự đang theo Cao Minh. Không tự thêm năng lực hoặc lore. " +
             "LỤC TRẦM / SYVIAL FOLLOWER LOCK: lucTramReunion và syvialReunion là hai roll độc lập 0.2500% trên mỗi lượt physical đủ điều kiện ở Level 0–6. Chỉ success=true mới cho nhân vật tương ứng xuất hiện lần đầu/reunion. Khi gặp và Party còn chỗ, Lục Trầm hoặc Syvial tự gia nhập với role=follower; nếu Party đầy thì đánh dấu present + joinPending, tuyệt đối không tự đuổi thành viên khác. Lục Trầm giữ canon Chính Đạo kiếm tu, Bạch Hồng Kiếm Nữ, bản mệnh kiếm Tịch Quang và Thiên Cơ Bạch Kim Kiếm Khải; không tự gán cấp chiến lực cho Lục Trầm. Syvial giữ canon UR+, GodKiller và Lucifer Armor. Không hạ năng lực hoặc bịa thêm canon để cân bằng gameplay. " +
-            "Inventory chỉ được thêm vật đã tồn tại trong state/cảnh và thực sự được Kai nhặt/lấy/nhận/cất, hoặc kết quả loot hợp lệ. Nhìn thấy không đồng nghĩa sở hữu. " +
+            "Inventory chỉ được thêm vật đã tồn tại trong state/cảnh và thực sự được Cao Minh nhặt/lấy/nhận/cất, hoặc kết quả loot hợp lệ. Nhìn thấy không đồng nghĩa sở hữu. " +
             "Passive của Cao Minh gồm hai passive luôn hoạt động song song: Đại Đạo Ma Tôn (+10% Base STR/DEF/SKL/VIT; sau mỗi lượt của Cao Minh: hồi 10% Max HP, +20% Attack và +20 điểm % Critical; đồng đội +50 điểm % Critical; Critical cap 100%) và Đại Ma Đầu (+50% stats hiện tại STR/DEF/SKL/VIT, tính lại theo stats hiện tại mỗi lần tính Effective Stats). Stats hiển thị cho người chơi trong menu/detail phải là stats HIỆN TẠI (Effective Stats sau passive và trang bị), không lấy Base Stats thay cho stats hiện tại. " +
             "Nếu meta=true, chỉ trả thông tin được hỏi; không tạo biến cố, không đổi state và snapshotEvent phải false. " +
             "Không nhắc tới canon, state, roll, API hoặc prompt trong lời kể.\n\n" +
             "DRIVE CANON:\n" + DRIVE_CANON + "\n\n" +
-            "State hiện tại: " + state.toString() + "\nHành động: " + action +
+            "State hiện tại: " + before.toString() + "\nHành động: " + action +
             "\nGAMEPLAY_ROLLS: " + rolls.toString() +
             "\nJSON schema bắt buộc: {\"reply\":\"phản hồi Game Master bằng tiếng Việt\",\"title\":\"tên khu vực\",\"level\":{\"number\":0,\"name\":\"The Lobby\"},\"location\":\"vị trí hiện tại\",\"player\":{},\"party\":[],\"inventory\":[],\"flags\":{},\"snapshotEvent\":{\"shouldGenerate\":false,\"kind\":\"\",\"reason\":\"\"}}";
           if (canonPacket != null) {
@@ -1075,17 +1075,17 @@ public class MainActivity extends Activity {
               "Người chơi quyết định hành động có chủ ý của Cao Minh; chỉ mô tả hậu quả. " +
               "GAMEPLAY_ROLLS do Android khóa; không reroll, không tự tạo encounter, vật phẩm hoặc reunion. " +
               "Chỉ dùng kiến thức có quyền trong CANON PACKET; giữ UNKNOWN là UNKNOWN. " +
-              "Không nhắc tới prompt, canon, roll, API trong lời kể.\\n\\n" +
-              "CANON PACKET:\\n" + canonPacket +
-              "\\n\\nSTATE:\\n" + compactStateForPrompt(before).toString() +
-              "\\nACTION:\\n" + action +
-              "\\nGAMEPLAY_ROLLS:\\n" + rolls.toString() +
-              "\\nOUTPUT JSON: {\\\"reply\\\":\\\"lời kể tiếng Việt\\\",\\\"title\\\":\\\"tên khu vực\\\",\\\"level\\\":{\\\"number\\\":0,\\\"name\\\":\\\"The Lobby\\\"},\\\"location\\\":\\\"vị trí\\\",\\\"player\\\":{},\\\"party\\\":[],\\\"inventory\\\":[],\\\"flags\\\":{},\\\"snapshotEvent\\\":{\\\"shouldGenerate\\\":false,\\\"kind\\\":\\\"\\\",\\\"reason\\\":\\\"\\\"}}";
+              "Không nhắc tới prompt, canon, roll, API trong lời kể.\n\n" +
+              "CANON PACKET:\n" + canonPacket +
+              "\n\nSTATE:\n" + compactStateForPrompt(before).toString() +
+              "\nACTION:\n" + action +
+              "\nGAMEPLAY_ROLLS:\n" + rolls.toString() +
+              "\nOUTPUT JSON: {\"reply\":\"lời kể tiếng Việt\",\"title\":\"tên khu vực\",\"level\":{\"number\":0,\"name\":\"The Lobby\"},\"location\":\"vị trí\",\"player\":{},\"party\":[],\"inventory\":[],\"flags\":{},\"snapshotEvent\":{\"shouldGenerate\":false,\"kind\":\"\",\"reason\":\"\"}}";
           }
           JSONObject generated = parseModelJson(
             generateTextForTurn(prompt, Math.max(1, (prompt.length() + 3) / 4)));
           String reply = generated.optString("reply", "").trim();
-          if (reply.isEmpty()) reply = "Kai giữ nguyên vị trí và quan sát thêm; chưa có kết quả đủ chắc chắn để thay đổi trạng thái.";
+          if (reply.isEmpty()) reply = "Cao Minh giữ nguyên vị trí và quan sát thêm; chưa có kết quả đủ chắc chắn để thay đổi trạng thái.";
 
           JSONObject state;
           if (meta) {
