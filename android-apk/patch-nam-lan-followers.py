@@ -411,6 +411,43 @@ def check(*options):
 def main():
     if hashlib.sha256(PATCH.encode("utf-8")).hexdigest() != PATCH_SHA256:
         raise SystemExit("Named follower patch payload checksum mismatch.")
+    # The committed integration is now part of main, so later edits to its
+    # files invalidate a full reverse-diff check. Prefer explicit Core contracts
+    # for the already-integrated case; never apply the historical patch twice.
+    present_contracts = {
+        "android-apk/app/src/main/java/com/rabpit/backroom/core/VietnameseFollowersCanon.kt": (
+            "object VietnameseFollowersCanon", "fun startingLoadout(", "val definitions: List<EquipmentDefinition>"
+        ),
+        "android-apk/app/src/main/java/com/rabpit/backroom/core/NamedFollowerRuntime.kt": (
+            "object NamedFollowerRuntime", "fun project("
+        ),
+        "android-apk/app/src/main/java/com/rabpit/backroom/core/CharacterEquipmentSystem.kt": (
+            "VietnameseFollowersCanon.definitions", "VietnameseFollowersCanon.startingLoadout"
+        ),
+        "android-apk/app/src/main/java/com/rabpit/backroom/core/GameState.kt": (
+            "NGUYEN_QUOC_NAM_ID to VietnameseFollowersCanon.character(",
+            "HUA_TIEU_LAN_ID to VietnameseFollowersCanon.character("
+        ),
+        "android-apk/app/src/main/java/com/rabpit/backroom/core/GameCoreFacade.kt": (
+            "NamedFollowerRuntime"
+        ),
+        "android-apk/app/src/main/assets/named-follower-visuals.js": (
+            "backroomNamedFollowers",
+        ),
+    }
+    installed = True
+    for filename, markers in present_contracts.items():
+        file = ROOT / filename
+        if not file.is_file():
+            installed = False
+            break
+        source = file.read_text(encoding="utf-8")
+        if not all(marker in source for marker in markers):
+            installed = False
+            break
+    if installed:
+        print("Named follower modules already integrated; skipping historical patch.")
+        return
     if check("--reverse").returncode == 0:
         print("Named follower wiring already applied; no changes.")
         return
