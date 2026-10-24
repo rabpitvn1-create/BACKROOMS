@@ -37,6 +37,10 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.13"
+      - name: Validate CR2 wiring patch syntax and idempotence
+        run: |
+          python3 -m py_compile android-apk/patch-canon-runtime-2.py
+          python3 android-apk/patch-canon-runtime-2.py
       - name: Compile application and test sources; run targeted regression tests
         working-directory: android-apk
         run: |
@@ -48,3 +52,6 @@ jobs:
             --tests com.rabpit.backroom.core.InventoryPolicyTest \
             --tests com.rabpit.backroom.core.ItemDetailActionsTest \
             --tests com.rabpit.backroom.core.RuleIntentInterpreterTest
+      - name: Package debug APK
+        working-directory: android-apk
+        run: gradle :app:assembleDebug --no-daemon
