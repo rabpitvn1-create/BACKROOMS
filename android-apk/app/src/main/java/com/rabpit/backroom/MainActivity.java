@@ -3,6 +3,8 @@ package com.rabpit.backroom;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.os.Bundle;
+import android.content.Intent;
+import android.net.Uri;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -25,6 +27,8 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.SecureRandom;
@@ -37,6 +41,9 @@ public class MainActivity extends Activity {
   private WebView webView;
   private final ExecutorService io = Executors.newSingleThreadExecutor();
   private GameCoreFacade gameCore;
+  private AppDiagnosticLog diagnosticLog;
+  private String pendingDiagnosticJson;
+  private static final int REQUEST_EXPORT_DIAGNOSTICS = 0xBD60;
   private QuotaGovernor canonQuotaGovernor;
 
   private GameCoreFacade requireGameCore() {
@@ -57,7 +64,13 @@ public class MainActivity extends Activity {
   @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})
   @Override public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    gameCore = GameCoreFacade.create(getApplicationContext(), BuildConfig.DEBUG);
+    diagnosticLog = new AppDiagnosticLog(getApplicationContext());
+    try {
+      gameCore = GameCoreFacade.create(getApplicationContext(), BuildConfig.DEBUG);
+    } catch (RuntimeException failure) {
+      // Keep the menu/export UI alive when native Core creation itself fails.
+      diagnosticLog.recordException("core_create", failure);
+    }
     webView = new WebView(this);
     WebSettings settings = webView.getSettings();
     settings.setJavaScriptEnabled(true);
@@ -72,6 +85,72 @@ public class MainActivity extends Activity {
     webView.addJavascriptInterface(new GameBridge(), "Android");
     setContentView(webView);
     webView.loadUrl("file:///android_asset/index.html");
+  }
+
+  private void exportDiagnosticLog(String summaryJson) {
+    String coreSnapshot = null;
+    String coreError = null;
+    try {
+      coreSnapshot = requireGameCore().diagnosticCoreStateOrNull();
+    } catch (Exception failure) {
+      diagnosticLog.recordException("core_diagnostics", failure);
+      coreError = failure.getMessage();
+    }
+    final String report;
+    try {
+      report = diagnosticLog.buildReport(summaryJson, coreSnapshot, coreError).toString(2);
+    } catch (Exception failure) {
+      diagnosticLog.recordException("export_prepare", failure);
+      emit("backroomDiagnosticExportResult", "failed");
+      return;
+    }
+    runOnUiThread(() -> {
+      if (pendingDiagnosticJson != null) {
+        emit("backroomDiagnosticExportResult", "busy");
+        return;
+      }
+      pendingDiagnosticJson = report;
+      Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+      intent.addCategory(Intent.CATEGORY_OPENABLE);
+      intent.setType("application/json");
+      intent.putExtra(Intent.EXTRA_TITLE,
+        "backrooms-diagnostics-" + System.currentTimeMillis() + ".json");
+      try {
+        startActivityForResult(intent, REQUEST_EXPORT_DIAGNOSTICS);
+      } catch (Exception failure) {
+        pendingDiagnosticJson = null;
+        diagnosticLog.recordException("export_picker", failure);
+        emit("backroomDiagnosticExportResult", "failed");
+      }
+    });
+  }
+
+  @Override @SuppressWarnings("deprecation")
+  protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    super.onActivityResult(requestCode, resultCode, data);
+    if (requestCode != REQUEST_EXPORT_DIAGNOSTICS) return;
+    String json = pendingDiagnosticJson;
+    pendingDiagnosticJson = null;
+    if (resultCode != Activity.RESULT_OK || data == null || data.getData() == null) {
+      diagnosticLog.record("export", "cancelled");
+      emit("backroomDiagnosticExportResult", "cancelled");
+      return;
+    }
+    if (json == null) {
+      diagnosticLog.record("export", "missing_report");
+      emit("backroomDiagnosticExportResult", "failed");
+      return;
+    }
+    try (OutputStream output = getContentResolver().openOutputStream(data.getData(), "w")) {
+      if (output == null) throw new IOException("export_stream_unavailable");
+      output.write(json.getBytes(StandardCharsets.UTF_8));
+      output.flush();
+      diagnosticLog.record("export", "file_saved");
+      emit("backroomDiagnosticExportResult", "saved");
+    } catch (Exception failure) {
+      diagnosticLog.recordException("export_write", failure);
+      emit("backroomDiagnosticExportResult", "failed");
+    }
   }
 
   @Override protected void onDestroy() {
@@ -859,25 +938,45 @@ public class MainActivity extends Activity {
       }
       emit("backroomCombatDiceState", result.getJSONObject("state").toString());
     } catch (Exception error) {
+      diagnosticLog.recordException("combat_dice", error);
       emit("backroomCombatDiceError",
         error.getMessage() == null ? "Không thể cập nhật Poker Dice." : error.getMessage());
     }
   }
 
   private class GameBridge {
+    @JavascriptInterface public void exportDiagnosticLog(String uiSummaryJson) {
+      exportDiagnosticLog(uiSummaryJson);
+    }
+
     @JavascriptInterface public void resetCore() {
       io.execute(() -> requireGameCore().clear());
     }
 
     // LEVEL_TRAVEL_BRIDGE: synchronous startup/restore; never invoked by rendering.
     @JavascriptInterface public String initializeLevelGame(String stateJson, boolean fresh) {
-      return requireGameCore().initializeLevelGame(stateJson, fresh);
+      try {
+        return requireGameCore().initializeLevelGame(stateJson, fresh);
+      } catch (RuntimeException failure) {
+        diagnosticLog.recordException("startup_initialize", failure);
+        throw failure;
+      }
     }
     @JavascriptInterface public String resumeLevelGame(String stateJson, boolean hasBrowserSave) {
-      return requireGameCore().resumeLevelGame(stateJson, hasBrowserSave);
+      try {
+        return requireGameCore().resumeLevelGame(stateJson, hasBrowserSave);
+      } catch (RuntimeException failure) {
+        diagnosticLog.recordException("startup_resume", failure);
+        throw failure;
+      }
     }
     @JavascriptInterface public String levelCoreSnapshot() {
-      return requireGameCore().currentCoreState();
+      try {
+        return requireGameCore().currentCoreState();
+      } catch (RuntimeException failure) {
+        diagnosticLog.recordException("core_snapshot", failure);
+        throw failure;
+      }
     }
 
     @JavascriptInterface public void submitTurn(String stateJson, String action) {
@@ -1029,6 +1128,7 @@ public class MainActivity extends Activity {
           if (!meta) state = new JSONObject(requireGameCore().finishLevelTurn(before.toString(), state.toString(), action));
           emit("backroomTurn", state.toString());
         } catch (Exception e) {
+          diagnosticLog.recordException("turn_processing", e);
           emit("backroomError", e.getMessage() == null ? "Không thể xử lý lượt." : e.getMessage());
         }
       });
@@ -1048,6 +1148,7 @@ public class MainActivity extends Activity {
         try {
           emit("backroomCoreUpgrade", requireGameCore().processCoreUpgrade(stateJson, characterId, stat));
         } catch (Exception error) {
+          diagnosticLog.recordException("core_upgrade", error);
           String message = error.getMessage() == null ? "Không thể nâng Core." : error.getMessage();
           emit("backroomCoreUpgrade", "{\"handled\":false,\"error\":" + JSONObject.quote(message) + "}");
         }
@@ -1067,6 +1168,7 @@ public class MainActivity extends Activity {
             emit("backroomCombatDiceError", result.optString("error", "Lượt combat chưa được xác nhận."));
           }
         } catch (Exception error) {
+          diagnosticLog.recordException("combat_action", error);
           emit("backroomCombatDiceError", error.getMessage() == null ? "Không thể xử lý combat." : error.getMessage());
         }
       });
