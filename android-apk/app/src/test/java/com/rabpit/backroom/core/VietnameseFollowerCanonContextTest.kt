@@ -9,9 +9,11 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class VietnameseFollowerCanonContextTest {
-  private fun root(): File = listOf(File("android-apk"), File(".")).first {
-    File(it, "app/src/main/assets/knowledge/knowledge_db.json").isFile
-  }
+  /** Gradle runs JVM tests from app/, while local invocations may start at the repo root. */
+  private fun root(): File = generateSequence(File(System.getProperty("user.dir")).absoluteFile) { it.parentFile }
+    .flatMap { sequenceOf(it, File(it, "android-apk")) }
+    .firstOrNull { File(it, "app/src/main/assets/knowledge/knowledge_db.json").isFile }
+    ?: error("Cannot locate Android canon fixtures from ${System.getProperty("user.dir")}")
   private fun corpus(): String = File(root(), "app/src/main/assets/knowledge/knowledge_db.json").readText()
   private fun state(vararg ids: String): JSONObject = JSONObject().put("turn", 7)
     .put("followerEncounters", JSONArray().apply {
