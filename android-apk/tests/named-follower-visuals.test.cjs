@@ -81,3 +81,65 @@ test('all eight equipment icons match the packaged source manifest', () => {
     assert.equal(data.toString('ascii',0,4),'RIFF');
   }
 });
+
+test('Luc Tram uses the supplied avatar and only confirmed active presence shows her overlay', () => {
+  const {box,context,render} = fixture();
+  const api = context.window.backroomNamedFollowers;
+  const member = {id:'luc-tram',name:'Lục Trầm',presence:'ACTIVE',avatar:'old.png',currentHp:17};
+  const before = JSON.stringify(member);
+  const visual = api.withAvatar(member);
+  assert.equal(visual.avatar,'characters/LUC_TRAM_AVATAR.png');
+  assert.equal(visual.avatarRef,visual.avatar);
+  assert.equal(JSON.stringify(member),before);
+  assert.equal(visual.currentHp,17);
+  render({partyDetails:{members:[]},party:[member],flags:{'luc-tram':{present:true}},log:[{text:'Lục Trầm'}]});
+  assert.equal(box.children.length,0);
+  render({partyDetails:{members:[member]}});
+  render({partyDetails:{members:[member]}});
+  assert.equal(box.children.length,1);
+  assert.equal(box.children[0].src,'characters/LUC_TRAM_OVERLAY.png');
+  for(const presence of ['MISSING','SEPARATED','DEAD',undefined]) {
+    render({partyDetails:{members:[{...member,presence}]}});
+    assert.equal(box.children.length,0);
+    render({partyDetails:{members:[member]}});
+  }
+  // Unknown characters keep their own artwork; this update adds no other identities.
+  const other={id:'trac-lam',avatar:'existing.jpg'};
+  assert.equal(api.withAvatar(other),other);
+  render({partyDetails:{members:[{...other,presence:'ACTIVE'}]}});
+  assert.equal(box.children.length,0);
+});
+
+test('Luc Tram survives Android redraw and shares bounded columns with existing followers', () => {
+  const {box,context} = fixture();
+  context.state={partyDetails:{members:[nam,lan,{id:'luc-tram',presence:'ACTIVE'},{id:'lucia',presence:'ACTIVE'}]}};
+  const java=fs.readFileSync(path.join(root,'app/src/main/java/com/rabpit/backroom/MainActivity.java'),'utf8');
+  const line=java.split('\n').find(line=>line.includes('function equippedItem(s)'));
+  vm.runInContext(JSON.parse(line.trim().replace(/\s*\+$/,'')),context);
+  vm.runInContext('renderSnapshot();renderSnapshot();',context);
+  assert.equal(box.children.length,5); // Placeholder and four character layers.
+  const layers=box.children.filter(x=>x.className==='snapshot-lucia'||x.className==='snapshot-named-follower');
+  assert.equal(layers.length,4);
+  assert.equal(new Set(layers.map(x=>x.style.left)).size,4);
+  for(const layer of layers)assert.equal(layer.style.maxWidth,'25%');
+  context.state={partyDetails:{members:[]}};
+  vm.runInContext('renderSnapshot()',context);
+  assert.equal(box.children.length,1);
+});
+
+test('Luc Tram packaged artwork preserves both supplied Cloudinary sources exactly', () => {
+  const crypto=require('node:crypto');
+  const assets=path.join(root,'app/src/main/assets');
+  const manifest=JSON.parse(fs.readFileSync(path.join(assets,'characters/manifest.json'),'utf8'));
+  assert.equal(manifest.assets.length,2);
+  for(const art of manifest.assets) {
+    assert.match(art.source_name,/^LUC_TRAM_(AVATAR|OVERLAY)\.png$/);
+    assert.match(art.url,/^https:\/\/res\.cloudinary\.com\/csz2me5b\//);
+    const data=fs.readFileSync(path.join(assets,art.path));
+    assert.equal(data.length,art.bytes);
+    assert.equal(crypto.createHash('sha256').update(data).digest('hex'),art.sha256);
+    assert.equal(data.toString('hex',0,8),'89504e470d0a1a0a');
+  }
+  const html=fs.readFileSync(path.join(assets,'index.html'),'utf8');
+  assert.equal((html.match(/map\(window.backroomNamedFollowers.withAvatar\)/g)||[]).length,2);
+});

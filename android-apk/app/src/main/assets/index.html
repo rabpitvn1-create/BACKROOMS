@@ -270,10 +270,10 @@ render();
   function bandClass(value){const v=String(value||'UNKNOWN').toUpperCase();return v==='SEVERE'||v==='CRITICAL'?'status-danger':v==='MILD'||v==='MODERATE'?'status-warning':'status-normal'}
   function detailMembers(){
     const members=state&&state.partyDetails&&Array.isArray(state.partyDetails.members)?state.partyDetails.members:null;
-    if(members&&members.length)return members.map(window.backroomLuciaVisuals.withAvatar);
+    if(members&&members.length)return members.map(window.backroomNamedFollowers.withAvatar);
     const fallback=[{id:'cao-minh',name:'Cao Minh',avatar:'avatars/CAO_MINH_AVATAR.jpg',presence:'ACTIVE',isLeader:true,physiology:{hunger:'UNKNOWN',thirst:'UNKNOWN',sleepDeprivation:'UNKNOWN'},inventory:leaderItems(),equipment:signatureEquipment,statuses:[],injuries:[]}];
     if(Array.isArray(state&&state.party))state.party.forEach(x=>{if(x&&x.id&&x.id!=='cao-minh')fallback.push({id:x.id,name:x.name||x.id,avatar:x.avatar,presence:x.presence||'ACTIVE',isLeader:false,physiology:{hunger:'UNKNOWN',thirst:'UNKNOWN',sleepDeprivation:'UNKNOWN'},inventory:[],equipment:{},statuses:[],injuries:[]})});
-    return fallback.map(window.backroomLuciaVisuals.withAvatar);
+    return fallback.map(window.backroomNamedFollowers.withAvatar);
   }
   function memberById(id){return detailMembers().find(x=>String(x.id)===String(id))||detailMembers()[0]}
   function statusRows(member){

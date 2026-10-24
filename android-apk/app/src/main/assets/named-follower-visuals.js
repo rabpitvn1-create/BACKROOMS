@@ -1,9 +1,16 @@
 (function () {
   'use strict';
   const artwork = {
+    'luc-tram': {src: 'characters/LUC_TRAM_OVERLAY.png', name: 'Lục Trầm'},
     nguyen_quoc_nam: {src: 'NguyenQuocNam.webp', name: 'Nguyễn Quốc Nam'},
     hua_tieu_lan: {src: 'HuaTieuLan.webp', name: 'Hứa Tiểu Lan'}
   };
+  function withAvatar(member) {
+    member = window.backroomLuciaVisuals.withAvatar(member);
+    return member && member.id === 'luc-tram'
+      ? Object.assign({}, member, {avatar: 'characters/LUC_TRAM_AVATAR.png', avatarRef: 'characters/LUC_TRAM_AVATAR.png'})
+      : member;
+  }
   function renderOverlay(state) {
     const box = document.getElementById('snapshot');
     if (!box) return;
@@ -33,5 +40,5 @@
       image.style.maxWidth = (100 / layers.length) + '%';
     });
   }
-  window.backroomNamedFollowers = {renderOverlay: renderOverlay};
+  window.backroomNamedFollowers = {renderOverlay: renderOverlay, withAvatar: withAvatar};
 })();
