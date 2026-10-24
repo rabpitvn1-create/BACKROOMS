@@ -363,6 +363,17 @@ class LevelTravelEngineTest {
   }
 
 
+  @Test fun persistedCoreWithoutCurrentTravelRemainsUntouchedOnStartupFailure() {
+    val repo = MemoryRepository()
+    repo.save(GameState.initial())
+    val before = repo.raw
+    val f = facade(repo, LevelTravelEngine(policy()) { error("must_not_initialize_new_game") })
+    expectFailure("save_version_unsupported") {
+      f.resumeLevelGame(initialUi(), false)
+    }
+    assertEquals(before, repo.raw)
+  }
+
   @Test fun processDeathBeforeFirstBrowserAutosaveResumesSameNewGameWithoutRng() {
     val rng = RandomSequence(0.8)
     val repo = MemoryRepository(); val f = facade(repo, LevelTravelEngine(policy(), rng))
