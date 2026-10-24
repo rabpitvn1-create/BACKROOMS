@@ -61,3 +61,10 @@ jobs:
       - name: Package debug APK
         working-directory: android-apk
         run: gradle :app:assembleDebug --no-daemon
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Backroom-debug-${{ github.event.pull_request.number || github.run_number }}
+          path: android-apk/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
