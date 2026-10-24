@@ -164,6 +164,8 @@ class JsonCanonStore private constructor(
 
   companion object {
     private const val ASSET = "knowledge/knowledge_db.json"
+    private const val LEVEL0_SUPPLEMENT = "knowledge/level_0_canon_cards.json"
+    private const val LEVELS1PLUS_SUPPLEMENT = "knowledge/level_1plus_canon_cards.json"
     private const val NANOS_PER_MS = 1_000_000L
     private const val BYTES_PER_TOKEN_ESTIMATE = 4L
     private const val SCORE_TAG_MATCH = 3
@@ -188,7 +190,16 @@ class JsonCanonStore private constructor(
       } catch (e: Exception) {
         throw CanonStoreException("Failed to read canon asset: $ASSET", e)
       }
-      return parse(raw)
+      // The supplemental pack is only loaded by Canon Runtime 2.0, not the old GM.
+      // A missing or corrupt pack must be reported, never treated as "no canon".
+      val supplementalJsons = listOf(LEVEL0_SUPPLEMENT, LEVELS1PLUS_SUPPLEMENT).map { asset ->
+        try {
+          context.assets.open(asset).bufferedReader(Charsets.UTF_8).use { it.readText() }
+        } catch (e: Exception) {
+          throw CanonStoreException("Failed to read canon asset: $asset", e)
+        }
+      }
+      return parseWithSupplements(raw, supplementalJsons)
     }
 
     /**
@@ -197,12 +208,28 @@ class JsonCanonStore private constructor(
      * ở [CanonRecord.parseAll] trước khi bọc.
      */
     @JvmStatic
-    fun parse(rawJson: String): JsonCanonStore {
+    fun parse(rawJson: String): JsonCanonStore = parseBundle(rawJson, emptyList())
+
+    /** Preserve one-pack API; no gameplay/save compatibility bridge is created. */
+    @JvmStatic
+    fun parseWithSupplement(baseJson: String, supplementJson: String): JsonCanonStore =
+      parseBundle(baseJson, listOf(supplementJson))
+
+    /** Each supplementary pack is loaded/indexed locally, not added to the GM prompt wholesale. */
+    @JvmStatic
+    fun parseWithSupplements(baseJson: String, supplementalJsons: List<String>): JsonCanonStore =
+      parseBundle(baseJson, supplementalJsons)
+
+    private fun parseBundle(rawJson: String, supplementalJsons: List<String>): JsonCanonStore {
       try {
         val root = JSONObject(rawJson)
-        val recordList = CanonRecord.parseAll(root)
+        val recordList = CanonRecord.parseAll(root) +
+          supplementalJsons.flatMap { CanonRecord.parseAll(JSONObject(it)) }
         val records = linkedMapOf<String, CanonRecord>()
-        recordList.forEach { records[it.id] = it }
+        recordList.forEach { record ->
+          require(record.id !in records) { "Duplicate canon id across packs: ${record.id}" }
+          records[record.id] = record
+        }
         fun index(selector: (CanonRecord) -> Set<String>): Map<String, Set<String>> {
           val out = linkedMapOf<String, MutableSet<String>>()
           records.values.forEach { record ->
@@ -216,7 +243,11 @@ class JsonCanonStore private constructor(
         }
         val rootSchemaVersion = root.optInt("schemaVersion", 1)
         val snapshot = CanonSnapshot(
-          packId = "knowledge_db@$rootSchemaVersion",
+          packId = "knowledge_db@$rootSchemaVersion" + when (supplementalJsons.size) {
+            0 -> ""
+            1 -> "+level0"
+            else -> "+level0+level1plus"
+          },
           schemaVersion = rootSchemaVersion,
           recordCount = records.size
         )

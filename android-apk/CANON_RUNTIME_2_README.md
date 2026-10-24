@@ -208,3 +208,19 @@ mới được coi Gate 2/3/5 là "xong" hẳn.
 - Không tuyên bố chỉ số chất lượng (đặc biệt là "90%") khi chưa có dữ liệu đo
   thật; ghi kết quả mới vào `CANON_RUNTIME_2_EVALUATION.md` theo đúng mẫu
   "đã đo / chưa đo" của tài liệu đó.
+
+## Level 0 supplemental CR2 Canon · PR #670 (2026-10-24)
+
+- `app/src/main/assets/knowledge/level_0_canon_cards.json`: 109 thẻ có nguồn, CR2 chỉ nạp khi CR2 thực sự được dùng; 66 record gốc của engine cũ không đổi.
+- `app/src/main/assets/knowledge/level_0_visual_registry.json`: 109 node và 135 ảnh theo cây Level/Zone/Sub, giữ nguyên public ID/URL/Drive ID.
+- Nguồn nhập: `canon_sources/Asset/02_Level/LEVEL_0_CLOUDINARY_MAPPING.json` (snapshot từ tệp tác giả). Chi tiết không có nguồn phải giữ `INFERRED`/`PENDING_AUTHOR_REVIEW`, không được coi là Canon cứng.
+- `parent_node_key` là cấu trúc phân nhóm, KHÔNG định nghĩa đường đi giữa các node. Không thay đổi route, spawn, loot, save/load hoặc feature flag.
+- `python android-apk/verify-level0-canon.py` kiểm tra tính đủ dữ liệu. Danh mục ở `LEVEL_0_CR2_COVERAGE.md`.
+
+## Level 1–13 visual Canon pack (PR #670)
+
+- CR2 tải thêm `knowledge/level_1plus_canon_cards.json` cùng gói Level 0; kho cũ 66 thẻ không đổi. Tổng hiệu lực CR2: **213 thẻ** (66 gốc + 109 Level 0 + 38 Level 1–13).
+- `knowledge/level_1plus_visual_registry.json`: 13 Level chính, 7 sublevel, 11 Area, tổng 31 node và 45 ảnh. Không có đường chuyển Level/node; `parent_node_key` chỉ phục vụ phân loại asset.
+- Level 7–10 được bổ sung Canon Level xác minh theo `BACKROOMS_WORLD.md`; Level 11–13 chỉ khóa tồn tại tài nguyên, giữ lore môi trường `UNKNOWN`. Với các node phụ, `INFERRED` + `PENDING_AUTHOR_REVIEW` cho tới khi có lore gốc.
+- Level 6 giữ **tundra tối vĩnh viễn** đúng World Canon. Không tự diễn giải tên ảnh `Lights Out` thành hành lang tối.
+- Không bật feature flag hoặc cho GM đọc toàn bộ gói mỗi lượt. Kiểm kê ở `LEVEL_1PLUS_CR2_COVERAGE.md`.

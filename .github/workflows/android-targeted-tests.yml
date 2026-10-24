@@ -6,6 +6,8 @@ on:
       - "android-apk/app/src/main/**"
       - "android-apk/app/src/test/**"
       - "android-apk/app/build.gradle"
+      - "android-apk/patch-level-travel.py"
+      - "android-apk/tests/level-travel-ui.test.cjs"
       - ".github/workflows/android-targeted-tests.yml"
   workflow_dispatch:
 
@@ -46,6 +48,12 @@ jobs:
           python3 -m py_compile android-apk/patch-nam-lan-followers.py
           python3 android-apk/patch-nam-lan-followers.py
           node --test android-apk/tests/lucia-visuals.test.cjs android-apk/tests/named-follower-visuals.test.cjs android-apk/tests/party-combat-choice.test.cjs
+      - name: Verify final Level travel authority and UI lifecycle
+        run: |
+          python3 -m py_compile android-apk/patch-level-travel.py
+          python3 android-apk/patch-level-travel.py
+          git diff --exit-code -- android-apk/app/src/main
+          node android-apk/tests/level-travel-ui.test.cjs
       - name: Compile application and execute full Android unit regression suite
         working-directory: android-apk
         run: gradle :app:testDebugUnitTest --no-daemon

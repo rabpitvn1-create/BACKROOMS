@@ -63,7 +63,7 @@ class PhysiologyItemEffectTest {
       mapOf("physiologyEffect" to "WATER")
     )
 
-    val result = use(granted, "use-water", ItemContentRules.variantId("water-bottle", ContentState.FULL))
+    val result = use(granted, "use-water", "water")
 
     assertTrue(result.applied)
     val physiology = result.state.characters.getValue(CAO_MINH_ID).physiology
@@ -81,7 +81,7 @@ class PhysiologyItemEffectTest {
       mapOf("physiologyEffect" to "FOOD")
     )
 
-    val result = use(granted, "use-food", ItemContentRules.variantId("food-container", ContentState.FULL))
+    val result = use(granted, "use-food", "food")
 
     assertTrue(result.applied)
     val physiology = result.state.characters.getValue(CAO_MINH_ID).physiology
@@ -169,7 +169,7 @@ class PhysiologyItemEffectTest {
       actorId = CAO_MINH_ID,
       source = CommandSource.RULE,
       operation = ItemCommand.Operation.USE,
-      itemId = ItemContentRules.variantId("water-bottle", ContentState.FULL),
+      itemId = "water",
       itemName = "water"
     )
 

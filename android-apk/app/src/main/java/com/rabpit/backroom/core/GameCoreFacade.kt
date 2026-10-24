@@ -7,12 +7,119 @@ import org.json.JSONObject
 class GameCoreFacade @JvmOverloads internal constructor(
   private val repository: SaveRepository,
   private val logger: GamePipelineLogger,
+  private val levelEngine: LevelTravelEngine? = null,
   private val namedTicket: () -> Int = { kotlin.random.Random.nextInt(10000) }
 ) : AutoCloseable {
   private val rules = RuleIntentInterpreter()
   private val resolver = CommandResolver()
   private data class PreparedNamedTurn(val base: GameState, val plan: NamedFollowerRuntime.Plan)
   private var preparedNamedTurn: PreparedNamedTurn? = null
+
+  /** Only the explicit New Game path may draw a starting Level. No old-save conversion. */
+  @Synchronized fun initializeLevelGame(legacyStateJson: String, fresh: Boolean): String {
+    val legacy = JSONObject(legacyStateJson)
+    var core = if (fresh) requireNotNull(levelEngine) { "level_travel_not_configured" }.start(GameState.initial().copy(world = mapOf(
+      "flagsJson" to (legacy.optJSONObject("flags") ?: JSONObject()).toString()
+    ))) else {
+      val snapshot = legacy.getJSONObject("coreSnapshot")
+      require(snapshot.getInt("saveVersion") == CURRENT_SAVE_VERSION) { "save_version_unsupported" }
+      val saved = GameStateCodec.decode(snapshot).also { LevelTravelEngine.read(it) }
+      val persisted = if (repository.exists()) repository.load() else null
+      if (persisted != null && persisted.world[LevelTravelEngine.KEY] != null &&
+        LevelTravelEngine.read(persisted).getString("runId") == LevelTravelEngine.read(saved).getString("runId") &&
+        (persisted.world["levelTravelUiTurn"]?.toIntOrNull() ?: 1) >= (saved.world["levelTravelUiTurn"]?.toIntOrNull() ?: 1)) persisted else saved
+    }
+    val recovered = core.world["levelTravelUi"]?.let(::JSONObject) ?: legacy
+    val output = LevelTravelEngine.project(core, if (fresh) legacy else recovered)
+    output.put("turn", core.world["levelTravelUiTurn"]?.toIntOrNull() ?: 1)
+    if (fresh) {
+      output.put("turn", 1)
+      output.put("log", JSONArray().put(JSONObject().put("role", "gm").put("text",
+        "Cao Minh xuất hiện tại " + output.getString("location") + ". Liên lạc với Lục Trầm và Syvial vẫn gián đoạn.")))
+    }
+    output.remove("coreSnapshot")
+    core = core.copy(world = core.world + ("levelTravelUi" to output.toString()))
+    repository.save(core)
+    output.put("coreSnapshot", JSONObject(GameStateCodec.encode(core)))
+    return output.toString()
+  }
+
+  /** App startup resumes the committed Core even if the WebView autosave never completed. */
+  @Synchronized fun resumeLevelGame(legacyStateJson: String, hasBrowserSave: Boolean): String {
+    if (repository.exists()) {
+      val core = repository.load()
+      if (LevelTravelEngine.KEY in core.world) {
+        val legacy = core.world["levelTravelUi"]?.let(::JSONObject) ?: JSONObject(legacyStateJson)
+        val output = LevelTravelEngine.project(core, legacy)
+        output.put("turn", core.world["levelTravelUiTurn"]?.toIntOrNull() ?: 1)
+          .put("coreSnapshot", JSONObject(GameStateCodec.encode(core)))
+        return output.toString()
+      }
+      error("save_version_unsupported")
+    }
+    return initializeLevelGame(legacyStateJson, !hasBrowserSave)
+  }
+
+  /** Runs before ALL local/GM action handlers; a valid exit is fully resolved locally. */
+  @Synchronized fun processLevelAction(legacyStateJson: String, action: String): String {
+    val legacy = JSONObject(legacyStateJson)
+    val current = repository.load()
+    val expected = legacy.getJSONObject(LevelTravelEngine.KEY)
+    check(LevelTravelEngine.read(current).getString("runId") == expected.getString("runId")) { "stale_game_run" }
+    if (!LevelTravelEngine.isExitAction(action)) {
+      check(legacy.getInt("turn") == (current.world["levelTravelUiTurn"]?.toIntOrNull() ?: 1)) { "stale_level_turn" }
+      return response(false, LevelTravelEngine.project(current, legacy).apply { remove("exitResult") }, null, "not_exit_action")
+    }
+    return try {
+      val runId = legacy.getJSONObject(LevelTravelEngine.KEY).getString("runId")
+      val turn = legacy.getInt("turn")
+      val outcome = requireNotNull(levelEngine) { "level_travel_not_configured" }.attempt(current, runId, turn, action)
+      if (outcome.state == current) {
+        val latest = LevelTravelEngine.project(current, current.world["levelTravelUi"]?.let(::JSONObject) ?: legacy)
+        latest.put("turn", current.world["levelTravelUiTurn"]?.toIntOrNull() ?: turn + 1)
+        latest.put("exitResult", outcome.receipt).put("coreSnapshot", JSONObject(GameStateCodec.encode(current)))
+        return response(true, latest, null, "core_exit_duplicate")
+      }
+      val output = LevelTravelEngine.project(outcome.state, legacy)
+      output.put("turn", turn + 1).put("exitResult", outcome.receipt)
+      output.put("flags", JSONObject(outcome.state.world["flagsJson"] ?: "{}"))
+      val r = outcome.receipt
+      val reply = when {
+        r.getBoolean("completed") -> "Thoát thành công 3/3. Cao Minh tới " + output.getString("location") + ". Chuỗi thoát mới: 0/3."
+        r.getBoolean("success") -> "Lần thử thoát thành công: " + r.getInt("streak") + "/3. Cao Minh vẫn ở địa điểm hiện tại."
+        else -> "Lần thử thoát thất bại. Chuỗi trở về 0/3; Cao Minh vẫn ở địa điểm hiện tại."
+      }
+      appendLog(output, action, reply)
+      output.remove("coreSnapshot")
+      val committed = outcome.state.copy(world = outcome.state.world + ("levelTravelUi" to output.toString()))
+      if (outcome.state != current) repository.save(committed)
+      output.put("coreSnapshot", JSONObject(GameStateCodec.encode(if (outcome.state != current) committed else current)))
+      response(true, output, null, "core_exit_committed", reply)
+    } catch (error: Exception) {
+      // Never route a rejected/failed exit to the GM to invent a different result.
+      throw IllegalStateException(error.message ?: "exit_transaction_failed", error)
+    }
+  }
+
+  /** Persist validated local movement; the GM never owns Level identity or streak. */
+  @Synchronized fun finishLevelTurn(beforeJson: String, candidateJson: String, action: String): String {
+    val current = repository.load()
+    val before = JSONObject(beforeJson)
+    val travel = LevelTravelEngine.read(current)
+    val expected = before.getJSONObject(LevelTravelEngine.KEY)
+    check(travel.getString("runId") == expected.getString("runId") &&
+      travel.getInt("revision") == expected.getInt("revision") &&
+      before.getInt("turn") == (current.world["levelTravelUiTurn"]?.toIntOrNull() ?: 1)) { "stale_level_turn" }
+    val candidate = LevelTravelEngine.protectCandidate(current, JSONObject(candidateJson), action)
+    candidate.remove("coreSnapshot")
+    val next = current.copy(world = current.world + mapOf(
+      "location" to candidate.getString("location"), "flagsJson" to candidate.getJSONObject("flags").toString(),
+      "levelTravelUiTurn" to candidate.getInt("turn").toString(), "levelTravelUi" to candidate.toString()
+    ))
+    repository.save(next)
+    candidate.put("coreSnapshot", JSONObject(GameStateCodec.encode(next)))
+    return candidate.toString()
+  }
 
   fun processNamedFollowerRule(legacyStateJson: String, action: String): String {
     val legacy = JSONObject(legacyStateJson)
@@ -273,13 +380,18 @@ class GameCoreFacade @JvmOverloads internal constructor(
     }
     val resolution = CombatRuntime.resolve(current, actionKind, action)
     if (!resolution.handled) return response(false, projectCombatState(legacy, current), "combat_unhandled", "combat_rejected")
-    val completed = PokerDiceCore.clearDice(resolution.state)
+    var completed = PokerDiceCore.clearDice(resolution.state)
+    val loot = if (resolution.entityDestroyed) {
+      CoreLootEngine.roll(completed, CoreLootEngine.Source.ENTITY, active.encounterId)
+    } else null
+    if (loot != null) completed = loot.state
     repository.save(completed)
     // Combat changes HP and the combat snapshot, not the already validated
     // narrative inventory/party. The GM path is not yet wired into Core's
     // candidate reducer; projecting all Core inventories here would erase
     // unrelated objects/companions from the browser state.
     val output = projectCombatState(legacy, completed)
+    completed.world["flagsJson"]?.let { output.put("flags", JSONObject(it)) }
     output.put("turn", legacy.optInt("turn", 1) + 1)
     completed.characters[CAO_MINH_ID]?.let { caoMinh ->
       val player = output.optJSONObject("player") ?: JSONObject()
@@ -313,8 +425,117 @@ class GameCoreFacade @JvmOverloads internal constructor(
       put("encounterId", active.encounterId)
       put("events", JSONArray().apply { resolution.feedback.forEach { put(it.toJson()) } })
     })
-    appendLog(output, action, resolution.reply)
-    return response(true, output, null, "combat_committed", resolution.reply)
+    val lootReply = loot?.dropped?.let { " ${it.name} xuất hiện tại vị trí Entity bị tiêu diệt." }.orEmpty()
+    val reply = resolution.reply + lootReply
+    appendLog(output, action, reply)
+    return response(true, output, null, "combat_committed", reply)
+  }
+
+  /**
+   * Roll a discovery independently of GM output, before the narration request.
+   * The roll is idempotent for the current UI turn even if the request is retried.
+   */
+  @JvmOverloads @Synchronized fun processExplorationLoot(legacyStateJson: String, action: String, actionKind: String = ""): String {
+    val legacy = JSONObject(legacyStateJson)
+    val current = loadOrMigrate(legacy)
+    val eligible = actionKind.uppercase() in setOf("SEARCH", "EXPLORE") || CoreLootEngine.isExplorationAction(action)
+    val outcome = if (eligible && CombatRuntime.active(current) == null) {
+      val eventKey = "TURN_" + legacy.optInt("turn", 1).coerceAtLeast(1)
+      CoreLootEngine.roll(current, CoreLootEngine.Source.EXPLORE, eventKey)
+    } else CoreLootEngine.Outcome(current, false)
+    if (outcome.rolled) repository.save(outcome.state)
+
+    // This Core hook only owns world loot. Projecting the entire Core snapshot
+    // here would overwrite other narrative fields/party and unrelated inventory
+    // before the turn's actual action is validated.
+    val output = JSONObject(legacy.toString())
+    val flags = output.optJSONObject("flags")?.let { JSONObject(it.toString()) } ?: JSONObject()
+    flags.remove("worldItems")
+    val coreFlags = runCatching { JSONObject(outcome.state.world["flagsJson"] ?: "{}") }.getOrNull()
+    coreFlags?.optJSONArray("worldItems")?.let { flags.put("worldItems", JSONArray(it.toString())) }
+    output.put("flags", flags)
+    return response(true, output, null,
+      when {
+        !eligible -> "core_loot_ineligible"
+        outcome.dropped != null -> "core_loot_discovered"
+        else -> "core_loot_checked"
+      })
+  }
+
+  /**
+   * An explicit pickup transfers only a verified Core-generated world instance.
+   * Neither WebView state nor GM-generated Item fields can grant ownership.
+   */
+  @Synchronized fun processWorldPickup(legacyStateJson: String, action: String): String {
+    val legacy = JSONObject(legacyStateJson)
+    val match = Regex("^(?:(?:tôi|cao minh)\\s+)?(?:nhặt|lấy|cầm|thu hồi)\\s+(.+)$",
+      RegexOption.IGNORE_CASE).matchEntire(action.trim())
+      ?: return response(false, legacy, null, "not_world_pickup")
+    val wanted = match.groupValues[1].trim().trimEnd('.', '!', '?').lowercase()
+    if (wanted.isBlank() || wanted.startsWith("không ") || wanted.startsWith("đừng ")) {
+      return response(false, legacy, null, "not_world_pickup")
+    }
+    val current = loadOrMigrate(legacy)
+    val travel = LevelTravelEngine.read(current)
+    val expected = legacy.optJSONObject(LevelTravelEngine.KEY)
+      ?: return response(true, legacy, "level_game_not_initialized", "world_pickup_rejected")
+    check(expected.optString("runId") == travel.getString("runId") &&
+      legacy.optInt("turn", -1) == (current.world["levelTravelUiTurn"]?.toIntOrNull() ?: 1)) {
+      "stale_world_pickup"
+    }
+    check(CombatRuntime.active(current) == null) { "world_pickup_combat_active" }
+    val flags = JSONObject(current.world["flagsJson"] ?: "{}")
+    val worldItems = flags.optJSONArray("worldItems") ?: JSONArray()
+    val available = (0 until worldItems.length()).mapNotNull { i ->
+      val item = worldItems.optJSONObject(i) ?: return@mapNotNull null
+      if (item.optBoolean("available", true) && item.optInt("quantity", 0) > 0 &&
+        item.optString("instanceId").startsWith("core:")) i else null
+    }
+    val found = available.filter { i ->
+      val item = worldItems.getJSONObject(i)
+      val id = item.optString("id").lowercase()
+      val name = item.optString("name").lowercase()
+      id.isNotBlank() && name.isNotBlank() &&
+        (wanted.contains(name) || wanted.contains(id) ||
+          (available.size == 1 && wanted in setOf("vật phẩm", "đồ", "món đồ")))
+    }
+    if (found.size != 1) return response(true, syncLegacy(legacy, current, false),
+      if (found.isEmpty()) "world_item_not_found" else "world_item_ambiguous",
+      "world_pickup_rejected", "Không tìm thấy đúng một vật phẩm đã xuất hiện để nhặt.")
+    val index = found.single()
+    val item = worldItems.getJSONObject(index)
+    val turnId = nextTurnId(legacy, current)
+    val pending = TurnCoordinator.createPending(current, turnId, action)
+    check(pending.error == null) { pending.error ?: "world_pickup_pending" }
+    val command = ItemCommand("$turnId:SYSTEM:WORLD_PICKUP:$index", turnId, CAO_MINH_ID,
+      source = CommandSource.SYSTEM, operation = ItemCommand.Operation.PICKUP,
+      itemId = item.getString("id"), itemName = item.getString("name"), quantity = 1,
+      metadata = jsonObjectStrings(item.optJSONObject("metadata")))
+    val committed = TurnCoordinator.commit(pending.state, listOf(command, timeAdvanceCommand(turnId, action)))
+    if (committed.error != null) return response(true, syncLegacy(legacy, current, false),
+      committed.error, "world_pickup_rejected", validationReply(committed.error))
+    val nextItems = JSONArray()
+    for (i in 0 until worldItems.length()) {
+      val entry = JSONObject(worldItems.getJSONObject(i).toString())
+      if (i == index) entry.put("available", false)
+      nextItems.put(entry)
+    }
+    flags.put("worldItems", nextItems)
+    val changed = committed.state.copy(world = committed.state.world +
+      ("flagsJson" to flags.toString()))
+    val projected = syncLegacy(legacy, changed, incrementTurn = true)
+    projected.remove("exitResult")
+    val reply = "Cao Minh nhặt " + item.getString("name") + " và cất vào Inventory."
+    appendLog(projected, action, reply)
+    projected.remove("coreSnapshot")
+    val persisted = changed.copy(world = changed.world + mapOf(
+      "levelTravelUiTurn" to projected.getInt("turn").toString(),
+      "levelTravelUi" to projected.toString()
+    ))
+    repository.save(persisted)
+    preparedNamedTurn = null
+    projected.put("coreSnapshot", JSONObject(GameStateCodec.encode(persisted)))
+    return response(true, projected, null, "world_pickup_committed", reply)
   }
 
   fun currentCoreState(): String = GameStateCodec.encode(repository.load())
@@ -328,7 +549,7 @@ class GameCoreFacade @JvmOverloads internal constructor(
    */
   fun processValidatedCandidate(beforeJson: String, candidateJson: String, action: String): String {
     val before = JSONObject(beforeJson)
-    val candidate = JSONObject(candidateJson)
+    val candidate = LevelTravelEngine.protectCandidate(loadOrMigrate(before), JSONObject(candidateJson), action)
     val core = loadOrMigrate(before)
     val turnId = nextTurnId(before, core)
     val pending = TurnCoordinator.createPending(core, turnId, action)
@@ -336,7 +557,7 @@ class GameCoreFacade @JvmOverloads internal constructor(
     val commands = mutableListOf<GameCommand>()
     val current = pending.state.inventories[CAO_MINH_ID]?.items.orEmpty()
     val actionIntents = rules.interpretSync(action, contextFor(pending.state)).candidates.map { it.intent }.toSet()
-    val inventoryLocked = isDirectPlayerPickupAction(action) || GameIntent.PICKUP_ITEM in actionIntents || GameIntent.VAN_KHO_GIOI_CHI_RESTORE in actionIntents
+    val inventoryLocked = true // INVENTORY_AUTHORITY: candidate snapshots are read-only
 
     val desiredById = mutableMapOf<String, ItemStack>()
     if (inventoryLocked) {
@@ -510,6 +731,11 @@ class GameCoreFacade @JvmOverloads internal constructor(
     state.world["title"]?.let { output.put("title", it) }
     state.world["levelJson"]?.let { output.put("level", JSONObject(it)) }
     state.world["flagsJson"]?.let { output.put("flags", JSONObject(it)) }
+    if (LevelTravelEngine.KEY in state.world) {
+      val projected = LevelTravelEngine.project(state, output)
+      projected.keys().forEach { output.put(it, projected.get(it)) }
+      output.put("coreSnapshot", JSONObject(GameStateCodec.encode(state)))
+    }
     state.metadata["legacyPlayerJson"]?.let { output.put("player", JSONObject(it)) }
     return output
   }
@@ -554,7 +780,8 @@ class GameCoreFacade @JvmOverloads internal constructor(
 
   companion object {
     @JvmStatic fun create(context: Context, debugLogging: Boolean = false): GameCoreFacade = GameCoreFacade(
-      SharedPreferencesSaveRepository(context.applicationContext), AndroidGamePipelineLogger(debugLogging)
+      SharedPreferencesSaveRepository(context.applicationContext), AndroidGamePipelineLogger(debugLogging),
+      levelEngine = LevelTravelEngine(LevelTravelPolicy(JSONObject(context.assets.open("knowledge/level_travel_policy.json").bufferedReader().use { it.readText() })))
     )
   }
 }

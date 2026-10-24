@@ -63,27 +63,13 @@ private fun useItem(state: GameState, source: InventoryState, command: ItemComma
   val owned = ItemContentRules.normalize(ownedRaw)
   val physiologyEffects = parsePhysiologyEffects(owned.metadata["physiologyEffect"])
     ?: return invalid(state, "physiology_effect_invalid")
-  if (owned.contentState == ContentState.EMPTY) return invalid(state, "item_content_empty")
-  if (owned.contentState == ContentState.FULL || owned.contentState == ContentState.LOW) {
-    val nextVariant = ItemContentRules.nextAfterUse(owned) ?: return invalid(state, "item_content_empty")
-    var nextInventory = removeItem(source, command.itemId, command.quantity) ?: return invalid(state, "insufficient_item_quantity")
-    val validation = InventoryPolicy.validateAddition(state, command.actorId, nextInventory, nextVariant, command.quantity)
-    if (validation != null) return invalid(state, validation)
-    nextInventory = addItem(nextInventory, nextVariant.copy(quantity = command.quantity))
-    val inventoryResult = changed(
-      state.copy(inventories = state.inventories + (command.actorId to nextInventory)),
-      if (nextVariant.contentState == ContentState.EMPTY) "item_content_emptied" else "item_content_reduced"
-    )
-    return finishItemUse(state, inventoryResult, command, physiologyEffects)
-  }
-  val consumedOnUse = owned.metadata["consumedOnUse"].equals("true", true) ||
-    (owned.metadata["consumable"].equals("true", true) && !owned.metadata["containerPersistent"].equals("true", true))
+  val consumedOnUse = owned.metadata["consumedOnUse"].equals("true", true)
   if (consumedOnUse) {
     val next = removeItem(source, command.itemId, command.quantity) ?: return invalid(state, "insufficient_item_quantity")
     val inventoryResult = changed(state.copy(inventories = state.inventories + (command.actorId to next)), "item_consumed")
-    return finishItemUse(state, inventoryResult, command, physiologyEffects)
+    return LootItemCatalog.applyHeal(state, finishItemUse(state, inventoryResult, command, physiologyEffects), command, owned)
   }
-  return finishItemUse(state, changed(state, "item_used"), command, physiologyEffects)
+  return LootItemCatalog.applyHeal(state, finishItemUse(state, changed(state, "item_used"), command, physiologyEffects), command, owned)
 }
 
 object InventoryEngine {
@@ -128,7 +114,8 @@ object InventoryEngine {
 }
 
 object PartyEngine {
-  fun execute(state: GameState, command: PartyCommand): ExecutionResult = when (command.operation) {
+  fun execute(state: GameState, command: PartyCommand): ExecutionResult {
+    return when (command.operation) {
     PartyCommand.Operation.ADD -> {
       if (!state.characters.containsKey(command.targetId)) return invalid(state, "target_unknown")
       if (!command.targetPresent) return invalid(state, "target_not_present")
@@ -154,6 +141,7 @@ object PartyEngine {
       changed(state.copy(characters = state.characters + (command.targetId to character.copy(presence = CharacterPresence.SEPARATED))), "party_member_separated")
     }
     PartyCommand.Operation.FOLLOW, PartyCommand.Operation.QUERY -> ExecutionResult(state, applied = false)
+    }
   }
 }
 

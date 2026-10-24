@@ -1,3 +1,4 @@
+import runpy
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -181,3 +182,6 @@ class RestActionPolicyTest {
 ''', encoding="utf-8")
 
 print("Rest physiology authority installed at TurnCoordinator: elapsed time commits first, then explicit sleep/rest resets authoritative sleep counters before the turn is exposed to narration.")
+
+# Preserve the one-state Item contract after generated gameplay patches.
+runpy.run_path(str(ROOT / "patch-item-single-state-finalize.py"), run_name="__main__")

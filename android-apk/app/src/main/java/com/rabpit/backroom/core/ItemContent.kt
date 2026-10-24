@@ -1,99 +1,61 @@
 package com.rabpit.backroom.core
 
-enum class ContentState { FULL, LOW, EMPTY, NONE }
-
-data class ContentProfile(
-  val archetypeId: String,
-  val fullName: String,
-  val lowName: String,
-  val emptyName: String,
-  val supportsLow: Boolean = true
-)
+/**
+ * Items have one content state. A consumable represents a complete unit and
+ * USING it removes exactly the requested number of units; no FULL/LOW/EMPTY
+ * variants, residual shells, or fractional-content tracking are generated.
+ */
+enum class ContentState { NONE }
 
 object ItemContentRules {
-  private val emptyWords = Regex("(?:\\brỗng\\b|\\btrống\\b|\\bđã hết\\b|\\bhết sạch\\b)", RegexOption.IGNORE_CASE)
-  private val lowWords = Regex("(?:còn ít|sắp hết|gần hết)", RegexOption.IGNORE_CASE)
-  private val forbiddenPreciseAmount = Regex("(?:\\b\\d+(?:[.,]\\d+)?\\s*(?:ml|l|lit|lít|g|gram|kg|%)\\b|một nửa|nửa chai|nửa hộp|phần trăm)", RegexOption.IGNORE_CASE)
+  private val forbiddenAmount = Regex("(?:\\b\\d+(?:[.,]\\d+)?\\s*(?:ml|l|lit|lít|g|gram|kg|%)\\b|một nửa|nửa chai|nửa hộp|phần trăm)", RegexOption.IGNORE_CASE)
+  private val deprecatedContentKeys = setOf("contentState", "remainingContent", "contentAmount", "contentPercent")
+  private val nonStackIdentityKeys = setOf(
+    "omnivaultCopyCount", "vanKhoGioiChiCopyCount", "lastUsedAt",
+    "physicalInstanceIds", "identitySeed", "worldInstanceId",
+    "omnivaultOriginal", "omnivaultSourceInstanceId", "omnivaultTemplateId"
+  )
 
-  fun hasForbiddenPreciseAmount(text: String): Boolean = forbiddenPreciseAmount.containsMatchIn(text)
+  fun hasForbiddenPreciseAmount(text: String): Boolean = forbiddenAmount.containsMatchIn(text)
 
   fun normalize(item: ItemStack): ItemStack {
-    val profile = profileFor(item.name, item.archetypeId)
-    if (profile == null) {
-      return item.copy(contentState = ContentState.NONE, metadata = item.metadata - "remainingContent" - "contentAmount" - "contentPercent")
-    }
-
-    val explicit = item.metadata["contentState"]?.let { runCatching { ContentState.valueOf(it) }.getOrNull() }
-    val state = explicit ?: if (item.contentState != ContentState.NONE) item.contentState else when {
-      emptyWords.containsMatchIn(item.name) || item.name.startsWith("vỏ ", true) -> ContentState.EMPTY
-      lowWords.containsMatchIn(item.name) -> ContentState.LOW
-      else -> ContentState.FULL
-    }
-    val canonicalId = variantId(profile.archetypeId, state)
-    return item.copy(
-      itemId = canonicalId,
-      archetypeId = profile.archetypeId,
-      contentState = state,
-      name = displayName(profile, state, item.name),
-      metadata = item.metadata - "remainingContent" - "contentAmount" - "contentPercent" + ("contentState" to state.name)
-    )
-  }
-
-  fun nextAfterUse(item: ItemStack): ItemStack? {
-    val normalized = normalize(item)
-    val profile = profileFor(normalized.name, normalized.archetypeId) ?: return normalized
-    val next = when (normalized.contentState) {
-      ContentState.FULL -> if (profile.supportsLow) ContentState.LOW else ContentState.EMPTY
-      ContentState.LOW -> ContentState.EMPTY
-      ContentState.EMPTY -> return null
-      ContentState.NONE -> return normalized
+    // The healing catalog is injected by the release patch chain. Standalone
+    // Core compiles without it; generated builds apply its canonicalization.
+    val normalized = item
+    val name = normalized.name.lowercase()
+    val metadata = normalized.metadata - deprecatedContentKeys
+    val resourceUnit = name.contains("chai nước") || name.contains("almond water") ||
+      name.contains("nước hạnh nhân") || name.contains("hộp thức ăn") ||
+      name.contains("hộp đồ ăn") || name.contains("bình nhiên liệu") ||
+      name.contains("can nhiên liệu") || name.contains("viên đạn") ||
+      metadata["physiologyEffect"]?.split(',', ';', '|')?.any {
+        it.trim().uppercase() in setOf("WATER", "FOOD")
+      } == true
+    val consumed = when {
+      resourceUnit -> true // No empty-container state: using food, water or fuel consumes a whole unit.
+      metadata.containsKey("consumedOnUse") -> metadata["consumedOnUse"].equals("true", true)
+      metadata["containerPersistent"].equals("true", true) -> false
+      else -> metadata["consumable"].equals("true", true)
     }
     return normalized.copy(
-      itemId = variantId(profile.archetypeId, next),
-      name = displayName(profile, next, normalized.name),
-      contentState = next,
-      metadata = normalized.metadata + ("contentState" to next.name)
+      contentState = ContentState.NONE,
+      metadata = (metadata - "consumedOnUse").let {
+        if (consumed) it + ("consumedOnUse" to "true") else it
+      }
     )
   }
 
-  fun variantId(archetypeId: String, state: ContentState): String = when (state) {
-    ContentState.NONE -> archetypeId
-    else -> "$archetypeId:${state.name.lowercase()}"
-  }
+  /** A consumed unit leaves no synthetic 'empty' item behind. */
+  fun nextAfterUse(item: ItemStack): ItemStack? =
+    normalize(item).let { if (it.metadata["consumedOnUse"].equals("true", true)) null else it }
 
   fun sameStackState(left: ItemStack, right: ItemStack): Boolean {
-    val a = normalize(left); val b = normalize(right)
-    return a.itemId == b.itemId && a.archetypeId == b.archetypeId && a.contentState == b.contentState &&
+    val a = normalize(left)
+    val b = normalize(right)
+    return a.itemId == b.itemId && a.archetypeId == b.archetypeId &&
       a.condition == b.condition && stackMetadata(a.metadata) == stackMetadata(b.metadata)
   }
 
-  private fun stackMetadata(metadata: Map<String, String>): Map<String, String> = metadata - setOf("vanKhoGioiChiCopyCount", "lastUsedAt")
-
-  private fun displayName(profile: ContentProfile?, state: ContentState, fallback: String): String {
-    if (profile == null) return fallback
-    return when (state) {
-      ContentState.FULL -> profile.fullName
-      ContentState.LOW -> profile.lowName
-      ContentState.EMPTY -> profile.emptyName
-      ContentState.NONE -> fallback
-    }
-  }
-
-  private fun profileFor(name: String, archetypeHint: String): ContentProfile? {
-    val n = name.lowercase()
-    val hint = archetypeHint.lowercase()
-    return when {
-      hint.contains("water-bottle") || n.contains("chai nước") || (n.contains("chai") && (n.contains("rỗng") || n.startsWith("vỏ chai"))) ->
-        ContentProfile("water-bottle", "Chai nước", "Chai nước còn ít nước", "Chai rỗng")
-      hint.contains("food-container") || n.contains("hộp thức ăn") || n.contains("hộp đồ ăn") || n.contains("vỏ thức ăn") ->
-        ContentProfile("food-container", "Hộp thức ăn", "Hộp thức ăn còn ít", "Hộp thức ăn rỗng")
-      hint.contains("generic-container") || (n.contains("hộp") && n.contains("rỗng")) || n.contains("vỏ hộp") ->
-        ContentProfile("generic-container", "Hộp", "Hộp còn ít vật chứa", "Hộp rỗng")
-      hint.contains("fuel-container") || n.contains("bình nhiên liệu") || n.contains("can nhiên liệu") ->
-        ContentProfile("fuel-container", "Bình nhiên liệu", "Bình nhiên liệu còn ít", "Bình rỗng")
-      hint.contains("ammo-cartridge") || n.contains("viên đạn") || n.contains("vỏ đạn") ->
-        ContentProfile("ammo-cartridge", "Viên đạn", "Viên đạn", "Vỏ đạn", supportsLow = false)
-      else -> null
-    }
-  }
+  private fun stackMetadata(metadata: Map<String, String>): Map<String, String> =
+    metadata - nonStackIdentityKeys
 }

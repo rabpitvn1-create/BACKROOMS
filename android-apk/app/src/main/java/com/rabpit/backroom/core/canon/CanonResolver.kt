@@ -79,6 +79,15 @@ class CanonResolver(private val store: CanonStore) {
           return GateVerdict.Deny("named follower category is not selected for this action")
         }
       }
+      // SUBLEVEL_ENVIRONMENT_SCOPE: the parent's room description is not the sublevel's environment.
+      if (scene.locationNodeId != null && record.id == scene.levelId &&
+        scene.locationNodeId.removePrefix("LEVEL.NODE.") != scene.levelId.removePrefix("LEVEL.").toIntOrNull()?.toString()) {
+        return GateVerdict.Deny("gate0: parent environment is not the current sublevel")
+      }
+      // LEVEL_NODE_EXACT_SCOPE: mentioning another node cannot load its environment.
+      if (scene.locationNodeId != null && record.id.startsWith("LEVEL.NODE.") && record.id != scene.locationNodeId) {
+        return GateVerdict.Deny("gate0: not the current location node")
+      }
       val levelScope = record.activation.levelScope
       if (levelScope != CanonActivation.LEVEL_SCOPE_ANY && levelScope != scene.levelId) {
         return GateVerdict.Deny("gate0: level scope $levelScope outside current level ${scene.levelId}")
@@ -160,7 +169,10 @@ class CanonResolver(private val store: CanonStore) {
     //     Absence here is a pack defect -> missingRequiredIds (never silent).
     val hardReasons = linkedMapOf<String, String>()
     MANDATORY_IDS.forEach { hardReasons[it] = "mandatory hard context" }
-    hardReasons[scene.levelId] = "current level direct id"
+    val nodeId = scene.locationNodeId
+    val isMainLevel = nodeId?.removePrefix("LEVEL.NODE.")?.matches(Regex("[0-9]+")) ?: true
+    if (isMainLevel) hardReasons[scene.levelId] = "current level direct id"
+    if (nodeId != null) hardReasons[nodeId] = "current location node direct id"
     // 1b. Fixed state-driven ids (same status as 1a: fixed ids, pack must carry them).
     if (scene.storyThreadsActive.any { it.startsWith("THREAD.REUNITE") }) {
       hardReasons["STORY.MAIN.OBJECTIVE"] = "active main-campaign objective"

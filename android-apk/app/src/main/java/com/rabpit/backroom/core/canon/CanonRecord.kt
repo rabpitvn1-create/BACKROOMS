@@ -209,7 +209,10 @@ data class CanonRecord(
       json: JSONObject, id: String, vararg keys: String
     ): T? {
       val raw = keys.firstNotNullOfOrNull { key -> json.optString(key).takeIf { it.isNotBlank() } } ?: return null
-      return runCatching { enumValueOf<T>(raw.trim().uppercase(Locale.ROOT)) }
+      // Preserve WORLD/META as distinct visibility classes. Resolver gates may
+      // authorize both, but serialization and Canon semantics must retain the label.
+      val normalized = raw.trim().uppercase(Locale.ROOT)
+      return runCatching { enumValueOf<T>(normalized) }
         .getOrElse { throw IllegalArgumentException("Canon record $id has unknown enum value: $raw") }
     }
 

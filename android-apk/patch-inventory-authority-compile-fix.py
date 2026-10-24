@@ -73,10 +73,15 @@ omnivault_healing_hook = '''    HealingItems.normalize(item)?.let { healing ->
     }
 '''
 canonical_healing_hook = '    HealingItems.normalize(item)?.let { return it }\n'
-if omnivault_healing_hook in item_content:
+single_state_hook = '    val normalized = HealingItems.normalize(item) ?: item\n'
+if single_state_hook in item_content:
+    # This path retains the canonical ID, strips content variants and preserves
+    # copy identity with the HealingItems normalization rule installed below.
+    pass
+elif omnivault_healing_hook in item_content:
     item_content = item_content.replace(omnivault_healing_hook, canonical_healing_hook, 1)
 elif canonical_healing_hook not in item_content:
-    raise RuntimeError("Healing normalization compatibility hook missing after Omnivault finalizer")
+    raise RuntimeError("Missing ItemContent healing normalization hook")
 ITEM_CONTENT.write_text(item_content, encoding="utf-8")
 
 healing = HEALING.read_text(encoding="utf-8")
@@ -84,13 +89,13 @@ old_healing_id = '      itemId = id,\n'
 copy_safe_healing_id = '      itemId = if (ItemIdentity.isOmnivaultCopy(item)) item.itemId else id,\n'
 if old_healing_id in healing:
     if healing.count(old_healing_id) != 1:
-        raise RuntimeError(f"Healing copy identity anchor expected exactly 1 match, found {healing.count(old_healing_id)}")
+        raise RuntimeError(f"Healing copy identity anchor expected 1 match, found {healing.count(old_healing_id)}")
     healing = healing.replace(old_healing_id, copy_safe_healing_id, 1)
 elif copy_safe_healing_id not in healing:
     raise RuntimeError("Healing copy identity compatibility anchor missing")
 HEALING.write_text(healing, encoding="utf-8")
 
-if canonical_healing_hook not in ITEM_CONTENT.read_text(encoding="utf-8"):
+if canonical_healing_hook not in ITEM_CONTENT.read_text(encoding="utf-8") and single_state_hook not in ITEM_CONTENT.read_text(encoding="utf-8"):
     raise RuntimeError("Canonical HealingItems normalization hook was not restored")
 if copy_safe_healing_id not in HEALING.read_text(encoding="utf-8"):
     raise RuntimeError("Omnivault healing-copy identity protection was not preserved")

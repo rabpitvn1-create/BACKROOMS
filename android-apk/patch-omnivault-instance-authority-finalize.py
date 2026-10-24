@@ -166,30 +166,39 @@ GAME_COMMAND.write_text(command_model, encoding="utf-8")
 # objects still form one ordinary inventory stack without losing their IDs.
 # ---------------------------------------------------------------------------
 content = ITEM_CONTENT.read_text(encoding="utf-8")
-healing_old = '    HealingItems.normalize(item)?.let { return it }\n'
-healing_new = '''    HealingItems.normalize(item)?.let { healing ->
-      if (!ItemIdentity.isOmnivaultCopy(item)) return healing
-      return healing.copy(itemId = item.itemId, metadata = healing.metadata + item.metadata)
-    }
-'''
-if healing_old in content:
-    content = content.replace(healing_old, healing_new, 1)
+# One-state ItemContent already canonicalizes healing items and excludes identity
+# metadata from stack equivalence. Older generated content uses FULL/LOW/EMPTY
+# and still needs the original instance-aware transformation below.
+if 'enum class ContentState { NONE }' in content:
+    if 'val normalized = HealingItems.normalize(item) ?: item' not in content:
+        raise RuntimeError("Single-state ItemContent must canonicalize healing items")
+    if 'physicalInstanceIds' not in content or 'omnivaultTemplateId' not in content:
+        raise RuntimeError("Single-state ItemContent must ignore physical identity in stack comparison")
+else:
+    healing_old = '    HealingItems.normalize(item)?.let { return it }\n'
+    healing_new = '''    HealingItems.normalize(item)?.let { healing ->
+          if (!ItemIdentity.isOmnivaultCopy(item)) return healing
+          return healing.copy(itemId = item.itemId, metadata = healing.metadata + item.metadata)
+        }
+    '''
+    if healing_old in content:
+        content = content.replace(healing_old, healing_new, 1)
 
-canonical_old = '    val canonicalId = variantId(profile.archetypeId, state)\n'
-canonical_new = '    val canonicalId = if (ItemIdentity.isOmnivaultCopy(item)) item.itemId else variantId(profile.archetypeId, state)\n'
-content = replace_once(content, canonical_old, canonical_new, "Copy content-state identity")
+    canonical_old = '    val canonicalId = variantId(profile.archetypeId, state)\n'
+    canonical_new = '    val canonicalId = if (ItemIdentity.isOmnivaultCopy(item)) item.itemId else variantId(profile.archetypeId, state)\n'
+    content = replace_once(content, canonical_old, canonical_new, "Copy content-state identity")
 
-next_old = '      itemId = variantId(profile.archetypeId, next),\n'
-next_new = '      itemId = if (ItemIdentity.isOmnivaultCopy(normalized)) normalized.itemId else variantId(profile.archetypeId, next),\n'
-content = replace_once(content, next_old, next_new, "Copy next-use identity")
+    next_old = '      itemId = variantId(profile.archetypeId, next),\n'
+    next_new = '      itemId = if (ItemIdentity.isOmnivaultCopy(normalized)) normalized.itemId else variantId(profile.archetypeId, next),\n'
+    content = replace_once(content, next_old, next_new, "Copy next-use identity")
 
-meta_old = '  private fun stackMetadata(metadata: Map<String, String>): Map<String, String> = metadata - setOf("omnivaultCopyCount", "lastUsedAt")\n'
-meta_new = '''  private fun stackMetadata(metadata: Map<String, String>): Map<String, String> = metadata - setOf(
-    "omnivaultCopyCount", "lastUsedAt", "physicalInstanceIds", "identitySeed", "worldInstanceId",
-    "omnivaultOriginal", "omnivaultSourceInstanceId", "omnivaultTemplateId"
-  )
-'''
-content = replace_once(content, meta_old, meta_new, "Physical identity stack comparison")
+    meta_old = '  private fun stackMetadata(metadata: Map<String, String>): Map<String, String> = metadata - setOf("omnivaultCopyCount", "lastUsedAt")\n'
+    meta_new = '''  private fun stackMetadata(metadata: Map<String, String>): Map<String, String> = metadata - setOf(
+        "omnivaultCopyCount", "lastUsedAt", "physicalInstanceIds", "identitySeed", "worldInstanceId",
+        "omnivaultOriginal", "omnivaultSourceInstanceId", "omnivaultTemplateId"
+      )
+    '''
+    content = replace_once(content, meta_old, meta_new, "Physical identity stack comparison")
 ITEM_CONTENT.write_text(content, encoding="utf-8")
 
 
@@ -257,7 +266,12 @@ new_content_use = '''  if (owned.contentState == ContentState.FULL || owned.cont
     if (validation != null) return invalid(state, validation)
     nextInventory = addItem(nextInventory, nextVariant)
 '''
-engines = replace_once(engines, old_content_use, new_content_use, "Content use identity transfer")
+# Whole-unit USE has no state-variant transition. removeItem() already calls
+# identity-aware takeItem(), so the original/copy identity remains preserved.
+if old_content_use in engines:
+    engines = replace_once(engines, old_content_use, new_content_use, "Content use identity transfer")
+elif '  if (owned.contentState == ContentState.FULL' in engines:
+    raise RuntimeError("Unsupported partial content USE transition")
 
 item_line_old = '    val item = ItemContentRules.normalize(ItemStack(command.itemId, command.itemName, command.quantity, metadata = command.metadata))\n'
 item_line_new = '''    val normalizedItem = ItemContentRules.normalize(ItemStack(command.itemId, command.itemName, command.quantity, metadata = command.metadata))

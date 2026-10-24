@@ -1,5 +1,7 @@
 package com.rabpit.backroom.core
 
+import org.json.JSONObject
+
 object CommandValidator {
   fun validate(state: GameState, command: GameCommand): ValidationResult {
     if (command.commandId.isBlank()) return ValidationResult(false, "command_id_required")
@@ -7,10 +9,10 @@ object CommandValidator {
     if (command.turnId != null && command.turnId != state.turn.currentTurnId) return ValidationResult(false, "turn_id_mismatch")
     if (command is ValidatedLegacyStateCommand && !command.validatedByGameEngine) return ValidationResult(false, "engine_validation_required")
 
-    // Player-facing pickup commands never create ownership. Inventory acquisition is authoritative
-    // only when emitted by validated story/drop progression (GEMINI) or deterministic SYSTEM code.
+    // Only Core-authored SYSTEM pickup may grant ownership.
+    // GM proposals and narrative snapshots have no inventory authority.
     if (command is ItemCommand && command.operation == ItemCommand.Operation.PICKUP &&
-      command.source !in setOf(CommandSource.GEMINI, CommandSource.SYSTEM)) {
+      command.source != CommandSource.SYSTEM) {
       return ValidationResult(false, "player_pickup_unavailable")
     }
 
@@ -45,11 +47,28 @@ object StateReducer {
       is PhysiologyCommand -> PhysiologyEngine.execute(state, command)
       is QueryCommand -> ExecutionResult(state, applied = false)
       is ValidatedLegacyStateCommand -> {
+        // GM may narrate world facts but may not create, delete or alter world loot.
+        // Core SYSTEM commands are allowed to consume a picked-up world instance.
+        val protectedFlags = if (command.source == CommandSource.SYSTEM || command.flagsJson == null) {
+          command.flagsJson
+        } else {
+          val proposed = runCatching { JSONObject(command.flagsJson) }.getOrNull()
+            ?: return ExecutionResult(state, false, validation = ValidationResult(false, "flags_invalid"))
+          val current = runCatching { JSONObject(state.world["flagsJson"] ?: "{}") }.getOrNull()
+            ?: return ExecutionResult(state, false, validation = ValidationResult(false, "flags_invalid"))
+          proposed.remove("worldItems")
+          if (current.has("worldItems")) proposed.put("worldItems", current.getJSONArray("worldItems"))
+          proposed.toString()
+        }
+        // LEVEL_TRAVEL_REDUCER_AUTHORITY: validation is not permission to teleport.
+        val spatial = if (LevelTravelEngine.KEY in state.world) LevelTravelEngine.protectCandidate(state,
+          JSONObject().put("location", command.location ?: state.world["location"])
+            .put("flags", JSONObject(protectedFlags ?: "{}")), state.turn.pending?.input.orEmpty()) else null
         val worldPatch = mapOfNotNull(
-          "location" to command.location,
-          "title" to command.title,
-          "levelJson" to command.levelJson,
-          "flagsJson" to command.flagsJson
+          "location" to (spatial?.getString("location") ?: command.location),
+          "title" to (spatial?.getString("title") ?: command.title),
+          "levelJson" to (spatial?.getJSONObject("level")?.toString() ?: command.levelJson),
+          "flagsJson" to (spatial?.getJSONObject("flags")?.toString() ?: protectedFlags)
         )
         val metadataPatch = mapOfNotNull("legacyPlayerJson" to command.playerJson)
         changed(state.copy(world = state.world + worldPatch, metadata = state.metadata + metadataPatch), "validated_world_state")
