@@ -9,7 +9,7 @@ class ItemContentStateTest {
     operation = ItemCommand.Operation.PICKUP, itemId = "water", itemName = name, quantity = quantity
   )
   private fun use(id: String = ItemContentRules.variantId("water-bottle", ContentState.FULL), quantity: Int = 1) = ItemCommand(
-    "use-water", "TURN_1", CAO_MINH_ID, source = CommandSource.UI,
+    "use-water:$id", "TURN_1", CAO_MINH_ID, source = CommandSource.UI,
     operation = ItemCommand.Operation.USE, itemId = id, itemName = id, quantity = quantity
   )
   @Test fun usingFullBottleProducesLowThenEmptyVariant() {
