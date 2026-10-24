@@ -143,6 +143,40 @@ class GameCoreFacade private constructor(
     }
   }
 
+  /** Start combat only after Android's locked entity-encounter roll and key validation. */
+  fun startCombatState(legacyStateJson: String, entityKey: String): String {
+    val legacy = JSONObject(legacyStateJson)
+    val current = loadOrMigrate(legacy)
+    val started = CombatRuntime.start(current, entityKey.trim().lowercase())
+    val active = CombatRuntime.active(started)
+      ?: return response(false, syncLegacy(legacy, current, false), "entity_profile_unknown", "combat_start_rejected")
+    repository.save(started)
+    return response(true, syncLegacy(legacy, started, false), null, "combat_started", active.entityName)
+  }
+
+  /** Combat is authoritative and consumes exactly one finalized Poker Dice session. */
+  fun processCombat(legacyStateJson: String, actionKind: String, action: String): String {
+    val legacy = JSONObject(legacyStateJson)
+    val current = loadOrMigrate(legacy)
+    val active = CombatRuntime.active(current)
+      ?: return response(false, syncLegacy(legacy, current, false), "combat_inactive", "combat_rejected")
+    if (!PokerDiceCore.isFinalizedFor(current, action, active.encounterId)) {
+      return response(false, syncLegacy(legacy, current, false), "combat_dice_not_finalized", "combat_rejected")
+    }
+    val resolution = CombatRuntime.resolve(current, actionKind, action)
+    if (!resolution.handled) return response(false, syncLegacy(legacy, current, false), "combat_unhandled", "combat_rejected")
+    val completed = PokerDiceCore.clearDice(resolution.state)
+    repository.save(completed)
+    val output = syncLegacy(legacy, completed, incrementTurn = true)
+    output.put("combatFeedback", JSONObject().apply {
+      put("id", "${active.encounterId}:${active.eventCounter + 1}")
+      put("encounterId", active.encounterId)
+      put("events", JSONArray().apply { resolution.feedback.forEach { put(it.toJson()) } })
+    })
+    appendLog(output, action, resolution.reply)
+    return response(true, output, null, "combat_committed", resolution.reply)
+  }
+
   fun currentCoreState(): String = GameStateCodec.encode(repository.load())
   fun clear() = repository.clear()
   override fun close() = Unit
@@ -309,6 +343,15 @@ class GameCoreFacade private constructor(
     })
     output.put("partyDetails", CharacterDetailJson.encodeParty(CharacterDetailProjector.projectParty(state)))
     output.put("coreSystem", PokerDiceCore.statsJson(state, CAO_MINH_ID))
+    // The browser must receive combat/dice from Core, never from forged client JSON.
+    val combat = CombatRuntime.toJson(state)
+    if (combat != null) {
+      PokerDiceCore.diceJson(state)?.let { combat.put("diceState", it) }
+      output.put("combat", combat)
+    } else {
+      output.remove("combat")
+      output.remove("combatFeedback")
+    }
     output.put("equipment",legacyEquipment(state))
     val caoMinhInventory = state.inventories[CAO_MINH_ID]?.items?.values.orEmpty()
     output.put("inventory", JSONArray().apply { caoMinhInventory.forEach { stack -> put(JSONObject().apply {
