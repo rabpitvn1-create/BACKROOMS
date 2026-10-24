@@ -117,14 +117,14 @@ test('Luc Tram survives Android redraw and shares bounded columns with existing 
   const line=java.split('\n').find(line=>line.includes('function equippedItem(s)'));
   vm.runInContext(JSON.parse(line.trim().replace(/\s*\+$/,'')),context);
   vm.runInContext('renderSnapshot();renderSnapshot();',context);
-  assert.equal(box.children.length,5); // Placeholder and four character layers.
+  assert.equal(box.children.length,4); // Character layers survive; no destructive Snapshot placeholder.
   const layers=box.children.filter(x=>x.className==='snapshot-lucia'||x.className==='snapshot-named-follower');
   assert.equal(layers.length,4);
   assert.equal(new Set(layers.map(x=>x.style.left)).size,4);
   for(const layer of layers)assert.equal(layer.style.maxWidth,'25%');
   context.state={partyDetails:{members:[]}};
   vm.runInContext('renderSnapshot()',context);
-  assert.equal(box.children.length,1);
+  assert.equal(box.children.length,0); // Renderer removes stale characters, not the scene container.
 });
 
 test('Luc Tram packaged artwork preserves both supplied Cloudinary sources exactly', () => {
