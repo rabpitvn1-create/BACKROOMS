@@ -7,7 +7,7 @@ import org.junit.Test
 
 class CompanionSkillCatalogTest {
   @Test fun skillCatalogExposesCanonSets() {
-    assertEquals(11, CompanionSkillCatalog.forCharacter(CAO_MINH_ID).size)
+    assertEquals(12, CompanionSkillCatalog.forCharacter(CAO_MINH_ID).size)
     assertEquals(4, CompanionSkillCatalog.forCharacter(LUC_TRAM_ID).size)
     assertEquals(10, CompanionSkillCatalog.forCharacter(SYVIAL_ID).size)
     assertEquals(8, CompanionSkillCatalog.forCharacter(AN_NHIEN_ID).size)
