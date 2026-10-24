@@ -1137,6 +1137,21 @@ public class MainActivity extends Activity {
           log.put(new JSONObject().put("role", "player").put("text", action));
           log.put(new JSONObject().put("role", "gm").put("text", reply));
           state.put("log", log);
+          // Start an authoritative encounter only on a locked success roll and
+          // a profile key accepted by CombatRuntime. GM prose alone is insufficient.
+          if (!meta && rollSuccess(rolls, "entityEncounter")) {
+            JSONObject combatFlags = state.optJSONObject("flags");
+            String entityKey = combatFlags == null ? "" : combatFlags.optString("entityEncounterKey", "");
+            if (!entityKey.isEmpty()) {
+              JSONObject started = new JSONObject(requireGameCore().startCombatState(state.toString(), entityKey));
+              if (started.optBoolean("handled", false)) {
+                JSONObject projected = started.optJSONObject("state");
+                if (projected != null && projected.optJSONObject("combat") != null) {
+                  state.put("combat", projected.getJSONObject("combat"));
+                }
+              }
+            }
+          }
           emit("backroomTurn", state.toString());
         } catch (Exception e) {
           emit("backroomError", e.getMessage() == null ? "Không thể xử lý lượt." : e.getMessage());
@@ -1160,6 +1175,21 @@ public class MainActivity extends Activity {
         } catch (Exception error) {
           String message = error.getMessage() == null ? "Không thể nâng Core." : error.getMessage();
           emit("backroomCoreUpgrade", "{\"handled\":false,\"error\":" + JSONObject.quote(message) + "}");
+        }
+      });
+    }
+
+    @JavascriptInterface public void submitAction(String stateJson, String actionKind, String action) {
+      io.execute(() -> {
+        try {
+          JSONObject result = new JSONObject(requireGameCore().processCombat(stateJson, actionKind, action));
+          if (result.optBoolean("handled", false) && result.optJSONObject("state") != null) {
+            emit("backroomTurn", result.getJSONObject("state").toString());
+          } else {
+            emit("backroomCombatDiceError", result.optString("error", "Lượt combat chưa được xác nhận."));
+          }
+        } catch (Exception error) {
+          emit("backroomCombatDiceError", error.getMessage() == null ? "Không thể xử lý combat." : error.getMessage());
         }
       });
     }
