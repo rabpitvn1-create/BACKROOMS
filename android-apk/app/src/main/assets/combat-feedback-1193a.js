@@ -33,7 +33,7 @@
     if(!/^-\d+ HP$/i.test(text)||Number(text.slice(1,-3))<=0)return;
     if(e.target!=='entity'&&e.target!=='actor')return;
     // The current Snapshot displays Cao Minh. Do not attribute a teammate's damage to him.
-    if(e.target==='actor'&&e.actorId&&e.actorId!=='cao_minh')return;
+    if(e.target==='actor'&&e.actorId&&e.actorId!=='cao-minh')return;
     var target=e.target,anchor=targetAnchor(target)||fallback;
     if(!anchor)return;
     if(e.flash&&anchor.el&&anchor.el.isConnected){
