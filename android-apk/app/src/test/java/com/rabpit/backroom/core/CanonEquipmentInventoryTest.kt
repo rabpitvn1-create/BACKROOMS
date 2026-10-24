@@ -75,6 +75,7 @@ class CanonEquipmentInventoryTest {
   @Test fun canonVisualsAreAttachedOnlyWhenSourceAssetsExist() {
     val registered = listOf(
       CAO_MINH_HUYET_MA_KIEM_ID, CAO_MINH_HUYET_MA_CHIEN_KHAI_ID,
+      CAO_MINH_HUYET_MA_GAUNTLETS_ID, CAO_MINH_HUYET_MA_BOOTS_ID,
       LUC_TRAM_KIEM_KHAI_ID, LUC_TRAM_TICH_QUANG_SET_ID,
       SYVIAL_GODKILLER_ID, AN_NHIEN_OUTFIT_ID, AN_NHIEN_FOOTWEAR_ID
     )
