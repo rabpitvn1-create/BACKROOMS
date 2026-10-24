@@ -10,14 +10,24 @@ object InventoryCapacityPolicy {
   fun equippedItemIds(state: GameState, characterId: String): Set<String> =
     state.equipment[characterId]?.slots.orEmpty().values.toSet()
 
+  /**
+   * Owner-bound Canon gear belongs to Equipment, never to backpack capacity,
+   * regardless of whether the player has temporarily unequipped it.
+   * Other characters' gear is not treated as free inventory.
+   */
+  fun isOwnerCanon(characterId: String, itemId: String): Boolean =
+    itemId in EquipmentCatalog.startingLoadout(characterId).values &&
+      EquipmentCatalog.definition(itemId)?.classification == ItemClassification.CANONICAL
+
   fun consumesSlot(state: GameState, characterId: String, itemId: String): Boolean =
     itemId in state.inventories[characterId]?.items.orEmpty() &&
-      itemId !in equippedItemIds(state, characterId)
+      itemId !in equippedItemIds(state, characterId) &&
+      !isOwnerCanon(characterId, itemId)
 
   fun usedSlots(state: GameState, characterId: String, inventory: InventoryState =
     state.inventories[characterId] ?: InventoryState(characterId)): Int {
     val equipped = equippedItemIds(state, characterId)
-    return inventory.items.keys.count { it !in equipped }
+    return inventory.items.keys.count { it !in equipped && !isOwnerCanon(characterId, it) }
   }
 
   fun maxSlots(state: GameState, characterId: String): Int =
@@ -49,6 +59,7 @@ object InventoryPolicy {
       return "inventory_stack_limit"
     }
     if (old == null && normalized.itemId !in InventoryCapacityPolicy.equippedItemIds(state, ownerId) &&
+        !InventoryCapacityPolicy.isOwnerCanon(ownerId, normalized.itemId) &&
         InventoryCapacityPolicy.usedSlots(state, ownerId, inventory) >= profile.maxTypes) {
       return "inventory_slot_limit"
     }
