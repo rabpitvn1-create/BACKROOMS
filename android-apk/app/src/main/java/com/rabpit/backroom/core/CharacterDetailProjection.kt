@@ -80,6 +80,9 @@ object CharacterDetailProjector {
     val base = c.statProfile
     val inventory = normalized.inventories[c.inventoryId]?.items?.values.orEmpty().sortedBy { it.itemId }
     val equipment = normalized.equipment[c.equipmentId]?.slots.orEmpty().toSortedMap()
+    val equippedIds = equipment.values.toSet()
+    fun carried(itemId: String) = itemId !in equippedIds &&
+      !InventoryCapacityPolicy.isOwnerCanon(characterId, itemId)
     fun itemDetail(item: ItemStack): ItemDetailProjection {
       val def = EquipmentCatalog.definition(item.itemId)
       val slots = equipment.filterValues { it == item.itemId }.keys.sorted()
@@ -91,14 +94,12 @@ object CharacterDetailProjector {
         weapon = def?.weapon, abilities = def?.abilities.orEmpty(), restrictions = def?.restrictions.orEmpty(),
         components = def?.components.orEmpty(), iconRef = def?.iconRef,
         bonuses = def?.bonuses ?: EquipmentBonuses(),
-        consumesInventorySlot = InventoryCapacityPolicy.consumesSlot(normalized, characterId, item.itemId)
+        consumesInventorySlot = carried(item.itemId)
       )
     }
     val details = inventory.map(::itemDetail)
     // Canon owner gear is projected only under Equipment, not carried Inventory.
-    val carriedIds = inventory.filter {
-      InventoryCapacityPolicy.consumesSlot(normalized, characterId, it.itemId)
-    }.map { it.itemId }.toSet()
+    val carriedIds = inventory.filter { carried(it.itemId) }.map { it.itemId }.toSet()
     val carriedDetails = details.filter { it.id in carriedIds }
     val equipmentDetails = details.filter {
       it.equipped || InventoryCapacityPolicy.isOwnerCanon(characterId, it.id)
