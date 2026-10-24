@@ -46,6 +46,7 @@ jobs:
           git diff --exit-code -- android-apk/app/src/main
           node --test android-apk/tests/lucia-visuals.test.cjs android-apk/tests/named-follower-visuals.test.cjs android-apk/tests/party-combat-choice.test.cjs
           node android-apk/tests/level-travel-ui.test.cjs
+          node --test android-apk/tests/snapshot-hud-regression.test.cjs
       - name: Run Android JVM regression suite
         working-directory: android-apk
         run: gradle :app:testDebugUnitTest --no-daemon
@@ -70,11 +71,13 @@ jobs:
           cp "$APK" "Backroom-$VERSION.apk"
           sha256sum "Backroom-$VERSION.apk" > "Backroom-$VERSION.apk.sha256"
           cat > release-notes.md <<'NOTES'
-          Backroom Android Debug — gameplay integration release.
+          Backroom Android Debug — Snapshot and mobile HUD recovery release.
           - Core-owned Level Travel: random fresh Level 0–10 and three consecutive 50% exit successes.
           - Core-owned world loot, validated pickup, and whole-unit consumables.
           - Canon equipment separated from carried Inventory, including Huyết Ma modules.
           - Named follower integration and Canon Runtime corrections retained.
+          - Snapshot now keeps Cao Minh and confirmed Entity overlays and a bundled Level backdrop when Gemini image is unavailable.
+          - Mobile menu is reachable from the header; incompatible saves show an explicit New Game recovery action.
 
           Debug APK for testing; not a signed production build.
           NOTES

@@ -4,7 +4,30 @@
   if (window.__levelTravelUi) return;
   window.__levelTravelUi = true;
   const native = window.Android;
-  if (!native || typeof native.initializeLevelGame !== 'function') return;
+  const recovery = document.getElementById('startupRecovery');
+  const recoveryMessage = document.getElementById('startupRecoveryMessage');
+  const recoveryButton = document.getElementById('startNewGameFromRecovery');
+  function showRecovery(error) {
+    const detail = String(error && error.message || error || '');
+    const incompatible = /save_version_unsupported|coreSnapshot|level_game_not_initialized/.test(detail);
+    const message = incompatible
+      ? 'Dữ liệu lưu hiện có không thuộc định dạng game hiện hành. Game không tự chuyển đổi hay xóa save cũ.'
+      : 'Game Core không thể khởi động. Dữ liệu hiện có chưa bị xóa.';
+    if (recovery) recovery.hidden = false;
+    if (recoveryMessage) recoveryMessage.textContent = message +
+      ' Chỉ chọn “Bắt đầu game mới” nếu bạn muốn thay thế dữ liệu đang lưu.';
+    statusEl.textContent = message;
+    submitEl.disabled = true;
+  }
+  function hideRecovery() {
+    if (recovery) recovery.hidden = true;
+  }
+  if (!native || typeof native.initializeLevelGame !== 'function' ||
+      typeof native.resumeLevelGame !== 'function') {
+    showRecovery('android_bridge_unavailable');
+    if (recoveryButton) recoveryButton.disabled = true;
+    return;
+  }
   const key = 'backroom-apk-state';
   const oldRender = window.render;
   function drawTravel() {
@@ -55,7 +78,8 @@
     try {
       state = JSON.parse(native.initializeLevelGame(raw, false));
       drawTravel();
-    } catch (error) { statusEl.textContent = 'Không thể tải game hiện hành: ' + error.message; }
+      hideRecovery();
+    } catch (error) { showRecovery(error); }
   };
   function newGame() {
     const next = JSON.parse(native.initializeLevelGame(JSON.stringify(initial), true));
@@ -64,13 +88,20 @@
     localStorage.removeItem('backroom-apk-snapshot');
     window.save();
     drawTravel();
+    hideRecovery();
   }
+  if (recoveryButton) recoveryButton.addEventListener('click', () => {
+    if (!confirm('Bắt đầu game mới sẽ thay thế save Core và save trong máy. Tiếp tục?')) return;
+    try { newGame(); } catch (error) { showRecovery(error); }
+  });
   window.resetGame = function () {
-    if (!busy && confirm('Bắt đầu game mới?')) newGame();
+    if (!busy && confirm('Bắt đầu game mới?')) {
+      try { newGame(); } catch (error) { showRecovery(error); }
+    }
   };
   window.clearSave = function () {
     if (!busy && confirm('Xóa save và bắt đầu game mới?')) {
-      newGame();
+      try { newGame(); } catch (error) { showRecovery(error); }
     }
   };
   try {
@@ -78,8 +109,8 @@
     state = JSON.parse(native.resumeLevelGame(raw || JSON.stringify(initial), Boolean(raw)));
     window.save();
     drawTravel();
+    hideRecovery();
   } catch (error) {
-    statusEl.textContent = 'Không thể mở save. Dùng “Bắt đầu lại từ đầu” để tạo game mới.';
-    submitEl.disabled = true;
+    showRecovery(error);
   }
 })();
