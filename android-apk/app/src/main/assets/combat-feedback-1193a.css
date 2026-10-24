@@ -150,7 +150,7 @@ body.poker-dice-open .player-action-bar .primary-action{pointer-events:none;opac
  background:radial-gradient(circle,transparent 0 12%,#ffae3220 30%,transparent 67%);
  animation:combat-impact-burst 320ms ease-out both}
 .combat-impact:before,.combat-impact:after{content:"";position:absolute;inset:0;pointer-events:none;
- background:url('fx/hit-impact-sparks-v1.png') center/contain no-repeat;transform-origin:center}
+ background:radial-gradient(circle,rgba(255,246,198,.95) 0%,rgba(250,176,75,.7) 24%,rgba(134,210,251,.35) 45%,transparent 72%) center/contain no-repeat;transform-origin:center}
 .combat-impact:before{animation:combat-impact-sparks 320ms cubic-bezier(.16,.7,.3,1) both}
 .combat-impact:after{filter:blur(1.3px);mix-blend-mode:screen;animation:combat-impact-afterglow 320ms ease-out both}
 .combat-impact--critical{width:178px;height:178px;filter:brightness(1.16)}
