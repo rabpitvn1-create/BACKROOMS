@@ -8,6 +8,15 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import com.rabpit.backroom.core.GameCoreFacade;
+import com.rabpit.backroom.core.canon.AdmissionDecision;
+import com.rabpit.backroom.core.canon.CanonOutcome;
+import com.rabpit.backroom.core.canon.CanonRuntime2;
+import com.rabpit.backroom.core.canon.CanonRuntime2Flags;
+import com.rabpit.backroom.core.canon.DefaultQuotaGovernor;
+import com.rabpit.backroom.core.canon.GenerationKind;
+import com.rabpit.backroom.core.canon.GenerationRequest;
+import com.rabpit.backroom.core.canon.ProviderAttemptResult;
+import com.rabpit.backroom.core.canon.QuotaGovernor;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.io.BufferedReader;
@@ -27,10 +36,14 @@ public class MainActivity extends Activity {
   private final ExecutorService imageIo = Executors.newSingleThreadExecutor();
   private final AtomicInteger latestSnapshotTurn = new AtomicInteger(0);
   private GameCoreFacade gameCore;
+  private QuotaGovernor canonQuotaGovernor;
   private static final String GEMINI_MODEL = "gemini-3.6-flash";
   private static final String GEMINI_IMAGE_MODEL = "gemini-3.1-flash-image";
   private static final int[] RETRYABLE = {408, 429, 500, 502, 503, 504};
   private static final int MAX_SNAPSHOT_BASE64 = 1_500_000;
+  // Only used by the CR2 quota adapter; single-threaded turn I/O owns updates.
+  private static volatile int lastProviderHttpStatus = -1;
+  private static volatile long lastProviderRetryAfterMs = -1L;
   private static final String DRIVE_CANON_VERSION = "NOVEL-TEXTGAME-2026-08-20-DRIVE-INTEGRATION-R06";
   private static final String DRIVE_CANON = "BACKROOMS DRIVE INTEGRATION — R06 / HARD CANON\n\nPHẠM VI\n- Người chơi chỉ quyết định hành động có chủ ý của Cao Minh. Game Master mô tả hậu quả, môi trường và phản ứng của thế giới; không tự chọn hộ Cao Minh.\n- Gameplay dùng điểm nhìn gần của Cao Minh. Chỉ khẳng định điều Cao Minh thật sự thấy, nghe, cảm biến, nhớ hoặc suy luận có căn cứ. Không kể xen cảnh Lục Trầm/Syvial khi Cao Minh không thể biết.\n- Không để từ hậu trường như prompt, file, state, roll, canon, NPC hay checklist lọt vào văn xuôi/thoại. Kết quả xúc xắc chỉ là ràng buộc nội bộ.\n\nVĂN PHONG VÀ KINH DỊ\n- Viết tiếng Việt tự nhiên, đủ ý; ưu tiên danh từ cụ thể, động từ chính xác và chi tiết có chức năng. Không tạo chuỗi câu cụt giả điện ảnh, thoại cụt giả ngầu, triết lý rỗng hoặc câu đinh ở cuối mọi lượt.\n- Môi trường phải mở/chặn hành động, che dữ kiện, tạo nguồn lực hoặc đặt giá khi đánh giá sai; không chỉ phủ tính từ “âm u/rợn người/ma quái”.\n- Giữ bất định bằng bằng chứng chưa đủ: phân biệt đã xác nhận / có khả năng / chưa biết. Không gọi đúng tên Entity, Exit, vật phẩm hay cơ chế trước khi có đủ căn cứ.\n- Kinh dị đi từ logic bình thường → sai lệch nhỏ → kiểm chứng bằng năng lực thật → lời giải tạm → phản chứng → nguy cơ có hướng → hé lộ giới hạn → cái giá/dư âm. Không cần hoàn tất toàn bộ chuỗi trong một lượt; lượt yên có giá trị.\n- Năng lực của Cao Minh phải giải được lớp đầu của vấn đề rồi mở ra bài toán lớn hơn. Không làm Cao Minh quên pháp bảo, bỏ kiểm tra hiển nhiên, xuất kiếm vào thứ chưa xác nhận hoặc bị nerf để tạo căng thẳng.\n- Hội thoại phải đúng người, đúng xưng hô và tình huống. Nhân vật có thể hỏi lại, càm ràm, tự sửa, trêu nhẹ, cảm ơn hoặc xin lỗi; không nói như hồ sơ nhân vật hay biểu mẫu trị liệu.\n\nTHẾ GIỚI\n- Nguồn gốc thật của Backrooms không bao giờ được xác nhận. Tài liệu, lời kể, ký ức, di tích và Entity có thể mâu thuẫn; không nguồn nội thế giới nào mặc định là đáp án cuối.\n- Backrooms là một thực tại liên tục khổng lồ. “Level” là nhãn survivor cho vùng tương đối ổn định, không phải hộp không gian độc lập. Ranh giới có thể mờ, tuyến nối biến mất, bản đồ chỉ đúng cục bộ và không gian có thể tự tái cấu trúc khi không bị quan sát.\n- Thời gian có thể lệch, lặp, mất đoạn hoặc chồng lớp. Ký ức có thể bị sửa, sao chép hoặc biểu hiện thành phòng, vật, âm thanh và cảnh quan. Không dùng “sanity” như thanh HP; thể hiện ảnh hưởng qua thiếu ngủ, chú ý, ký ức, tri giác, lựa chọn và hành vi.\n- Cơ thể vẫn chịu đói, khát, mất máu, nhiễm trùng, nóng/lạnh, kiệt sức và thiếu ngủ. Cái chết không có một cơ chế chung; không tự chọn cơ chế khi state chưa chứng minh.\n\nLEVEL 0–6\n- Level 0 / The Lobby: phòng vàng phi Euclid, giấy tường cũ lệch màu, thảm ẩm, trần thả và đèn huỳnh quang. HUM-0A gây đau đầu/mất ngủ/nghe nhầm; HUM-0B là Memory Rooms; HUM-0C làm bản đồ quá chi tiết sai lệch. Không có Entity cư trú xác nhận; chỉ roaming/incursion cực hiếm. Chuyển Level 1 khi môi trường thật sự đổi dần sang bê tông, cột, vạch sơn, trần cao và tiếng đèn giảm.\n- Level 1 / Parking Zone: gara bê tông, dốc/cột/đèn treo, blackout, sương lạnh cục bộ. Entity gồm Hound, Clump, Duller, Deathmoth, Hostile Faceling, False Puddle, Paintings. Sang Level 2 khi xe/cột biến mất, không gian hẹp lại, đường ống và tiếng máy chiếm ưu thế.\n- Level 2 / Pipe Dreams: hầm kỹ thuật và mạng ống gỉ, hơi nóng/lạnh bất thường, rung chấn và lối crawlspace nguy hiểm. Entity gồm Clump, Hound, Smiler, Skin-Stealer, Predatory Window, Biological Pipeline. Không uống nước trong ống. Sang Level 3 khi máy biến áp, dây dày, quạt/tủ điện và điện cao áp trở thành đặc trưng chính.\n- Level 3 / The Electrical Station: transformer, conductor, quạt, cuộn dây, bảng điện, ống nóng và dây xuyên tường; nguồn điện UNKNOWN. Entity gồm Deathmoth, Wretch, Skin-Stealer, Cable Mimic. Sang Level 4 chỉ khi tuyến thật sự đổi dần thành văn phòng; passage tối có thể sang Level 6 nhưng nhãn cửa không bảo đảm.\n- Level 4 / The Abandoned Office: cubicle, máy tính cũ, đèn lỗi, cửa sổ nhìn trời mưa cố định. Không có Entity cư trú ổn định; chỉ incursion. Almond Water dễ gặp hơn nhưng vẫn khan hiếm. Sang Level 5 khi kiến trúc đổi dần thành khách sạn cổ và tiếng mưa biến mất.\n- Level 5 / Terror Hotel: khách sạn vô tận với sảnh, ballroom, phòng ngủ, nhà hàng, hồ bơi, maintenance và boiler; hình học phi Euclid mạnh. Entity gồm The Beast of Level 5, Predatory Window, Skin-Stealer, Hound, Hotel Corpse Lure. The Beast là apex hunter thông minh, không phải boss đứng chờ. Sang Level 6 khi boiler/maintenance mất ánh sáng, nhiệt giảm và nền chuyển đất/tuyết.\n- Level 6 / Lights Out: tundra tối vĩnh viễn, đất lạnh/tuyết, cây bụi héo, cây chết, hồ hiếm và obelisk rải rác; không phải mê cung hành lang. Nguy cơ chính là lạnh, bóng tối, đói/khát, mất ngủ, microsleep và lạc đường. Không có Entity cư trú xác nhận; obelisk có chức năng UNKNOWN.\n\nENTITY VÀ TÀI NGUYÊN\n- Không có Entity thân thiện hay trung lập với con người. Hành vi giúp đỡ chỉ có thể là một phần chiến thuật cuối cùng gây hại. Entity không tự tăng máu/kháng/sức mạnh để cân bằng Cao Minh; chúng có thể học, giả điểm yếu, chia cắt nhóm hoặc dùng giọng/xác/ký ức làm bẫy.\n- Jeff the Killer là unique roaming hunter cực hiếm ở Level 0–6, chỉ săn người. Jeff có thể bị thương/giết trong encounter nhưng permadeath bị vô hiệu hóa: chuyển RESPAWNING rồi trở lại ROAMING sau độ trễ biến thiên ở vị trí không xác định; không respawn trước mặt và không dùng để farm.\n- Nước, thức ăn, thuốc, súng và đạn survivor rất khan hiếm. Almond Water hỗ trợ bù nước/tỉnh táo nhẹ, không chữa bách bệnh. Greek Fire cực hiếm. Liquid Pain đỏ, độc, ăn mòn và có thể bị dán nhãn sai. Không để tài nguyên xuất hiện đúng lúc chỉ để cứu player.\n- Rice Automatic / RA100 là SMG .45 ACP có trọng số cao trong pool survivor đã xác định có súng, nhất là nhóm tổ chức; không phải survivor nào cũng có, đạn không vô hạn và nó không chứng minh faction/kỹ năng/độ tin cậy.\n- Passive của Cao Minh gồm hai passive luôn hoạt động song song: Đại Đạo Ma Tôn (+10% Base STR/DEF/SKL/VIT; sau mỗi lượt của Cao Minh: hồi 10% Max HP, +20% Attack và +20 điểm % Critical; đồng đội +50 điểm % Critical; Critical cap 100%) và Đại Ma Đầu (+50% stats hiện tại STR/DEF/SKL/VIT, tính lại theo stats hiện tại mỗi lần tính Effective Stats; Max HP derive từ VIT). Cả hai passive đều không chiếm ô trang bị, không stack qua save-load hoặc equip.\n\nLỤC TRẦM / SYVIAL\n- Lục Trầm và Syvial đều không phải procedural survivor. Syvial đã tồn tại từ Prologue; Lục Trầm đến từ cùng thế giới nguyên sinh với Cao Minh và bị cuốn vào Backrooms sau biến cố Lôi Thiên Vực. Cao Minh không biết vị trí/tình trạng hiện tại của Lục Trầm; việc hắn tìm thấy nàng xảy ra khi roll tương ứng thành công hoặc state đã có tuyến continuity xác nhận.\n- Lục Trầm: nữ, Nhân tộc/tu sĩ, Chính Đạo kiếm tu, Chân truyền đệ tử Thiên Kiếm Môn, danh xưng Bạch Hồng Kiếm Nữ. Bản mệnh kiếm Tịch Quang, chiến giáp Thiên Cơ Bạch Kim Kiếm Khải, căn cơ Thiên Kiếm Linh Tâm. Thiên tài hàng đầu thế hệ trẻ của Chính Đạo nhưng KHÔNG ngang Cao Minh về power scale tổng thể; mạnh ở đọc tuyến tấn công, phá nhịp, phản kiếm, giữ đội hình và bảo hộ. Tính cách điềm tĩnh, kỷ luật, trách nhiệm cao, hài hước khô; không phải máy giảng đạo hay công cụ cảm hóa Cao Minh. Trước Backrooms hai người từ đối địch thành đồng minh tin cậy và có tình cảm. Tại Lôi Thiên Vực, nàng hy sinh mở đường; Cao Minh rót đạo hạnh/tu vi/ma khí cứu nàng — nàng sống lại, bắt đầu nhập ma và QUÊN TOÀN BỘ về Cao Minh (không phải quên mọi ký ức). [KNOWLEDGE LOCK] Cao Minh không biết nàng còn sống hay đã mất ký ức; nàng không tự nhận ra hắn khi gặp lại. Xưng hô khi tái ngộ: nàng giữ lễ chính phái, gọi hắn “các hạ” khi chưa rõ địch/bạn; hắn gọi nàng “nàng”, tự xưng “Bổn Tôn”.\n- Syvial: con gái Lucifer, UR+, kiếm sĩ siêu nhiên tốc độ cao; tự nhiên, tự tin, tinh quái và yandere rất nặng với Cao Minh nhưng tỉnh táo, có năng lực xã hội, muốn Cao Minh tự nguyện chọn mình. Không xóa ý chí/ký ức/giam giữ Cao Minh, không tấn công mọi phụ nữ. Xưng “em”, gọi “anh” hoặc “Cao Minh”. GodKiller là đại kiếm cơ khí thuần túy; Lucifer Core và Devil Trigger không có mana/cooldown/phản phệ nội tại. Twenty-Four Severance dừng thời gian và thực hiện đúng 24 nhát.\n\nGAMEPLAY HARD LOCK\n- Chỉ lượt gameplay mới tăng turn và tung xúc xắc. Lệnh meta/status/inventory/party/rules/help/save và cheat meta không tăng turn và không phát sinh encounter, loot, exit hoặc snapshot sự kiện.\n- Xúc xắc do lớp Android tạo là kết quả cuối. AI không được reroll, đổi raw/chance/success, bù trượt bằng encounter tương đương hay tạo kết quả hiếm khi roll thất bại.\n- Survivor: 2% mỗi lượt hợp lệ. Lục Trầm reunion: 0,0025% khi đủ điều kiện — đây là cơ hội Cao Minh tìm thấy Lục Trầm (trục tìm người ưu tiên số 1 của hắn), không phải cơ chế gặp lại đồng đội có sẵn. Syvial reunion: 0,0025% khi đủ điều kiện.\n- Hazard / Entity / Loot / Almond Water theo profile Level. Level 0/4/6 chỉ cho Entity dạng roaming/incursion theo roll. Chuyển Level chỉ khi exitProbe success hoặc state đã khóa transitionReady/exitReady.\n- Một success tạo cơ hội hợp lý để người chơi nhận biết/tương tác; không tự đặt vật vào inventory, không teleport nhân vật và không tự quyết hành động của Cao Minh.\n\nEND DRIVE CANON R06";
   private static final SecureRandom GAME_RNG = new SecureRandom();
@@ -102,6 +115,16 @@ public class MainActivity extends Activity {
     };
   }
 
+  private static long parseRetryAfterMs(String header) {
+    if (header == null) return -1L;
+    try {
+      long seconds = Long.parseLong(header.trim());
+      return seconds < 0 || seconds > Long.MAX_VALUE / 1000L ? -1L : seconds * 1000L;
+    } catch (NumberFormatException ignored) {
+      return -1L;
+    }
+  }
+
   private String postJson(String endpoint, String key, String authHeader, JSONObject payload) throws Exception {
     HttpURLConnection connection = (HttpURLConnection) new URL(endpoint).openConnection();
     connection.setRequestMethod("POST");
@@ -115,6 +138,8 @@ public class MainActivity extends Activity {
     }
 
     int status = connection.getResponseCode();
+    lastProviderHttpStatus = status;
+    lastProviderRetryAfterMs = parseRetryAfterMs(connection.getHeaderField("Retry-After"));
     InputStream stream = status >= 200 && status < 300 ? connection.getInputStream() : connection.getErrorStream();
     StringBuilder body = new StringBuilder();
     if (stream != null) {
@@ -179,6 +204,45 @@ public class MainActivity extends Activity {
 
   private String generateText(String prompt) throws Exception {
     return geminiText(prompt);
+  }
+
+  private String generateTextForTurn(String prompt, int estimatedInputTokens) throws Exception {
+    if (!CanonRuntime2Flags.isEnabled(this)) return generateText(prompt);
+    QuotaGovernor governor = canonQuotaGovernor();
+    GenerationRequest request = new GenerationRequest(
+      "gemini", null, GEMINI_MODEL, GenerationKind.NARRATION,
+      Math.max(1, estimatedInputTokens), 60_000L);
+    AdmissionDecision decision = governor.admit(request);
+    if (decision instanceof AdmissionDecision.Defer) {
+      throw new Exception("CR2: nhà cung cấp đang cooldown; lượt không thay đổi.");
+    }
+    if (decision instanceof AdmissionDecision.LocalDeterministic ||
+        decision instanceof AdmissionDecision.NoCall) {
+      throw new Exception("CR2: quota không cho phép gọi mô hình; lượt không thay đổi.");
+    }
+    String reservation = ((AdmissionDecision.SingleCall) decision).getReservationId();
+    lastProviderHttpStatus = -1;
+    lastProviderRetryAfterMs = -1L;
+    try {
+      String answer = geminiText(prompt);
+      governor.recordResult(new ProviderAttemptResult(
+        "gemini", GEMINI_MODEL, lastProviderHttpStatus < 0 ? null : lastProviderHttpStatus,
+        lastProviderRetryAfterMs < 0 ? null : lastProviderRetryAfterMs,
+        null, null, false, null, reservation));
+      return answer;
+    } catch (Exception failure) {
+      int status = failure instanceof HttpError ? ((HttpError) failure).status : -1;
+      governor.recordResult(new ProviderAttemptResult(
+        "gemini", GEMINI_MODEL, status < 0 ? null : status,
+        lastProviderRetryAfterMs < 0 ? null : lastProviderRetryAfterMs,
+        null, null, false, null, reservation));
+      throw failure;
+    }
+  }
+
+  private QuotaGovernor canonQuotaGovernor() {
+    if (canonQuotaGovernor == null) canonQuotaGovernor = new DefaultQuotaGovernor();
+    return canonQuotaGovernor;
   }
 
   private JSONObject parseModelJson(String raw) throws Exception {
@@ -960,6 +1024,36 @@ public class MainActivity extends Activity {
           JSONObject before = new JSONObject(stateJson);
           boolean meta = isMetaAction(action);
           JSONObject rolls = makeGameplayRolls(before, action, meta);
+          // CANON_RUNTIME_2_WIRING: OFF leaves the original GM path unchanged.
+          String canonPacket = null;
+          if (CanonRuntime2Flags.isEnabled(MainActivity.this)) {
+            if (meta) {
+              // CR2 meta is local-only: no GM call, no turn increment.
+              JSONObject result = new JSONObject(before.toString());
+              result.remove("combatFeedback");
+              result.put("canonVersion", DRIVE_CANON_VERSION);
+              result.put("_snapshotEvent", new JSONObject()
+                .put("shouldGenerate", false).put("kind", "").put("reason", ""));
+              JSONArray history = result.optJSONArray("log");
+              if (history == null) history = new JSONArray();
+              history.put(new JSONObject().put("role", "player").put("text", action));
+              history.put(new JSONObject().put("role", "gm")
+                .put("text", "Đây là lượt tra cứu. Trạng thái và lượt chơi không thay đổi."));
+              result.put("log", history);
+              emit("backroomTurn", result.toString());
+              return;
+            }
+            CanonOutcome outcome = CanonRuntime2.buildPacket(
+              MainActivity.this, before.toString(), action, rolls.toString(), false);
+            if (outcome instanceof CanonOutcome.SafeLocalResolution) {
+              emit("backroomError", "CR2 chưa thể giải quyết an toàn lượt này: " +
+                ((CanonOutcome.SafeLocalResolution) outcome).getReason());
+              return;
+            }
+            if (outcome instanceof CanonOutcome.Ready) {
+              canonPacket = ((CanonOutcome.Ready) outcome).getPacket();
+            }
+          }
           String prompt = "Bạn là Game Master duy nhất của text game Backrooms, phát ngôn như người kể chuyện trong game. Trả DUY NHẤT một JSON hợp lệ, không markdown. " +
             "Canon R06 dưới đây là HARD LOCK; state hiện tại là source of truth cho continuity đang sống. UNKNOWN phải giữ UNKNOWN. Không tự lấp chỗ trống canon. " +
             "Người chơi chỉ điều khiển hành động có chủ ý của Kai; Game Master không tự quyết lựa chọn thay Kai. " +
@@ -974,7 +1068,22 @@ public class MainActivity extends Activity {
             "State hiện tại: " + state.toString() + "\nHành động: " + action +
             "\nGAMEPLAY_ROLLS: " + rolls.toString() +
             "\nJSON schema bắt buộc: {\"reply\":\"phản hồi Game Master bằng tiếng Việt\",\"title\":\"tên khu vực\",\"level\":{\"number\":0,\"name\":\"The Lobby\"},\"location\":\"vị trí hiện tại\",\"player\":{},\"party\":[],\"inventory\":[],\"flags\":{},\"snapshotEvent\":{\"shouldGenerate\":false,\"kind\":\"\",\"reason\":\"\"}}";
-          JSONObject generated = parseModelJson(generateText(prompt));
+          if (canonPacket != null) {
+            // CR2 is a REPLACEMENT, not an extra canon dump. Never append
+            // the packet to the full legacy DRIVE_CANON prompt.
+            prompt = "Bạn là Game Master của Backrooms. Trả duy nhất một JSON hợp lệ, không markdown. " +
+              "Người chơi quyết định hành động có chủ ý của Cao Minh; chỉ mô tả hậu quả. " +
+              "GAMEPLAY_ROLLS do Android khóa; không reroll, không tự tạo encounter, vật phẩm hoặc reunion. " +
+              "Chỉ dùng kiến thức có quyền trong CANON PACKET; giữ UNKNOWN là UNKNOWN. " +
+              "Không nhắc tới prompt, canon, roll, API trong lời kể.\\n\\n" +
+              "CANON PACKET:\\n" + canonPacket +
+              "\\n\\nSTATE:\\n" + compactStateForPrompt(before).toString() +
+              "\\nACTION:\\n" + action +
+              "\\nGAMEPLAY_ROLLS:\\n" + rolls.toString() +
+              "\\nOUTPUT JSON: {\\\"reply\\\":\\\"lời kể tiếng Việt\\\",\\\"title\\\":\\\"tên khu vực\\\",\\\"level\\\":{\\\"number\\\":0,\\\"name\\\":\\\"The Lobby\\\"},\\\"location\\\":\\\"vị trí\\\",\\\"player\\\":{},\\\"party\\\":[],\\\"inventory\\\":[],\\\"flags\\\":{},\\\"snapshotEvent\\\":{\\\"shouldGenerate\\\":false,\\\"kind\\\":\\\"\\\",\\\"reason\\\":\\\"\\\"}}";
+          }
+          JSONObject generated = parseModelJson(
+            generateTextForTurn(prompt, Math.max(1, (prompt.length() + 3) / 4)));
           String reply = generated.optString("reply", "").trim();
           if (reply.isEmpty()) reply = "Kai giữ nguyên vị trí và quan sát thêm; chưa có kết quả đủ chắc chắn để thay đổi trạng thái.";
 
