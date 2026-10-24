@@ -107,6 +107,33 @@ object EquipmentCatalog {
       canonRef = "CAO_MINH_CODEX R17", iconRef = "https://res.cloudinary.com/csz2me5b/image/upload/v1792832698/Item_Huyet_Ma_Khai.webp"
     ),
     EquipmentDefinition(
+      id = CAO_MINH_HUYET_MA_GAUNTLETS_ID, name = "Găng Huyết Ma",
+      type = "BỘ PHẬN LIÊN KẾT HUYẾT MA CHIẾN KHẢI", primarySlot = EquipmentSlot.GAUNTLETS,
+      abilities = listOf(
+        ability("Ma Trảo", "Giáp ở cẳng tay và bàn tay hóa trảo để cắt, bám, khóa hoặc xé pháp khí ở cự ly gần."),
+        ability("Huyết Ấn", "Ma niệm trong lòng bàn tay tác động vật vô chủ hoặc vật đã khóa bằng thần thức trong phạm vi gần.")
+      ),
+      restrictions = listOf(
+        "Là bộ phận liên kết của Huyết Ma Chiến Khải, không phải pháp bảo độc lập.",
+        "Không cộng thêm chỉ số hoặc nhân đôi năng lực Ma Trảo/Huyết Ấn của Chiến Khải."
+      ),
+      canonRef = "CAO_MINH_CODEX R17 §10",
+      iconRef = "https://res.cloudinary.com/csz2me5b/image/upload/v1792832619/Item_Cao_Minh_Huyet_Ma_Gauntlets.webp"
+    ),
+    EquipmentDefinition(
+      id = CAO_MINH_HUYET_MA_BOOTS_ID, name = "Giày Huyết Ma",
+      type = "BỘ PHẬN LIÊN KẾT HUYẾT MA CHIẾN KHẢI", primarySlot = EquipmentSlot.GREAVES,
+      abilities = listOf(
+        ability("Đạp Hư Ma Văn", "Ma văn ở chân hỗ trợ bộc phát thân pháp, đạp lên ma nguyên ngưng tụ, đổi hướng giữa không trung và giảm lực tiếp đất.")
+      ),
+      restrictions = listOf(
+        "Là bộ phận liên kết của Huyết Ma Chiến Khải, không phải pháp bảo độc lập.",
+        "Không cộng thêm chỉ số hoặc nhân đôi hiệu ứng Đạp Hư Ma Văn của Chiến Khải."
+      ),
+      canonRef = "CAO_MINH_CODEX R17 §10",
+      iconRef = "https://res.cloudinary.com/csz2me5b/image/upload/v1792832622/Item_Cao_Minh_Huyet_Ma_Boots.webp"
+    ),
+    EquipmentDefinition(
       id = CAO_MINH_VAN_KHO_GIOI_CHI_ID, name = "Vạn Khố Giới Chỉ", type = "PHÁP BẢO KHÔNG GIAN", primarySlot = EquipmentSlot.RING,
       abilities = listOf(
         ability("Vạn Khố", "Lưu trữ vật vô tri với dung lượng không giới hạn theo canon; không tác động sinh vật sống."),
@@ -190,6 +217,8 @@ object EquipmentCatalog {
     CAO_MINH_ID -> linkedMapOf(
       EquipmentSlot.WEAPON to CAO_MINH_HUYET_MA_KIEM_ID,
       EquipmentSlot.ARMOR to CAO_MINH_HUYET_MA_CHIEN_KHAI_ID,
+      EquipmentSlot.GAUNTLETS to CAO_MINH_HUYET_MA_GAUNTLETS_ID,
+      EquipmentSlot.GREAVES to CAO_MINH_HUYET_MA_BOOTS_ID,
       EquipmentSlot.RING to CAO_MINH_VAN_KHO_GIOI_CHI_ID
     )
     LUC_TRAM_ID -> linkedMapOf(EquipmentSlot.WEAPON to LUC_TRAM_TICH_QUANG_SET_ID, EquipmentSlot.ARMOR to LUC_TRAM_KIEM_KHAI_ID)
@@ -362,7 +391,7 @@ object EquipmentEngine {
 }
 
 object CharacterEquipmentSystem {
-  private const val SCHEMA_VERSION = "2-core-stats-1193a"
+  private const val SCHEMA_VERSION = "3-canon-linked-gear"
 
   fun seedFresh(state: GameState): GameState = normalizeInternal(state, seedStarting = true, fresh = true)
   fun normalize(state: GameState): GameState =
