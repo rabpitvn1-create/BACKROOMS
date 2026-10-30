@@ -11,25 +11,32 @@ Note: Android `classes*.dex` are compiled bytecode, not the original Kotlin/Java
 
 ## GitHub Pages
 
-The `Deploy GitHub Pages` workflow stages `web/` into `build/pages` and adds a
-browser-only preview notice and the download link for APK debug 1.0.0.0.
-The Android APK inputs and debug release are unchanged.
+Play now: https://rabpitvn1-create.github.io/Backrooms/
 
-This deployment is a recovered UI preview. The current repository still needs
-a compatible browser gameplay runtime for turns, combat, progression, and item
-actions. Native action controls are disabled on the preview; local UI inspection
-and menu navigation remain available. The page does not claim APK gameplay parity.
+The Pages build is a playable browser port of the recovered APK. TeaVM compiles
+the original gameplay core into JavaScript. A browser bridge supplies local
+storage, original canon assets, Unicode regular expressions, and Gemini narration.
+Turns, travel, party rules, inventory, core stats and combat use the recovered core.
 
-Expected address: https://rabpitvn1-create.github.io/Backrooms/
+The six Secrets `GEMINI_API_KEY_1` through `GEMINI_API_KEY_6` are used in order.
+Argon is disabled. The owner explicitly approved publishing these six keys in
+the browser runtime configuration on 2026-10-30. No old provider key is reused.
 
-Enable GitHub Pages with source **GitHub Actions** in the repository's
-Settings → Pages. The workflow uses standard Pages permissions and deploys after
-mobile/desktop browser checks under the `/Backrooms/` repository subpath.
-Pages enablement itself requires repository administration and cannot be
-performed by the default Actions token.
+The deployment workflow rebuilds the core, verifies gameplay and key failover,
+tests mobile and desktop browser interactions, and completes a real AI turn before
+deployment. It also verifies a real AI turn on the published Pages URL.
+Browser evidence is attached to each workflow run.
 
-Local staging: `python3 scripts/build_pages.py`.
+To stage fixture-only tests locally:
+```sh
+python3 scripts/prepare_web_engine.py
+mvn -B -f engine/pom.xml package
+node scripts/test_engine.cjs
+python3 scripts/build_pages.py --test-config
+```
 
+For a configured local build, pass `--config path/to/runtime.json` containing
+a `keys` array of six distinct strings. Generated outputs are not committed.
 
 ## Personal Android debug release 1.0.0.0
 

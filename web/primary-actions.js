@@ -27,7 +27,7 @@
   // Only model identity is visible. Provider key aliases and internal routing are hidden.
   function displayModel(raw) {
     let model = String(raw || '').trim();
-    const routed = /^Gemini K[1-5] · (gemini-[a-z0-9.-]+)$/i.exec(model);
+    const routed = /^Gemini K[1-6] · (gemini-[a-z0-9.-]+)$/i.exec(model);
     if (routed) model = routed[1];
     if (model === 'Gehihi' || !/^[a-z][a-z0-9._:\/-]{1,119}$/i.test(model)) return null;
     model = model.replace(/^models\//i, '').split('/').pop();
