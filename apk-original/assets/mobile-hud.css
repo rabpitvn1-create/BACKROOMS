@@ -1,0 +1,102 @@
+/* Stable Snapshot layers and a genuinely accessible mobile HUD. */
+#snapshot { position:relative; isolation:isolate; border-radius:10px; }
+/* Keep one shared stacking context: background < Entity < Entity FX < Party. */
+.snapshot-stage { position:absolute; inset:0; overflow:hidden; pointer-events:none; }
+.snapshot-stage img.snapshot-background-img {
+  position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0;
+}
+.snapshot-stage img.snapshot-player-overlay {
+  position:absolute; bottom:var(--sprite-bottom,3%); right:var(--sprite-offset,1%); left:auto; width:var(--sprite-width,auto); max-width:none; height:var(--sprite-height,94%);
+  object-fit:contain; object-position:right bottom; z-index:3;
+}
+.snapshot-stage img.snapshot-entity {
+  position:absolute; bottom:var(--sprite-bottom,3%); left:var(--sprite-offset,1%); right:auto; width:var(--sprite-width,auto); max-width:none; height:var(--sprite-height,94%);
+  object-fit:contain; object-position:left bottom; z-index:1;
+}
+.snapshot-scene-label {
+  position:absolute; top:9px; left:9px; right:9px; width:max-content; max-width:calc(100% - 18px);
+  padding:5px 7px; font-size:9px; font-weight:700; letter-spacing:.06em;
+  border-radius:4px; color:#cbd7dc; background:#080c0dbb; z-index:4;
+}
+.snapshot-scene-label[hidden] { display:none; }
+.topbar-controls { display:flex; align-items:center; flex:none; }
+.mobile-menu-close { display:none; }
+.mobile-menu-backdrop[hidden],.startup-recovery[hidden] { display:none!important; }
+.startup-recovery {
+  margin:10px; padding:14px; display:grid; gap:10px; border:1px solid #aa774c;
+  border-radius:7px; background:#252016; color:#ffead5;
+}
+.startup-recovery strong { font-size:14px; }
+.startup-recovery p { margin:0; font-size:13px; line-height:1.5; }
+.startup-recovery button { width:100%; background:#403020; color:#ffe5cb; border-color:#9c754e; }
+html,body { height:100%; overflow:hidden; }
+.shell { height:100dvh; min-height:0; padding:0; }
+.game { height:100%; min-height:0; display:flex; flex-direction:column; border:0; }
+.topbar { height:47px; min-height:47px; padding:2px max(12px,env(safe-area-inset-right),var(--android-safe-right,0px)) 2px max(12px,env(safe-area-inset-left),var(--android-safe-left,0px)); align-items:center; background:linear-gradient(90deg,#080a08ed,#080a0880),url('hud/player_action_backrooms.png') center/cover; }
+/* Header shares the camera row; keep its centre clear for the punch hole. */
+.topbar-title { min-width:0; max-width:calc(50% - 24px); }
+.topbar .eyebrow { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:8px; line-height:1.2; color:#c4bd96; }
+.topbar h1 { margin:2px 0 0;font-size:16px; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.game>.topbar,.game>.composer,.game>.status { flex:none; }
+.game>.snapshot { flex:0 0 300px; height:300px; min-height:300px; }
+.game>.log { flex:1; min-height:0; height:auto; align-content:start; }
+.composer textarea { min-height:52px; max-height:14dvh; resize:vertical; }
+.primary-action-row { display:grid; grid-template-columns:1fr 1.12fr 1fr; gap:7px; }
+.primary-action { min-width:0; min-height:48px; padding:10px 8px; display:flex; align-items:center; justify-content:center; gap:8px; white-space:nowrap; }
+.action-icon { display:block; flex:0 0 22px; width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.action-icon-ai text { fill:currentColor; stroke:none; font-size:9px; font-weight:800; }
+.action-icon-footsteps { fill:currentColor; stroke:none; }
+.primary-action.execute-action { background:#253038; border-color:#65747e; }
+.player-action-bar {
+  flex:none; padding:10px 10px max(10px,env(safe-area-inset-bottom),var(--android-safe-bottom,0px)); border-top:1px solid #4b4936;
+  background:linear-gradient(#080a08cc,#080a08e8),url('hud/player_action_backrooms.png') center/cover;
+}
+.player-action-bar .primary-action { border-radius:999px; background:#1c221edb; border-color:#696348; color:#eee9ce; }
+.player-action-bar .execute-action { background:#30372ddd; color:#fff1b8; }
+.provider-activity { margin-bottom:7px; color:#d5c895; font-size:11px; }
+.provider-activity[hidden] { display:none; }
+.follower-invite-actions[hidden] { display:none; }
+.follower-invite-actions { display:flex; flex-wrap:wrap; gap:6px; margin:0 0 8px; }
+.follower-invite-actions button { flex:1; min-width:150px; padding:7px 10px; border-radius:8px;
+  font-size:12px; border-color:#9b8150; background:#211d13; color:#f7e8bb; }
+.player-action-modal[hidden] { display:none; }
+.player-action-modal { position:fixed; inset:0; z-index:130; display:flex; align-items:flex-start; justify-content:center; }
+.player-action-modal.keyboard-visible { align-items:flex-start; }
+.player-action-modal .player-action-sheet { margin-top:10px; max-height:calc(100% - 20px); border-radius:9px; }
+.player-action-modal.keyboard-visible .player-action-sheet { margin-top:6px; max-height:calc(100% - 12px); }
+.player-action-modal.keyboard-visible textarea { min-height:64px; max-height:24dvh; }
+.player-action-backdrop { position:absolute; inset:0; background:#000b; }
+.player-action-sheet { position:relative; width:min(100%,680px); max-height:100%; overflow:auto; padding:14px; background:#0e1114; border:1px solid #465057; border-radius:8px; }
+.player-action-head { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.player-action-head h2 { margin:0; font-size:14px; letter-spacing:.1em; }
+.player-action-sheet .composer { padding:10px 0 0; }
+.player-action-sheet textarea { min-height:110px; max-height:35dvh; }
+.composer-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.game>.status { position:absolute; width:1px; height:1px; padding:0; overflow:hidden; clip-path:inset(50%); }
+.equipment-card-icon img,.equipment-detail-icon img { display:block; width:100%; height:100%; object-fit:contain; }
+/* Android uses one HUD at every WebView width. */
+  .mobile-menu-trigger {
+    display:grid; place-items:center; width:42px; height:42px; padding:9px;
+    background:#101415; border-color:#4c5559; border-radius:10px;
+  }
+  .mobile-menu-trigger svg { width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:2.5; }
+  .mobile-menu-close {
+    display:block; position:sticky; top:0; margin-left:auto; padding:8px 12px;
+    background:#283139; z-index:2;
+  }
+  .mobile-menu-backdrop {
+    position:fixed; inset:0; background:#000a; border:0; z-index:119;
+    width:100%; height:100%; padding:0;
+  }
+  .side { display:none; }
+  body.mobile-menu-open { overflow:hidden; }
+  body.mobile-menu-open .side {
+    display:grid; position:fixed; inset:0; z-index:120; overflow-y:auto;
+    overscroll-behavior:contain; padding:12px 12px max(18px,env(safe-area-inset-bottom));
+    margin:0; align-content:start; background:#0b0e10; gap:10px;
+  }
+@media (max-width:360px) {
+  .primary-action { font-size:12px; gap:5px; padding:10px 5px; }
+  .action-icon { width:18px; height:18px; flex-basis:18px; }
+}
+

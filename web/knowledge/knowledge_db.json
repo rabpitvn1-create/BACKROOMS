@@ -1,0 +1,3971 @@
+{
+  "schemaVersion": 2,
+  "records": [
+    {
+      "id": "GAME.TEXT.CORE",
+      "domain": "GAME_RULE",
+      "kind": "hard-lock",
+      "text": "Text Game authority: user instruction, Text Game rules, GM rules, live save/campaign state, then on-demand canon. Player controls Cao Minh's intentional actions; GM controls world, Entity, survivor/NPC and consequences. Do not nerf canon abilities, invent facts, reset consequences, cheat dice, or fill UNKNOWN. Gameplay normally retrieves only needed canon rather than scanning the whole corpus.",
+      "source": {
+        "document": "05_TextGame/RULES/TEXT_GAME_RULES.md",
+        "anchor": "1-12",
+        "document_id": "TEXT_GAME_RULES",
+        "content_sha256": null,
+        "verification": "SOURCE_NOT_FOUND_ON_DRIVE",
+        "missing_note": "Tài liệu nguồn không còn trên Google Drive tại snapshot 2026-10-24 (thư mục TextGame/RULES, TextGame/STORY trống; items.md không tồn tại). Không thay thế bằng tài liệu khác."
+      },
+      "authority": "TEXT_GAME_HARD_LOCK",
+      "mutability": "IMMUTABLE",
+      "priority": 10,
+      "tags": [
+        "gameplay",
+        "authority",
+        "player agency",
+        "unknown"
+      ],
+      "references": [],
+      "affordances": [],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "GAME.TEXT.CORE",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "META",
+      "review_status": "PENDING_SOURCE_SNAPSHOT"
+    },
+    {
+      "id": "GAME.GM.FAIRNESS",
+      "domain": "GAME_RULE",
+      "kind": "hard-lock",
+      "text": "GM fairness: Canon/State -> real conditions -> dice only for remaining uncertainty -> consequence. No player magnetism, retroactive world edits, fake choices, counter-build cheating, automatic party joins, NPC wiki knowledge, retroactive expertise, or threat teleporting without a canon/path/time basis. Persist environment, traces, entities, relationships, knowledge and consequences. Allow quiet safety when state and rolls permit it.",
+      "source": {
+        "document": "05_TextGame/RULES/GAME_MASTER_RULES.md",
+        "anchor": "1-15",
+        "document_id": "GAME_MASTER_RULES",
+        "content_sha256": null,
+        "verification": "SOURCE_NOT_FOUND_ON_DRIVE",
+        "missing_note": "Tài liệu nguồn không còn trên Google Drive tại snapshot 2026-10-24 (thư mục TextGame/RULES, TextGame/STORY trống; items.md không tồn tại). Không thay thế bằng tài liệu khác."
+      },
+      "authority": "GM_HARD_LOCK",
+      "mutability": "IMMUTABLE",
+      "priority": 10,
+      "tags": [
+        "fairness",
+        "persistence",
+        "npc autonomy",
+        "information integrity"
+      ],
+      "references": [],
+      "affordances": [],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "GAME.GM.FAIRNESS",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "META",
+      "review_status": "PENDING_SOURCE_SNAPSHOT"
+    },
+    {
+      "id": "WRITING.PLAYER_AGENCY",
+      "domain": "WRITING",
+      "kind": "hard-lock",
+      "text": "Do not choose Cao Minh's intentional action for the player. Resolve what Cao Minh can perceive from the chosen action before asking for the next choice. Menus are suggestions, not rails; free-form methods are valid, but the player cannot declare an unconfirmed result as already true.",
+      "source": {
+        "document": "05_TextGame/RULES/TEXT_GAME_RULES.md + 05_TextGame/RULES/GAME_MASTER_RULES.md",
+        "anchor": "TEXT_GAME_RULES 4; GM_RULES 2",
+        "document_id": "TEXT_GAME_RULES",
+        "content_sha256": null,
+        "verification": "SOURCE_NOT_FOUND_ON_DRIVE",
+        "missing_note": "Tài liệu nguồn không còn trên Google Drive tại snapshot 2026-10-24 (thư mục TextGame/RULES, TextGame/STORY trống; items.md không tồn tại). Không thay thế bằng tài liệu khác."
+      },
+      "authority": "TEXT_GAME_HARD_LOCK",
+      "mutability": "IMMUTABLE",
+      "priority": 12,
+      "tags": [
+        "player agency",
+        "choice"
+      ],
+      "references": [],
+      "affordances": [],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "WRITING.PLAYER_AGENCY",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "META",
+      "review_status": "PENDING_SOURCE_SNAPSHOT"
+    },
+    {
+      "id": "WRITING.KNOWLEDGE_BOUNDARY",
+      "domain": "WRITING",
+      "kind": "hard-lock",
+      "text": "Characters know only what their background, direct observation, testimony, validated ability/device evidence, or reasonable inference supports. Backstage canon is not character knowledge. Preserve uncertainty level: reported/inferred/uncertain does not become fact. Do not turn knowledge-state labels or source metadata into dialogue.",
+      "source": {
+        "document": "00_RULES/worldcodex.md + 00_RULES/Những điều bắt buộc không được làm khi viết tiểu thuyết.md + 00_RULES/CONVERSATION.MD",
+        "anchor": "KNOWLEDGE BOUNDARY; NOVEL.KNOWLEDGE; 14-16",
+        "document_id": "WORLDCODEX",
+        "content_sha256": "7944609d827408a588deaa876cde4bb0afb84c8d93a157cf4ba574ac28aaaaa1",
+        "snapshot_path": "android-apk/canon_sources/Rules/worldcodex.md",
+        "verification": "ANCHOR_LITERAL"
+      },
+      "authority": "WRITING_HARD_LOCK",
+      "mutability": "IMMUTABLE",
+      "priority": 12,
+      "tags": [
+        "knowledge",
+        "knowledge leak",
+        "pov",
+        "uncertainty"
+      ],
+      "references": [],
+      "affordances": [],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "WRITING.KNOWLEDGE_BOUNDARY",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "META",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "WRITING.COMPETENCE",
+      "domain": "WRITING",
+      "kind": "hard-lock",
+      "text": "Never make a competent character forget established skills, equipment, experience, obvious options or canonical abilities merely to create danger. If a tool cannot solve a problem, the reason must come from real information limits, environment, conflicting objectives, protected people, injury, cost, or another established constraint. Horror must not be maintained by withholding competence.",
+      "source": {
+        "document": "00_RULES/Những điều bắt buộc không được làm khi viết tiểu thuyết.md + 00_RULES/worldcodex.md + 00_RULES/Supernatural_Horror_Craft_Guide.md",
+        "anchor": "NOVEL.COMPETENCE.NO_SUDDEN_STUPIDITY; 7; SH-SUSPENSE-01",
+        "document_id": "NHUNG_IEU_BAT_BUOC_KHONG_UOC_LAM_KHI_VIET_TIEU_THUYET",
+        "content_sha256": "59fa8b174cf7a1deafd580349c73a6a46f5c1b7671154f6a07c5a011a5d2c32c",
+        "snapshot_path": "android-apk/canon_sources/Rules/Những điều bắt buộc không được làm khi viết tiểu thuyết.md",
+        "verification": "ANCHOR_LITERAL"
+      },
+      "authority": "WRITING_HARD_LOCK",
+      "mutability": "IMMUTABLE",
+      "priority": 12,
+      "tags": [
+        "competence",
+        "ability",
+        "equipment",
+        "horror"
+      ],
+      "references": [],
+      "affordances": [],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "WRITING.COMPETENCE",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "META",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "WRITING.DIALOGUE",
+      "domain": "WRITING",
+      "kind": "runtime-rule",
+      "text": "Dialogue authority is CONVERSATION.MD. Speak as the actual person in the current situation, not as a canon interface or an optimized psychological explanation. Keep address from active relationship canon. Dialogue may be direct, ordinary, slightly circular, interrupted by practical life, or unresolved when appropriate; do not manufacture fragmentary 'cool' speech, exposition packages, or pre-solved conversation beats.",
+      "source": {
+        "document": "00_RULES/CONVERSATION.MD",
+        "anchor": "RULES.DIALOGUE / 0-32",
+        "document_id": "CONVERSATION",
+        "content_sha256": "378d61baffa7d48edcd3479b5b95321d83c424880d24ac30d133cad80d28978e",
+        "snapshot_path": "android-apk/canon_sources/Rules/CONVERSATION.MD",
+        "verification": "ANCHOR_UNVERIFIED"
+      },
+      "authority": "DIALOGUE_AUTHORITY",
+      "mutability": "IMMUTABLE",
+      "priority": 35,
+      "tags": [
+        "dialogue",
+        "address",
+        "voice"
+      ],
+      "references": [],
+      "affordances": [
+        "dialogue"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "WRITING.DIALOGUE",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "META",
+      "review_status": "SOURCE_SNAPSHOTTED_ANCHOR_UNVERIFIED"
+    },
+    {
+      "id": "WORLD.CORE",
+      "domain": "WORLD",
+      "kind": "hard-canon",
+      "text": "Backrooms origin is never confirmed. Levels are survivor labels for recognizable regions within one vast continuous reality, not sealed boxes; boundaries and routes can drift. Architecture, local rules, time and memory may deviate. Human biology still matters: hunger, thirst, blood loss, infection, heat, cold, exhaustion and sleep deprivation can kill. Copies of people can exist; there is no absolute method to prove an original. Death has no single universal outcome.",
+      "source": {
+        "document": "01_WORLD/world.md",
+        "anchor": "0.1-0.5",
+        "document_id": "WORLD",
+        "content_sha256": "1718bd1801fd1cf926bb85d47e2055c7c580b8db90afcc9df664781db5078fc9",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/BACKROOMS_WORLD.md",
+        "verification": "CONTENT_MATCH"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 20,
+      "tags": [
+        "backrooms",
+        "world",
+        "level",
+        "biology",
+        "memory",
+        "death"
+      ],
+      "references": [],
+      "affordances": [],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "WORLD",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "STORY.MAIN.OBJECTIVE",
+      "domain": "STORY",
+      "kind": "baseline-objective",
+      "text": "Initial long-term objectives for Cao Minh: priority one is to find Lục Trầm. After the Lôi Thiên Vực array collapse he poured his own đạo hạnh and ma khí into her to save her, then woke alone in the Backrooms; he has no confirmed knowledge of whether she survived, where she is, or that she lost her memory of him. Beyond that: survive and learn enough of the environment to move; determine Syvial's condition; find/re-establish a route to reunite if possible; understand Backrooms exit rules; ultimately bring himself and Lục Trầm back to their origin world; and seek communication or a route back to Frontrooms only if gameplay/canon truly supports it. None is guaranteed to complete quickly.",
+      "source": {
+        "document": "01_Character/CAO_MINH_CODEX.md",
+        "anchor": "19.3; CAO-PRO-R18",
+        "document_id": "CAO_MINH_CODEX",
+        "content_sha256": "c8b4172d6f3df4dc3bc274331a0228712c518fe9ed8401c7b20fc2112e78b84a",
+        "snapshot_path": "android-apk/canon_sources/Asset/01_Character/CAO_MINH_CODEX.md",
+        "verification": "ANCHOR_LITERAL"
+      },
+      "authority": "STORY_CANON",
+      "mutability": "BASELINE",
+      "priority": 42,
+      "tags": [
+        "objective",
+        "main campaign",
+        "cao-minh",
+        "luc-tram",
+        "syvial",
+        "exit"
+      ],
+      "references": [],
+      "affordances": [],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "STORY.MAIN.OBJECTIVE",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "STORY.MAIN.SEPARATION",
+      "domain": "STORY",
+      "kind": "baseline-continuity",
+      "text": "Cao Minh, Lục Trầm and Syvial are separated in the Backrooms. Cao Minh entered after the Lôi Thiên Vực collapse and his attempt to revive Lục Trầm, and woke alone; he does not know Lục Trầm's or Syvial's location/Level. Writer-level facts he does NOT know: Lục Trầm survived, has begun nhập ma, and has forgotten everything about him. Lục Trầm and Syvial exist in the campaign from the Prologue and are separated, not first-spawned by survivor RNG. Direct links to the origin world/Frontrooms, beacon and outside telemetry are initially offline. Re-establishing contact or reunion requires continuity/geography/state support; rarity rolls never teleport them and no auto-reunion is forced.",
+      "source": {
+        "document": "01_Character/CAO_MINH_CODEX.md",
+        "anchor": "19.1-19.2; CAO-PRO-R18",
+        "document_id": "CAO_MINH_CODEX",
+        "content_sha256": "c8b4172d6f3df4dc3bc274331a0228712c518fe9ed8401c7b20fc2112e78b84a",
+        "snapshot_path": "android-apk/canon_sources/Asset/01_Character/CAO_MINH_CODEX.md",
+        "verification": "ANCHOR_LITERAL"
+      },
+      "authority": "STORY_CANON",
+      "mutability": "BASELINE",
+      "priority": 38,
+      "tags": [
+        "main campaign",
+        "separated",
+        "communication",
+        "cao-minh",
+        "luc-tram",
+        "syvial"
+      ],
+      "references": [],
+      "affordances": [],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "STORY.MAIN.SEPARATION",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "CHAR.CAO_MINH.RUNTIME_CORE",
+      "domain": "CHARACTER",
+      "kind": "runtime-card",
+      "text": "Cao Minh — Vạn Giới Ma Tôn: a Ma Đạo Kiếm Tu (demonic-path sword cultivator) who had already become the number-one powerhouse of his origin world before falling into the Backrooms. He belongs to no sect, faction or organisation; the title is recognised, not conferred. Bloodline: half-human/half-demon, tied to the Vạn Quỷ Ma Tôn inheritance — KNOWLEDGE LOCK: not public knowledge, and Vạn Quỷ Ma Tôn is the inheritance source, not his own title. True age unknown; he appears about 30. His central power source is Vạn Quỷ Ma Tâm; his bản mệnh sword is Huyết Ma Kiếm. In daily life he is unrestrained, lazy, fond of strong wine and dryly teasing toward anything pompous or fake; when danger is real he stops performing and solves the problem by the shortest path. He does not consider himself a hero and does not let 'righteous' or 'demonic' labels replace his own judgment of concrete choices. He retains full control of himself and his demonic power at all times. After pouring his đạo hạnh into Lục Trầm, his cultivation is depleted — DYNAMIC state: he recovers only gradually in the Backrooms; do not erase the depletion with his full-power baseline and do not invent a fixed recovery rate. He has no default knowledge of Backrooms Levels, Entities or rules. Do not make him a reckless idiot, a moralising hero-mouthpiece, a therapy voice, a fragment-speaking quote machine, or a puppet whose intentional actions GM chooses for the player.",
+      "source": {
+        "document": "01_Character/CAO_MINH_CODEX.md",
+        "anchor": "CAO-QUICK-01; CAO-ID-01; CAO-PER-01; CAO-ACTION-LOCK-01",
+        "document_id": "CAO_MINH_CODEX",
+        "content_sha256": "c8b4172d6f3df4dc3bc274331a0228712c518fe9ed8401c7b20fc2112e78b84a",
+        "snapshot_path": "android-apk/canon_sources/Asset/01_Character/CAO_MINH_CODEX.md",
+        "verification": "ANCHOR_LITERAL"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 20,
+      "tags": [
+        "cao-minh",
+        "van gioi ma ton",
+        "present core",
+        "voice"
+      ],
+      "references": [],
+      "affordances": [],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.CAO_MINH",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "CHAR.CAO_MINH.VAN_QUY_MA_TAM",
+      "domain": "CHARACTER",
+      "kind": "ability",
+      "text": "Vạn Quỷ Ma Tâm is Cao Minh's Đạo Cơ, Ma Hải and true source of ma nguyên, seated in his chest but not an ordinary heart; its deep origin ties to the Vạn Quỷ Ma Tôn inheritance — KNOWLEDGE LOCK. It supplies an extremely large, continuous flow of ma nguyên, converting ambient linh khí into his own. Current canon sets NO intrinsic cap, depletion state, use count, cooldown or backlash for it — do not invent a mana bar, exhaustion or corruption merely to balance him. It enhances strength, speed, reflexes, senses, thần thức and combat reading; supports regeneration of flesh, meridians and, while his bản nguyên survives, gradual repair of soul injury; nourishes and gradually restores his linked bản mệnh pháp bảo (Huyết Ma Chiến Khải, Huyết Ma Kiếm, Vạn Tàng Giới); and synchronises Huyết Ma Kiếm with his thần niệm and ma nguyên. Vast power does not equal omniscience or automatic success at objectives constrained by information, environment or people to protect. If the Ma Tâm is ever blocked, the cause must come from external law, seals, bản nguyên injury or canon outside this mechanism.",
+      "source": {
+        "document": "01_Character/CAO_MINH_CODEX.md",
+        "anchor": "CAO-CORE-VQM-01; CAO-WEAK-01",
+        "document_id": "CAO_MINH_CODEX",
+        "content_sha256": "c8b4172d6f3df4dc3bc274331a0228712c518fe9ed8401c7b20fc2112e78b84a",
+        "snapshot_path": "android-apk/canon_sources/Asset/01_Character/CAO_MINH_CODEX.md",
+        "verification": "ANCHOR_LITERAL"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 44,
+      "tags": [
+        "cao-minh",
+        "van quy ma tam",
+        "ma nguyen"
+      ],
+      "references": [],
+      "affordances": [
+        "direct_threat"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.CAO_MINH",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "CHAR.CAO_MINH.VAN_QUY_MA_THAN",
+      "domain": "CHARACTER",
+      "kind": "ability",
+      "text": "Vạn Quỷ Ma Thân is Cao Minh's full release of the Vạn Quỷ Ma Tâm: he stops suppressing his own demonic-path bản nguyên. Ma văn spreads over his Chiến Khải and body, his pupils burn red and his ma khí becomes visible. It strongly enhances strength, durability, damage tolerance and regeneration, explosive speed and mid-air direction change, reflexes, thần thức, focus and mental pressure on opponents. It is not a possession, a second personality or a trade of sanity for power: he keeps his identity, memory, personality and judgment — no berserk, no corruption, no loss of control. Current codex gives it no intrinsic maximum duration, mandatory rest between releases or backlash; do not add those limits. If a situation ever prevents the release, the cause must come from canon outside this state.",
+      "source": {
+        "document": "01_Character/CAO_MINH_CODEX.md",
+        "anchor": "CAO-VQMS-01",
+        "document_id": "CAO_MINH_CODEX",
+        "content_sha256": "c8b4172d6f3df4dc3bc274331a0228712c518fe9ed8401c7b20fc2112e78b84a",
+        "snapshot_path": "android-apk/canon_sources/Asset/01_Character/CAO_MINH_CODEX.md",
+        "verification": "ANCHOR_LITERAL"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 48,
+      "tags": [
+        "cao-minh",
+        "van quy ma than",
+        "release"
+      ],
+      "references": [],
+      "affordances": [
+        "direct_threat"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.CAO_MINH",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "CHAR.CAO_MINH.HUYET_MA_NHI_THAP_TU_TRAM",
+      "domain": "CHARACTER",
+      "kind": "ultimate",
+      "text": "Huyết Ma Nhị Thập Tứ Trảm is Cao Minh's finishing art: exactly 24 cuts with Huyết Ma Kiếm while external time is completely stopped, performed after he releases Vạn Quỷ Ma Thân. Each cut may be a direct sword strike, Huyết Sát Ma Khí or a thần niệm-guided sword trajectory, allocated across breaking stance, breaking guards, hitting weak points and the finishing blow; the total is always exactly 24 and no trajectory depends on the target moving while time is stopped. Observers see no interval: all 24 results manifest when external time resumes. Do not alter the cut count or invent a lesser time-slow substitute without retcon.",
+      "source": {
+        "document": "01_Character/CAO_MINH_CODEX.md",
+        "anchor": "CAO-ULT-HUYETMA24-01",
+        "document_id": "CAO_MINH_CODEX",
+        "content_sha256": "c8b4172d6f3df4dc3bc274331a0228712c518fe9ed8401c7b20fc2112e78b84a",
+        "snapshot_path": "android-apk/canon_sources/Asset/01_Character/CAO_MINH_CODEX.md",
+        "verification": "ANCHOR_LITERAL"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 54,
+      "tags": [
+        "cao-minh",
+        "huyet ma nhi thap tu tram",
+        "ultimate"
+      ],
+      "references": [
+        "CHAR.CAO_MINH.VAN_QUY_MA_THAN",
+        "CHAR.CAO_MINH.HUYET_MA_KIEM"
+      ],
+      "affordances": [
+        "high_tier_target"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.CAO_MINH",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "CHAR.CAO_MINH.HUYET_MA_KIEM",
+      "domain": "CHARACTER",
+      "kind": "equipment",
+      "text": "Huyết Ma Kiếm is Cao Minh's bản mệnh demonic greatsword: a straight, wide blade of black huyền thiết/Ma Kim with red huyết văn running from hilt to tip and a Ma Luân around a blood crystal at the guard; when he circulates ma nguyên the wheel lights and every ma văn on the sword wakes. It fights in three modes: kiếm thể (direct cuts, thrusts, parries, locks and pháp khí-breaking), ngự kiếm (thần niệm-guided flight, hovering, direction change and pursuit when a valid target trace exists) and Huyết Sát Ma Khí (ma-energy coating that sharpens/extends the edge or is released as sword pressure). It is a real symbiotic bản mệnh weapon, not an illusion and not a conventional arm with ammunition or material-supply limits. If damaged, the Vạn Quỷ Ma Tâm gradually regenerates this same sword; the mechanism never creates a second one.",
+      "source": {
+        "document": "01_Character/CAO_MINH_CODEX.md",
+        "anchor": "CAO-EQP-HUYET-MA-KIEM-01",
+        "document_id": "CAO_MINH_CODEX",
+        "content_sha256": "c8b4172d6f3df4dc3bc274331a0228712c518fe9ed8401c7b20fc2112e78b84a",
+        "snapshot_path": "android-apk/canon_sources/Asset/01_Character/CAO_MINH_CODEX.md",
+        "verification": "ANCHOR_LITERAL"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 50,
+      "tags": [
+        "cao-minh",
+        "huyet ma kiem",
+        "greatsword",
+        "ma kiem"
+      ],
+      "references": [
+        "CHAR.CAO_MINH.VAN_QUY_MA_TAM"
+      ],
+      "affordances": [
+        "direct_threat"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.CAO_MINH",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "CHAR.CAO_MINH.HUYET_MA_CHIEN_KHAI",
+      "domain": "CHARACTER",
+      "kind": "equipment",
+      "text": "Huyết Ma Chiến Khải is Cao Minh's bản mệnh Ma Khải, refined from Ma Kim, his tinh huyết and ma nguyên. Hidden inside his body outside combat; when summoned, ma văn spreads from the Vạn Quỷ Ma Tâm and black-red Ma Kim plates condense around him. It works as a second skin synchronised with his body and intent, not a heavy shell: it channels ma nguyên into muscles, bones and meridians, amplifies explosive force and grip, disperses impact across layered plates and protects vitals and meridians without restricting the shoulder, hip, knee and ankle range his sword work needs. Forearm and hand plates can extend into Ma Trảo for cutting, gripping, locking or tearing pháp khí at close range; the Huyết Ấn on his palm exerts short-range ma niệm pull on ownerless or thần thức-locked objects. Đạp Hư Ma Văn at the feet supports explosive bursts, stepping on condensed ma nguyên in empty air, mid-air direction changes and landing mitigation. If broken, the Vạn Quỷ Ma Tâm gradually re-condenses the same armor; regeneration only restores this existing armor and has no invented use-count limit. It can dim its ma văn and his huyết sát khí when he actively suppresses them to move discreetly.",
+      "source": {
+        "document": "01_Character/CAO_MINH_CODEX.md",
+        "anchor": "CAO-EQP-HUYET-MA-KHAI-01",
+        "document_id": "CAO_MINH_CODEX",
+        "content_sha256": "c8b4172d6f3df4dc3bc274331a0228712c518fe9ed8401c7b20fc2112e78b84a",
+        "snapshot_path": "android-apk/canon_sources/Asset/01_Character/CAO_MINH_CODEX.md",
+        "verification": "ANCHOR_LITERAL"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 54,
+      "tags": [
+        "cao-minh",
+        "huyet ma chien khai",
+        "ma kim",
+        "ma trao",
+        "dap hu"
+      ],
+      "references": [],
+      "affordances": [
+        "direct_threat"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.CAO_MINH",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "CHAR.CAO_MINH.VAN_KHO_GIOI_CHI",
+      "domain": "CHARACTER",
+      "kind": "equipment",
+      "text": "Vạn Khố Giới Chỉ is Cao Minh's absolute storage ring: a storage space for inanimate objects that never acts on living beings. Physical storage is not limited by ordinary count/size/mass, but scan-copy memory has exactly 3 slots. Copies cannot themselves be scanned; each original can serve as a scan source once before being Marked. Restore/Hoàn nguyên has a per-item 24-hour cooldown after a successful restore. Scan/restore uses a light beam and can propagate across one continuous material block, but does not treat whole assembled systems such as buildings, motorcycles, tanks or complete cannons as one eligible object; personal armor and guns remain eligible complete items. Signature equipment bound to Cao Minh himself cannot be scanned or copied.",
+      "source": {
+        "document": "02_CHARACTERS/Kai_Codex.docx (feature retained for Cao Minh and renamed by author decision 2026-10-24)",
+        "anchor": "KAI-EQP-OMNIVAULT-01; KAI-WEAK-01",
+        "document_id": "KAI_CODEX",
+        "content_sha256": null,
+        "verification": "AUTHOR_DECISION_NO_FILE"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 46,
+      "tags": [
+        "cao-minh",
+        "van kho gioi chi",
+        "scan",
+        "restore",
+        "hoàn nguyên"
+      ],
+      "references": [],
+      "affordances": [
+        "item_manipulation"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.CAO_MINH",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "review_status": "AUTHOR_DECISION_2026-10-24"
+    },
+    {
+      "id": "CHAR.CAO_MINH.DAI_MA_DAU",
+      "domain": "CHARACTER",
+      "kind": "passive",
+      "text": "Đại Ma Đầu is Cao Minh's PASSIVE skill: always active, and active in parallel with Đại Đạo Ma Tôn. It grants +50% of Cao Minh's current stats (STR/DEF/SKL/VIT), recomputed from his current Base stats every time Effective Stats are calculated, so the bonus scales with his current stats as he grows stronger; Max HP derives from VIT as normal. Đại Ma Đầu occupies no equipment slot and does not stack through save-load or equip.",
+      "source": {
+        "document": "Author decision 2026-10-24 (passive skill Đại Ma Đầu)",
+        "anchor": "DAI-MA-DAU-01",
+        "document_id": "AUTHOR_DECISION_2026_10_24",
+        "content_sha256": null,
+        "verification": "AUTHOR_DECISION_NO_FILE"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 52,
+      "tags": [
+        "cao-minh",
+        "dai ma dau",
+        "passive"
+      ],
+      "references": [],
+      "affordances": [
+        "direct_threat"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.CAO_MINH",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "review_status": "AUTHOR_DECISION_2026-10-24"
+    },
+    {
+      "id": "CHAR.LUC_TRAM.RUNTIME_CORE",
+      "domain": "CHARACTER",
+      "kind": "runtime-card",
+      "text": "Lục Trầm: Chân truyền đệ tử (true-line disciple) of Thiên Kiếm Môn, a Chính Đạo sword cultivator famed as Bạch Hồng Kiếm Nữ. Human cultivator of the same origin world as Cao Minh; true age and detailed realm system remain OPEN. Calm, disciplined and highly responsible, with dry humour carried in ordinary, complete sentences — not a cold fragment-speaking sword-fairy stereotype. She finds it very hard to leave anyone in danger, fixes consequences before discussing fault, and will update even a long-held belief when the evidence is strong enough. Her core flaw is institutional bias: she initially grants Chính Đạo more benefit of the doubt than Ma Đạo on equal evidence. She is a top genius of the younger Chính Đạo generation but NOT Cao Minh's equal in overall power: she can make him take a fight seriously, never force his full bản nguyên. Her bản mệnh sword is Tịch Quang; her battle pháp bảo is Thiên Cơ Bạch Kim Kiếm Khải; her root is Thiên Kiếm Linh Tâm. At Lôi Thiên Vực she died opening an escape route and was revived by Cao Minh pouring his đạo hạnh, tu vi and ma khí into her; she has begun nhập ma — an incipient process that does NOT make her a complete Ma cultivator and does not erase her Chính Đạo skills or values — and she has forgotten everything about Cao Minh, not her whole life. Do not make her a damsel needing constant rescue, a morality lecturer whose job is grading Cao Minh, or a modern soldier: the modern-soldier kit (M4A1, military skills) belongs to the separate Lucia Lục version and never transfers to Lục Trầm.",
+      "source": {
+        "document": "01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "00; 01; 05; LUC-PRO-R06",
+        "document_id": "LUC_TRAM_CODEX",
+        "content_sha256": "58e85b5dcdb5fe99b380e677cf4549395bdb65592872bfc877dbd09feec12152",
+        "snapshot_path": "android-apk/canon_sources/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "verification": "ANCHOR_LITERAL"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 22,
+      "tags": [
+        "luc-tram",
+        "thien kiem mon",
+        "present core",
+        "voice"
+      ],
+      "references": [],
+      "affordances": [],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.LUC_TRAM",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "CHAR.LUC_TRAM.THIEN_KIEM_LINH_TAM",
+      "domain": "CHARACTER",
+      "kind": "ability",
+      "text": "Thiên Kiếm Linh Tâm is the root of Lục Trầm's Kiếm Đạo — not a second physical heart. When active it unifies her thần niệm, linh lực, spatial sense and kiếm ý into one combat-awareness system: she reads movement trajectories, shifts of balance, linh lực fluctuation and instability points in sword forms, formations and protective structures, and can raise multiple kiếm ấn at once to build counter-attack webs, lock movement lines and protect teammates. HARD LIMITS: it does not read minds, does not judge good or evil, does not identify Entities, does not know Backrooms rules in advance, gives no immunity to memory manipulation, and cannot prove a survivor is the 'original'. Distorted geometry and false evidence can still mislead her, so confidence and proof still matter.",
+      "source": {
+        "document": "01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "07",
+        "document_id": "LUC_TRAM_CODEX",
+        "content_sha256": "58e85b5dcdb5fe99b380e677cf4549395bdb65592872bfc877dbd09feec12152",
+        "snapshot_path": "android-apk/canon_sources/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "verification": "ANCHOR_LITERAL"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 40,
+      "tags": [
+        "luc-tram",
+        "thien kiem linh tam",
+        "kiem an",
+        "trace",
+        "route",
+        "cover"
+      ],
+      "references": [],
+      "affordances": [
+        "trace_analysis"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.LUC_TRAM",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "CHAR.LUC_TRAM.THIEN_KIEM_THAT_THUC",
+      "domain": "CHARACTER",
+      "kind": "ability",
+      "text": "Thiên Kiếm Thất Thức is Lục Trầm's foundational sword system, trained until she no longer needs a fixed order. Key forms: Nhất Tuyến Phá Vọng concentrates kiếm ý into one line against a weak point, formation eye or unstable structure; Bạch Hồng Quán Nhật is a high-speed thrust compressing linh lực into a single point to pierce defences and end fights at close range instead of creating a large destruction zone; Tịch Quang Phản Kiếm uses the opponent's force and attack angle to shift axis, deflect and counter inside almost the same motion; Vạn Kiếm Quy Tâm directs multiple kiếm khí or sub-swords to lock directions, open a safe corridor and guard the formation — not a default thousand-sword spectacle. Her ultimate is Thiên Kiếm Định Giới: a local Kiếm Vực of linked kiếm ấn around Tịch Quang in which spatial fluctuation, movement and linh lực become easier for her to read and sword lines form a joined attack/defence net. It is not absolute control of space: if a Backrooms Level shifts strongly enough to break the anchors, she must rebuild the structure.",
+      "source": {
+        "document": "01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "11; 12",
+        "document_id": "LUC_TRAM_CODEX",
+        "content_sha256": "58e85b5dcdb5fe99b380e677cf4549395bdb65592872bfc877dbd09feec12152",
+        "snapshot_path": "android-apk/canon_sources/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "verification": "ANCHOR_LITERAL"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 48,
+      "tags": [
+        "luc-tram",
+        "thien kiem that thuc",
+        "kiem phap",
+        "thien kiem dinh gioi"
+      ],
+      "references": [],
+      "affordances": [
+        "trace_analysis",
+        "target_analysis"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.LUC_TRAM",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "CHAR.LUC_TRAM.TICH_QUANG",
+      "domain": "CHARACTER",
+      "kind": "equipment",
+      "text": "Tịch Quang is Lục Trầm's bản mệnh linh kiếm: a long, straight sword with a bright silver, low-reflectance blade; its layered gold-and-black guard connects directly to the linh văn of her Kiếm Khải. Her handling keeps the sword line clean: fast angle changes, cuts into joints and balance points, breaking pháp khí, redirecting force instead of always meeting it head-on, and guarding the people behind her. It can be recalled to her hand by kiếm niệm within a valid sensing range. Unlike Cao Minh's Huyết Ma Kiếm, Tịch Quang has no unlimited self-regeneration: if seriously damaged, she must repair it with suitable materials and time.",
+      "source": {
+        "document": "01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "08",
+        "document_id": "LUC_TRAM_CODEX",
+        "content_sha256": "58e85b5dcdb5fe99b380e677cf4549395bdb65592872bfc877dbd09feec12152",
+        "snapshot_path": "android-apk/canon_sources/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "verification": "ANCHOR_LITERAL"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 48,
+      "tags": [
+        "luc-tram",
+        "tich quang",
+        "kiem"
+      ],
+      "references": [],
+      "affordances": [
+        "direct_threat"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.LUC_TRAM",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "CHAR.LUC_TRAM.THIEN_CO_BACH_KIM_KIEM_KHAI",
+      "domain": "CHARACTER",
+      "kind": "equipment",
+      "text": "Thiên Cơ Bạch Kim Kiếm Khải is Lục Trầm's high-grade battle pháp bảo, co-forged by Thiên Kiếm Môn's Kiếm Các and Khí Các after she became a true-line disciple. White plates use Bạch Linh Kim; gold edging forms linh-conducting lines; black joints use elastic linh material so shoulder, hip, knee and ankle keep their full range, and split skirt plates never lock her steps. It raises impact resistance, supports agility bursts and distributes reaction force during mid-air direction changes. It is purely a tiên hiệp pháp bảo — no AI, reactor, guns, missiles or modern technology. In group combat Lục Trầm naturally becomes the formation's stable point: holding the retreat line, blocking formation-breaking blows, opening space for others and shielding the wounded. Cao Minh forces the opponent to react; Lục Trầm destroys or neutralises that reaction.",
+      "source": {
+        "document": "01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "09; 10",
+        "document_id": "LUC_TRAM_CODEX",
+        "content_sha256": "58e85b5dcdb5fe99b380e677cf4549395bdb65592872bfc877dbd09feec12152",
+        "snapshot_path": "android-apk/canon_sources/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "verification": "ANCHOR_LITERAL"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 55,
+      "tags": [
+        "luc-tram",
+        "thien co bach kim kiem khai",
+        "phap bao"
+      ],
+      "references": [],
+      "affordances": [],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.LUC_TRAM",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "REL.CAO_MINH.LUC_TRAM.BASELINE",
+      "domain": "RELATIONSHIP",
+      "kind": "baseline-edge",
+      "text": "Cao Minh and Lục Trầm are each other's centre. Publicly they stood as enemies (Ma Đạo versus Chính Đạo), but after the Kiếm Các/Táng Kiếm Cốc event — two names for the same event — they had become trusted allies with mutual feelings before the Backrooms; at Lôi Thiên Vực she stood beside him even though Chính Đạo forces treated her as an enemy for it, without her thereby joining Ma Đạo. She died opening an escape route; he poured his own đạo hạnh, tu vi and ma khí into her and revived her, depleting himself. She survived, began nhập ma and forgot everything about him. He does NOT know she survived or lost her memory; finding her is his priority-one objective. The history is real but is NOT her present knowledge: on reunion she does not recognise him, and any trust or feeling must be rebuilt from new events — do not auto-restore memory, love, forgiveness or old hostility, do not let one rescue convert enmity into love, and do not let the relationship erase their genuine moral disagreements (use of violence, self-judgment, the role of rules, forgiveness, limits of personal power). [WRITER-SECRET] Vô Lượng masterminded Diệp Minh's massacre of the Cao family to seize a treasure for his plan to unify the Tam Giới; Cao Minh knows only Diệp Minh's direct role and must never be written as knowing Vô Lượng's part.",
+      "source": {
+        "document": "01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "03; 13; 14; 16; 17; 19; LUC-PRO-R06",
+        "document_id": "LUC_TRAM_CODEX",
+        "content_sha256": "58e85b5dcdb5fe99b380e677cf4549395bdb65592872bfc877dbd09feec12152",
+        "snapshot_path": "android-apk/canon_sources/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "verification": "ANCHOR_LITERAL"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "BASELINE",
+      "priority": 28,
+      "tags": [
+        "cao-minh",
+        "luc-tram",
+        "relationship"
+      ],
+      "references": [
+        "ADDR.LUC_TRAM.CAO_MINH"
+      ],
+      "affordances": [
+        "dialogue"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "REL.CAO_MINH.LUC_TRAM",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "ADDR.LUC_TRAM.CAO_MINH",
+      "domain": "RELATIONSHIP",
+      "kind": "address-lock",
+      "text": "Address follows memory state and continuity, never a single emotion or moment. After her revival Lục Trầm has forgotten Cao Minh, so on meeting him she treats him as a stranger and keeps Chính Đạo lễ: she calls him 'các hạ' and refers to herself as 'ta', in complete sentences. Cao Minh remembers everything: he calls her 'nàng' and refers to himself as 'Bổn Tôn'. Pre-amnesia registers are history only — she once used 'Cao Minh', 'ma đầu' and 'ngươi', and he teased her as 'Lục tiên tử' — but she does not know those forms are hers to use, and they must not be applied as current defaults. Do not switch the pair to anh/em because the relationship turns romantic, and do not change address merely because of anger, danger, rescue or banter; any change must be established by continuity.",
+      "source": {
+        "document": "01_Character/LUC_TRAM_CODEX.md",
+        "anchor": "20; author ruling 2026-10-24",
+        "document_id": "LUC_TRAM_CODEX",
+        "content_sha256": "58e85b5dcdb5fe99b380e677cf4549395bdb65592872bfc877dbd09feec12152",
+        "snapshot_path": "android-apk/canon_sources/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "verification": "ANCHOR_LITERAL"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 24,
+      "tags": [
+        "cao-minh",
+        "luc-tram",
+        "address",
+        "cac ha"
+      ],
+      "references": [
+        "WRITING.DIALOGUE"
+      ],
+      "affordances": [
+        "dialogue"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "REL.LUC_TRAM.CAO_MINH",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "REL.LUC_TRAM.SYVIAL.BASELINE",
+      "domain": "RELATIONSHIP",
+      "kind": "baseline-edge",
+      "text": "Lục Trầm and Syvial: no established relationship canon exists in current sources — NOT YET ESTABLISHED. Lục Trầm is an origin-world Chính Đạo sword cultivator newly placed in the second companion slot, while Syvial's baseline was authored against the previous male lead, who has since been replaced by Cao Minh. Do not import the previous companion<->Syvial baseline of 'friends and trusted teammates with romantic rivalry around the male lead': no friendship, rivalry, hostility or teamwork baseline between Lục Trầm and Syvial may be asserted, staged or implied until new canon or continuity establishes it. Exact Lục Trầm<->Syvial address is UNKNOWN and must not be guessed.",
+      "source": {
+        "document": "No canon source — declared unestablished 2026-10-24",
+        "anchor": "OPEN",
+        "document_id": null,
+        "content_sha256": null,
+        "verification": "DECLARED_UNESTABLISHED_BY_AUTHOR"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "BASELINE",
+      "priority": 30,
+      "tags": [
+        "luc-tram",
+        "syvial",
+        "relationship",
+        "unknown address"
+      ],
+      "references": [],
+      "affordances": [
+        "dialogue"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "REL.LUC_TRAM.SYVIAL",
+      "truth_status": "UNKNOWN",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "review_status": "NO_SOURCE_BY_DESIGN"
+    },
+    {
+      "id": "CHAR.SYVIAL.RUNTIME_CORE",
+      "domain": "CHARACTER",
+      "kind": "runtime-card",
+      "text": "Syvial: half-human/half-demon daughter of Lucifer and a human mother whose identity is not locked; origin era 2299, true age unknown. UR+, same overall power tier as Cao Minh, high-tier supernatural swordswoman. Outside combat she is natural, social, teasing, food-loving and capable of ordinary conversation; in danger she becomes focused and precise without turning into a fragment-speaking machine. She is intensely yandere toward Cao Minh but lucid, intelligent and socially capable: not a random murderer, not automatically hostile to every woman, and she values Cao Minh freely choosing her. Jealousy never deletes tactical competence.",
+      "source": {
+        "document": "02_CHARACTERS/Syvial_Codex.docx",
+        "anchor": "SYVIAL-QUICK-01; SYVIAL-OVERVIEW-01; SYVIAL-YANDERE-01; SYVIAL-ACTION-LOCK-01",
+        "document_id": "SYVIAL_CODEX",
+        "content_sha256": "ff5bba6479ef600b81f276dd27261aafe45db8f7bb9571cb10169660cda24278",
+        "snapshot_path": "android-apk/canon_sources/Asset/01_Character/Syvial_Codex_extracted.md",
+        "verification": "ANCHOR_LITERAL"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 22,
+      "tags": [
+        "syvial",
+        "present core",
+        "ur+",
+        "voice"
+      ],
+      "references": [],
+      "affordances": [],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.SYVIAL",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "CHAR.SYVIAL.LUCIFER_CORE",
+      "domain": "CHARACTER",
+      "kind": "ability",
+      "text": "Lucifer Core provides Syvial infinite demon power. Current canon does not supply an intrinsic energy cap/cooldown merely for balance. Infinite power does not erase problems created by incomplete information, protected people, environment, space or an opponent strong enough to matter.",
+      "source": {
+        "document": "02_CHARACTERS/Syvial_Codex.docx",
+        "anchor": "SYVIAL-CORE-LUCIFER-01; SYVIAL-WEAK-01",
+        "document_id": "SYVIAL_CODEX",
+        "content_sha256": "ff5bba6479ef600b81f276dd27261aafe45db8f7bb9571cb10169660cda24278",
+        "snapshot_path": "android-apk/canon_sources/Asset/01_Character/Syvial_Codex_extracted.md",
+        "verification": "ANCHOR_LITERAL"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 44,
+      "tags": [
+        "syvial",
+        "lucifer core",
+        "demon power"
+      ],
+      "references": [],
+      "affordances": [
+        "direct_threat"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.SYVIAL",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "CHAR.SYVIAL.DEVIL_TRIGGER",
+      "domain": "CHARACTER",
+      "kind": "ability",
+      "text": "Syvial's Devil Trigger does not create a second personality, remove control, force corruption or have an invented intrinsic duration/cooldown absent from codex. She remains herself and tactically competent while using it.",
+      "source": {
+        "document": "02_CHARACTERS/Syvial_Codex.docx",
+        "anchor": "SYVIAL-DT-01; SYVIAL-ACTION-LOCK-01",
+        "document_id": "SYVIAL_CODEX",
+        "content_sha256": "ff5bba6479ef600b81f276dd27261aafe45db8f7bb9571cb10169660cda24278",
+        "snapshot_path": "android-apk/canon_sources/Asset/01_Character/Syvial_Codex_extracted.md",
+        "verification": "ANCHOR_LITERAL"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 48,
+      "tags": [
+        "syvial",
+        "devil trigger"
+      ],
+      "references": [],
+      "affordances": [
+        "direct_threat"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.SYVIAL",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "CHAR.SYVIAL.GODKILLER",
+      "domain": "CHARACTER",
+      "kind": "equipment",
+      "text": "GodKiller is Syvial's enormous purely mechanical greatsword. Do not convert it into a gun or gunblade. Its reach and mass support space control at medium distance; in very tight space Syvial can shorten her sword work and use close combat/Spatial Shift rather than pretending the weapon never matters. She does not forget combat ability if disarmed and can call the sword back under codex capability.",
+      "source": {
+        "document": "02_CHARACTERS/Syvial_Codex.docx",
+        "anchor": "SYVIAL-EQP-GODKILLER-01; SYVIAL-STYLE-COMBAT-01; SYVIAL-ACTION-LOCK-01",
+        "document_id": "SYVIAL_CODEX",
+        "content_sha256": "ff5bba6479ef600b81f276dd27261aafe45db8f7bb9571cb10169660cda24278",
+        "snapshot_path": "android-apk/canon_sources/Asset/01_Character/Syvial_Codex_extracted.md",
+        "verification": "ANCHOR_LITERAL"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 48,
+      "tags": [
+        "syvial",
+        "godkiller",
+        "greatsword"
+      ],
+      "references": [],
+      "affordances": [
+        "direct_threat"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.SYVIAL",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "CHAR.SYVIAL.GODKILLER_OVERRIDE",
+      "domain": "CHARACTER",
+      "kind": "ultimate",
+      "text": "GodKiller Override / Twenty-Four Severance performs exactly 24 cuts during completely stopped external time under current canon. Do not change the count, turn it into a gun attack, or add an invented cooldown/energy bar without retcon.",
+      "source": {
+        "document": "02_CHARACTERS/Syvial_Codex.docx",
+        "anchor": "SYVIAL-ULT-GKO-01; SYVIAL-ACTION-LOCK-01",
+        "document_id": "SYVIAL_CODEX",
+        "content_sha256": "ff5bba6479ef600b81f276dd27261aafe45db8f7bb9571cb10169660cda24278",
+        "snapshot_path": "android-apk/canon_sources/Asset/01_Character/Syvial_Codex_extracted.md",
+        "verification": "ANCHOR_LITERAL"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 54,
+      "tags": [
+        "syvial",
+        "godkiller override",
+        "twenty-four severance"
+      ],
+      "references": [
+        "CHAR.SYVIAL.GODKILLER",
+        "CHAR.SYVIAL.DEVIL_TRIGGER"
+      ],
+      "affordances": [
+        "high_tier_target"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.SYVIAL",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "CHAR.SYVIAL.COMBAT",
+      "domain": "CHARACTER",
+      "kind": "ability",
+      "text": "Syvial is a high-tier supernatural swordswoman for assault, suppression, counterattack and finishing high-level targets. She controls space with GodKiller, adapts at close range, handles multiple targets by positioning rather than blind spinning, and gathers enough information before escalating against high-tier targets. She is not a weak follower or a drone waiting for Cao Minh commands; Cao Minh and Syvial can hold separate fronts, save each other when needed and disagree tactically from a position of comparable overall power.",
+      "source": {
+        "document": "02_CHARACTERS/Syvial_Codex.docx",
+        "anchor": "SYVIAL-COMBAT-01; SYVIAL-STYLE-COMBAT-01; SYVIAL-REL-KAI-01",
+        "document_id": "SYVIAL_CODEX",
+        "content_sha256": "ff5bba6479ef600b81f276dd27261aafe45db8f7bb9571cb10169660cda24278",
+        "snapshot_path": "android-apk/canon_sources/Asset/01_Character/Syvial_Codex_extracted.md",
+        "verification": "ANCHOR_LITERAL"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 40,
+      "tags": [
+        "syvial",
+        "combat",
+        "ur+",
+        "sword"
+      ],
+      "references": [
+        "CHAR.SYVIAL.GODKILLER"
+      ],
+      "affordances": [
+        "direct_threat"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.SYVIAL",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "REL.CAO_MINH.SYVIAL.BASELINE",
+      "domain": "RELATIONSHIP",
+      "kind": "baseline-edge",
+      "text": "Syvial's feelings for Cao Minh are immutable character canon. How far Cao Minh reciprocates must follow campaign continuity; do not convert one-sided feelings into an established long-term romance automatically. They are peers in overall combat tier and neither exists to be constantly rescued or protected like a fragile object. Reliable evidence that Cao Minh is in severe danger can shift Syvial's priorities or risk tolerance, but brief lost contact does not collapse her judgment.",
+      "source": {
+        "document": "02_CHARACTERS/Syvial_Codex.docx",
+        "anchor": "SYVIAL-REL-KAI-01",
+        "document_id": "SYVIAL_CODEX",
+        "content_sha256": "ff5bba6479ef600b81f276dd27261aafe45db8f7bb9571cb10169660cda24278",
+        "snapshot_path": "android-apk/canon_sources/Asset/01_Character/Syvial_Codex_extracted.md",
+        "verification": "ANCHOR_LITERAL"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "BASELINE",
+      "priority": 28,
+      "tags": [
+        "cao-minh",
+        "syvial",
+        "relationship"
+      ],
+      "references": [
+        "ADDR.SYVIAL.CAO_MINH"
+      ],
+      "affordances": [
+        "dialogue"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "REL.CAO_MINH.SYVIAL",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "ADDR.SYVIAL.CAO_MINH",
+      "domain": "RELATIONSHIP",
+      "kind": "address-lock",
+      "text": "Syvial -> Cao Minh: Syvial says 'em' for self and normally calls him 'anh' or 'Cao Minh'; 'Anh' with his name can be used for teasing/emphasis/clarifying before others. Cao Minh -> Syvial: Cao Minh refers to himself per his own register canon ('ta'; 'Bổn Tôn' in his tôn register) and calls her 'Syvial'. 'Cục cưng' is allowed only if campaign continuity has already locked a long-term romantic relationship; it is not the default. A direct first name can carry extra weight when serious, but is not a magic keyword to repeat every line.",
+      "source": {
+        "document": "02_CHARACTERS/Syvial_Codex.docx",
+        "anchor": "SYVIAL-REL-KAI-01 / Xưng hô và trạng thái gọi tên",
+        "document_id": "SYVIAL_CODEX",
+        "content_sha256": "ff5bba6479ef600b81f276dd27261aafe45db8f7bb9571cb10169660cda24278",
+        "snapshot_path": "android-apk/canon_sources/Asset/01_Character/Syvial_Codex_extracted.md",
+        "verification": "CONTENT_MATCH"
+      },
+      "authority": "CHARACTER_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 24,
+      "tags": [
+        "cao-minh",
+        "syvial",
+        "address",
+        "anh em"
+      ],
+      "references": [
+        "WRITING.DIALOGUE"
+      ],
+      "affordances": [
+        "dialogue"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "REL.SYVIAL.CAO_MINH",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "ENTITY.GLOBAL_HARD_LOCK",
+      "domain": "ENTITY",
+      "kind": "hard-lock",
+      "text": "Project Entity hard lock: no Entity is friendly or neutral toward humans and no beneficial symbiosis/parasitism is canon. An Entity may delay attack to observe, lure, split, manipulate or conduct a long hunt, but apparent help ultimately serves harmful predatory/other harmful goals. Entity origins are not unified and intelligence ranges from animal predator to superhuman. Do not assume destroying a visible body always kills the underlying Entity.",
+      "source": {
+        "document": "01_WORLD/entity.md",
+        "anchor": "0.6 Entity — HARD LOCK",
+        "document_id": "ENTITY",
+        "content_sha256": "8fc8c5602c807a03d9c18363d08c61a7da22a89a99c48cceb8842cbab1984c37",
+        "snapshot_path": "android-apk/canon_sources/Asset/03_Entity/Entity.md",
+        "verification": "CONTENT_MATCH"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 32,
+      "tags": [
+        "entity",
+        "hostile entity"
+      ],
+      "references": [],
+      "affordances": [
+        "direct_threat"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "ENTITY.GLOBAL",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "ITEM.GLOBAL_HARD_LOCK",
+      "domain": "ITEM",
+      "kind": "hard-lock",
+      "text": "Safe food/water and medicine are scarce; guns/ammunition are uncommon for ordinary survivors; resources can reappear unreliably. Frontrooms objects can function normally, then deviate, degrade or be assimilated without a fixed timetable. Do not spawn a resource exactly when convenient just to rescue a character. Reliable information is itself a survival resource. Do not label a map/source absolutely SAFE; retain who observed it, when and with what confidence.",
+      "source": {
+        "document": "01_WORLD/items.md",
+        "anchor": "0.7-0.8; 8.6",
+        "document_id": "ITEMS",
+        "content_sha256": null,
+        "verification": "SOURCE_NOT_FOUND_ON_DRIVE",
+        "missing_note": "Tài liệu nguồn không còn trên Google Drive tại snapshot 2026-10-24 (thư mục TextGame/RULES, TextGame/STORY trống; items.md không tồn tại). Không thay thế bằng tài liệu khác."
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 36,
+      "tags": [
+        "item",
+        "resource",
+        "scarcity"
+      ],
+      "references": [],
+      "affordances": [
+        "item_manipulation"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "ITEM.GLOBAL",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "PENDING_SOURCE_SNAPSHOT"
+    },
+    {
+      "id": "ITEM.ALMOND_WATER",
+      "domain": "ITEM",
+      "kind": "item",
+      "text": "Almond Water is a key anomalous drinking-water resource but remains scarce in Project canon. It can rehydrate and support alertness/some mild symptoms; it is not a cure-all and does not negate every Entity effect. It can expire and become poisonous. Open sources must be checked; Level 0 carpet moisture is not drinking water.",
+      "source": {
+        "document": "01_WORLD/items.md",
+        "anchor": "8.1 Object 1 — Almond Water",
+        "document_id": "ITEMS",
+        "content_sha256": null,
+        "verification": "SOURCE_NOT_FOUND_ON_DRIVE",
+        "missing_note": "Tài liệu nguồn không còn trên Google Drive tại snapshot 2026-10-24 (thư mục TextGame/RULES, TextGame/STORY trống; items.md không tồn tại). Không thay thế bằng tài liệu khác."
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 58,
+      "tags": [
+        "almond water",
+        "water"
+      ],
+      "references": [],
+      "affordances": [
+        "resource_check"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "ITEM.ALMOND_WATER",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "PENDING_SOURCE_SNAPSHOT"
+    },
+    {
+      "id": "ITEM.GREEK_FIRE",
+      "domain": "ITEM",
+      "kind": "item",
+      "text": "Greek Fire is an extremely rare flammable resource useful for heat, cooking and combat. It is strategically valuable and dangerous in confined spaces; it is not common starter equipment.",
+      "source": {
+        "document": "01_WORLD/items.md",
+        "anchor": "8.2 Object 5 — Greek Fire",
+        "document_id": "ITEMS",
+        "content_sha256": null,
+        "verification": "SOURCE_NOT_FOUND_ON_DRIVE",
+        "missing_note": "Tài liệu nguồn không còn trên Google Drive tại snapshot 2026-10-24 (thư mục TextGame/RULES, TextGame/STORY trống; items.md không tồn tại). Không thay thế bằng tài liệu khác."
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 60,
+      "tags": [
+        "greek fire"
+      ],
+      "references": [],
+      "affordances": [
+        "resource_check"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "ITEM.GREEK_FIRE",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "PENDING_SOURCE_SNAPSHOT"
+    },
+    {
+      "id": "ITEM.LIQUID_PAIN",
+      "domain": "ITEM",
+      "kind": "item",
+      "text": "Liquid Pain is a red toxic, tissue-corrosive liquid with harmful fumes. It can be used against Entities and in crude traps/munitions, may appear in mislabeled containers, and must not be treated as drinking water or handled bare-handed.",
+      "source": {
+        "document": "01_WORLD/items.md",
+        "anchor": "8.3 Object 12 — Liquid Pain",
+        "document_id": "ITEMS",
+        "content_sha256": null,
+        "verification": "SOURCE_NOT_FOUND_ON_DRIVE",
+        "missing_note": "Tài liệu nguồn không còn trên Google Drive tại snapshot 2026-10-24 (thư mục TextGame/RULES, TextGame/STORY trống; items.md không tồn tại). Không thay thế bằng tài liệu khác."
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 60,
+      "tags": [
+        "liquid pain"
+      ],
+      "references": [],
+      "affordances": [
+        "resource_check",
+        "direct_threat"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "ITEM.LIQUID_PAIN",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "PENDING_SOURCE_SNAPSHOT"
+    },
+    {
+      "id": "LEVEL.00",
+      "domain": "LEVEL",
+      "kind": "level",
+      "text": "Phòng vàng vô tận nuốt tiếng bước chân, thảm ẩm mục dưới đèn huỳnh quang rên rỉ, trần treo. Hình học phi tuyến bẻ cong lối đi; khát nước, kiệt sức, mất phương hướng gặm nhấm kẻ lạc. Áp lực huỳnh quang gây đau đầu, mất ngủ, nghe nhầm bước chân; Phòng Ký Ức vọng lại, hủy ký ức; Kháng Cự Bố Cục xé nát bản đồ. Không có Entity cư trú được xác nhận; bóng người, giọng nói là ảo giác, hiện thân ký ức, bản sao tri giác hoặc hiện tượng chưa rõ, trừ khi có bằng chứng xâm nhập. Lối sang Level 1 hiện khi bê tông và bãi đỗ thay phòng vàng, không thể ép buộc.",
+      "source": {
+        "document": "01_WORLD/level.md + 01_WORLD/entity.md",
+        "anchor": "Level 0; entity 1.3",
+        "document_id": "LEVEL",
+        "content_sha256": "1718bd1801fd1cf926bb85d47e2055c7c580b8db90afcc9df664781db5078fc9",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/BACKROOMS_WORLD.md",
+        "verification": "ANCHOR_LITERAL"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 34,
+      "tags": [
+        "level 0",
+        "the lobby"
+      ],
+      "references": [],
+      "affordances": [
+        "trace_analysis"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.00",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "LEVEL.01",
+      "domain": "LEVEL",
+      "kind": "level",
+      "text": "Mạng lưới bãi đỗ bê tông mênh mông, cột và dốc nối nhau trong hơi nóng, sương lạnh lảng vảng từng chỗ, xe hỏng hiếm hoi nằm chết lặng. Mất điện có thể kéo dài từ vài phút đến vài ngày, khiến ánh đèn di động vừa cứu mạng vừa tố cáo vị trí. Hành Lang Bảo Trì còn điện nhưng không phải nơi trú lâu dài; Khu Đỗ Sang sạch hơn, mù hơn, nguồn điện chập chờn, thùng tiếp tế nhiều hơn nhưng vẫn khan hiếm. Lối sang Level 2 dần hiện khi xe biến mất, không gian hẹp lại thành hành lang ống nóng ẩm, đầy máy móc.",
+      "source": {
+        "document": "01_WORLD/level.md",
+        "anchor": "2 LEVEL 1 — PARKING ZONE",
+        "document_id": "LEVEL",
+        "content_sha256": "1718bd1801fd1cf926bb85d47e2055c7c580b8db90afcc9df664781db5078fc9",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/BACKROOMS_WORLD.md",
+        "verification": "CONTENT_MATCH"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 34,
+      "tags": [
+        "level 1",
+        "parking zone"
+      ],
+      "references": [
+        "ENTITY.HOUND",
+        "ENTITY.FALSE_PUDDLE"
+      ],
+      "affordances": [
+        "trace_analysis",
+        "direct_threat"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.01",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "LEVEL.02",
+      "domain": "LEVEL",
+      "kind": "level",
+      "text": "Đường hầm kỹ thuật, giếng sâu, ống rỉ sét, khe chui và mạng điện dở dang quấn lấy nhau trong những cơn thay đổi nhiệt độ cực đoan. Động đất có thể sập đường, vỡ ống, phun hơi và mở lối mới đầy hiểm họa. Chất lỏng trong ống giống Nước Hạnh Nhân tuyệt đối không được uống trực tiếp, vì nhiễm bẩn sinh học, hóa học và dị thường. Lối sang Level 3 hiện ra khi hạ tầng điện cao thế bắt đầu thống trị mọi ngóc ngách, nuốt chửng bóng tối bằng dòng điện chết chóc.",
+      "source": {
+        "document": "01_WORLD/level.md",
+        "anchor": "3 LEVEL 2 — PIPE DREAMS",
+        "document_id": "LEVEL",
+        "content_sha256": "1718bd1801fd1cf926bb85d47e2055c7c580b8db90afcc9df664781db5078fc9",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/BACKROOMS_WORLD.md",
+        "verification": "CONTENT_MATCH"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 34,
+      "tags": [
+        "level 2",
+        "pipe dreams"
+      ],
+      "references": [
+        "ENTITY.HOUND",
+        "ENTITY.SMILER",
+        "ENTITY.SKIN_STEALER",
+        "ENTITY.BIOLOGICAL_PIPELINE"
+      ],
+      "affordances": [
+        "trace_analysis",
+        "direct_threat"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.02",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "LEVEL.03",
+      "domain": "LEVEL",
+      "kind": "level",
+      "text": "Hành lang điện công nghiệp khổng lồ rền vang máy biến áp, dây dẫn, quạt, cuộn dây, bảng điện và ống nóng, nuôi bởi nguồn điện không rõ. Mất điện cục bộ phơi bày dây điện trần, máy móc và nguy cơ Entity, lối đi có thể đổi khác khi điện trở lại. Hầm Tiện Ích Dưới lạnh dưới không độ, nước đọng không đóng băng một cách dị thường, tỷ lệ biến mất rất cao. Cửa và thang máy khu văn phòng có thể dần dẫn tới Level 4; vài lối tối dài có thể dẫn tới Level 6.",
+      "source": {
+        "document": "01_WORLD/level.md",
+        "anchor": "4 LEVEL 3 — THE ELECTRICAL STATION",
+        "document_id": "LEVEL",
+        "content_sha256": "1718bd1801fd1cf926bb85d47e2055c7c580b8db90afcc9df664781db5078fc9",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/BACKROOMS_WORLD.md",
+        "verification": "CONTENT_MATCH"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 34,
+      "tags": [
+        "level 3",
+        "electrical station"
+      ],
+      "references": [
+        "ENTITY.DEATHMOTH",
+        "ENTITY.WRETCH",
+        "ENTITY.SKIN_STEALER",
+        "ENTITY.CABLE_MIMIC"
+      ],
+      "affordances": [
+        "trace_analysis",
+        "direct_threat"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.03",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "LEVEL.04",
+      "domain": "LEVEL",
+      "kind": "level",
+      "text": "Ánh huỳnh quang chập chờn rọi xuống văn phòng bỏ hoang, nơi vách ngăn xếp thành hành lang và cửa sổ đóng kín mang vẻ mưa dầm lạnh lẽo. Hình học nơi đây ổn định hơn Level 0-3, đủ để dừng chân lục lọi, nhưng không bao giờ an toàn. Không có quần thể Entity cư trú ổn định nào được xác nhận, song xâm nhập từ vùng khác vẫn có thể ập tới, và nơi hôm nay dọn sạch thì ngày mai chưa chắc còn sạch. Tài nguyên và ranh giới bất ổn khiến khu định cư lớn trở thành mồi ngon. Đi càng sâu, hành lang càng mục rữa thành khách sạn cũ, mở đường sang Level 5.",
+      "source": {
+        "document": "01_WORLD/level.md + 01_WORLD/entity.md",
+        "anchor": "Level 4; entity 5.2",
+        "document_id": "LEVEL",
+        "content_sha256": "1718bd1801fd1cf926bb85d47e2055c7c580b8db90afcc9df664781db5078fc9",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/BACKROOMS_WORLD.md",
+        "verification": "ANCHOR_UNVERIFIED"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 34,
+      "tags": [
+        "level 4",
+        "abandoned office"
+      ],
+      "references": [],
+      "affordances": [
+        "trace_analysis"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.04",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "SOURCE_SNAPSHOTTED_ANCHOR_UNVERIFIED"
+    },
+    {
+      "id": "LEVEL.05",
+      "domain": "LEVEL",
+      "kind": "level",
+      "text": "Khách sạn phi Euclid khổng lồ khoác vẻ đầu thế kỷ XX, mỗi cánh khác nhau, gồm sảnh lớn, phòng khiêu vũ, phòng ngủ, nhà hàng, hồ bơi, lò hơi và hành lang bảo trì. Ở càng lâu, hoang tưởng càng siết chặt: bị theo dõi, tiếng thì thầm, bàn tay vô hình chạm da, bóng đen lướt qua và mất ngủ triền miên. Dự án không quy thành thanh sanity, vì nguyên nhân chồng chéo giữa cô lập, mất ngủ, Level và Entity. Beast of Level 5 chỉ lẩn khuất như áp lực săn mồi, không phải boss chờ đánh. Xuống khu lò hơi, ánh sáng càng tắt và hơi lạnh càng dâng, mở đường xuống Level 6.",
+      "source": {
+        "document": "01_WORLD/level.md",
+        "anchor": "6 LEVEL 5 — TERROR HOTEL",
+        "document_id": "LEVEL",
+        "content_sha256": "1718bd1801fd1cf926bb85d47e2055c7c580b8db90afcc9df664781db5078fc9",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/BACKROOMS_WORLD.md",
+        "verification": "CONTENT_MATCH"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 34,
+      "tags": [
+        "level 5",
+        "terror hotel"
+      ],
+      "references": [
+        "ENTITY.BEAST_LEVEL_5",
+        "ENTITY.SKIN_STEALER",
+        "ENTITY.HOUND"
+      ],
+      "affordances": [
+        "trace_analysis",
+        "direct_threat"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.05",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "LEVEL.06",
+      "domain": "LEVEL",
+      "kind": "level",
+      "text": "Bóng tối nuốt chửng Level 6, nơi cái lạnh cắt da và thiếu thức ăn, nước uống bào mòn từng bước chân. Không có Entity cư trú nào được xác nhận, nhưng đừng lầm tưởng đó là an toàn. Mất ngủ biến thành những cơn ngủ chớp nhoáng, ảo giác bò ra từ bóng tối, và khả năng định hướng tan rã trong màn đen không biên giới. Bằng chứng rằng một Entity bên ngoài từ chối vượt qua ranh giới Level này không chứng minh bên trong an toàn; lý do vẫn còn OPEN. Nơi đây không tha thứ cho kẻ chủ quan, mỗi bước sai đều có thể là bước cuối trong lạnh lẽo và điên loạn.",
+      "source": {
+        "document": "01_WORLD/level.md + 01_WORLD/entity.md",
+        "anchor": "7 LEVEL 6; entity 7.3",
+        "document_id": "LEVEL",
+        "content_sha256": "1718bd1801fd1cf926bb85d47e2055c7c580b8db90afcc9df664781db5078fc9",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/BACKROOMS_WORLD.md",
+        "verification": "ANCHOR_UNVERIFIED"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 34,
+      "tags": [
+        "level 6",
+        "lights out"
+      ],
+      "references": [],
+      "affordances": [
+        "trace_analysis"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.06",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "SOURCE_SNAPSHOTTED_ANCHOR_UNVERIFIED"
+    },
+    {
+      "id": "ENTITY.HOUND",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Thân hình bốn chân gầy trơ xương, da xám nhợt căng sát cơ thể, từng đốt xương và gân cơ hằn rõ dưới lớp da mỏng. Tay chân dài quá mức, khớp xương lệch hướng, kết thúc bằng móng đen dài và cong. Đầu dị dạng, hốc mắt sâu hoắm, hàm miệng mở rộng với nhiều răng nhọn lộ rõ. Nó săn theo bầy, ưu tiên con mồi bị thương hoặc bị tách khỏi nhóm, dùng tiếng bước chân giả để dồn nạn nhân vào ngõ cụt trong hành lang hẹp Level 2, có thể tấn công từ cả hai đầu, rút lui trước sức kháng cự mạnh rồi quay lại.",
+      "source": {
+        "document": "01_WORLD/entity.md",
+        "anchor": "ENT-1A; ENT-2B",
+        "document_id": "ENTITY",
+        "content_sha256": "8fc8c5602c807a03d9c18363d08c61a7da22a89a99c48cceb8842cbab1984c37",
+        "snapshot_path": "android-apk/canon_sources/Asset/03_Entity/Entity.md",
+        "verification": "CONTENT_MATCH",
+        "visual_snapshot_path": "android-apk/canon_sources/Asset/03_Entity/Entity.md",
+        "visual_anchor": "Hound"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 58,
+      "tags": [
+        "hound"
+      ],
+      "references": [
+        "ENTITY.GLOBAL_HARD_LOCK"
+      ],
+      "affordances": [
+        "direct_threat"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "ENTITY.HOUND",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "ENTITY.FALSE_PUDDLE",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Nó nằm phẳng trên tuyến đường qua lại như vũng Almond Water, mặt chất lỏng đen đặc, bóng và nhớt như nhựa đường, che giấu miệng sâu đầy răng. Khi cảm nhận rung động bước chân, nó há miệng và kéo con mồi xuống. Tài liệu thị giác mô tả một hình người bằng chất lỏng đen, cơ thể có nhiều khoảng rỗng, đầu không có khuôn mặt, nửa thân dưới tan chảy thành vũng đen. Quan hệ giữa hai mô tả chưa được xác nhận, không suy diễn khả năng biến hình. Liquid Pain hoặc kim loại sắc có tác dụng, nhưng cái chết có thể là giả vờ và điểm yếu không tuyệt đối.",
+      "source": {
+        "document": "01_WORLD/entity.md",
+        "anchor": "ENT-1F",
+        "document_id": "ENTITY",
+        "content_sha256": "8fc8c5602c807a03d9c18363d08c61a7da22a89a99c48cceb8842cbab1984c37",
+        "snapshot_path": "android-apk/canon_sources/Asset/03_Entity/Entity.md",
+        "verification": "CONTENT_MATCH",
+        "visual_snapshot_path": "android-apk/canon_sources/Asset/03_Entity/Entity.md",
+        "visual_anchor": "False Puddle"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 58,
+      "tags": [
+        "false puddle"
+      ],
+      "references": [
+        "ENTITY.GLOBAL_HARD_LOCK",
+        "ITEM.LIQUID_PAIN"
+      ],
+      "affordances": [
+        "direct_threat",
+        "resource_check"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "ENTITY.FALSE_PUDDLE",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "ENTITY.SMILER",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Trong bóng tối, nó gần như hòa hoàn toàn vào màn đen, cơ thể cao gầy chỉ hiện thành đường viền mờ, như một bóng người bị bóng tối ăn mòn đến mức da thịt không còn ranh giới. Nổi bật nhất là hai mắt trắng sáng và nụ cười cực rộng, hàng răng trắng kéo dài trên khuôn mặt. Nó ẩn trong các khu vực mất sáng và góc tối, giữ khoảng cách thay vì lao tới ngay, để áp lực và nỗi sợ dồn con mồi tự chọn một tuyến đường xấu. Bóng tối quanh nó đặc quánh và không có lối ra rõ ràng.",
+      "source": {
+        "document": "01_WORLD/entity.md",
+        "anchor": "ENT-2C",
+        "document_id": "ENTITY",
+        "content_sha256": "8fc8c5602c807a03d9c18363d08c61a7da22a89a99c48cceb8842cbab1984c37",
+        "snapshot_path": "android-apk/canon_sources/Asset/03_Entity/Entity.md",
+        "verification": "CONTENT_MATCH",
+        "visual_snapshot_path": "android-apk/canon_sources/Asset/03_Entity/Entity.md",
+        "visual_anchor": "Smiler"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 58,
+      "tags": [
+        "smiler"
+      ],
+      "references": [
+        "ENTITY.GLOBAL_HARD_LOCK"
+      ],
+      "affordances": [
+        "direct_threat"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "ENTITY.SMILER",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "ENTITY.SKIN_STEALER",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Thực thể hình người cao và gầy quá mức, thân thể gồm những lớp mô hồng xám, bó cơ và màng thịt căng thành nhiều khoảng rỗng. Tay chân kéo dài bất thường, các ngón nhọn, phần đầu méo mó và gần như không còn cấu trúc khuôn mặt bình thường. Nó săn mồi bằng cách dùng ngoại hình và hành vi con người, bắt chước sâu đến mức đủ ký ức sao chép để qua được các kiểm tra đơn giản, có thể sống cùng một nhóm lâu dài để phá hoại cả nhóm thay vì giết ngay. Vì vậy, vẻ ngoài giống người không bao giờ chứng minh một tiếp xúc là người.",
+      "source": {
+        "document": "01_WORLD/entity.md",
+        "anchor": "ENT-2D",
+        "document_id": "ENTITY",
+        "content_sha256": "8fc8c5602c807a03d9c18363d08c61a7da22a89a99c48cceb8842cbab1984c37",
+        "snapshot_path": "android-apk/canon_sources/Asset/03_Entity/Entity.md",
+        "verification": "CONTENT_MATCH",
+        "visual_snapshot_path": "android-apk/canon_sources/Asset/03_Entity/Entity.md",
+        "visual_anchor": "Skin-Stealer"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 56,
+      "tags": [
+        "skin-stealer",
+        "skin stealer"
+      ],
+      "references": [
+        "ENTITY.GLOBAL_HARD_LOCK"
+      ],
+      "affordances": [
+        "direct_threat",
+        "identity_check"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "ENTITY.SKIN_STEALER",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "ENTITY.BIOLOGICAL_PIPELINE",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Một khối hình người khổng lồ cấu thành từ đường ống kim loại gỉ, van, khớp nối và ống mềm chằng chịt, xen giữa kim loại là những mảng mô hữu cơ tối màu. Các chi phân nhánh thành nhiều đoạn ống khác nhau. Thực thể dài hàng chục kilômét, thân thật có thể không phải đoạn ống nhìn thấy, cảm nhận rung động và thân nhiệt, có thể mở tuyến bò trườn tưởng an toàn, để con người đi sâu, đổi hướng, khóa đường rút, tiết dịch kiềm ăn mòn mô, và giữ xác cùng đồ đạc làm bằng chứng giả về lối đi an toàn. Phá hủy một đoạn ống không chứng minh thực thể đã chết.",
+      "source": {
+        "document": "01_WORLD/entity.md",
+        "anchor": "ENT-2F",
+        "document_id": "ENTITY",
+        "content_sha256": "8fc8c5602c807a03d9c18363d08c61a7da22a89a99c48cceb8842cbab1984c37",
+        "snapshot_path": "android-apk/canon_sources/Asset/03_Entity/Entity.md",
+        "verification": "CONTENT_MATCH",
+        "visual_snapshot_path": "android-apk/canon_sources/Asset/03_Entity/Entity.md",
+        "visual_anchor": "Biological Pipeline"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 58,
+      "tags": [
+        "biological pipeline"
+      ],
+      "references": [
+        "ENTITY.GLOBAL_HARD_LOCK"
+      ],
+      "affordances": [
+        "direct_threat",
+        "trace_analysis"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "ENTITY.BIOLOGICAL_PIPELINE",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "ENTITY.DEATHMOTH",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Sinh vật giống thiêu thân khổng lồ, thân màu kem bẩn phủ lông ngắn, hai cánh rộng, sờn rách và lốm đốm, như tấm da cánh bị xé nhiều lần rồi vá lại bằng bụi và vảy. Mắt kép lớn màu đen, phần miệng kéo dài, nhiều chân có móc sắc, mỗi móc như một lưỡi câu nhỏ cắm vào bóng tối. Nó dùng trần tối và hốc kỹ thuật để ẩn mình, thường tấn công theo nhóm, phản ứng với ánh sáng và chuyển động. Ở Level 3, nó khai thác các vùng đèn hỏng, dồn con người về phía thiết bị điện đang có điện.",
+      "source": {
+        "document": "01_WORLD/entity.md",
+        "anchor": "ENT-1D; ENT-3A",
+        "document_id": "ENTITY",
+        "content_sha256": "8fc8c5602c807a03d9c18363d08c61a7da22a89a99c48cceb8842cbab1984c37",
+        "snapshot_path": "android-apk/canon_sources/Asset/03_Entity/Entity.md",
+        "verification": "CONTENT_MATCH",
+        "visual_snapshot_path": "android-apk/canon_sources/Asset/03_Entity/Entity.md",
+        "visual_anchor": "Deathmoth"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 60,
+      "tags": [
+        "deathmoth"
+      ],
+      "references": [
+        "ENTITY.GLOBAL_HARD_LOCK"
+      ],
+      "affordances": [
+        "direct_threat"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "ENTITY.DEATHMOTH",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "ENTITY.WRETCH",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Sinh vật mang dáng người suy kiệt, đầu trọc, da xám mục, đôi mắt trắng đục, lồng ngực gầy đến mức xương sườn lộ rõ dưới lớp da căng và nứt. Miệng há sâu, một bàn tay phình lớn dị thường với những ngón dài và cong. Nó di chuyển thất thường, chịu đau tốt, săn mồi qua âm thanh và mùi, thường được báo cáo ở các đường hầm thấp của Level 3. Người ta tin hoặc nghi ngờ nó từng là con người, nhưng điều đó chưa được xác nhận, chỉ còn lại một cơ thể mục ruỗng vẫn lê bước và lần theo tiếng động.",
+      "source": {
+        "document": "01_WORLD/entity.md",
+        "anchor": "ENT-3B",
+        "document_id": "ENTITY",
+        "content_sha256": "8fc8c5602c807a03d9c18363d08c61a7da22a89a99c48cceb8842cbab1984c37",
+        "snapshot_path": "android-apk/canon_sources/Asset/03_Entity/Entity.md",
+        "verification": "CONTENT_MATCH",
+        "visual_snapshot_path": "android-apk/canon_sources/Asset/03_Entity/Entity.md",
+        "visual_anchor": "Wretch"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 60,
+      "tags": [
+        "wretch"
+      ],
+      "references": [
+        "ENTITY.GLOBAL_HARD_LOCK"
+      ],
+      "affordances": [
+        "direct_threat"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "ENTITY.WRETCH",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "ENTITY.CABLE_MIMIC",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Cơ thể hình người được kết thành từ hàng trăm dây điện và dây cáp màu đen đỏ quấn xoắn quanh nhau, nhiều đầu nối điện tử mọc lộn xộn trên thân. Phần đầu bị chiếm gần hết bởi một cái miệng lớn chứa nhiều lớp răng nhọn. Nó hòa vào các bó cáp điện, có thể nằm yên hàng giờ và bắt chước rung động máy móc, khiến cáp thật của cơ sở và cáp của thực thể khó phân biệt nếu không kiểm tra. Khi bị chạm vào hoặc đi qua, nó có thể quấn lấy tay chân và dẫn dòng điện từ cơ sở xuyên qua nạn nhân.",
+      "source": {
+        "document": "01_WORLD/entity.md",
+        "anchor": "ENT-3D",
+        "document_id": "ENTITY",
+        "content_sha256": "8fc8c5602c807a03d9c18363d08c61a7da22a89a99c48cceb8842cbab1984c37",
+        "snapshot_path": "android-apk/canon_sources/Asset/03_Entity/Entity.md",
+        "verification": "CONTENT_MATCH",
+        "visual_snapshot_path": "android-apk/canon_sources/Asset/03_Entity/Entity.md",
+        "visual_anchor": "Cable Mimic"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 60,
+      "tags": [
+        "cable mimic"
+      ],
+      "references": [
+        "ENTITY.GLOBAL_HARD_LOCK"
+      ],
+      "affordances": [
+        "direct_threat",
+        "trace_analysis"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "ENTITY.CABLE_MIMIC",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "ENTITY.BEAST_LEVEL_5",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Thân hình cao lớn trong bộ lễ phục đen cũ rách, vải mục dính chặt vào da thịt đang rữa, mỗi bước đi lại kéo theo mùi thối của xác cũ. Đầu nó không còn là đầu người mà là một khối thịt sưng phồng, da nứt toác, những xúc tu dài rủ xuống như ruột thừa, quằn quại và rỉ dịch. Hai bàn tay dị dạng, ngón kéo dài thành móng cong sắc, có thể xé toạc da thịt con mồi khi nó đã quan sát và cô lập nạn nhân bằng kiến trúc khách sạn. Không có điểm yếu tuyệt đối nào được xác nhận.",
+      "source": {
+        "document": "01_WORLD/entity.md",
+        "anchor": "ENT-5A",
+        "document_id": "ENTITY",
+        "content_sha256": "8fc8c5602c807a03d9c18363d08c61a7da22a89a99c48cceb8842cbab1984c37",
+        "snapshot_path": "android-apk/canon_sources/Asset/03_Entity/Entity.md",
+        "verification": "CONTENT_MATCH",
+        "visual_snapshot_path": "android-apk/canon_sources/Asset/03_Entity/Entity.md",
+        "visual_anchor": "The Beast of Level 5"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 54,
+      "tags": [
+        "beast of level 5",
+        "the beast"
+      ],
+      "references": [
+        "ENTITY.GLOBAL_HARD_LOCK"
+      ],
+      "affordances": [
+        "direct_threat",
+        "trace_analysis"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "ENTITY.BEAST_LEVEL_5",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "ENTITY.JEFF",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Jeff là kẻ săn mồi hình người gầy gò, làn da trắng bệch căng sát xương, tóc đen dài rối bết máu khô, đôi mắt mở lớn như bị khâu chặt trong cơn điên. Miệng hắn bị kéo thành nụ cười đỏ rộng bất thường, mép môi rách sâu tới tận mang tai, để lộ nướu và răng nhuốm máu. Hắn mặc áo khoác trắng có mũ loang lổ vết máu, quần tối màu, tay cầm dao, chỉ săn con người sau thời gian dài quan sát chiến thuật. Nguồn gốc vẫn UNKNOWN, giết một hiện thân không bao giờ loại bỏ Jeff vĩnh viễn, và hắn không bao giờ trở thành đồng minh hay người cứu giúp.",
+      "source": {
+        "document": "01_WORLD/entity.md",
+        "anchor": "ENT-R01 — JEFF THE KILLER",
+        "document_id": "ENTITY",
+        "content_sha256": "8fc8c5602c807a03d9c18363d08c61a7da22a89a99c48cceb8842cbab1984c37",
+        "snapshot_path": "android-apk/canon_sources/Asset/03_Entity/Entity.md",
+        "verification": "CONTENT_MATCH",
+        "visual_snapshot_path": "android-apk/canon_sources/Asset/03_Entity/Entity.md",
+        "visual_anchor": "Jeff the Killer"
+      },
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "priority": 54,
+      "tags": [
+        "jeff",
+        "jeff the killer"
+      ],
+      "references": [
+        "ENTITY.GLOBAL_HARD_LOCK"
+      ],
+      "affordances": [
+        "direct_threat",
+        "trace_analysis"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "ENTITY.JEFF",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "affordances": [],
+      "authority": "CHARACTER_CANON",
+      "compact_text": "Cao Minh, the Vạn Giới Ma Tôn, was already the strongest of his origin world before the Backrooms; the codex gives him no sect (game scope per author decision 2026-10-24: Vạn Giới Ma Môn), and his origin world and true age remain OPEN.",
+      "domain": "CHARACTER",
+      "entity_id": "CHAR.CAO_MINH",
+      "id": "CHAR.CAO_MINH.IDENTITY",
+      "kind": "identity",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "mutability": "IMMUTABLE",
+      "priority": 24,
+      "references": [
+        "CHAR.CAO_MINH.RUNTIME_CORE"
+      ],
+      "review_status": "SOURCE_SNAPSHOTTED",
+      "schema_version": 2,
+      "source": {
+        "anchor": "CAO-ID-01",
+        "content_sha256": "c8b4172d6f3df4dc3bc274331a0228712c518fe9ed8401c7b20fc2112e78b84a",
+        "document": "01_Character/CAO_MINH_CODEX.md",
+        "document_id": "CAO_MINH_CODEX",
+        "snapshot_path": "android-apk/canon_sources/Asset/01_Character/CAO_MINH_CODEX.md",
+        "verification": "AUTHORED_FROM_SOURCE"
+      },
+      "tags": [
+        "cao-minh",
+        "van gioi ma ton",
+        "identity",
+        "van gioi ma mon"
+      ],
+      "text": "Cao Minh is the Vạn Giới Ma Tôn, a Ma Đạo sword cultivator who had already reached the peak of his origin world and was recognised as its number-one powerhouse before falling into the Backrooms; the title Vạn Giới Ma Tôn is an acknowledged honorific, not an office conferred by any organisation. The codex baseline gives him no sect, faction or organisation of his own; within this game's scope, the author decision of 2026-10-24 applies Vạn Giới Ma Môn as his faction. His origin world's name, its era and detailed realm system, and his true age remain OPEN and must not be invented.",
+      "truth_status": "CONFIRMED",
+      "universe_id": "BACKROOMS_MAIN"
+    },
+    {
+      "affordances": [
+        "direct_threat"
+      ],
+      "authority": "CHARACTER_CANON",
+      "compact_text": "Lục Trầm peaks after the opponent commits — reading attack lines, breaking rhythm, redirecting force and countering — and anchors the formation as rear guard; she stays below Cao Minh overall, with no power equalisation or competence suppression.",
+      "domain": "CHARACTER",
+      "entity_id": "CHAR.LUC_TRAM",
+      "id": "CHAR.LUC_TRAM.COMBAT",
+      "kind": "ability",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "mutability": "IMMUTABLE",
+      "priority": 44,
+      "references": [
+        "CHAR.LUC_TRAM.THIEN_KIEM_LINH_TAM",
+        "CHAR.LUC_TRAM.TICH_QUANG"
+      ],
+      "review_status": "SOURCE_SNAPSHOTTED",
+      "schema_version": 2,
+      "source": {
+        "anchor": "10",
+        "content_sha256": "58e85b5dcdb5fe99b380e677cf4549395bdb65592872bfc877dbd09feec12152",
+        "document": "01_Character/LUC_TRAM_CODEX.md",
+        "document_id": "LUC_TRAM_CODEX",
+        "snapshot_path": "android-apk/canon_sources/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "verification": "AUTHORED_FROM_SOURCE"
+      },
+      "tags": [
+        "luc-tram",
+        "combat",
+        "phong cach chien dau",
+        "rear guard"
+      ],
+      "text": "Lục Trầm is strongest once the opponent has already committed to an action: she reads attack lines, breaks the opponent's rhythm, changes angle, redirects incoming force and counter-strikes. In group combat she naturally becomes the formation's anchor and rear guard — holding the retreat line, blocking formation-breaking blows, opening space for others, protecting the wounded and locking dangerous angles. HARD LOCK on power scale: she remains below Cao Minh overall; never equalise their power and never suppress her competence to make a scene work.",
+      "truth_status": "CONFIRMED",
+      "universe_id": "BACKROOMS_MAIN"
+    },
+    {
+      "affordances": [
+        "dialogue"
+      ],
+      "authority": "CHARACTER_CANON",
+      "compact_text": "Lục Trầm's true age, detailed realm system, reunion place/time/conditions, memory-recovery possibility and Lục Trầm↔Syvial address are all OPEN and must not be inferred.",
+      "domain": "CHARACTER",
+      "entity_id": "CHAR.LUC_TRAM",
+      "id": "CHAR.LUC_TRAM.UNKNOWN",
+      "kind": "open-fields",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "mutability": "IMMUTABLE",
+      "priority": 26,
+      "references": [
+        "REL.LUC_TRAM.SYVIAL.BASELINE"
+      ],
+      "review_status": "SOURCE_SNAPSHOTTED",
+      "schema_version": 2,
+      "source": {
+        "anchor": "15; 23; LUC-READ-FIRST-R04",
+        "content_sha256": "58e85b5dcdb5fe99b380e677cf4549395bdb65592872bfc877dbd09feec12152",
+        "document": "01_Character/LUC_TRAM_CODEX.md",
+        "document_id": "LUC_TRAM_CODEX",
+        "snapshot_path": "android-apk/canon_sources/Asset/01_Character/LUC_TRAM_CODEX.md",
+        "verification": "AUTHORED_FROM_SOURCE"
+      },
+      "tags": [
+        "luc-tram",
+        "open",
+        "unknown",
+        "tai ngo",
+        "syvial"
+      ],
+      "text": "The following fields about Lục Trầm are OPEN — not established in canon — and must never be filled by inference: her true age; her detailed cảnh giới (realm) system; the place, time and conditions of any reunion with Cao Minh in the Backrooms; whether her memories of Cao Minh can be recovered, and by what means if so; and how Lục Trầm and Syvial address each other, since the two have no shared canon yet. A reunion has not been confirmed to have happened; if one occurs, its circumstances and her reactions are set by valid continuity, not by the pre-amnesia history.",
+      "truth_status": "CONFIRMED",
+      "universe_id": "BACKROOMS_MAIN"
+    },
+    {
+      "affordances": [],
+      "authority": "STORY_CANON",
+      "compact_text": "Lục Trầm exists in the Backrooms story: revived by Cao Minh's đạo hạnh after Lôi Thiên Vực, beginning nhập ma and having forgotten him; her current whereabouts remain OPEN.",
+      "domain": "STORY",
+      "entity_id": "STORY.MAIN.LUC_TRAM_EXISTENCE",
+      "id": "STORY.MAIN.LUC_TRAM_EXISTENCE",
+      "kind": "baseline-existence",
+      "knowledge_visibility": "WORLD",
+      "mutability": "BASELINE",
+      "priority": 40,
+      "references": [
+        "STORY.MAIN.SEPARATION",
+        "STORY.MAIN.OBJECTIVE",
+        "REL.CAO_MINH.LUC_TRAM.BASELINE"
+      ],
+      "review_status": "SOURCE_SNAPSHOTTED",
+      "schema_version": 2,
+      "source": {
+        "anchor": "CAO 19; LUC 14; 15",
+        "content_sha256": "c8b4172d6f3df4dc3bc274331a0228712c518fe9ed8401c7b20fc2112e78b84a",
+        "document": "01_Character/CAO_MINH_CODEX.md + 01_Character/LUC_TRAM_CODEX.md",
+        "document_id": "CAO_MINH_CODEX",
+        "snapshot_path": "android-apk/canon_sources/Asset/01_Character/CAO_MINH_CODEX.md",
+        "verification": "AUTHORED_FROM_SOURCE"
+      },
+      "tags": [
+        "main campaign",
+        "luc-tram",
+        "cao-minh",
+        "existence",
+        "hoi sinh"
+      ],
+      "text": "Baseline of the main story: Lục Trầm exists within the Backrooms story. At Lôi Thiên Vực she died opening an escape route; Cao Minh poured his đạo hạnh, tu vi and ma khí into her, and by author-confirmed canon she was revived, began an incipient nhập ma, and forgot everything about Cao Minh. Cao Minh woke alone in the Backrooms without knowing her state, and finding her is his first priority. Where she revived, where she is now, and the mechanism that brought them into the Backrooms remain OPEN; no reunion scene detail is established by this record.",
+      "truth_status": "CONFIRMED",
+      "universe_id": "BACKROOMS_MAIN"
+    },
+    {
+      "id": "WRITING.ADDRESS",
+      "domain": "WRITING",
+      "kind": "runtime-rule",
+      "text": "Address is relationship canon, never guessed. Resolve each pair's forms of address from, in order: the latest user instruction, the active character profile or CURRENT/HARD LOCK, the canonized relationship (age, hierarchy, culture, role, circumstance), and established continuity; if the deciding facts are insufficient, keep the pair OPEN or phrase around pronouns instead of fixing an invented pair. Once set within a scene, address stays stable and changes only for a real relationship cause — newly learned age or rank, discovered kinship, an explicit request, a genuine shift in closeness or status — with a bridge the reader can follow; anger, jealousy, a rescue, flirting or physical contact never upgrades address by itself.",
+      "compact_text": "Address is relationship canon, never guessed: take it from locks, profiles and canonized relationship facts, keep it stable in-scene, and change it only for a real, visibly bridged relationship cause.",
+      "source": {
+        "document": "00_RULES/CONVERSATION.MD + character relationship sections",
+        "anchor": "16. Xưng hô, quan hệ và khoảng cách giao tiếp / 16.1-16.9",
+        "document_id": "CONVERSATION",
+        "content_sha256": "378d61baffa7d48edcd3479b5b95321d83c424880d24ac30d133cad80d28978e",
+        "snapshot_path": "android-apk/canon_sources/Rules/CONVERSATION.MD",
+        "verification": "AUTHORED_FROM_SOURCE"
+      },
+      "authority": "DIALOGUE_AUTHORITY",
+      "mutability": "IMMUTABLE",
+      "priority": 35,
+      "tags": [
+        "address",
+        "relationship",
+        "continuity"
+      ],
+      "references": [
+        "WRITING.DIALOGUE"
+      ],
+      "affordances": [
+        "dialogue"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "WRITING.ADDRESS",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "META",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "WRITING.PROSE_POV",
+      "domain": "WRITING",
+      "kind": "runtime-rule",
+      "text": "Hold one focal point per scene and spend information only through it: narration may use what the focal character can see, remember, infer or misunderstand, and speculation must read as speculation — never assert another character's inner state as fact, name what the focal character does not know, or import out-of-era knowledge. Do not switch focal point merely to deliver convenient facts, and do not change the reader–character knowledge contract mid-scene without a structural signal. Backstage canon decides what is true; it never decides what a character says or knows, and a draft fails on any POV jump or impossible knowledge.",
+      "compact_text": "One focal point per scene; narration is limited to what that character can perceive, remember or infer, with speculation marked as speculation and the reader knowledge contract held stable.",
+      "source": {
+        "document": "00_RULES/WayOfWriting.md + relevant hard bans",
+        "anchor": "7. Điểm nhìn, khoảng cách và ngân sách thông tin / 7.1-7.6; 11.6; 20.1",
+        "document_id": "WAY_OF_WRITING",
+        "content_sha256": "931c9a4661529aa57013018c7810eb4370da3f4b058e255ee5301d5b18bbadd6",
+        "snapshot_path": "android-apk/canon_sources/Rules/WayOfWriting.md",
+        "verification": "AUTHORED_FROM_SOURCE"
+      },
+      "authority": "WRITING_HARD_LOCK",
+      "mutability": "IMMUTABLE",
+      "priority": 12,
+      "tags": [
+        "pov",
+        "information",
+        "focalization"
+      ],
+      "references": [
+        "WRITING.KNOWLEDGE_BOUNDARY"
+      ],
+      "affordances": [],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "WRITING.PROSE_POV",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "META",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "WRITING.VIVID_VERBS",
+      "domain": "WRITING",
+      "kind": "runtime-rule",
+      "text": "Verb choice is a prose-level editing tool, not a dialogue generator. Prefer the accurate, familiar verb over the strong or rare one — replace a vague verb propped up by adverbs with a verb that names the action itself — and never use the guide as a thesaurus substitution machine or as an absolute ban on adverbs, state verbs, passive voice or 'said'. A vivid verb must never fake emotion the scene has not caused, leak a motive the POV does not know, or compress and 'improve' a character's actual speech; where the guide conflicts with canon, voice, POV or the dialogue rules, the guide yields.",
+      "compact_text": "Choose the right verb before the strong one, at prose level only; never thesaurus-swap, fake emotion, leak motive, or compress real speech.",
+      "source": {
+        "document": "00_RULES/Vivid_Verbs_Guide.md",
+        "anchor": "0. Cách dùng tài liệu; 1. Nguyên lý trung tâm; 14. Những cách áp dụng sai bị cấm; 15. Câu nhớ cốt lõi",
+        "document_id": "VIVID_VERBS_GUIDE",
+        "content_sha256": "8cfb3376733364c4d1ff0606c40cf84aa0d2436ef62c43bb5c94a19b31755c2b",
+        "snapshot_path": "android-apk/canon_sources/Rules/Vivid_Verbs_Guide.md",
+        "verification": "AUTHORED_FROM_SOURCE"
+      },
+      "authority": "WRITING_HARD_LOCK",
+      "mutability": "IMMUTABLE",
+      "priority": 12,
+      "tags": [
+        "verbs",
+        "prose",
+        "editing"
+      ],
+      "references": [
+        "WRITING.DIALOGUE"
+      ],
+      "affordances": [],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "WRITING.VIVID_VERBS",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "META",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "WRITING.HORROR",
+      "domain": "WRITING",
+      "kind": "runtime-rule",
+      "text": "The horror guide governs only distribution — how unease, information, presence and consequence are portioned out; it creates no canon, entity, ability or event, and any technique that conflicts with canon or requires a character to act stupid is dropped. Drip unease rather than switching horror on, and build suspense from insufficient data, coexisting hypotheses, locked limits, time, conflicting goals and the cost of verification. Withholding information must never become withholding competence: a character who can scan, check, call for help, cross-reference or withdraw must be allowed to consider and use those options.",
+      "compact_text": "Horror technique distributes unease and suspense only; suspense lives on incomplete data and real limits, never on making a competent character forget what they know or can do.",
+      "source": {
+        "document": "00_RULES/Supernatural_Horror_Craft_Guide.md",
+        "anchor": "0. Phạm vi và nguyên tắc sử dụng; 5 [SH-UNEASE-01]; 6 [SH-SUSPENSE-01] Cổng chống gian lận",
+        "document_id": "SUPERNATURAL_HORROR_CRAFT_GUIDE",
+        "content_sha256": "f26e88097df2949959e7ce1543d8106ab3bda0ee1cd252b97a3fd23127623683",
+        "snapshot_path": "android-apk/canon_sources/Rules/Supernatural_Horror_Craft_Guide.md",
+        "verification": "AUTHORED_FROM_SOURCE"
+      },
+      "authority": "WRITING_HARD_LOCK",
+      "mutability": "IMMUTABLE",
+      "priority": 12,
+      "tags": [
+        "horror",
+        "suspense",
+        "unease"
+      ],
+      "references": [
+        "WRITING.COMPETENCE"
+      ],
+      "affordances": [],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "WRITING.HORROR",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "META",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "WRITING.INTIMACY",
+      "domain": "WRITING",
+      "kind": "runtime-rule",
+      "text": "The intimacy guide is a relationship reference: it governs how closeness and emotional truth are rendered — private speech, the unsaid, meaningful touch, absence — and intimacy is not limited to romance or sex. It never overrides canon, continuity, address, knowledge limits, POV or established consent, and canon alone decides what two people actually are to each other and how far their relationship may go. Never use this guide to legitimize a relationship retcon or to raise closeness — including through forms of address — without a cause the relationship itself has earned.",
+      "compact_text": "Intimacy guidance renders closeness only; canon and continuity decide the relationship itself, and the guide never overrides address, consent or canon.",
+      "source": {
+        "document": "00_RULES/Intimacy_Writing_Guide.md",
+        "anchor": "0. Cách dùng tài liệu; 12 [INTIMACY.INTEGRATION] Phối hợp với hệ 00_RULES",
+        "document_id": "INTIMACY_WRITING_GUIDE",
+        "content_sha256": "4a27abae4b9a9f85f005336bcba990ae037bec6056deac491f87c4d945d9e6f9",
+        "snapshot_path": "android-apk/canon_sources/Rules/Intimacy_Writing_Guide.md",
+        "verification": "AUTHORED_FROM_SOURCE"
+      },
+      "authority": "WRITING_HARD_LOCK",
+      "mutability": "IMMUTABLE",
+      "priority": 12,
+      "tags": [
+        "intimacy",
+        "relationship",
+        "closeness"
+      ],
+      "references": [
+        "WRITING.DIALOGUE"
+      ],
+      "affordances": [],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "WRITING.INTIMACY",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "META",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "WRITING.DIALOGUE_BENCHMARK",
+      "domain": "WRITING",
+      "kind": "runtime-rule",
+      "text": "Benchmarks are a post-draft observation lens only, never a generation template. Do not read a benchmark and then build a scene on its turn count, speaker order, misunderstanding placement, apology or teasing position, topic shifts or ending shape, and never rename the characters and copy a benchmark's structure. After a conversation already exists, compare it against the benchmarks to notice where the writer's hand is steering the people — lines optimized into written prose, psychology a character cannot own, answers packaged for the reader — and revise the draft, not toward the benchmark's surface.",
+      "compact_text": "Use benchmarks only after dialogue exists, to spot authorial steering; never copy a benchmark's structure, turns or surface as a template.",
+      "source": {
+        "document": "00_RULES/Dialogue_Benchmarks.md",
+        "anchor": "0. Cách dùng; 6. Cách học từ benchmark; 7. Mệnh lệnh cuối",
+        "document_id": "DIALOGUE_BENCHMARKS",
+        "content_sha256": "76fb3056f497d642148bddffdbe42235c023b0eb7939c05902ee533e0dfc029e",
+        "snapshot_path": "android-apk/canon_sources/Rules/Dialogue_Benchmarks.md",
+        "verification": "AUTHORED_FROM_SOURCE"
+      },
+      "authority": "DIALOGUE_AUTHORITY",
+      "mutability": "IMMUTABLE",
+      "priority": 35,
+      "tags": [
+        "dialogue",
+        "benchmark",
+        "post-draft audit"
+      ],
+      "references": [
+        "WRITING.DIALOGUE"
+      ],
+      "affordances": [
+        "dialogue"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "WRITING.DIALOGUE_BENCHMARK",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "META",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "WRITING.GUIDE_SUPPLEMENT",
+      "domain": "WRITING",
+      "kind": "runtime-rule",
+      "text": "HuongDan.txt supplements only the prose around dialogue: how an emotion, once present, persists in attention, patience, bodily distance, object use and practical choices instead of resetting when the topic changes, and how gesture stays meaningful action rather than a decorative emotion tag. It creates no parallel dialogue law — no conversation engine, turn schema, per-turn state-change requirement or generation checklist. Dialogue design, generation, realization and audit remain the sole authority of CONVERSATION.MD (RULES.DIALOGUE); every delegated topic in the supplement resolves back to it.",
+      "compact_text": "Supplement for emotion and action around dialogue only: feelings persist without forced per-turn change, gestures must do real work, and all dialogue authority stays with CONVERSATION.MD.",
+      "source": {
+        "document": "00_RULES/HuongDan.txt",
+        "anchor": "HD-001 Dòng cảm xúc quanh hội thoại; HD-003 Cử chỉ không được là lớp trang trí; HD-004 Cổng nối sang RULES.DIALOGUE",
+        "document_id": "HUONG_DAN",
+        "content_sha256": "de72bc9425470d79217bf40ffcc23297201c110517be9a23179fed0790794f6e",
+        "snapshot_path": "android-apk/canon_sources/Rules/HuongDan.txt",
+        "verification": "AUTHORED_FROM_SOURCE"
+      },
+      "authority": "DIALOGUE_AUTHORITY",
+      "mutability": "IMMUTABLE",
+      "priority": 35,
+      "tags": [
+        "dialogue",
+        "emotion",
+        "gesture",
+        "supplement"
+      ],
+      "references": [
+        "WRITING.DIALOGUE"
+      ],
+      "affordances": [
+        "dialogue"
+      ],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "WRITING.GUIDE_SUPPLEMENT",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "META",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "CHAR.NGUYEN_QUOC_NAM.RUNTIME_CORE",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.NGUYEN_QUOC_NAM",
+      "domain": "CHARACTER",
+      "kind": "hard-lock",
+      "authority": "AUTHOR_APPROVED_SOURCE",
+      "mutability": "AUTHOR_ONLY",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "spoiler_policy": "SHOW_IF_RELEVANT",
+      "text": "Nguyễn Quốc Nam, nam 36 tuổi, giảng viên y khoa từ TP.HCM năm 2001; con người hữu hạn, hỗ trợ súng ngắn và sơ cứu. Chỉ hiện diện/gia nhập theo Core. Không tự biết mọi Entity, Exit hoặc chữa bệnh bằng siêu năng lực.",
+      "tags": [
+        "follower_core"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "require_actor_present_or_subject": "CHAR.NGUYEN_QUOC_NAM",
+        "deny_if_unauthorized_pov": true,
+        "level_scope": "ANY",
+        "min_evidence": "CONFIRMED",
+        "any_scene_intent": []
+      },
+      "priority": 45,
+      "review_status": "EXTRACTED_FROM_SOURCE",
+      "source": {
+        "document_id": "NGUYEN_QUOC_NAM_CODEX",
+        "document": "Novel/Characters/NGUYEN_QUOC_NAM_CODEX.md",
+        "anchor": "## I. Danh tính",
+        "content_sha256": "5ca7f3cb26177aadf3fccdb06dadf608b721e88306c14491e1b9f7f42211c317",
+        "approved_revision": "R01",
+        "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+        "drive_file_id": "1UdRk6_7ALgYgm9eEMI25S9l32p-7NX0f"
+      }
+    },
+    {
+      "id": "CHAR.NGUYEN_QUOC_NAM.IDENTITY",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.NGUYEN_QUOC_NAM",
+      "domain": "CHARACTER",
+      "kind": "canon-card",
+      "authority": "AUTHOR_APPROVED_SOURCE",
+      "mutability": "AUTHOR_ONLY",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "spoiler_policy": "SHOW_IF_RELEVANT",
+      "text": "Nguyễn Quốc Nam là người Việt Nam, 36 tuổi khi mất tích năm 2001, sinh năm 1965 nhưng chưa chốt ngày sinh. Anh giảng dạy tại Trường Đại học Y Dược TP.HCM trong bối cảnh hư cấu; chuyên môn xử trí ban đầu, đánh giá nguy cơ và cấp cứu ngoại viện. Chưa có quan hệ quá khứ với các follower khác.",
+      "tags": [
+        "follower_persona"
+      ],
+      "affordances": [
+        "follower_persona"
+      ],
+      "references": [],
+      "activation": {
+        "require_actor_present_or_subject": "CHAR.NGUYEN_QUOC_NAM",
+        "deny_if_unauthorized_pov": true,
+        "level_scope": "ANY",
+        "min_evidence": "CONFIRMED",
+        "any_scene_intent": [
+          "follower_persona"
+        ]
+      },
+      "priority": 70,
+      "review_status": "EXTRACTED_FROM_SOURCE",
+      "source": {
+        "document_id": "NGUYEN_QUOC_NAM_CODEX",
+        "document": "Novel/Characters/NGUYEN_QUOC_NAM_CODEX.md",
+        "anchor": "## I. Danh tính",
+        "content_sha256": "5ca7f3cb26177aadf3fccdb06dadf608b721e88306c14491e1b9f7f42211c317",
+        "approved_revision": "R01",
+        "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+        "drive_file_id": "1UdRk6_7ALgYgm9eEMI25S9l32p-7NX0f"
+      }
+    },
+    {
+      "id": "CHAR.NGUYEN_QUOC_NAM.FAMILY",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.NGUYEN_QUOC_NAM",
+      "domain": "CHARACTER",
+      "kind": "canon-card",
+      "authority": "AUTHOR_APPROVED_SOURCE",
+      "mutability": "AUTHOR_ONLY",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "spoiler_policy": "SHOW_IF_RELEVANT",
+      "text": "Nam có vợ Nguyễn Hồng Lan và con gái Nguyễn Thùy Dương, 6 tuổi năm 2001. Hai mẹ con còn ở ngoài Backrooms và không biết anh sống hay chết; tuyệt đối không spawn họ, đưa vào Party hoặc tự tạo cuộc đoàn tụ. Nét Vẽ Của Dương là mảnh giấy con vẽ, chỉ là vật lưu niệm, không có cộng chỉ số. Đây là điều Nam biết về gia đình; Cao Minh chỉ biết khi có lời kể/sự kiện đã xác nhận.",
+      "tags": [
+        "follower_family"
+      ],
+      "affordances": [
+        "follower_family"
+      ],
+      "references": [],
+      "activation": {
+        "require_actor_present_or_subject": "CHAR.NGUYEN_QUOC_NAM",
+        "deny_if_unauthorized_pov": true,
+        "level_scope": "ANY",
+        "min_evidence": "CONFIRMED",
+        "any_scene_intent": [
+          "follower_family"
+        ]
+      },
+      "priority": 70,
+      "review_status": "EXTRACTED_FROM_SOURCE",
+      "source": {
+        "document_id": "NGUYEN_QUOC_NAM_CODEX",
+        "document": "Novel/Characters/NGUYEN_QUOC_NAM_CODEX.md",
+        "anchor": "## I. Danh tính",
+        "content_sha256": "5ca7f3cb26177aadf3fccdb06dadf608b721e88306c14491e1b9f7f42211c317",
+        "approved_revision": "R01",
+        "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+        "drive_file_id": "1UdRk6_7ALgYgm9eEMI25S9l32p-7NX0f",
+        "secondary_anchors": [
+          "## II. Gia cảnh và đời sống trước khi mất tích"
+        ]
+      }
+    },
+    {
+      "id": "CHAR.NGUYEN_QUOC_NAM.ORIGIN",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.NGUYEN_QUOC_NAM",
+      "domain": "CHARACTER",
+      "kind": "canon-card",
+      "authority": "AUTHOR_APPROVED_SOURCE",
+      "mutability": "AUTHOR_ONLY",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "spoiler_policy": "SHOW_IF_RELEVANT",
+      "text": "Cuối năm 2001, sau giờ giảng Nam đi vào cầu thang phụ một tòa nhà y khoa. Cửa tầng dưới dẫn đến hành lang thảm ẩm tường vàng, khi quay lại cửa biến mất. Anh cố ghi dấu mốc, sống sót và tìm đường về; chưa xác nhận tình trạng hiện tại của vợ con.",
+      "tags": [
+        "follower_history"
+      ],
+      "affordances": [
+        "follower_history"
+      ],
+      "references": [],
+      "activation": {
+        "require_actor_present_or_subject": "CHAR.NGUYEN_QUOC_NAM",
+        "deny_if_unauthorized_pov": true,
+        "level_scope": "ANY",
+        "min_evidence": "CONFIRMED",
+        "any_scene_intent": [
+          "follower_history"
+        ]
+      },
+      "priority": 70,
+      "review_status": "EXTRACTED_FROM_SOURCE",
+      "source": {
+        "document_id": "NGUYEN_QUOC_NAM_CODEX",
+        "document": "Novel/Characters/NGUYEN_QUOC_NAM_CODEX.md",
+        "anchor": "## II. Gia cảnh và đời sống trước khi mất tích",
+        "content_sha256": "5ca7f3cb26177aadf3fccdb06dadf608b721e88306c14491e1b9f7f42211c317",
+        "approved_revision": "R01",
+        "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+        "drive_file_id": "1UdRk6_7ALgYgm9eEMI25S9l32p-7NX0f"
+      }
+    },
+    {
+      "id": "CHAR.NGUYEN_QUOC_NAM.VISUAL",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.NGUYEN_QUOC_NAM",
+      "domain": "CHARACTER",
+      "kind": "canon-card",
+      "authority": "AUTHOR_APPROVED_SOURCE",
+      "mutability": "AUTHOR_ONLY",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "spoiler_policy": "SHOW_IF_RELEVANT",
+      "text": "Nam tóc đen dày hơi rối, kính gọng mảnh, sơ mi trắng ngà xắn tay mở cổ, quần tây tối màu, thắt lưng da, đồng hồ mặt tròn và giày da đen buộc dây. Hai tay giữ súng ngắn bán tự động; không áo giáp, không biểu tượng quân hàm. Khẩu súng chưa rõ hãng/mẫu; Nam nhặt nó trong Backrooms, không mang từ trường đại học.",
+      "tags": [
+        "follower_visual"
+      ],
+      "affordances": [
+        "follower_visual"
+      ],
+      "references": [],
+      "activation": {
+        "require_actor_present_or_subject": "CHAR.NGUYEN_QUOC_NAM",
+        "deny_if_unauthorized_pov": true,
+        "level_scope": "ANY",
+        "min_evidence": "CONFIRMED",
+        "any_scene_intent": [
+          "follower_visual"
+        ]
+      },
+      "priority": 70,
+      "review_status": "EXTRACTED_FROM_SOURCE",
+      "source": {
+        "document_id": "NGUYEN_QUOC_NAM_CODEX",
+        "document": "Novel/Characters/NGUYEN_QUOC_NAM_CODEX.md",
+        "anchor": "## III. Ngoại hình và trang phục",
+        "content_sha256": "5ca7f3cb26177aadf3fccdb06dadf608b721e88306c14491e1b9f7f42211c317",
+        "approved_revision": "R01",
+        "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+        "drive_file_id": "1UdRk6_7ALgYgm9eEMI25S9l32p-7NX0f"
+      }
+    },
+    {
+      "id": "CHAR.NGUYEN_QUOC_NAM.PERSONA",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.NGUYEN_QUOC_NAM",
+      "domain": "CHARACTER",
+      "kind": "canon-card",
+      "authority": "AUTHOR_APPROVED_SOURCE",
+      "mutability": "AUTHOR_ONLY",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "spoiler_policy": "SHOW_IF_RELEVANT",
+      "text": "Nam cẩn trọng, lý trí, quan sát trước khi nói. Khẩn cấp anh ra chỉ dẫn ngắn rõ; gặp người bị thương thường cứu trước khi truy hỏi. Anh cứng rắn với hành động bốc đồng gây nguy hiểm, nhưng không vô cảm; hay nhìn đồng hồ và giữ nét vẽ của con gần ngực. Anh thiếu kinh nghiệm quân sự, thể lực hữu hạn, kính có thể nứt và thiếu thuốc men.",
+      "tags": [
+        "follower_persona"
+      ],
+      "affordances": [
+        "follower_persona"
+      ],
+      "references": [],
+      "activation": {
+        "require_actor_present_or_subject": "CHAR.NGUYEN_QUOC_NAM",
+        "deny_if_unauthorized_pov": true,
+        "level_scope": "ANY",
+        "min_evidence": "CONFIRMED",
+        "any_scene_intent": [
+          "follower_persona"
+        ]
+      },
+      "priority": 70,
+      "review_status": "EXTRACTED_FROM_SOURCE",
+      "source": {
+        "document_id": "NGUYEN_QUOC_NAM_CODEX",
+        "document": "Novel/Characters/NGUYEN_QUOC_NAM_CODEX.md",
+        "anchor": "## IV. Tính cách",
+        "content_sha256": "5ca7f3cb26177aadf3fccdb06dadf608b721e88306c14491e1b9f7f42211c317",
+        "approved_revision": "R01",
+        "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+        "drive_file_id": "1UdRk6_7ALgYgm9eEMI25S9l32p-7NX0f"
+      }
+    },
+    {
+      "id": "CHAR.NGUYEN_QUOC_NAM.LIMITS",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.NGUYEN_QUOC_NAM",
+      "domain": "CHARACTER",
+      "kind": "hard-lock",
+      "authority": "AUTHOR_APPROVED_SOURCE",
+      "mutability": "AUTHOR_ONLY",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "spoiler_policy": "SHOW_IF_RELEVANT",
+      "text": "Nam không bất tử, hồi sinh, chẩn đoán mọi bệnh bằng một cái nhìn hay chữa vết thương chí mạng trong một lượt. Không biết Exit hoặc tạo thuốc/đạn vô hạn. Sơ cứu hồi HP không đồng nghĩa chữa mọi thương tích/debuff; súng và đạn hữu hạn theo truyện dù Core chưa theo dõi từng viên.",
+      "tags": [
+        "follower_core"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "require_actor_present_or_subject": "CHAR.NGUYEN_QUOC_NAM",
+        "deny_if_unauthorized_pov": true,
+        "level_scope": "ANY",
+        "min_evidence": "CONFIRMED",
+        "any_scene_intent": []
+      },
+      "priority": 45,
+      "review_status": "EXTRACTED_FROM_SOURCE",
+      "source": {
+        "document_id": "NGUYEN_QUOC_NAM_CODEX",
+        "document": "Novel/Characters/NGUYEN_QUOC_NAM_CODEX.md",
+        "anchor": "## IV. Tính cách",
+        "content_sha256": "5ca7f3cb26177aadf3fccdb06dadf608b721e88306c14491e1b9f7f42211c317",
+        "approved_revision": "R01",
+        "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+        "drive_file_id": "1UdRk6_7ALgYgm9eEMI25S9l32p-7NX0f"
+      }
+    },
+    {
+      "id": "CHAR.NGUYEN_QUOC_NAM.EQUIPMENT",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.NGUYEN_QUOC_NAM",
+      "domain": "CHARACTER",
+      "kind": "canon-card",
+      "authority": "AUTHOR_APPROVED_SOURCE",
+      "mutability": "AUTHOR_ONLY",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "spoiler_policy": "SHOW_IF_RELEVANT",
+      "text": "Nam sở hữu Hành Lang 01 (nam:corridor-pistol), súng ngắn 19 Weapon DMG, 8 viên đang nạp và một băng dự phòng chưa rõ số viên; Áo Sơ Mi Ca Trực +10% VIT, không phải giáp; Đồng Hồ Lời Hứa +10% DEX, không đo sinh hiệu/phân tích Entity/liên lạc thế giới thực; Giày Hành Lang +10% DEF, không xuyên tường hoặc triệt tiếng bước chân. Bốn món là đồ cá nhân, không nằm trong loot pool toàn cầu.",
+      "tags": [
+        "follower_equipment"
+      ],
+      "affordances": [
+        "follower_equipment"
+      ],
+      "references": [],
+      "activation": {
+        "require_actor_present_or_subject": "CHAR.NGUYEN_QUOC_NAM",
+        "deny_if_unauthorized_pov": true,
+        "level_scope": "ANY",
+        "min_evidence": "CONFIRMED",
+        "any_scene_intent": [
+          "follower_equipment"
+        ]
+      },
+      "priority": 70,
+      "review_status": "EXTRACTED_FROM_SOURCE",
+      "source": {
+        "document_id": "NGUYEN_QUOC_NAM_CODEX",
+        "document": "Novel/Characters/NGUYEN_QUOC_NAM_CODEX.md",
+        "anchor": "## V. Trang bị (gameplay)",
+        "content_sha256": "5ca7f3cb26177aadf3fccdb06dadf608b721e88306c14491e1b9f7f42211c317",
+        "approved_revision": "R01",
+        "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+        "drive_file_id": "1UdRk6_7ALgYgm9eEMI25S9l32p-7NX0f"
+      }
+    },
+    {
+      "id": "CHAR.NGUYEN_QUOC_NAM.SKILLS",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.NGUYEN_QUOC_NAM",
+      "domain": "CHARACTER",
+      "kind": "canon-card",
+      "authority": "AUTHOR_APPROVED_SOURCE",
+      "mutability": "AUTHOR_ONLY",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "spoiler_policy": "SHOW_IF_RELEVANT",
+      "text": "Nam ACTIVE trong Party: Quan Sát Lâm Sàng +8 điểm % Accuracy cú bắn thường, tối đa99%, Entity vẫn có thể né. Sau trúng thường, Phát Bắn Kiềm Chế proc25% gây120% current Weapon DMG trừ Armor, không liên hoàn/không ở Ultimate. GUARD: Sơ Cứu Tại Chỗ một lần/encounter, tối đa12% MaxHP cho người còn sống bị thương nặng nhất theo tỷ lệHP, không hồi sinh/chữa debuff. EVADE: Entity -12 điểm % Accuracy phản ứng hiện tại. READ: Đánh Giá Nguy Cơ +1Opening trong cap Core, không tìm Exit.",
+      "tags": [
+        "follower_combat"
+      ],
+      "affordances": [
+        "follower_combat"
+      ],
+      "references": [],
+      "activation": {
+        "require_actor_present_or_subject": "CHAR.NGUYEN_QUOC_NAM",
+        "deny_if_unauthorized_pov": true,
+        "level_scope": "ANY",
+        "min_evidence": "CONFIRMED",
+        "any_scene_intent": [
+          "follower_combat"
+        ]
+      },
+      "priority": 70,
+      "review_status": "EXTRACTED_FROM_SOURCE",
+      "source": {
+        "document_id": "NGUYEN_QUOC_NAM_CODEX",
+        "document": "Novel/Characters/NGUYEN_QUOC_NAM_CODEX.md",
+        "anchor": "## VI. Năm kỹ năng thường",
+        "content_sha256": "5ca7f3cb26177aadf3fccdb06dadf608b721e88306c14491e1b9f7f42211c317",
+        "approved_revision": "R01",
+        "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+        "drive_file_id": "1UdRk6_7ALgYgm9eEMI25S9l32p-7NX0f"
+      }
+    },
+    {
+      "id": "CHAR.NGUYEN_QUOC_NAM.ULTIMATE",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.NGUYEN_QUOC_NAM",
+      "domain": "CHARACTER",
+      "kind": "canon-card",
+      "authority": "AUTHOR_APPROVED_SOURCE",
+      "mutability": "AUTHOR_ONLY",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "spoiler_policy": "SHOW_IF_RELEVANT",
+      "text": "Lời Hứa Trở Về: Poker Dice đã chốt SSF hoặc FSF, Nam ACTIVE trong Party và Party ATTACK; một phát285% current Weapon DMG, trừ Armor một lần, bỏ Evasion, không Critical hoặc proc Phát Bắn Kiềm Chế. Là tính toán góc bắn, không thần lực của gia đình, không đổi hoàn cảnh vợ con hoặc xuyên luật bất khả chiến bại.",
+      "tags": [
+        "follower_combat"
+      ],
+      "affordances": [
+        "follower_combat"
+      ],
+      "references": [],
+      "activation": {
+        "require_actor_present_or_subject": "CHAR.NGUYEN_QUOC_NAM",
+        "deny_if_unauthorized_pov": true,
+        "level_scope": "ANY",
+        "min_evidence": "CONFIRMED",
+        "any_scene_intent": [
+          "follower_combat"
+        ]
+      },
+      "priority": 70,
+      "review_status": "EXTRACTED_FROM_SOURCE",
+      "source": {
+        "document_id": "NGUYEN_QUOC_NAM_CODEX",
+        "document": "Novel/Characters/NGUYEN_QUOC_NAM_CODEX.md",
+        "anchor": "## VII. Ultimate: Lời Hứa Trở Về",
+        "content_sha256": "5ca7f3cb26177aadf3fccdb06dadf608b721e88306c14491e1b9f7f42211c317",
+        "approved_revision": "R01",
+        "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+        "drive_file_id": "1UdRk6_7ALgYgm9eEMI25S9l32p-7NX0f"
+      }
+    },
+    {
+      "id": "CHAR.NGUYEN_QUOC_NAM.ENCOUNTER",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.NGUYEN_QUOC_NAM",
+      "domain": "CHARACTER",
+      "kind": "canon-card",
+      "authority": "AUTHOR_APPROVED_SOURCE",
+      "mutability": "AUTHOR_ONLY",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "spoiler_policy": "SHOW_IF_RELEVANT",
+      "text": "Gặp đầu Nguyễn Quốc Nam:5% mỗi Explorer action vật lý hợp lệ trên mọi Level/sub-level/AREA, vé d10000[5000,5499], không đè Entity[0,3499]/Catherine[3500,3999]/Janet[4000,4499]/TiểuLan[4500,4999]. Không spawn combat/meta/pending; chỉ tả sau Core xác nhận. Cuộc gặp không tự gia nhập: cần lời mời và đồng thuận riêng; người thân không spawn cùng. Cảnh gợi ý: Nam hỏi người lạ có bị thương, hạ súng khi thấy không có ý tấn công, hỏi thời gian ở đây có giống bên ngoài.",
+      "tags": [
+        "follower_encounter"
+      ],
+      "affordances": [
+        "first_encounter_nguyen_quoc_nam"
+      ],
+      "references": [],
+      "activation": {
+        "require_actor_present_or_subject": "CHAR.NGUYEN_QUOC_NAM",
+        "deny_if_unauthorized_pov": true,
+        "level_scope": "ANY",
+        "min_evidence": "CONFIRMED",
+        "any_scene_intent": [
+          "first_encounter_nguyen_quoc_nam"
+        ]
+      },
+      "priority": 70,
+      "review_status": "EXTRACTED_FROM_SOURCE",
+      "source": {
+        "document_id": "NGUYEN_QUOC_NAM_CODEX",
+        "document": "Novel/Characters/NGUYEN_QUOC_NAM_CODEX.md",
+        "anchor": "## VIII. Lần gặp đầu và tỷ lệ",
+        "content_sha256": "5ca7f3cb26177aadf3fccdb06dadf608b721e88306c14491e1b9f7f42211c317",
+        "approved_revision": "R01",
+        "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+        "drive_file_id": "1UdRk6_7ALgYgm9eEMI25S9l32p-7NX0f"
+      }
+    },
+    {
+      "id": "CHAR.NGUYEN_QUOC_NAM.ASSETS",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.NGUYEN_QUOC_NAM",
+      "domain": "CHARACTER",
+      "kind": "canon-card",
+      "authority": "AUTHOR_APPROVED_SOURCE",
+      "mutability": "AUTHOR_ONLY",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "RESTRICTED",
+      "spoiler_policy": "NEVER_SHOW",
+      "text": "Nguồn ảnh Nam:NguyenQuocNam.webp, avatarNguyenQuocNam_avatar.webp và bốn iconWebP128×128 cắt đúng ảnh673.png. Không tự vẽ lại nhân vật, thêm phép hoặc nhầm Nam với Cao Minh/NPC khác.",
+      "tags": [
+        "follower_assets"
+      ],
+      "affordances": [
+        "follower_assets"
+      ],
+      "references": [],
+      "activation": {
+        "require_actor_present_or_subject": "CHAR.NGUYEN_QUOC_NAM",
+        "deny_if_unauthorized_pov": true,
+        "level_scope": "ANY",
+        "min_evidence": "CONFIRMED",
+        "any_scene_intent": [
+          "follower_assets"
+        ]
+      },
+      "priority": 70,
+      "review_status": "EXTRACTED_FROM_SOURCE",
+      "source": {
+        "document_id": "NGUYEN_QUOC_NAM_CODEX",
+        "document": "Novel/Characters/NGUYEN_QUOC_NAM_CODEX.md",
+        "anchor": "## IX. Tài nguyên và bất biến Canon",
+        "content_sha256": "5ca7f3cb26177aadf3fccdb06dadf608b721e88306c14491e1b9f7f42211c317",
+        "approved_revision": "R01",
+        "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+        "drive_file_id": "1UdRk6_7ALgYgm9eEMI25S9l32p-7NX0f"
+      }
+    },
+    {
+      "id": "CHAR.HUA_TIEU_LAN.RUNTIME_CORE",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.HUA_TIEU_LAN",
+      "domain": "CHARACTER",
+      "kind": "hard-lock",
+      "authority": "AUTHOR_APPROVED_SOURCE",
+      "mutability": "AUTHOR_ONLY",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "spoiler_policy": "SHOW_IF_RELEVANT",
+      "text": "Hứa Tiểu Lan, Tứ tiểu thư Hứa gia, người sống 18 tuổi từ Sài Gòn–Chợ Lớn năm 1895; thiện xạ súng trường Trường Xuân. Chưa được giới thiệu tên thì chỉ gọi Cao Minh là công tử/vị công tử; sau khi biết tên mới gọi Cao công tử. Cô không biết danh tính chỉ vì tên ở state/prompt. Không bất tử/phép thuật, không tự gia nhập Party hay theo khi bị từ chối.",
+      "tags": [
+        "follower_core"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "require_actor_present_or_subject": "CHAR.HUA_TIEU_LAN",
+        "deny_if_unauthorized_pov": true,
+        "level_scope": "ANY",
+        "min_evidence": "CONFIRMED",
+        "any_scene_intent": []
+      },
+      "priority": 45,
+      "review_status": "EXTRACTED_FROM_SOURCE",
+      "source": {
+        "document_id": "HUA_TIEU_LAN_CODEX",
+        "document": "Novel/Characters/HUA_TIEU_LAN_CODEX.md",
+        "anchor": "# II. Danh tính và gia cảnh",
+        "content_sha256": "16b04bb4a8388da1d3728c427adb39786cf72ba6b04af52e1a2e481e57bf356f",
+        "approved_revision": "R03",
+        "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+        "drive_file_id": "16BiJr87vNY66dAQg2adavBXGQYZEv6IV"
+      }
+    },
+    {
+      "id": "CHAR.HUA_TIEU_LAN.HISTORICAL_LOCK",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.HUA_TIEU_LAN",
+      "domain": "CHARACTER",
+      "kind": "canon-card",
+      "authority": "AUTHOR_APPROVED_SOURCE",
+      "mutability": "AUTHOR_ONLY",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "spoiler_policy": "SHOW_IF_RELEVANT",
+      "text": "Trong lịch sử thay thế có chủ ý của game, Tiểu Lan là con gái ruột Hứa Bổn Hòa. Không gán điều này thành gia phả lịch sử thật. Cô sống, không bệnh phong/chết/thành hồn ma; năm1895 không dùng dinh thự Phó Đức Chính xây nhiều thập niên sau.",
+      "tags": [
+        "follower_history"
+      ],
+      "affordances": [
+        "follower_history"
+      ],
+      "references": [],
+      "activation": {
+        "require_actor_present_or_subject": "CHAR.HUA_TIEU_LAN",
+        "deny_if_unauthorized_pov": true,
+        "level_scope": "ANY",
+        "min_evidence": "CONFIRMED",
+        "any_scene_intent": [
+          "follower_history"
+        ]
+      },
+      "priority": 70,
+      "review_status": "EXTRACTED_FROM_SOURCE",
+      "source": {
+        "document_id": "HUA_TIEU_LAN_CODEX",
+        "document": "Novel/Characters/HUA_TIEU_LAN_CODEX.md",
+        "anchor": "# I. Ranh giới lịch sử và hư cấu",
+        "content_sha256": "16b04bb4a8388da1d3728c427adb39786cf72ba6b04af52e1a2e481e57bf356f",
+        "approved_revision": "R03",
+        "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+        "drive_file_id": "16BiJr87vNY66dAQg2adavBXGQYZEv6IV"
+      }
+    },
+    {
+      "id": "CHAR.HUA_TIEU_LAN.IDENTITY",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.HUA_TIEU_LAN",
+      "domain": "CHARACTER",
+      "kind": "canon-card",
+      "authority": "AUTHOR_APPROVED_SOURCE",
+      "mutability": "AUTHOR_ONLY",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "spoiler_policy": "SHOW_IF_RELEVANT",
+      "text": "Hứa Tiểu Lan sinh1877, biến mất đúng sinh nhật18 năm1895, ngày/tháng chưa chốt; biết tiếng Việt, Hoa và Pháp trong thiết lập hư cấu. Là con thứ tư, con gái duy nhất, được ba anh trai yêu thương. Cha tôn trọng tự quyết, không ép duyên/kế nghiệp. Mẹ còn sống, nghiêm lễ giáo nhưng ủng hộ luyện súng; chưa đặt tên mẹ/anh trai.",
+      "tags": [
+        "follower_family"
+      ],
+      "affordances": [
+        "follower_family"
+      ],
+      "references": [],
+      "activation": {
+        "require_actor_present_or_subject": "CHAR.HUA_TIEU_LAN",
+        "deny_if_unauthorized_pov": true,
+        "level_scope": "ANY",
+        "min_evidence": "CONFIRMED",
+        "any_scene_intent": [
+          "follower_family"
+        ]
+      },
+      "priority": 70,
+      "review_status": "EXTRACTED_FROM_SOURCE",
+      "source": {
+        "document_id": "HUA_TIEU_LAN_CODEX",
+        "document": "Novel/Characters/HUA_TIEU_LAN_CODEX.md",
+        "anchor": "# II. Danh tính và gia cảnh",
+        "content_sha256": "16b04bb4a8388da1d3728c427adb39786cf72ba6b04af52e1a2e481e57bf356f",
+        "approved_revision": "R03",
+        "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+        "drive_file_id": "16BiJr87vNY66dAQg2adavBXGQYZEv6IV"
+      }
+    },
+    {
+      "id": "CHAR.HUA_TIEU_LAN.ORIGIN",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.HUA_TIEU_LAN",
+      "domain": "CHARACTER",
+      "kind": "canon-card",
+      "authority": "AUTHOR_APPROVED_SOURCE",
+      "mutability": "AUTHOR_ONLY",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "spoiler_policy": "SHOW_IF_RELEVANT",
+      "text": "Tiểu Lan được dạy ngôn ngữ, tính toán, quan sát và lễ nghi; luyện bắn mục tiêu có giám sát với một cựu xạ thủ chưa rõ danh tính, không từng tham gia quân đội/chiến tranh. Sinh nhật18 năm1895, cô kiểm tra tiếng đồng hồ trong hành lang lạ ở kho nhà đương thời của gia đình rồi lạc vào Backrooms. Người nhà không biết cô ở đâu; không có quyền gia tộc điều khiển Backrooms.",
+      "tags": [
+        "follower_history"
+      ],
+      "affordances": [
+        "follower_history"
+      ],
+      "references": [],
+      "activation": {
+        "require_actor_present_or_subject": "CHAR.HUA_TIEU_LAN",
+        "deny_if_unauthorized_pov": true,
+        "level_scope": "ANY",
+        "min_evidence": "CONFIRMED",
+        "any_scene_intent": [
+          "follower_history"
+        ]
+      },
+      "priority": 70,
+      "review_status": "EXTRACTED_FROM_SOURCE",
+      "source": {
+        "document_id": "HUA_TIEU_LAN_CODEX",
+        "document": "Novel/Characters/HUA_TIEU_LAN_CODEX.md",
+        "anchor": "# III. Những năm tháng trước khi biến mất",
+        "content_sha256": "16b04bb4a8388da1d3728c427adb39786cf72ba6b04af52e1a2e481e57bf356f",
+        "approved_revision": "R03",
+        "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+        "drive_file_id": "16BiJr87vNY66dAQg2adavBXGQYZEv6IV"
+      }
+    },
+    {
+      "id": "CHAR.HUA_TIEU_LAN.VISUAL",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.HUA_TIEU_LAN",
+      "domain": "CHARACTER",
+      "kind": "canon-card",
+      "authority": "AUTHOR_APPROVED_SOURCE",
+      "mutability": "AUTHOR_ONLY",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "spoiler_policy": "SHOW_IF_RELEVANT",
+      "text": "Tiểu Lan tóc đen búi cao băng trắng, bông tai ngọc trai; áo dài hai tà xanh lam nhạt họa tiết cúc trắng, cổ cao tay dài, quần trắng rộng, giày trắng thấp gót và vòng cẩm thạch xanh. Súng trường cổ báng gỗ sẫm, nòng thép đen, chi tiết đồng; chưa rõ hãng/khóa nòng/cỡ đạn. Không tự thêm nhiều tà áo hoặc biến áo thành giáp.",
+      "tags": [
+        "follower_visual"
+      ],
+      "affordances": [
+        "follower_visual"
+      ],
+      "references": [],
+      "activation": {
+        "require_actor_present_or_subject": "CHAR.HUA_TIEU_LAN",
+        "deny_if_unauthorized_pov": true,
+        "level_scope": "ANY",
+        "min_evidence": "CONFIRMED",
+        "any_scene_intent": [
+          "follower_visual"
+        ]
+      },
+      "priority": 70,
+      "review_status": "EXTRACTED_FROM_SOURCE",
+      "source": {
+        "document_id": "HUA_TIEU_LAN_CODEX",
+        "document": "Novel/Characters/HUA_TIEU_LAN_CODEX.md",
+        "anchor": "# IV. Ngoại hình và trang phục (theo hình 677.png)",
+        "content_sha256": "16b04bb4a8388da1d3728c427adb39786cf72ba6b04af52e1a2e481e57bf356f",
+        "approved_revision": "R03",
+        "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+        "drive_file_id": "16BiJr87vNY66dAQg2adavBXGQYZEv6IV"
+      }
+    },
+    {
+      "id": "CHAR.HUA_TIEU_LAN.PERSONA",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.HUA_TIEU_LAN",
+      "domain": "CHARACTER",
+      "kind": "canon-card",
+      "authority": "AUTHOR_APPROVED_SOURCE",
+      "mutability": "AUTHOR_ONLY",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "spoiler_policy": "SHOW_IF_RELEVANT",
+      "text": "Tiểu Lan lễ độ, bình tĩnh, kín đáo, tự trọng và bướng khi bị xem là tiểu thư được nuông chiều. Cô chọn vị trí/đo khoảng cách trước khi bắn, không xem thường người yếu. Sợ gia đình nghĩ mình trốn đi và cha già đi ngoài kia; tự trách quá khứ là cảm nhận của cô, không là phán quyết đạo đức thế giới.",
+      "tags": [
+        "follower_persona"
+      ],
+      "affordances": [
+        "follower_persona"
+      ],
+      "references": [],
+      "activation": {
+        "require_actor_present_or_subject": "CHAR.HUA_TIEU_LAN",
+        "deny_if_unauthorized_pov": true,
+        "level_scope": "ANY",
+        "min_evidence": "CONFIRMED",
+        "any_scene_intent": [
+          "follower_persona"
+        ]
+      },
+      "priority": 70,
+      "review_status": "EXTRACTED_FROM_SOURCE",
+      "source": {
+        "document_id": "HUA_TIEU_LAN_CODEX",
+        "document": "Novel/Characters/HUA_TIEU_LAN_CODEX.md",
+        "anchor": "# V. Tính cách, động cơ và giới hạn",
+        "content_sha256": "16b04bb4a8388da1d3728c427adb39786cf72ba6b04af52e1a2e481e57bf356f",
+        "approved_revision": "R03",
+        "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+        "drive_file_id": "16BiJr87vNY66dAQg2adavBXGQYZEv6IV"
+      }
+    },
+    {
+      "id": "CHAR.HUA_TIEU_LAN.LIMITS",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.HUA_TIEU_LAN",
+      "domain": "CHARACTER",
+      "kind": "hard-lock",
+      "authority": "AUTHOR_APPROVED_SOURCE",
+      "mutability": "AUTHOR_ONLY",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "spoiler_policy": "SHOW_IF_RELEVANT",
+      "text": "Tiểu Lan là người hữu hạn, có thể bị thương/hết đạn/mệt/chết; súng dài bất tiện ở hành lang hẹp, nạp chậm, áo dài vướng khi leo, thiếu kinh nghiệm Entity. Không biết Exit bằng ý chí, không kéo người thân vào Backrooms, không cướp súng/xóa luật sinh tồn. Cao Minh không có ký ức về cô; không tự tạo cơ chế hồi phục ký ức.",
+      "tags": [
+        "follower_core"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "require_actor_present_or_subject": "CHAR.HUA_TIEU_LAN",
+        "deny_if_unauthorized_pov": true,
+        "level_scope": "ANY",
+        "min_evidence": "CONFIRMED",
+        "any_scene_intent": []
+      },
+      "priority": 45,
+      "review_status": "EXTRACTED_FROM_SOURCE",
+      "source": {
+        "document_id": "HUA_TIEU_LAN_CODEX",
+        "document": "Novel/Characters/HUA_TIEU_LAN_CODEX.md",
+        "anchor": "# V. Tính cách, động cơ và giới hạn",
+        "content_sha256": "16b04bb4a8388da1d3728c427adb39786cf72ba6b04af52e1a2e481e57bf356f",
+        "approved_revision": "R03",
+        "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+        "drive_file_id": "16BiJr87vNY66dAQg2adavBXGQYZEv6IV",
+        "secondary_anchors": [
+          "# V-B. Cao Minh, khuôn mặt Anh Tý và mối tình qua hai kiếp"
+        ]
+      }
+    },
+    {
+      "id": "CHAR.HUA_TIEU_LAN.TRAGEDY",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.HUA_TIEU_LAN",
+      "domain": "CHARACTER",
+      "kind": "canon-card",
+      "authority": "AUTHOR_APPROVED_SOURCE",
+      "mutability": "AUTHOR_ONLY",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "spoiler_policy": "SHOW_IF_RELEVANT",
+      "text": "Tiểu Lan từng yêu Anh Tý, chàng phu xe nghèo. Mẹ nhờ gia nhân đưa tiền cứu trợ thiên tai qua Anh Tý; Tiểu Lan nghe thiếu, hiểu lầm chàng vụ lợi và dùng địa vị sỉ nhục xuất thân chàng. Anh Tý lặng lẽ rời đi, không phản bội. Sau khi mẹ kể sự thật, cô đi tìm xin lỗi nhưng nghe chàng chết do tai nạn trên đường về nhà. Tên đầy đủ/tuổi/quê/ngày chết/chi tiết tai nạn chưa chốt. Cha mẹ không được suy diễn thành người cấm duyên.",
+      "tags": [
+        "follower_history"
+      ],
+      "affordances": [
+        "follower_history"
+      ],
+      "references": [],
+      "activation": {
+        "require_actor_present_or_subject": "CHAR.HUA_TIEU_LAN",
+        "deny_if_unauthorized_pov": true,
+        "level_scope": "ANY",
+        "min_evidence": "CONFIRMED",
+        "any_scene_intent": [
+          "follower_history"
+        ]
+      },
+      "priority": 70,
+      "review_status": "EXTRACTED_FROM_SOURCE",
+      "source": {
+        "document_id": "HUA_TIEU_LAN_CODEX",
+        "document": "Novel/Characters/HUA_TIEU_LAN_CODEX.md",
+        "anchor": "# V-A. Anh Tý và tình yêu bị chính Tiểu Lan đánh mất",
+        "content_sha256": "16b04bb4a8388da1d3728c427adb39786cf72ba6b04af52e1a2e481e57bf356f",
+        "approved_revision": "R03",
+        "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+        "drive_file_id": "16BiJr87vNY66dAQg2adavBXGQYZEv6IV"
+      }
+    },
+    {
+      "id": "CHAR.HUA_TIEU_LAN.FIRST_ENCOUNTER",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.HUA_TIEU_LAN",
+      "domain": "CHARACTER",
+      "kind": "canon-card",
+      "authority": "AUTHOR_APPROVED_SOURCE",
+      "mutability": "AUTHOR_ONLY",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "spoiler_policy": "SHOW_IF_RELEVANT",
+      "text": "Lần đầu gặp do Core xác nhận: Tiểu Lan nhìn mặt Cao Minh, bật khóc, ôm và gọi thành tiếng Anh Tý; cô chưa biết tên Cao Minh nên không gọi Cao công tử trước khi được giới thiệu. Cô xin lỗi, nói hắn giống người từng yêu, rồi xin đồng hành. Cao Minh không có ký ức kiếp trước, phản ứng do người chơi chọn; lời đề nghị không tự tạo đồng thuận hay tự gia nhập Party.",
+      "tags": [
+        "follower_encounter"
+      ],
+      "affordances": [
+        "first_encounter_hua_tieu_lan"
+      ],
+      "references": [],
+      "activation": {
+        "require_actor_present_or_subject": "CHAR.HUA_TIEU_LAN",
+        "deny_if_unauthorized_pov": true,
+        "level_scope": "ANY",
+        "min_evidence": "CONFIRMED",
+        "any_scene_intent": [
+          "first_encounter_hua_tieu_lan"
+        ]
+      },
+      "priority": 70,
+      "review_status": "EXTRACTED_FROM_SOURCE",
+      "source": {
+        "document_id": "HUA_TIEU_LAN_CODEX",
+        "document": "Novel/Characters/HUA_TIEU_LAN_CODEX.md",
+        "anchor": "# V-B. Cao Minh, khuôn mặt Anh Tý và mối tình qua hai kiếp",
+        "content_sha256": "16b04bb4a8388da1d3728c427adb39786cf72ba6b04af52e1a2e481e57bf356f",
+        "approved_revision": "R03",
+        "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+        "drive_file_id": "16BiJr87vNY66dAQg2adavBXGQYZEv6IV"
+      }
+    },
+    {
+      "id": "ADDR.HUA_TIEU_LAN.CAO_MINH",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.HUA_TIEU_LAN",
+      "domain": "RELATIONSHIP",
+      "kind": "address-lock",
+      "authority": "AUTHOR_APPROVED_SOURCE",
+      "mutability": "AUTHOR_ONLY",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "spoiler_policy": "SHOW_IF_RELEVANT",
+      "text": "Tiểu Lan tự xưng tôi. Khi chưa biết tên Cao Minh qua hội thoại, cô gọi công tử/vị công tử; không được biết tên nhờ GM, state hay thông tin hậu trường. Sau lời giới thiệu tên hợp lệ mới gọi Cao công tử. Lần đầu gặp cô xúc động gọi Anh Tý thành tiếng; sau đó tên này chỉ ở suy nghĩ/khi ở một mình. Không đổi sang anh/em. Không giúp Cao Minh nhớ kiếp trước.",
+      "tags": [
+        "follower_core"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "require_actor_present_or_subject": "CHAR.HUA_TIEU_LAN",
+        "deny_if_unauthorized_pov": true,
+        "level_scope": "ANY",
+        "min_evidence": "CONFIRMED",
+        "any_scene_intent": []
+      },
+      "priority": 45,
+      "review_status": "EXTRACTED_FROM_SOURCE",
+      "source": {
+        "document_id": "HUA_TIEU_LAN_CODEX",
+        "document": "Novel/Characters/HUA_TIEU_LAN_CODEX.md",
+        "anchor": "# V-B. Cao Minh, khuôn mặt Anh Tý và mối tình qua hai kiếp",
+        "content_sha256": "16b04bb4a8388da1d3728c427adb39786cf72ba6b04af52e1a2e481e57bf356f",
+        "approved_revision": "R03",
+        "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+        "drive_file_id": "16BiJr87vNY66dAQg2adavBXGQYZEv6IV"
+      }
+    },
+    {
+      "id": "CHAR.HUA_TIEU_LAN.FEELINGS",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.HUA_TIEU_LAN",
+      "domain": "CHARACTER",
+      "kind": "canon-card",
+      "authority": "AUTHOR_APPROVED_SOURCE",
+      "mutability": "AUTHOR_ONLY",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "spoiler_policy": "SHOW_IF_RELEVANT",
+      "text": "Tiểu Lan xin đồng hành để giúp/bảo vệ Cao Minh, không ép hắn nhớ hay đáp lại. Nếu bị từ chối, cô xin lỗi rồi rời đi, không lén theo hoặc cưỡng ép xuất hiện. Nếu tình cờ tái ngộ hợp lệ, cô cố bình thường nhưng còn tình cảm. Trong giả định Cao Minh yêu Lục Trầm, cô ghen/đau nhưng vẫn bảo vệ cả hai, không phá hoại; đây không khẳng định hắn đã yêu Lục Trầm. Khi được Lục Trầm hỏi trực tiếp, cô thành thật nhận tình cảm và chân thành chúc phúc nếu hắn chọn nàng.",
+      "tags": [
+        "follower_relationship"
+      ],
+      "affordances": [
+        "follower_relationship"
+      ],
+      "references": [],
+      "activation": {
+        "require_actor_present_or_subject": "CHAR.HUA_TIEU_LAN",
+        "deny_if_unauthorized_pov": true,
+        "level_scope": "ANY",
+        "min_evidence": "CONFIRMED",
+        "any_scene_intent": [
+          "follower_relationship"
+        ]
+      },
+      "priority": 70,
+      "review_status": "EXTRACTED_FROM_SOURCE",
+      "source": {
+        "document_id": "HUA_TIEU_LAN_CODEX",
+        "document": "Novel/Characters/HUA_TIEU_LAN_CODEX.md",
+        "anchor": "# V-B. Cao Minh, khuôn mặt Anh Tý và mối tình qua hai kiếp",
+        "content_sha256": "16b04bb4a8388da1d3728c427adb39786cf72ba6b04af52e1a2e481e57bf356f",
+        "approved_revision": "R03",
+        "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+        "drive_file_id": "16BiJr87vNY66dAQg2adavBXGQYZEv6IV"
+      }
+    },
+    {
+      "id": "CHAR.HUA_TIEU_LAN.REINCARNATION_SECRET",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.HUA_TIEU_LAN",
+      "domain": "CHARACTER",
+      "kind": "canon-card",
+      "authority": "AUTHOR_APPROVED_SOURCE",
+      "mutability": "AUTHOR_ONLY",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "RESTRICTED",
+      "spoiler_policy": "NEVER_SHOW",
+      "text": "Sự thật hậu trường: Anh Tý chuyển sinh thành Cao Minh, cùng khuôn mặt kiếp trước. Cao Minh không có bất kỳ ký ức nào về Anh Tý, Tiểu Lan hoặc tình xưa. Tiểu Lan không tự động biết có chuyển sinh, không có cảm ứng linh hồn/nhận diện siêu nhiên. Không tiết lộ sự thật này cho GM packet hoặc suy thành nghĩa vụ yêu/gia nhập Party.",
+      "tags": [
+        "follower_secret"
+      ],
+      "affordances": [
+        "follower_secret"
+      ],
+      "references": [],
+      "activation": {
+        "require_actor_present_or_subject": "CHAR.HUA_TIEU_LAN",
+        "deny_if_unauthorized_pov": true,
+        "level_scope": "ANY",
+        "min_evidence": "CONFIRMED",
+        "any_scene_intent": [
+          "follower_secret"
+        ]
+      },
+      "priority": 70,
+      "review_status": "EXTRACTED_FROM_SOURCE",
+      "source": {
+        "document_id": "HUA_TIEU_LAN_CODEX",
+        "document": "Novel/Characters/HUA_TIEU_LAN_CODEX.md",
+        "anchor": "# V-B. Cao Minh, khuôn mặt Anh Tý và mối tình qua hai kiếp",
+        "content_sha256": "16b04bb4a8388da1d3728c427adb39786cf72ba6b04af52e1a2e481e57bf356f",
+        "approved_revision": "R03",
+        "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+        "drive_file_id": "16BiJr87vNY66dAQg2adavBXGQYZEv6IV"
+      },
+      "known_by": [
+        "hua_tieu_lan"
+      ]
+    },
+    {
+      "id": "CHAR.HUA_TIEU_LAN.UNKNOWN_FIELDS",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.HUA_TIEU_LAN",
+      "domain": "CHARACTER",
+      "kind": "canon-card",
+      "authority": "AUTHOR_APPROVED_SOURCE",
+      "mutability": "AUTHOR_ONLY",
+      "truth_status": "UNKNOWN",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "spoiler_policy": "SHOW_IF_RELEVANT",
+      "text": "UNKNOWN: câu23 chưa được tác giả trả lời; chưa chốt Tiểu Lan sẽ tự trừng phạt suốt đời, đón nhận hạnh phúc hay học tha thứ. Chưa chốt tên đầy đủ/tuổi/quê Anh Tý, tên mẹ/ba anh trai, chi tiết/ngày tai nạn, kết cục tình cảm. Không tự điền hay nâng những điều này thành sự thật.",
+      "tags": [
+        "follower_persona"
+      ],
+      "affordances": [
+        "follower_persona"
+      ],
+      "references": [],
+      "activation": {
+        "require_actor_present_or_subject": "CHAR.HUA_TIEU_LAN",
+        "deny_if_unauthorized_pov": true,
+        "level_scope": "ANY",
+        "min_evidence": "UNKNOWN",
+        "any_scene_intent": [
+          "follower_persona"
+        ]
+      },
+      "priority": 70,
+      "review_status": "EXTRACTED_FROM_SOURCE",
+      "source": {
+        "document_id": "HUA_TIEU_LAN_CODEX",
+        "document": "Novel/Characters/HUA_TIEU_LAN_CODEX.md",
+        "anchor": "# XI. Trạng thái chốt Canon R02",
+        "content_sha256": "16b04bb4a8388da1d3728c427adb39786cf72ba6b04af52e1a2e481e57bf356f",
+        "approved_revision": "R03",
+        "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+        "drive_file_id": "16BiJr87vNY66dAQg2adavBXGQYZEv6IV"
+      }
+    },
+    {
+      "id": "CHAR.HUA_TIEU_LAN.EQUIPMENT",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.HUA_TIEU_LAN",
+      "domain": "CHARACTER",
+      "kind": "canon-card",
+      "authority": "AUTHOR_APPROVED_SOURCE",
+      "mutability": "AUTHOR_ONLY",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "spoiler_policy": "SHOW_IF_RELEVANT",
+      "text": "Trường Xuân(tieu-lan:truong-xuan):súng trường cổ25WeaponDMG,1loaded/finite reserve, không liên thanh/xuyên tường. Lam Cúc Áo Dài+10%AGI, không chống đạn; Vòng Ngọc Bình An+10%DEX, không phép chữa/liên lạc; Bạch Liên Hài+10%DEF, không đi trên không. Thiệp Mời Sinh Nhật chỉ là lưu niệm ghi tuổi18, không cộng chỉ số/mật mã Exit. Đồ cá nhân không ở lootpool toàn cầu.",
+      "tags": [
+        "follower_equipment"
+      ],
+      "affordances": [
+        "follower_equipment"
+      ],
+      "references": [],
+      "activation": {
+        "require_actor_present_or_subject": "CHAR.HUA_TIEU_LAN",
+        "deny_if_unauthorized_pov": true,
+        "level_scope": "ANY",
+        "min_evidence": "CONFIRMED",
+        "any_scene_intent": [
+          "follower_equipment"
+        ]
+      },
+      "priority": 70,
+      "review_status": "EXTRACTED_FROM_SOURCE",
+      "source": {
+        "document_id": "HUA_TIEU_LAN_CODEX",
+        "document": "Novel/Characters/HUA_TIEU_LAN_CODEX.md",
+        "anchor": "# VI. Trang bị gameplay, giữ nhất quán với ảnh",
+        "content_sha256": "16b04bb4a8388da1d3728c427adb39786cf72ba6b04af52e1a2e481e57bf356f",
+        "approved_revision": "R03",
+        "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+        "drive_file_id": "16BiJr87vNY66dAQg2adavBXGQYZEv6IV"
+      }
+    },
+    {
+      "id": "CHAR.HUA_TIEU_LAN.SKILLS",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.HUA_TIEU_LAN",
+      "domain": "CHARACTER",
+      "kind": "canon-card",
+      "authority": "AUTHOR_APPROVED_SOURCE",
+      "mutability": "AUTHOR_ONLY",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "spoiler_policy": "SHOW_IF_RELEVANT",
+      "text": "Tiểu Lan ACTIVE trong Party: Tĩnh Tâm Ngắm Bắn +12 điểm % Accuracy cú bắn thường, cap 99%, Entity vẫn né riêng. Trúng thường proc 25% Một Phát Định Đoạt: +150% current Weapon DMG, riêng hiệu ứng bỏ 20% Armor, cùng một viên đạn, không ở Ultimate. EVADE: Bộ Pháp Tà Lụa giảm 12 điểm % Accuracy Entity phản ứng hiện tại. READ: Ngắm Qua Hoa Cúc +1 Opening trong cap Core, không tìm Exit. Entity hụt và cô ACTIVE: proc 20% Tài Bắn Phản Xạ 110% Weapon DMG trừ Armor, không thêm turn, không ép bắn khi có người trong đường đạn.",
+      "tags": [
+        "follower_combat"
+      ],
+      "affordances": [
+        "follower_combat"
+      ],
+      "references": [],
+      "activation": {
+        "require_actor_present_or_subject": "CHAR.HUA_TIEU_LAN",
+        "deny_if_unauthorized_pov": true,
+        "level_scope": "ANY",
+        "min_evidence": "CONFIRMED",
+        "any_scene_intent": [
+          "follower_combat"
+        ]
+      },
+      "priority": 70,
+      "review_status": "EXTRACTED_FROM_SOURCE",
+      "source": {
+        "document_id": "HUA_TIEU_LAN_CODEX",
+        "document": "Novel/Characters/HUA_TIEU_LAN_CODEX.md",
+        "anchor": "# VII. Năm kỹ năng thường",
+        "content_sha256": "16b04bb4a8388da1d3728c427adb39786cf72ba6b04af52e1a2e481e57bf356f",
+        "approved_revision": "R03",
+        "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+        "drive_file_id": "16BiJr87vNY66dAQg2adavBXGQYZEv6IV"
+      }
+    },
+    {
+      "id": "CHAR.HUA_TIEU_LAN.ULTIMATE",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.HUA_TIEU_LAN",
+      "domain": "CHARACTER",
+      "kind": "canon-card",
+      "authority": "AUTHOR_APPROVED_SOURCE",
+      "mutability": "AUTHOR_ONLY",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "spoiler_policy": "SHOW_IF_RELEVANT",
+      "text": "Bách Hoa Nhất Tiễn: khi Poker Dice đã chốt SSF/FSF, Party ATTACK và Tiểu Lan ACTIVE, một viên đạn 320% current Weapon DMG, trừ Armor một lần, bỏ Evasion, không Critical/Một Phát Định Đoạt. Không triệu hồi hoa, mưa đạn, xuyên không, tự kết liễu boss hoặc sinh đạn vô hạn.",
+      "tags": [
+        "follower_combat"
+      ],
+      "affordances": [
+        "follower_combat"
+      ],
+      "references": [],
+      "activation": {
+        "require_actor_present_or_subject": "CHAR.HUA_TIEU_LAN",
+        "deny_if_unauthorized_pov": true,
+        "level_scope": "ANY",
+        "min_evidence": "CONFIRMED",
+        "any_scene_intent": [
+          "follower_combat"
+        ]
+      },
+      "priority": 70,
+      "review_status": "EXTRACTED_FROM_SOURCE",
+      "source": {
+        "document_id": "HUA_TIEU_LAN_CODEX",
+        "document": "Novel/Characters/HUA_TIEU_LAN_CODEX.md",
+        "anchor": "# VIII. Ultimate: BÁCH HOA NHẤT TIỄN",
+        "content_sha256": "16b04bb4a8388da1d3728c427adb39786cf72ba6b04af52e1a2e481e57bf356f",
+        "approved_revision": "R03",
+        "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+        "drive_file_id": "16BiJr87vNY66dAQg2adavBXGQYZEv6IV"
+      }
+    },
+    {
+      "id": "CHAR.HUA_TIEU_LAN.ENCOUNTER",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.HUA_TIEU_LAN",
+      "domain": "CHARACTER",
+      "kind": "canon-card",
+      "authority": "AUTHOR_APPROVED_SOURCE",
+      "mutability": "AUTHOR_ONLY",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "spoiler_policy": "SHOW_IF_RELEVANT",
+      "text": "Gặp đầu Tiểu Lan: 5% mỗi Explorer action vật lý hợp lệ ở mọi Level/sublevel/AREA, vé d10000 [4500,4999], chung với Entity [0,3499], Catherine [3500,3999], Janet [4000,4499], Nam [5000,5499]. Không spawn status/meta/combat/pending. Kết quả Core commit mới đánh encountered, lệnh hủy không đánh dấu. Gặp không tự gia nhập; cần lời mời/đồng thuận, không ưu tiên spawn vì tình cảm.",
+      "tags": [
+        "follower_encounter"
+      ],
+      "affordances": [
+        "first_encounter_hua_tieu_lan"
+      ],
+      "references": [],
+      "activation": {
+        "require_actor_present_or_subject": "CHAR.HUA_TIEU_LAN",
+        "deny_if_unauthorized_pov": true,
+        "level_scope": "ANY",
+        "min_evidence": "CONFIRMED",
+        "any_scene_intent": [
+          "first_encounter_hua_tieu_lan"
+        ]
+      },
+      "priority": 70,
+      "review_status": "EXTRACTED_FROM_SOURCE",
+      "source": {
+        "document_id": "HUA_TIEU_LAN_CODEX",
+        "document": "Novel/Characters/HUA_TIEU_LAN_CODEX.md",
+        "anchor": "# IX. Encounter và tiến trình gia nhập",
+        "content_sha256": "16b04bb4a8388da1d3728c427adb39786cf72ba6b04af52e1a2e481e57bf356f",
+        "approved_revision": "R03",
+        "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+        "drive_file_id": "16BiJr87vNY66dAQg2adavBXGQYZEv6IV"
+      }
+    },
+    {
+      "id": "CHAR.HUA_TIEU_LAN.ASSETS",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "CHAR.HUA_TIEU_LAN",
+      "domain": "CHARACTER",
+      "kind": "canon-card",
+      "authority": "AUTHOR_APPROVED_SOURCE",
+      "mutability": "AUTHOR_ONLY",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "RESTRICTED",
+      "spoiler_policy": "NEVER_SHOW",
+      "text": "Nguồn ảnh duy nhất 677.png; alpha WebP HuaTieuLan.webp, avatar HuaTieuLan_avatar.webp, bốn icon VP8 WebP 128×128 từ đúng ảnh. Codex R02 và ảnh đã trên Drive trước GitHub; không vẽ lại nhân vật.",
+      "tags": [
+        "follower_assets"
+      ],
+      "affordances": [
+        "follower_assets"
+      ],
+      "references": [],
+      "activation": {
+        "require_actor_present_or_subject": "CHAR.HUA_TIEU_LAN",
+        "deny_if_unauthorized_pov": true,
+        "level_scope": "ANY",
+        "min_evidence": "CONFIRMED",
+        "any_scene_intent": [
+          "follower_assets"
+        ]
+      },
+      "priority": 70,
+      "review_status": "EXTRACTED_FROM_SOURCE",
+      "source": {
+        "document_id": "HUA_TIEU_LAN_CODEX",
+        "document": "Novel/Characters/HUA_TIEU_LAN_CODEX.md",
+        "anchor": "# X. Tài nguyên",
+        "content_sha256": "16b04bb4a8388da1d3728c427adb39786cf72ba6b04af52e1a2e481e57bf356f",
+        "approved_revision": "R03",
+        "verification": "EXTRACTED_FROM_AUTHOR_APPROVED_SOURCE",
+        "drive_file_id": "16BiJr87vNY66dAQg2adavBXGQYZEv6IV"
+      }
+    },
+    {
+      "id": "ENTITY.926",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Whistlers cao gầy đến mức xương và gân như muốn đâm xuyên lớp mô tối ẩm bao quanh thân thể. Làn mô ướt, sẫm màu, rỉ dịch nhầy nơi các bó gân lộ ra, căng thành từng sợi dây thừng đen quấn quanh tay chân dài và gấp khúc. Cái đầu kéo dài bất thường, trên đó là ba vùng trắng như lỗ rỗng, trống hoác và sâu hun hút như hốc mắt bị khoét sạch, không có con ngươi hay mí mắt. Chi dài gập lại ở những góc sai lệch, mỗi bước đi đều kéo theo tiếng gân căng và thịt ướt dính vào nhau, toát ra mùi ẩm mục của một cơ thể không còn nguyên vẹn.",
+      "source": {
+        "document": "03_Entity/ENTITY_GAMEPLAY_CANON_R02_20261025.md",
+        "anchor": "926",
+        "document_id": "ENTITY_R02",
+        "drive_reference": "https://drive.google.com/file/d/1XRoBXISlL61kdIl56w5xzkkCdEOsQdWP/view",
+        "verification": "AUTHOR_OVERRIDE_20261025"
+      },
+      "authority": "AUTHOR_CURRENT_OVERRIDE",
+      "mutability": "IMMUTABLE",
+      "priority": 52,
+      "tags": [
+        "926",
+        "926",
+        "whistlers"
+      ],
+      "references": [
+        "ENTITY.GLOBAL_HARD_LOCK"
+      ],
+      "affordances": [],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "ENTITY.926",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "AUTHOR_CURRENT"
+    },
+    {
+      "id": "ENTITY.927",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Entity 927 là một khối thịt xám ẩm đội trên ba cái chân nhỏ gầy, cái đầu lớn phình ra như một bọc da căng mọng nước. Một con mắt nổi hẳn ra ngoài, tròng mắt căng phồng với những mạch máu đỏ quấn quanh, nhìn chằm chằm mà không chớp. Hàm của nó mở ra thành nhiều lớp răng tam giác xếp chồng lên nhau, răng nhọn hoắt, kẽ răng dính dịch nhầy và vệt máu sẫm chưa khô. Ba chân nhỏ run rẩy chống đỡ thân hình nặng nề, da chân nhăn nheo và ướt, mỗi bước đều khiến khối thịt trên đầu rung lên như sắp vỡ tung.",
+      "source": {
+        "document": "03_Entity/ENTITY_GAMEPLAY_CANON_R02_20261025.md",
+        "anchor": "927",
+        "document_id": "ENTITY_R02",
+        "drive_reference": "https://drive.google.com/file/d/1XRoBXISlL61kdIl56w5xzkkCdEOsQdWP/view",
+        "verification": "AUTHOR_OVERRIDE_20261025"
+      },
+      "authority": "AUTHOR_CURRENT_OVERRIDE",
+      "mutability": "IMMUTABLE",
+      "priority": 52,
+      "tags": [
+        "927",
+        "927",
+        "entity 927"
+      ],
+      "references": [
+        "ENTITY.GLOBAL_HARD_LOCK"
+      ],
+      "affordances": [],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "ENTITY.927",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "AUTHOR_CURRENT"
+    },
+    {
+      "id": "ENTITY.LUCKYBEAR",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "LuckyBear: Gấu bông vàng kem, một mắt nháy, bụng ngôi sao vàng và vòng hạt pastel. Không tấn công hoặc phản công. Combat Core: 800 HP / 0 ATK / 2 Armor / 8 Aggression. Thưởng 500 EXP cố định khi tiêu diệt, một lần mỗi encounter. Canon không xác nhận nguồn gốc, nơi cư trú hoặc kỹ năng nằm ngoài Core.",
+      "source": {
+        "document": "03_Entity/ENTITY_GAMEPLAY_CANON_R02_20261025.md",
+        "anchor": "luckybear",
+        "document_id": "ENTITY_R02",
+        "drive_reference": "https://drive.google.com/file/d/1XRoBXISlL61kdIl56w5xzkkCdEOsQdWP/view",
+        "verification": "AUTHOR_OVERRIDE_20261025"
+      },
+      "authority": "AUTHOR_CURRENT_OVERRIDE",
+      "mutability": "IMMUTABLE",
+      "priority": 52,
+      "tags": [
+        "luckybear",
+        "luckybear",
+        "luckybear"
+      ],
+      "references": [
+        "ENTITY.GLOBAL_HARD_LOCK"
+      ],
+      "affordances": [],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "ENTITY.LUCKYBEAR",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "AUTHOR_CURRENT"
+    },
+    {
+      "id": "ENTITY.BROWNIES",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Brownies: Thú bông lông xoăn nâu sẫm, hai tai lệch, mắt và mũi đen bóng. Không tấn công hoặc phản công. Combat Core: 800 HP / 0 ATK / 2 Armor / 8 Aggression. Thưởng 500 EXP cố định khi tiêu diệt, một lần mỗi encounter. Canon không xác nhận nguồn gốc, nơi cư trú hoặc kỹ năng nằm ngoài Core.",
+      "source": {
+        "document": "03_Entity/ENTITY_GAMEPLAY_CANON_R02_20261025.md",
+        "anchor": "brownies",
+        "document_id": "ENTITY_R02",
+        "drive_reference": "https://drive.google.com/file/d/1XRoBXISlL61kdIl56w5xzkkCdEOsQdWP/view",
+        "verification": "AUTHOR_OVERRIDE_20261025"
+      },
+      "authority": "AUTHOR_CURRENT_OVERRIDE",
+      "mutability": "IMMUTABLE",
+      "priority": 52,
+      "tags": [
+        "brownies",
+        "brownies",
+        "brownies"
+      ],
+      "references": [
+        "ENTITY.GLOBAL_HARD_LOCK"
+      ],
+      "affordances": [],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "ENTITY.BROWNIES",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "AUTHOR_CURRENT"
+    },
+    {
+      "id": "ENTITY.LUC_TRAM_HAC_HOA",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Lục Trầm Hắc Hóa: Nữ kiếm tu tóc bạc, mắt đỏ, kiếm giáp đỏ đen; Entity encounter tách biệt hoàn toàn khỏi Follower Lục Trầm. Combat Core: 2999 HP / 20 ATK / 3 Armor / 10 Aggression. Thưởng 120 EXP cố định khi tiêu diệt, một lần mỗi encounter. Canon không xác nhận nguồn gốc, nơi cư trú hoặc kỹ năng nằm ngoài Core.",
+      "source": {
+        "document": "03_Entity/ENTITY_GAMEPLAY_CANON_R02_20261025.md",
+        "anchor": "luc_tram_hac_hoa",
+        "document_id": "ENTITY_R02",
+        "drive_reference": "https://drive.google.com/file/d/1XRoBXISlL61kdIl56w5xzkkCdEOsQdWP/view",
+        "verification": "AUTHOR_OVERRIDE_20261025"
+      },
+      "authority": "AUTHOR_CURRENT_OVERRIDE",
+      "mutability": "IMMUTABLE",
+      "priority": 52,
+      "tags": [
+        "luc_tram_hac_hoa",
+        "luc tram hac hoa",
+        "lục trầm hắc hóa"
+      ],
+      "references": [
+        "ENTITY.GLOBAL_HARD_LOCK"
+      ],
+      "affordances": [],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "ENTITY.LUC_TRAM_HAC_HOA",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "AUTHOR_CURRENT"
+    },
+    {
+      "id": "ENTITY.BLACKROOT_SENTINEL",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Blackroot Sentinel là một hình người cao gầy được bện thành từ những bó rễ đen nâu, khô và xoắn vào nhau như gân thịt. Cổ nó vươn dài, đỡ một cái đầu thuôn mà khuôn mặt bị lớp sợi dày che kín, không thấy rõ mắt, mũi hay miệng, chỉ còn những sợi rễ cựa quậy như giun. Lồng ngực hẹp với các gờ giống xương sườn lộ ra qua khoảng rỗng, vai gồ lên như khối u rễ. Hai cánh tay dài buông thấp, bàn tay kết thành nhiều ngón nhọn dạng rễ, đầu ngón nứt nẻ, còn bàn chân xòe thành nhánh rễ bấu xuống nền như muốn hút lấy mọi thứ.",
+      "source": {
+        "document": "03_Entity/ENTITY_GAMEPLAY_CANON_R02_20261025.md",
+        "anchor": "blackroot_sentinel",
+        "document_id": "ENTITY_R02",
+        "drive_reference": "https://drive.google.com/file/d/1sxkZ6bEnitZsrdl0aPRqLMzRFg6GSdx5/view",
+        "verification": "AUTHOR_OVERRIDE_20261025"
+      },
+      "authority": "AUTHOR_CURRENT_OVERRIDE",
+      "mutability": "IMMUTABLE",
+      "priority": 52,
+      "tags": [
+        "blackroot_sentinel",
+        "blackroot sentinel",
+        "blackroot sentinel"
+      ],
+      "references": [
+        "ENTITY.GLOBAL_HARD_LOCK"
+      ],
+      "affordances": [],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "ENTITY.BLACKROOT_SENTINEL",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "AUTHOR_CURRENT"
+    },
+    {
+      "id": "ENTITY.SINEW_STRIDER",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Sinew Strider cực kỳ mảnh và cao, thân thể khom về trước như một bộ xương bị gân kéo lệch. Toàn thân là những bó sợi gân đen nâu quấn chặt, xen kẽ nhiều lỗ hổng xuyên qua thân, nơi sợi lỏng thõng xuống dọc sườn như ruột thịt bị xé rách. Đầu nhỏ, tròn và cúi về trước trên chiếc cổ dài, mặt méo lõm nhưng không có ngũ quan rõ ràng, chỉ còn bề mặt thịt nhăn nhúm. Hai tay gầy kéo dài quá hông, các ngón là dải sợi tách ra thành móc nhọn, còn đôi chân rất dài với bắp chân và mắt cá đan bằng sợi, bàn chân rộng bè bám sát mặt đất.",
+      "source": {
+        "document": "03_Entity/ENTITY_GAMEPLAY_CANON_R02_20261025.md",
+        "anchor": "sinew_strider",
+        "document_id": "ENTITY_R02",
+        "drive_reference": "https://drive.google.com/file/d/1-IWoqWJq3hMdBmhi50eshfGdF0_xx3C7/view",
+        "verification": "AUTHOR_OVERRIDE_20261025"
+      },
+      "authority": "AUTHOR_CURRENT_OVERRIDE",
+      "mutability": "IMMUTABLE",
+      "priority": 52,
+      "tags": [
+        "sinew_strider",
+        "sinew strider",
+        "sinew strider"
+      ],
+      "references": [
+        "ENTITY.GLOBAL_HARD_LOCK"
+      ],
+      "affordances": [],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "ENTITY.SINEW_STRIDER",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "AUTHOR_CURRENT"
+    },
+    {
+      "id": "ENTITY.HOLLOW_GRASPER",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Hollow Grasper cao và gù về trước, cơ thể không phải da thịt liền khối mà là một mạng gân rễ đen nâu bện rối, để lộ nhiều khe rỗng xuyên qua thân và hông. Qua những khe đó, các dải sợi chằng chịt ở vai, cổ và lưng cựa quậy như mạch máu khô. Đầu tròn méo, phủ kín sợi, khuôn mặt không có chi tiết nhận diện rõ, chỉ còn một khối thịt sợi nhăn nhúm. Hai cánh tay dài kết thúc bằng bàn tay to, các ngón tách xa và cong sắc như móc câu, còn chân gầy dài với bàn chân tỏa nhánh như chùm rễ đói khát.",
+      "source": {
+        "document": "03_Entity/ENTITY_GAMEPLAY_CANON_R02_20261025.md",
+        "anchor": "hollow_grasper",
+        "document_id": "ENTITY_R02",
+        "drive_reference": "https://drive.google.com/file/d/1_H5V6TuxNzHumf9Z3_jVfgrBurbcRsCj/view",
+        "verification": "AUTHOR_OVERRIDE_20261025"
+      },
+      "authority": "AUTHOR_CURRENT_OVERRIDE",
+      "mutability": "IMMUTABLE",
+      "priority": 52,
+      "tags": [
+        "hollow_grasper",
+        "hollow grasper",
+        "hollow grasper"
+      ],
+      "references": [
+        "ENTITY.GLOBAL_HARD_LOCK"
+      ],
+      "affordances": [],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "ENTITY.HOLLOW_GRASPER",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "AUTHOR_CURRENT"
+    },
+    {
+      "id": "ENTITY.COPX",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "CopX là một robot an ninh hình người, lớp giáp trắng ngà cũ kỹ bị ăn mòn và rỉ sét loang lổ như máu khô bám trên kim loại. Nhiều khe giáp nứt toác, để lộ servo, dây cáp và khớp máy tối màu bên trong, cáp lộ ra quấn quanh nhau như ruột máy bị moi ra ngoài. Đầu nó chỉ có một khe visor hẹp, tối om, không biểu cảm, như một hốc mắt máy đã chết. Cánh tay phải giữ súng ngắn theo tư thế cứng nhắc, các khớp kêu rít, toàn thân mang dấu vết xuống cấp nặng, toát ra sự thù địch lạnh lùng của một cỗ máy.",
+      "source": {
+        "document": "03_Entity/ENTITY_GAMEPLAY_CANON_R02_20261025.md",
+        "anchor": "copx",
+        "document_id": "ENTITY_R02",
+        "drive_reference": "https://drive.google.com/file/d/1zEJ2myjBj2QHuv7m0z6lHZFUXykYZVqA/view",
+        "verification": "AUTHOR_OVERRIDE_20261025"
+      },
+      "authority": "AUTHOR_CURRENT_OVERRIDE",
+      "mutability": "IMMUTABLE",
+      "priority": 52,
+      "tags": [
+        "copx",
+        "copx",
+        "copx"
+      ],
+      "references": [
+        "ENTITY.GLOBAL_HARD_LOCK"
+      ],
+      "affordances": [],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "ENTITY.COPX",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "AUTHOR_CURRENT"
+    },
+    {
+      "id": "ENTITY.CLUMP",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Clump là một búi thịt khổng lồ hỗn độn, vô số cánh tay và chân quấn chặt vào nhau quanh một lõi tối màu, da thịt chồng chéo, căng phồng và rỉ máu. Các chi mọc theo nhiều hướng, khớp xương vặn ngược, ngón tay co quắp bám chặt, khiến toàn thân bò lết bằng chính những cánh tay của nó. Từng lớp thịt chen nhau, chỗ thì phình to như u, chỗ thì lõm sâu lộ gân và cơ đỏ sẫm, mùi tanh của cơ thể sống trộn lẫn mùi thối rữa. Chiến đấu và kỹ năng do Combat Core xử lý; nguồn gốc và năng lực mới không được suy diễn chỉ từ ngoại hình.",
+      "source": {
+        "document": "03_Entity/Entity.md",
+        "anchor": "Clump",
+        "document_id": "ENTITY_VISUAL",
+        "snapshot_path": "android-apk/canon_sources/Asset/03_Entity/Entity.md",
+        "verification": "SOURCE_SNAPSHOTTED"
+      },
+      "authority": "WORLD_CANON_VISUAL",
+      "mutability": "IMMUTABLE",
+      "priority": 58,
+      "tags": [
+        "clump"
+      ],
+      "references": [
+        "ENTITY.GLOBAL_HARD_LOCK"
+      ],
+      "affordances": [],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "ENTITY.CLUMP",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "ENTITY.DULLER",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Duller là thực thể hình người rất cao và gầy, toàn thân phủ lớp da xám trơn, căng mỏng như da bọc xương, không một vết lông hay nếp nhăn bình thường. Tay chân dài bất thường, khớp kéo giãn quá giới hạn con người, bàn tay gầy guộc với những đốt xương lộ rõ dưới da. Đầu hình bầu dục hoàn toàn nhẵn, không mắt, không mũi, không miệng, chỉ là một khối thịt trơn láng, lạnh lẽo và đáng sợ vì sự trống rỗng tuyệt đối. Chiến đấu và kỹ năng do Combat Core xử lý; nguồn gốc và năng lực mới không được suy diễn chỉ từ ngoại hình.",
+      "source": {
+        "document": "03_Entity/Entity.md",
+        "anchor": "Duller",
+        "document_id": "ENTITY_VISUAL",
+        "snapshot_path": "android-apk/canon_sources/Asset/03_Entity/Entity.md",
+        "verification": "SOURCE_SNAPSHOTTED"
+      },
+      "authority": "WORLD_CANON_VISUAL",
+      "mutability": "IMMUTABLE",
+      "priority": 58,
+      "tags": [
+        "duller"
+      ],
+      "references": [
+        "ENTITY.GLOBAL_HARD_LOCK"
+      ],
+      "affordances": [],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "ENTITY.DULLER",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "ENTITY.HOSTILE_FACELING",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Hostile Faceling mang dáng con người, tóc đen dài rối che nửa thân, quần áo tối màu rách nát dính sát vào cơ thể gầy gò. Khuôn mặt chỉ là một lớp da phẳng không có ngũ quan, da căng mịn đến mức ghê rợn, không mắt, không mũi, không miệng, như một khuôn mặt bị lột sạch và khâu phẳng lại. Hai cánh tay dài quá mức, ngón tay nhọn như móng vuốt, có thể cào xé da thịt, để lại những vết rách sâu và máu chảy thành dòng. Chiến đấu và kỹ năng do Combat Core xử lý; nguồn gốc và năng lực mới không được suy diễn chỉ từ ngoại hình.",
+      "source": {
+        "document": "03_Entity/Entity.md",
+        "anchor": "Hostile Faceling",
+        "document_id": "ENTITY_VISUAL",
+        "snapshot_path": "android-apk/canon_sources/Asset/03_Entity/Entity.md",
+        "verification": "SOURCE_SNAPSHOTTED"
+      },
+      "authority": "WORLD_CANON_VISUAL",
+      "mutability": "IMMUTABLE",
+      "priority": 58,
+      "tags": [
+        "hostile_faceling",
+        "hostile faceling"
+      ],
+      "references": [
+        "ENTITY.GLOBAL_HARD_LOCK"
+      ],
+      "affordances": [],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "ENTITY.HOSTILE_FACELING",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "ENTITY.PAINTINGS",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Paintings là một người phụ nữ da trắng bệch đang chui ra khỏi bức tranh khung vàng cổ, cơ thể vặn vẹo qua mặt vải như da thịt bị ép xuyên qua một khe hẹp. Đôi mắt là hai hốc tối sâu hoắm, miệng há rộng bất thường tới mức quai hàm như sắp trật khớp, lộ khoang miệng đỏ sẫm và răng nhọn. Hai cánh tay vươn khỏi khung, móng dài màu đỏ sẫm như nhuốm máu khô, da tay nhợt nhạt căng sát xương, sẵn sàng kéo nạn nhân vào trong tranh. Chiến đấu và kỹ năng do Combat Core xử lý; nguồn gốc và năng lực mới không được suy diễn chỉ từ ngoại hình.",
+      "source": {
+        "document": "03_Entity/Entity.md",
+        "anchor": "Paintings",
+        "document_id": "ENTITY_VISUAL",
+        "snapshot_path": "android-apk/canon_sources/Asset/03_Entity/Entity.md",
+        "verification": "SOURCE_SNAPSHOTTED"
+      },
+      "authority": "WORLD_CANON_VISUAL",
+      "mutability": "IMMUTABLE",
+      "priority": 58,
+      "tags": [
+        "paintings"
+      ],
+      "references": [
+        "ENTITY.GLOBAL_HARD_LOCK"
+      ],
+      "affordances": [],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "ENTITY.PAINTINGS",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "ENTITY.PREDATORY_WINDOW",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Predatory Window là một cửa sổ cũ với khung mục nát, rèm vàng bẩn, phía sau lớp kính thấp thoáng bóng người có đôi mắt sáng. Nhiều cánh tay xương xẩu dài quá mức vươn xuyên qua cửa, da khô quắt bám sát xương, đầu ngón kết thúc bằng những móng cong sắc như dao móc. Những cánh tay đó quờ quạng trong không khí, khớp xương kêu răng rắc, móng cào vào khung gỗ mục, để lại vết xước sâu và mảnh vụn gỗ lẫn máu khô. Chiến đấu và kỹ năng do Combat Core xử lý; nguồn gốc và năng lực mới không được suy diễn chỉ từ ngoại hình.",
+      "source": {
+        "document": "03_Entity/Entity.md",
+        "anchor": "Predatory Window",
+        "document_id": "ENTITY_VISUAL",
+        "snapshot_path": "android-apk/canon_sources/Asset/03_Entity/Entity.md",
+        "verification": "SOURCE_SNAPSHOTTED"
+      },
+      "authority": "WORLD_CANON_VISUAL",
+      "mutability": "IMMUTABLE",
+      "priority": 58,
+      "tags": [
+        "predatory_window",
+        "predatory window"
+      ],
+      "references": [
+        "ENTITY.GLOBAL_HARD_LOCK"
+      ],
+      "affordances": [],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "ENTITY.PREDATORY_WINDOW",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "ENTITY.HOTEL_CORPSE_LURE",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Hotel Corpse Lure là xác một người đàn ông lớn tuổi gầy quắt, da tái xám, mắt trắng đục, cơ thể khô héo như đã chết từ lâu nhưng vẫn cử động. Hắn mặc áo choàng khách sạn đỏ sẫm rách nát, vải mục dính vào da thịt đang phân hủy, từng mảng da bong tróc để lộ thịt thâm và gân khô. Một tay ôm vật dụng trước ngực, tay còn lại duỗi ra chỉ về phía trước, ngón tay co quắp như đang mời gọi nạn nhân bước vào cái chết. Chiến đấu và kỹ năng do Combat Core xử lý; nguồn gốc và năng lực mới không được suy diễn chỉ từ ngoại hình.",
+      "source": {
+        "document": "03_Entity/Entity.md",
+        "anchor": "Hotel Corpse Lure",
+        "document_id": "ENTITY_VISUAL",
+        "snapshot_path": "android-apk/canon_sources/Asset/03_Entity/Entity.md",
+        "verification": "SOURCE_SNAPSHOTTED"
+      },
+      "authority": "WORLD_CANON_VISUAL",
+      "mutability": "IMMUTABLE",
+      "priority": 58,
+      "tags": [
+        "hotel_corpse_lure",
+        "hotel corpse lure"
+      ],
+      "references": [
+        "ENTITY.GLOBAL_HARD_LOCK"
+      ],
+      "affordances": [],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "ENTITY.HOTEL_CORPSE_LURE",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "ENTITY.JANE_THE_KILLER",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Jane xuất hiện như một xác người: da trắng nhợt, nứt nẻ như lớp sứ lạnh, tóc đen dài bết lại che nửa mặt. Quanh mắt là quầng đen đậm, sâu hoắm như hốc thịt bị khoét, còn đôi môi đỏ kéo rộng đến mức khóe miệng rách ra, máu khô đóng thành vệt nâu. Trang phục đen ôm sát siết lấy thân hình gầy, các chi tiết bảo hộ tạo vết hằn đỏ, giày cao cổ nặng nện xuống nền. Con dao trong tay cô ánh lên, lưỡi dao dính vệt máu cũ, và mỗi cử động đều toát ra sự thù địch không che giấu.",
+      "source": {
+        "document": "03_Entity/Entity.md",
+        "anchor": "Jane the Killer",
+        "document_id": "ENTITY_VISUAL",
+        "snapshot_path": "android-apk/canon_sources/Asset/03_Entity/Entity.md",
+        "verification": "SOURCE_SNAPSHOTTED"
+      },
+      "authority": "WORLD_CANON_VISUAL",
+      "mutability": "IMMUTABLE",
+      "priority": 58,
+      "tags": [
+        "jane_the_killer",
+        "jane the killer"
+      ],
+      "references": [
+        "ENTITY.GLOBAL_HARD_LOCK"
+      ],
+      "affordances": [],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "ENTITY.JANE_THE_KILLER",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "ENTITY.SLENDERMAN",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Slenderman là một hình người cao vượt mức bình thường, thân thể bị kéo dài đến méo mó trong bộ âu phục đen và cà vạt đỏ. Đầu hắn trắng nhẵn, hoàn toàn không có khuôn mặt, bề mặt da căng bóng như lớp thịt bị lột sạch mắt, mũi và miệng, chỉ còn một khối trơn lạnh lẽo. Tay chân dài bất thường, khớp xương nhô ra dưới lớp vải, các ngón tay thon dài như móng vuốt khô quắt. Từ sau lưng, nhiều xúc tu đen trườn ra, bề mặt ẩm ướt và co giật như những sợi gân sống, quấn quanh không khí và siết lấy mọi thứ trong tầm với bằng sự thù địch lặng lẽ.",
+      "source": {
+        "document": "03_Entity/Entity.md",
+        "anchor": "Slenderman",
+        "document_id": "ENTITY_VISUAL",
+        "snapshot_path": "android-apk/canon_sources/Asset/03_Entity/Entity.md",
+        "verification": "SOURCE_SNAPSHOTTED"
+      },
+      "authority": "WORLD_CANON_VISUAL",
+      "mutability": "IMMUTABLE",
+      "priority": 58,
+      "tags": [
+        "slenderman"
+      ],
+      "references": [
+        "ENTITY.GLOBAL_HARD_LOCK"
+      ],
+      "affordances": [],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "ENTITY.SLENDERMAN",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    },
+    {
+      "id": "ENTITY.DIEP_MINH",
+      "domain": "ENTITY",
+      "kind": "entity",
+      "text": "Diệp Minh: Ngoại hình tham chiếu từ Entity.md: Nam tử trẻ tóc đen trong pháp giáp đen-vàng; nửa phải còn hình người, nửa trái dị hóa thành ma thể đen-đỏ với hồng quang, tua nhánh và vuốt. Tay phải cầm trường kiếm tỏa kim quang; quanh thân xuất hiện phù vàng chữ đỏ cùng họa tiết âm dương/bát quái. Chiến đấu và kỹ năng do Combat Core xử lý; không suy diễn nguồn gốc hoặc năng lực mới chỉ từ ngoại hình.",
+      "source": {
+        "document": "03_Entity/Entity.md",
+        "anchor": "Diệp Minh",
+        "document_id": "ENTITY_VISUAL",
+        "snapshot_path": "android-apk/canon_sources/Asset/03_Entity/Entity.md",
+        "verification": "SOURCE_SNAPSHOTTED"
+      },
+      "authority": "WORLD_CANON_VISUAL",
+      "mutability": "IMMUTABLE",
+      "priority": 58,
+      "tags": [
+        "diep_minh",
+        "diệp minh"
+      ],
+      "references": [
+        "ENTITY.GLOBAL_HARD_LOCK"
+      ],
+      "affordances": [],
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "ENTITY.DIEP_MINH",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "WORLD",
+      "review_status": "SOURCE_SNAPSHOTTED"
+    }
+  ],
+  "recordCount": 114
+}

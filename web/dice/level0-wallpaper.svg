@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="96" viewBox="0 0 64 96">
+<defs><pattern id="wall" width="32" height="32" patternUnits="userSpaceOnUse">
+<rect width="32" height="32" fill="#b2ae79"/>
+<rect x="3" width="19" height="32" fill="#a19f70" opacity=".22"/>
+<path d="M3 0V32M22 0V32M25 0V32" stroke="#d1ca96" stroke-width=".7" opacity=".5"/>
+<g fill="none" stroke="#777e58" stroke-width=".65" opacity=".46" stroke-linecap="round" stroke-linejoin="round">
+<path d="M12.5 0V32M5 9 12.5 1 20 9M6.5 13 12.5 6 18.5 13M5 25 12.5 17 20 25M6.5 29 12.5 22 18.5 29"/>
+<path d="M9 9 8 5M16 9 17 5M9 25 8 21M16 25 17 21M10 13 9 10M15 13 16 10M10 29 9 26M15 29 16 26"/>
+</g>
+<g fill="none" stroke="#d5cda0" stroke-width=".7" opacity=".4"><path d="M6 10 12.5 3 19 10M6 26 12.5 19 19 26"/></g>
+<path d="M28 5h.6M29 20h.6M1 14h.6M23 30h.6" stroke="#6b704e" stroke-width=".6" opacity=".3"/>
+</pattern><radialGradient id="age"><stop stop-color="#6f724c" stop-opacity=".1"/><stop offset="1" stop-color="#6f724c" stop-opacity="0"/></radialGradient></defs>
+<rect width="64" height="96" fill="url(#wall)"/><ellipse cx="42" cy="59" rx="26" ry="37" fill="url(#age)"/>
+</svg>

@@ -1,0 +1,1910 @@
+{
+  "schema_version": 1,
+  "source_sha256": "45d0f2d006c3734573517863b7c438e3fce75a0c198af8776f24b889775f254f",
+  "parent_level": "LEVEL.00",
+  "node_count": 109,
+  "visual_count": 135,
+  "routes_defined": false,
+  "nodes": [
+    {
+      "node_key": "0",
+      "canon_id": "LEVEL.NODE.0",
+      "parent_node_key": null,
+      "display_name": "Level 0 · The Lobby",
+      "node_kind": "LEVEL",
+      "world_baseline": true,
+      "visuals": [
+        {
+          "source_name": "level_00__snapshot_001.webp",
+          "drive_id": "1WdoQf4mxo5GeWtQ1KNlV3I0gElPMmSDk",
+          "public_id": "Level_0_The_Lobby_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832048/Level_0_The_Lobby_01.webp"
+        },
+        {
+          "source_name": "level_00__snapshot_002.webp",
+          "drive_id": "1marZeM0WEwLlWbS_9-e28ngMkwlxyB-X",
+          "public_id": "Level_0_The_Lobby_02",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832049/Level_0_The_Lobby_02.webp"
+        },
+        {
+          "source_name": "level_00__snapshot_003.webp",
+          "drive_id": "1Tw4sMPmdnEEqnoxxjqFJBIwir6texftR",
+          "public_id": "Level_0_The_Lobby_03",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832046/Level_0_The_Lobby_03.webp"
+        },
+        {
+          "source_name": "level_00__snapshot_004.webp",
+          "drive_id": "1xdepryaGv2fXpmvUMG7X0yyeSisOE_C8",
+          "public_id": "Level_0_The_Lobby_04",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832065/Level_0_The_Lobby_04.webp"
+        },
+        {
+          "source_name": "level_00__snapshot_005.webp",
+          "drive_id": "1MOGUfxj4V4BeM7e-4nG6eIEvafmmh0xb",
+          "public_id": "Level_0_The_Lobby_05",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832066/Level_0_The_Lobby_05.webp"
+        },
+        {
+          "source_name": "level_00__snapshot_006.webp",
+          "drive_id": "19LEbXzZuXmJb-r-YilKC7JT_NYZL-MZK",
+          "public_id": "Level_0_The_Lobby_06",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832069/Level_0_The_Lobby_06.webp"
+        },
+        {
+          "source_name": "level_00__snapshot_007.webp",
+          "drive_id": "16wsgz5Gb1rImjLfmKRrL4nlpsr6kqQPI",
+          "public_id": "Level_0_The_Lobby_07",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832070/Level_0_The_Lobby_07.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0.1",
+      "canon_id": "LEVEL.NODE.0.1",
+      "parent_node_key": "0",
+      "display_name": "Level 0.1 · Deep Emptiness",
+      "node_kind": "SUBLEVEL",
+      "world_baseline": true,
+      "visuals": [
+        {
+          "source_name": "level_00p1__snapshot_001.webp",
+          "drive_id": "182WNN1fxXOvcYI4jBafhhta3m--d7NJR",
+          "public_id": "Level_0_1_Deep_Emptiness_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832044/Level_0_1_Deep_Emptiness_01.webp"
+        },
+        {
+          "source_name": "level_00p1__snapshot_002.webp",
+          "drive_id": "11a2E35rrAT9FBpUh1s7xpQMAyeQJEQbl",
+          "public_id": "Level_0_1_Deep_Emptiness_02",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832043/Level_0_1_Deep_Emptiness_02.webp"
+        },
+        {
+          "source_name": "level_00p1__snapshot_003.webp",
+          "drive_id": "1rm7rmkTrIYrA2LNKQkeaDLeyarRrjEWp",
+          "public_id": "Level_0_1_Deep_Emptiness_03",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832042/Level_0_1_Deep_Emptiness_03.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0.2",
+      "canon_id": "LEVEL.NODE.0.2",
+      "parent_node_key": "0",
+      "display_name": "Level 0.2",
+      "node_kind": "SUBLEVEL",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00p2__snapshot_001.webp",
+          "drive_id": "11RUUzSAt9kM8KAAlrPARCoAdkkjtNE2d",
+          "public_id": "Level_0_2_Sub_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832078/Level_0_2_Sub_01.webp"
+        },
+        {
+          "source_name": "level_00p2__snapshot_002.webp",
+          "drive_id": "1vZDVwg3BcUHWE_fiVYyrG5m6d7upTizQ",
+          "public_id": "Level_0_2_Sub_02",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832045/Level_0_2_Sub_02.webp"
+        },
+        {
+          "source_name": "level_00p2__snapshot_003.webp",
+          "drive_id": "1qQFnLoGiSLl9u0Zn4otW-aQdkT-_m2dG",
+          "public_id": "Level_0_2_Sub_03",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832041/Level_0_2_Sub_03.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0.5",
+      "canon_id": "LEVEL.NODE.0.5",
+      "parent_node_key": "0",
+      "display_name": "Level 0.5 · Aquaclaustrophobic Infirmary",
+      "node_kind": "SUBLEVEL",
+      "world_baseline": true,
+      "visuals": [
+        {
+          "source_name": "level_00p5__snapshot_001.webp",
+          "drive_id": "1qlMhZTg5FmmWOPqfXrKlxt4Ooh-z9gLE",
+          "public_id": "Level_0_5_Aquaclaustrophobic_Infirmary_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832040/Level_0_5_Aquaclaustrophobic_Infirmary_01.webp"
+        },
+        {
+          "source_name": "level_00p5__snapshot_002.webp",
+          "drive_id": "1IyNtAFD3Ie4Usr5vGChguM-e7AqLrzm-",
+          "public_id": "Level_0_5_Aquaclaustrophobic_Infirmary_02",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832039/Level_0_5_Aquaclaustrophobic_Infirmary_02.webp"
+        },
+        {
+          "source_name": "level_00p5__snapshot_003.webp",
+          "drive_id": "1OyqTPUW49JhutJaXv09TB7ppag9MGAb9",
+          "public_id": "Level_0_5_Aquaclaustrophobic_Infirmary_03",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832038/Level_0_5_Aquaclaustrophobic_Infirmary_03.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0.7",
+      "canon_id": "LEVEL.NODE.0.7",
+      "parent_node_key": "0",
+      "display_name": "Level 0.7 · Claustrophobia",
+      "node_kind": "SUBLEVEL",
+      "world_baseline": true,
+      "visuals": [
+        {
+          "source_name": "level_00p7__snapshot_001.webp",
+          "drive_id": "1m6ppE265DrS5Ebx3m9nFHppmrv4_dgqL",
+          "public_id": "Level_0_7_Claustrophobia_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832037/Level_0_7_Claustrophobia_01.webp"
+        },
+        {
+          "source_name": "level_00p7__snapshot_002.webp",
+          "drive_id": "1-1YgSm7mA4Mu5Ec5pszCKpLcw_oZVX8W",
+          "public_id": "Level_0_7_Claustrophobia_02",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832036/Level_0_7_Claustrophobia_02.webp"
+        },
+        {
+          "source_name": "level_00p7__snapshot_003.webp",
+          "drive_id": "1ZgJI-rWBt1Az46PM173FSlr-XWOLF8-S",
+          "public_id": "Level_0_7_Claustrophobia_03",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832035/Level_0_7_Claustrophobia_03.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/dullness",
+      "canon_id": "LEVEL.NODE.0.DULLNESS",
+      "parent_node_key": "0",
+      "display_name": "Dullness",
+      "node_kind": "AREA",
+      "world_baseline": true,
+      "visuals": [
+        {
+          "source_name": "area_00__dullness__snapshot_001.webp",
+          "drive_id": "1Gp2MWmfukmqQOWJk_qEkQ5-bXCY9pP69",
+          "public_id": "Level_0_Dullness_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832076/Level_0_Dullness_01.webp"
+        },
+        {
+          "source_name": "area_00__dullness__snapshot_002.webp",
+          "drive_id": "1miPJfuUmvp2Gv2YMzH7dzNwDMxAQ2WxT",
+          "public_id": "Level_0_Dullness_02",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832027/Level_0_Dullness_02.webp"
+        },
+        {
+          "source_name": "area_00__dullness__snapshot_003.webp",
+          "drive_id": "1zTd4J2nmygIBOwIHhId_l8PqYv0xN29g",
+          "public_id": "Level_0_Dullness_03",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832026/Level_0_Dullness_03.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/dullness/zone_01",
+      "canon_id": "LEVEL.NODE.0.DULLNESS.ZONE_01",
+      "parent_node_key": "0/dullness",
+      "display_name": "Dullness / Zone 01",
+      "node_kind": "ZONE",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__dullness__zone_01__area_du_z1.webp",
+          "drive_id": "1Zl3pkvmn_mfQzb7Et5H4_rI9SB5xS3tU",
+          "public_id": "Level_0_Dullness_Zone_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832201/Level_0_Dullness_Zone_01.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/dullness/zone_01/sub_01",
+      "canon_id": "LEVEL.NODE.0.DULLNESS.ZONE_01.SUB_01",
+      "parent_node_key": "0/dullness/zone_01",
+      "display_name": "Dullness / Zone 01 / Sub 01",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__dullness__zone_01__sub_01__area_du_z1_s1.webp",
+          "drive_id": "15GZiP8LLC8udpWJOl5oQUvv_bCedTsdv",
+          "public_id": "Level_0_Dullness_Zone_01_Sub_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832200/Level_0_Dullness_Zone_01_Sub_01.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/dullness/zone_01/sub_02",
+      "canon_id": "LEVEL.NODE.0.DULLNESS.ZONE_01.SUB_02",
+      "parent_node_key": "0/dullness/zone_01",
+      "display_name": "Dullness / Zone 01 / Sub 02",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__dullness__zone_01__sub_02__area_du_z1_s2.webp",
+          "drive_id": "1Y2U2invDUPWlT32eg4hy5yX3Sdlo0jFU",
+          "public_id": "Level_0_Dullness_Zone_01_Sub_02",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832199/Level_0_Dullness_Zone_01_Sub_02.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/dullness/zone_01/sub_03",
+      "canon_id": "LEVEL.NODE.0.DULLNESS.ZONE_01.SUB_03",
+      "parent_node_key": "0/dullness/zone_01",
+      "display_name": "Dullness / Zone 01 / Sub 03",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__dullness__zone_01__sub_03__area_du_z1_s3.webp",
+          "drive_id": "1hm7iZQVLasIYofXMgOt8qi8pLSedzLwF",
+          "public_id": "Level_0_Dullness_Zone_01_Sub_03",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832197/Level_0_Dullness_Zone_01_Sub_03.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/dullness/zone_01/sub_04",
+      "canon_id": "LEVEL.NODE.0.DULLNESS.ZONE_01.SUB_04",
+      "parent_node_key": "0/dullness/zone_01",
+      "display_name": "Dullness / Zone 01 / Sub 04",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__dullness__zone_01__sub_04__area_du_z1_s4.webp",
+          "drive_id": "128k5aZrm1Xdi4eH1egac3FSadnWyqQ0L",
+          "public_id": "Level_0_Dullness_Zone_01_Sub_04",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832196/Level_0_Dullness_Zone_01_Sub_04.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/dullness/zone_02",
+      "canon_id": "LEVEL.NODE.0.DULLNESS.ZONE_02",
+      "parent_node_key": "0/dullness",
+      "display_name": "Dullness / Zone 02",
+      "node_kind": "ZONE",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__dullness__zone_02__area_du_z2.webp",
+          "drive_id": "1yP3CW-S0VPxCXce1T1bIVrNod4RgMhgl",
+          "public_id": "Level_0_Dullness_Zone_02",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832195/Level_0_Dullness_Zone_02.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/dullness/zone_02/sub_01",
+      "canon_id": "LEVEL.NODE.0.DULLNESS.ZONE_02.SUB_01",
+      "parent_node_key": "0/dullness/zone_02",
+      "display_name": "Dullness / Zone 02 / Sub 01",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__dullness__zone_02__sub_01__area_du_z2_s1.webp",
+          "drive_id": "1zSDIPdkR6dsWotiFtiMGRz8ZFLB2KxVv",
+          "public_id": "Level_0_Dullness_Zone_02_Sub_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832195/Level_0_Dullness_Zone_02_Sub_01.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/dullness/zone_02/sub_02",
+      "canon_id": "LEVEL.NODE.0.DULLNESS.ZONE_02.SUB_02",
+      "parent_node_key": "0/dullness/zone_02",
+      "display_name": "Dullness / Zone 02 / Sub 02",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__dullness__zone_02__sub_02__area_du_z2_s2.webp",
+          "drive_id": "1p5p3ssgtMd2hCGPZD0hKuVGshWfKMU4d",
+          "public_id": "Level_0_Dullness_Zone_02_Sub_02",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832194/Level_0_Dullness_Zone_02_Sub_02.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/dullness/zone_02/sub_03",
+      "canon_id": "LEVEL.NODE.0.DULLNESS.ZONE_02.SUB_03",
+      "parent_node_key": "0/dullness/zone_02",
+      "display_name": "Dullness / Zone 02 / Sub 03",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__dullness__zone_02__sub_03__area_du_z2_s3.webp",
+          "drive_id": "1QnlS9RtX8mNgFyLhp2g8qcqfKEBHxHZ-",
+          "public_id": "Level_0_Dullness_Zone_02_Sub_03",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832192/Level_0_Dullness_Zone_02_Sub_03.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/dullness/zone_02/sub_04",
+      "canon_id": "LEVEL.NODE.0.DULLNESS.ZONE_02.SUB_04",
+      "parent_node_key": "0/dullness/zone_02",
+      "display_name": "Dullness / Zone 02 / Sub 04",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__dullness__zone_02__sub_04__area_du_z2_s4.webp",
+          "drive_id": "1tj13ZsXkVuCeFptmGZd2b_wycAqv9OUK",
+          "public_id": "Level_0_Dullness_Zone_02_Sub_04",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832192/Level_0_Dullness_Zone_02_Sub_04.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/dullness/zone_03",
+      "canon_id": "LEVEL.NODE.0.DULLNESS.ZONE_03",
+      "parent_node_key": "0/dullness",
+      "display_name": "Dullness / Zone 03",
+      "node_kind": "ZONE",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__dullness__zone_03__area_du_z3.webp",
+          "drive_id": "1gl7mEY_UE1WS8Sg8AAU79aTCL9-73I7x",
+          "public_id": "Level_0_Dullness_Zone_03",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832191/Level_0_Dullness_Zone_03.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/dullness/zone_03/sub_01",
+      "canon_id": "LEVEL.NODE.0.DULLNESS.ZONE_03.SUB_01",
+      "parent_node_key": "0/dullness/zone_03",
+      "display_name": "Dullness / Zone 03 / Sub 01",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__dullness__zone_03__sub_01__area_du_z3_s1.webp",
+          "drive_id": "1zUhSkmHXkC_wuSBY3TacAW2FXxlhHwbF",
+          "public_id": "Level_0_Dullness_Zone_03_Sub_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832190/Level_0_Dullness_Zone_03_Sub_01.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/dullness/zone_03/sub_02",
+      "canon_id": "LEVEL.NODE.0.DULLNESS.ZONE_03.SUB_02",
+      "parent_node_key": "0/dullness/zone_03",
+      "display_name": "Dullness / Zone 03 / Sub 02",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__dullness__zone_03__sub_02__area_du_z3_s2.webp",
+          "drive_id": "1ORo8y_zvhPryeWVnA8Htyg-whyx6FINl",
+          "public_id": "Level_0_Dullness_Zone_03_Sub_02",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832189/Level_0_Dullness_Zone_03_Sub_02.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/dullness/zone_03/sub_03",
+      "canon_id": "LEVEL.NODE.0.DULLNESS.ZONE_03.SUB_03",
+      "parent_node_key": "0/dullness/zone_03",
+      "display_name": "Dullness / Zone 03 / Sub 03",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__dullness__zone_03__sub_03__area_du_z3_s3.webp",
+          "drive_id": "1YjxBMVUZCvXq6R943IhLebG8vdmkjorc",
+          "public_id": "Level_0_Dullness_Zone_03_Sub_03",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832188/Level_0_Dullness_Zone_03_Sub_03.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/dullness/zone_03/sub_04",
+      "canon_id": "LEVEL.NODE.0.DULLNESS.ZONE_03.SUB_04",
+      "parent_node_key": "0/dullness/zone_03",
+      "display_name": "Dullness / Zone 03 / Sub 04",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__dullness__zone_03__sub_04__area_du_z3_s4.webp",
+          "drive_id": "11r7rVl59yurPvL3xUW5Ein1lchsuRb5l",
+          "public_id": "Level_0_Dullness_Zone_03_Sub_04",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832187/Level_0_Dullness_Zone_03_Sub_04.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/dullness/zone_04",
+      "canon_id": "LEVEL.NODE.0.DULLNESS.ZONE_04",
+      "parent_node_key": "0/dullness",
+      "display_name": "Dullness / Zone 04",
+      "node_kind": "ZONE",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__dullness__zone_04__area_du_z4.webp",
+          "drive_id": "1IJXNcas3KtEpdMSxVgSsvUeCD4dyCvC6",
+          "public_id": "Level_0_Dullness_Zone_04",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832186/Level_0_Dullness_Zone_04.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/dullness/zone_04/sub_01",
+      "canon_id": "LEVEL.NODE.0.DULLNESS.ZONE_04.SUB_01",
+      "parent_node_key": "0/dullness/zone_04",
+      "display_name": "Dullness / Zone 04 / Sub 01",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__dullness__zone_04__sub_01__area_du_z4_s1.webp",
+          "drive_id": "1cb-qtby6Pp1nGqGMt5pDsKv4UVKyqAHS",
+          "public_id": "Level_0_Dullness_Zone_04_Sub_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832185/Level_0_Dullness_Zone_04_Sub_01.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/dullness/zone_04/sub_02",
+      "canon_id": "LEVEL.NODE.0.DULLNESS.ZONE_04.SUB_02",
+      "parent_node_key": "0/dullness/zone_04",
+      "display_name": "Dullness / Zone 04 / Sub 02",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__dullness__zone_04__sub_02__area_du_z4_s2.webp",
+          "drive_id": "1HK-vFFDVtg5Cf2lZqi5Z4ZqWiGkg2uIj",
+          "public_id": "Level_0_Dullness_Zone_04_Sub_02",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832184/Level_0_Dullness_Zone_04_Sub_02.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/dullness/zone_04/sub_03",
+      "canon_id": "LEVEL.NODE.0.DULLNESS.ZONE_04.SUB_03",
+      "parent_node_key": "0/dullness/zone_04",
+      "display_name": "Dullness / Zone 04 / Sub 03",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__dullness__zone_04__sub_03__area_du_z4_s3.webp",
+          "drive_id": "14j7iOt8M3cZZq-vLJnkbTgRBKrA_aMV2",
+          "public_id": "Level_0_Dullness_Zone_04_Sub_03",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832183/Level_0_Dullness_Zone_04_Sub_03.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/dullness/zone_04/sub_04",
+      "canon_id": "LEVEL.NODE.0.DULLNESS.ZONE_04.SUB_04",
+      "parent_node_key": "0/dullness/zone_04",
+      "display_name": "Dullness / Zone 04 / Sub 04",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__dullness__zone_04__sub_04__area_du_z4_s4.webp",
+          "drive_id": "1-C41j8wFfrDiA8swFslSyB8FZtuEO142",
+          "public_id": "Level_0_Dullness_Zone_04_Sub_04",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832182/Level_0_Dullness_Zone_04_Sub_04.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/epsilon",
+      "canon_id": "LEVEL.NODE.0.EPSILON",
+      "parent_node_key": "0",
+      "display_name": "Level ε · Incessant Hum-Buzz",
+      "node_kind": "AREA",
+      "world_baseline": true,
+      "visuals": [
+        {
+          "source_name": "area_00__epsilon__snapshot_001.webp",
+          "drive_id": "1aBEafyUhJSTLm-X7nOHGMyGRfhU1IQDT",
+          "public_id": "Level_0_Epsilon_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832075/Level_0_Epsilon_01.webp"
+        },
+        {
+          "source_name": "area_00__epsilon__snapshot_002.webp",
+          "drive_id": "1Ne_piv2eq-hm6LfInR3iOFg2BGfVkvq_",
+          "public_id": "Level_0_Epsilon_02",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832025/Level_0_Epsilon_02.webp"
+        },
+        {
+          "source_name": "area_00__epsilon__snapshot_003.webp",
+          "drive_id": "1Azpx8kxonIV-Hvtg3cF2kFJ5Qs8Myl38",
+          "public_id": "Level_0_Epsilon_03",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832024/Level_0_Epsilon_03.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/epsilon/zone_01",
+      "canon_id": "LEVEL.NODE.0.EPSILON.ZONE_01",
+      "parent_node_key": "0/epsilon",
+      "display_name": "Level ε / Zone 01",
+      "node_kind": "ZONE",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__epsilon__zone_01__area_ep_z1.webp",
+          "drive_id": "1jV9Kd4J2y3_7HV3WziX27042xWrRRN8A",
+          "public_id": "Level_0_Epsilon_Zone_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832181/Level_0_Epsilon_Zone_01.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/epsilon/zone_01/sub_01",
+      "canon_id": "LEVEL.NODE.0.EPSILON.ZONE_01.SUB_01",
+      "parent_node_key": "0/epsilon/zone_01",
+      "display_name": "Level ε / Zone 01 / Sub 01",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__epsilon__zone_01__sub_01__area_ep_z1_s1.webp",
+          "drive_id": "1_M0BM55fVY4NNChpp-RS_cjd95rTKZqU",
+          "public_id": "Level_0_Epsilon_Zone_01_Sub_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832180/Level_0_Epsilon_Zone_01_Sub_01.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/epsilon/zone_01/sub_02",
+      "canon_id": "LEVEL.NODE.0.EPSILON.ZONE_01.SUB_02",
+      "parent_node_key": "0/epsilon/zone_01",
+      "display_name": "Level ε / Zone 01 / Sub 02",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__epsilon__zone_01__sub_02__area_ep_z1_s2.webp",
+          "drive_id": "14BUf5VG88sk_PtKuOThJtDT11ii-at0k",
+          "public_id": "Level_0_Epsilon_Zone_01_Sub_02",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832179/Level_0_Epsilon_Zone_01_Sub_02.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/epsilon/zone_01/sub_03",
+      "canon_id": "LEVEL.NODE.0.EPSILON.ZONE_01.SUB_03",
+      "parent_node_key": "0/epsilon/zone_01",
+      "display_name": "Level ε / Zone 01 / Sub 03",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__epsilon__zone_01__sub_03__area_ep_z1_s3.webp",
+          "drive_id": "1i6bxzxvnP_ynEITTGLuMgiIgOX8aZ17s",
+          "public_id": "Level_0_Epsilon_Zone_01_Sub_03",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832178/Level_0_Epsilon_Zone_01_Sub_03.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/epsilon/zone_01/sub_04",
+      "canon_id": "LEVEL.NODE.0.EPSILON.ZONE_01.SUB_04",
+      "parent_node_key": "0/epsilon/zone_01",
+      "display_name": "Level ε / Zone 01 / Sub 04",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__epsilon__zone_01__sub_04__area_ep_z1_s4.webp",
+          "drive_id": "1Y5PoeSfglQpTNHXUxB5j8gn3ZpfDUX0r",
+          "public_id": "Level_0_Epsilon_Zone_01_Sub_04",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832178/Level_0_Epsilon_Zone_01_Sub_04.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/epsilon/zone_02",
+      "canon_id": "LEVEL.NODE.0.EPSILON.ZONE_02",
+      "parent_node_key": "0/epsilon",
+      "display_name": "Level ε / Zone 02",
+      "node_kind": "ZONE",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__epsilon__zone_02__area_ep_z2.webp",
+          "drive_id": "1ksJ5__3awqsrJ7nvrxF3jDRpLeKTApoW",
+          "public_id": "Level_0_Epsilon_Zone_02",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832169/Level_0_Epsilon_Zone_02.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/epsilon/zone_02/sub_01",
+      "canon_id": "LEVEL.NODE.0.EPSILON.ZONE_02.SUB_01",
+      "parent_node_key": "0/epsilon/zone_02",
+      "display_name": "Level ε / Zone 02 / Sub 01",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__epsilon__zone_02__sub_01__area_ep_z2_s1.webp",
+          "drive_id": "1oTrQXDOY_YsKeqnPYj9xwlZCgh9Z__Nj",
+          "public_id": "Level_0_Epsilon_Zone_02_Sub_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832168/Level_0_Epsilon_Zone_02_Sub_01.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/epsilon/zone_02/sub_02",
+      "canon_id": "LEVEL.NODE.0.EPSILON.ZONE_02.SUB_02",
+      "parent_node_key": "0/epsilon/zone_02",
+      "display_name": "Level ε / Zone 02 / Sub 02",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__epsilon__zone_02__sub_02__area_ep_z2_s2.webp",
+          "drive_id": "1LcY2w00f4t3MeJT8ZsrMffdK03SdKMkJ",
+          "public_id": "Level_0_Epsilon_Zone_02_Sub_02",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832166/Level_0_Epsilon_Zone_02_Sub_02.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/epsilon/zone_02/sub_03",
+      "canon_id": "LEVEL.NODE.0.EPSILON.ZONE_02.SUB_03",
+      "parent_node_key": "0/epsilon/zone_02",
+      "display_name": "Level ε / Zone 02 / Sub 03",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__epsilon__zone_02__sub_03__area_ep_z2_s3.webp",
+          "drive_id": "14yO2KOUORZu-zt6yQr3D4B12vRdsF_SX",
+          "public_id": "Level_0_Epsilon_Zone_02_Sub_03",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832165/Level_0_Epsilon_Zone_02_Sub_03.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/epsilon/zone_02/sub_04",
+      "canon_id": "LEVEL.NODE.0.EPSILON.ZONE_02.SUB_04",
+      "parent_node_key": "0/epsilon/zone_02",
+      "display_name": "Level ε / Zone 02 / Sub 04",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__epsilon__zone_02__sub_04__area_ep_z2_s4.webp",
+          "drive_id": "12wu5s68w1ZyJc3TY8Tf-zH4Le1h2SwGy",
+          "public_id": "Level_0_Epsilon_Zone_02_Sub_04",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832164/Level_0_Epsilon_Zone_02_Sub_04.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/epsilon/zone_03",
+      "canon_id": "LEVEL.NODE.0.EPSILON.ZONE_03",
+      "parent_node_key": "0/epsilon",
+      "display_name": "Level ε / Zone 03",
+      "node_kind": "ZONE",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__epsilon__zone_03__area_ep_z3.webp",
+          "drive_id": "1LLG0viirbjJw2qXmZ_dgeXrsAaF2s4m_",
+          "public_id": "Level_0_Epsilon_Zone_03",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832177/Level_0_Epsilon_Zone_03.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/epsilon/zone_03/sub_01",
+      "canon_id": "LEVEL.NODE.0.EPSILON.ZONE_03.SUB_01",
+      "parent_node_key": "0/epsilon/zone_03",
+      "display_name": "Level ε / Zone 03 / Sub 01",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__epsilon__zone_03__sub_01__area_ep_z3_s1.webp",
+          "drive_id": "1kiSHTc_UTdOhiHs4s44I2SY58Loc2Cdy",
+          "public_id": "Level_0_Epsilon_Zone_03_Sub_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832176/Level_0_Epsilon_Zone_03_Sub_01.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/epsilon/zone_03/sub_02",
+      "canon_id": "LEVEL.NODE.0.EPSILON.ZONE_03.SUB_02",
+      "parent_node_key": "0/epsilon/zone_03",
+      "display_name": "Level ε / Zone 03 / Sub 02",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__epsilon__zone_03__sub_02__area_ep_z3_s2.webp",
+          "drive_id": "15KyVtQQ1KtoNiA27gMH3Dw91j9W7_HWp",
+          "public_id": "Level_0_Epsilon_Zone_03_Sub_02",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832175/Level_0_Epsilon_Zone_03_Sub_02.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/epsilon/zone_03/sub_03",
+      "canon_id": "LEVEL.NODE.0.EPSILON.ZONE_03.SUB_03",
+      "parent_node_key": "0/epsilon/zone_03",
+      "display_name": "Level ε / Zone 03 / Sub 03",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__epsilon__zone_03__sub_03__area_ep_z3_s3.webp",
+          "drive_id": "1YUM4POIJDE1x4jfCivmzRSHRpU0_PFQP",
+          "public_id": "Level_0_Epsilon_Zone_03_Sub_03",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832174/Level_0_Epsilon_Zone_03_Sub_03.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/epsilon/zone_03/sub_04",
+      "canon_id": "LEVEL.NODE.0.EPSILON.ZONE_03.SUB_04",
+      "parent_node_key": "0/epsilon/zone_03",
+      "display_name": "Level ε / Zone 03 / Sub 04",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__epsilon__zone_03__sub_04__area_ep_z3_s4.webp",
+          "drive_id": "1VAadb9AsWHcKp79KOJMjeyHmToNhLPRG",
+          "public_id": "Level_0_Epsilon_Zone_03_Sub_04",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832173/Level_0_Epsilon_Zone_03_Sub_04.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/epsilon/zone_04",
+      "canon_id": "LEVEL.NODE.0.EPSILON.ZONE_04",
+      "parent_node_key": "0/epsilon",
+      "display_name": "Level ε / Zone 04",
+      "node_kind": "ZONE",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__epsilon__zone_04__area_ep_z4.webp",
+          "drive_id": "1diuYIDGvMiU7K8pYEc1gBjVQGS7TD3uw",
+          "public_id": "Level_0_Epsilon_Zone_04",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832163/Level_0_Epsilon_Zone_04.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/epsilon/zone_04/sub_01",
+      "canon_id": "LEVEL.NODE.0.EPSILON.ZONE_04.SUB_01",
+      "parent_node_key": "0/epsilon/zone_04",
+      "display_name": "Level ε / Zone 04 / Sub 01",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__epsilon__zone_04__sub_01__area_ep_z4_s1.webp",
+          "drive_id": "1wUuKCrmqnEbZES-q04v3-YxPY-IzP55k",
+          "public_id": "Level_0_Epsilon_Zone_04_Sub_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832172/Level_0_Epsilon_Zone_04_Sub_01.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/epsilon/zone_04/sub_02",
+      "canon_id": "LEVEL.NODE.0.EPSILON.ZONE_04.SUB_02",
+      "parent_node_key": "0/epsilon/zone_04",
+      "display_name": "Level ε / Zone 04 / Sub 02",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__epsilon__zone_04__sub_02__area_ep_z4_s2.webp",
+          "drive_id": "1Ko7h8_msSPqST2C_UnI_w8RP2uYhMRHF",
+          "public_id": "Level_0_Epsilon_Zone_04_Sub_02",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832171/Level_0_Epsilon_Zone_04_Sub_02.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/epsilon/zone_04/sub_03",
+      "canon_id": "LEVEL.NODE.0.EPSILON.ZONE_04.SUB_03",
+      "parent_node_key": "0/epsilon/zone_04",
+      "display_name": "Level ε / Zone 04 / Sub 03",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__epsilon__zone_04__sub_03__area_ep_z4_s3.webp",
+          "drive_id": "1C5QJpxBM4ZlbYzcfoKHQS8llM2IXviM-",
+          "public_id": "Level_0_Epsilon_Zone_04_Sub_03",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832162/Level_0_Epsilon_Zone_04_Sub_03.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/epsilon/zone_04/sub_04",
+      "canon_id": "LEVEL.NODE.0.EPSILON.ZONE_04.SUB_04",
+      "parent_node_key": "0/epsilon/zone_04",
+      "display_name": "Level ε / Zone 04 / Sub 04",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__epsilon__zone_04__sub_04__area_ep_z4_s4.webp",
+          "drive_id": "1mczbUb5JOpvDQW8XH5quKYYc_jqRJy1v",
+          "public_id": "Level_0_Epsilon_Zone_04_Sub_04",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832169/Level_0_Epsilon_Zone_04_Sub_04.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/liminal_hall",
+      "canon_id": "LEVEL.NODE.0.LIMINAL_HALL",
+      "parent_node_key": "0",
+      "display_name": "Liminal Hall",
+      "node_kind": "AREA",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00__liminal_hall.webp",
+          "drive_id": "1wDbaAZpSVKGkAiLVsM3Mp3s8CdCcNpgn",
+          "public_id": "Level_0_Liminal_Hall",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832063/Level_0_Liminal_Hall.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/ls_2",
+      "canon_id": "LEVEL.NODE.0.LS_2",
+      "parent_node_key": "0",
+      "display_name": "LS-2",
+      "node_kind": "AREA",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__ls_2__reference_snapshot_001.webp",
+          "drive_id": "1fKAeFwVa60YDFXX7WH9O_i49E4gerLNr",
+          "public_id": "Level_0_LS_2_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832083/Level_0_LS_2_01.webp"
+        },
+        {
+          "source_name": "area_00__ls_2__reference_snapshot_002.webp",
+          "drive_id": "18003OLrn0rxzWrE0vz39mhGroBvOYLrg",
+          "public_id": "Level_0_LS_2_02",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832023/Level_0_LS_2_02.webp"
+        },
+        {
+          "source_name": "area_00__ls_2__reference_snapshot_003.webp",
+          "drive_id": "1yRk1AzVH6CAXlwp3Xab1k7x8ysD7K6wd",
+          "public_id": "Level_0_LS_2_03",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832022/Level_0_LS_2_03.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/ls_2/zone_01",
+      "canon_id": "LEVEL.NODE.0.LS_2.ZONE_01",
+      "parent_node_key": "0/ls_2",
+      "display_name": "LS-2 / Zone 01",
+      "node_kind": "ZONE",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__ls_2__zone_01__area_ls_z1.webp",
+          "drive_id": "1Fv9r_MD0ZDHI0sWTyHQqJ4ZIuxGFUHSA",
+          "public_id": "Level_0_LS_2_Zone_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832144/Level_0_LS_2_Zone_01.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/ls_2/zone_01/sub_01",
+      "canon_id": "LEVEL.NODE.0.LS_2.ZONE_01.SUB_01",
+      "parent_node_key": "0/ls_2/zone_01",
+      "display_name": "LS-2 / Zone 01 / Sub 01",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__ls_2__zone_01__sub_01__area_ls_z1_s1.webp",
+          "drive_id": "1PsOufLydWt4yqKmvy_WkT0cLP19DweP_",
+          "public_id": "Level_0_LS_2_Zone_01_Sub_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832142/Level_0_LS_2_Zone_01_Sub_01.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/ls_2/zone_01/sub_02",
+      "canon_id": "LEVEL.NODE.0.LS_2.ZONE_01.SUB_02",
+      "parent_node_key": "0/ls_2/zone_01",
+      "display_name": "LS-2 / Zone 01 / Sub 02",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__ls_2__zone_01__sub_02__area_ls_z1_s2.webp",
+          "drive_id": "1aL-YKxSuAzP1Ucj0O_XA3HG4x5Us2M5L",
+          "public_id": "Level_0_LS_2_Zone_01_Sub_02",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832141/Level_0_LS_2_Zone_01_Sub_02.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/ls_2/zone_01/sub_03",
+      "canon_id": "LEVEL.NODE.0.LS_2.ZONE_01.SUB_03",
+      "parent_node_key": "0/ls_2/zone_01",
+      "display_name": "LS-2 / Zone 01 / Sub 03",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__ls_2__zone_01__sub_03__area_ls_z1_s3.webp",
+          "drive_id": "1vCXd8Cvw2TQMmzWINb5iqPyQJ6oOaGE1",
+          "public_id": "Level_0_LS_2_Zone_01_Sub_03",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832161/Level_0_LS_2_Zone_01_Sub_03.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/ls_2/zone_01/sub_04",
+      "canon_id": "LEVEL.NODE.0.LS_2.ZONE_01.SUB_04",
+      "parent_node_key": "0/ls_2/zone_01",
+      "display_name": "LS-2 / Zone 01 / Sub 04",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__ls_2__zone_01__sub_04__area_ls_z1_s4.webp",
+          "drive_id": "1Uk2pdg8LFpgAB_-T1ylfSdNt_6CMIfuX",
+          "public_id": "Level_0_LS_2_Zone_01_Sub_04",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832158/Level_0_LS_2_Zone_01_Sub_04.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/ls_2/zone_02",
+      "canon_id": "LEVEL.NODE.0.LS_2.ZONE_02",
+      "parent_node_key": "0/ls_2",
+      "display_name": "LS-2 / Zone 02",
+      "node_kind": "ZONE",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__ls_2__zone_02__area_ls_z2.webp",
+          "drive_id": "1BJZY6-mB-QLaK2scy34-ncJSoi2PD30v",
+          "public_id": "Level_0_LS_2_Zone_02",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832157/Level_0_LS_2_Zone_02.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/ls_2/zone_02/sub_01",
+      "canon_id": "LEVEL.NODE.0.LS_2.ZONE_02.SUB_01",
+      "parent_node_key": "0/ls_2/zone_02",
+      "display_name": "LS-2 / Zone 02 / Sub 01",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__ls_2__zone_02__sub_01__area_ls_z2_s1.webp",
+          "drive_id": "1ndDHzBuR790WHknIbIP9apGq5V-sGJDg",
+          "public_id": "Level_0_LS_2_Zone_02_Sub_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832159/Level_0_LS_2_Zone_02_Sub_01.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/ls_2/zone_02/sub_02",
+      "canon_id": "LEVEL.NODE.0.LS_2.ZONE_02.SUB_02",
+      "parent_node_key": "0/ls_2/zone_02",
+      "display_name": "LS-2 / Zone 02 / Sub 02",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__ls_2__zone_02__sub_02__area_ls_z2_s2.webp",
+          "drive_id": "1RcAiKHdrcuwflZrRWrzVSYzZzzpnNaGO",
+          "public_id": "Level_0_LS_2_Zone_02_Sub_02",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832157/Level_0_LS_2_Zone_02_Sub_02.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/ls_2/zone_02/sub_03",
+      "canon_id": "LEVEL.NODE.0.LS_2.ZONE_02.SUB_03",
+      "parent_node_key": "0/ls_2/zone_02",
+      "display_name": "LS-2 / Zone 02 / Sub 03",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__ls_2__zone_02__sub_03__area_ls_z2_s3.webp",
+          "drive_id": "1L0wPaHwzi-_5aPfQJAz2B_aSUSBl40mD",
+          "public_id": "Level_0_LS_2_Zone_02_Sub_03",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832155/Level_0_LS_2_Zone_02_Sub_03.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/ls_2/zone_02/sub_04",
+      "canon_id": "LEVEL.NODE.0.LS_2.ZONE_02.SUB_04",
+      "parent_node_key": "0/ls_2/zone_02",
+      "display_name": "LS-2 / Zone 02 / Sub 04",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__ls_2__zone_02__sub_04__area_ls_z2_s4.webp",
+          "drive_id": "1Vn9_AFQp7uKw6hLcoNpgSoN4dChezMQD",
+          "public_id": "Level_0_LS_2_Zone_02_Sub_04",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832154/Level_0_LS_2_Zone_02_Sub_04.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/ls_2/zone_03",
+      "canon_id": "LEVEL.NODE.0.LS_2.ZONE_03",
+      "parent_node_key": "0/ls_2",
+      "display_name": "LS-2 / Zone 03",
+      "node_kind": "ZONE",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__ls_2__zone_03__area_ls_z3.webp",
+          "drive_id": "1hMUQqdL2xklK-1NH5CcZlm7zH8oY9Z1F",
+          "public_id": "Level_0_LS_2_Zone_03",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832153/Level_0_LS_2_Zone_03.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/ls_2/zone_03/sub_01",
+      "canon_id": "LEVEL.NODE.0.LS_2.ZONE_03.SUB_01",
+      "parent_node_key": "0/ls_2/zone_03",
+      "display_name": "LS-2 / Zone 03 / Sub 01",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__ls_2__zone_03__sub_01__area_ls_z3_s1.webp",
+          "drive_id": "10SyaELna8y9s7jqQZ5zJIT6HkWfMqkc3",
+          "public_id": "Level_0_LS_2_Zone_03_Sub_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832152/Level_0_LS_2_Zone_03_Sub_01.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/ls_2/zone_03/sub_02",
+      "canon_id": "LEVEL.NODE.0.LS_2.ZONE_03.SUB_02",
+      "parent_node_key": "0/ls_2/zone_03",
+      "display_name": "LS-2 / Zone 03 / Sub 02",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__ls_2__zone_03__sub_02__area_ls_z3_s2.webp",
+          "drive_id": "1f7AA5VGL8GJwcYMVUVP1rNswsJ5oAHpJ",
+          "public_id": "Level_0_LS_2_Zone_03_Sub_02",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832152/Level_0_LS_2_Zone_03_Sub_02.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/ls_2/zone_03/sub_03",
+      "canon_id": "LEVEL.NODE.0.LS_2.ZONE_03.SUB_03",
+      "parent_node_key": "0/ls_2/zone_03",
+      "display_name": "LS-2 / Zone 03 / Sub 03",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__ls_2__zone_03__sub_03__area_ls_z3_s3.webp",
+          "drive_id": "1KyszX0ot79kS4p3YPdVEklUKh_scaP-j",
+          "public_id": "Level_0_LS_2_Zone_03_Sub_03",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832140/Level_0_LS_2_Zone_03_Sub_03.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/ls_2/zone_03/sub_04",
+      "canon_id": "LEVEL.NODE.0.LS_2.ZONE_03.SUB_04",
+      "parent_node_key": "0/ls_2/zone_03",
+      "display_name": "LS-2 / Zone 03 / Sub 04",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__ls_2__zone_03__sub_04__area_ls_z3_s4.webp",
+          "drive_id": "1JmG0pDt3UX5Gp-Pfou9vtOUZOblDzPEs",
+          "public_id": "Level_0_LS_2_Zone_03_Sub_04",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832150/Level_0_LS_2_Zone_03_Sub_04.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/ls_2/zone_04",
+      "canon_id": "LEVEL.NODE.0.LS_2.ZONE_04",
+      "parent_node_key": "0/ls_2",
+      "display_name": "LS-2 / Zone 04",
+      "node_kind": "ZONE",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__ls_2__zone_04__area_ls_z4.webp",
+          "drive_id": "1473moe0g2LTyAs9tIbeM6xz4VOrplj_8",
+          "public_id": "Level_0_LS_2_Zone_04",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832150/Level_0_LS_2_Zone_04.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/ls_2/zone_04/sub_01",
+      "canon_id": "LEVEL.NODE.0.LS_2.ZONE_04.SUB_01",
+      "parent_node_key": "0/ls_2/zone_04",
+      "display_name": "LS-2 / Zone 04 / Sub 01",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__ls_2__zone_04__sub_01__area_ls_z4_s1.webp",
+          "drive_id": "1agxn4tiJs_BQD6wlMEFY117K6jvHZ4Vn",
+          "public_id": "Level_0_LS_2_Zone_04_Sub_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832148/Level_0_LS_2_Zone_04_Sub_01.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/ls_2/zone_04/sub_02",
+      "canon_id": "LEVEL.NODE.0.LS_2.ZONE_04.SUB_02",
+      "parent_node_key": "0/ls_2/zone_04",
+      "display_name": "LS-2 / Zone 04 / Sub 02",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__ls_2__zone_04__sub_02__area_ls_z4_s2.webp",
+          "drive_id": "1VRb9pm5eOnUhQ7JTrBipPHDhwJtXIsVF",
+          "public_id": "Level_0_LS_2_Zone_04_Sub_02",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832147/Level_0_LS_2_Zone_04_Sub_02.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/ls_2/zone_04/sub_03",
+      "canon_id": "LEVEL.NODE.0.LS_2.ZONE_04.SUB_03",
+      "parent_node_key": "0/ls_2/zone_04",
+      "display_name": "LS-2 / Zone 04 / Sub 03",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__ls_2__zone_04__sub_03__area_ls_z4_s3.webp",
+          "drive_id": "1yOzJ2_rwoIv603ECNVUkdZT5pC6AqeP3",
+          "public_id": "Level_0_LS_2_Zone_04_Sub_03",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832146/Level_0_LS_2_Zone_04_Sub_03.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/ls_2/zone_04/sub_04",
+      "canon_id": "LEVEL.NODE.0.LS_2.ZONE_04.SUB_04",
+      "parent_node_key": "0/ls_2/zone_04",
+      "display_name": "LS-2 / Zone 04 / Sub 04",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__ls_2__zone_04__sub_04__area_ls_z4_s4.webp",
+          "drive_id": "1LRFMSZZfVNNeMzDyf0-347Wmh_mOhGNc",
+          "public_id": "Level_0_LS_2_Zone_04_Sub_04",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832145/Level_0_LS_2_Zone_04_Sub_04.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/manila_room",
+      "canon_id": "LEVEL.NODE.0.MANILA_ROOM",
+      "parent_node_key": "0",
+      "display_name": "Manila Room",
+      "node_kind": "AREA",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__manila_room__snapshot_001.webp",
+          "drive_id": "1gouXPna5_oCZ6SVlOLYfOd1tP74yuH1b",
+          "public_id": "Level_0_Manila_Room_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832013/Level_0_Manila_Room_01.webp"
+        },
+        {
+          "source_name": "area_00__manila_room__snapshot_002.webp",
+          "drive_id": "1ryTpTmOrpTxTOtP01Re0lueutRkIuZQQ",
+          "public_id": "Level_0_Manila_Room_02",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832034/Level_0_Manila_Room_02.webp"
+        },
+        {
+          "source_name": "area_00__manila_room__snapshot_003.webp",
+          "drive_id": "1b_Oaeetb_TDdpfqsjONmHChYrHB_1gNJ",
+          "public_id": "Level_0_Manila_Room_03",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832032/Level_0_Manila_Room_03.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/red_rooms",
+      "canon_id": "LEVEL.NODE.0.RED_ROOMS",
+      "parent_node_key": "0",
+      "display_name": "Red Rooms",
+      "node_kind": "AREA",
+      "world_baseline": true,
+      "visuals": [
+        {
+          "source_name": "area_00__red_rooms__snapshot_001.webp",
+          "drive_id": "1rVuIJQNm2oV_6-L_vxL-NOiblMw5ha4f",
+          "public_id": "Level_0_Red_Rooms_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832077/Level_0_Red_Rooms_01.webp"
+        },
+        {
+          "source_name": "area_00__red_rooms__snapshot_002.webp",
+          "drive_id": "1Afhdl8TEm6P-FRXaiwyWledebHQXyBkE",
+          "public_id": "Level_0_Red_Rooms_02",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832029/Level_0_Red_Rooms_02.webp"
+        },
+        {
+          "source_name": "area_00__red_rooms__snapshot_003.webp",
+          "drive_id": "1-JK128PQzierg9uXbZo4j_LHAJVJPGrR",
+          "public_id": "Level_0_Red_Rooms_03",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832028/Level_0_Red_Rooms_03.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/the_torment",
+      "canon_id": "LEVEL.NODE.0.THE_TORMENT",
+      "parent_node_key": "0",
+      "display_name": "The Torment",
+      "node_kind": "AREA",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "area_00__the_torment__snapshot_001.webp",
+          "drive_id": "1xL2r8Ilt6pKzL1kLuwn-iGqpTVtEYANy",
+          "public_id": "Level_0_The_Torment_01",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832094/Level_0_The_Torment_01.webp"
+        },
+        {
+          "source_name": "area_00__the_torment__snapshot_002.webp",
+          "drive_id": "1Uqdi103l3BAby52YKZMJKMoeUdL2IL_9",
+          "public_id": "Level_0_The_Torment_02",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832032/Level_0_The_Torment_02.webp"
+        },
+        {
+          "source_name": "area_00__the_torment__snapshot_003.webp",
+          "drive_id": "1t_A7Km_-QiG58LWcIMrYom3bwiWKQPWF",
+          "public_id": "Level_0_The_Torment_03",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832030/Level_0_The_Torment_03.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/zone_01",
+      "canon_id": "LEVEL.NODE.0.ZONE_01",
+      "parent_node_key": "0",
+      "display_name": "Zone 01 · Yellow Rot",
+      "node_kind": "ZONE",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00__zone_01__yellow_rot.webp",
+          "drive_id": "1Ko3_wShHdRYDU1wC8GOW-9no8ygn3dSG",
+          "public_id": "Level_0_Zone_01_Yellow_Rot",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832139/Level_0_Zone_01_Yellow_Rot.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/zone_01/sub_01",
+      "canon_id": "LEVEL.NODE.0.ZONE_01.SUB_01",
+      "parent_node_key": "0/zone_01",
+      "display_name": "Zone 01 / Sub 01 · Phòng Mốc",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00__zone_01__sub_01__phong_moc.webp",
+          "drive_id": "1XFv4bUFXHsMPe40kqqXuCVIhCYDRU0Ul",
+          "public_id": "Level_0_Zone_01_Phong_Moc",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832117/Level_0_Zone_01_Phong_Moc.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/zone_01/sub_02",
+      "canon_id": "LEVEL.NODE.0.ZONE_01.SUB_02",
+      "parent_node_key": "0/zone_01",
+      "display_name": "Zone 01 / Sub 02 · Hành Lang Dài",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00__zone_01__sub_02__hanh_lang_dai.webp",
+          "drive_id": "1-_x8h_QSmdHSbuqlSzcv9bC7UWsEpkEs",
+          "public_id": "Level_0_Zone_01_Hanh_Lang_Dai",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832132/Level_0_Zone_01_Hanh_Lang_Dai.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/zone_01/sub_03",
+      "canon_id": "LEVEL.NODE.0.ZONE_01.SUB_03",
+      "parent_node_key": "0/zone_01",
+      "display_name": "Zone 01 / Sub 03 · Góc Khuất",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00__zone_01__sub_03__goc_khuat.webp",
+          "drive_id": "10gz2x_dC6H4zNZwkAPBxmKgLI1HFslK7",
+          "public_id": "Level_0_Zone_01_Goc_Khuat",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832119/Level_0_Zone_01_Goc_Khuat.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/zone_01/sub_04",
+      "canon_id": "LEVEL.NODE.0.ZONE_01.SUB_04",
+      "parent_node_key": "0/zone_01",
+      "display_name": "Zone 01 / Sub 04 · Phòng Trống",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00__zone_01__sub_04__phong_trong.webp",
+          "drive_id": "15KIYBq06sUIXsOLQbtung6gZVvBar6ww",
+          "public_id": "Level_0_Zone_01_Phong_Trong",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832133/Level_0_Zone_01_Phong_Trong.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/zone_02",
+      "canon_id": "LEVEL.NODE.0.ZONE_02",
+      "parent_node_key": "0",
+      "display_name": "Zone 02 · Deadlight",
+      "node_kind": "ZONE",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00__zone_02__deadlight.webp",
+          "drive_id": "1FVZwmlqiqIlxh8nEr34gSBqvZ8dHLSUh",
+          "public_id": "Level_0_Zone_02_Deadlight",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832138/Level_0_Zone_02_Deadlight.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/zone_02/sub_01",
+      "canon_id": "LEVEL.NODE.0.ZONE_02.SUB_01",
+      "parent_node_key": "0/zone_02",
+      "display_name": "Zone 02 / Sub 01 · Phòng Chớp",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00__zone_02__sub_01__phong_chop.webp",
+          "drive_id": "1TxIUMX-FQMj0XeKJSZ-_t8sgqtvJFGu4",
+          "public_id": "Level_0_Zone_02_Phong_Chop",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832120/Level_0_Zone_02_Phong_Chop.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/zone_02/sub_02",
+      "canon_id": "LEVEL.NODE.0.ZONE_02.SUB_02",
+      "parent_node_key": "0/zone_02",
+      "display_name": "Zone 02 / Sub 02 · Hành Lang Tối",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00__zone_02__sub_02__hanh_lang_toi.webp",
+          "drive_id": "11NyU2yrnjj_IHOHt0tHTJJaEh-ftNSNX",
+          "public_id": "Level_0_Zone_02_Hanh_Lang_Toi",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832118/Level_0_Zone_02_Hanh_Lang_Toi.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/zone_02/sub_03",
+      "canon_id": "LEVEL.NODE.0.ZONE_02.SUB_03",
+      "parent_node_key": "0/zone_02",
+      "display_name": "Zone 02 / Sub 03 · Trạm Điện",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00__zone_02__sub_03__tram_dien.webp",
+          "drive_id": "1l5NaSrZ43ce8D0iTp1qk2syfuLyvNYfr",
+          "public_id": "Level_0_Zone_02_Tram_Dien",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832116/Level_0_Zone_02_Tram_Dien.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/zone_03",
+      "canon_id": "LEVEL.NODE.0.ZONE_03",
+      "parent_node_key": "0",
+      "display_name": "Zone 03 · Wetfloor",
+      "node_kind": "ZONE",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00__zone_03__wetfloor.webp",
+          "drive_id": "1gfNV3v9-KyJ98o27KDh-4nuGSeGttegg",
+          "public_id": "Level_0_Zone_03_Wetfloor",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832136/Level_0_Zone_03_Wetfloor.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/zone_03/sub_01",
+      "canon_id": "LEVEL.NODE.0.ZONE_03.SUB_01",
+      "parent_node_key": "0/zone_03",
+      "display_name": "Zone 03 / Sub 01 · Vùng Đen",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00__zone_03__sub_01__vung_den.webp",
+          "drive_id": "1bexzqNjvezjvqMxumsZjwnSkUpKshtyK",
+          "public_id": "Level_0_Zone_03_Vung_Den",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832115/Level_0_Zone_03_Vung_Den.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/zone_03/sub_02",
+      "canon_id": "LEVEL.NODE.0.ZONE_03.SUB_02",
+      "parent_node_key": "0/zone_03",
+      "display_name": "Zone 03 / Sub 02 · Thảm Phồng",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00__zone_03__sub_02__tham_phong.webp",
+          "drive_id": "1cDRuEQuOjVBWEhEQU7iLl7EBxuCnr896",
+          "public_id": "Level_0_Zone_03_Tham_Phong",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832114/Level_0_Zone_03_Tham_Phong.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/zone_03/sub_03",
+      "canon_id": "LEVEL.NODE.0.ZONE_03.SUB_03",
+      "parent_node_key": "0/zone_03",
+      "display_name": "Zone 03 / Sub 03 · Phòng Ngập",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00__zone_03__sub_03__phong_ngap.webp",
+          "drive_id": "122d6ISX3GuzwtueRg8exgB54ECBLlQFs",
+          "public_id": "Level_0_Zone_03_Phong_Ngap",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832113/Level_0_Zone_03_Phong_Ngap.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/zone_03/sub_04",
+      "canon_id": "LEVEL.NODE.0.ZONE_03.SUB_04",
+      "parent_node_key": "0/zone_03",
+      "display_name": "Zone 03 / Sub 04 · Góc Thối",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00__zone_03__sub_04__goc_thoi.webp",
+          "drive_id": "1EipTbRobWYmdA7RcW_ar3Vn4GiHmgKMc",
+          "public_id": "Level_0_Zone_03_Goc_Thoi",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832131/Level_0_Zone_03_Goc_Thoi.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/zone_04",
+      "canon_id": "LEVEL.NODE.0.ZONE_04",
+      "parent_node_key": "0",
+      "display_name": "Zone 04 · Silent Hall",
+      "node_kind": "ZONE",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00__zone_04__silent_hall.webp",
+          "drive_id": "162teKPcVrKlQF3oWbdGtls7fAUdr1aKj",
+          "public_id": "Level_0_Zone_04_Silent_Hall",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832135/Level_0_Zone_04_Silent_Hall.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/zone_04/sub_01",
+      "canon_id": "LEVEL.NODE.0.ZONE_04.SUB_01",
+      "parent_node_key": "0/zone_04",
+      "display_name": "Zone 04 / Sub 01 · Hành Lang Câm",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00__zone_04__sub_01__hanh_lang_cam.webp",
+          "drive_id": "1BGw15CqXUzDs0ANpHwQZDkiYsMBUVYby",
+          "public_id": "Level_0_Zone_04_Hanh_Lang_Cam",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832111/Level_0_Zone_04_Hanh_Lang_Cam.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/zone_04/sub_02",
+      "canon_id": "LEVEL.NODE.0.ZONE_04.SUB_02",
+      "parent_node_key": "0/zone_04",
+      "display_name": "Zone 04 / Sub 02 · Phòng Thì Thầm",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00__zone_04__sub_02__phong_thi_tham.webp",
+          "drive_id": "1YeYjI-JgNuryhdVJzEt8b1SVtHBZc1My",
+          "public_id": "Level_0_Zone_04_Phong_Thi_Tham",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832112/Level_0_Zone_04_Phong_Thi_Tham.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/zone_04/sub_03",
+      "canon_id": "LEVEL.NODE.0.ZONE_04.SUB_03",
+      "parent_node_key": "0/zone_04",
+      "display_name": "Zone 04 / Sub 03 · Ngã Ba Chết",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00__zone_04__sub_03__nga_ba_chet.webp",
+          "drive_id": "1qrgQtedsfvT9kzkruNX0VjEOOJvoFlrZ",
+          "public_id": "Level_0_Zone_04_Nga_Ba_Chet",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832129/Level_0_Zone_04_Nga_Ba_Chet.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/zone_05",
+      "canon_id": "LEVEL.NODE.0.ZONE_05",
+      "parent_node_key": "0",
+      "display_name": "Zone 05 · Hollow Ceiling",
+      "node_kind": "ZONE",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00__zone_05__hollow_ceiling.webp",
+          "drive_id": "15XmF30v4v8NiSYKdFsdrt-4oHeTHZQ1z",
+          "public_id": "Level_0_Zone_05_Hollow_Ceiling",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832137/Level_0_Zone_05_Hollow_Ceiling.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/zone_05/sub_01",
+      "canon_id": "LEVEL.NODE.0.ZONE_05.SUB_01",
+      "parent_node_key": "0/zone_05",
+      "display_name": "Zone 05 / Sub 01 · Trần Vỡ",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00__zone_05__sub_01__tran_vo.webp",
+          "drive_id": "1VjqorMTKAwqGD4ruxIWNKcKUAyVkzRBF",
+          "public_id": "Level_0_Zone_05_Tran_Vo",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832130/Level_0_Zone_05_Tran_Vo.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/zone_05/sub_02",
+      "canon_id": "LEVEL.NODE.0.ZONE_05.SUB_02",
+      "parent_node_key": "0/zone_05",
+      "display_name": "Zone 05 / Sub 02 · Khoang Kỹ Thuật",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00__zone_05__sub_02__khoang_ky_thuat.webp",
+          "drive_id": "1jKDYdyydb2nzEN0u7fIBKEFZIctDKh9x",
+          "public_id": "Level_0_Zone_05_Khoang_Ky_Thuat",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832106/Level_0_Zone_05_Khoang_Ky_Thuat.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/zone_05/sub_03",
+      "canon_id": "LEVEL.NODE.0.ZONE_05.SUB_03",
+      "parent_node_key": "0/zone_05",
+      "display_name": "Zone 05 / Sub 03 · Giếng Trần",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00__zone_05__sub_03__gieng_tran.webp",
+          "drive_id": "1i7r9Vj6h9YqlM9sF7s0XXnXavDQV_tVv",
+          "public_id": "Level_0_Zone_05_Gieng_Tran",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832128/Level_0_Zone_05_Gieng_Tran.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/zone_05/sub_04",
+      "canon_id": "LEVEL.NODE.0.ZONE_05.SUB_04",
+      "parent_node_key": "0/zone_05",
+      "display_name": "Zone 05 / Sub 04 · Phòng Treo",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00__zone_05__sub_04__phong_treo.webp",
+          "drive_id": "1G0p_4IPWr4tIKZvrAjfSi13Rvo6FdbUt",
+          "public_id": "Level_0_Zone_05_Phong_Treo",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832108/Level_0_Zone_05_Phong_Treo.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/zone_06",
+      "canon_id": "LEVEL.NODE.0.ZONE_06",
+      "parent_node_key": "0",
+      "display_name": "Zone 06 · Afterimage",
+      "node_kind": "ZONE",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00__zone_06__afterimage.webp",
+          "drive_id": "1dIYjd72UkbrIcyh9eHmD0_URjVHVGfcJ",
+          "public_id": "Level_0_Zone_06_Afterimage",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832122/Level_0_Zone_06_Afterimage.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/zone_06/sub_01",
+      "canon_id": "LEVEL.NODE.0.ZONE_06.SUB_01",
+      "parent_node_key": "0/zone_06",
+      "display_name": "Zone 06 / Sub 01 · Phòng Ký Ức",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00__zone_06__sub_01__phong_ky_uc.webp",
+          "drive_id": "1kRoH6tjsKAdsy4YhKenqVtLa2fBk6mmL",
+          "public_id": "Level_0_Zone_06_Phong_Ky_Uc",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832110/Level_0_Zone_06_Phong_Ky_Uc.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/zone_06/sub_02",
+      "canon_id": "LEVEL.NODE.0.ZONE_06.SUB_02",
+      "parent_node_key": "0/zone_06",
+      "display_name": "Zone 06 / Sub 02 · Tường Mất",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00__zone_06__sub_02__tuong_mat.webp",
+          "drive_id": "11VK4Miw0_xjCsj5ipMoKsPxvnX6FOb5w",
+          "public_id": "Level_0_Zone_06_Tuong_Mat",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832109/Level_0_Zone_06_Tuong_Mat.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/zone_06/sub_03",
+      "canon_id": "LEVEL.NODE.0.ZONE_06.SUB_03",
+      "parent_node_key": "0/zone_06",
+      "display_name": "Zone 06 / Sub 03 · Phòng Tiếng Gọi",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00__zone_06__sub_03__phong_tieng_goi.webp",
+          "drive_id": "1G2PB9M_D3kVBiSa0OonpITK8CGLH5HlG",
+          "public_id": "Level_0_Zone_06_Phong_Tieng_Goi",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832107/Level_0_Zone_06_Phong_Tieng_Goi.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/zone_07",
+      "canon_id": "LEVEL.NODE.0.ZONE_07",
+      "parent_node_key": "0",
+      "display_name": "Zone 07 · The Loop",
+      "node_kind": "ZONE",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00__zone_07__the_loop.webp",
+          "drive_id": "171fDEWykaH83OsSRXY-RoMLkEKs2yhzX",
+          "public_id": "Level_0_Zone_07_The_Loop",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832121/Level_0_Zone_07_The_Loop.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/zone_07/sub_01",
+      "canon_id": "LEVEL.NODE.0.ZONE_07.SUB_01",
+      "parent_node_key": "0/zone_07",
+      "display_name": "Zone 07 / Sub 01 · Hành Lang Lặp",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00__zone_07__sub_01__hanh_lang_lap.webp",
+          "drive_id": "1_2CXVbq89HiYBV6VD5pa1CnEVoWWqmiz",
+          "public_id": "Level_0_Zone_07_Hanh_Lang_Lap",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832105/Level_0_Zone_07_Hanh_Lang_Lap.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/zone_07/sub_02",
+      "canon_id": "LEVEL.NODE.0.ZONE_07.SUB_02",
+      "parent_node_key": "0/zone_07",
+      "display_name": "Zone 07 / Sub 02 · Phòng Bản Sao",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00__zone_07__sub_02__phong_ban_sao.webp",
+          "drive_id": "1_eRrPdeRBm2Q8q6jYFA3L-CpQ3g_547C",
+          "public_id": "Level_0_Zone_07_Phong_Ban_Sao",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832127/Level_0_Zone_07_Phong_Ban_Sao.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/zone_07/sub_03",
+      "canon_id": "LEVEL.NODE.0.ZONE_07.SUB_03",
+      "parent_node_key": "0/zone_07",
+      "display_name": "Zone 07 / Sub 03 · Ngã Tư Vô Tận",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00__zone_07__sub_03__nga_tu_vo_tan.webp",
+          "drive_id": "168fAcitW78tvhzywOYEXfqFVKa5a7-R8",
+          "public_id": "Level_0_Zone_07_Nga_Tu_Vo_Tan",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832103/Level_0_Zone_07_Nga_Tu_Vo_Tan.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/zone_07/sub_04",
+      "canon_id": "LEVEL.NODE.0.ZONE_07.SUB_04",
+      "parent_node_key": "0/zone_07",
+      "display_name": "Zone 07 / Sub 04 · Phòng Đảo",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00__zone_07__sub_04__phong_dao.webp",
+          "drive_id": "1Og8WNEPLUwejUjHy7ORTJOUbyA2AYBzf",
+          "public_id": "Level_0_Zone_07_Phong_Dao",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832102/Level_0_Zone_07_Phong_Dao.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/zone_08",
+      "canon_id": "LEVEL.NODE.0.ZONE_08",
+      "parent_node_key": "0",
+      "display_name": "Zone 08 · The Fracture",
+      "node_kind": "ZONE",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00__zone_08__the_fracture.webp",
+          "drive_id": "17QtUY2zrnLNaQ5wZKCiFH_BWipU4LnOZ",
+          "public_id": "Level_0_Zone_08_The_Fracture",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832134/Level_0_Zone_08_The_Fracture.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/zone_08/sub_01",
+      "canon_id": "LEVEL.NODE.0.ZONE_08.SUB_01",
+      "parent_node_key": "0/zone_08",
+      "display_name": "Zone 08 / Sub 01 · Tường Nứt",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00__zone_08__sub_01__tuong_nut.webp",
+          "drive_id": "1Jd0waLkLsszABXoAYzbopdP0p2RuMlUM",
+          "public_id": "Level_0_Zone_08_Tuong_Nut",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832126/Level_0_Zone_08_Tuong_Nut.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/zone_08/sub_02",
+      "canon_id": "LEVEL.NODE.0.ZONE_08.SUB_02",
+      "parent_node_key": "0/zone_08",
+      "display_name": "Zone 08 / Sub 02 · Sàn Lệch",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00__zone_08__sub_02__san_lech.webp",
+          "drive_id": "11J2Szunp8AadnCXoi_H2mhtzcG6ehMzU",
+          "public_id": "Level_0_Zone_08_San_Lech",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832124/Level_0_Zone_08_San_Lech.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/zone_08/sub_03",
+      "canon_id": "LEVEL.NODE.0.ZONE_08.SUB_03",
+      "parent_node_key": "0/zone_08",
+      "display_name": "Zone 08 / Sub 03 · Khe Tối",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00__zone_08__sub_03__khe_toi.webp",
+          "drive_id": "1Ah0Um37eI-6FGVG_110oezM6AVseiZa3",
+          "public_id": "Level_0_Zone_08_Khe_Toi",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832101/Level_0_Zone_08_Khe_Toi.webp"
+        }
+      ]
+    },
+    {
+      "node_key": "0/zone_08/sub_04",
+      "canon_id": "LEVEL.NODE.0.ZONE_08.SUB_04",
+      "parent_node_key": "0/zone_08",
+      "display_name": "Zone 08 / Sub 04 · Phòng Giao Thoa",
+      "node_kind": "SUB",
+      "world_baseline": false,
+      "visuals": [
+        {
+          "source_name": "level_00__zone_08__sub_04__phong_giao_thoa.webp",
+          "drive_id": "1097mn92hWwD09v1XKxrdVUdp4Bni5Fk-",
+          "public_id": "Level_0_Zone_08_Phong_Giao_Thoa",
+          "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832123/Level_0_Zone_08_Phong_Giao_Thoa.webp"
+        }
+      ]
+    }
+  ]
+}

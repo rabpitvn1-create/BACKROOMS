@@ -1,0 +1,222 @@
+/* One family for native form controls as well as inherited game text. */
+html,body,button,input,textarea,select,option{font-family:Play,sans-serif}
+.combat-float{position:absolute;z-index:8;pointer-events:none;transform:translate(-50%,0);display:flex;flex-direction:column;align-items:center;gap:2px;font-family:Play,sans-serif;font-weight:700;font-size:9px;color:#f4f7fa;white-space:nowrap;text-shadow:0 2px 3px #000,0 0 6px #000;animation:combat-float-up 1.6s ease-out forwards}.combat-float-value{display:inline-flex;align-items:center;gap:5px;padding:1px 4px;border-radius:5px}.combat-float--critical{font-size:10px;font-weight:800;color:#ffd166;text-shadow:0 2px 3px #000,0 0 9px rgba(255,176,48,.72);animation:combat-float-crit 1.6s cubic-bezier(.16,.82,.24,1) forwards}.combat-float--critical .combat-float-value:before{content:"CRIT";font-size:10px;line-height:1;letter-spacing:.12em;color:#ffe7a3;background:#7b2d18;border:1px solid #ff9f43;padding:3px 4px;border-radius:4px;text-shadow:none}.combat-float-status{font:800 9px/1 Play,sans-serif;letter-spacing:.08em;padding:3px 6px;border-radius:999px;border:1px solid currentColor;background:rgba(8,10,12,.88);box-shadow:0 2px 7px rgba(0,0,0,.55);text-shadow:none}.combat-float--normal:not(.combat-float--critical) .combat-float-value{font-size:9px;line-height:1;font-weight:800}.combat-float-status--normal{color:#f4f7fa}.combat-float-status--skill{color:#cfe5ff}.combat-float--status:not(.combat-float--critical) .combat-float-value{font-size:9px;line-height:1;font-weight:800}.combat-float--status-bleed:not(.combat-float--critical) .combat-float-value{color:#ff7777}.combat-float--status-poison:not(.combat-float--critical) .combat-float-value{color:#c38cff}.combat-float--status-stun:not(.combat-float--critical) .combat-float-value{color:#ffe066}.combat-float--status-armor:not(.combat-float--critical) .combat-float-value{color:#72c7ff}.combat-float--status-disorient:not(.combat-float--critical) .combat-float-value{color:#8fe3d1}.combat-float-status--bleed{color:#ff7777}.combat-float-status--poison{color:#c38cff}.combat-float-status--stun{color:#ffe066}.combat-float-status--armor{color:#72c7ff}.combat-float-status--disorient{color:#8fe3d1}@keyframes combat-float-up{0%{opacity:1;transform:translate(-50%,8px) scale(.96)}12%{opacity:1}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-34px) scale(1.04)}}@keyframes combat-float-crit{0%{opacity:1;transform:translate(-50%,10px) scale(.72)}9%{opacity:1;transform:translate(-50%,1px) scale(1.18)}20%{transform:translate(-50%,-3px) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-42px) scale(1.05)}}
+/* Damage presentation ported from BR-1.1.93a. */
+
+/* COMBAT_TRANSIENT_LOG_R01: presentation-only combat history, cleared when the encounter ends. */
+.combat-feedback-panel[hidden]{display:none!important}
+.combat-feedback-panel{position:relative;z-index:18;width:calc(100% - 20px);max-width:680px;margin:0 auto 10px;padding:12px 12px 10px;border:1px solid #8b8052;border-radius:7px;background-color:#39341e;background-image:linear-gradient(145deg,rgba(15,17,13,.58),rgba(12,15,13,.82) 58%,rgba(15,17,13,.62)),url('dice/level0-wallpaper.svg');background-size:auto,64px 96px;box-shadow:inset 0 0 0 1px #c5b87814,0 10px 28px #0008;font-family:Play,sans-serif}
+.combat-feedback-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-bottom:8px;border-bottom:1px solid #8b805255}
+.combat-feedback-kicker{font-size:9px;font-weight:800;letter-spacing:.16em;color:#b9ad77}
+.combat-feedback-head h2{margin:3px 0 0;font-size:14px;line-height:1.1;letter-spacing:.08em;color:#efe8cf}
+.combat-feedback-meta{max-width:45%;padding-top:2px;color:#aaa78e;font-size:10px;line-height:1.25;text-align:right}
+.combat-feedback-entries{max-height:min(38dvh,290px);overflow:auto;padding-top:7px;display:grid;gap:5px;-webkit-overflow-scrolling:touch}
+.combat-feedback-entry{padding:6px 8px;border-left:2px solid #817957;background:#171811b8;color:#e3e0cf;font-size:11px;line-height:1.35}
+.combat-feedback-entry--system{border-left-color:#d8c477;color:#f0e5b7;font-weight:700}
+.combat-feedback-entry--round{border-left-color:#80937d;color:#c8d5c5;font-weight:700}
+.combat-feedback-entry--actor{border-left-color:#6caf8f;color:#d9f0e5}
+.combat-feedback-entry--entity{border-left-color:#a96c5d;color:#f0d9d2}
+.combat-feedback-entry--summary{border-left-color:#c4aa63;color:#f0ead2;white-space:pre-wrap}
+
+/* COMBAT_TURN_SPINNER_R01: temporary Party/Entity changeover, 600ms visual only. */
+.combat-turn-indicator[hidden]{display:none!important}
+.combat-turn-indicator{display:flex;align-items:center;gap:11px;margin-top:9px;padding:9px 11px;border-radius:10px;border:1px solid #7f956b83;background:linear-gradient(100deg,#23352bd6,#191e19ed 66%,#3b3524c9);min-height:58px}
+.combat-turn-indicator[data-kind="entity"]{border-color:#9b695f99;background:linear-gradient(100deg,#342421e6,#191b19ed)}
+.combat-turn-indicator[data-kind="wave"]{border-color:#c4ab6ba8;background:linear-gradient(100deg,#40321fe0,#1c211de8)}
+.combat-turn-spinner{width:27px;height:27px;flex:0 0 27px;border-radius:50%;border:3px solid #a9bda442;border-top-color:#d0dcb9;border-right-color:#c4aa6a;opacity:.25}
+.combat-turn-indicator--loading .combat-turn-spinner{opacity:1;animation:combat-turn-spin .6s linear infinite;box-shadow:0 0 12px #b8cc9d2e}
+.combat-turn-info{min-width:0}
+.combat-turn-name{font-size:13px;font-weight:800;letter-spacing:.02em;color:#eef1df;overflow-wrap:anywhere}
+.combat-turn-detail{margin-top:3px;font-size:10px;letter-spacing:.1em;color:#baae8a}
+.combat-feedback-entry--wave{border-left-color:#dfc173;color:#f1dfab;font-weight:700}
+@keyframes combat-turn-spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.combat-turn-indicator--loading .combat-turn-spinner{animation:none;opacity:.8}}
+
+/* COMBAT_ACTOR_SINGLE_FOCUS_R01 / 3D_TURN_COVERFLOW_R01:
+   Party on the right and Entity on the left are independent slots.
+   All Party portraits share Cao Minh's exact ground anchor. */
+.snapshot[data-combat-focus]{perspective:900px;--combat-turn-duration:800ms}
+.snapshot[data-combat-focus] .snapshot-character,
+.snapshot[data-combat-focus] .snapshot-lucia{display:none!important}
+.snapshot[data-combat-focus] .snapshot-entity{
+ display:block!important;right:auto!important;
+ animation:none!important;rotate:none;translate:none;scale:none
+}
+/* Identical Party geometry for Cao Minh, Lucia, and every dynamic companion.
+   Preserve aspect ratio: images must not be stretched or forced into avatar frames. */
+.snapshot[data-combat-focus] .snapshot-character,
+.snapshot[data-combat-focus] .snapshot-lucia,
+.snapshot[data-combat-focus] .combat-turn-avatar,
+.snapshot[data-combat-focus] .combat-turn-exit{
+ position:absolute!important;right:var(--sprite-offset,1%)!important;left:auto!important;
+ bottom:var(--sprite-bottom,3%)!important;top:auto!important;
+ width:var(--sprite-width,auto)!important;height:var(--sprite-height,94%)!important;
+ max-width:none!important;max-height:none!important;object-fit:contain!important;
+ object-position:right bottom!important;pointer-events:none;z-index:3;
+ backface-visibility:hidden;transform-origin:center center
+}
+.snapshot[data-combat-focus="cao_minh"] .snapshot-character,
+.snapshot[data-combat-focus="lucia"] .snapshot-lucia{display:block!important}
+.snapshot[data-combat-animating="true"][data-combat-focus="cao_minh"] .snapshot-character,
+.snapshot[data-combat-animating="true"][data-combat-focus="lucia"] .snapshot-lucia,
+.snapshot[data-combat-animating="true"] .combat-turn-avatar{
+ animation:combat-turn-enter var(--combat-turn-duration) cubic-bezier(.22,.62,.19,1) both
+}
+.snapshot[data-combat-focus] .combat-turn-exit{
+ z-index:4;animation:combat-turn-leave var(--combat-turn-duration) cubic-bezier(.42,0,.66,.32) both
+}
+@keyframes combat-turn-enter{
+ from{opacity:0;translate:75% 0;rotate:y -65deg;scale:.78}
+ to{opacity:1;translate:0 0;rotate:y 0deg;scale:1}
+}
+@keyframes combat-turn-leave{
+ from{opacity:1;translate:0 0;rotate:y 0deg;scale:1}
+ to{opacity:0;translate:-75% 0;rotate:y 65deg;scale:.78}
+}
+/* A new wave replaces the left Entity with a fade, never a rotating duplicate. */
+.snapshot[data-combat-focus] .snapshot-entity--wave-enter{animation:combat-entity-wave-enter .36s ease-out both!important}
+@keyframes combat-entity-wave-enter{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){
+ .snapshot[data-combat-focus]{--combat-turn-duration:90ms}
+ .snapshot[data-combat-animating="true"][data-combat-focus="cao_minh"] .snapshot-character,
+ .snapshot[data-combat-animating="true"][data-combat-focus="lucia"] .snapshot-lucia,
+ .snapshot[data-combat-animating="true"] .combat-turn-avatar{
+  animation:combat-turn-fade-in 90ms ease-out both
+ }
+ .snapshot[data-combat-focus] .combat-turn-exit{animation:combat-turn-fade-out 90ms ease-out both}
+ .snapshot .snapshot-entity--wave-enter{animation:combat-turn-fade-in 90ms ease-out both}
+}
+@keyframes combat-turn-fade-in{from{opacity:0}to{opacity:1}}
+@keyframes combat-turn-fade-out{from{opacity:1}to{opacity:0}}
+
+/* COMBAT_LOG_FIXED_PANEL_R02: bounded, internally scrolling history above the controls. */
+body.poker-dice-open .game{display:flex!important;flex-direction:column;overflow:hidden!important}
+body.poker-dice-open .game>.topbar,body.poker-dice-open .game>.player-action-bar{flex:0 0 auto}
+/* Keep the Combat Snapshot identical to Explorer (300px, same margins). The Combat Log yields space instead. */
+body.poker-dice-open .game>.snapshot{height:300px;flex:0 0 300px;min-height:300px;margin:8px 10px 10px!important}
+body.poker-dice-open .game>#pokerDiceModal{position:relative;inset:auto;display:block;flex:0 0 auto;margin:0!important;padding:0 10px!important}
+body.poker-dice-open .game>.log{display:none!important}
+body.poker-dice-open .game>#combatFeedbackPanel:not([hidden]){display:flex;flex:1 1 0;min-height:0;max-height:144px;overflow:hidden;
+ width:calc(100% - 20px);max-width:none;margin:8px 10px 12px!important;box-sizing:border-box}
+body.poker-dice-open .game>.player-action-bar{margin-top:auto}
+body.poker-dice-open .player-action-bar .primary-action-row.combat-direct{display:flex!important}
+body.poker-dice-open .player-action-bar .primary-action{pointer-events:none;opacity:1!important}
+.combat-feedback-panel{background-color:#1b1b14!important;background-image:linear-gradient(145deg,rgba(9,11,9,.84),rgba(13,15,11,.92)),url('dice/level0-wallpaper.svg')!important;
+ background-size:auto,64px 96px!important;flex-direction:column;padding:12px 18px!important;font-family:Play,sans-serif!important}
+.combat-feedback-head{align-items:center;flex:0 0 auto;min-height:29px;padding:0 0 8px;border-bottom:1px solid #8b80526a}
+.combat-feedback-head h2{font-size:12px;letter-spacing:.08em;font-weight:800;margin:0;color:#f2e9c8}
+.combat-feedback-meta{display:none}
+.combat-feedback-entries{display:block;flex:1 1 auto;min-height:0;max-height:none;overflow-y:auto;
+ overscroll-behavior:contain;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;padding:8px 0}
+.combat-feedback-entries::-webkit-scrollbar{display:none;width:0;height:0}
+.combat-feedback-entry{background:none!important;border:0!important;padding:3px 0;
+ color:#e4e1d8;font-size:13px;line-height:1.5;overflow-wrap:anywhere;font-family:Play,sans-serif}
+.combat-feedback-entry--system{color:#e4cf92;font-weight:600}
+.combat-feedback-entry--entity{color:#ead3cd}
+.combat-feedback-entry--actor{color:#e0ede2}
+/* Combat-only semantic emphasis. HP loss, surviving HP, and effects are distinct. */
+.combat-feedback-entry .combat-semantic{font-family:Play,sans-serif;font-weight:700}
+.combat-feedback-entry .combat-semantic--character{color:#f6eee0}
+.combat-feedback-entry .combat-semantic--entity{color:#f1c5bc}
+.combat-feedback-entry .combat-semantic--skill{color:#f4dfa0}
+.combat-feedback-entry .combat-semantic--damage{color:#ff6872;font-weight:800}
+.combat-feedback-entry .combat-semantic--hp{color:#72dba4;font-weight:800}
+.combat-feedback-entry .combat-semantic--status-poison{color:#c18aff;font-weight:800}
+.combat-feedback-entry .combat-semantic--status-bleed{color:#c56a82;font-weight:800}
+.combat-feedback-entry .combat-semantic--status-stun{color:#ffbd66;font-weight:800}
+.combat-feedback-entry .combat-semantic--status-armor{color:#83cfff;font-weight:800}
+.combat-feedback-entry .combat-semantic--status-disorient{color:#8fe3d1;font-weight:800}
+.combat-feedback-entry .combat-semantic--miss{color:#ffbd66;font-weight:700}
+.combat-turn-indicator{display:none!important}
+/* On short viewports, preserve the full-size Snapshot and a usable scrollable Log.
+   Only the game scrolls when the full stack cannot fit; keep actions within reach. */
+@media(max-height:740px){
+ body.poker-dice-open .game{overflow-y:auto!important;overscroll-behavior-y:contain}
+ body.poker-dice-open .game>#combatFeedbackPanel{flex:0 0 120px;min-height:120px}
+ body.poker-dice-open .game>.player-action-bar{position:sticky;bottom:0;z-index:24}
+ body.poker-dice-open .poker-dice-sheet{padding-top:8px!important;padding-bottom:8px!important}
+ body.poker-dice-open .poker-die{min-height:50px!important;padding-bottom:18px!important}
+}
+
+
+/* COMBAT_CONTACT_R01: 180ms lunge, 70ms contact hold, 230ms recovery.
+   Overlay transforms are animated separately from turn coverflow. */
+.combat-float{font-size:9px;animation-duration:1.2s}
+.combat-float--critical{font-size:10px}
+.combat-float--normal:not(.combat-float--critical) .combat-float-value,
+.combat-float--status:not(.combat-float--critical) .combat-float-value{font-size:9px;line-height:1.1}
+.combat-float--miss .combat-float-value{font-size:21px;color:#e1e6eb;letter-spacing:.1em}
+.combat-impact{position:absolute;z-index:7;width:144px;height:144px;pointer-events:none;
+ transform:translate(-50%,-50%);mix-blend-mode:screen;
+ background:radial-gradient(circle,transparent 0 12%,#ffae3220 30%,transparent 67%);
+ animation:combat-impact-burst 320ms ease-out both}
+.combat-impact:before,.combat-impact:after{content:"";position:absolute;inset:0;pointer-events:none;
+ background:radial-gradient(circle,rgba(255,246,198,.95) 0%,rgba(250,176,75,.7) 24%,rgba(134,210,251,.35) 45%,transparent 72%) center/contain no-repeat;transform-origin:center}
+.combat-impact:before{animation:combat-impact-sparks 320ms cubic-bezier(.16,.7,.3,1) both}
+.combat-impact:after{filter:blur(1.3px);mix-blend-mode:screen;animation:combat-impact-afterglow 320ms ease-out both}
+.combat-impact--critical{width:178px;height:178px;filter:brightness(1.16)}
+.party-member .combat-impact{width:80px;height:80px}
+.combat-player-hit-edge{position:absolute!important;inset:0!important;z-index:6;pointer-events:none;border-radius:inherit;
+ box-shadow:inset 0 0 24px 3px #dc39495e;animation:combat-hit-edge 200ms ease-out both}
+.party-member[data-character]{position:relative}
+.party-member .combat-float{z-index:9}
+.party-member .combat-float:not(.combat-float--miss):not(.combat-float--critical) .combat-float-value{font-size:9px!important}
+.party-member .combat-float--critical .combat-float-value{font-size:10px!important}
+.party-member .combat-float--miss .combat-float-value{font-size:13px!important}
+.combat-float--critical .combat-float-status{font-size:10px}
+@keyframes combat-impact-burst{0%{opacity:0}10%,64%{opacity:1}100%{opacity:0}}
+@keyframes combat-impact-sparks{0%{transform:scale(.32) rotate(-7deg);opacity:0}14%{transform:scale(.75) rotate(-3deg);opacity:1}43%{transform:scale(1) rotate(0);opacity:1}100%{transform:scale(1.28) rotate(4deg);opacity:0}}
+@keyframes combat-impact-afterglow{0%{transform:scale(.25) rotate(17deg);opacity:0}20%{opacity:.5}65%{opacity:.28}100%{transform:scale(1.4) rotate(21deg);opacity:0}}
+@keyframes combat-hit-edge{0%{opacity:0}30%{opacity:1}100%{opacity:0}}
+@media(prefers-reduced-motion:reduce){
+ .combat-float,.combat-float--critical{animation:combat-contact-label-fade 1.2s ease-out both}
+ .combat-impact{animation:combat-contact-impact-fade 320ms ease-out both;transform:translate(-50%,-50%)}
+ .combat-impact:before,.combat-impact:after{animation:none;transform:none}
+}
+@keyframes combat-contact-label-fade{0%,80%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,0)}}
+@keyframes combat-contact-impact-fade{0%,50%{opacity:.65}100%{opacity:0}}
+
+/* ENTITY_CORE_SHATTER: branching energy fractures, compact detonation and irregular debris. */
+.entity-shatter{position:absolute;z-index:2;pointer-events:none;isolation:isolate}
+.entity-shatter-ghost,.entity-shatter-cracks,.entity-shatter-charge{position:absolute;inset:0}
+.entity-shatter img{display:block;width:100%;height:100%;max-width:none;object-fit:fill;pointer-events:none}
+.entity-shatter-charge{mask-size:100% 100%;-webkit-mask-size:100% 100%;mask-repeat:no-repeat;-webkit-mask-repeat:no-repeat;background:radial-gradient(ellipse at var(--core-x) var(--core-y),#fff 0%,#dcf6ffb8 28%,#a1dfff55 61%,transparent 85%);animation:entity-shatter-charge 700ms ease-out both}
+.entity-shatter-cracks{mask-size:100% 100%;-webkit-mask-size:100% 100%;mask-repeat:no-repeat;-webkit-mask-repeat:no-repeat;background-position:center;background-size:100% 100%;background-repeat:no-repeat;animation:entity-shatter-crack 680ms linear both}
+.entity-shatter-core,.entity-shatter-flare,.entity-shatter-shockwave{position:absolute;translate:-50% -50%;border-radius:50%;mix-blend-mode:screen}
+.entity-shatter-core{width:22%;max-width:54px;aspect-ratio:1;background:radial-gradient(circle,#fff 0 10%,#edfbffed 18%,#b4e7ff80 35%,#bdeaff18 55%,transparent 72%);animation:entity-shatter-core 950ms linear both}
+.entity-shatter-flare{width:43%;max-width:100px;aspect-ratio:1;background:radial-gradient(ellipse,#fff 0%,#e6faff88 12%,#a4dfff30 30%,transparent 68%);animation:entity-shatter-flare 750ms ease-out both}
+.entity-shatter-shockwave{width:22%;max-width:54px;aspect-ratio:1;border:1px solid #e9faff;box-shadow:0 0 4px #c1edff88,inset 0 0 3px #c1edff55;animation:entity-shatter-wave 470ms cubic-bezier(.1,.6,.2,1) 470ms both}
+.entity-shatter-shard{position:absolute;contain:paint;overflow:hidden;opacity:0;animation:entity-shatter-fragment 760ms cubic-bezier(.14,.58,.3,1) forwards;will-change:transform,opacity}
+.entity-shatter-shard img{position:absolute;display:block;max-width:none;object-fit:fill}
+.entity-shatter-spark{position:absolute;display:block;width:var(--spark-length);height:1px;background:#fff;box-shadow:0 0 3px #b8e8ff;opacity:0;animation:entity-shatter-spark 600ms ease-out forwards}
+.entity-shatter-ghost{animation:entity-shatter-soft 180ms ease-out forwards}
+@keyframes entity-shatter-charge{0%,20%{opacity:0}52%{opacity:.3}66%{opacity:.75}74%{opacity:.65}100%{opacity:0}}
+@keyframes entity-shatter-crack{0%{clip-path:circle(0% at var(--core-x) var(--core-y));opacity:0}18%{opacity:.4}44%{clip-path:circle(27% at var(--core-x) var(--core-y));opacity:.8}64%{clip-path:circle(65% at var(--core-x) var(--core-y));opacity:1}70%{opacity:1}100%{clip-path:circle(90% at var(--core-x) var(--core-y));opacity:0}}
+@keyframes entity-shatter-core{0%{opacity:0;transform:scale(.08)}32%{opacity:.5;transform:scale(.3)}45%{opacity:.9;transform:scale(.5)}51%{opacity:1;transform:scale(1.5)}64%{opacity:.4;transform:scale(.9)}100%{opacity:0;transform:scale(.25)}}
+@keyframes entity-shatter-flare{0%,58%{opacity:0;transform:scale(.2)}64%{opacity:1;transform:scale(1)}78%{opacity:.25;transform:scale(1.35)}100%{opacity:0;transform:scale(1.5)}}
+@keyframes entity-shatter-wave{0%{opacity:.7;transform:scale(.3)}35%{opacity:.35}100%{opacity:0;transform:scale(3)}}
+@keyframes entity-shatter-fragment{0%{opacity:1;transform:translate(0,0) rotate(0)}35%{opacity:1}70%{opacity:.92;transform:translate(var(--shard-x),var(--shard-y)) rotate(var(--shard-rotate)) scale(.8) scaleX(var(--shard-tilt))}100%{opacity:0;transform:translate(var(--shard-x),var(--shard-drop)) rotate(var(--shard-rotate)) scale(var(--shard-scale)) scaleX(var(--shard-tilt))}}
+@keyframes entity-shatter-spark{0%{opacity:0;transform:translate(0,0) rotate(var(--spark-angle)) scaleX(.3)}8%{opacity:1}55%{opacity:.8}100%{opacity:0;transform:translate(var(--spark-x),var(--spark-y)) rotate(var(--spark-angle)) scaleX(.15)}}
+@keyframes entity-shatter-soft{from{opacity:.8;filter:brightness(1.2)}to{opacity:0;filter:brightness(1.4)}}
+@media(prefers-reduced-motion:reduce){.entity-shatter-charge,.entity-shatter-cracks,.entity-shatter-core,.entity-shatter-flare,.entity-shatter-shockwave,.entity-shatter-spark,.entity-shatter-shard{display:none}.entity-shatter-ghost{animation:entity-shatter-soft 180ms ease-out forwards}}
+
+/* Native encounter sprites are exploration companions. Combat has one Party slot,
+   supplied by combat-turn-avatar (or Cao Minh/Lucia), never a second copy. */
+.snapshot[data-party-layout="combat"] .snapshot-catherine,
+.snapshot[data-party-layout="combat"] .snapshot-janet,
+.snapshot[data-party-layout="combat"] .snapshot-nguyen-quoc-nam,
+.snapshot[data-party-layout="combat"] .snapshot-hua-tieu-lan,
+.snapshot[data-party-layout="combat"] .snapshot-luc-tram{display:none!important}
+
+/* Core overlay layers must be positioned above the level scene, below combat feedback. */
+.snapshot{position:relative}
+.snapshot-character,.snapshot-lucia,.snapshot-entity{pointer-events:none}
+
+/* ENTITY_PROC_FLOAT_COLORS_R01: new status colors only, same pre-existing
+   positions, animation duration, CRIT, and five established status styles. */
+.combat-float--status-pin:not(.combat-float--critical) .combat-float-value{color:#ff87b9}
+.combat-float-status--pin{color:#ff87b9}
+.combat-float--status-heavy:not(.combat-float--critical) .combat-float-value{color:#ffb568}
+.combat-float-status--heavy{color:#ffb568}
+.combat-float--status-ward:not(.combat-float--critical) .combat-float-value{color:#9ce5a4}
+.combat-float-status--ward{color:#9ce5a4}

@@ -1,0 +1,357 @@
+{
+  "apk_filename": "CAO_MINH-1.0.0.0.8.apk",
+  "apk_sha256": "753a12f14d49bb7d5e95b9347a65639b5183c4e70b060caaeaa9b397ad4a310f",
+  "entry_count": 70,
+  "files": [
+    {
+      "path": "META-INF/com/android/build/gradle/app-metadata.properties",
+      "bytes": 56,
+      "sha256": "7dcf130d4874270e450dec50649304c0f56f8c866e2bd002530aa66413d88c2d"
+    },
+    {
+      "path": "classes.dex",
+      "bytes": 2506724,
+      "sha256": "90542a56dddab10d6259e8442b9e1fa6e93da10649d9cca7fa187d0842372654"
+    },
+    {
+      "path": "classes2.dex",
+      "bytes": 1076,
+      "sha256": "c37ae782e9829b1dd370eb84bc98f2d2debfae98beba86869ace2efd0d79d358"
+    },
+    {
+      "path": "classes3.dex",
+      "bytes": 825552,
+      "sha256": "6db710987a94854a30fc4a9e51796d652d0bfc2171c94033abd2193d80d2b132"
+    },
+    {
+      "path": "classes4.dex",
+      "bytes": 230732,
+      "sha256": "e43db82b73e23e4ff964a9ba4863162d640d82d36abb9426bed6b3af8117ac49"
+    },
+    {
+      "path": "classes5.dex",
+      "bytes": 133876,
+      "sha256": "bd48603b3f302a7d39b4fcfe5a239612846b3251c40723ea9793a2ed074da5f5"
+    },
+    {
+      "path": "assets/android-phone.css",
+      "bytes": 4142,
+      "sha256": "65cd2adc90ebc60341fc900d0e5ca7d50852e3016eff3de34462fc495700255f"
+    },
+    {
+      "path": "assets/bgm-player.js",
+      "bytes": 4089,
+      "sha256": "20fd9966085b69e0389a239c7ea466375704199073e74bc1c86e70e50739df9b"
+    },
+    {
+      "path": "assets/bgm/10k-failures.mp3",
+      "bytes": 858949,
+      "sha256": "909b8fe3257ce2be92b38886e85724ec63167072f1f78683eed72e2c95e23f49"
+    },
+    {
+      "path": "assets/bgm/empty-year.mp3",
+      "bytes": 1090498,
+      "sha256": "506dd1f55ee2635fe13c64024a6c94f8a2b44435f6de0fcfc2491babfd03908b"
+    },
+    {
+      "path": "assets/bgm/time-in-limbo.mp3",
+      "bytes": 1331180,
+      "sha256": "3cf719888af823ec72cf77d8e3508baa77e9d59b003d059837f3029a7e818c7e"
+    },
+    {
+      "path": "assets/canon/HUA_TIEU_LAN_CODEX.md",
+      "bytes": 22058,
+      "sha256": "16b04bb4a8388da1d3728c427adb39786cf72ba6b04af52e1a2e481e57bf356f"
+    },
+    {
+      "path": "assets/canon/NGUYEN_QUOC_NAM_CODEX.md",
+      "bytes": 10860,
+      "sha256": "5ca7f3cb26177aadf3fccdb06dadf608b721e88306c14491e1b9f7f42211c317"
+    },
+    {
+      "path": "assets/character-level-ui.js",
+      "bytes": 1425,
+      "sha256": "1f329df9adc587542df6223461df91eea3c2e79945ef78387a4250c74d29f00c"
+    },
+    {
+      "path": "assets/characters/manifest.json",
+      "bytes": 986,
+      "sha256": "74ab9c4f9ab9015eb445143d7a84026955dd49dc98903ca3d208135838432ccd"
+    },
+    {
+      "path": "assets/cloudinary-entity-combat.js",
+      "bytes": 1426,
+      "sha256": "52799f34852e9f0fb385163940478e514612cbfbdeb832a77e9f66734b559271"
+    },
+    {
+      "path": "assets/cloudinary-gameplay.js",
+      "bytes": 11129,
+      "sha256": "7fc4c99fe692d258cf3d17a777fa95d69be12146e8c7f4d2174a5539e2d0fcfb"
+    },
+    {
+      "path": "assets/combat-feedback-1193a.css",
+      "bytes": 21803,
+      "sha256": "0cff82f159ff015ddb3683a4576579f47d105b568e009cabe65658c92594c017"
+    },
+    {
+      "path": "assets/combat-feedback-1193a.js",
+      "bytes": 43428,
+      "sha256": "67c023352de90ac396a5802426099d38d9133c9cb7080314725e154c470015e1"
+    },
+    {
+      "path": "assets/combat-log.js",
+      "bytes": 1744,
+      "sha256": "4d3df0e33f650e328d5e2398d0c87b35ce97a145eed54bb35acda8b4ce6ce2d8"
+    },
+    {
+      "path": "assets/diagnostic-export.js",
+      "bytes": 6741,
+      "sha256": "0563f63cb899fd610568244450aafe706a1da727c5e24b6a993045fa194d28e4"
+    },
+    {
+      "path": "assets/dice/level0-wallpaper.svg",
+      "bytes": 1167,
+      "sha256": "f4c30682ea5deff56249ab0f6a0e14810a0e2ca472f189173d58956c535c8bb9"
+    },
+    {
+      "path": "assets/fonts/Nunito-Variable.ttf",
+      "bytes": 276932,
+      "sha256": "bb55a5ca5c2042335b3991af27c4d0705d0ef41cac6164ac737fd8f2a1e85207"
+    },
+    {
+      "path": "assets/fonts/OFL-Nunito.txt",
+      "bytes": 4385,
+      "sha256": "580df76c95a1ec5ab878ceb25bb3d85c6a076804e9c970c8c6972aea775fdf65"
+    },
+    {
+      "path": "assets/fonts/OFL-Play.txt",
+      "bytes": 4441,
+      "sha256": "b078570fd0001dfe071c04ad18e25113034f45336e98ef82bbae23f75cba2749"
+    },
+    {
+      "path": "assets/fonts/OFL-Pretendard.txt",
+      "bytes": 4816,
+      "sha256": "82e9c8a4b203261f10ddba1296422d64914ff3d4b7bd8a12896d03f0f088d70a"
+    },
+    {
+      "path": "assets/fonts/OFL-VarelaRound.txt",
+      "bytes": 4465,
+      "sha256": "45446732635812510428bf1bad902a8b133f3c7348ad8593ecca90895595b278"
+    },
+    {
+      "path": "assets/fonts/Play-Bold.ttf",
+      "bytes": 210704,
+      "sha256": "45c572eccda4cf335165b750345258e753035bf48ee2fdf37faa07c7db88bce0"
+    },
+    {
+      "path": "assets/fonts/Play-Regular.ttf",
+      "bytes": 199020,
+      "sha256": "eed0da79005cab35d6ed0eacab594ed67cc643be0b2632fa9e440b3bc5078dc4"
+    },
+    {
+      "path": "assets/fonts/PretendardStd-Bold.woff2",
+      "bytes": 137084,
+      "sha256": "d0a66860bc96a2e21d2cf21d4f65e4ffccfe1028a5d609e60942511cd199bbee"
+    },
+    {
+      "path": "assets/fonts/PretendardStd-ExtraBold.woff2",
+      "bytes": 137756,
+      "sha256": "30066bded12e77f8353e7c3b846813b3d897baf66716e43c41b0ac2484214041"
+    },
+    {
+      "path": "assets/fonts/PretendardStd-Regular.woff2",
+      "bytes": 136628,
+      "sha256": "9f2b1aca670f56ce7833b6509de1a34481e7f0f7dafb4d3a23cfde5d8c2707f2"
+    },
+    {
+      "path": "assets/fonts/VarelaRound-Regular.ttf",
+      "bytes": 132748,
+      "sha256": "e1e47eb66dbc2ddc106661338e712d9176c9e83c669a82fde155324823d03aa2"
+    },
+    {
+      "path": "assets/hud/old-photo-wear.svg",
+      "bytes": 1614,
+      "sha256": "5f07b667b347ac2f8ca16353bc1da8d573b58f38cead3b8878869aee93331b1d"
+    },
+    {
+      "path": "assets/index.html",
+      "bytes": 105941,
+      "sha256": "86332de2c795272677887667a5cb7059f5756c89d7d5c8f8a79f4599bdeac9e0"
+    },
+    {
+      "path": "assets/item-detail-actions.js",
+      "bytes": 5892,
+      "sha256": "061f148cba8358102927426376a82247167262c54cbf48b1802c990df2a243a5"
+    },
+    {
+      "path": "assets/item-icons/manifest.json",
+      "bytes": 1371,
+      "sha256": "30ff86960acf0ad55e8ed438b4fb6ffaaa1db036379cdf2f84341f7647fe7d7b"
+    },
+    {
+      "path": "assets/knowledge/knowledge_db.json",
+      "bytes": 196044,
+      "sha256": "e09f7ddb9c98c814020bfac80f1d28ee68de41f6390ad6790a90d6ab36198949"
+    },
+    {
+      "path": "assets/knowledge/level_0_canon_cards.json",
+      "bytes": 246176,
+      "sha256": "0c5537566020ade551834f737b5e98413111fc4e801122c43f1a1c5ea90feea3"
+    },
+    {
+      "path": "assets/knowledge/level_0_visual_registry.json",
+      "bytes": 73320,
+      "sha256": "a9826cfea035d607be5f515261176eea3ec8e1a78bc79dfed485505ad25dd4eb"
+    },
+    {
+      "path": "assets/knowledge/level_1plus_canon_cards.json",
+      "bytes": 107528,
+      "sha256": "c7133bf2b5138763408b9ac4e08c54cdd8ba2911a089105fa5e88c49adf49881"
+    },
+    {
+      "path": "assets/knowledge/level_1plus_visual_registry.json",
+      "bytes": 20400,
+      "sha256": "6d8c332d48d3c6dd991e4fd7af172fc7ed8d20b607d90dc964b0112f2bbdff1e"
+    },
+    {
+      "path": "assets/knowledge/level_travel_policy.json",
+      "bytes": 152786,
+      "sha256": "e17214769c9ae8f048ec58363cfc25c80e346356665aa86f0ca613425cdb849d"
+    },
+    {
+      "path": "assets/level-travel.js",
+      "bytes": 4624,
+      "sha256": "ffb326a51cf26a2b1f9a631cec6d4fe269db89be194ab428b18b3ea9784f725a"
+    },
+    {
+      "path": "assets/level_snapshots/SOURCES.md",
+      "bytes": 1473,
+      "sha256": "a48d6e25c22dfc04b74693e0ceeedc9dbe9f00f592e88d1333d758825aa35bdf"
+    },
+    {
+      "path": "assets/loot-item-display.js",
+      "bytes": 7550,
+      "sha256": "70634153f59314278473d4d68827cd6d727abb738d90eb6b724d501796f7e62c"
+    },
+    {
+      "path": "assets/lucia-visuals.js",
+      "bytes": 2064,
+      "sha256": "d044f5557611d03ea6ffd27e0417e6e3db251a5401d3f36489d45dfb4746e87d"
+    },
+    {
+      "path": "assets/mobile-hud.css",
+      "bytes": 7036,
+      "sha256": "e577ad8b785c5acbd5ba35f8724b3ac3a2ff0d39763613556187cf31913317f5"
+    },
+    {
+      "path": "assets/mobile-hud.js",
+      "bytes": 2332,
+      "sha256": "d43ffb1ba9ac885a51aac49a189e2049a1231fc9a60f6b799a77fcad8a6d4753"
+    },
+    {
+      "path": "assets/named-follower-assets.json",
+      "bytes": 3845,
+      "sha256": "13bd65a73a8f0f2146f2453e5cbd95f4f800a4146bca5847c41976c36e3057c0"
+    },
+    {
+      "path": "assets/named-follower-visuals.js",
+      "bytes": 3016,
+      "sha256": "f08930a99a82c9356df13f7603605dddff4989a6b6f47ab24ea0ef2241759b7b"
+    },
+    {
+      "path": "assets/narrative-format.css",
+      "bytes": 660,
+      "sha256": "98307ff1d6b6ef8f2fa504614c9217bfd4b20e811f2168b410bc15bb07554367"
+    },
+    {
+      "path": "assets/narrative-format.js",
+      "bytes": 14103,
+      "sha256": "a28335affce3f1eb0b13d65b8a74c0ffa69c606309786a9467f9f82f177272bd"
+    },
+    {
+      "path": "assets/personal-provider-config.json",
+      "bytes": 644,
+      "sha256": "328b7d16c7eacd327bfedac9f4abf4616cfc04d49818e91cf40257d2a1980a42"
+    },
+    {
+      "path": "assets/primary-actions.js",
+      "bytes": 7142,
+      "sha256": "d7a584a54d8910a4f824f1f4a466f948ff55d4f5357a89da2980860bf2cc31de"
+    },
+    {
+      "path": "assets/scene-backgrounds.js",
+      "bytes": 6738,
+      "sha256": "b2c6d177d6094a2df8bcc9381b8e77497438c90c2865d588999e6cc2c3445b82"
+    },
+    {
+      "path": "assets/shared-theme.css",
+      "bytes": 15746,
+      "sha256": "0243f4c0a2ea4dd2f4c2432c6303662c78da37ab6e4f3e3e709599eec0f6bd58"
+    },
+    {
+      "path": "assets/snapshot-stage.js",
+      "bytes": 4072,
+      "sha256": "7c9bc093587f925c7672314e9605a08fa43f350d0d997e28c07ba78516a41878"
+    },
+    {
+      "path": "assets/sprite-layout.js",
+      "bytes": 8364,
+      "sha256": "b9d1a0699bd1febd927ae48f754d2cbac66dfedce9cdee7605ef8f9e01f7f1cb"
+    },
+    {
+      "path": "assets/typography.css",
+      "bytes": 568,
+      "sha256": "7154e0dc2aa4fa95e25be74ab845d9b1d254a5809c70fe70760f5b6ca5c59b01"
+    },
+    {
+      "path": "AndroidManifest.xml",
+      "bytes": 2460,
+      "sha256": "ef6adf9d611c54cc2d32d61d6daefb977324b75851b9d72df3b7057af6582e63"
+    },
+    {
+      "path": "resources.arsc",
+      "bytes": 616,
+      "sha256": "260d23fcb61c76fca1f2f41e23b0bd9e398af1bbe6788e6fe760735cc7b9698e"
+    },
+    {
+      "path": "kotlin/annotation/annotation.kotlin_builtins",
+      "bytes": 1022,
+      "sha256": "ae9ec2e633ab0777b8ec1e7c15218382ceac8c5ead2cdedde7cc9ea31457ce85"
+    },
+    {
+      "path": "kotlin/collections/collections.kotlin_builtins",
+      "bytes": 8620,
+      "sha256": "e91b5fc8241f903f0cd2c6e3d038c10a9c74a8f22659dfa9268e21afcca70bf1"
+    },
+    {
+      "path": "kotlin/concurrent/atomics/atomics.kotlin_builtins",
+      "bytes": 2882,
+      "sha256": "dd63195c7714bd3755d938dce9600132ff508a2838674fdf19108275c8dc9077"
+    },
+    {
+      "path": "kotlin/coroutines/coroutines.kotlin_builtins",
+      "bytes": 139,
+      "sha256": "f947b45a78233ddbe229290e0c240c946910649cf6ce1c5fd003f834f6f90369"
+    },
+    {
+      "path": "kotlin/internal/internal.kotlin_builtins",
+      "bytes": 596,
+      "sha256": "6e29094940ebfc967e34d9ccf24521a52ffef3c4b6b47566b19960a04131557e"
+    },
+    {
+      "path": "kotlin/kotlin.kotlin_builtins",
+      "bytes": 30910,
+      "sha256": "1cf99a572bd1c20a8493239fdc6db3fab67816f7c83edd4dd282aea9a2b43114"
+    },
+    {
+      "path": "kotlin/ranges/ranges.kotlin_builtins",
+      "bytes": 4353,
+      "sha256": "629c166aa811101d3954f76c58b7ce3648647a1b3529d2351a799fcb43347a34"
+    },
+    {
+      "path": "kotlin/reflect/reflect.kotlin_builtins",
+      "bytes": 4859,
+      "sha256": "eeb5c2f4756a5d80414002948483b375378cb0bd5c2fc54a1d1d2e2ad3c038f6"
+    }
+  ]
+}

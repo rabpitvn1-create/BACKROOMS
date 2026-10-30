@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "sourceFolder": "Novel/Characters",
+  "assets": [
+    {
+      "path": "NguyenQuocNam.webp",
+      "driveFileId": "1B09GVyjjnTPPn9omde4RQsNfsHdCm7kt",
+      "sourceUrl": "https://drive.google.com/file/d/1B09GVyjjnTPPn9omde4RQsNfsHdCm7kt/view",
+      "sha256": "10b251d827e3bd9317e88c9badb2ea48e873588be34296bdbdfe683250ceb9e7",
+      "bytes": 174470
+    },
+    {
+      "path": "HuaTieuLan.webp",
+      "driveFileId": "1jS8cTaNf-ccMy8JIMMAnvjvwIaMzLS2T",
+      "sourceUrl": "https://drive.google.com/file/d/1jS8cTaNf-ccMy8JIMMAnvjvwIaMzLS2T/view",
+      "sha256": "69f54b96388956fcf0fd95d1e6fdfa25447f055f2365451e4d37d4f412d92f7e",
+      "bytes": 199462
+    },
+    {
+      "path": "avatars/NguyenQuocNam_avatar.webp",
+      "driveFileId": "1itJubl1ReZEvEPbS8ChapmgW3Wsy5rWx",
+      "sourceUrl": "https://drive.google.com/file/d/1itJubl1ReZEvEPbS8ChapmgW3Wsy5rWx/view",
+      "sha256": "68e8ee04269ed8772a9fb5c071ac75dccb3e2fd04cabcf156a30b506367ebe5b",
+      "bytes": 58790
+    },
+    {
+      "path": "avatars/HuaTieuLan_avatar.webp",
+      "driveFileId": "1nYnzZlT5jvLoTHoqHPjTW7xu2hh_U0JK",
+      "sourceUrl": "https://drive.google.com/file/d/1nYnzZlT5jvLoTHoqHPjTW7xu2hh_U0JK/view",
+      "sha256": "0a92e5f7298d4ecb12406463bc430fdac3da3c9847bcf570f8a22a13a0a0e812",
+      "bytes": 78954
+    },
+    {
+      "path": "item-icons/nam-shoes.webp",
+      "driveFileId": "1vQXV9SKKAJTw66DJzC2FJW9AL3WIUeZ-",
+      "sourceUrl": "https://drive.google.com/file/d/1vQXV9SKKAJTw66DJzC2FJW9AL3WIUeZ-/view",
+      "sha256": "dc6f8e68dae9520c3d3821441cff6162e09159eb797f6cbaaa4c754497282832",
+      "bytes": 1406
+    },
+    {
+      "path": "item-icons/nam-watch.webp",
+      "driveFileId": "1cm_lfFlogVoEYtwlA6qFA_6EC723Yi90",
+      "sourceUrl": "https://drive.google.com/file/d/1cm_lfFlogVoEYtwlA6qFA_6EC723Yi90/view",
+      "sha256": "69ef83e32c5dda86617ab5511f6455b1c5ca5483a75abebb5deee9e9dba838f0",
+      "bytes": 2594
+    },
+    {
+      "path": "item-icons/nam-shirt.webp",
+      "driveFileId": "1aem2LDSIdbofiwF45tS03mp_4dmQYXpX",
+      "sourceUrl": "https://drive.google.com/file/d/1aem2LDSIdbofiwF45tS03mp_4dmQYXpX/view",
+      "sha256": "40eaa1f50f34c1866c719d9cef876bbd4171a93a8af35166fc57aab10c9054d3",
+      "bytes": 4320
+    },
+    {
+      "path": "item-icons/nam-pistol.webp",
+      "driveFileId": "1uCz6nOaYATFrxOt-CfWr5KEpH95NMF_E",
+      "sourceUrl": "https://drive.google.com/file/d/1uCz6nOaYATFrxOt-CfWr5KEpH95NMF_E/view",
+      "sha256": "44c6732ed47ad033d42a7aac44f7947f0e035b85b667748c1689eca69a9eb54f",
+      "bytes": 1918
+    },
+    {
+      "path": "item-icons/tieu-lan-shoes.webp",
+      "driveFileId": "1jyo92NCmCpAWecSHDctMOGJKKcvGEo90",
+      "sourceUrl": "https://drive.google.com/file/d/1jyo92NCmCpAWecSHDctMOGJKKcvGEo90/view",
+      "sha256": "a61cc5b284cb8da374569804275124ee7c7ca3c1d0d3692a3a9fb1bded88ae4d",
+      "bytes": 2024
+    },
+    {
+      "path": "item-icons/tieu-lan-jade-bracelet.webp",
+      "driveFileId": "1Q1Ys3MGFdrH7YZ7eM6ZpHnz45_qsJDja",
+      "sourceUrl": "https://drive.google.com/file/d/1Q1Ys3MGFdrH7YZ7eM6ZpHnz45_qsJDja/view",
+      "sha256": "d48f81047c04af06eb0d92a64dbf123812dc8e7c95276d01239541c1d7b77991",
+      "bytes": 4120
+    },
+    {
+      "path": "item-icons/tieu-lan-ao-dai.webp",
+      "driveFileId": "1EnjcsWuPtfYpiCr_-MhG86NaePmBtdR5",
+      "sourceUrl": "https://drive.google.com/file/d/1EnjcsWuPtfYpiCr_-MhG86NaePmBtdR5/view",
+      "sha256": "b9855de04722e4d40afdf75298c8673d686b525a67be863679d4ac198e4efe61",
+      "bytes": 3278
+    },
+    {
+      "path": "item-icons/tieu-lan-rifle.webp",
+      "driveFileId": "1gtPrq5TgObfBe1H_xPb2bcQpd1Iq200I",
+      "sourceUrl": "https://drive.google.com/file/d/1gtPrq5TgObfBe1H_xPb2bcQpd1Iq200I/view",
+      "sha256": "c175d28e3af6a5ce1eaabbd2d1fd5b8d0a5704f05cb8a16ea7970c0fe7492d56",
+      "bytes": 2054
+    }
+  ]
+}

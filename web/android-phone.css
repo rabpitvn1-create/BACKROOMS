@@ -1,0 +1,79 @@
+/* Portrait Android WebView. Insets are CSS pixels supplied by the native host.
+   Never derive layout width from the physical panel resolution or model name. */
+:root {
+  --phone-top: max(env(safe-area-inset-top, 0px), var(--android-safe-top, 0px));
+  --phone-right: max(12px, env(safe-area-inset-right, 0px), var(--android-safe-right, 0px));
+  --phone-bottom: max(12px, env(safe-area-inset-bottom, 0px), var(--android-safe-bottom, 0px));
+  --phone-left: max(12px, env(safe-area-inset-left, 0px), var(--android-safe-left, 0px));
+}
+html { color-scheme: dark; }
+.shell { height:100vh; height:100dvh; min-height:0; }
+.game { overflow:hidden; }
+.game > .topbar {
+  /* Share the camera row instead of adding a second toolbar below the cutout. */
+  height:max(48px, var(--phone-top)); min-height:max(48px, var(--phone-top));
+  padding:0 var(--phone-right) 0 var(--phone-left);
+}
+/* Reserve the centre for the punch hole; long names remain readable in the menu. */
+.topbar .topbar-title { max-width:calc(50% - 24px); flex:1; }
+.topbar .eyebrow { display:block; font-size:8px; letter-spacing:.04em; line-height:1.2; }
+.topbar h1 { margin:3px 0 0; font-size:13px; line-height:1.3; }
+.topbar .topbar-controls { margin-left:auto; padding-left:16px; }
+.game > .snapshot,body.poker-dice-open .game > .snapshot {
+  flex:0 1 clamp(140px, 30vh, 300px);
+  flex-basis:clamp(140px, 30dvh, 300px);
+  height:auto; min-height:96px;
+  margin:8px var(--phone-right) 10px var(--phone-left)!important;
+}
+.game > .log {
+  padding:16px var(--phone-right) 24px var(--phone-left);
+  overscroll-behavior-y:contain; scrollbar-width:thin;
+}
+.game > .player-action-bar {
+  padding:10px var(--phone-right) var(--phone-bottom) var(--phone-left);
+}
+.primary-action-row { grid-template-columns:repeat(3, minmax(0, 1fr)); gap:8px; }
+.primary-action-row .primary-action { white-space:normal; font-size:13px; line-height:1.35; gap:6px; }
+button { touch-action:manipulation; }
+button:focus-visible,textarea:focus-visible { outline:2px solid #f0ca7c; outline-offset:2px; }
+.mobile-menu-trigger,.mobile-menu-head .mobile-menu-close,
+.side button:not(.poker-die),#characterInventoryView button,
+.equipment-detail-sheet button,.character-skills-sheet button,
+.player-action-sheet button,.follower-invite-actions button {
+  min-width:48px; min-height:48px;
+}
+.equipment-detail-sheet .equipment-detail-close { width:48px; height:48px; }
+.equipment-detail-sheet .equipment-detail-header { padding-right:52px; }
+.player-action-modal { padding:var(--phone-top) var(--phone-right) var(--phone-bottom) var(--phone-left); }
+.player-action-modal .player-action-sheet {
+  width:100%; min-width:0; margin-top:8px; max-height:calc(100% - 8px);
+  overscroll-behavior-y:contain; scroll-padding:12px;
+}
+.player-action-modal.keyboard-visible .player-action-sheet { margin-top:0; max-height:100%; }
+.player-action-sheet textarea { width:100%; min-width:0; font-size:16px; resize:none; }
+.equipment-detail-modal {
+  padding:var(--phone-top) var(--phone-right) 0 var(--phone-left);
+}
+.equipment-detail-modal .equipment-detail-sheet {
+  width:100%; max-height:100%; padding-bottom:var(--phone-bottom);
+  overscroll-behavior-y:contain; overflow-wrap:anywhere;
+}
+.character-skills-modal:not([hidden]) {
+  padding:calc(var(--phone-top) + 8px) var(--phone-right) var(--phone-bottom) var(--phone-left);
+  overscroll-behavior-y:contain; overflow-wrap:anywhere;
+}
+.character-skills-modal .character-skills-sheet { width:100%; min-width:0; }
+body.poker-dice-open .game > #pokerDiceModal {
+  padding:0 var(--phone-right) 0 var(--phone-left)!important;
+}
+body.poker-dice-open .game > #combatFeedbackPanel:not([hidden]) {
+  width:auto; margin:8px var(--phone-right) 12px var(--phone-left)!important;
+}
+/* Retain room for reading on compact display settings and split-screen windows. */
+@media (max-height:640px) {
+  .game > .snapshot,body.poker-dice-open .game > .snapshot { flex-basis:22dvh; min-height:64px; }
+  .game > .log { padding-top:10px; padding-bottom:14px; gap:18px; }
+}
+@media (max-width:360px) {
+  .primary-action-row .primary-action { flex-direction:column; padding:8px 4px; gap:4px; font-size:12px; }
+}

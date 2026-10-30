@@ -1,0 +1,11 @@
+/* Presentation-only. Scoped to GM narration; combat/floating feedback unchanged. */
+.message.gm .text .nfmt { font-weight:700; }
+.message.gm .text .nfmt--character { color:#8ED0FF; }
+.message.gm .text .nfmt--entity { color:#D98C8C; }
+.message.gm .text .nfmt--equipment { color:#D6B25E; }
+.message.gm .text .nfmt--consumable { color:#C9BFA3; }
+.message.gm .text .nfmt--location { color:#8ED3B1; }
+.message.gm .text .nfmt--skill-demonic { color:#B79CED; }
+.message.gm .text .nfmt--skill-righteous { color:#D9DEE6; }
+.message.gm .text .nfmt--passive { color:#B8AEA0; }
+.message.gm .text .nfmt--dialogue { color:inherit; font-weight:inherit; font-style:italic; }

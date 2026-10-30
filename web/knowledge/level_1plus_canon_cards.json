@@ -1,0 +1,1974 @@
+{
+  "schemaVersion": 2,
+  "packId": "level1plus-20261025-environment-proposals",
+  "recordCount": 38,
+  "records": [
+    {
+      "id": "LEVEL.07",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.07",
+      "domain": "LEVEL",
+      "kind": "level",
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "PUBLIC",
+      "priority": 34,
+      "tags": [
+        "level 7"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "level_scope": "LEVEL.07",
+        "min_evidence": "CONFIRMED"
+      },
+      "text": "Một đại dương chết chóc trải ra vô tận, nuốt chửng mọi chân trời dưới bầu trời xám xịt và màn sương đặc quánh như hơi thở của thứ gì đang rình rập. Giữa mặt nước lạnh buốt, một công trình kim loại hoặc bunker rỉ sét trơ trọi như xác tàu bị bỏ quên, bên trong ngập nước, ẩm lạnh, đồ đạc mục nát rữa ra trong bóng tối. Độ sâu ngoài biển đổi thay tàn nhẫn: vùng nước tưởng nông có thể sụp xuống vực sâu không đáy chỉ trong một bước chân. Đừng lầm tưởng sương và nước là tự nhiên vô hại — ở đây, chúng chỉ đang chờ kéo ngươi xuống.",
+      "source": {
+        "document": "BACKROOMS_WORLD.md",
+        "document_id": "LEVEL",
+        "anchor": "Tầng 7 — Thalassophobia",
+        "content_sha256": "1718bd1801fd1cf926bb85d47e2055c7c580b8db90afcc9df664781db5078fc9",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/BACKROOMS_WORLD.md",
+        "verification": "CONTENT_MATCH"
+      },
+      "review_status": "SOURCE_SNAPSHOTTED_BASELINE",
+      "canon_completeness": "WORLD_BASELINE_CONFIRMED"
+    },
+    {
+      "id": "LEVEL.08",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.08",
+      "domain": "LEVEL",
+      "kind": "level",
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "PUBLIC",
+      "priority": 34,
+      "tags": [
+        "level 8"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "level_scope": "LEVEL.08",
+        "min_evidence": "CONFIRMED"
+      },
+      "text": "Một hệ hang ngầm khổng lồ mở ra như ruột của một con quái vật đá: khoang đá cao hun hút, vực sâu há miệng trong bóng tối, tunnel hẹp siết chặt, nước tù hôi thối và những đoạn phải bò, ép người qua khe đá như chui qua cổ họng. Âm thanh phản xạ dội khắp vách đá, bóp méo khoảng cách và phương hướng, khiến mọi tiếng động đều nghe như có thứ gì đang bò tới gần. Một số tuyến đường có thể thay đổi khi rời khỏi tầm nhìn. Cầu gỗ mục, nơi trú hoang hay dấu vết cư trú cũ không chứng minh được nguồn gốc — và càng không chứng minh được ngươi còn an toàn.",
+      "source": {
+        "document": "BACKROOMS_WORLD.md",
+        "document_id": "LEVEL",
+        "anchor": "Tầng 8 — Cave Systems",
+        "content_sha256": "1718bd1801fd1cf926bb85d47e2055c7c580b8db90afcc9df664781db5078fc9",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/BACKROOMS_WORLD.md",
+        "verification": "CONTENT_MATCH"
+      },
+      "review_status": "SOURCE_SNAPSHOTTED_BASELINE",
+      "canon_completeness": "WORLD_BASELINE_CONFIRMED"
+    },
+    {
+      "id": "LEVEL.09",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.09",
+      "domain": "LEVEL",
+      "kind": "level",
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "PUBLIC",
+      "priority": 34,
+      "tags": [
+        "level 9"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "level_scope": "LEVEL.09",
+        "min_evidence": "CONFIRMED"
+      },
+      "text": "Một vùng ngoại ô kéo dài trong ban đêm vĩnh viễn, nơi đường nhựa, vỉa hè, nhà thấp tầng, bãi cỏ và cây cối chìm trong sương lạnh như một nghĩa địa của đời sống bình thường. Đèn đường chỉ khoét ra những vùng sáng nhỏ nhoi, và ngoài quầng sáng đó, bóng tối luôn dày đặc hơn. Nhà cửa lặp lại về kiểu dáng một cách bệnh hoạn, nhưng nội thất bên trong không bao giờ giống nhau — như thể mỗi căn nhà đều giấu một phiên bản méo mó của chính nó. Đi sâu khỏi khu dân cư, ngươi có thể gặp các công trình méo mó, cũ kỹ hơn, không còn giống kiến trúc nhà ở thông thường nữa.",
+      "source": {
+        "document": "BACKROOMS_WORLD.md",
+        "document_id": "LEVEL",
+        "anchor": "Tầng 9 — The Suburbs",
+        "content_sha256": "1718bd1801fd1cf926bb85d47e2055c7c580b8db90afcc9df664781db5078fc9",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/BACKROOMS_WORLD.md",
+        "verification": "CONTENT_MATCH"
+      },
+      "review_status": "SOURCE_SNAPSHOTTED_BASELINE",
+      "canon_completeness": "WORLD_BASELINE_CONFIRMED"
+    },
+    {
+      "id": "LEVEL.10",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.10",
+      "domain": "LEVEL",
+      "kind": "level",
+      "authority": "WORLD_CANON",
+      "mutability": "IMMUTABLE",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "PUBLIC",
+      "priority": 34,
+      "tags": [
+        "level 10"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "level_scope": "LEVEL.10",
+        "min_evidence": "CONFIRMED"
+      },
+      "text": "Đồng cỏ và ruộng canh tác trải dài tới đường chân trời như một tấm thảm chết không có điểm dừng, xen kẽ hàng cây, bụi rậm, barn, chuồng và các công trình nông nghiệp nhỏ lặng im trong bầu trời xám. Ban ngày ở đây ít thay đổi đến rợn người, khiến cảm giác thời gian trở nên không đáng tin — ngươi không biết mình đã đi bao lâu, hay đã đi bao nhiêu lần qua cùng một cánh đồng. Hồ, vũng nước và địa hình thấp xuất hiện rải rác như những cái bẫy lặng lẽ. Các công trình nông nghiệp phần lớn trống rỗng, và đừng bao giờ xem chúng là nơi trú an toàn mặc định.",
+      "source": {
+        "document": "BACKROOMS_WORLD.md",
+        "document_id": "LEVEL",
+        "anchor": "Tầng 10 — Bumper Crop",
+        "content_sha256": "1718bd1801fd1cf926bb85d47e2055c7c580b8db90afcc9df664781db5078fc9",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/BACKROOMS_WORLD.md",
+        "verification": "CONTENT_MATCH"
+      },
+      "review_status": "SOURCE_SNAPSHOTTED_BASELINE",
+      "canon_completeness": "WORLD_BASELINE_CONFIRMED"
+    },
+    {
+      "id": "LEVEL.11",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.11",
+      "domain": "LEVEL",
+      "kind": "level",
+      "authority": "ASSET_ID_CONFIRMED_ONLY",
+      "mutability": "IMMUTABLE",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "PUBLIC",
+      "priority": 34,
+      "tags": [
+        "level 11"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "level_scope": "LEVEL.11",
+        "min_evidence": "CONFIRMED"
+      },
+      "text": "Level 11 là một vùng chưa được xác nhận. Không có mô tả môi trường được xác nhận, không có quy tắc được xác nhận, không có Entity được xác nhận, và không có cửa ra được xác nhận. Nó tồn tại trong canon chỉ như một cái tên gắn với bóng tối chưa có tên — một khoảng trống mà nỗi sợ lớn nhất không phải là thứ gì đang chờ bên trong, mà là việc không ai có thể khẳng định bên trong có gì, hay có gì không.",
+      "source": {
+        "document": "Bảng ánh xạ Cloudinary JSON.json",
+        "document_id": "LEVEL1PLUS_CLOUDINARY_MAPPING",
+        "anchor": "Level_11_Main_01",
+        "content_sha256": "45d0f2d006c3734573517863b7c438e3fce75a0c198af8776f24b889775f254f",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/LEVEL_0_CLOUDINARY_MAPPING.json",
+        "verification": "ASSET_EXISTENCE_ONLY"
+      },
+      "review_status": "PENDING_CANON_LORE",
+      "canon_completeness": "EXISTENCE_CONFIRMED_LORE_UNKNOWN"
+    },
+    {
+      "id": "LEVEL.12",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.12",
+      "domain": "LEVEL",
+      "kind": "level",
+      "authority": "ASSET_ID_CONFIRMED_ONLY",
+      "mutability": "IMMUTABLE",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "PUBLIC",
+      "priority": 34,
+      "tags": [
+        "level 12"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "level_scope": "LEVEL.12",
+        "min_evidence": "CONFIRMED"
+      },
+      "text": "Level 12 là một vùng chưa được xác nhận. Không có mô tả môi trường được xác nhận, không có quy tắc được xác nhận, không có Entity được xác nhận, và không có cửa ra được xác nhận. Cái đáng sợ của nó không nằm ở một hình ảnh cụ thể nào, mà nằm ở chính sự im lặng của hồ sơ: một level được nhắc tới nhưng chưa từng được mở ra bằng một sự thật nào có thể tin được.",
+      "source": {
+        "document": "Bảng ánh xạ Cloudinary JSON.json",
+        "document_id": "LEVEL1PLUS_CLOUDINARY_MAPPING",
+        "anchor": "Level_12_Main_01",
+        "content_sha256": "45d0f2d006c3734573517863b7c438e3fce75a0c198af8776f24b889775f254f",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/LEVEL_0_CLOUDINARY_MAPPING.json",
+        "verification": "ASSET_EXISTENCE_ONLY"
+      },
+      "review_status": "PENDING_CANON_LORE",
+      "canon_completeness": "EXISTENCE_CONFIRMED_LORE_UNKNOWN"
+    },
+    {
+      "id": "LEVEL.13",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.13",
+      "domain": "LEVEL",
+      "kind": "level",
+      "authority": "ASSET_ID_CONFIRMED_ONLY",
+      "mutability": "IMMUTABLE",
+      "truth_status": "CONFIRMED",
+      "knowledge_visibility": "PUBLIC",
+      "priority": 34,
+      "tags": [
+        "level 13"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "level_scope": "LEVEL.13",
+        "min_evidence": "CONFIRMED"
+      },
+      "text": "Level 13 là một vùng chưa được xác nhận. Không có mô tả môi trường được xác nhận, không có quy tắc được xác nhận, không có Entity được xác nhận, và không có cửa ra được xác nhận. Nó giống như một trang bị bỏ trống trong bóng tối — chưa có tên gọi cho thứ ẩn sau nó, chưa có luật lệ để bám vào, và chưa có lối nào được xác nhận để đi tiếp hay quay lại.",
+      "source": {
+        "document": "Bảng ánh xạ Cloudinary JSON.json",
+        "document_id": "LEVEL1PLUS_CLOUDINARY_MAPPING",
+        "anchor": "Level_13_Main_01",
+        "content_sha256": "45d0f2d006c3734573517863b7c438e3fce75a0c198af8776f24b889775f254f",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/LEVEL_0_CLOUDINARY_MAPPING.json",
+        "verification": "ASSET_EXISTENCE_ONLY"
+      },
+      "review_status": "PENDING_CANON_LORE",
+      "canon_completeness": "EXISTENCE_CONFIRMED_LORE_UNKNOWN"
+    },
+    {
+      "id": "LEVEL.NODE.1",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.01",
+      "domain": "LEVEL",
+      "kind": "location-card",
+      "authority": "ASSET_IDENTIFIED_SCENE_DRAFT",
+      "mutability": "IMMUTABLE",
+      "truth_status": "INFERRED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "priority": 69,
+      "text": "Mạng lưới bãi đỗ bê tông mênh mông, cột và dốc nối nhau trong hơi nóng, sương lạnh lảng vảng từng chỗ, xe hỏng hiếm hoi nằm chết lặng. Mất điện có thể kéo dài từ vài phút đến vài ngày, khiến ánh đèn di động vừa cứu mạng vừa tố cáo vị trí. Hành Lang Bảo Trì còn điện nhưng không phải nơi trú lâu dài; Khu Đỗ Sang sạch hơn, mù hơn, nguồn điện chập chờn, thùng tiếp tế nhiều hơn nhưng vẫn khan hiếm. Lối sang Level 2 dần hiện khi xe biến mất, không gian hẹp lại thành hành lang ống nóng ẩm, đầy máy móc.",
+      "compact_text": "Mạng lưới bãi đỗ bê tông mênh mông, cột và dốc nối nhau trong hơi nóng, sương lạnh lảng vảng từng chỗ, xe hỏng hiếm hoi nằm chết lặng.",
+      "aliases": [
+        "level-node:1",
+        "node:1"
+      ],
+      "tags": [
+        "level1-node:1"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "level_scope": "LEVEL.01",
+        "min_evidence": "INFERRED",
+        "deny_if_unauthorized_pov": true
+      },
+      "source": {
+        "document": "Bảng ánh xạ Cloudinary JSON.json",
+        "document_id": "LEVEL1PLUS_CLOUDINARY_MAPPING",
+        "anchor": "Level_1_Parking_Zone_01; Level_1_Parking_Zone_02; Level_1_Parking_Zone_03",
+        "content_sha256": "45d0f2d006c3734573517863b7c438e3fce75a0c198af8776f24b889775f254f",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/LEVEL_0_CLOUDINARY_MAPPING.json",
+        "verification": "ASSET_ID_ONLY_LORE_PROPOSED"
+      },
+      "node_key": "1",
+      "parent_node_key": null,
+      "node_kind": "LEVEL",
+      "visual_public_ids": [
+        "Level_1_Parking_Zone_01",
+        "Level_1_Parking_Zone_02",
+        "Level_1_Parking_Zone_03"
+      ],
+      "baseline_source_id": "LEVEL",
+      "review_status": "PENDING_AUTHOR_REVIEW",
+      "canon_completeness": "WORLD_LEVEL_BASELINE_ONLY"
+    },
+    {
+      "id": "LEVEL.NODE.1.2",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.01",
+      "domain": "LEVEL",
+      "kind": "location-card",
+      "authority": "ASSET_IDENTIFIED_SCENE_DRAFT",
+      "mutability": "IMMUTABLE",
+      "truth_status": "INFERRED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "priority": 69,
+      "text": "Nhịp cột bê tông đều đặn dựng lên trong khoảng không công nghiệp rộng lớn, quen thuộc đến kỳ lạ — như một bãi đỗ xe mà tỉ lệ đã bị vặn lệch đi đôi chút. Ánh sáng lúc mạnh lúc yếu, tạo ra những biên độ sáng tối bất thường và góc khuất sâu hun hút sau mỗi cây cột. Không có gì được khẳng định thêm ở đây: chỉ có bê tông lạnh, bóng tối dài, và cảm giác khó chịu rằng mắt mình đang nhìn nhầm khoảng cách.",
+      "compact_text": "Nhịp cột bê tông đều đặn dựng lên trong khoảng không công nghiệp rộng lớn, quen thuộc đến kỳ lạ — như một bãi đỗ xe mà tỉ lệ đã bị vặn lệch đi đôi chút.",
+      "aliases": [
+        "level-node:1.2",
+        "node:1.2"
+      ],
+      "tags": [
+        "level1-node:1.2"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "level_scope": "LEVEL.01",
+        "min_evidence": "INFERRED",
+        "deny_if_unauthorized_pov": true
+      },
+      "source": {
+        "document": "Bảng ánh xạ Cloudinary JSON.json",
+        "document_id": "LEVEL1PLUS_CLOUDINARY_MAPPING",
+        "anchor": "Level_1_2_Sub_01; Level_1_2_Sub_02; Level_1_2_Sub_03",
+        "content_sha256": "45d0f2d006c3734573517863b7c438e3fce75a0c198af8776f24b889775f254f",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/LEVEL_0_CLOUDINARY_MAPPING.json",
+        "verification": "ASSET_ID_ONLY_LORE_PROPOSED"
+      },
+      "node_key": "1.2",
+      "parent_node_key": "1",
+      "node_kind": "SUBLEVEL",
+      "visual_public_ids": [
+        "Level_1_2_Sub_01",
+        "Level_1_2_Sub_02",
+        "Level_1_2_Sub_03"
+      ],
+      "baseline_source_id": "LEVEL",
+      "review_status": "PENDING_AUTHOR_REVIEW",
+      "canon_completeness": "WORLD_LEVEL_BASELINE_ONLY",
+      "compact_form": "Khung cảnh phụ của Level 1: những nhịp cột, vách bê tông và khoảng không công nghiệp tạo cảm giác quen mà sai tỉ lệ; người kể chú ý biên độ sáng và các góc khuất như dấu hiệu thị giác. Tên sublevel ngoài wiki không xác minh hình học hoặc cơ chế riêng của game. Giữ nguyên Canon cứng, không tự xác nhận cơ chế/sự kiện.",
+      "environment_research": {
+        "status": "PROPOSED_SCENE_DESCRIPTION_PENDING_AUTHOR_REVIEW",
+        "source_asset_public_ids": [
+          "Level_1_2_Sub_01",
+          "Level_1_2_Sub_02",
+          "Level_1_2_Sub_03"
+        ],
+        "external_reference": {
+          "url": "https://backrooms-wiki.wikidot.com/normal-levels-i/level-0",
+          "role": "outside Backrooms continuity; descriptive inspiration only, not project canon"
+        },
+        "cloudinary_palette": null,
+        "image_pixel_review": "Cloudinary asset metadata and representative color analysis; object/layout detail not directly inspected",
+        "no_new_hard_facts": true
+      }
+    },
+    {
+      "id": "LEVEL.NODE.1.5",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.01",
+      "domain": "LEVEL",
+      "kind": "location-card",
+      "authority": "ASSET_IDENTIFIED_SCENE_DRAFT",
+      "mutability": "IMMUTABLE",
+      "truth_status": "INFERRED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "priority": 69,
+      "text": "Ánh sáng ở đây không đi thẳng: nó lạc hướng, chệch nhịp, tạo ra những tương phản bất thường trên mặt bê tông có vẻ đảo trục, như thể cả không gian đang nghiêng đi trong im lặng. Nhìn lâu, đầu óc bắt đầu choáng váng, phương hướng mờ dần, và những đường nét quen thuộc bỗng trở nên xa lạ. Chưa có gì khẳng định về luật đảo ngược, cửa bẫy hay sinh vật nào — chỉ có ánh sáng lạc lối và cảm giác bị lật ngược trong chính đôi mắt mình.",
+      "compact_text": "Ánh sáng ở đây không đi thẳng: nó lạc hướng, chệch nhịp, tạo ra những tương phản bất thường trên mặt bê tông có vẻ đảo trục, như thể cả không gian đang nghiêng đi trong im lặng.",
+      "aliases": [
+        "level-node:1.5",
+        "node:1.5"
+      ],
+      "tags": [
+        "level1-node:1.5"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "level_scope": "LEVEL.01",
+        "min_evidence": "INFERRED",
+        "deny_if_unauthorized_pov": true
+      },
+      "source": {
+        "document": "Bảng ánh xạ Cloudinary JSON.json",
+        "document_id": "LEVEL1PLUS_CLOUDINARY_MAPPING",
+        "anchor": "Level_1_5_Sub_01",
+        "content_sha256": "45d0f2d006c3734573517863b7c438e3fce75a0c198af8776f24b889775f254f",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/LEVEL_0_CLOUDINARY_MAPPING.json",
+        "verification": "ASSET_ID_ONLY_LORE_PROPOSED"
+      },
+      "node_key": "1.5",
+      "parent_node_key": "1",
+      "node_kind": "SUBLEVEL",
+      "visual_public_ids": [
+        "Level_1_5_Sub_01"
+      ],
+      "baseline_source_id": "LEVEL",
+      "review_status": "PENDING_AUTHOR_REVIEW",
+      "canon_completeness": "WORLD_LEVEL_BASELINE_ONLY",
+      "compact_form": "Biến thể có thể kể bằng ánh sáng lạc hướng, tương phản bất thường và các mặt bê tông có vẻ đảo trục, như cảm giác choáng khi nhìn lâu. Nguồn wiki có mô-típ 'Inverted', nhưng chưa thể khẳng định luật đảo ngược ánh sáng, cửa bẫy hoặc Entity trong game. Giữ nguyên Canon cứng, không tự xác nhận cơ chế/sự kiện.",
+      "environment_research": {
+        "status": "PROPOSED_SCENE_DESCRIPTION_PENDING_AUTHOR_REVIEW",
+        "source_asset_public_ids": [
+          "Level_1_5_Sub_01"
+        ],
+        "external_reference": {
+          "url": "https://backrooms-wiki.wikidot.com/level-1-5",
+          "role": "outside Backrooms continuity; descriptive inspiration only, not project canon"
+        },
+        "cloudinary_palette": null,
+        "image_pixel_review": "Cloudinary asset metadata and representative color analysis; object/layout detail not directly inspected",
+        "no_new_hard_facts": true
+      }
+    },
+    {
+      "id": "LEVEL.NODE.1.BASE_ALPHA",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.01",
+      "domain": "LEVEL",
+      "kind": "location-card",
+      "authority": "ASSET_IDENTIFIED_SCENE_DRAFT",
+      "mutability": "IMMUTABLE",
+      "truth_status": "INFERRED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "priority": 69,
+      "text": "Base Alpha là vùng gợi dáng một căn cứ giữa hệ bê tông của Level 1: khoảng trống rộng, bóng cột đổ dài, bề mặt kho vận lạnh lẽo và dấu vết sử dụng nếu quan sát thấy. Không khí ở đây mang vẻ từng có người đi qua, nhưng đã bị bỏ lại cho bụi và bóng tối. Tên gọi không chứng minh có nhóm người, tài nguyên hay tuyến giao thương nào đang tồn tại. Không sinh Entity, loot, lối thoát hay thương tổn — chỉ có bê tông, bóng cột và sự trống rỗng của một nơi từng được dùng vào việc gì đó không còn ai nhớ.",
+      "compact_text": "Base Alpha là vùng gợi dáng một căn cứ giữa hệ bê tông của Level 1: khoảng trống rộng, bóng cột đổ dài, bề mặt kho vận lạnh lẽo và dấu vết sử dụng nếu quan sát thấy.",
+      "aliases": [
+        "level-node:1/base_alpha",
+        "node:1/base_alpha"
+      ],
+      "tags": [
+        "level1-node:1/base_alpha"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "level_scope": "LEVEL.01",
+        "min_evidence": "INFERRED",
+        "deny_if_unauthorized_pov": true
+      },
+      "source": {
+        "document": "Bảng ánh xạ Cloudinary JSON.json",
+        "document_id": "LEVEL1PLUS_CLOUDINARY_MAPPING",
+        "anchor": "Level_1_Base_Alpha_01",
+        "content_sha256": "45d0f2d006c3734573517863b7c438e3fce75a0c198af8776f24b889775f254f",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/LEVEL_0_CLOUDINARY_MAPPING.json",
+        "verification": "ASSET_ID_ONLY_LORE_PROPOSED"
+      },
+      "node_key": "1/base_alpha",
+      "parent_node_key": "1",
+      "node_kind": "AREA",
+      "visual_public_ids": [
+        "Level_1_Base_Alpha_01"
+      ],
+      "baseline_source_id": "LEVEL",
+      "review_status": "PENDING_AUTHOR_REVIEW",
+      "canon_completeness": "WORLD_LEVEL_BASELINE_ONLY",
+      "compact_form": "Vùng gợi dáng dấp một căn cứ giữa hệ bê tông Level 1: nhấn khoảng trống, bóng cột, bề mặt kho vận và dấu vết sử dụng nếu được quan sát. Tên Base Alpha không chứng minh hiện diện nhóm người, tài nguyên hay tuyến giao thương. Giữ nguyên Canon cứng, không tự xác nhận cơ chế/sự kiện.",
+      "environment_research": {
+        "status": "PROPOSED_SCENE_DESCRIPTION_PENDING_AUTHOR_REVIEW",
+        "source_asset_public_ids": [
+          "Level_1_Base_Alpha_01"
+        ],
+        "external_reference": {
+          "url": "https://backrooms-wiki.wikidot.com/normal-levels-i/level-0",
+          "role": "outside Backrooms continuity; descriptive inspiration only, not project canon"
+        },
+        "cloudinary_palette": null,
+        "image_pixel_review": "Cloudinary asset metadata and representative color analysis; object/layout detail not directly inspected",
+        "no_new_hard_facts": true
+      }
+    },
+    {
+      "id": "LEVEL.NODE.1.TRADERS_VAULT",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.01",
+      "domain": "LEVEL",
+      "kind": "location-card",
+      "authority": "ASSET_IDENTIFIED_SCENE_DRAFT",
+      "mutability": "IMMUTABLE",
+      "truth_status": "INFERRED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "priority": 69,
+      "text": "Traders Vault là vùng mang nhãn đó trong môi trường Level 1: những ngưỡng kín khép lại như miệng hầm, mảng bê tông xám lạnh, hướng sáng chiếu xiên qua khe hẹp và cảm giác lưu trữ chưa từng được dùng đến. Không gian mang vẻ cất giấu, nhưng không có gì chứng minh bên trong chứa thứ gì. Không tự tạo thương nhân, quầy hàng, giao dịch hay tài sản. Chỉ có ngưỡng kín, bê tông và bóng tối — một cái tên gợi ra kho báu, nhưng không hứa hẹn bất cứ thứ gì đang chờ phía sau.",
+      "compact_text": "Traders Vault là vùng mang nhãn đó trong môi trường Level 1: những ngưỡng kín khép lại như miệng hầm, mảng bê tông xám lạnh, hướng sáng chiếu xiên qua khe hẹp và cảm giác lưu trữ chưa từng được dùng đến.",
+      "aliases": [
+        "level-node:1/traders_vault",
+        "node:1/traders_vault"
+      ],
+      "tags": [
+        "level1-node:1/traders_vault"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "level_scope": "LEVEL.01",
+        "min_evidence": "INFERRED",
+        "deny_if_unauthorized_pov": true
+      },
+      "source": {
+        "document": "Bảng ánh xạ Cloudinary JSON.json",
+        "document_id": "LEVEL1PLUS_CLOUDINARY_MAPPING",
+        "anchor": "Level_1_Traders_Vault_01",
+        "content_sha256": "45d0f2d006c3734573517863b7c438e3fce75a0c198af8776f24b889775f254f",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/LEVEL_0_CLOUDINARY_MAPPING.json",
+        "verification": "ASSET_ID_ONLY_LORE_PROPOSED"
+      },
+      "node_key": "1/traders_vault",
+      "parent_node_key": "1",
+      "node_kind": "AREA",
+      "visual_public_ids": [
+        "Level_1_Traders_Vault_01"
+      ],
+      "baseline_source_id": "LEVEL",
+      "review_status": "PENDING_AUTHOR_REVIEW",
+      "canon_completeness": "WORLD_LEVEL_BASELINE_ONLY",
+      "compact_form": "Vùng mang nhãn Traders Vault trong môi trường Level 1: có thể diễn tả các ngưỡng kín, mảng bê tông, hướng sáng và cảm giác lưu trữ chưa dùng; không tự tạo thương nhân, quầy hàng, giao dịch hoặc tài sản từ tên ảnh. Giữ nguyên Canon cứng, không tự xác nhận cơ chế/sự kiện.",
+      "environment_research": {
+        "status": "PROPOSED_SCENE_DESCRIPTION_PENDING_AUTHOR_REVIEW",
+        "source_asset_public_ids": [
+          "Level_1_Traders_Vault_01"
+        ],
+        "external_reference": {
+          "url": "https://backrooms-wiki.wikidot.com/normal-levels-i/level-0",
+          "role": "outside Backrooms continuity; descriptive inspiration only, not project canon"
+        },
+        "cloudinary_palette": null,
+        "image_pixel_review": "Cloudinary asset metadata and representative color analysis; object/layout detail not directly inspected",
+        "no_new_hard_facts": true
+      }
+    },
+    {
+      "id": "LEVEL.NODE.2",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.02",
+      "domain": "LEVEL",
+      "kind": "location-card",
+      "authority": "ASSET_IDENTIFIED_SCENE_DRAFT",
+      "mutability": "IMMUTABLE",
+      "truth_status": "INFERRED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "priority": 69,
+      "text": "Đường hầm kỹ thuật, giếng sâu, ống rỉ sét, khe chui và mạng điện dở dang quấn lấy nhau trong những cơn thay đổi nhiệt độ cực đoan. Động đất có thể sập đường, vỡ ống, phun hơi và mở lối mới đầy hiểm họa. Chất lỏng trong ống giống Nước Hạnh Nhân tuyệt đối không được uống trực tiếp, vì nhiễm bẩn sinh học, hóa học và dị thường. Lối sang Level 3 hiện ra khi hạ tầng điện cao thế bắt đầu thống trị mọi ngóc ngách, nuốt chửng bóng tối bằng dòng điện chết chóc.",
+      "compact_text": "Đường hầm kỹ thuật, giếng sâu, ống rỉ sét, khe chui và mạng điện dở dang quấn lấy nhau trong những cơn thay đổi nhiệt độ cực đoan.",
+      "aliases": [
+        "level-node:2",
+        "node:2"
+      ],
+      "tags": [
+        "level2-node:2"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "level_scope": "LEVEL.02",
+        "min_evidence": "INFERRED",
+        "deny_if_unauthorized_pov": true
+      },
+      "source": {
+        "document": "Bảng ánh xạ Cloudinary JSON.json",
+        "document_id": "LEVEL1PLUS_CLOUDINARY_MAPPING",
+        "anchor": "Level_2_Pipe_Dreams_01; Level_2_Pipe_Dreams_02; Level_2_Pipe_Dreams_03",
+        "content_sha256": "45d0f2d006c3734573517863b7c438e3fce75a0c198af8776f24b889775f254f",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/LEVEL_0_CLOUDINARY_MAPPING.json",
+        "verification": "ASSET_ID_ONLY_LORE_PROPOSED"
+      },
+      "node_key": "2",
+      "parent_node_key": null,
+      "node_kind": "LEVEL",
+      "visual_public_ids": [
+        "Level_2_Pipe_Dreams_01",
+        "Level_2_Pipe_Dreams_02",
+        "Level_2_Pipe_Dreams_03"
+      ],
+      "baseline_source_id": "LEVEL",
+      "review_status": "PENDING_AUTHOR_REVIEW",
+      "canon_completeness": "WORLD_LEVEL_BASELINE_ONLY"
+    },
+    {
+      "id": "LEVEL.NODE.2.OFFICE_SPACE_EL3A",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.02",
+      "domain": "LEVEL",
+      "kind": "location-card",
+      "authority": "ASSET_IDENTIFIED_SCENE_DRAFT",
+      "mutability": "IMMUTABLE",
+      "truth_status": "INFERRED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "priority": 69,
+      "text": "Office Space EL3A là khu phụ tương phản lạnh lẽo giữa không gian văn phòng và kết cấu đường ống của Level 2. Bàn ghế, vách ngăn mang dáng văn phòng bị ống thép, tiếng máy rền rĩ và hơi nóng bao vây, như một nơi làm việc bị nuốt chửng bởi cỗ máy. Không tự tạo ổ cắm có điện, cửa đang hoạt động hay dấu tích nhân viên nào. Không sinh Entity, loot, lối thoát hay thương tổn — chỉ có sự đối lập giữa trật tự văn phòng đã chết và hơi nóng, tiếng máy không ngừng gặm nhấm nó.",
+      "compact_text": "Office Space EL3A là khu phụ tương phản lạnh lẽo giữa không gian văn phòng và kết cấu đường ống của Level 2.",
+      "aliases": [
+        "level-node:2/office_space_el3a",
+        "node:2/office_space_el3a"
+      ],
+      "tags": [
+        "level2-node:2/office_space_el3a"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "level_scope": "LEVEL.02",
+        "min_evidence": "INFERRED",
+        "deny_if_unauthorized_pov": true
+      },
+      "source": {
+        "document": "Bảng ánh xạ Cloudinary JSON.json",
+        "document_id": "LEVEL1PLUS_CLOUDINARY_MAPPING",
+        "anchor": "Level_2_Office_Space_EL3A_01",
+        "content_sha256": "45d0f2d006c3734573517863b7c438e3fce75a0c198af8776f24b889775f254f",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/LEVEL_0_CLOUDINARY_MAPPING.json",
+        "verification": "ASSET_ID_ONLY_LORE_PROPOSED"
+      },
+      "node_key": "2/office_space_el3a",
+      "parent_node_key": "2",
+      "node_kind": "AREA",
+      "visual_public_ids": [
+        "Level_2_Office_Space_EL3A_01"
+      ],
+      "baseline_source_id": "LEVEL",
+      "review_status": "PENDING_AUTHOR_REVIEW",
+      "canon_completeness": "WORLD_LEVEL_BASELINE_ONLY",
+      "compact_form": "Khu phụ mang tên Office Space EL3A; gợi tương phản giữa không gian văn phòng và kết cấu đường ống, tiếng máy, hơi nóng thuộc Level 2. Không tự tạo ổ cắm có điện, cửa hoạt động hoặc dấu tích nhân viên. Giữ nguyên Canon cứng, không tự xác nhận cơ chế/sự kiện.",
+      "environment_research": {
+        "status": "PROPOSED_SCENE_DESCRIPTION_PENDING_AUTHOR_REVIEW",
+        "source_asset_public_ids": [
+          "Level_2_Office_Space_EL3A_01"
+        ],
+        "external_reference": {
+          "url": "https://backrooms-wiki.wikidot.com/normal-levels-i/level-0",
+          "role": "outside Backrooms continuity; descriptive inspiration only, not project canon"
+        },
+        "cloudinary_palette": null,
+        "image_pixel_review": "Cloudinary asset metadata and representative color analysis; object/layout detail not directly inspected",
+        "no_new_hard_facts": true
+      }
+    },
+    {
+      "id": "LEVEL.NODE.3",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.03",
+      "domain": "LEVEL",
+      "kind": "location-card",
+      "authority": "ASSET_IDENTIFIED_SCENE_DRAFT",
+      "mutability": "IMMUTABLE",
+      "truth_status": "INFERRED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "priority": 69,
+      "text": "Hành lang điện công nghiệp khổng lồ rền vang máy biến áp, dây dẫn, quạt, cuộn dây, bảng điện và ống nóng, nuôi bởi nguồn điện không rõ. Mất điện cục bộ phơi bày dây điện trần, máy móc và nguy cơ Entity, lối đi có thể đổi khác khi điện trở lại. Hầm Tiện Ích Dưới lạnh dưới không độ, nước đọng không đóng băng một cách dị thường, tỷ lệ biến mất rất cao. Cửa và thang máy khu văn phòng có thể dần dẫn tới Level 4; vài lối tối dài có thể dẫn tới Level 6.",
+      "compact_text": "Hành lang điện công nghiệp khổng lồ rền vang máy biến áp, dây dẫn, quạt, cuộn dây, bảng điện và ống nóng, nuôi bởi nguồn điện không rõ.",
+      "aliases": [
+        "level-node:3",
+        "node:3"
+      ],
+      "tags": [
+        "level3-node:3"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "level_scope": "LEVEL.03",
+        "min_evidence": "INFERRED",
+        "deny_if_unauthorized_pov": true
+      },
+      "source": {
+        "document": "Bảng ánh xạ Cloudinary JSON.json",
+        "document_id": "LEVEL1PLUS_CLOUDINARY_MAPPING",
+        "anchor": "Level_3_Electrical_Station_01; Level_3_Electrical_Station_02; Level_3_Electrical_Station_03",
+        "content_sha256": "45d0f2d006c3734573517863b7c438e3fce75a0c198af8776f24b889775f254f",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/LEVEL_0_CLOUDINARY_MAPPING.json",
+        "verification": "ASSET_ID_ONLY_LORE_PROPOSED"
+      },
+      "node_key": "3",
+      "parent_node_key": null,
+      "node_kind": "LEVEL",
+      "visual_public_ids": [
+        "Level_3_Electrical_Station_01",
+        "Level_3_Electrical_Station_02",
+        "Level_3_Electrical_Station_03"
+      ],
+      "baseline_source_id": "LEVEL",
+      "review_status": "PENDING_AUTHOR_REVIEW",
+      "canon_completeness": "WORLD_LEVEL_BASELINE_ONLY"
+    },
+    {
+      "id": "LEVEL.NODE.4",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.04",
+      "domain": "LEVEL",
+      "kind": "location-card",
+      "authority": "ASSET_IDENTIFIED_SCENE_DRAFT",
+      "mutability": "IMMUTABLE",
+      "truth_status": "INFERRED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "priority": 69,
+      "text": "Ánh huỳnh quang chập chờn rọi xuống văn phòng bỏ hoang, nơi vách ngăn xếp thành hành lang và cửa sổ đóng kín mang vẻ mưa dầm lạnh lẽo. Hình học nơi đây ổn định hơn Level 0-3, đủ để dừng chân lục lọi, nhưng không bao giờ an toàn. Không có quần thể Entity cư trú ổn định nào được xác nhận, song xâm nhập từ vùng khác vẫn có thể ập tới, và nơi hôm nay dọn sạch thì ngày mai chưa chắc còn sạch. Tài nguyên và ranh giới bất ổn khiến khu định cư lớn trở thành mồi ngon. Đi càng sâu, hành lang càng mục rữa thành khách sạn cũ, mở đường sang Level 5.",
+      "compact_text": "Ánh huỳnh quang chập chờn rọi xuống văn phòng bỏ hoang, nơi vách ngăn xếp thành hành lang và cửa sổ đóng kín mang vẻ mưa dầm lạnh lẽo.",
+      "aliases": [
+        "level-node:4",
+        "node:4"
+      ],
+      "tags": [
+        "level4-node:4"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "level_scope": "LEVEL.04",
+        "min_evidence": "INFERRED",
+        "deny_if_unauthorized_pov": true
+      },
+      "source": {
+        "document": "Bảng ánh xạ Cloudinary JSON.json",
+        "document_id": "LEVEL1PLUS_CLOUDINARY_MAPPING",
+        "anchor": "Level_4_Abandoned_Office_01; Level_4_Abandoned_Office_02; Level_4_Abandoned_Office_03",
+        "content_sha256": "45d0f2d006c3734573517863b7c438e3fce75a0c198af8776f24b889775f254f",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/LEVEL_0_CLOUDINARY_MAPPING.json",
+        "verification": "ASSET_ID_ONLY_LORE_PROPOSED"
+      },
+      "node_key": "4",
+      "parent_node_key": null,
+      "node_kind": "LEVEL",
+      "visual_public_ids": [
+        "Level_4_Abandoned_Office_01",
+        "Level_4_Abandoned_Office_02",
+        "Level_4_Abandoned_Office_03"
+      ],
+      "baseline_source_id": "LEVEL",
+      "review_status": "PENDING_AUTHOR_REVIEW",
+      "canon_completeness": "WORLD_LEVEL_BASELINE_ONLY"
+    },
+    {
+      "id": "LEVEL.NODE.4.THE_OFFICE_MARKET",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.04",
+      "domain": "LEVEL",
+      "kind": "location-card",
+      "authority": "ASSET_IDENTIFIED_SCENE_DRAFT",
+      "mutability": "IMMUTABLE",
+      "truth_status": "INFERRED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "priority": 69,
+      "text": "The Office Market là khu mang nhãn đó trong Level 4: ánh đèn văn phòng soi xuống những trục đi lại thẳng tắp, và sự vắng vẻ bao trùm một không gian từng có công năng trao đổi. Những lối đi trống rỗng như chợ đã tan từ lâu, chỉ còn ánh sáng và bóng của những vách ngăn. Không khẳng định có chợ, người bán hay vật phẩm nào ở đây. Không sinh Entity, loot, lối thoát hay thương tổn — chỉ có ánh đèn, trục đường và sự im lặng của một nơi từng đông đúc, giờ chỉ còn lại hình hài.",
+      "compact_text": "The Office Market là khu mang nhãn đó trong Level 4: ánh đèn văn phòng soi xuống những trục đi lại thẳng tắp, và sự vắng vẻ bao trùm một không gian từng có công năng trao đổi.",
+      "aliases": [
+        "level-node:4/the_office_market",
+        "node:4/the_office_market"
+      ],
+      "tags": [
+        "level4-node:4/the_office_market"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "level_scope": "LEVEL.04",
+        "min_evidence": "INFERRED",
+        "deny_if_unauthorized_pov": true
+      },
+      "source": {
+        "document": "Bảng ánh xạ Cloudinary JSON.json",
+        "document_id": "LEVEL1PLUS_CLOUDINARY_MAPPING",
+        "anchor": "Level_4_The_Office_Market_01",
+        "content_sha256": "45d0f2d006c3734573517863b7c438e3fce75a0c198af8776f24b889775f254f",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/LEVEL_0_CLOUDINARY_MAPPING.json",
+        "verification": "ASSET_ID_ONLY_LORE_PROPOSED"
+      },
+      "node_key": "4/the_office_market",
+      "parent_node_key": "4",
+      "node_kind": "AREA",
+      "visual_public_ids": [
+        "Level_4_The_Office_Market_01"
+      ],
+      "baseline_source_id": "LEVEL",
+      "review_status": "PENDING_AUTHOR_REVIEW",
+      "canon_completeness": "WORLD_LEVEL_BASELINE_ONLY",
+      "compact_form": "Khu mang nhãn Office Market thuộc Level 4: cách kể ưu tiên ánh đèn văn phòng, các trục đi lại và sự vắng vẻ của một không gian từng có công năng trao đổi; không khẳng định có chợ, người bán hay vật phẩm. Giữ nguyên Canon cứng, không tự xác nhận cơ chế/sự kiện.",
+      "environment_research": {
+        "status": "PROPOSED_SCENE_DESCRIPTION_PENDING_AUTHOR_REVIEW",
+        "source_asset_public_ids": [
+          "Level_4_The_Office_Market_01"
+        ],
+        "external_reference": {
+          "url": "https://backrooms-wiki.wikidot.com/normal-levels-i/level-0",
+          "role": "outside Backrooms continuity; descriptive inspiration only, not project canon"
+        },
+        "cloudinary_palette": null,
+        "image_pixel_review": "Cloudinary asset metadata and representative color analysis; object/layout detail not directly inspected",
+        "no_new_hard_facts": true
+      }
+    },
+    {
+      "id": "LEVEL.NODE.5",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.05",
+      "domain": "LEVEL",
+      "kind": "location-card",
+      "authority": "ASSET_IDENTIFIED_SCENE_DRAFT",
+      "mutability": "IMMUTABLE",
+      "truth_status": "INFERRED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "priority": 69,
+      "text": "Khách sạn phi Euclid khổng lồ khoác vẻ đầu thế kỷ XX, mỗi cánh khác nhau, gồm sảnh lớn, phòng khiêu vũ, phòng ngủ, nhà hàng, hồ bơi, lò hơi và hành lang bảo trì. Ở càng lâu, hoang tưởng càng siết chặt: bị theo dõi, tiếng thì thầm, bàn tay vô hình chạm da, bóng đen lướt qua và mất ngủ triền miên. Dự án không quy thành thanh sanity, vì nguyên nhân chồng chéo giữa cô lập, mất ngủ, Level và Entity. Beast of Level 5 chỉ lẩn khuất như áp lực săn mồi, không phải boss chờ đánh. Xuống khu lò hơi, ánh sáng càng tắt và hơi lạnh càng dâng, mở đường xuống Level 6.",
+      "compact_text": "Khách sạn phi Euclid khổng lồ khoác vẻ đầu thế kỷ XX, mỗi cánh khác nhau, gồm sảnh lớn, phòng khiêu vũ, phòng ngủ, nhà hàng, hồ bơi, lò hơi và hành lang bảo trì.",
+      "aliases": [
+        "level-node:5",
+        "node:5"
+      ],
+      "tags": [
+        "level5-node:5"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "level_scope": "LEVEL.05",
+        "min_evidence": "INFERRED",
+        "deny_if_unauthorized_pov": true
+      },
+      "source": {
+        "document": "Bảng ánh xạ Cloudinary JSON.json",
+        "document_id": "LEVEL1PLUS_CLOUDINARY_MAPPING",
+        "anchor": "Level_5_Terror_Hotel_01; Level_5_Terror_Hotel_02; Level_5_Terror_Hotel_03",
+        "content_sha256": "45d0f2d006c3734573517863b7c438e3fce75a0c198af8776f24b889775f254f",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/LEVEL_0_CLOUDINARY_MAPPING.json",
+        "verification": "ASSET_ID_ONLY_LORE_PROPOSED"
+      },
+      "node_key": "5",
+      "parent_node_key": null,
+      "node_kind": "LEVEL",
+      "visual_public_ids": [
+        "Level_5_Terror_Hotel_01",
+        "Level_5_Terror_Hotel_02",
+        "Level_5_Terror_Hotel_03"
+      ],
+      "baseline_source_id": "LEVEL",
+      "review_status": "PENDING_AUTHOR_REVIEW",
+      "canon_completeness": "WORLD_LEVEL_BASELINE_ONLY"
+    },
+    {
+      "id": "LEVEL.NODE.5.1",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.05",
+      "domain": "LEVEL",
+      "kind": "location-card",
+      "authority": "ASSET_IDENTIFIED_SCENE_DRAFT",
+      "mutability": "IMMUTABLE",
+      "truth_status": "INFERRED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "priority": 69,
+      "text": "Khu phụ này giữ nguyên âm sắc của Terror Hotel: đèn vàng ấm một cách bệnh hoạn, gỗ tối bóng loáng như vừa được lau chùi bằng bàn tay vô hình, thảm dày nuốt trọn tiếng bước chân. Nội thất cũ kỹ xếp đặt ngay ngắn, trang trọng mà ngột ngạt, như một buổi tiệc đã tàn từ rất lâu nhưng mùi hương vẫn chưa tan. Không có gì được khẳng định thêm — chỉ có ánh đèn vàng, gỗ tối, và cảm giác sang trọng đang mục rữa từ bên trong.",
+      "compact_text": "Khu phụ này giữ nguyên âm sắc của Terror Hotel: đèn vàng ấm một cách bệnh hoạn, gỗ tối bóng loáng như vừa được lau chùi bằng bàn tay vô hình, thảm dày nuốt trọn tiếng bước chân.",
+      "aliases": [
+        "level-node:5.1",
+        "node:5.1"
+      ],
+      "tags": [
+        "level5-node:5.1"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "level_scope": "LEVEL.05",
+        "min_evidence": "INFERRED",
+        "deny_if_unauthorized_pov": true
+      },
+      "source": {
+        "document": "Bảng ánh xạ Cloudinary JSON.json",
+        "document_id": "LEVEL1PLUS_CLOUDINARY_MAPPING",
+        "anchor": "Level_5_1_Sub_01",
+        "content_sha256": "45d0f2d006c3734573517863b7c438e3fce75a0c198af8776f24b889775f254f",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/LEVEL_0_CLOUDINARY_MAPPING.json",
+        "verification": "ASSET_ID_ONLY_LORE_PROPOSED"
+      },
+      "node_key": "5.1",
+      "parent_node_key": "5",
+      "node_kind": "SUBLEVEL",
+      "visual_public_ids": [
+        "Level_5_1_Sub_01"
+      ],
+      "baseline_source_id": "LEVEL",
+      "review_status": "PENDING_AUTHOR_REVIEW",
+      "canon_completeness": "WORLD_LEVEL_BASELINE_ONLY",
+      "compact_form": "Khu phụ của Terror Hotel giữ âm sắc đèn vàng và gỗ tối, thảm dày, nội thất mang dáng vẻ cũ; cảm giác trang trọng lẫn ngột ngạt là chất liệu kể chuyện. Không nhập mô-típ sòng bạc hoặc cơ chế của wiki khi World Canon game chưa duyệt. Giữ nguyên Canon cứng, không tự xác nhận cơ chế/sự kiện.",
+      "environment_research": {
+        "status": "PROPOSED_SCENE_DESCRIPTION_PENDING_AUTHOR_REVIEW",
+        "source_asset_public_ids": [
+          "Level_5_1_Sub_01"
+        ],
+        "external_reference": {
+          "url": "https://backrooms-wiki.wikidot.com/normal-levels-i/level-0",
+          "role": "outside Backrooms continuity; descriptive inspiration only, not project canon"
+        },
+        "cloudinary_palette": null,
+        "image_pixel_review": "Cloudinary asset metadata and representative color analysis; object/layout detail not directly inspected",
+        "no_new_hard_facts": true
+      }
+    },
+    {
+      "id": "LEVEL.NODE.6",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.06",
+      "domain": "LEVEL",
+      "kind": "location-card",
+      "authority": "ASSET_IDENTIFIED_SCENE_DRAFT",
+      "mutability": "IMMUTABLE",
+      "truth_status": "INFERRED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "priority": 69,
+      "text": "Level 6 — Lights Out: tundra tối vĩnh viễn. Bóng tối nuốt chửng Level 6, nơi cái lạnh cắt da và thiếu thức ăn, nước uống bào mòn từng bước chân. Không có Entity cư trú nào được xác nhận, nhưng đừng lầm tưởng đó là an toàn. Mất ngủ biến thành những cơn ngủ chớp nhoáng, ảo giác bò ra từ bóng tối, và khả năng định hướng tan rã trong màn đen không biên giới. Bằng chứng rằng một Entity bên ngoài từ chối vượt qua ranh giới Level này không chứng minh bên trong an toàn; lý do vẫn còn OPEN. Nơi đây không tha thứ cho kẻ chủ quan, mỗi bước sai đều có thể là bước cuối trong lạnh lẽo và điên loạn.",
+      "compact_text": "Level 6 — Lights Out: tundra tối vĩnh viễn.",
+      "aliases": [
+        "level-node:6",
+        "node:6"
+      ],
+      "tags": [
+        "level6-node:6"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "level_scope": "LEVEL.06",
+        "min_evidence": "INFERRED",
+        "deny_if_unauthorized_pov": true
+      },
+      "source": {
+        "document": "Bảng ánh xạ Cloudinary JSON.json",
+        "document_id": "LEVEL1PLUS_CLOUDINARY_MAPPING",
+        "anchor": "Level_6_Lights_Out_01; Level_6_Lights_Out_02; Level_6_Lights_Out_03",
+        "content_sha256": "45d0f2d006c3734573517863b7c438e3fce75a0c198af8776f24b889775f254f",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/LEVEL_0_CLOUDINARY_MAPPING.json",
+        "verification": "ASSET_ID_ONLY_LORE_PROPOSED"
+      },
+      "node_key": "6",
+      "parent_node_key": null,
+      "node_kind": "LEVEL",
+      "visual_public_ids": [
+        "Level_6_Lights_Out_01",
+        "Level_6_Lights_Out_02",
+        "Level_6_Lights_Out_03"
+      ],
+      "baseline_source_id": "LEVEL",
+      "review_status": "PENDING_AUTHOR_REVIEW",
+      "canon_completeness": "WORLD_LEVEL_BASELINE_ONLY"
+    },
+    {
+      "id": "LEVEL.NODE.6.1",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.06",
+      "domain": "LEVEL",
+      "kind": "location-card",
+      "authority": "ASSET_IDENTIFIED_SCENE_DRAFT",
+      "mutability": "IMMUTABLE",
+      "truth_status": "INFERRED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "priority": 69,
+      "text": "Tundra tối vĩnh viễn trải ra trong lạnh lẽo không có điểm dừng: mặt đất lạnh cứng, tuyết rải rác lấp lánh yếu ớt dưới thứ ánh sáng hiếm hoi, và rìa bóng tuyết chỉ hiện lên khi được xác nhận bằng quan sát thực tế. Không có hành lang ấm áp nào để trốn vào, không có mái nhà nào để nương nhờ — chỉ có bóng tối, gió lạnh, và mặt đất trống trải đến rợn người. Mọi thứ ở đây đều tuân theo Level 6: tối, lạnh, và im lặng đến mức tiếng thở của chính mình cũng nghe như của người khác.",
+      "compact_text": "Tundra tối vĩnh viễn trải ra trong lạnh lẽo không có điểm dừng: mặt đất lạnh cứng, tuyết rải rác lấp lánh yếu ớt dưới thứ ánh sáng hiếm hoi, và rìa bóng tuyết chỉ hiện lên khi được xác nhận bằng quan sát thực tế.",
+      "aliases": [
+        "level-node:6.1",
+        "node:6.1"
+      ],
+      "tags": [
+        "level6-node:6.1"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "level_scope": "LEVEL.06",
+        "min_evidence": "INFERRED",
+        "deny_if_unauthorized_pov": true
+      },
+      "source": {
+        "document": "Bảng ánh xạ Cloudinary JSON.json",
+        "document_id": "LEVEL1PLUS_CLOUDINARY_MAPPING",
+        "anchor": "Level_6_1_Sub_01",
+        "content_sha256": "45d0f2d006c3734573517863b7c438e3fce75a0c198af8776f24b889775f254f",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/LEVEL_0_CLOUDINARY_MAPPING.json",
+        "verification": "ASSET_ID_ONLY_LORE_PROPOSED"
+      },
+      "node_key": "6.1",
+      "parent_node_key": "6",
+      "node_kind": "SUBLEVEL",
+      "visual_public_ids": [
+        "Level_6_1_Sub_01"
+      ],
+      "baseline_source_id": "LEVEL",
+      "review_status": "PENDING_AUTHOR_REVIEW",
+      "canon_completeness": "WORLD_LEVEL_BASELINE_ONLY",
+      "compact_form": "Môi trường khu phụ PHẢI tuân thủ Level 6 của dự án: tundra tối vĩnh viễn, không chuyển thành hành lang hay nhà hàng từ continuity wiki. Diễn tả ánh sáng hiếm, nền đất lạnh và rìa bóng tuyết/chướng ngại chỉ khi state xác nhận. Giữ nguyên Canon cứng, không tự xác nhận cơ chế/sự kiện.",
+      "environment_research": {
+        "status": "PROPOSED_SCENE_DESCRIPTION_PENDING_AUTHOR_REVIEW",
+        "source_asset_public_ids": [
+          "Level_6_1_Sub_01"
+        ],
+        "external_reference": {
+          "url": "https://backrooms-wiki.wikidot.com/normal-levels-i/level-0",
+          "role": "outside Backrooms continuity; descriptive inspiration only, not project canon"
+        },
+        "cloudinary_palette": null,
+        "image_pixel_review": "Cloudinary asset metadata and representative color analysis; object/layout detail not directly inspected",
+        "no_new_hard_facts": true
+      }
+    },
+    {
+      "id": "LEVEL.NODE.7",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.07",
+      "domain": "LEVEL",
+      "kind": "location-card",
+      "authority": "ASSET_IDENTIFIED_SCENE_DRAFT",
+      "mutability": "IMMUTABLE",
+      "truth_status": "INFERRED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "priority": 69,
+      "text": "Một đại dương chết chóc trải ra vô tận, nuốt chửng mọi chân trời dưới bầu trời xám xịt và màn sương đặc quánh như hơi thở của thứ gì đang rình rập. Giữa mặt nước lạnh buốt, một công trình kim loại hoặc bunker rỉ sét trơ trọi như xác tàu bị bỏ quên, bên trong ngập nước, ẩm lạnh, đồ đạc mục nát rữa ra trong bóng tối. Độ sâu ngoài biển đổi thay tàn nhẫn: vùng nước tưởng nông có thể sụp xuống vực sâu không đáy chỉ trong một bước chân. Đừng lầm tưởng sương và nước là tự nhiên vô hại — ở đây, chúng chỉ đang chờ kéo ngươi xuống.",
+      "compact_text": "Một đại dương chết chóc trải ra vô tận, nuốt chửng mọi chân trời dưới bầu trời xám xịt và màn sương đặc quánh như hơi thở của thứ gì đang rình rập.",
+      "aliases": [
+        "level-node:7",
+        "node:7"
+      ],
+      "tags": [
+        "level7-node:7"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "level_scope": "LEVEL.07",
+        "min_evidence": "INFERRED",
+        "deny_if_unauthorized_pov": true
+      },
+      "source": {
+        "document": "Bảng ánh xạ Cloudinary JSON.json",
+        "document_id": "LEVEL1PLUS_CLOUDINARY_MAPPING",
+        "anchor": "Level_7_Thalassophobia_01",
+        "content_sha256": "45d0f2d006c3734573517863b7c438e3fce75a0c198af8776f24b889775f254f",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/LEVEL_0_CLOUDINARY_MAPPING.json",
+        "verification": "ASSET_ID_ONLY_LORE_PROPOSED"
+      },
+      "node_key": "7",
+      "parent_node_key": null,
+      "node_kind": "LEVEL",
+      "visual_public_ids": [
+        "Level_7_Thalassophobia_01"
+      ],
+      "baseline_source_id": "LEVEL",
+      "review_status": "PENDING_AUTHOR_REVIEW",
+      "canon_completeness": "WORLD_LEVEL_BASELINE_ONLY"
+    },
+    {
+      "id": "LEVEL.NODE.7.7",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.07",
+      "domain": "LEVEL",
+      "kind": "location-card",
+      "authority": "ASSET_IDENTIFIED_SCENE_DRAFT",
+      "mutability": "IMMUTABLE",
+      "truth_status": "INFERRED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "priority": 69,
+      "text": "Trên nền đại dương của Level 7, chân trời xám chìm trong sương dày, làm mờ mọi khoảng cách, khiến mặt nước và bầu trời hòa vào nhau thành một khoảng xám không biên giới. Thỉnh thoảng, một bóng kết cấu ngập nước hay vật nổi thoáng hiện trong sương — nhưng chỉ được kể khi thật sự nhìn thấy, không hơn. Không có tàu đắm, sinh vật hay vật phẩm nào được xác nhận ở đây. Chỉ có sương, nước lạnh, và cảm giác cô độc giữa một đại dương không chịu cho biết đâu là bờ.",
+      "compact_text": "Trên nền đại dương của Level 7, chân trời xám chìm trong sương dày, làm mờ mọi khoảng cách, khiến mặt nước và bầu trời hòa vào nhau thành một khoảng xám không biên giới.",
+      "aliases": [
+        "level-node:7.7",
+        "node:7.7"
+      ],
+      "tags": [
+        "level7-node:7.7"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "level_scope": "LEVEL.07",
+        "min_evidence": "INFERRED",
+        "deny_if_unauthorized_pov": true
+      },
+      "source": {
+        "document": "Bảng ánh xạ Cloudinary JSON.json",
+        "document_id": "LEVEL1PLUS_CLOUDINARY_MAPPING",
+        "anchor": "Level_7_7_Sub_01",
+        "content_sha256": "45d0f2d006c3734573517863b7c438e3fce75a0c198af8776f24b889775f254f",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/LEVEL_0_CLOUDINARY_MAPPING.json",
+        "verification": "ASSET_ID_ONLY_LORE_PROPOSED"
+      },
+      "node_key": "7.7",
+      "parent_node_key": "7",
+      "node_kind": "SUBLEVEL",
+      "visual_public_ids": [
+        "Level_7_7_Sub_01"
+      ],
+      "baseline_source_id": "LEVEL",
+      "review_status": "PENDING_AUTHOR_REVIEW",
+      "canon_completeness": "WORLD_LEVEL_BASELINE_ONLY",
+      "compact_form": "Khu phụ trên nền đại dương Level 7: đường chân trời xám, sương làm mờ khoảng cách, bóng kết cấu ngập nước hoặc vật nổi chỉ được kể khi nhìn thấy. Wiki có gợi ý phế tích, nhưng không xác nhận tàu đắm, loot hoặc sinh vật. Giữ nguyên Canon cứng, không tự xác nhận cơ chế/sự kiện.",
+      "environment_research": {
+        "status": "PROPOSED_SCENE_DESCRIPTION_PENDING_AUTHOR_REVIEW",
+        "source_asset_public_ids": [
+          "Level_7_7_Sub_01"
+        ],
+        "external_reference": {
+          "url": "https://backrooms-wiki.wikidot.com/normal-levels-i/level-0",
+          "role": "outside Backrooms continuity; descriptive inspiration only, not project canon"
+        },
+        "cloudinary_palette": null,
+        "image_pixel_review": "Cloudinary asset metadata and representative color analysis; object/layout detail not directly inspected",
+        "no_new_hard_facts": true
+      }
+    },
+    {
+      "id": "LEVEL.NODE.7.THE_HADAL_ZONE",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.07",
+      "domain": "LEVEL",
+      "kind": "location-card",
+      "authority": "ASSET_IDENTIFIED_SCENE_DRAFT",
+      "mutability": "IMMUTABLE",
+      "truth_status": "INFERRED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "priority": 69,
+      "text": "The Hadal Zone là khu gợi cảm giác nước sâu, nơi ánh sáng bị hấp thụ dần như chìm xuống một vực không đáy. Mọi vật xa đều trở nên mờ nhòe, đáy hay điểm cuối khó ước lượng, và bóng nước bao quanh tạo cảm giác bị ép chặt bởi chính không gian. Đây chỉ là cách dàn cảnh, không xác nhận độ sâu, áp suất, sinh vật hay lối đi dưới nước nào. Không sinh Entity, loot, lối thoát hay thương tổn — chỉ có cảm giác sâu thẳm, ánh sáng tắt dần và nỗi sợ không biết dưới chân mình là gì.",
+      "compact_text": "The Hadal Zone là khu gợi cảm giác nước sâu, nơi ánh sáng bị hấp thụ dần như chìm xuống một vực không đáy.",
+      "aliases": [
+        "level-node:7/the_hadal_zone",
+        "node:7/the_hadal_zone"
+      ],
+      "tags": [
+        "level7-node:7/the_hadal_zone"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "level_scope": "LEVEL.07",
+        "min_evidence": "INFERRED",
+        "deny_if_unauthorized_pov": true
+      },
+      "source": {
+        "document": "Bảng ánh xạ Cloudinary JSON.json",
+        "document_id": "LEVEL1PLUS_CLOUDINARY_MAPPING",
+        "anchor": "Level_7_The_Hadal_Zone_01",
+        "content_sha256": "45d0f2d006c3734573517863b7c438e3fce75a0c198af8776f24b889775f254f",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/LEVEL_0_CLOUDINARY_MAPPING.json",
+        "verification": "ASSET_ID_ONLY_LORE_PROPOSED"
+      },
+      "node_key": "7/the_hadal_zone",
+      "parent_node_key": "7",
+      "node_kind": "AREA",
+      "visual_public_ids": [
+        "Level_7_The_Hadal_Zone_01"
+      ],
+      "baseline_source_id": "LEVEL",
+      "review_status": "PENDING_AUTHOR_REVIEW",
+      "canon_completeness": "WORLD_LEVEL_BASELINE_ONLY",
+      "compact_form": "Khu có tên The Hadal Zone gợi cảm giác nước sâu và ánh sáng bị hấp thụ, làm sai lệch khả năng ước lượng đáy hoặc vật xa. Đây là cách dàn cảnh, không xác nhận độ sâu, áp suất, sinh vật hoặc lối đi dưới nước. Giữ nguyên Canon cứng, không tự xác nhận cơ chế/sự kiện.",
+      "environment_research": {
+        "status": "PROPOSED_SCENE_DESCRIPTION_PENDING_AUTHOR_REVIEW",
+        "source_asset_public_ids": [
+          "Level_7_The_Hadal_Zone_01"
+        ],
+        "external_reference": {
+          "url": "https://backrooms-wiki.wikidot.com/normal-levels-i/level-0",
+          "role": "outside Backrooms continuity; descriptive inspiration only, not project canon"
+        },
+        "cloudinary_palette": null,
+        "image_pixel_review": "Cloudinary asset metadata and representative color analysis; object/layout detail not directly inspected",
+        "no_new_hard_facts": true
+      }
+    },
+    {
+      "id": "LEVEL.NODE.8",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.08",
+      "domain": "LEVEL",
+      "kind": "location-card",
+      "authority": "ASSET_IDENTIFIED_SCENE_DRAFT",
+      "mutability": "IMMUTABLE",
+      "truth_status": "INFERRED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "priority": 69,
+      "text": "Một hệ hang ngầm khổng lồ mở ra như ruột của một con quái vật đá: khoang đá cao hun hút, vực sâu há miệng trong bóng tối, tunnel hẹp siết chặt, nước tù hôi thối và những đoạn phải bò, ép người qua khe đá như chui qua cổ họng. Âm thanh phản xạ dội khắp vách đá, bóp méo khoảng cách và phương hướng, khiến mọi tiếng động đều nghe như có thứ gì đang bò tới gần. Một số tuyến đường có thể thay đổi khi rời khỏi tầm nhìn. Cầu gỗ mục, nơi trú hoang hay dấu vết cư trú cũ không chứng minh được nguồn gốc — và càng không chứng minh được ngươi còn an toàn.",
+      "compact_text": "Một hệ hang ngầm khổng lồ mở ra như ruột của một con quái vật đá: khoang đá cao hun hút, vực sâu há miệng trong bóng tối, tunnel hẹp siết chặt, nước tù hôi thối và những đoạn phải bò, ép người qua khe đá như chui qua cổ họng.",
+      "aliases": [
+        "level-node:8",
+        "node:8"
+      ],
+      "tags": [
+        "level8-node:8"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "level_scope": "LEVEL.08",
+        "min_evidence": "INFERRED",
+        "deny_if_unauthorized_pov": true
+      },
+      "source": {
+        "document": "Bảng ánh xạ Cloudinary JSON.json",
+        "document_id": "LEVEL1PLUS_CLOUDINARY_MAPPING",
+        "anchor": "Level_8_Cave_Systems_01",
+        "content_sha256": "45d0f2d006c3734573517863b7c438e3fce75a0c198af8776f24b889775f254f",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/LEVEL_0_CLOUDINARY_MAPPING.json",
+        "verification": "ASSET_ID_ONLY_LORE_PROPOSED"
+      },
+      "node_key": "8",
+      "parent_node_key": null,
+      "node_kind": "LEVEL",
+      "visual_public_ids": [
+        "Level_8_Cave_Systems_01"
+      ],
+      "baseline_source_id": "LEVEL",
+      "review_status": "PENDING_AUTHOR_REVIEW",
+      "canon_completeness": "WORLD_LEVEL_BASELINE_ONLY"
+    },
+    {
+      "id": "LEVEL.NODE.8.THE_SANCTUM_SUBTERRANEOUS",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.08",
+      "domain": "LEVEL",
+      "kind": "location-card",
+      "authority": "ASSET_IDENTIFIED_SCENE_DRAFT",
+      "mutability": "IMMUTABLE",
+      "truth_status": "INFERRED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "priority": 69,
+      "text": "The Sanctum Subterraneous là khu phụ trong mạng hang Level 8: bề mặt đá lạnh và thô ráp, những chỗ tối sâu nuốt ánh sáng, tiếng vọng nhiều lớp dội qua dội lại như có nhiều giọng nói đang chồng lên nhau trong đá. Nhịp chuyển từ khoang rộng sang khe hẹp siết chặt dần, khiến người đi có cảm giác đang bị hang động nuốt vào bụng. Danh xưng Sanctum không chứng minh có đền, nghi lễ, con người hay tài nguyên nào. Không sinh Entity, loot, lối thoát hay thương tổn — chỉ có đá, bóng tối và tiếng vọng.",
+      "compact_text": "The Sanctum Subterraneous là khu phụ trong mạng hang Level 8: bề mặt đá lạnh và thô ráp, những chỗ tối sâu nuốt ánh sáng, tiếng vọng nhiều lớp dội qua dội lại như có nhiều giọng nói đang chồng lên nhau trong đá.",
+      "aliases": [
+        "level-node:8/the_sanctum_subterraneous",
+        "node:8/the_sanctum_subterraneous"
+      ],
+      "tags": [
+        "level8-node:8/the_sanctum_subterraneous"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "level_scope": "LEVEL.08",
+        "min_evidence": "INFERRED",
+        "deny_if_unauthorized_pov": true
+      },
+      "source": {
+        "document": "Bảng ánh xạ Cloudinary JSON.json",
+        "document_id": "LEVEL1PLUS_CLOUDINARY_MAPPING",
+        "anchor": "Level_8_The_Sanctum_Subterraneous_01",
+        "content_sha256": "45d0f2d006c3734573517863b7c438e3fce75a0c198af8776f24b889775f254f",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/LEVEL_0_CLOUDINARY_MAPPING.json",
+        "verification": "ASSET_ID_ONLY_LORE_PROPOSED"
+      },
+      "node_key": "8/the_sanctum_subterraneous",
+      "parent_node_key": "8",
+      "node_kind": "AREA",
+      "visual_public_ids": [
+        "Level_8_The_Sanctum_Subterraneous_01"
+      ],
+      "baseline_source_id": "LEVEL",
+      "review_status": "PENDING_AUTHOR_REVIEW",
+      "canon_completeness": "WORLD_LEVEL_BASELINE_ONLY",
+      "compact_form": "Khu phụ trong mạng hang Level 8; dùng bề mặt đá, chỗ tối sâu, tiếng vọng nhiều lớp và nhịp chuyển từ khoang rộng sang khe hẹp để kể cảnh. Danh xưng Sanctum không chứng minh có đền, nghi lễ, con người hay tài nguyên. Giữ nguyên Canon cứng, không tự xác nhận cơ chế/sự kiện.",
+      "environment_research": {
+        "status": "PROPOSED_SCENE_DESCRIPTION_PENDING_AUTHOR_REVIEW",
+        "source_asset_public_ids": [
+          "Level_8_The_Sanctum_Subterraneous_01"
+        ],
+        "external_reference": {
+          "url": "https://backrooms-wiki.wikidot.com/level-8",
+          "role": "outside Backrooms continuity; descriptive inspiration only, not project canon"
+        },
+        "cloudinary_palette": null,
+        "image_pixel_review": "Cloudinary asset metadata and representative color analysis; object/layout detail not directly inspected",
+        "no_new_hard_facts": true
+      }
+    },
+    {
+      "id": "LEVEL.NODE.9",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.09",
+      "domain": "LEVEL",
+      "kind": "location-card",
+      "authority": "ASSET_IDENTIFIED_SCENE_DRAFT",
+      "mutability": "IMMUTABLE",
+      "truth_status": "INFERRED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "priority": 69,
+      "text": "Một vùng ngoại ô kéo dài trong ban đêm vĩnh viễn, nơi đường nhựa, vỉa hè, nhà thấp tầng, bãi cỏ và cây cối chìm trong sương lạnh như một nghĩa địa của đời sống bình thường. Đèn đường chỉ khoét ra những vùng sáng nhỏ nhoi, và ngoài quầng sáng đó, bóng tối luôn dày đặc hơn. Nhà cửa lặp lại về kiểu dáng một cách bệnh hoạn, nhưng nội thất bên trong không bao giờ giống nhau — như thể mỗi căn nhà đều giấu một phiên bản méo mó của chính nó. Đi sâu khỏi khu dân cư, ngươi có thể gặp các công trình méo mó, cũ kỹ hơn, không còn giống kiến trúc nhà ở thông thường nữa.",
+      "compact_text": "Một vùng ngoại ô kéo dài trong ban đêm vĩnh viễn, nơi đường nhựa, vỉa hè, nhà thấp tầng, bãi cỏ và cây cối chìm trong sương lạnh như một nghĩa địa của đời sống bình thường.",
+      "aliases": [
+        "level-node:9",
+        "node:9"
+      ],
+      "tags": [
+        "level9-node:9"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "level_scope": "LEVEL.09",
+        "min_evidence": "INFERRED",
+        "deny_if_unauthorized_pov": true
+      },
+      "source": {
+        "document": "Bảng ánh xạ Cloudinary JSON.json",
+        "document_id": "LEVEL1PLUS_CLOUDINARY_MAPPING",
+        "anchor": "Level_9_The_Suburbs_01",
+        "content_sha256": "45d0f2d006c3734573517863b7c438e3fce75a0c198af8776f24b889775f254f",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/LEVEL_0_CLOUDINARY_MAPPING.json",
+        "verification": "ASSET_ID_ONLY_LORE_PROPOSED"
+      },
+      "node_key": "9",
+      "parent_node_key": null,
+      "node_kind": "LEVEL",
+      "visual_public_ids": [
+        "Level_9_The_Suburbs_01"
+      ],
+      "baseline_source_id": "LEVEL",
+      "review_status": "PENDING_AUTHOR_REVIEW",
+      "canon_completeness": "WORLD_LEVEL_BASELINE_ONLY"
+    },
+    {
+      "id": "LEVEL.NODE.10",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.10",
+      "domain": "LEVEL",
+      "kind": "location-card",
+      "authority": "ASSET_IDENTIFIED_SCENE_DRAFT",
+      "mutability": "IMMUTABLE",
+      "truth_status": "INFERRED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "priority": 69,
+      "text": "Đồng cỏ và ruộng canh tác trải dài tới đường chân trời như một tấm thảm chết không có điểm dừng, xen kẽ hàng cây, bụi rậm, barn, chuồng và các công trình nông nghiệp nhỏ lặng im trong bầu trời xám. Ban ngày ở đây ít thay đổi đến rợn người, khiến cảm giác thời gian trở nên không đáng tin — ngươi không biết mình đã đi bao lâu, hay đã đi bao nhiêu lần qua cùng một cánh đồng. Hồ, vũng nước và địa hình thấp xuất hiện rải rác như những cái bẫy lặng lẽ. Các công trình nông nghiệp phần lớn trống rỗng, và đừng bao giờ xem chúng là nơi trú an toàn mặc định.",
+      "compact_text": "Đồng cỏ và ruộng canh tác trải dài tới đường chân trời như một tấm thảm chết không có điểm dừng, xen kẽ hàng cây, bụi rậm, barn, chuồng và các công trình nông nghiệp nhỏ lặng im trong bầu trời xám.",
+      "aliases": [
+        "level-node:10",
+        "node:10"
+      ],
+      "tags": [
+        "level10-node:10"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "level_scope": "LEVEL.10",
+        "min_evidence": "INFERRED",
+        "deny_if_unauthorized_pov": true
+      },
+      "source": {
+        "document": "Bảng ánh xạ Cloudinary JSON.json",
+        "document_id": "LEVEL1PLUS_CLOUDINARY_MAPPING",
+        "anchor": "Level_10_Bumper_Crop_01",
+        "content_sha256": "45d0f2d006c3734573517863b7c438e3fce75a0c198af8776f24b889775f254f",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/LEVEL_0_CLOUDINARY_MAPPING.json",
+        "verification": "ASSET_ID_ONLY_LORE_PROPOSED"
+      },
+      "node_key": "10",
+      "parent_node_key": null,
+      "node_kind": "LEVEL",
+      "visual_public_ids": [
+        "Level_10_Bumper_Crop_01"
+      ],
+      "baseline_source_id": "LEVEL",
+      "review_status": "PENDING_AUTHOR_REVIEW",
+      "canon_completeness": "WORLD_LEVEL_BASELINE_ONLY"
+    },
+    {
+      "id": "LEVEL.NODE.10.1",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.10",
+      "domain": "LEVEL",
+      "kind": "location-card",
+      "authority": "ASSET_IDENTIFIED_SCENE_DRAFT",
+      "mutability": "IMMUTABLE",
+      "truth_status": "INFERRED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "priority": 69,
+      "text": "Đồng ruộng của Level 10, nơi này trũng xuống thành những vùng đất thấp, mặt nước lặng lẽ phản chiếu bầu trời xám, bờ đất và bóng cây in dài trên mặt ruộng ẩm ướt. Mọi chi tiết chỉ được kể khi có chứng cứ quan sát thực tế, không hơn. Mô-típ Corpse Lake từ wiki không được biến thành sát thương hay luật gameplay ở đây. Chỉ có đồng ruộng, nước trũng, và sự im lặng nặng nề của một vùng đất canh tác đã bị bỏ hoang từ lâu.",
+      "compact_text": "Đồng ruộng của Level 10, nơi này trũng xuống thành những vùng đất thấp, mặt nước lặng lẽ phản chiếu bầu trời xám, bờ đất và bóng cây in dài trên mặt ruộng ẩm ướt.",
+      "aliases": [
+        "level-node:10.1",
+        "node:10.1"
+      ],
+      "tags": [
+        "level10-node:10.1"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "level_scope": "LEVEL.10",
+        "min_evidence": "INFERRED",
+        "deny_if_unauthorized_pov": true
+      },
+      "source": {
+        "document": "Bảng ánh xạ Cloudinary JSON.json",
+        "document_id": "LEVEL1PLUS_CLOUDINARY_MAPPING",
+        "anchor": "Level_10_1_Sub_01",
+        "content_sha256": "45d0f2d006c3734573517863b7c438e3fce75a0c198af8776f24b889775f254f",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/LEVEL_0_CLOUDINARY_MAPPING.json",
+        "verification": "ASSET_ID_ONLY_LORE_PROPOSED"
+      },
+      "node_key": "10.1",
+      "parent_node_key": "10",
+      "node_kind": "SUBLEVEL",
+      "visual_public_ids": [
+        "Level_10_1_Sub_01"
+      ],
+      "baseline_source_id": "LEVEL",
+      "review_status": "PENDING_AUTHOR_REVIEW",
+      "canon_completeness": "WORLD_LEVEL_BASELINE_ONLY",
+      "compact_form": "Khu phụ của đồng ruộng Level 10 có thể gợi vùng trũng, mặt nước, bờ đất và bóng cây khi có chứng cứ quan sát. Mô-típ Corpse Lake đầy phóng xạ thuộc wiki bên ngoài, KHÔNG được biến thành sát thương, hiệu ứng hoặc luật gameplay của dự án. Giữ nguyên Canon cứng, không tự xác nhận cơ chế/sự kiện.",
+      "environment_research": {
+        "status": "PROPOSED_SCENE_DESCRIPTION_PENDING_AUTHOR_REVIEW",
+        "source_asset_public_ids": [
+          "Level_10_1_Sub_01"
+        ],
+        "external_reference": {
+          "url": "https://backrooms-wiki.wikidot.com/level-10-1",
+          "role": "outside Backrooms continuity; descriptive inspiration only, not project canon"
+        },
+        "cloudinary_palette": null,
+        "image_pixel_review": "Cloudinary asset metadata and representative color analysis; object/layout detail not directly inspected",
+        "no_new_hard_facts": true
+      }
+    },
+    {
+      "id": "LEVEL.NODE.11",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.11",
+      "domain": "LEVEL",
+      "kind": "location-card",
+      "authority": "ASSET_IDENTIFIED_SCENE_DRAFT",
+      "mutability": "IMMUTABLE",
+      "truth_status": "INFERRED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "priority": 69,
+      "text": "Level 11 — Main. Một miền đô thị lạnh và rộng, đường phố và các mảng tường cao thấp xếp thành lớp, cửa ngưỡng mở ra những khoảng trống đứt đoạn giữa các khối kiến trúc, sinh hoạt thưa thớt đến mức tiếng bước chân cũng nghe như bị nuốt. Khung thị giác thiên xám đen, ảm đạm và nặng nề, khiến mỗi góc rẽ đều giống một nơi đã bị bỏ lại. Đây là thẻ gợi tả cảnh INFERRED; không sinh Entity, loot, lối thoát, thương tổn, sự kiện hay sửa Game State ngoài Core.",
+      "compact_text": "Level 11 — Main. Một miền đô thị lạnh và rộng, đường phố và các mảng tường cao thấp xếp thành lớp, cửa ngưỡng mở ra những khoảng trống đứt đoạn giữa các khối ki",
+      "aliases": [
+        "level-node:11",
+        "node:11"
+      ],
+      "tags": [
+        "level11-node:11"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "level_scope": "LEVEL.11",
+        "min_evidence": "INFERRED",
+        "deny_if_unauthorized_pov": true
+      },
+      "source": {
+        "document": "Bảng ánh xạ Cloudinary JSON.json",
+        "document_id": "LEVEL1PLUS_CLOUDINARY_MAPPING",
+        "anchor": "Level_11_Main_01",
+        "content_sha256": "45d0f2d006c3734573517863b7c438e3fce75a0c198af8776f24b889775f254f",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/LEVEL_0_CLOUDINARY_MAPPING.json",
+        "verification": "ASSET_ID_ONLY_LORE_PROPOSED"
+      },
+      "node_key": "11",
+      "parent_node_key": null,
+      "node_kind": "LEVEL",
+      "visual_public_ids": [
+        "Level_11_Main_01"
+      ],
+      "baseline_source_id": null,
+      "review_status": "PENDING_AUTHOR_REVIEW",
+      "canon_completeness": "LORE_UNKNOWN",
+      "compact_form": "Đề xuất môi trường: một miền mang dáng dấp đô thị với đường phố, các mảng tường cao thấp, cửa ngưỡng, khối kiến trúc xếp thành lớp và khoảng trống đứt đoạn giữa chúng; cảm giác lạnh, rộng, thưa sinh hoạt. Khung thị giác thiên xám đen theo màu ảnh Cloudinary. Không mặc định đô thị vô tận, dân cư, tổ chức, tính an toàn hay lối thoát. Giữ nguyên Canon cứng, không tự xác nhận cơ chế/sự kiện.",
+      "environment_research": {
+        "status": "PROPOSED_SCENE_DESCRIPTION_PENDING_AUTHOR_REVIEW",
+        "source_asset_public_ids": [
+          "Level_11_Main_01"
+        ],
+        "external_reference": {
+          "url": "https://backrooms-wiki.wikidot.com/level-11/theme_fullname/theme:light",
+          "role": "outside Backrooms continuity; descriptive inspiration only, not project canon"
+        },
+        "cloudinary_palette": "xám 41,2%, đen 42,4%, trắng 9,7%",
+        "image_pixel_review": "Cloudinary asset metadata and representative color analysis; object/layout detail not directly inspected",
+        "no_new_hard_facts": true
+      }
+    },
+    {
+      "id": "LEVEL.NODE.11.3",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.11",
+      "domain": "LEVEL",
+      "kind": "location-card",
+      "authority": "ASSET_IDENTIFIED_SCENE_DRAFT",
+      "mutability": "IMMUTABLE",
+      "truth_status": "INFERRED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "priority": 69,
+      "text": "Phân khu đô thị này đẫm sắc đỏ sẫm trên nền tối: đỏ 72,6%, đen 23,9% — như máu khô loang trên tường đêm. Những mảng sáng cô lập xé rách bóng tối, làm mép tường và khoảng cách trở nên khó phân định, bước chân cứ lạc vào những góc khuất không đoán trước được. Căng thẳng ở đây đến từ chính đối lập màu sắc và góc khuất, không cần bất cứ sinh vật nào xuất hiện — bóng tối và màu đỏ đã đủ khiến nơi này trở nên ác độc.",
+      "compact_text": "Phân khu đô thị này đẫm sắc đỏ sẫm trên nền tối: đỏ 72,6%, đen 23,9% — như máu khô loang trên tường đêm.",
+      "aliases": [
+        "level-node:11.3",
+        "node:11.3"
+      ],
+      "tags": [
+        "level11-node:11.3"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "level_scope": "LEVEL.11",
+        "min_evidence": "INFERRED",
+        "deny_if_unauthorized_pov": true
+      },
+      "source": {
+        "document": "Bảng ánh xạ Cloudinary JSON.json",
+        "document_id": "LEVEL1PLUS_CLOUDINARY_MAPPING",
+        "anchor": "Level_11_3_Sub_01",
+        "content_sha256": "45d0f2d006c3734573517863b7c438e3fce75a0c198af8776f24b889775f254f",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/LEVEL_0_CLOUDINARY_MAPPING.json",
+        "verification": "ASSET_ID_ONLY_LORE_PROPOSED"
+      },
+      "node_key": "11.3",
+      "parent_node_key": "11",
+      "node_kind": "SUBLEVEL",
+      "visual_public_ids": [
+        "Level_11_3_Sub_01"
+      ],
+      "baseline_source_id": null,
+      "review_status": "PENDING_AUTHOR_REVIEW",
+      "canon_completeness": "LORE_UNKNOWN",
+      "compact_form": "Đề xuất môi trường: một phân khu đô thị đẫm sắc đỏ sẫm trên nền tối, những mảng sáng cô lập làm mép tường và khoảng cách khó phân định; cảm giác căng thẳng đến từ đối lập màu và góc khuất, không cần xuất hiện sinh vật. Chỉ tham khảo thẩm mỹ Red Light District, không nhập các sự kiện hay tổ chức của wiki. Giữ nguyên Canon cứng, không tự xác nhận cơ chế/sự kiện.",
+      "environment_research": {
+        "status": "PROPOSED_SCENE_DESCRIPTION_PENDING_AUTHOR_REVIEW",
+        "source_asset_public_ids": [
+          "Level_11_3_Sub_01"
+        ],
+        "external_reference": {
+          "url": "https://backrooms-wiki.wikidot.com/level-11-3",
+          "role": "outside Backrooms continuity; descriptive inspiration only, not project canon"
+        },
+        "cloudinary_palette": "đỏ 72,6%, đen 23,9%",
+        "image_pixel_review": "Cloudinary asset metadata and representative color analysis; object/layout detail not directly inspected",
+        "no_new_hard_facts": true
+      }
+    },
+    {
+      "id": "LEVEL.NODE.11.AFTER_HOURS",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.11",
+      "domain": "LEVEL",
+      "kind": "location-card",
+      "authority": "ASSET_IDENTIFIED_SCENE_DRAFT",
+      "mutability": "IMMUTABLE",
+      "truth_status": "INFERRED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "priority": 69,
+      "text": "After Hours là đoạn đô thị muộn trong Level 11: xanh đen và xám lạnh bao phủ những mảng xây dựng, ánh sáng thưa thớt để lại những khoảng tối dài giữa các khối nhà. Âm thanh và chuyển động chưa xác nhận thì chỉ được mô tả bằng sự yên vắng quan sát được — không tiếng bước, không tiếng máy, chỉ có gió lạnh luồn qua khe phố. Không áp giờ thực, mất điện, Entity hay sự kiện nào. Chỉ có bóng tối dài, ánh sáng ít và cảm giác thành phố đã ngủ, nhưng không ai dám chắc nó thực sự đang ngủ.",
+      "compact_text": "After Hours là đoạn đô thị muộn trong Level 11: xanh đen và xám lạnh bao phủ những mảng xây dựng, ánh sáng thưa thớt để lại những khoảng tối dài giữa các khối nhà.",
+      "aliases": [
+        "level-node:11/after_hours",
+        "node:11/after_hours"
+      ],
+      "tags": [
+        "level11-node:11/after_hours"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "level_scope": "LEVEL.11",
+        "min_evidence": "INFERRED",
+        "deny_if_unauthorized_pov": true
+      },
+      "source": {
+        "document": "Bảng ánh xạ Cloudinary JSON.json",
+        "document_id": "LEVEL1PLUS_CLOUDINARY_MAPPING",
+        "anchor": "Level_11_After_Hours_01",
+        "content_sha256": "45d0f2d006c3734573517863b7c438e3fce75a0c198af8776f24b889775f254f",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/LEVEL_0_CLOUDINARY_MAPPING.json",
+        "verification": "ASSET_ID_ONLY_LORE_PROPOSED"
+      },
+      "node_key": "11/after_hours",
+      "parent_node_key": "11",
+      "node_kind": "AREA",
+      "visual_public_ids": [
+        "Level_11_After_Hours_01"
+      ],
+      "baseline_source_id": null,
+      "review_status": "PENDING_AUTHOR_REVIEW",
+      "canon_completeness": "LORE_UNKNOWN",
+      "compact_form": "Đề xuất môi trường: một đoạn đô thị muộn, xanh đen và xám lạnh, ánh sáng thưa để lại những khoảng tối dài giữa các mảng xây dựng; âm thanh và chuyển động chưa xác nhận thì chỉ mô tả sự yên vắng quan sát được. Không áp giờ thực, mất điện, Entity hay sự kiện từ nhãn After Hours. Giữ nguyên Canon cứng, không tự xác nhận cơ chế/sự kiện.",
+      "environment_research": {
+        "status": "PROPOSED_SCENE_DESCRIPTION_PENDING_AUTHOR_REVIEW",
+        "source_asset_public_ids": [
+          "Level_11_After_Hours_01"
+        ],
+        "external_reference": {
+          "url": "https://backrooms-wiki.wikidot.com/normal-levels-i/level-0",
+          "role": "outside Backrooms continuity; descriptive inspiration only, not project canon"
+        },
+        "cloudinary_palette": "đen 81,9%, xám 11,7%, xanh lam 2,6%",
+        "image_pixel_review": "Cloudinary asset metadata and representative color analysis; object/layout detail not directly inspected",
+        "no_new_hard_facts": true
+      }
+    },
+    {
+      "id": "LEVEL.NODE.11.ASSET_11P1",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.11",
+      "domain": "LEVEL",
+      "kind": "location-card",
+      "authority": "ASSET_IDENTIFIED_SCENE_DRAFT",
+      "mutability": "IMMUTABLE",
+      "truth_status": "INFERRED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "priority": 69,
+      "text": "Asset 11p1 là khu phụ mang mã hình đó trong Level 11, nhưng chưa có tên môi trường được duyệt. Nền đô thị xám trải ra dưới những góc khối xây dựng nặng nề, đường mép vật thể sắc lạnh và khoảng sáng thay đổi theo từng đoạn đường. Không gian mang vẻ đô thị trống rỗng, nơi ánh sáng và bóng tối chia cắt mọi bề mặt thành từng mảng rời. Không chuyển tên tệp thành địa danh hay cơ chế. Không sinh Entity, loot, lối thoát hay thương tổn — chỉ có khối xám, mép vật thể và ánh sáng đổi thay.",
+      "compact_text": "Asset 11p1 là khu phụ mang mã hình đó trong Level 11, nhưng chưa có tên môi trường được duyệt.",
+      "aliases": [
+        "level-node:11/asset_11p1",
+        "node:11/asset_11p1"
+      ],
+      "tags": [
+        "level11-node:11/asset_11p1"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "level_scope": "LEVEL.11",
+        "min_evidence": "INFERRED",
+        "deny_if_unauthorized_pov": true
+      },
+      "source": {
+        "document": "Bảng ánh xạ Cloudinary JSON.json",
+        "document_id": "LEVEL1PLUS_CLOUDINARY_MAPPING",
+        "anchor": "Level_11_Asset_11p1_01",
+        "content_sha256": "45d0f2d006c3734573517863b7c438e3fce75a0c198af8776f24b889775f254f",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/LEVEL_0_CLOUDINARY_MAPPING.json",
+        "verification": "ASSET_ID_ONLY_LORE_PROPOSED"
+      },
+      "node_key": "11/asset_11p1",
+      "parent_node_key": "11",
+      "node_kind": "AREA",
+      "visual_public_ids": [
+        "Level_11_Asset_11p1_01"
+      ],
+      "baseline_source_id": null,
+      "review_status": "PENDING_AUTHOR_REVIEW",
+      "canon_completeness": "LORE_UNKNOWN",
+      "compact_form": "Khu phụ có mã hình 11p1 nhưng chưa có tên môi trường được tác giả duyệt: dùng nền đô thị xám, góc khối xây dựng, đường mép vật thể và thay đổi khoảng sáng trong cùng cảnh. Không chuyển tên tệp thành địa danh hay cơ chế. Giữ nguyên Canon cứng, không tự xác nhận cơ chế/sự kiện.",
+      "environment_research": {
+        "status": "PROPOSED_SCENE_DESCRIPTION_PENDING_AUTHOR_REVIEW",
+        "source_asset_public_ids": [
+          "Level_11_Asset_11p1_01"
+        ],
+        "external_reference": {
+          "url": "https://backrooms-wiki.wikidot.com/level-11/theme_fullname/theme:light",
+          "role": "outside Backrooms continuity; descriptive inspiration only, not project canon"
+        },
+        "cloudinary_palette": null,
+        "image_pixel_review": "Cloudinary asset metadata and representative color analysis; object/layout detail not directly inspected",
+        "no_new_hard_facts": true
+      }
+    },
+    {
+      "id": "LEVEL.NODE.11.RADIO_BACKROOMS_STUDIO",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.11",
+      "domain": "LEVEL",
+      "kind": "location-card",
+      "authority": "ASSET_IDENTIFIED_SCENE_DRAFT",
+      "mutability": "IMMUTABLE",
+      "truth_status": "INFERRED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "priority": 69,
+      "text": "Radio Backrooms Studio là góc không gian tối trong Level 11: gam nâu bao phủ, bóng đen dày đặc và chỉ vài điểm sáng ít ỏi, bề mặt mang vẻ cũ kỹ và kín đáo như một căn phòng đã bị khóa từ lâu. Nhãn Radio Studio chỉ là danh mục ảnh, không xác nhận thiết bị đang hoạt động, tín hiệu radio, người phát thanh hay chức năng công trình nào. Không sinh Entity, loot, lối thoát hay thương tổn — chỉ có bóng nâu, bóng đen và sự im lặng của một cái tên không hứa hẹn bất cứ âm thanh nào.",
+      "compact_text": "Radio Backrooms Studio là góc không gian tối trong Level 11: gam nâu bao phủ, bóng đen dày đặc và chỉ vài điểm sáng ít ỏi, bề mặt mang vẻ cũ kỹ và kín đáo như một căn phòng đã bị khóa từ lâu.",
+      "aliases": [
+        "level-node:11/radio_backrooms_studio",
+        "node:11/radio_backrooms_studio"
+      ],
+      "tags": [
+        "level11-node:11/radio_backrooms_studio"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "level_scope": "LEVEL.11",
+        "min_evidence": "INFERRED",
+        "deny_if_unauthorized_pov": true
+      },
+      "source": {
+        "document": "Bảng ánh xạ Cloudinary JSON.json",
+        "document_id": "LEVEL1PLUS_CLOUDINARY_MAPPING",
+        "anchor": "Level_11_Radio_Backrooms_Studio_01",
+        "content_sha256": "45d0f2d006c3734573517863b7c438e3fce75a0c198af8776f24b889775f254f",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/LEVEL_0_CLOUDINARY_MAPPING.json",
+        "verification": "ASSET_ID_ONLY_LORE_PROPOSED"
+      },
+      "node_key": "11/radio_backrooms_studio",
+      "parent_node_key": "11",
+      "node_kind": "AREA",
+      "visual_public_ids": [
+        "Level_11_Radio_Backrooms_Studio_01"
+      ],
+      "baseline_source_id": null,
+      "review_status": "PENDING_AUTHOR_REVIEW",
+      "canon_completeness": "LORE_UNKNOWN",
+      "compact_form": "Đề xuất môi trường: một góc không gian tối với gam nâu, bóng đen và điểm sáng ít, khiến bề mặt có cảm giác cũ và kín. Nhãn Radio Studio chỉ là danh mục ảnh; không xác nhận thiết bị đang hoạt động, tín hiệu radio, người phát thanh hay chức năng công trình. Giữ nguyên Canon cứng, không tự xác nhận cơ chế/sự kiện.",
+      "environment_research": {
+        "status": "PROPOSED_SCENE_DESCRIPTION_PENDING_AUTHOR_REVIEW",
+        "source_asset_public_ids": [
+          "Level_11_Radio_Backrooms_Studio_01"
+        ],
+        "external_reference": {
+          "url": "https://backrooms-wiki.wikidot.com/normal-levels-i/level-0",
+          "role": "outside Backrooms continuity; descriptive inspiration only, not project canon"
+        },
+        "cloudinary_palette": "nâu 49,0%, đen 43,9%",
+        "image_pixel_review": "Cloudinary asset metadata and representative color analysis; object/layout detail not directly inspected",
+        "no_new_hard_facts": true
+      }
+    },
+    {
+      "id": "LEVEL.NODE.11.SCENE_01P2",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.11",
+      "domain": "LEVEL",
+      "kind": "location-card",
+      "authority": "ASSET_IDENTIFIED_SCENE_DRAFT",
+      "mutability": "IMMUTABLE",
+      "truth_status": "INFERRED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "priority": 69,
+      "text": "Scene 01p2 là khu phụ mang mã đó, chưa có nội dung thế giới riêng, chỉ tiếp nối nhịp đô thị của Level 11 bằng tỉ lệ khối, độ sâu và góc nhìn từ vị trí hiện tại. Những khối xây dựng xếp lớp, khoảng trống đứt đoạn và ánh sáng thưa tạo nên một đoạn phố lạnh lẽo, không có điểm nhấn nào tự tuyên bố mình là trung tâm. Không tuyên bố địa điểm mới, sự kiện hay nguồn gốc nào. Không sinh Entity, loot, lối thoát hay thương tổn — chỉ có nhịp đô thị, tỉ lệ khối và bóng tối kéo dài theo góc nhìn.",
+      "compact_text": "Scene 01p2 là khu phụ mang mã đó, chưa có nội dung thế giới riêng, chỉ tiếp nối nhịp đô thị của Level 11 bằng tỉ lệ khối, độ sâu và góc nhìn từ vị trí hiện tại.",
+      "aliases": [
+        "level-node:11/scene_01p2",
+        "node:11/scene_01p2"
+      ],
+      "tags": [
+        "level11-node:11/scene_01p2"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "level_scope": "LEVEL.11",
+        "min_evidence": "INFERRED",
+        "deny_if_unauthorized_pov": true
+      },
+      "source": {
+        "document": "Bảng ánh xạ Cloudinary JSON.json",
+        "document_id": "LEVEL1PLUS_CLOUDINARY_MAPPING",
+        "anchor": "Level_11_Scene_01p2_01",
+        "content_sha256": "45d0f2d006c3734573517863b7c438e3fce75a0c198af8776f24b889775f254f",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/LEVEL_0_CLOUDINARY_MAPPING.json",
+        "verification": "ASSET_ID_ONLY_LORE_PROPOSED"
+      },
+      "node_key": "11/scene_01p2",
+      "parent_node_key": "11",
+      "node_kind": "AREA",
+      "visual_public_ids": [
+        "Level_11_Scene_01p2_01"
+      ],
+      "baseline_source_id": null,
+      "review_status": "PENDING_AUTHOR_REVIEW",
+      "canon_completeness": "LORE_UNKNOWN",
+      "compact_form": "Khu phụ mã Scene 01p2 chưa có nội dung thế giới riêng: có thể tiếp nối nhịp đô thị của Level 11 bằng tỉ lệ khối, độ sâu và góc nhìn từ vị trí hiện tại; không tuyên bố địa điểm mới, sự kiện hay nguồn gốc khi chưa có chứng cứ. Giữ nguyên Canon cứng, không tự xác nhận cơ chế/sự kiện.",
+      "environment_research": {
+        "status": "PROPOSED_SCENE_DESCRIPTION_PENDING_AUTHOR_REVIEW",
+        "source_asset_public_ids": [
+          "Level_11_Scene_01p2_01"
+        ],
+        "external_reference": {
+          "url": "https://backrooms-wiki.wikidot.com/level-11/theme_fullname/theme:light",
+          "role": "outside Backrooms continuity; descriptive inspiration only, not project canon"
+        },
+        "cloudinary_palette": null,
+        "image_pixel_review": "Cloudinary asset metadata and representative color analysis; object/layout detail not directly inspected",
+        "no_new_hard_facts": true
+      }
+    },
+    {
+      "id": "LEVEL.NODE.11.THE_HEADQUARTERS",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.11",
+      "domain": "LEVEL",
+      "kind": "location-card",
+      "authority": "ASSET_IDENTIFIED_SCENE_DRAFT",
+      "mutability": "IMMUTABLE",
+      "truth_status": "INFERRED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "priority": 69,
+      "text": "The Headquarters là khu mang tên đó trong Level 11: tông xám, đen và nâu lạnh bao phủ những hình khối nặng nề, tạo cảm giác công trình kín hơn mặt phố, như một pháo đài không cửa sổ đang nhìn xuống đường. Bề mặt lạnh, góc cạnh sắc và bóng tối dày khiến nơi này mang vẻ quyền lực đã chết. Tên gọi không chứng minh đây là trụ sở thực, không tự dựng lực lượng bảo vệ, thiết bị hay quyền kiểm soát nào. Không sinh Entity, loot, lối thoát hay thương tổn — chỉ có khối nặng, màu lạnh và sự im lặng của một công trình không ai xác nhận chủ nhân.",
+      "compact_text": "The Headquarters là khu mang tên đó trong Level 11: tông xám, đen và nâu lạnh bao phủ những hình khối nặng nề, tạo cảm giác công trình kín hơn mặt phố, như một pháo đài không cửa sổ đang nhìn xuống đường.",
+      "aliases": [
+        "level-node:11/the_headquarters",
+        "node:11/the_headquarters"
+      ],
+      "tags": [
+        "level11-node:11/the_headquarters"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "level_scope": "LEVEL.11",
+        "min_evidence": "INFERRED",
+        "deny_if_unauthorized_pov": true
+      },
+      "source": {
+        "document": "Bảng ánh xạ Cloudinary JSON.json",
+        "document_id": "LEVEL1PLUS_CLOUDINARY_MAPPING",
+        "anchor": "Level_11_The_Headquarters_01",
+        "content_sha256": "45d0f2d006c3734573517863b7c438e3fce75a0c198af8776f24b889775f254f",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/LEVEL_0_CLOUDINARY_MAPPING.json",
+        "verification": "ASSET_ID_ONLY_LORE_PROPOSED"
+      },
+      "node_key": "11/the_headquarters",
+      "parent_node_key": "11",
+      "node_kind": "AREA",
+      "visual_public_ids": [
+        "Level_11_The_Headquarters_01"
+      ],
+      "baseline_source_id": null,
+      "review_status": "PENDING_AUTHOR_REVIEW",
+      "canon_completeness": "LORE_UNKNOWN",
+      "compact_form": "Đề xuất môi trường: khu có tên The Headquarters với tông xám, đen và nâu lạnh, hình khối nặng tạo cảm giác công trình kín hơn mặt phố. Tên không chứng minh đây là trụ sở thực, không tự dựng lực lượng bảo vệ, thiết bị hay quyền kiểm soát. Giữ nguyên Canon cứng, không tự xác nhận cơ chế/sự kiện.",
+      "environment_research": {
+        "status": "PROPOSED_SCENE_DESCRIPTION_PENDING_AUTHOR_REVIEW",
+        "source_asset_public_ids": [
+          "Level_11_The_Headquarters_01"
+        ],
+        "external_reference": {
+          "url": "https://backrooms-wiki.wikidot.com/normal-levels-i/level-0",
+          "role": "outside Backrooms continuity; descriptive inspiration only, not project canon"
+        },
+        "cloudinary_palette": "đen 62,5%, xám 26,2%, nâu 7,2%",
+        "image_pixel_review": "Cloudinary asset metadata and representative color analysis; object/layout detail not directly inspected",
+        "no_new_hard_facts": true
+      }
+    },
+    {
+      "id": "LEVEL.NODE.12",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.12",
+      "domain": "LEVEL",
+      "kind": "location-card",
+      "authority": "ASSET_IDENTIFIED_SCENE_DRAFT",
+      "mutability": "IMMUTABLE",
+      "truth_status": "INFERRED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "priority": 69,
+      "text": "Level 12 — Main. Những mặt phẳng xám rất nhạt gần trắng, chênh lệch sắc độ thấp đến mức ranh giới giữa tường và nền nhòe đi, cảm giác rộng hay hẹp thay đổi theo từng cảnh hiện tại mà không gắn số đo nào. Không gian trắng xám lạnh lẽo và trống rỗng, như một nơi đang nhìn lại người đi qua mà không để lại dấu vết. Wiki gọi đây là Matrix, nhưng không xác nhận hiệu ứng tâm trí, bất biến vật lý, dân cư hoặc cửa ra. Đây là thẻ gợi tả cảnh INFERRED; không sinh Entity, loot, lối thoát, thương tổn, sự kiện hay sửa Game State ngoài Core.",
+      "compact_text": "Level 12 — Main. Những mặt phẳng xám rất nhạt gần trắng, chênh lệch sắc độ thấp đến mức ranh giới giữa tường và nền nhòe đi, cảm giác rộng hay hẹp thay đổi theo",
+      "aliases": [
+        "level-node:12",
+        "node:12"
+      ],
+      "tags": [
+        "level12-node:12"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "level_scope": "LEVEL.12",
+        "min_evidence": "INFERRED",
+        "deny_if_unauthorized_pov": true
+      },
+      "source": {
+        "document": "Bảng ánh xạ Cloudinary JSON.json",
+        "document_id": "LEVEL1PLUS_CLOUDINARY_MAPPING",
+        "anchor": "Level_12_Main_01",
+        "content_sha256": "45d0f2d006c3734573517863b7c438e3fce75a0c198af8776f24b889775f254f",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/LEVEL_0_CLOUDINARY_MAPPING.json",
+        "verification": "ASSET_ID_ONLY_LORE_PROPOSED"
+      },
+      "node_key": "12",
+      "parent_node_key": null,
+      "node_kind": "LEVEL",
+      "visual_public_ids": [
+        "Level_12_Main_01"
+      ],
+      "baseline_source_id": null,
+      "review_status": "PENDING_AUTHOR_REVIEW",
+      "canon_completeness": "LORE_UNKNOWN",
+      "compact_form": "Đề xuất môi trường: những mặt phẳng xám rất nhạt gần trắng, chênh lệch sắc độ thấp, đường ranh giữa tường và nền khó nhận ra; cảm giác rộng hay hẹp phụ thuộc trực tiếp cảnh hiện tại, không gắn số đo. Wiki gọi đây là Matrix, nhưng không xác nhận hiệu ứng tâm trí, bất biến vật lý, dân cư hoặc cửa ra. Giữ nguyên Canon cứng, không tự xác nhận cơ chế/sự kiện.",
+      "environment_research": {
+        "status": "PROPOSED_SCENE_DESCRIPTION_PENDING_AUTHOR_REVIEW",
+        "source_asset_public_ids": [
+          "Level_12_Main_01"
+        ],
+        "external_reference": {
+          "url": "https://backrooms-wiki.wikidot.com/normal-levels-i/level-0",
+          "role": "outside Backrooms continuity; descriptive inspiration only, not project canon"
+        },
+        "cloudinary_palette": "xám 91,9%, trắng 5,1%",
+        "image_pixel_review": "Cloudinary asset metadata and representative color analysis; object/layout detail not directly inspected",
+        "no_new_hard_facts": true
+      }
+    },
+    {
+      "id": "LEVEL.NODE.13",
+      "schema_version": 2,
+      "universe_id": "BACKROOMS_MAIN",
+      "entity_id": "LEVEL.13",
+      "domain": "LEVEL",
+      "kind": "location-card",
+      "authority": "ASSET_IDENTIFIED_SCENE_DRAFT",
+      "mutability": "IMMUTABLE",
+      "truth_status": "INFERRED",
+      "knowledge_visibility": "ACTOR_AWARE",
+      "priority": 69,
+      "text": "Level 13 — Main. Những bề mặt nâu gỗ sẫm và sắc cam cục bộ gợi không khí khu cư trú cũ, khoảng sáng ấm tương phản với góc tối sâu, nội thất chỉ được diễn tả khi người chơi thật sự nhìn thấy. Bóng tối trong các góc khuất dày đặc và im lặng, khiến một căn phòng quen thuộc cũng có thể trở nên xa lạ. Wiki miêu tả chung cư, nhưng chưa phê duyệt số tầng, cư dân, nguồn lương thực hay tính an toàn. Đây là thẻ gợi tả cảnh INFERRED; không sinh Entity, loot, lối thoát, thương tổn, sự kiện hay sửa Game State ngoài Core.",
+      "compact_text": "Level 13 — Main. Những bề mặt nâu gỗ sẫm và sắc cam cục bộ gợi không khí khu cư trú cũ, khoảng sáng ấm tương phản với góc tối sâu, nội thất chỉ được diễn tả khi",
+      "aliases": [
+        "level-node:13",
+        "node:13"
+      ],
+      "tags": [
+        "level13-node:13"
+      ],
+      "affordances": [],
+      "references": [],
+      "activation": {
+        "level_scope": "LEVEL.13",
+        "min_evidence": "INFERRED",
+        "deny_if_unauthorized_pov": true
+      },
+      "source": {
+        "document": "Bảng ánh xạ Cloudinary JSON.json",
+        "document_id": "LEVEL1PLUS_CLOUDINARY_MAPPING",
+        "anchor": "Level_13_Main_01",
+        "content_sha256": "45d0f2d006c3734573517863b7c438e3fce75a0c198af8776f24b889775f254f",
+        "snapshot_path": "android-apk/canon_sources/Asset/02_Level/LEVEL_0_CLOUDINARY_MAPPING.json",
+        "verification": "ASSET_ID_ONLY_LORE_PROPOSED"
+      },
+      "node_key": "13",
+      "parent_node_key": null,
+      "node_kind": "LEVEL",
+      "visual_public_ids": [
+        "Level_13_Main_01"
+      ],
+      "baseline_source_id": null,
+      "review_status": "PENDING_AUTHOR_REVIEW",
+      "canon_completeness": "LORE_UNKNOWN",
+      "compact_form": "Đề xuất môi trường: những bề mặt nâu gỗ sẫm và sắc cam cục bộ gợi không khí khu cư trú cũ, khoảng sáng ấm tương phản với góc tối sâu; diễn tả chi tiết nội thất chỉ khi người chơi thật sự nhìn thấy. Wiki miêu tả chung cư, nhưng chưa phê duyệt số tầng, cư dân, nguồn lương thực hay tính an toàn. Giữ nguyên Canon cứng, không tự xác nhận cơ chế/sự kiện.",
+      "environment_research": {
+        "status": "PROPOSED_SCENE_DESCRIPTION_PENDING_AUTHOR_REVIEW",
+        "source_asset_public_ids": [
+          "Level_13_Main_01"
+        ],
+        "external_reference": {
+          "url": "https://backrooms-wiki.wikidot.com/level-13",
+          "role": "outside Backrooms continuity; descriptive inspiration only, not project canon"
+        },
+        "cloudinary_palette": "nâu 93,8%, cam 3,3%",
+        "image_pixel_review": "Cloudinary asset metadata and representative color analysis; object/layout detail not directly inspected",
+        "no_new_hard_facts": true
+      }
+    }
+  ]
+}

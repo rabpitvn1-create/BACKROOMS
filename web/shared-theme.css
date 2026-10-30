@@ -1,0 +1,219 @@
+:root{--shared-wall:url('hud/shared-background.jpg');--frame-wall:linear-gradient(#100b04a8,#0a0703cf),var(--shared-wall)}
+:root{--ui-panel-shadow:0 3px 10px #0003,inset 0 1px 0 #f4e4b00a;--ui-control-shadow:0 2px 5px #0003,inset 0 1px 0 #ffffff08}
+.game,.topbar,.player-action-bar,.card,#snapshot,.character-section,
+.equipment-detail-sheet,.player-action-sheet,.character-skills-sheet,.core-progression-panel,
+.poker-dice-sheet,#combatFeedbackPanel,.startup-recovery,.party-member,
+.character-status-row,.equipment-card,.inventory-item-card,.equipment-detail-row,
+.ability-row,.restriction-row,.character-skill-card{
+ box-shadow:var(--ui-panel-shadow)!important
+}
+/* Dice keep their own image shadows and HOLD glow; backdrop hit areas stay flat. */
+button:not(.poker-die):not(.player-action-backdrop):not(.mobile-menu-backdrop),
+textarea,input,select{box-shadow:var(--ui-control-shadow)!important}
+button:not(.poker-die):not(.player-action-backdrop):not(.mobile-menu-backdrop):active{
+ --ui-control-shadow:inset 0 1px 3px #0004
+}
+#pokerDiceRoll,#pokerDiceFinish{border-radius:999px!important}
+#pokerDiceRoll,#pokerDiceFinish,.player-action-bar .primary-action{
+ transition:box-shadow .2s ease,filter .2s ease,border-color .2s ease;touch-action:manipulation
+}
+#pokerDiceRoll:enabled:active,#pokerDiceFinish:enabled:active,
+.player-action-bar .primary-action:enabled:active{
+ --ui-control-shadow:0 0 0 1px #f4d28b99,0 0 12px #d8a8486b,inset 0 0 8px #efca7933;
+ filter:brightness(1.18);border-color:#e5c376!important;transition-duration:.05s
+}
+@media(prefers-reduced-motion:reduce){
+ #pokerDiceRoll,#pokerDiceFinish,.player-action-bar .primary-action{transition:none}
+}
+html,body,.shell{background:#271706 var(--shared-wall) center/cover no-repeat!important}
+.game{background:linear-gradient(#160e0780,#0d0905a8),var(--shared-wall)!important;background-size:cover!important;background-position:center!important}
+.topbar,.player-action-bar,.card,.character-section,.character-inventory-view,.equipment-detail-sheet,.player-action-sheet,.character-skills-sheet,.core-progression-panel,.poker-dice-sheet,#combatFeedbackPanel,.startup-recovery{
+ background-image:var(--frame-wall)!important;background-size:cover!important;background-position:center!important;background-color:#291a0d!important;border-color:#8c693d!important
+}
+.player-action-bar .primary-action{background-image:linear-gradient(#130f0bc7,#130f0be8),var(--shared-wall)!important;background-size:cover!important}
+body.mobile-menu-open .side{background:#211407 var(--frame-wall) center/cover!important}
+.character-status-row,.equipment-card,.inventory-item-card,.equipment-detail-row,.ability-row,.restriction-row,.character-skill-card{background-image:var(--frame-wall)!important;background-size:cover!important}
+textarea,input,select{background-image:linear-gradient(#080603d9,#080603e8),var(--shared-wall)!important;background-size:cover!important}
+/* A scene image still occupies the Snapshot; the common wall is its loading surface. */
+#snapshot{background-image:var(--shared-wall);background-size:cover}
+/* Grade every scene artwork equally, without isolating the Party/Entity stack.
+   Damage text and impact feedback keep their original readable colours. */
+#snapshot .snapshot-background-img,#snapshot .snapshot-player-overlay,
+#snapshot .snapshot-entity,#snapshot .snapshot-lucia,
+#snapshot .combat-turn-avatar,#snapshot .combat-turn-exit,#snapshot .entity-shatter img{
+ filter:sepia(.10) saturate(.98) contrast(1.01) brightness(1.025)
+}
+#snapshot::before,#snapshot::after{
+ content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none
+}
+#snapshot::before{
+ z-index:5;mix-blend-mode:soft-light;
+ background:radial-gradient(ellipse at 50% 45%,transparent 45%,#25190c24 100%),linear-gradient(135deg,#dfbd8018,#6d9c890c 58%,#c49b6818)
+}
+#snapshot::after{
+ z-index:6;background:url('hud/old-photo-wear.svg') center/100% 100% no-repeat;
+ mix-blend-mode:screen;opacity:.13
+}
+/* Narrative reads as one continuous page, with speaker marks instead of cards. */
+.game>.log{
+ display:flex;flex-direction:column;gap:28px;padding:20px 22px 28px;
+ background:linear-gradient(rgb(11 12 13 / 70%),rgb(11 12 13 / 70%)),var(--shared-wall) center/cover;
+ border:0;border-radius:0;box-shadow:none;overflow-x:hidden;overflow-wrap:anywhere
+}
+.log>.message,.log>.message.player{
+ flex:none;position:relative;margin:0;padding:0;border:0;border-radius:0;
+ background:none!important;box-shadow:none!important;color:#eee9d5
+}
+.log>.message>.role{
+ --seal-ink:#a44b3d;display:flex;align-items:center;gap:9px;position:relative;margin:0 0 10px;padding-left:23px;min-height:17px;
+ color:#b8b7aa;font-size:10px;font-weight:800;line-height:1.4;letter-spacing:.1em
+}
+.log>.message>.role::before{
+ content:"";position:absolute;left:0;width:16px;height:16px;
+ background:var(--seal-ink);
+ /* Engraved seal strokes, with a broken ink border rather than a solid square. */
+ -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='white' stroke-width='1.7' stroke-linecap='square' stroke-linejoin='miter'%3E%3Cpath d='M3 9V3h10m3 0h5v12m0 3v3H9m-3 0H3v-9M6 6h5v5H7v6h4v-3m3-8h4v4h-4v8h4v-5M7 8h2m5 4h4'/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat;
+ mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='white' stroke-width='1.7' stroke-linecap='square' stroke-linejoin='miter'%3E%3Cpath d='M3 9V3h10m3 0h5v12m0 3v3H9m-3 0H3v-9M6 6h5v5H7v6h4v-3m3-8h4v4h-4v8h4v-5M7 8h2m5 4h4'/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat
+}
+.log>.message>.role::after{content:"";width:2px;height:13px;background:var(--seal-ink)}
+.log>.message.player>.role{--seal-ink:#c0a05b}
+.log>.message>.text{font-size:16px;line-height:1.75;white-space:pre-wrap}
+/* The menu and character sheets share the portrait HUD's warm, solid surfaces. */
+body.mobile-menu-open .side{
+ padding:0 max(12px,env(safe-area-inset-right),var(--android-safe-right,0px)) max(20px,env(safe-area-inset-bottom),var(--android-safe-bottom,0px)) max(12px,env(safe-area-inset-left),var(--android-safe-left,0px));
+ background-color:#211407!important;background-image:linear-gradient(#100b04c9,#100b04e8),var(--shared-wall)!important;
+ background-position:center!important;background-size:cover!important;gap:12px
+}
+.mobile-menu-head{
+ position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:12px;
+ min-height:62px;padding:max(10px,env(safe-area-inset-top),var(--android-safe-top,0px)) 0 10px;
+ background-color:#211407;background-image:var(--frame-wall);background-size:cover;
+ box-shadow:0 3px 10px #0003
+}
+.mobile-menu-head h2{margin:0;font-size:15px;letter-spacing:.14em;color:#ead8ab}
+.mobile-menu-head .mobile-menu-close{position:static;margin:0;min-height:42px;padding:9px 15px;border-radius:999px;font-size:13px}
+.side>.card{min-width:0;border-radius:12px;padding:14px}
+.side>.card h2{color:#e5cf9c;font-size:12px;line-height:1.4;letter-spacing:.08em;margin-bottom:12px}
+.side>.card .row{grid-template-columns:minmax(78px,28%) minmax(0,1fr);gap:10px;align-items:baseline;padding:8px 0;border-color:#8c693d33;font-size:13px;overflow-wrap:anywhere}
+.side>.card .row b{color:#b0a58a}
+.side>.card .turn strong{font-size:16px;color:#f4e9ca}
+#playerStats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+#playerStats .row{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:9px 11px;border:1px solid #8c693d44;border-radius:8px;background:#100d08a6}
+#playerStats .row span{font-size:16px;color:#f2e7c9;overflow-wrap:anywhere}
+#playerStats .row:nth-child(-n+2){grid-column:1/-1;flex-direction:row;justify-content:space-between;align-items:center}
+.side .actions{gap:8px}
+.side button:not(.poker-die),#characterInventoryView button,.equipment-detail-sheet button,.character-skills-sheet button{min-height:44px;border-radius:999px;font-size:13px;white-space:normal;overflow-wrap:anywhere}
+.side button:not(.danger):not(.poker-die),#characterInventoryView button:not(.danger){
+ background-image:linear-gradient(#17120cc9,#17120ce8),var(--shared-wall);background-size:cover;color:#f0e6cc;border-color:#8c754e
+}
+.side #diagnosticExportStatus{line-height:1.55;color:#beb29a!important}
+.side .party-grid{gap:7px}
+.side .party-member{border-radius:10px;padding:6px;gap:6px;background:#171108b8;border-color:#8c693d66;overflow:hidden}
+.side .party-member img,.side .party-avatar-placeholder{border-radius:7px;border-color:#8c693d44}
+.side .party-member strong{font-size:11px;color:#e8ddc2}
+.side .party-member .party-state{font-size:9px;color:#b9ad8a}
+.side .party-member.empty strong{display:none}
+.side .party-member.empty .party-avatar-placeholder{font-size:10px}
+#characterInventoryView{
+ padding:0 max(12px,env(safe-area-inset-right),var(--android-safe-right,0px)) max(22px,env(safe-area-inset-bottom),var(--android-safe-bottom,0px)) max(12px,env(safe-area-inset-left),var(--android-safe-left,0px));
+ overscroll-behavior:contain;overflow-x:hidden;color:#eee4ce
+}
+#characterInventoryView .character-inventory-head{
+ position:sticky;top:0;z-index:4;gap:12px;min-height:72px;
+ padding:max(12px,env(safe-area-inset-top),var(--android-safe-top,0px)) 0 12px;
+ background-color:#211407;background-image:var(--frame-wall);background-size:cover;border-color:#8c693d66
+}
+#characterInventoryView .character-inventory-head>div{min-width:0}
+#characterInventoryView .character-inventory-head h2{font-size:20px;line-height:1.25;overflow-wrap:anywhere}
+#characterInventoryView .character-inventory-head .eyebrow{font-size:9px;letter-spacing:.09em;color:#c8b78c}
+#characterInventoryView .character-inventory-head button{flex:none;padding:9px 14px}
+#characterInventoryView .character-role{font-size:10px;line-height:1.4;color:#b9ab8b}
+#characterInventoryView .character-profile{
+ grid-template-columns:96px minmax(0,1fr);gap:14px;margin:14px 0;padding:12px;
+ border:1px solid #8c693d66;border-radius:12px;background-image:var(--frame-wall);background-size:cover;box-shadow:var(--ui-panel-shadow)
+}
+#characterInventoryView .character-profile img{width:96px;height:96px;border-radius:10px;border-color:#a38458;box-shadow:var(--ui-control-shadow)}
+#characterInventoryView .inventory-capacity{font-size:16px;line-height:1.4;overflow-wrap:anywhere}
+#characterInventoryView .inventory-limit{font-size:11px;line-height:1.5;color:#b8aa8c}
+#characterInventoryView .character-section{padding:13px;border-radius:12px;margin-top:12px}
+#characterInventoryView .character-section h3{color:#e5cf9c;font-size:12px;letter-spacing:.08em;line-height:1.4}
+#characterInventoryView .character-core-stats{gap:8px;margin:0 0 12px;grid-template-columns:repeat(2,minmax(0,1fr))}
+#characterInventoryView .character-core-stat{
+ min-width:0;min-height:59px;padding:10px;border-radius:8px;border-color:#8c693d55;
+ background-image:var(--frame-wall);background-size:cover;box-shadow:var(--ui-control-shadow)
+}
+#characterInventoryView .character-core-stat b{font-size:9px;line-height:1.4;letter-spacing:.06em;color:#bdb094;overflow-wrap:anywhere}
+#characterInventoryView .character-core-stat strong{font-size:16px;line-height:1.35;color:#f2e5c5;overflow-wrap:anywhere}
+#characterInventoryView .character-status-row{grid-template-columns:minmax(80px,36%) minmax(0,1fr);padding:10px;gap:8px;border-radius:8px;border-color:#8c693d44;font-size:13px;overflow-wrap:anywhere}
+#characterInventoryView .character-status-row b{color:#bdb094}
+#characterInventoryView .equipment-card,#characterInventoryView .inventory-item-card{border-radius:9px;border-color:#8c693d66}
+#characterInventoryView .equipment-card-main strong{white-space:normal;font-size:13px;line-height:1.4;overflow-wrap:anywhere}
+#characterInventoryView .equipment-card-icon{border-radius:7px;border-color:#8c693d66}
+/* Keep compact status tags adjacent to the item name, above the slot label. */
+#characterInventoryView .equipment-card,#characterInventoryView .inventory-item-card{
+ grid-template-columns:34px minmax(0,max-content) minmax(46px,1fr);column-gap:6px;row-gap:2px
+}
+#characterInventoryView .equipment-card-main{display:contents}
+#characterInventoryView .equipment-card-main strong{grid-column:2;grid-row:1;min-width:0}
+#characterInventoryView .equipment-card-main small{grid-column:2/-1;grid-row:2;margin-top:0;font-size:10px}
+#characterInventoryView .equipment-card-icon{grid-column:1;grid-row:1/3;width:34px;height:34px}
+#characterInventoryView .equipment-badges{grid-column:3;grid-row:1;justify-content:flex-start;align-items:center;gap:3px;min-width:0}
+#characterInventoryView .equipment-badge{padding:1px 4px;font-size:7px;line-height:1.3;letter-spacing:.04em;border-radius:3px;white-space:nowrap}
+#characterInventoryView .chips span{border-radius:8px;border-color:#8c693d55;line-height:1.5}
+.equipment-detail-sheet,.character-skills-sheet{border-radius:14px 14px 0 0}
+.equipment-detail-sheet .equipment-detail-header{grid-template-columns:48px minmax(0,1fr)}
+.equipment-detail-sheet .equipment-detail-header h2{font-size:18px;overflow-wrap:anywhere}
+.equipment-detail-sheet .equipment-detail-icon{width:48px;height:48px;border-radius:8px}
+.character-skills-sheet .character-skill-card{border-radius:10px}
+.character-skills-sheet .character-skill-top{flex-wrap:wrap}
+@media(max-width:360px){
+ #characterInventoryView .character-profile{grid-template-columns:80px minmax(0,1fr);gap:10px;padding:10px}
+ #characterInventoryView .character-profile img{width:80px;height:80px}
+ #characterInventoryView .inventory-capacity{font-size:14px}
+}
+
+
+/* Character Survival: warm bronze gauges sharing the existing Backrooms HUD. */
+#characterInventoryView .survival-hud{
+ display:grid;gap:11px;margin:0 0 14px;padding:13px 12px 14px;
+ border:1px solid #96714588;border-radius:11px;
+ background:linear-gradient(145deg,#160f08ed,#2c1e11df),var(--shared-wall);
+ background-position:center;background-size:cover;
+ box-shadow:inset 0 1px 0 #e2c48c25,0 3px 12px #0005
+}
+#characterInventoryView .survival-hud-header{
+ display:flex;justify-content:space-between;align-items:baseline;gap:9px;
+ color:#ead3a3;font-size:11px;font-weight:800;letter-spacing:.11em
+}
+#characterInventoryView .survival-hud-header small{
+ color:#a99a7f;font-size:9px;font-weight:400;letter-spacing:0;text-align:right
+}
+#characterInventoryView .survival-meter{min-width:0;display:grid;gap:6px}
+#characterInventoryView .survival-meter-head{
+ display:flex;align-items:center;justify-content:space-between;gap:12px;
+ font-size:11px;line-height:1.25;letter-spacing:.055em
+}
+#characterInventoryView .survival-meter-label{color:#d8c5a1;font-weight:700}
+#characterInventoryView .survival-meter-value{color:#f2dfb2;font-size:12px;font-variant-numeric:tabular-nums}
+#characterInventoryView .survival-meter-track{
+ height:13px;overflow:hidden;border:1px solid #806444;
+ border-radius:999px;background:#0e0b08;box-shadow:inset 0 2px 4px #0009
+}
+#characterInventoryView .survival-meter-fill{
+ display:block;width:0;height:100%;border-radius:inherit;
+ background:linear-gradient(90deg,#8b6632,#f0ca7c);
+ box-shadow:inset 0 1px 0 #f7e4b566,0 0 7px #e4bb6255;
+ transition:width .22s ease
+}
+#characterInventoryView .survival-warning .survival-meter-fill{
+ background:linear-gradient(90deg,#8d5829,#e0a052)
+}
+#characterInventoryView .survival-danger .survival-meter-fill{
+ background:linear-gradient(90deg,#7e3027,#d4775a)
+}
+#characterInventoryView .survival-unknown .survival-meter-value{color:#928776}
+#characterInventoryView .survival-unknown .survival-meter-track{border-style:dashed}
+#characterInventoryView .survival-unknown .survival-meter-fill{width:0!important}
+@media(prefers-reduced-motion:reduce){
+ #characterInventoryView .survival-meter-fill{transition:none}
+}

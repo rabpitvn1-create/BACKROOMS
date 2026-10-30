@@ -1,0 +1,19 @@
+/* Varela Round from https://github.com/google/fonts/tree/main/ofl/varelaround.
+   Bundled locally for offline play; license: fonts/OFL-VarelaRound.txt. */
+@font-face {
+  font-family: "Varela Round";
+  src: url("fonts/VarelaRound-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+:root {
+  --game-font: "Varela Round", sans-serif;
+  font-family: var(--game-font);
+}
+
+/* Include form controls, SVG text, generated labels and dynamic game panels. */
+*, ::before, ::after {
+  font-family: var(--game-font) !important;
+}
