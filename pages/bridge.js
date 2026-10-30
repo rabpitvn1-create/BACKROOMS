@@ -102,6 +102,35 @@
         }
       }
     }
+    const argon = config.argon;
+    if (argon && argon.key && argon.base_url && argon.model) {
+      emit('backroomProvider', `Argon · ${argon.model}`);
+      try {
+        const base = String(argon.base_url).replace(/\/+$/, '');
+        const endpoint = base.endsWith('/chat/completions') ? base : base + '/chat/completions';
+        const response = await fetch(endpoint, {
+          method: 'POST', signal: AbortSignal.timeout(60000),
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + argon.key },
+          body: JSON.stringify({
+            model: argon.model,
+            messages: [{ role: 'user', content: prompt }],
+            max_tokens: 4096, temperature: 0.8, stream: false,
+          }),
+        });
+        record({ kind: 'provider', alias: 'Argon', model: argon.model, status: response.status });
+        if (response.ok) {
+          const payload = await response.json();
+          let text = payload.choices?.[0]?.message?.content || '';
+          if (Array.isArray(text)) text = text.map(p => p.text || '').join('');
+          const parsed = parseAnswer(text);
+          if (typeof parsed.reply !== 'string' || !parsed.reply.trim()) throw new Error('Phản hồi chưa có lời kể.');
+          return parsed;
+        }
+        failures.push(`Argon HTTP ${response.status}`);
+      } catch (error) {
+        failures.push(`Argon: ${error.name === 'TimeoutError' ? 'hết thời gian chờ' : 'yêu cầu không hoàn tất'}`);
+      }
+    }
     throw new Error('Sáu key hiện chưa xử lý được lượt: ' + [...new Set(failures)].slice(-6).join('; ') + '. Có thể thử lại.');
   }
   async function gameplay(raw, kind, action) {
