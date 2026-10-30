@@ -77,7 +77,7 @@
         const base = String(argon.base_url).replace(/\/+$/, '');
         const endpoint = base.endsWith('/chat/completions') ? base : base + '/chat/completions';
         const response = await fetch(endpoint, {
-          method: 'POST', signal: AbortSignal.timeout(60000),
+          method: 'POST', signal: AbortSignal.timeout(15000),
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + argon.key },
           body: JSON.stringify({
             model: argon.model,
