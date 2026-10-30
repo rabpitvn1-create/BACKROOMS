@@ -9,7 +9,27 @@ Extracted from `CAO_MINH-1.0.0.0.8.apk` (70 APK entries).
 
 Note: Android `classes*.dex` are compiled bytecode, not the original Kotlin/Java source. This extraction cannot recreate missing Gradle/build configuration. The APK manifest references some `characters/` and `item-icons/` media files that are not embedded in the APK; these need to be resolved from Cloudinary or other source to make all visuals work.
 
-For a static GitHub Pages website, publish the contents of `web/` as the repository root. APK code relying on the Android JavaScript bridge will only work in an Android wrapper.
+## GitHub Pages
+
+The `Deploy GitHub Pages` workflow stages `web/` into `build/pages` and adds a
+browser-only preview notice and the download link for APK debug 1.0.0.0.
+The Android APK inputs and debug release are unchanged.
+
+This deployment is a recovered UI preview. The current repository still needs
+a compatible browser gameplay runtime for turns, combat, progression, and item
+actions. Native action controls are disabled on the preview; local UI inspection
+and menu navigation remain available. The page does not claim APK gameplay parity.
+
+Expected address: https://rabpitvn1-create.github.io/Backrooms/
+
+Enable GitHub Pages with source **GitHub Actions** in the repository's
+Settings → Pages. The workflow uses standard Pages permissions and deploys after
+mobile/desktop browser checks under the `/Backrooms/` repository subpath.
+Pages enablement itself requires repository administration and cannot be
+performed by the default Actions token.
+
+Local staging: `python3 scripts/build_pages.py`.
+
 
 ## Personal Android debug release 1.0.0.0
 

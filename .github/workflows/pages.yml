@@ -1,0 +1,61 @@
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'web/**'
+      - 'pages/**'
+      - 'scripts/build_pages.py'
+      - 'scripts/test_pages.cjs'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Stage recovered web preview
+        run: python3 scripts/build_pages.py
+      - name: Install browser test tools
+        run: |
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Test mobile and desktop preview under repository subpath
+        run: |
+          mkdir -p build/test-host
+          ln -s "$GITHUB_WORKSPACE/build/pages" build/test-host/Backrooms
+          python3 -m http.server 4173 --directory build/test-host > build/pages-server.log 2>&1 &
+          node scripts/test_pages.cjs
+      - name: Keep browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pages-browser-checks
+          path: build/pages-*.png
+          if-no-files-found: ignore
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/pages
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Deploy Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
