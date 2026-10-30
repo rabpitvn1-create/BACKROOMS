@@ -9,6 +9,7 @@ jobs:
   engine:
     runs-on: ubuntu-24.04
     timeout-minutes: 25
+    environment: github-pages
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
