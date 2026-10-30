@@ -1797,7 +1797,7 @@ render();
     }
     window.__directCombatPreparing=true;setBusy(true);renderDice();
     if(statusEl)statusEl.textContent="Đang vào combat…";
-    Android.combatDicePrepare(JSON.stringify(state),DIRECT_COMBAT_ACTION);
+    Android.combatDicePrepare(JSON.stringify(state),DIRECT_COMBAT_ACTION+" · r"+Date.now().toString(36));
   }
   window.ensureDirectCombatDice=ensureDirectCombatDice;
 
