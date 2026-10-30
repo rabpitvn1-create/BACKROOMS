@@ -19,6 +19,8 @@ def build():
     page = output / "index.html"
     html = page.read_text()
     html = html.replace('<title>Backroom</title>', '<title>Backrooms | Bản xem trước trên web</title>')
+    # Native startup recovery is not a corrupt-save error on a web preview.
+    html = html.replace('<script src="level-travel.js"></script>', '')
     html = html.replace('</body>', f'<script src="pages-preview.js?v={version}"></script>\n</body>')
     page.write_text(html)
     (output / ".nojekyll").touch()

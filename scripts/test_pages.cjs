@@ -11,6 +11,7 @@ const { chromium } = require('playwright');
       await page.goto(process.env.PAGES_TEST_URL || 'http://127.0.0.1:4173/Backrooms/', { waitUntil: 'domcontentloaded' });
       await page.locator('#webPreviewNotice').waitFor({ state: 'visible' });
       await page.waitForTimeout(250);
+      assert.equal(await page.locator('#startupRecovery').isHidden(), true, 'Native recovery must not be reported as a web save failure');
       assert.equal(await page.locator('html').getAttribute('data-web-mode'), 'preview');
       assert.match(await page.locator('#webPreviewNotice').innerText(), /Bản xem trước trên web/);
       assert.equal(await page.locator('#webPreviewNotice a').getAttribute('href'), 'https://github.com/rabpitvn1-create/Backrooms/releases/download/v1.0.0.0/Backrooms-1.0.0.0-debug.apk');
