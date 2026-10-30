@@ -1,0 +1,16 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<modelVersion>4.0.0</modelVersion><groupId>backrooms</groupId><artifactId>web-engine</artifactId><version>1.0.0</version>
+<properties><maven.compiler.source>8</maven.compiler.source><maven.compiler.target>8</maven.compiler.target><project.build.sourceEncoding>UTF-8</project.build.sourceEncoding><teavm.version>0.16.0</teavm.version></properties>
+<dependencies>
+<dependency><groupId>backrooms</groupId><artifactId>recovered-core</artifactId><version>1</version><scope>system</scope><systemPath>${project.basedir}/lib/recovered-core.jar</systemPath></dependency>
+<dependency><groupId>org.jetbrains.kotlin</groupId><artifactId>kotlin-stdlib</artifactId><version>2.3.0</version></dependency>
+<dependency><groupId>org.json</groupId><artifactId>json</artifactId><version>20240303</version></dependency>
+<dependency><groupId>com.google.android</groupId><artifactId>android</artifactId><version>4.1.1.4</version><scope>provided</scope></dependency>
+<dependency><groupId>org.teavm</groupId><artifactId>teavm-jso-apis</artifactId><version>${teavm.version}</version></dependency>
+<dependency><groupId>org.teavm</groupId><artifactId>teavm-classlib</artifactId><version>${teavm.version}</version></dependency>
+</dependencies>
+<build><plugins>
+<plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId><version>3.14.0</version></plugin>
+<plugin><groupId>org.teavm</groupId><artifactId>teavm-maven-plugin</artifactId><version>${teavm.version}</version><executions><execution><goals><goal>compile</goal></goals><phase>process-classes</phase></execution></executions><configuration><mainClass>backrooms.CoreBridge</mainClass><targetDirectory>${project.build.directory}/javascript</targetDirectory><targetFileName>game-core.js</targetFileName><jsModuleType>UMD</jsModuleType><optimizationLevel>SIMPLE</optimizationLevel><minifying>false</minifying><sourceMapsGenerated>true</sourceMapsGenerated></configuration></plugin>
+</plugins></build>
+</project>
