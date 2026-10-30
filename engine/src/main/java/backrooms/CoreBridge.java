@@ -12,8 +12,24 @@ public final class CoreBridge {
     public boolean exists() {return value!=null;}
     public void clear() {value=null;}
   }
+  static final android.content.Context context=new android.content.Context();
+  static final NarratorLogic narrator=new NarratorLogic();
   static MemorySave repository;
   static GameCoreFacade facade;
+  @JSExport public static void coreAsset(String name,String text){android.content.res.AssetManager.files.put(name,text);}
+  @JSExport public static boolean coreMeta(String action){return narrator.meta(action);}
+  @JSExport public static String coreRolls(String state,String action,boolean meta){try{return narrator.rolls(state,action,meta);}catch(Throwable t){return error(t);}}
+  @JSExport public static String corePrompt(String state,String action,String rolls){
+    try{
+      com.rabpit.backroom.core.canon.CanonOutcome result=com.rabpit.backroom.core.canon.CanonRuntime2.buildPacket(context,state,action,rolls,false);
+      String packet=null;
+      if(result instanceof com.rabpit.backroom.core.canon.CanonOutcome.Ready)packet=((com.rabpit.backroom.core.canon.CanonOutcome.Ready)result).getPacket();
+      if(result instanceof com.rabpit.backroom.core.canon.CanonOutcome.SafeLocalResolution)throw new IllegalStateException(((com.rabpit.backroom.core.canon.CanonOutcome.SafeLocalResolution)result).getReason());
+      return narrator.prompt(state,action,rolls,packet);
+    }catch(Throwable t){return error(t);}
+  }
+  @JSExport public static String coreCandidate(String state,String generated,String rolls,String action){try{return narrator.candidate(state,generated,rolls,action);}catch(Throwable t){return error(t);}}
+  private static String error(Throwable t){return new JSONObject().put("bridgeError",t.toString()).toString();}
   @JSExport public static String coreInit(String policy, String saved) {
     try {
       repository=new MemorySave();
