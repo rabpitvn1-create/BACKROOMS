@@ -31,14 +31,20 @@ jobs:
         run: python3 -m unittest discover -s scripts -p 'test_*.py' -v
       - name: Build disposable offline smoke fixture
         env:
-          AGRON: offline-smoke-fixture-not-a-real-key
+          GEMINI_API_KEY_1: offline-new-key-1
+          GEMINI_API_KEY_2: offline-new-key-2
+          GEMINI_API_KEY_3: offline-new-key-3
+          GEMINI_API_KEY_4: offline-new-key-4
+          GEMINI_API_KEY_5: offline-new-key-5
+          GEMINI_API_KEY_6: offline-new-key-6
+          ARGON: offline-argon-fixture
         run: python3 scripts/debug_release.py
       - uses: android-actions/setup-android@v3
         with:
           packages: platform-tools
           log-accepted-android-sdk-licenses: false
       - name: Install Android signing tools
-        run: sdkmanager 'build-tools;35.0.0' 'platform-tools'
+        run: sdkmanager 'build-tools;35.0.0' 'platform-tools' 'platforms;android-35'
       - name: Align and sign personal debug build
         run: |
           keytool -genkeypair -keystore build/debug.keystore -storetype PKCS12 -storepass android -keypass android -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
@@ -52,6 +58,11 @@ jobs:
           grep -F "versionName='1.0.0.0'" build/apk-metadata.txt
           grep -F "versionCode='90000001'" build/apk-metadata.txt
           grep -F 'application-debuggable' build/apk-metadata.txt
+      - name: Compile tests for the actual APK provider router
+        run: |
+          mkdir -p build/router-classes
+          javac -source 8 -target 8 -cp "$ANDROID_HOME/platforms/android-35/android.jar" -d build/router-classes scripts/RouterSmoke.java
+          "$ANDROID_HOME/build-tools/35.0.0/d8" --min-api 24 --lib "$ANDROID_HOME/platforms/android-35/android.jar" --output build/router-tests.jar build/router-classes/*.class
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -67,6 +78,11 @@ jobs:
           disable-animations: true
           script: |
             adb install build/Backrooms-1.0.0.0-debug.apk
+            adb push build/Backrooms-1.0.0.0-debug.apk /data/local/tmp/backrooms.apk
+            adb push build/router-tests.jar /data/local/tmp/router-tests.jar
+            adb shell chmod 444 /data/local/tmp/backrooms.apk /data/local/tmp/router-tests.jar
+            adb shell 'CLASSPATH=/data/local/tmp/router-tests.jar app_process /system/bin RouterSmoke /data/local/tmp/backrooms.apk' > build/router-smoke.txt
+            cat build/router-smoke.txt
             adb logcat -c
             adb shell am start -W -n com.rabpit.caominh/com.rabpit.backroom.MainActivity
             sleep 10
@@ -86,17 +102,24 @@ jobs:
             build/*metadata.txt
             build/activity.txt
             build/android-runtime.txt
+            build/router-smoke.txt
             build/android15-debug.png
           if-no-files-found: ignore
   connection:
     if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[release-debug]')
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-      - name: Verify current Argon_api_key with a real generation
+      - name: Verify all six primary keys and final Argon fallback
         env:
-          AGRON: ${{ secrets.Argon_api_key }}
+          GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 }}
+          GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
+          GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
+          GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
+          GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
+          GEMINI_API_KEY_6: ${{ secrets.GEMINI_API_KEY_6 }}
+          ARGON: ${{ secrets.Argon_api_key }}
         run: python3 scripts/debug_release.py --probe-only
   debug:
     needs: [verify, connection]
@@ -121,16 +144,22 @@ jobs:
           fi
       - name: Test recovered package and key replacement
         run: python3 -m unittest discover -s scripts -p 'test_*.py' -v
-      - name: Connect current Agron setting and package debug APK
+      - name: Package six current primary keys and Argon fallback
         env:
-          AGRON: ${{ secrets.Argon_api_key }}
-        run: python3 scripts/debug_release.py --probe
+          GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 }}
+          GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
+          GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
+          GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
+          GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
+          GEMINI_API_KEY_6: ${{ secrets.GEMINI_API_KEY_6 }}
+          ARGON: ${{ secrets.Argon_api_key }}
+        run: python3 scripts/debug_release.py
       - uses: android-actions/setup-android@v3
         with:
           packages: platform-tools
           log-accepted-android-sdk-licenses: false
       - name: Install Android signing tools
-        run: sdkmanager 'build-tools;35.0.0' 'platform-tools'
+        run: sdkmanager 'build-tools;35.0.0' 'platform-tools' 'platforms;android-35'
       - name: Align and sign personal debug build
         run: |
           keytool -genkeypair -keystore build/debug.keystore -storetype PKCS12 -storepass android -keypass android -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"

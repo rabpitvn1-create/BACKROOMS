@@ -1,9 +1,7 @@
-"""Package the recovered Android debug app with only the current Agron setting.
+"""Package the recovered debug APK with six current Gemini keys, then Argon.
 
-The repository contains compiled DEX, not the original Android source project.
-Only the manifest and ProviderCredentials.validateConfig are patched. The latter
-previously required six different primary keys and an additional fallback key;
-validation now happens before packaging so a single current key is supported.
+The original credential validator and provider router remain byte-identical.
+Only the manifest and generated provider configuration change.
 """
 import argparse
 import hashlib
@@ -32,8 +30,16 @@ def fail(message):
     raise SystemExit(message)
 
 
-def configuration(raw):
-    raw = raw.strip()
+def configuration(env=None):
+    env = os.environ if env is None else env
+    fields = [f"GEMINI_API_KEY_{i}" for i in range(1, 7)]
+    config = {name: env.get(name, "").strip() for name in fields}
+    missing = [name for name in fields if not config[name]]
+    if missing:
+        fail("Missing primary repository Secrets: " + ", ".join(missing))
+    if len(set(config.values())) != 6:
+        fail("The six primary keys must be distinct.")
+    raw = env.get("ARGON", "").strip()
     if not raw:
         fail("Repository Secret Argon_api_key is missing or empty.")
     data = {}
@@ -41,35 +47,30 @@ def configuration(raw):
         try:
             data = json.loads(raw)
         except ValueError:
-            fail("Agron contains invalid JSON.")
+            fail("Argon configuration contains invalid JSON.")
         if not isinstance(data, dict):
-            fail("Agron must be an API key or a JSON object.")
-        key = next((data[k] for k in ("api_key", "apiKey", "API_KEY", "AGRON_API_KEY",
-                                     "key", "GEMINI_4_API_KEY", "GEMINI_API_KEY_1")
-                    if data.get(k)), "")
+            fail("Argon configuration must be a JSON object.")
+        key = next((data[k] for k in ("api_key", "apiKey", "API_KEY", "ARGON_API_KEY",
+                                     "key", "GEMINI_4_API_KEY") if data.get(k)), "")
     else:
         key = raw
-    if not isinstance(key, str) or not key.strip() or re.search(r"\s", key):
-        fail("Agron does not contain a valid API key value.")
-    key = key.strip()
     base = next((data[k] for k in ("base_url", "baseUrl", "BASE_URL", "GEMINI_4_BASE_URL")
-                 if data.get(k)), "")
-    model = next((data[k] for k in ("model", "MODEL", "GEMINI_4_MODEL") if data.get(k)), "")
-    native = key.startswith("AIza") and not base
-    config = {f"GEMINI_API_KEY_{i}": key if native else "" for i in range(1, 7)}
-    config.update(GEMINI_4_API_KEY="" if native else key,
-                  GEMINI_4_BASE_URL="" if native else (base or DEFAULT_BASE),
-                  GEMINI_4_MODEL="" if native else (model or DEFAULT_MODEL))
-    if not all(isinstance(v, str) and len(v) <= 1024 for v in config.values()):
-        fail("Agron configuration contains invalid values.")
-    if not native:
-        url = urllib.parse.urlsplit(config["GEMINI_4_BASE_URL"])
-        if url.scheme != "https" or not url.hostname or url.username or url.password or url.query or url.fragment:
-            fail("Agron base URL is invalid.")
-    return config, native
+                 if data.get(k)), DEFAULT_BASE)
+    model = next((data[k] for k in ("model", "MODEL", "GEMINI_4_MODEL") if data.get(k)), DEFAULT_MODEL)
+    config.update(GEMINI_4_API_KEY=key, GEMINI_4_BASE_URL=base, GEMINI_4_MODEL=model)
+    if not all(isinstance(v, str) and v.strip() and len(v) <= 1024 for v in config.values()):
+        fail("Current provider configuration contains invalid values.")
+    config = {k: v.strip() for k, v in config.items()}
+    for name in fields + ["GEMINI_4_API_KEY"]:
+        if re.search(r"\s", config[name]):
+            fail("Invalid API key value in " + name)
+    url = urllib.parse.urlsplit(config["GEMINI_4_BASE_URL"])
+    if url.scheme != "https" or not url.hostname or url.username or url.password or url.query or url.fragment:
+        fail("Argon base URL is invalid.")
+    return config
 
 
-def probe(config, native):
+def probe_provider(config, native, label):
     """Check an actual generation request without printing keys or response text."""
     if native:
         candidates = [(f"https://generativelanguage.googleapis.com/v1beta/models/{m}:generateContent",
@@ -112,70 +113,16 @@ def probe(config, native):
         except Exception:
             statuses.append("transport_or_response_error")
             continue
-        print(f"Current Agron generation probe passed ({'Google Gemini' if native else 'configured endpoint'}; model {model}).")
+        print(f"{label} generation probe passed (model {model}).")
         return
-    fail("Agron generation probe failed: " + ", ".join(statuses) + ". No APK has been published.")
+    fail(label + " generation probe failed: " + ", ".join(statuses) + ". No APK has been published.")
 
 
-def uleb(b, offset):
-    value = shift = 0
-    while True:
-        c = b[offset]
-        offset += 1
-        value |= (c & 127) << shift
-        if c < 128:
-            return value, offset
-        shift += 7
-        if shift > 28:
-            fail("Invalid DEX ULEB128.")
-
-
-def patch_dex(original):
-    if hashlib.sha256(original).hexdigest() != DEX_SHA256:
-        fail("Recovered DEX changed; review the credential patch before building.")
-    b = bytearray(original)
-    sn, so, tn, to, _, _, _, _, _, mo, cn, co = struct.unpack_from("<12I", b, 56)
-    strings = []
-    for i in range(sn):
-        offset = struct.unpack_from("<I", b, so + 4 * i)[0]
-        _, offset = uleb(b, offset)
-        strings.append(b[offset:b.index(0, offset)].decode("utf8", errors="replace"))
-    types = [strings[struct.unpack_from("<I", b, to + 4 * i)[0]] for i in range(tn)]
-    patches = 0
-    for i in range(cn):
-        cls, _, _, _, _, _, offset, _ = struct.unpack_from("<8I", b, co + 32 * i)
-        if types[cls] != "Lcom/rabpit/backroom/ProviderCredentials;":
-            continue
-        counts = []
-        for _ in range(4):
-            value, offset = uleb(b, offset)
-            counts.append(value)
-        for _ in range(counts[0] + counts[1]):
-            _, offset = uleb(b, offset)
-            _, offset = uleb(b, offset)
-        for count in counts[2:]:
-            index = 0
-            for _ in range(count):
-                delta, offset = uleb(b, offset)
-                index += delta
-                flags, offset = uleb(b, offset)
-                code, offset = uleb(b, offset)
-                _, _, name = struct.unpack_from("<HHI", b, mo + 8 * index)
-                if strings[name] != "validateConfig":
-                    continue
-                regs, ins, _, tries, _, size = struct.unpack_from("<HHHHII", b, code)
-                if not flags & 8 or ins != 1 or tries or regs - ins > 255:
-                    fail("Unexpected credential method shape.")
-                # return-object p0; remaining original instruction space is NOPs.
-                # A final unreachable return also keeps the method ending explicit.
-                instruction = struct.pack("<H", 0x11 | ((regs - ins) << 8))
-                b[code + 16:code + 16 + size * 2] = instruction + bytes((size - 2) * 2) + instruction
-                patches += 1
-    if patches != 1:
-        fail("Credential method was not found exactly once.")
-    b[12:32] = hashlib.sha1(b[32:]).digest()
-    struct.pack_into("<I", b, 8, zlib.adler32(b[12:]) & 0xffffffff)
-    return bytes(b)
+def probe(config):
+    for i in range(1, 7):
+        current = {**config, "GEMINI_API_KEY_1": config[f"GEMINI_API_KEY_{i}"]}
+        probe_provider(current, True, f"Gemini K{i}")
+    probe_provider(config, False, "Argon final fallback")
 
 
 def axml(b):
@@ -231,7 +178,9 @@ def patch_manifest(original):
 
 def package(config, output):
     source = ROOT / "apk-original"
-    expected = {"AndroidManifest.xml", "classes5.dex", "assets/personal-provider-config.json"}
+    expected = {"AndroidManifest.xml", "assets/personal-provider-config.json"}
+    if hashlib.sha256((source / "classes5.dex").read_bytes()).hexdigest() != DEX_SHA256:
+        fail("Recovered provider DEX changed; review runtime routing before building.")
     output.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED) as apk:
         for p in sorted(source.rglob("*")):
@@ -243,8 +192,6 @@ def package(config, output):
             content = p.read_bytes()
             if name == "AndroidManifest.xml":
                 content = patch_manifest(content)
-            elif name == "classes5.dex":
-                content = patch_dex(content)
             apk.writestr(name, content, compress_type=zipfile.ZIP_STORED if name == "resources.arsc" else zipfile.ZIP_DEFLATED)
         apk.writestr("assets/personal-provider-config.json", json.dumps(config))
     with zipfile.ZipFile(output) as apk:
@@ -270,9 +217,9 @@ def main():
     parser.add_argument("--probe-only", action="store_true")
     parser.add_argument("--output", type=Path, default=ROOT / "build/Backrooms-1.0.0.0-debug-unsigned.apk")
     args = parser.parse_args()
-    config, native = configuration(os.environ.get("AGRON", ""))
+    config = configuration()
     if args.probe or args.probe_only:
-        probe(config, native)
+        probe(config)
     if not args.probe_only:
         package(config, args.output)
 
