@@ -42,7 +42,15 @@ jobs:
           node scripts/test_pages.cjs
       - name: Verify one real turn privately on localhost
         env:
-          REPOSITORY_SECRETS_JSON: ${{ toJSON(secrets) }}
+          ARGON_API_KEY: ${{ secrets.ARGON_API_KEY }}
+          ARGON_BASE_URL: ${{ secrets.ARGON_BASE_URL || secrets.ARGON_API_BASE_URL || secrets.ARGON_API_URL || secrets.ARGON_URL }}
+          ARGON_MODEL: ${{ secrets.ARGON_MODEL || secrets.ARGON_MODEL_NAME || secrets.ARGON_API_MODEL }}
+          GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 }}
+          GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
+          GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
+          GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
+          GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
+          GEMINI_API_KEY_6: ${{ secrets.GEMINI_API_KEY_6 }}
           EXPECT_PRIMARY_PROVIDER: Argon
         run: |
           python3 scripts/pages_runtime.py

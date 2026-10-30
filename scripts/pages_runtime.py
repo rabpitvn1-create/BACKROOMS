@@ -31,7 +31,7 @@ def configuration(secrets):
 
 
 if __name__ == '__main__':
-    config = configuration(json.loads(os.environ['REPOSITORY_SECRETS_JSON']))
+    config = configuration(os.environ)
     output = Path('build/runtime.json')
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(config))
