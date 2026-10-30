@@ -1,0 +1,104 @@
+name: Backrooms debug release
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/debug-release.yml'
+      - 'scripts/**'
+      - 'android-debug/**'
+
+concurrency:
+  group: backrooms-debug-release-1.0.0.0
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  debug:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[release-debug]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      TAG: v1.0.0.0
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Check release does not already exist
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo 'Version 1.0.0.0 already exists; refusing to replace it.'
+            exit 1
+          fi
+      - name: Test recovered package and key replacement
+        run: python3 -m unittest discover -s scripts -p 'test_*.py' -v
+      - name: Connect current Agron setting and package debug APK
+        env:
+          AGRON: ${{ secrets.Agron }}
+        run: python3 scripts/debug_release.py --probe
+      - uses: android-actions/setup-android@v3
+      - name: Install Android signing tools
+        run: sdkmanager 'build-tools;35.0.0' 'platform-tools'
+      - name: Align and sign personal debug build
+        run: |
+          keytool -genkeypair -keystore build/debug.keystore -storetype PKCS12 -storepass android -keypass android -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          tools="$ANDROID_HOME/build-tools/35.0.0"
+          "$tools/zipalign" -p -f 4 build/Backrooms-1.0.0.0-debug-unsigned.apk build/aligned.apk
+          "$tools/apksigner" sign --ks build/debug.keystore --ks-key-alias androiddebugkey --ks-pass pass:android --key-pass pass:android --out build/Backrooms-1.0.0.0-debug.apk build/aligned.apk
+          "$tools/apksigner" verify --verbose --print-certs build/Backrooms-1.0.0.0-debug.apk
+          "$tools/zipalign" -c -v 4 build/Backrooms-1.0.0.0-debug.apk
+          "$tools/aapt" dump badging build/Backrooms-1.0.0.0-debug.apk > build/apk-metadata.txt
+          cat build/apk-metadata.txt
+          grep -F "versionName='1.0.0.0'" build/apk-metadata.txt
+          grep -F "versionCode='90000001'" build/apk-metadata.txt
+          grep -F 'application-debuggable' build/apk-metadata.txt
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Install and launch APK on Android 15
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          script: |
+            adb install build/Backrooms-1.0.0.0-debug.apk
+            adb logcat -c
+            adb shell am start -W -n com.rabpit.caominh/com.rabpit.backroom.MainActivity
+            sleep 10
+            adb shell pidof com.rabpit.caominh
+            adb shell run-as com.rabpit.caominh id
+            adb shell dumpsys activity activities > build/activity.txt
+            grep -E 'topResumedActivity.*com.rabpit.caominh|mResumedActivity.*com.rabpit.caominh' build/activity.txt
+            adb logcat -d -s AndroidRuntime:E > build/android-runtime.txt
+            test ! -s build/android-runtime.txt || ! grep -E 'FATAL EXCEPTION|VerifyError' build/android-runtime.txt
+            adb exec-out screencap -p > build/android15-debug.png
+      - name: Keep verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backrooms-debug-verification
+          path: |
+            build/*metadata.txt
+            build/activity.txt
+            build/android-runtime.txt
+            build/android15-debug.png
+          if-no-files-found: ignore
+      - name: Publish 1.0.0.0 debug APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd build
+          sha256sum Backrooms-1.0.0.0-debug.apk > SHA256SUMS.txt
+          gh release create "$TAG" Backrooms-1.0.0.0-debug.apk SHA256SUMS.txt --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title 'Backrooms 1.0.0.0 debug' --notes-file ../android-debug/RELEASE_NOTES.md
