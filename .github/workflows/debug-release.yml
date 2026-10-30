@@ -88,8 +88,18 @@ jobs:
             build/android-runtime.txt
             build/android15-debug.png
           if-no-files-found: ignore
+  connection:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[release-debug]')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify current Argon_api_key with a real generation
+        env:
+          AGRON: ${{ secrets.Argon_api_key }}
+        run: python3 scripts/debug_release.py --probe-only
   debug:
-    needs: verify
+    needs: [verify, connection]
     if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[release-debug]')
     runs-on: ubuntu-24.04
     timeout-minutes: 35

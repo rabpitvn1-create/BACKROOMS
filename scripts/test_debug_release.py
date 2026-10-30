@@ -46,6 +46,7 @@ class DebugReleaseTests(unittest.TestCase):
             target = Path(temp) / "debug.apk"
             release.package(config, target)
             with zipfile.ZipFile(target) as apk:
+                self.assertEqual(apk.getinfo("resources.arsc").compress_type, zipfile.ZIP_STORED)
                 self.assertEqual(json.loads(apk.read("assets/personal-provider-config.json")), config)
                 strings, attrs = release.axml(apk.read("AndroidManifest.xml"))
                 self.assertEqual(strings[attrs[("manifest", "versionName")][3]][0], "1.0.0.0")

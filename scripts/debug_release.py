@@ -245,7 +245,7 @@ def package(config, output):
                 content = patch_manifest(content)
             elif name == "classes5.dex":
                 content = patch_dex(content)
-            apk.writestr(name, content)
+            apk.writestr(name, content, compress_type=zipfile.ZIP_STORED if name == "resources.arsc" else zipfile.ZIP_DEFLATED)
         apk.writestr("assets/personal-provider-config.json", json.dumps(config))
     with zipfile.ZipFile(output) as apk:
         for p in source.rglob("*"):
@@ -267,12 +267,14 @@ def package(config, output):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--probe", action="store_true")
+    parser.add_argument("--probe-only", action="store_true")
     parser.add_argument("--output", type=Path, default=ROOT / "build/Backrooms-1.0.0.0-debug-unsigned.apk")
     args = parser.parse_args()
     config, native = configuration(os.environ.get("AGRON", ""))
-    if args.probe:
+    if args.probe or args.probe_only:
         probe(config, native)
-    package(config, args.output)
+    if not args.probe_only:
+        package(config, args.output)
 
 
 if __name__ == "__main__":
