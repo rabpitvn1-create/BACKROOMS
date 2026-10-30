@@ -39,6 +39,16 @@ class DebugReleaseTests(unittest.TestCase):
         with self.assertRaises(SystemExit):
             release.configuration(env)
 
+    def test_missing_fallback_allows_primary_probes_but_never_packaging_config(self):
+        env = fixture()
+        del env["ARGON"]
+        config = release.configuration(env, allow_missing_fallback=True)
+        with patch.object(release, "probe_provider") as call, self.assertRaises(SystemExit):
+            release.probe(config)
+        self.assertEqual(call.call_count, 6)
+        with self.assertRaises(SystemExit):
+            release.configuration(env)
+
     def test_json_argon_preserves_explicit_endpoint_and_model(self):
         env = fixture()
         env["ARGON"] = json.dumps({"apiKey": "test-argon-key", "baseUrl": "https://example.org/v1", "model": "example-model"})

@@ -30,7 +30,7 @@ def fail(message):
     raise SystemExit(message)
 
 
-def configuration(env=None):
+def configuration(env=None, allow_missing_fallback=False):
     env = os.environ if env is None else env
     fields = [f"GEMINI_API_KEY_{i}" for i in range(1, 7)]
     config = {name: env.get(name, "").strip() for name in fields}
@@ -40,7 +40,7 @@ def configuration(env=None):
     if len(set(config.values())) != 6:
         fail("The six primary keys must be distinct.")
     raw = env.get("ARGON", "").strip()
-    if not raw:
+    if not raw and not allow_missing_fallback:
         fail("Repository Secret Argon_api_key is missing or empty.")
     data = {}
     if raw.startswith("{"):
@@ -58,7 +58,9 @@ def configuration(env=None):
                  if data.get(k)), DEFAULT_BASE)
     model = next((data[k] for k in ("model", "MODEL", "GEMINI_4_MODEL") if data.get(k)), DEFAULT_MODEL)
     config.update(GEMINI_4_API_KEY=key, GEMINI_4_BASE_URL=base, GEMINI_4_MODEL=model)
-    if not all(isinstance(v, str) and v.strip() and len(v) <= 1024 for v in config.values()):
+    checked = {k: v for k, v in config.items()
+               if not (allow_missing_fallback and k == "GEMINI_4_API_KEY" and not v)}
+    if not all(isinstance(v, str) and v.strip() and len(v) <= 1024 for v in checked.values()):
         fail("Current provider configuration contains invalid values.")
     config = {k: v.strip() for k, v in config.items()}
     for name in fields + ["GEMINI_4_API_KEY"]:
@@ -119,10 +121,25 @@ def probe_provider(config, native, label):
 
 
 def probe(config):
+    failures = []
     for i in range(1, 7):
         current = {**config, "GEMINI_API_KEY_1": config[f"GEMINI_API_KEY_{i}"]}
-        probe_provider(current, True, f"Gemini K{i}")
-    probe_provider(config, False, "Argon final fallback")
+        try:
+            probe_provider(current, True, f"Gemini K{i}")
+        except SystemExit as error:
+            print(str(error), flush=True)
+            failures.append(f"Gemini K{i}")
+    if config["GEMINI_4_API_KEY"]:
+        try:
+            probe_provider(config, False, "Argon final fallback")
+        except SystemExit as error:
+            print(str(error), flush=True)
+            failures.append("Argon final fallback")
+    else:
+        print("Repository Secret Argon_api_key is missing or empty.", flush=True)
+        failures.append("Argon final fallback (missing Secret)")
+    if failures:
+        fail("Provider checks incomplete: " + ", ".join(failures) + ". No APK has been published.")
 
 
 def axml(b):
@@ -217,7 +234,7 @@ def main():
     parser.add_argument("--probe-only", action="store_true")
     parser.add_argument("--output", type=Path, default=ROOT / "build/Backrooms-1.0.0.0-debug-unsigned.apk")
     args = parser.parse_args()
-    config = configuration()
+    config = configuration(allow_missing_fallback=args.probe_only)
     if args.probe or args.probe_only:
         probe(config)
     if not args.probe_only:
