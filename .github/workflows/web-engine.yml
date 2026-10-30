@@ -21,6 +21,8 @@ jobs:
         run: python3 scripts/prepare_web_engine.py
       - name: Compile the gameplay core to JavaScript
         run: mvn -B -f engine/pom.xml package
+      - name: Verify real gameplay core and browser host
+        run: node scripts/test_engine.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

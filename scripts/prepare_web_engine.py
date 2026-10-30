@@ -26,6 +26,10 @@ def browser_compat_class(data):
             value=data[p:p+n];p+=n
             value=value.replace(b"java/security/MessageDigest",b"backrooms/compat/MessageDigest")
             value=value.replace(b"java/text/Normalizer",b"backrooms/compat/Normalizer")
+            if value in (b"kotlin/text/Regex",b"kotlin/text/Regex$Companion"):
+                value=value.replace(b"kotlin/text/Regex",b"backrooms/compat/Regex")
+            value=value.replace(b"Lkotlin/text/Regex;",b"Lbackrooms/compat/Regex;")
+            value=value.replace(b"Lkotlin/text/Regex$Companion;",b"Lbackrooms/compat/Regex$Companion;")
             out.extend(struct.pack(">H",len(value)));out.extend(value)
         else:
             n=widths[tag];out.extend(data[p:p+n]);p+=n
