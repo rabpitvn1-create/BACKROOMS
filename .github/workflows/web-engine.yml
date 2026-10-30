@@ -1,7 +1,7 @@
 name: Build playable browser engine
 on:
   push:
-    branches: [playable-web]
+    branches: [argon-first]
   workflow_dispatch:
 permissions:
   contents: read
@@ -22,7 +22,9 @@ jobs:
       - name: Compile the gameplay core to JavaScript
         run: mvn -B -f engine/pom.xml package
       - name: Verify real gameplay core and browser host
-        run: node scripts/test_engine.cjs
+        run: |
+          node scripts/test_providers.cjs
+          node scripts/test_engine.cjs
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -40,28 +42,18 @@ jobs:
           node scripts/test_pages.cjs
       - name: Verify one real turn privately on localhost
         env:
-          GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 }}
-          GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
-          GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
-          GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
-          GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
-          GEMINI_API_KEY_6: ${{ secrets.GEMINI_API_KEY_6 }}
+          REPOSITORY_SECRETS_JSON: ${{ toJSON(secrets) }}
+          EXPECT_PRIMARY_PROVIDER: Argon
         run: |
-          python3 - <<'PYCONFIG'
-          import json,os
-          from pathlib import Path
-          p=Path('build/private-runtime.json')
-          p.write_text(json.dumps({'keys':[os.environ[f'GEMINI_API_KEY_{i}'] for i in range(1,7)]}))
-          p.chmod(0o600)
-          PYCONFIG
-          python3 scripts/build_pages.py --config build/private-runtime.json
+          python3 scripts/pages_runtime.py
+          python3 scripts/build_pages.py --config build/runtime.json
           node scripts/test_live_turn.cjs
       - name: Remove the private localhost runtime configuration
         if: always()
         run: |
           python3 - <<'PYCLEAN'
           from pathlib import Path
-          Path('build/private-runtime.json').unlink(missing_ok=True)
+          Path('build/runtime.json').unlink(missing_ok=True)
           p=Path('build/pages/gameplay/config.js')
           if p.exists():p.write_text('window.BACKROOMS_CONFIG={};')
           PYCLEAN

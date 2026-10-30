@@ -12,6 +12,7 @@ for(const dir of ['knowledge','canon'])for(const name of fs.readdirSync('web/'+d
  if(/\.(json|md)$/.test(name))BACKROOMS_ASSETS[dir+'/'+name]=fs.readFileSync('web/'+dir+'/'+name,'utf8');
 }
 globalThis.BACKROOMS_CONFIG={keys:Array.from({length:6},(_,i)=>'fixture-key-'+i),models:['gemini-3.5-flash-lite'],version:'test'};
+vm.runInThisContext(fs.readFileSync('pages/providers.js','utf8'));
 vm.runInThisContext(fs.readFileSync('pages/bridge.js','utf8'));
 const html=fs.readFileSync('web/index.html','utf8');
 const initial=vm.runInNewContext(html.slice(html.indexOf('const prologue'),html.indexOf('const byId'))+'; initial');

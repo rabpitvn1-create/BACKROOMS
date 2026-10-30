@@ -11,10 +11,19 @@ MODELS = ['gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 
 
 
 def build(test_config=False, config_path=None):
+    argon = False
     if test_config:
         keys=[f'browser-fixture-key-{i}' for i in range(1,7)]
     elif config_path:
-        keys=json.loads(Path(config_path).read_text()).get('keys',[])
+        supplied=json.loads(Path(config_path).read_text())
+        keys=supplied.get('keys',[])
+        argon=supplied.get('argon',False)
+        if not isinstance(argon,dict) or not all(isinstance(argon.get(k),str) and argon[k].strip() for k in ('apiKey','baseUrl','model')):
+            raise SystemExit('Argon API key, base URL and model must all be configured.')
+        from urllib.parse import urlsplit
+        url=urlsplit(argon['baseUrl'])
+        if url.scheme!='https' or not url.netloc or url.query or url.fragment or url.username or url.password:
+            raise SystemExit('Argon base URL must be an HTTPS API URL.')
     else:
         raise SystemExit('Supply an explicitly approved runtime config file, or --test-config for fixture-only verification.')
     if len(keys)!=6 or len(set(keys))!=6 or not all(isinstance(k,str) and k.strip() for k in keys):
@@ -30,22 +39,23 @@ def build(test_config=False, config_path=None):
     shutil.copy2(engine, runtime/'game-core.js')
     shutil.copy2(ROOT/'pages/bridge.js', runtime/'bridge.js')
     shutil.copy2(ROOT/'pages/regex.js', runtime/'regex.js')
+    shutil.copy2(ROOT/'pages/providers.js', runtime/'providers.js')
     assets = {p.relative_to(ROOT/'web').as_posix(): p.read_text() for p in (ROOT/'web/knowledge').glob('*.json')}
     for p in (ROOT/'web/canon').glob('*.md'): assets[p.relative_to(ROOT/'web').as_posix()] = p.read_text()
     (runtime/'assets.js').write_text('window.BACKROOMS_ASSETS='+json.dumps(assets,ensure_ascii=False)+';\n')
-    cfg = {'keys':keys, 'models':MODELS, 'version':'1.0.0.0-web', 'argon':False}
+    cfg = {'keys':keys, 'models':MODELS, 'version':'1.0.0.0-web', 'argon':argon}
     (runtime/'config.js').write_text('window.BACKROOMS_CONFIG='+json.dumps(cfg)+';\n')
     digest=hashlib.sha256()
     for p in sorted(runtime.glob('*.js')): digest.update(p.read_bytes())
     version=digest.hexdigest()[:16]
     html=(output/'index.html').read_text().replace('<title>Backroom</title>','<title>Backrooms</title>')
-    scripts='\n'.join(f'<script src="gameplay/{name}.js?v={version}"></script>' for name in ['assets','config','regex','game-core','bridge'])
+    scripts='\n'.join(f'<script src="gameplay/{name}.js?v={version}"></script>' for name in ['assets','config','regex','game-core','providers','bridge'])
     html=html.replace('</head>',scripts+'\n</head>')
     (output/'index.html').write_text(html)
     (output/'.nojekyll').touch()
     (output/'personal-provider-config.json').write_text('{}\n')
-    (output/'build.json').write_text(json.dumps({'mode':'playable-web','engine':'recovered-apk-core','version':version,'commit':os.environ.get('GITHUB_SHA'),'primaryKeys':6,'argon':False},indent=2))
-    print(f'Playable game staged: {version}; recovered core, six primary keys, Argon disabled.')
+    (output/'build.json').write_text(json.dumps({'mode':'playable-web','engine':'recovered-apk-core','version':version,'commit':os.environ.get('GITHUB_SHA'),'primaryProvider':'Argon' if argon else 'Gemini','geminiKeys':6,'argon':bool(argon)},indent=2))
+    print(f'Playable game staged: {version}; recovered core, Argon first when configured, six Gemini fallback keys.')
     return output
 
 

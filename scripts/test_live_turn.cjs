@@ -18,6 +18,10 @@ const {chromium}=require('playwright');
   assert.ok((await page.evaluate(()=>state.log.at(-1).text)).length>40);
   const statuses=await page.evaluate(()=>__webGame.events.filter(x=>x.kind==='provider').map(x=>({alias:x.alias,model:x.model,status:x.status})));
   assert.ok(statuses.some(x=>x.status===200));assert.deepEqual(errors,[]);
+  if(process.env.EXPECT_PRIMARY_PROVIDER){
+   assert.equal(statuses[0]?.alias,process.env.EXPECT_PRIMARY_PROVIDER);
+   assert.equal(statuses[0]?.status,200,'The primary provider must complete the real game turn');
+  }
   await page.screenshot({path:'build/playable-live-turn.png'});
   console.log('PASS: real browser request, real Gemini narration, canon validation, authoritative turn commit and save');
   console.log('Provider status evidence:',JSON.stringify(statuses));

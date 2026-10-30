@@ -8,7 +8,6 @@
   const policy = assets['knowledge/level_travel_policy.json'];
   let chain = Promise.resolve(), bootError = null;
   const events = [];
-  const cooldowns = new Map();
 
   function check(value) {
     if (typeof value === 'string' && value.startsWith('{')) {
@@ -56,54 +55,7 @@
     return chain;
   }
   function record(event) { events.push(event); if (events.length > 40) events.shift(); }
-  function parseAnswer(text) {
-    let raw = String(text || '').trim().replace(/^```(?:json)?\s*|\s*```$/g, '');
-    try { return JSON.parse(raw); }
-    catch (_) {
-      const first = raw.indexOf('{'), last = raw.lastIndexOf('}');
-      if (first >= 0 && last > first) return JSON.parse(raw.slice(first, last + 1));
-      throw new Error('Game Master chưa trả về JSON hợp lệ. Lượt chưa được thay đổi.');
-    }
-  }
-  async function generate(prompt) {
-    const keys = config.keys || [];
-    if (keys.length !== 6 || keys.some(key => !key)) throw new Error('Cấu hình sáu key chưa đầy đủ.');
-    const models = config.models || ['gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-2.5-flash-lite'];
-    const failures = [];
-    for (let i = 0; i < keys.length; i++) {
-      if ((cooldowns.get(`key:${i}`) || 0) > Date.now()) continue;
-      for (const model of models) {
-        const slot = `${i}:${model}`;
-        if ((cooldowns.get(slot) || 0) > Date.now()) continue;
-        emit('backroomProvider', `Gemini K${i + 1} · ${model}`);
-        try {
-          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
-            method: 'POST', signal: AbortSignal.timeout(60000),
-            headers: { 'Content-Type': 'application/json', 'x-goog-api-key': keys[i] },
-            body: JSON.stringify({
-              contents: [{ role: 'user', parts: [{ text: prompt }] }],
-              generationConfig: { responseMimeType: 'application/json', temperature: 0.8, maxOutputTokens: 4096 },
-            }),
-          });
-          record({ kind: 'provider', alias: `K${i + 1}`, model, status: response.status });
-          if (!response.ok) {
-            failures.push(`K${i + 1} HTTP ${response.status}`);
-            if (response.status === 401) { cooldowns.set(`key:${i}`, Date.now() + 300000); break; }
-            if ([403, 404, 429].includes(response.status)) cooldowns.set(slot, Date.now() + (response.status === 429 ? 60000 : 300000));
-            continue;
-          }
-          const payload = await response.json();
-          const text = (payload.candidates?.[0]?.content?.parts || []).filter(p => !p.thought).map(p => p.text || '').join('');
-          const parsed = parseAnswer(text);
-          if (typeof parsed.reply !== 'string' || !parsed.reply.trim()) throw new Error('Phản hồi chưa có lời kể.');
-          return parsed;
-        } catch (error) {
-          failures.push(`K${i + 1}: ${error.name === 'TimeoutError' ? 'hết thời gian chờ' : 'yêu cầu không hoàn tất'}`);
-        }
-      }
-    }
-    throw new Error('Sáu key hiện chưa xử lý được lượt: ' + [...new Set(failures)].slice(-6).join('; ') + '. Có thể thử lại.');
-  }
+  const generate = window.BackroomsProviders.create(config, { emit, record });
   async function gameplay(raw, kind, action) {
     if (!['SEARCH', 'EXECUTE', 'EXPLORE'].includes(kind)) throw new Error('action_kind_invalid');
     let result = object('processLevelAction', raw, action);
