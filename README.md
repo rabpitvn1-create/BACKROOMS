@@ -4,7 +4,7 @@ Extracted from `CAO_MINH-1.0.0.0.8.apk` (70 APK entries).
 
 - `apk-original/`: byte-identical contents of all 70 APK entries, including compiled `classes*.dex` and Android manifest.
 - `web/`: recovered webview game HTML, JavaScript, CSS, game data, music and fonts, with all existing Cloudinary URLs preserved.
-- `web/personal-provider-config.json`: empty web configuration. The old provider configuration is not included in this repository. Debug packaging generates the current configuration from the repository Secret `Agron`.
+- `web/personal-provider-config.json`: empty web configuration. The old provider configuration is not included in this repository. Debug packaging generates the current configuration from the repository Secret `Argon_api_key`.
 - `apk-file-manifest.json`: original file hashes for precise audit.
 
 Note: Android `classes*.dex` are compiled bytecode, not the original Kotlin/Java source. This extraction cannot recreate missing Gradle/build configuration. The APK manifest references some `characters/` and `item-icons/` media files that are not embedded in the APK; these need to be resolved from Cloudinary or other source to make all visuals work.
@@ -17,7 +17,7 @@ The `Backrooms debug release` workflow creates `Backrooms-1.0.0.0-debug.apk`
 from the recovered APK entries, with `android:debuggable=true` and versionCode
 90000001. It does not claim to recover the original Android source project.
 
-`Agron` is the only provider Secret referenced by this workflow. A raw native
+`Argon_api_key` is the only provider Secret referenced by this workflow. A raw native
 Google key uses the existing Gemini router with that key only. Any other raw key
 uses the existing endpoint `https://api.vilao.ai/v1` and model
 `chib/gemini-3.8-flash`. A JSON Secret may explicitly supply `api_key`, `base_url`,

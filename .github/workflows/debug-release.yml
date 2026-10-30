@@ -34,6 +34,9 @@ jobs:
           AGRON: offline-smoke-fixture-not-a-real-key
         run: python3 scripts/debug_release.py
       - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
       - name: Install Android signing tools
         run: sdkmanager 'build-tools;35.0.0' 'platform-tools'
       - name: Align and sign personal debug build
@@ -110,9 +113,12 @@ jobs:
         run: python3 -m unittest discover -s scripts -p 'test_*.py' -v
       - name: Connect current Agron setting and package debug APK
         env:
-          AGRON: ${{ secrets.Agron }}
+          AGRON: ${{ secrets.Argon_api_key }}
         run: python3 scripts/debug_release.py --probe
       - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
       - name: Install Android signing tools
         run: sdkmanager 'build-tools;35.0.0' 'platform-tools'
       - name: Align and sign personal debug build
@@ -135,4 +141,3 @@ jobs:
           cd build
           sha256sum Backrooms-1.0.0.0-debug.apk > SHA256SUMS.txt
           gh release create "$TAG" Backrooms-1.0.0.0-debug.apk SHA256SUMS.txt --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title 'Backrooms 1.0.0.0 debug' --notes-file ../android-debug/RELEASE_NOTES.md
-

@@ -35,7 +35,7 @@ def fail(message):
 def configuration(raw):
     raw = raw.strip()
     if not raw:
-        fail("Repository Secret Agron is missing or empty.")
+        fail("Repository Secret Argon_api_key is missing or empty.")
     data = {}
     if raw.startswith("{"):
         try:
