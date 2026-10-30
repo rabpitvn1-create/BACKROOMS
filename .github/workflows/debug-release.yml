@@ -37,7 +37,6 @@ jobs:
           GEMINI_API_KEY_4: offline-new-key-4
           GEMINI_API_KEY_5: offline-new-key-5
           GEMINI_API_KEY_6: offline-new-key-6
-          ARGON: offline-argon-fixture
         run: python3 scripts/debug_release.py
       - uses: android-actions/setup-android@v3
         with:
@@ -111,7 +110,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-      - name: Verify all six primary keys and final Argon fallback
+      - name: Verify all six current primary keys
         env:
           GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 }}
           GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
@@ -119,7 +118,6 @@ jobs:
           GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
           GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
           GEMINI_API_KEY_6: ${{ secrets.GEMINI_API_KEY_6 }}
-          ARGON: ${{ secrets.Argon_api_key }}
         run: python3 scripts/debug_release.py --probe-only
   debug:
     needs: [verify, connection]
@@ -144,7 +142,7 @@ jobs:
           fi
       - name: Test recovered package and key replacement
         run: python3 -m unittest discover -s scripts -p 'test_*.py' -v
-      - name: Package six current primary keys and Argon fallback
+      - name: Package six current keys with external fallback disabled
         env:
           GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 }}
           GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
@@ -152,7 +150,6 @@ jobs:
           GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
           GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
           GEMINI_API_KEY_6: ${{ secrets.GEMINI_API_KEY_6 }}
-          ARGON: ${{ secrets.Argon_api_key }}
         run: python3 scripts/debug_release.py
       - uses: android-actions/setup-android@v3
         with:

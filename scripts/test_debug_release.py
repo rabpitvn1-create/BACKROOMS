@@ -1,81 +1,67 @@
-import json
+import hashlib
 from pathlib import Path
+import struct
 import tempfile
 import unittest
 from unittest.mock import patch
 import zipfile
+import zlib
+import json
 
 import debug_release as release
 
 
 def fixture():
-    return {**{f"GEMINI_API_KEY_{i}": f"new-test-key-{i}" for i in range(1, 7)},
-            "ARGON": "new-test-argon-key"}
+    return {f"GEMINI_API_KEY_{i}": f"new-test-key-{i}" for i in range(1, 7)}
 
 
 class DebugReleaseTests(unittest.TestCase):
-    def test_six_current_keys_and_final_argon_are_independent(self):
+    def test_only_six_current_keys_are_used(self):
         env = fixture()
         config = release.configuration(env)
         for i in range(1, 7):
             self.assertEqual(config[f"GEMINI_API_KEY_{i}"], env[f"GEMINI_API_KEY_{i}"])
-        self.assertEqual(config["GEMINI_4_API_KEY"], env["ARGON"])
-        self.assertEqual(len(config), 9)
+        self.assertEqual(config["GEMINI_4_API_KEY"], "")
+        self.assertEqual(config["GEMINI_4_MODEL"], "")
 
-    def test_missing_or_duplicate_primary_keys_stop_packaging(self):
+    def test_argon_value_is_ignored_until_reenabled(self):
+        self.assertEqual(release.configuration({**fixture(), "ARGON": "old-unused-value"}),
+                         release.configuration(fixture()))
+
+    def test_missing_duplicate_or_invalid_primary_keys_stop_packaging(self):
         for i in range(1, 7):
             env = fixture()
             del env[f"GEMINI_API_KEY_{i}"]
             with self.subTest(key=i), self.assertRaises(SystemExit):
                 release.configuration(env)
-        env = fixture()
-        env["GEMINI_API_KEY_6"] = env["GEMINI_API_KEY_1"]
-        with self.assertRaises(SystemExit):
-            release.configuration(env)
+        for invalid in ("new-test-key-1", "contains whitespace", "x" * 1025):
+            env = {**fixture(), "GEMINI_API_KEY_6": invalid}
+            with self.subTest(value=invalid[:20]), self.assertRaises(SystemExit):
+                release.configuration(env)
 
-    def test_missing_argon_stops_incomplete_release(self):
-        env = fixture()
-        del env["ARGON"]
-        with self.assertRaises(SystemExit):
-            release.configuration(env)
-
-    def test_missing_fallback_allows_primary_probes_but_never_packaging_config(self):
-        env = fixture()
-        del env["ARGON"]
-        config = release.configuration(env, allow_missing_fallback=True)
-        with patch.object(release, "probe_provider") as call, self.assertRaises(SystemExit):
-            release.probe(config)
-        self.assertEqual(call.call_count, 6)
-        with self.assertRaises(SystemExit):
-            release.configuration(env)
-
-    def test_json_argon_preserves_explicit_endpoint_and_model(self):
-        env = fixture()
-        env["ARGON"] = json.dumps({"apiKey": "test-argon-key", "baseUrl": "https://example.org/v1", "model": "example-model"})
-        config = release.configuration(env)
-        self.assertEqual(config["GEMINI_4_BASE_URL"], "https://example.org/v1")
-        self.assertEqual(config["GEMINI_4_MODEL"], "example-model")
-        self.assertEqual(config["GEMINI_API_KEY_1"], env["GEMINI_API_KEY_1"])
-
-    def test_probes_cover_each_primary_key_then_argon(self):
+    def test_probes_cover_all_six_keys_without_external_fallback(self):
         config = release.configuration(fixture())
         with patch.object(release, "probe_provider") as call:
             release.probe(config)
-        self.assertEqual(call.call_count, 7)
+        self.assertEqual(call.call_count, 6)
         for i in range(6):
             args = call.call_args_list[i].args
             self.assertTrue(args[1])
             self.assertEqual(args[0]["GEMINI_API_KEY_1"], config[f"GEMINI_API_KEY_{i + 1}"])
-        self.assertFalse(call.call_args_list[-1].args[1])
-        self.assertEqual(call.call_args_list[-1].args[2], "Argon final fallback")
 
-    def test_invalid_argon_configuration_stops_before_packaging(self):
-        for value in ("", "{", '{"key":""}', '{"key":"test","base_url":"http://example.org"}'):
-            env = {**fixture(), "ARGON": value}
-            with self.subTest(value=value), self.assertRaises(SystemExit):
-                release.configuration(env)
+    def test_pinned_patch_changes_only_blank_field_guard_and_checksums(self):
+        original = (release.ROOT / "apk-original/classes5.dex").read_bytes()
+        result = release.patch_credentials(original)
+        self.assertEqual(len(result), len(original))
+        self.assertEqual(result[32:44398], original[32:44398])
+        self.assertEqual(result[44398:44402], bytes(4))
+        self.assertEqual(result[44402:], original[44402:])
+        self.assertEqual(result[12:32], hashlib.sha1(result[32:]).digest())
+        self.assertEqual(struct.unpack_from("<I", result, 8)[0], zlib.adler32(result[12:]) & 0xffffffff)
+        with self.assertRaises(SystemExit):
+            release.patch_credentials(b"unexpected input")
 
-    def test_recovered_apk_keeps_original_dex_and_gameplay_entries(self):
+    def test_package_preserves_gameplay_and_disables_fallback(self):
         config = release.configuration(fixture())
         with tempfile.TemporaryDirectory() as temp:
             target = Path(temp) / "debug.apk"
@@ -88,7 +74,8 @@ class DebugReleaseTests(unittest.TestCase):
                 self.assertEqual(attrs[("manifest", "versionCode")][3], 90000001)
                 self.assertTrue(attrs[("application", "debuggable")][3])
                 for p in (release.ROOT / "apk-original").glob("classes*.dex"):
-                    self.assertEqual(apk.read(p.name), p.read_bytes())
+                    expected = release.patch_credentials(p.read_bytes()) if p.name == "classes5.dex" else p.read_bytes()
+                    self.assertEqual(apk.read(p.name), expected)
 
 
 if __name__ == "__main__":

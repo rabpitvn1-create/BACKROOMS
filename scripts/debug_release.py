@@ -1,7 +1,7 @@
-"""Package the recovered debug APK with six current Gemini keys, then Argon.
+"""Package six current Gemini keys with the external fallback disabled.
 
-The original credential validator and provider router remain byte-identical.
-Only the manifest and generated provider configuration change.
+A pinned four-byte DEX edit permits blank fallback fields; the existing primary
+router, six-key distinctness check, value lengths and URL validation remain.
 """
 import argparse
 import hashlib
@@ -30,7 +30,7 @@ def fail(message):
     raise SystemExit(message)
 
 
-def configuration(env=None, allow_missing_fallback=False):
+def configuration(env=None):
     env = os.environ if env is None else env
     fields = [f"GEMINI_API_KEY_{i}" for i in range(1, 7)]
     config = {name: env.get(name, "").strip() for name in fields}
@@ -39,36 +39,12 @@ def configuration(env=None, allow_missing_fallback=False):
         fail("Missing primary repository Secrets: " + ", ".join(missing))
     if len(set(config.values())) != 6:
         fail("The six primary keys must be distinct.")
-    raw = env.get("ARGON", "").strip()
-    if not raw and not allow_missing_fallback:
-        fail("Repository Secret Argon_api_key is missing or empty.")
-    data = {}
-    if raw.startswith("{"):
-        try:
-            data = json.loads(raw)
-        except ValueError:
-            fail("Argon configuration contains invalid JSON.")
-        if not isinstance(data, dict):
-            fail("Argon configuration must be a JSON object.")
-        key = next((data[k] for k in ("api_key", "apiKey", "API_KEY", "ARGON_API_KEY",
-                                     "key", "GEMINI_4_API_KEY") if data.get(k)), "")
-    else:
-        key = raw
-    base = next((data[k] for k in ("base_url", "baseUrl", "BASE_URL", "GEMINI_4_BASE_URL")
-                 if data.get(k)), DEFAULT_BASE)
-    model = next((data[k] for k in ("model", "MODEL", "GEMINI_4_MODEL") if data.get(k)), DEFAULT_MODEL)
-    config.update(GEMINI_4_API_KEY=key, GEMINI_4_BASE_URL=base, GEMINI_4_MODEL=model)
-    checked = {k: v for k, v in config.items()
-               if not (allow_missing_fallback and k == "GEMINI_4_API_KEY" and not v)}
-    if not all(isinstance(v, str) and v.strip() and len(v) <= 1024 for v in checked.values()):
-        fail("Current provider configuration contains invalid values.")
-    config = {k: v.strip() for k, v in config.items()}
-    for name in fields + ["GEMINI_4_API_KEY"]:
-        if re.search(r"\s", config[name]):
+    for name in fields:
+        if len(config[name]) > 1024 or re.search(r"\s", config[name]):
             fail("Invalid API key value in " + name)
-    url = urllib.parse.urlsplit(config["GEMINI_4_BASE_URL"])
-    if url.scheme != "https" or not url.hostname or url.username or url.password or url.query or url.fragment:
-        fail("Argon base URL is invalid.")
+    # The legacy validator still checks the base URL even with fallback disabled.
+    # Empty key/model make MainActivity's fallbackConfigured evaluate to false.
+    config.update(GEMINI_4_API_KEY="", GEMINI_4_BASE_URL=DEFAULT_BASE, GEMINI_4_MODEL="")
     return config
 
 
@@ -129,17 +105,23 @@ def probe(config):
         except SystemExit as error:
             print(str(error), flush=True)
             failures.append(f"Gemini K{i}")
-    if config["GEMINI_4_API_KEY"]:
-        try:
-            probe_provider(config, False, "Argon final fallback")
-        except SystemExit as error:
-            print(str(error), flush=True)
-            failures.append("Argon final fallback")
-    else:
-        print("Repository Secret Argon_api_key is missing or empty.", flush=True)
-        failures.append("Argon final fallback (missing Secret)")
     if failures:
         fail("Provider checks incomplete: " + ", ".join(failures) + ". No APK has been published.")
+
+
+def patch_credentials(original):
+    if hashlib.sha256(original).hexdigest() != DEX_SHA256:
+        fail("Recovered provider DEX changed; review fallback compatibility before building.")
+    b = bytearray(original)
+    # validateConfig: invoke String.isEmpty; move-result v6; if-nez v6,+16.
+    # Permit blank fallback key/model; primary emptiness is checked by configuration.
+    offset = 44398
+    if b[offset:offset + 4] != bytes.fromhex("39061000"):
+        fail("Unexpected credential validation instruction.")
+    b[offset:offset + 4] = bytes(4)
+    b[12:32] = hashlib.sha1(b[32:]).digest()
+    struct.pack_into("<I", b, 8, zlib.adler32(b[12:]) & 0xffffffff)
+    return bytes(b)
 
 
 def axml(b):
@@ -195,7 +177,7 @@ def patch_manifest(original):
 
 def package(config, output):
     source = ROOT / "apk-original"
-    expected = {"AndroidManifest.xml", "assets/personal-provider-config.json"}
+    expected = {"AndroidManifest.xml", "classes5.dex", "assets/personal-provider-config.json"}
     if hashlib.sha256((source / "classes5.dex").read_bytes()).hexdigest() != DEX_SHA256:
         fail("Recovered provider DEX changed; review runtime routing before building.")
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -209,6 +191,8 @@ def package(config, output):
             content = p.read_bytes()
             if name == "AndroidManifest.xml":
                 content = patch_manifest(content)
+            elif name == "classes5.dex":
+                content = patch_credentials(content)
             apk.writestr(name, content, compress_type=zipfile.ZIP_STORED if name == "resources.arsc" else zipfile.ZIP_DEFLATED)
         apk.writestr("assets/personal-provider-config.json", json.dumps(config))
     with zipfile.ZipFile(output) as apk:
@@ -234,7 +218,7 @@ def main():
     parser.add_argument("--probe-only", action="store_true")
     parser.add_argument("--output", type=Path, default=ROOT / "build/Backrooms-1.0.0.0-debug-unsigned.apk")
     args = parser.parse_args()
-    config = configuration(allow_missing_fallback=args.probe_only)
+    config = configuration()
     if args.probe or args.probe_only:
         probe(config)
     if not args.probe_only:
