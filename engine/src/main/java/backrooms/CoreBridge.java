@@ -29,7 +29,7 @@ public final class CoreBridge {
     }catch(Throwable t){return error(t);}
   }
   @JSExport public static String coreCandidate(String state,String generated,String rolls,String action){try{return narrator.candidate(state,generated,rolls,action);}catch(Throwable t){return error(t);}}
-  private static String error(Throwable t){return new JSONObject().put("bridgeError",t.toString()).toString();}
+  private static String error(Throwable t){t.printStackTrace();return new JSONObject().put("bridgeError",t.toString()).toString();}
   @JSExport public static String coreInit(String policy, String saved) {
     try {
       repository=new MemorySave();
@@ -38,7 +38,7 @@ public final class CoreBridge {
           new LevelTravelEngine(new LevelTravelPolicy(new JSONObject(policy)), () -> Math.random()),
           () -> (int)(Math.random()*10000));
       return "{\"ok\":true}";
-    } catch(Throwable t) {return new JSONObject().put("bridgeError",t.toString()).toString();}
+    } catch(Throwable t) {return error(t);}
   }
   @JSExport public static String coreCall(String name, String a, String b, String c, String d) {
     try {
@@ -67,6 +67,6 @@ public final class CoreBridge {
         case "clear":facade.clear();return "{}";
         default:throw new IllegalArgumentException("Unknown core call: "+name);
       }
-    }catch(Throwable t){return new JSONObject().put("bridgeError",t.toString()).toString();}
+    }catch(Throwable t){return error(t);}
   }
 }

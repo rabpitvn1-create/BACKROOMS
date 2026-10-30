@@ -57,7 +57,9 @@ final class NarratorLogic {
       .put("threshold", threshold)
       .put("eligible", eligible && threshold > 0);
     double percent = max > 0 ? (threshold * 100.0 / max) : 0.0;
-    result.put("chancePercent", percent).put("chance", String.format(java.util.Locale.ROOT, "%.4f%%%s", percent, suffix == null ? "" : suffix));
+    long scaled=Math.round(percent*10000.0);
+    String fraction=Long.toString(scaled%10000);while(fraction.length()<4)fraction="0"+fraction;
+    result.put("chancePercent",percent).put("chance",(scaled/10000)+"."+fraction+"%"+(suffix==null?"":suffix));
     if (!eligible || threshold <= 0) return result.put("roll", JSONObject.NULL).put("success", false);
     if (threshold >= max) return result.put("roll", JSONObject.NULL).put("success", true).put("guaranteedByState", true);
     int roll = GAME_RNG.nextInt(max) + 1;
