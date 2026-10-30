@@ -23,6 +23,55 @@ jobs:
         run: mvn -B -f engine/pom.xml package
       - name: Verify real gameplay core and browser host
         run: node scripts/test_engine.cjs
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Stage fixture-only browser gameplay tests
+        run: python3 scripts/build_pages.py --test-config
+      - name: Install browser verification tools
+        run: |
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Verify mobile and desktop gameplay
+        run: |
+          mkdir -p build/test-host
+          ln -s "$GITHUB_WORKSPACE/build/pages" build/test-host/Backrooms
+          python3 -m http.server 4173 --bind 127.0.0.1 --directory build/test-host > build/browser-server.log 2>&1 &
+          node scripts/test_pages.cjs
+      - name: Verify one real turn privately on localhost
+        env:
+          GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 }}
+          GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
+          GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
+          GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
+          GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
+          GEMINI_API_KEY_6: ${{ secrets.GEMINI_API_KEY_6 }}
+        run: |
+          python3 - <<'PYCONFIG'
+          import json,os
+          from pathlib import Path
+          p=Path('build/private-runtime.json')
+          p.write_text(json.dumps({'keys':[os.environ[f'GEMINI_API_KEY_{i}'] for i in range(1,7)]}))
+          p.chmod(0o600)
+          PYCONFIG
+          python3 scripts/build_pages.py --config build/private-runtime.json
+          node scripts/test_live_turn.cjs
+      - name: Remove the private localhost runtime configuration
+        if: always()
+        run: |
+          python3 - <<'PYCLEAN'
+          from pathlib import Path
+          Path('build/private-runtime.json').unlink(missing_ok=True)
+          p=Path('build/pages/gameplay/config.js')
+          if p.exists():p.write_text('window.BACKROOMS_CONFIG={};')
+          PYCLEAN
+      - name: Keep gameplay verification screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playable-browser-evidence
+          path: build/playable-*.png
+          if-no-files-found: ignore
       - uses: actions/upload-artifact@v4
         if: always()
         with:
