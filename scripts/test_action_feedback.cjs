@@ -9,14 +9,9 @@ function deferred(){let release;const promise=new Promise(resolve=>{release=reso
       const page=await browser.newPage({viewport});
       const errors=[];page.on('pageerror',error=>errors.push(error.message));
       await page.addInitScript(()=>{Math.random=()=>0.61});
-      let gate=null,firstKey=null,requests=0;
-      await page.route('https://generativelanguage.googleapis.com/**',async route=>{
+      let gate=null,requests=0;
+      await page.route('https://backrooms-api-proxy.lightangel1092.workers.dev/**',async route=>{
         requests++;
-        if(!firstKey)firstKey=await page.evaluate(()=>window.BACKROOMS_CONFIG.keys[0]);
-        if(route.request().headers()['x-goog-api-key']===firstKey){
-          await route.fulfill({status:401,contentType:'application/json',body:'{}'});
-          return;
-        }
         if(gate)await gate.promise;
         await route.fulfill({status:200,contentType:'application/json',
           body:JSON.stringify({candidates:[{content:{parts:[{text:JSON.stringify(response)}]}}]})});
