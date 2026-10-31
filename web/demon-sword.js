@@ -165,7 +165,8 @@
         try {
           if (sword.style.display === 'none') return false;
           if (!sword.getAttribute('src')) return false;
-          if (sword.dataset.swordState !== 'shoulder') return false;
+          try { sword.dataset.swordState = 'shoulder'; } catch (e) {}
+          // (bỏ kiểm tra, ép về shoulder để animation luôn chạy khi vào combat)
         } catch (e) { return false; }
         S.attacking = true;
         cleanupFx(stage);
