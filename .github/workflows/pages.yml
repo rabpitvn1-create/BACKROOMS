@@ -79,6 +79,10 @@ jobs:
         uses: actions/deploy-pages@v4
         with:
           artifact_name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Verify the mobile-only layout on the published GitHub Pages
+        env:
+          PAGES_TEST_URL: ${{ steps.deployment.outputs.page_url }}
+        run: node scripts/test_mobile_only.cjs
       - name: Verify a real AI turn on the published game
         env:
           PAGES_TEST_URL: ${{ steps.deployment.outputs.page_url }}
