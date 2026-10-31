@@ -15,7 +15,7 @@
     if(!available(el))return;
     clearTimeout(timers.get(el));
     el.classList.add('backroom-activated');
-    timers.set(el,setTimeout(()=>el.classList.remove('backroom-activated'),430));
+    timers.set(el,setTimeout(()=>el.classList.remove('backroom-activated'),1200));
   }
   function release(){
     if(!held)return;
