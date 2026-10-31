@@ -188,6 +188,8 @@ def package(config, output):
         "assets/cao-minh-asset-db.js": cao_minh_assets.registry_script().encode("utf-8"),
         "assets/characters/cao-minh-assets.json": (
             ROOT / "web/characters/cao-minh-assets.json").read_bytes(),
+        "assets/characters/manifest.json": (
+            ROOT / "web/characters/manifest.json").read_bytes(),
     }
     expected = {"AndroidManifest.xml", "classes5.dex", "assets/personal-provider-config.json"}
     if hashlib.sha256((source / "classes5.dex").read_bytes()).hexdigest() != DEX_SHA256:

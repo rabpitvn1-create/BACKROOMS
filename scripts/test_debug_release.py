@@ -80,6 +80,9 @@ class DebugReleaseTests(unittest.TestCase):
                 self.assertIn(b"BACKROOMS_CAO_MINH_ASSET_DATABASE", apk.read("assets/cao-minh-asset-db.js"))
                 self.assertIn(b"offline-character-assets.js", apk.read("assets/index.html"))
                 self.assertIn(b"characterSword", apk.read("assets/cloudinary-gameplay.js"))
+                images_manifest = json.loads(apk.read("assets/characters/manifest.json"))
+                self.assertEqual(sum(1 for x in images_manifest["assets"]
+                                     if x.get("public_id", "").startswith("backrooms/cao_minh/")), 4)
                 for p in (release.ROOT / "apk-original").glob("classes*.dex"):
                     expected = release.patch_credentials(p.read_bytes()) if p.name == "classes5.dex" else p.read_bytes()
                     self.assertEqual(apk.read(p.name), expected)

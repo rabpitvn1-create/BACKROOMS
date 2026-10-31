@@ -13,6 +13,11 @@ class CaoMinhAssetsTests(unittest.TestCase):
         self.assertEqual(sum(item["bytes"] for item in db["assets"]), 6099063)
         self.assertEqual(len({item["url"] for item in db["assets"]}), 4)
 
+        manifest = json.loads((assets.ROOT / "web/characters/manifest.json").read_text())
+        records = [x for x in manifest["assets"] if x.get("public_id", "").startswith("backrooms/cao_minh/")]
+        self.assertEqual(len(records), 4)
+        self.assertEqual({x["url"] for x in records}, {x["url"] for x in db["assets"]})
+
     def test_db_is_injected_without_image_files_or_base64(self):
         script = assets.registry_script()
         self.assertEqual(script.count('"cao-minh:'), 4)
