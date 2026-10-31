@@ -65,6 +65,8 @@ def build(test_config=False, config_path=None):
               'self.__BACKROOMS_SHELL_VERSION=' + json.dumps(
                   hashlib.sha256(
                       (version + cao_minh_assets.registry_script(asset_db)).encode() +
+                      (output / 'index.html').read_bytes() +
+                      (output / 'phone.html').read_bytes() +
                       (output / 'web-mobile-only.css').read_bytes()
                   ).hexdigest()[:16]
               ) + ';\n')
