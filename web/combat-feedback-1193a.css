@@ -127,7 +127,7 @@ body.poker-dice-open .player-action-bar .primary-action{pointer-events:none;opac
 .combat-feedback-entry .combat-semantic--status-armor{color:#83cfff;font-weight:800}
 .combat-feedback-entry .combat-semantic--status-disorient{color:#8fe3d1;font-weight:800}
 .combat-feedback-entry .combat-semantic--miss{color:#ffbd66;font-weight:700}
-.combat-turn-indicator{display:none!important}
+.combat-turn-indicator{display:flex!important;min-height:40px;padding:6px 9px;margin-top:6px}
 /* On short viewports, preserve the full-size Snapshot and a usable scrollable Log.
    Only the game scrolls when the full stack cannot fit; keep actions within reach. */
 @media(max-height:740px){

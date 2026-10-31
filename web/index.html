@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="narrative-format.css">
 <script src="narrative-format.js"></script>
 <link rel="stylesheet" href="combat-feedback-1193a.css">
+<link rel="stylesheet" href="touch-feedback.css">
 <style>
 *{box-sizing:border-box}body{margin:0;background:#080a0c;color:#eef1f3;font:15px var(--game-font)}.shell{min-height:100vh;padding:10px;background:radial-gradient(circle at top,#161b20,#07090b 75%)}.game,.card{border:1px solid #2b3137;background:#0e1114;box-shadow:0 20px 60px #0007}.topbar{display:flex;justify-content:space-between;gap:12px;padding:16px;border-bottom:1px solid #2b3137}.eyebrow,.role{color:#8f9aa4;font-size:10px;font-weight:800;letter-spacing:.16em}h1{margin:4px 0 0;font-size:23px}.turn{color:#9aa4ad;font-size:12px;letter-spacing:.1em}.turn strong{font-size:21px;color:white}.snapshot{height:300px;margin:8px 10px 10px;border:1px solid #252b31;display:grid;place-items:center;background:#0b0d0f;color:#69737c;border-radius:10px;overflow:hidden}.snapshot img{width:100%;height:100%;object-fit:cover}.log{height:42vh;overflow:auto;padding:10px;display:grid;gap:10px}.message{border-left:3px solid #454e56;padding:11px;background:#111519}.message.player{border-left-color:#8b949e;background:#15191d}.role{margin-bottom:6px}.text{white-space:pre-wrap;line-height:1.55}.composer{display:grid;gap:8px;padding:10px}textarea,button{font:inherit}textarea{min-height:80px;background:#090c0f;color:white;border:1px solid #30373e;padding:10px}button{border:1px solid #3a4249;background:#1a2025;color:#eff2f4;padding:12px;font-weight:700}.status{border-top:1px solid #252b31;padding:10px;color:#9aa4ad;font-size:12px}.side{display:grid;gap:10px;margin-top:10px}.card{padding:14px}.card h2{font-size:13px;letter-spacing:.1em;margin:0 0 10px}.row{display:grid;grid-template-columns:90px 1fr;padding:6px 0;border-bottom:1px solid #22282d;color:#dce2e5}.row b{color:#78838c;font-weight:400}.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.actions .wide{grid-column:1/-1}.danger{background:#241616;color:#e6b1b1;border-color:#663b3b}.chips{display:flex;flex-wrap:wrap;gap:6px}.chips span{border:1px solid #313940;padding:5px 7px;font-size:12px}.party-time{min-height:16px;margin:-2px 0 9px;color:#78838c;font-size:11px}.party-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.party-member{border:1px solid #313940;background:#111519;padding:7px;display:grid;gap:6px;text-align:center;cursor:pointer;min-width:0}.party-member img,.party-avatar-placeholder{width:100%;aspect-ratio:1/1;object-fit:cover;border:1px solid #333b42;background:#0b0e11}.party-avatar-placeholder{display:grid;place-items:center;color:#78838c;font-size:18px;font-weight:800}.party-member strong{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.party-member .party-state{color:#84909a;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.party-member.empty{cursor:default;opacity:.45}.party-member.empty .party-avatar-placeholder{font-size:11px}.character-inventory-view{position:fixed;inset:0;z-index:50;background:#080a0c;padding:14px;overflow:auto}.character-inventory-head{display:flex;align-items:center;gap:12px;border-bottom:1px solid #2b3137;padding-bottom:12px}.character-inventory-head button{width:auto}.character-inventory-head h2{margin:3px 0 0}.character-profile{display:grid;grid-template-columns:110px 1fr;gap:14px;align-items:center;padding:16px 0}.character-profile img{width:110px;height:110px;object-fit:cover;border:1px solid #3b444c}.inventory-capacity{font-size:18px;font-weight:800}.inventory-limit{margin-top:5px;color:#8f9aa4;font-size:12px}.character-section{border:1px solid #2b3137;background:#0e1114;padding:14px;margin-top:10px}.character-section h3{margin:0 0 10px;font-size:12px;letter-spacing:.12em;text-transform:uppercase}.equipment-list,.character-status-list{display:grid;gap:7px}.equipment-list span,.character-status-row{border:1px solid #313940;padding:9px;color:#dce2e5}.character-status-row{display:grid;grid-template-columns:minmax(90px,35%) 1fr;gap:8px}.character-status-row b{color:#78838c;font-weight:400}.status-normal{color:#9aa4ad}.status-warning{color:#d6c28a}.status-danger{color:#df9a9a}@media(max-width:520px){.party-grid{grid-template-columns:repeat(4,1fr)}.party-member{padding:4px}.party-member strong{font-size:9px}.party-member .party-state{font-size:8px}}
 
@@ -1729,6 +1730,9 @@ render();
   var modal=document.getElementById("pokerDiceModal"),row=document.getElementById("pokerDiceRow"),meta=document.getElementById("pokerDiceMeta"),hand=document.getElementById("pokerDiceHand");
   var roll=document.getElementById("pokerDiceRoll"),finish=document.getElementById("pokerDiceFinish");
   var DIRECT_COMBAT_ACTION="Cả Party cùng tấn công",submitAfterFinalize=false;
+  var submittedDiceActions=new Set();
+  function diceKey(d){var c=state&&state.combat||{};return String(c.encounterId||"")+"|"+String(d&&d.action||"")}
+  function notify(text){if(typeof window.backroomActionToast==="function")window.backroomActionToast(text)}
   var rollStartedAt=0,rollVisualEpoch=0,rollLandingTimer=null,ROLL_VISUAL_MS=1400;
   function cancelRollVisual(){rollVisualEpoch++;if(rollLandingTimer!=null)clearTimeout(rollLandingTimer);rollLandingTimer=null;}
 
@@ -1745,6 +1749,16 @@ render();
   }
   function hide(){modal.hidden=true;modal.setAttribute("aria-hidden","true");document.body.classList.remove("poker-dice-open")}
   function setBusy(value){window.__combatDiceBusy=!!value;if(typeof busy!=="undefined")busy=!!value||!modal.hidden;if(typeof window.renderCombatActionBar==="function")window.renderCombatActionBar()}
+  function resolveDiceOnce(){
+    var d=dice();if(!d||d.finalized!==true||window.__directCombatResolving)return false;
+    var key=diceKey(d);if(submittedDiceActions.has(key))return false;
+    submittedDiceActions.add(key);
+    if(submittedDiceActions.size>100)submittedDiceActions.delete(submittedDiceActions.values().next().value);
+    window.__directCombatResolving=true;setBusy(true);
+    if(statusEl)statusEl.textContent="Đã chốt xúc xắc. Đang giải quyết lượt chiến đấu…";
+    Android.submitAction(JSON.stringify(state),"EXECUTE",lockedCombatAction());
+    return true;
+  }
   function renderDice(){
     var pending=!dice(),d=dice()||{values:[1,2,3,4,5],held:[],rerollsUsed:0,maxRerolls:3};
     document.getElementById("pokerDiceTitle").textContent="POKER DICE";
@@ -1758,7 +1772,11 @@ render();
       if(window.__combatDiceRolling&&!held[index]&&!reduced){
         var sprite=document.createElement("span");sprite.className="dice-original-roll";sprite.setAttribute("aria-hidden","true");button.appendChild(sprite);
       }
-      button.addEventListener("click",function(){if(window.__combatDiceBusy||!window.Android||typeof Android.combatDiceHold!=="function")return;setBusy(true);Android.combatDiceHold(JSON.stringify(state),index,!held[index])});
+      button.addEventListener("click",function(){
+        if(window.__combatDiceBusy||!window.Android||typeof Android.combatDiceHold!=="function")return;
+        notify((held[index]?"Bỏ giữ":"Giữ")+" xúc xắc "+(index+1));
+        setBusy(true);Android.combatDiceHold(JSON.stringify(state),index,!held[index]);
+      });
     })(i)}
     hand.textContent=d.hand?("["+String(d.hand)+"]"):"";
     var allHeld=held.length===5&&held.every(function(x){return x===true});
@@ -1782,10 +1800,8 @@ render();
       window.__directCombatPreparing=false;window.__combatDiceBusy=false;renderDice();
       if(typeof busy!=="undefined")busy=true;
       if(d.finalized===true&&!window.__directCombatResolving){
-        window.__directCombatResolving=true;setBusy(true);
-        if(statusEl)statusEl.textContent="Poker Dice đã chốt. Đang tiếp tục combat…";
-        Android.submitAction(JSON.stringify(state),"EXECUTE",lockedCombatAction());
-        return;
+        if(resolveDiceOnce())return;
+        if(statusEl)statusEl.textContent="Xúc xắc này đã được xử lý. Đang đồng bộ lượt mới…";
       }
       if(statusEl)statusEl.textContent="Poker Dice · "+String(d.hand||"");
       return;
@@ -1803,22 +1819,24 @@ render();
 
   roll.addEventListener("click",function(){
     if(window.__combatDiceBusy||!window.Android||typeof Android.combatDiceRoll!=="function")return;
+    notify("Đang tung xúc xắc…");
     cancelRollVisual();rollStartedAt=Date.now();window.__combatDiceRolling=true;setBusy(true);renderDice();Android.combatDiceRoll(JSON.stringify(state));
   });
   finish.addEventListener("click",function(){
     if(window.__combatDiceBusy||!window.Android||typeof Android.combatDiceFinish!=="function")return;
+    notify("Đang chốt lượt xúc xắc…");
     submitAfterFinalize=true;setBusy(true);Android.combatDiceFinish(JSON.stringify(state));
   });
   function acceptCombatDiceState(json){
     try{
+      var wasPreparing=window.__directCombatPreparing;
       state=JSON.parse(json);window.__directCombatPreparing=false;window.__combatDiceRolling=false;window.__combatDiceBusy=false;show();renderDice();
       var d=dice();
       if(submitAfterFinalize&&d&&d.finalized===true){
-        submitAfterFinalize=false;window.__directCombatResolving=true;setBusy(true);
-        if(statusEl)statusEl.textContent="Poker Dice đã chốt. Đang giải quyết combat…";
-        Android.submitAction(JSON.stringify(state),"EXECUTE",lockedCombatAction());
-        return;
+        submitAfterFinalize=false;
+        if(resolveDiceOnce()){notify("Đã chốt xúc xắc. Bắt đầu giải quyết chiến đấu.");return;}
       }
+      if(wasPreparing)notify("Combat Dice đã làm mới cho lượt chiến đấu.");
       if(typeof busy!=="undefined")busy=true;
       if(statusEl)statusEl.textContent="Poker Dice · "+String(d&&d.hand||"");
       if(typeof window.renderCombatActionBar==="function")window.renderCombatActionBar();
@@ -1838,6 +1856,7 @@ render();
     window.__combatDiceBusy=false;window.__combatDiceRolling=false;window.__directCombatPreparing=false;window.__directCombatResolving=false;submitAfterFinalize=false;
     if(typeof busy!=="undefined")busy=combatActive();
     if(statusEl)statusEl.textContent=String(message||"Poker Dice lỗi.");
+    notify("Lỗi Combat Dice: "+String(message||"Không thể xử lý."));
     renderDice();if(typeof window.renderCombatActionBar==="function")window.renderCombatActionBar();
   };
 
@@ -1947,6 +1966,7 @@ render();
 <script src="mobile-hud.js"></script>
 <script src="diagnostic-export.js"></script>
 <script src="level-travel.js"></script>
+<script src="touch-feedback.js"></script>
 <script src="primary-actions.js"></script>
 <script src="item-detail-actions.js"></script>
 <script src="bgm-player.js"></script>

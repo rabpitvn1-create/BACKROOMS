@@ -497,10 +497,14 @@
       stopCombatMotion();
       window.backroomSwitchCombatEntityWave(cue.entityKey,cue.waveNumber);
     }
-    // Keep the last Party fighter in NOW while Entity counterattacks.
-    turnIndicator.hidden=true;turnIndicator.dataset.kind=kind;
+    // Preserve the Party portrait, but show a distinct, truthful Entity-turn cue.
+    var isFightingTurn=kind==='actor'||kind==='entity';
+    turnIndicator.hidden=!isFightingTurn;turnIndicator.dataset.kind=kind;
+    turnIndicator.classList.toggle('combat-turn-indicator--loading',isFightingTurn);
     if(turnName)turnName.textContent=kind==='actor'?String(cue.actorName||'Cao Minh'):String(cue.entityName||'Entity');
-    if(turnDetail)turnDetail.textContent='';
+    if(turnDetail)turnDetail.textContent=kind==='actor'?'LƯỢT PARTY':kind==='entity'?'LƯỢT ENTITY':'';
+    if(kind==='entity')appendCombatLine('entity',[
+      combatSemantic('entity',String(cue.entityName||'Entity')),' đến lượt.']);
     if(kind==='wave'){
       appendCombatLine('system',['Bắt đầu giao chiến với ',
         combatSemantic('entity',cue.entityName||'Entity'),'.']);
@@ -692,6 +696,11 @@
       });
       return;
     }
+    // Lock the next dice phase before render() can re-enter the combat UI.
+    // The Core's typed timeline releases the lock only after Entity cues finish.
+    if(before&&before.active===true&&rawPacket&&typeof rawPacket.id==='string'&&
+       Array.isArray(rawPacket.events)&&seen.indexOf(rawPacket.id)===-1)
+      setFeedbackBusy(true);
     var result=previousTurn.call(this,json);
     var next=typeof state!=='undefined'&&state;
     var after=next&&next.combat,packet=rawPacket||(next&&next.combatFeedback);

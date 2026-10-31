@@ -68,11 +68,22 @@ function call(name,...args){return JSON.parse(__webGame.call(name,...args));}
  await Android.combatDiceRoll(JSON.stringify(state));await __webGame.idle;
  await Android.combatDiceFinish(JSON.stringify(state));await __webGame.idle;
  assert.deepEqual(errors,[],'Dice pipeline errors');
- const combatTurn=state.turn;
- await Android.submitAction(JSON.stringify(state),'EXECUTE',action);await __webGame.idle;
+ const combatTurn=state.turn, finalizedDiceState=JSON.stringify(state);
+ await Android.submitAction(finalizedDiceState,'EXECUTE',action);await __webGame.idle;
  assert.deepEqual(errors,[],'Combat pipeline errors');
  assert.ok(state.turn>=combatTurn);assert.ok(state.combatFeedback||state.combat);
  assert.equal(requests,beforeRequests);
- console.log('PASS: real combat prepare/hold/reroll/finish/resolution runs locally');
+ // Replaying the same finalized hand cannot trigger a second Cao Minh attack.
+ const afterCombat=JSON.stringify(state);
+ await Android.submitAction(finalizedDiceState,'EXECUTE',action);await __webGame.idle;
+ assert.equal(JSON.stringify(state),afterCombat,'One hand must only resolve once');
+ assert.ok(__webGame.events.some(x=>x.kind==='combat-repeat-blocked'));
+ if(state.combat?.active){
+   assert.notEqual(state.combat.diceState?.finalized,true,'The previous hand must be consumed');
+   await Android.combatDicePrepare(JSON.stringify(state),'Tấn công tiếp · lượt mới');await __webGame.idle;
+   assert.deepEqual(errors,[],'New dice round errors');
+   assert.equal(state.combat.diceState?.finalized,false,'Fresh dice must be available next round');
+ }
+ console.log('PASS: one dice hand resolves once, next living round resets its dice');
  console.log('Engine gameplay checks passed.');
 })().catch(error=>{console.error(error);process.exit(1);});
