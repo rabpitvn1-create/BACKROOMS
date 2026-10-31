@@ -64,6 +64,15 @@ const {chromium}=require('playwright');
      undefined,{timeout:30000});
    const firstDice=await page.evaluate(()=>state.combat.diceState.action);
    await page.locator('#pokerDiceRow .poker-die').first().click();
+   await page.waitForTimeout(600);
+   console.log('COMBAT_DIAGNOSTIC',JSON.stringify(await page.evaluate(()=>({
+     combat:state.combat,ui:{diceBusy:window.__combatDiceBusy,
+       feedbackBusy:window.__combatFeedbackBusy,preparing:window.__directCombatPreparing,
+       resolving:window.__directCombatResolving,rollBusy:window.__combatDiceRolling,
+       diceVisible:!document.getElementById('pokerDiceModal').hidden,
+       status:document.getElementById('status').textContent},
+     events:window.__webGame.events.slice(-8)
+   }))));
    await page.waitForFunction(()=>state.combat?.diceState?.held?.[0]===true&&!window.__combatDiceBusy);
    assert.equal(await page.locator('#pokerDiceRow .poker-die').first().getAttribute('aria-pressed'),'true');
    assert.equal(await page.locator('#backroomActionToast').isVisible(),true,'Buttons should show immediate feedback');
