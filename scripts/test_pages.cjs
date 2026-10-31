@@ -37,8 +37,17 @@ const {chromium}=require('playwright');
    await page.locator('#mobileMenuClose').click();
    await page.reload({waitUntil:'domcontentloaded'});
    await page.waitForFunction(()=>typeof state!=='undefined'&&state.coreSnapshot&&state.levelTravel);
+   // Hành vi mới: reload = new game, KHÔNG tự resume save cũ
+   const fresh=await page.evaluate(()=>({turn:state.turn,run:state.levelTravel.runId}));
+   assert.equal(fresh.turn,1,'Reload must start a new game at turn 1');
+   assert.notEqual(fresh.run,saved.run,'Reload must start a new run, not resume the old one');
+   // Người chơi bấm "Tải" trong menu để quay lại save cũ
+   await page.locator('#mobileMenuButton').click();
+   await page.getByRole('button',{name:'Tải',exact:true}).click();
+   await page.waitForFunction(s=>state.turn===s.turn&&state.levelTravel&&state.levelTravel.runId===s.run,saved,{timeout:15000});
    const loaded=await page.evaluate(()=>({turn:state.turn,run:state.levelTravel.runId}));
-   assert.deepEqual(loaded,saved,'Reload must resume the committed game');
+   assert.deepEqual(loaded,saved,'Manual load must restore the committed game');
+   await page.locator('#mobileMenuClose').click();
    await page.locator('#submit').click();
    await page.locator('#action').fill('Cao Minh quan sát kỹ bức tường trước mặt');
    await page.locator('#playerActionConfirm').click();
@@ -47,7 +56,7 @@ const {chromium}=require('playwright');
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
    assert.deepEqual(errors,[],'Browser runtime errors');
    await page.screenshot({path:`build/playable-${viewport.width}.png`});
-   console.log(`PASS: ${viewport.width}px startup, search, failover, inventory view, save/reload and typed action`);
+   console.log(`PASS: ${viewport.width}px startup, search, failover, inventory view, save, reload-as-newgame, manual load and typed action`);
    await page.close();
   }
  }finally{await browser.close();}
