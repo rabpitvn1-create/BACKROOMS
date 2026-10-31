@@ -253,6 +253,7 @@
     return typeof window.matchMedia==='function'&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   }
   function stopCombatMotion(){
+    if(window.backroomDemonSword&&typeof window.backroomDemonSword.cancel==='function')window.backroomDemonSword.cancel();
     entityShatters.slice().forEach(function(effect){effect.finish(true);});
     motionEffects.splice(0).forEach(function(animation){animation.cancel();});
     var box=document.getElementById('snapshot');
@@ -311,7 +312,7 @@
       y:Math.max(br.height*.34,Math.min(br.height-16,er.top-br.top+er.height*.34))};
   }
   function playAttackMotion(e){
-    if(e.outcome==='tick')return;
+    if(e.outcome==='tick'||e.outcome==='buff')return;
     var source=e.target==='entity'?targetAnchor('actor',e.actorId):targetAnchor('entity');
     if(source)return moveCombatOverlay(source.el,e.target==='entity'?-14:14,'attack');
   }
@@ -528,99 +529,82 @@
   }
 
   function playTypedTurnTimeline(packet,token,anchors,slots){
-    if(!Array.isArray(packet.turns))return null;
     var events=packet.events;
-    var cues=packet.turns.filter(function(c){
+    var cues=(Array.isArray(packet.turns)?packet.turns:[]).filter(function(c){
       return c&&(c.kind==='actor'||c.kind==='entity'||c.kind==='wave'||c.kind==='party')&&
         Number.isInteger(c.eventIndex)&&c.eventIndex>=0&&c.eventIndex<=events.length;
-    }); // Keep every Party/Entity cue in long encounters; do not silently truncate turns.
-    if(!cues.length)return null;
-    var reduced=typeof window.matchMedia==='function'&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var spinTime=reduced?90:800,clock=0,endTime=0,covered=0;
-    function damageAt(e,when,onContact){
-      if(!e||(e.target!=='actor'&&e.target!=='entity'))return when;
-      var available=slots[e.target],lane=0;
-      for(var i=1;i<available.length;i++)if(available[i]<available[lane])lane=i;
-      var delay=Math.max(when,available[lane]);
-      var contact=e.outcome==='tick'||reduced?0:CONTACT_MS;
-      var death=lethalEntityHit(e)?(reduced?180:ENTITY_SHATTER_MS):0;
-      available[lane]=delay+contact+Math.max(FLOAT_MS,death);
-      endTime=Math.max(endTime,available[lane]);
-      var attackMotion;
-      setTimeout(function(){
-        afterEntityShatter(token,function(){attackMotion=playAttackMotion(e);});
-      },delay);
-      function revealContact(){
-        if(token!==animationToken)return;
-        if(entityShatters.some(function(item){return item.active&&item.token===token;})){
-          afterEntityShatter(token,revealContact);return;
-        }
-        // WebView may start the animation after its wall-clock timer. Reveal
-        // impact and damage only when that animation reaches actual contact.
-        if(attackMotion){
-          if(attackMotion.playState==='idle')return;
-          if(attackMotion.currentTime==null||attackMotion.currentTime<contact){
-            requestAnimationFrame(revealContact);return;
-          }
-        }
-        appendDamageLine(e);
-        if(onContact)onContact();
-        window.backroomPlayCombatFeedback(e,anchors[e.target]);
-      }
-      setTimeout(revealContact,delay+contact);
-      return delay+(death?contact+death+90:e.outcome==='tick'?250:reduced?90:HIT_STEP_MS);
-    }
-    cues.forEach(function(cue,index){
-      var entityResultShown=false;
-      function revealEntityResult(){
-        if(entityResultShown)return;
-        entityResultShown=true;appendEntityResult(cue);
-      }
-      var start=Math.max(covered,cue.eventIndex);
-      if(index===0&&start>0){
-        for(var pre=0;pre<start;pre++)damageAt(events[pre],pre*150);
-        clock=Math.max(clock,Math.min(start*150,450));
-      }
-      var end=events.length;
-      if(index+1<cues.length)end=Math.max(start,Math.min(events.length,cues[index+1].eventIndex));
-      (function(c,at){
-        setTimeout(function(){
-          afterEntityShatter(token,function(){showTurnCue(c);});
-        },at);
-      })(cue,clock);
-      var actionStart=clock+spinTime,nextAction=actionStart;
-      for(var j=start;j<end;j++){
-        var e=events[j];if(!e)continue;
-        if(e&&e.target==='entity'&&!e.actorId)e=Object.assign({},e,{actorId:cue.actorId||'cao_minh'});
-        // Reactive Party counters can follow an Entity cue. Focus their source
-        // before lunging; incoming group results keep each defender's own anchor.
-        if(e.target==='entity'&&e.outcome!=='tick'&&String(e.actorId||'cao_minh')!==String(cue.actorId||'cao_minh')){
-          (function(id,at){setTimeout(function(){if(token===animationToken)focusCombatActor(id);},at);})(e.actorId,nextAction);
-          nextAction+=spinTime;
-        }
-        if(cue.kind==='entity'&&e.target==='actor'&&e.outcome!=='tick'){
-          // One shared Entity hit has several defender outcomes, not several attacks.
-          var groupStart=nextAction;
-          var defenders=[];
-          while(j+1<end&&events[j+1]&&events[j+1].target==='actor'&&events[j+1].outcome!=='tick'){
-            defenders.push(events[++j]);
-          }
-          // Every defender belongs to the same physical impact, including
-          // hit/MISS outcomes and when the lunge starts late in WebView.
-          nextAction=damageAt(e,groupStart,(function(group,result){return function(){
-            result();
-            group.forEach(function(hit){appendDamageLine(hit);window.backroomPlayCombatFeedback(hit,anchors[hit.target]);});
-          };})(defenders,revealEntityResult));
-        }else nextAction=damageAt(e,nextAction);
-      }
-      if(cue.kind==='entity'&&!events.slice(start,end).some(function(e){return e&&e.target==='actor'&&e.outcome!=='tick';})){
-        setTimeout(function(){if(token===animationToken)revealEntityResult();},actionStart+(reduced?0:CONTACT_MS));
-      }
-      covered=end;
-      clock=end>start?nextAction:actionStart+260+150;
     });
-    for(var trailing=covered;trailing<events.length;trailing++)damageAt(events[trailing],clock+(trailing-covered)*150);
-    return Math.max(clock,endTime)+50;
+    if(!cues.length)return null;
+    var reduced=reducedMotion(),spinTime=reduced?90:800;
+    function current(){return token===animationToken;}
+    function wait(ms){return new Promise(function(resolve){setTimeout(resolve,Math.max(0,ms));});}
+    async function waitForShatter(){
+      while(current()&&entityShatters.some(function(effect){return effect.active&&effect.token===token;}))
+        await new Promise(function(resolve){requestAnimationFrame(resolve);});
+    }
+    return (async function(){
+      var covered=0,lastFeedbackEnd=0;
+      async function damage(e,group){
+        if(!current()||!e||(e.target!=='actor'&&e.target!=='entity'))return;
+        await waitForShatter();
+        if(!current())return;
+        var contacted=false;
+        function contact(){
+          if(!current()||contacted)return;
+          contacted=true;
+          appendDamageLine(e);
+          window.backroomPlayCombatFeedback(e,anchors[e.target]);
+          (group||[]).forEach(function(hit){
+            appendDamageLine(hit);window.backroomPlayCombatFeedback(hit,anchors[hit.target]);
+          });
+          lastFeedbackEnd=Date.now()+FLOAT_MS;
+        }
+        var sword=window.backroomDemonSword;
+        var useSword=e.target==='entity'&&normalizeActorId(e.actorId||'cao_minh')==='cao_minh'&&
+          e.outcome!=='tick'&&e.outcome!=='buff'&&sword&&typeof sword.attack==='function';
+        var played=useSword?await sword.attack(typeof e.skill==='string'?e.skill:'',contact,e.outcome==='miss'):false;
+        if(!current())return;
+        if(!played&&!contacted){
+          var motion=playAttackMotion(e),contactMs=e.outcome==='tick'||reduced?0:CONTACT_MS;
+          if(motion){
+            while(current()&&motion.playState!=='idle'&&motion.playState!=='finished'&&
+                (motion.currentTime==null||motion.currentTime<contactMs))
+              await new Promise(function(resolve){requestAnimationFrame(resolve);});
+            if(!current()||motion.playState==='idle')return;
+          }else await wait(contactMs);
+          contact();
+          await wait(e.outcome==='tick'?250:reduced?90:HIT_STEP_MS-contactMs);
+        }
+        await waitForShatter();
+      }
+      for(var index=0;index<cues.length&&current();index++){
+        var cue=cues[index],start=Math.max(covered,cue.eventIndex);
+        for(var pre=covered;pre<start;pre++)await damage(events[pre]);
+        await waitForShatter();
+        if(!current())return;
+        showTurnCue(cue);
+        await wait(spinTime);
+        var end=index+1<cues.length?Math.max(start,Math.min(events.length,cues[index+1].eventIndex)):events.length;
+        for(var j=start;j<end&&current();j++){
+          var e=events[j];if(!e)continue;
+          if(e.target==='entity'&&!e.actorId)e=Object.assign({},e,{actorId:cue.actorId||'cao_minh'});
+          if(e.target==='entity'&&e.outcome!=='tick'&&
+              normalizeActorId(e.actorId||'cao_minh')!==normalizeActorId(cue.actorId||'cao_minh')){
+            focusCombatActor(e.actorId);await wait(spinTime);
+          }
+          var group=[];
+          if(cue.kind==='entity'&&e.target==='actor'&&e.outcome!=='tick'){
+            while(j+1<end&&events[j+1]&&events[j+1].target==='actor'&&events[j+1].outcome!=='tick')
+              group.push(events[++j]);
+          }
+          await damage(e,group);
+        }
+        covered=end;
+        if(end===start)await wait(410);
+      }
+      for(var trailing=covered;trailing<events.length&&current();trailing++)await damage(events[trailing]);
+      if(current())await wait(lastFeedbackEnd-Date.now());
+    })();
   }
 
   var lastContinuationId='';
@@ -685,14 +669,16 @@
           });
           elapsed=rawPacket.events.length*150+Math.max(FLOAT_MS,reducedMotion()?180:ENTITY_SHATTER_MS)+50;
         }
-        setTimeout(function(){
+        function complete(){
           afterEntityShatter(completionToken,function(){
             previousTurn.call(context,json);
             resetCombatPanel();
             setFeedbackBusy(false);
             continueAfterVictory(incoming);
           });
-        },elapsed===null?0:elapsed);
+        }
+        if(elapsed&&typeof elapsed.then==='function')elapsed.then(complete,complete);
+        else setTimeout(complete,elapsed===null?0:elapsed);
       });
       return;
     }
@@ -714,8 +700,8 @@
     }
     beginCombatLog(after);
 
-    if(before&&after&&before.encounterId!==after.encounterId){++animationToken;setFeedbackBusy(false);}
-    if(!before&&after&&after.active===true&&!packet){seen=[];++animationToken;setFeedbackBusy(false);}
+    if(before&&after&&before.encounterId!==after.encounterId){++animationToken;stopCombatMotion();setFeedbackBusy(false);}
+    if(!before&&after&&after.active===true&&!packet){seen=[];++animationToken;stopCombatMotion();setFeedbackBusy(false);}
     if(!after&&!packet){++animationToken;setFeedbackBusy(false);}
     if(!packet||typeof packet.id!=='string'||!Array.isArray(packet.events)||seen.indexOf(packet.id)!==-1)return result;
 
@@ -740,14 +726,15 @@
       var typedMs=Array.isArray(packet.turns)&&packet.turns.length?
         playTypedTurnTimeline(packet,token,anchors,slots):null;
       if(typedMs!==null){
-        setTimeout(function(){
+        function complete(){
           afterEntityShatter(token,function(){
             focusCombatActor('cao_minh');
             showNow('Cao Minh');
             window.backroomCombatEntityVisualKey='';
             setFeedbackBusy(false);
           });
-        },typedMs);
+        }
+        typedMs.then(complete,complete);
         return;
       }
       // Legacy hit-only packets keep their existing stagger and phase timing.
@@ -783,3 +770,4 @@
   if(initial)beginCombatLog(initial);
   else resetCombatPanel();
 })();
+

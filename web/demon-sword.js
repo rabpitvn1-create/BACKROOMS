@@ -4,12 +4,11 @@
  * IIFE, không đụng vào code khác. Mọi hàm đều bọc try/catch — KHÔNG BAO GIỜ
  * throw ra ngoài, không được làm crash game.
  *
- * API: window.backroomDemonSword = { render(stage, fighting), attack(skillName),
- *                                   isAttacking() }
+ * API: render(stage, fighting), attack(skillName, onContact, miss), cancel(), isAttacking().
  * ========================================================================== */
 (function () {
   'use strict';
-  var S = { attacking: false };
+  var S = { attacking: false, epoch: 0 };
   function sleep(ms) {
     return new Promise(function (resolve) { setTimeout(resolve, ms); });
   }
@@ -150,101 +149,84 @@
       spawnSparks(stage, tcx, tcy, isFinal);
     } catch (e) {}
   }
-  function attack(skillName) {
+  function cancel() {
+    S.epoch++;
+    S.attacking = false;
+    var stage = document.querySelector('.snapshot-stage');
+    if (!stage) return;
+    cleanupFx(stage);
+    Array.prototype.forEach.call(stage.querySelectorAll('.demon-aura'), function (node) { node.remove(); });
+    var sword = stage.querySelector('.demon-sword');
+    if (sword) {
+      sword.classList.remove('sword-charging', 'sword-flying');
+      clearDrive(sword);
+      sword.dataset.swordState = typeof state !== 'undefined' && state.combat && state.combat.active ? 'shoulder' : 'orbit';
+    }
+  }
+  function cssAnimation(sword, name) {
+    return typeof sword.getAnimations === 'function' &&
+      sword.getAnimations().find(function (animation) { return animation.animationName === name; });
+  }
+  function attack(skillName, onContact, miss) {
     return (async function () {
+      var token, stage, sword, aura;
       try {
-        if (S.attacking) return false;
-        try {
-          if (window.matchMedia &&
-              window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
-        } catch (e) {}
-        var stage = document.querySelector('.snapshot-stage');
-        if (!stage) return false;
-        var sword = stage.querySelector('.demon-sword');
-        if (!sword) return false;
-        try {
-          if (sword.style.display === 'none') return false;
-          if (!sword.getAttribute('src')) return false;
-          try { sword.dataset.swordState = 'shoulder'; } catch (e) {}
-          // (bỏ kiểm tra, ép về shoulder để animation luôn chạy khi vào combat)
-        } catch (e) { return false; }
+        if (S.attacking || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) return false;
+        stage = document.querySelector('.snapshot-stage');
+        sword = stage && stage.querySelector('.demon-sword');
+        if (!sword || sword.style.display === 'none' || !sword.getAttribute('src')) return false;
+        token = ++S.epoch;
         S.attacking = true;
         cleanupFx(stage);
         ensureBaseStyle();
-        // User-approved: demonic aura charge (1500ms) -> diagonal fly 71deg (210ms) -> impact -> return
-        var CHARGE_MS = 1500, FLY_MS = 210;
-        try {
-          sword.dataset.swordState = 'attack';
-          sword.style.zIndex = '5';
-        } catch (e) {}
-        // Phase 1: Demonic aura charge
-        var aura = null;
-        try {
-          aura = document.createElement('div');
-          aura.className = 'demon-aura';
-          aura.innerHTML = '<div class="wrap"></div><div class="coil"></div><div class="core-glow"></div>';
-          stage.appendChild(aura);
-          // Force reflow
-          void aura.offsetWidth;
-          aura.classList.add('show');
-          sword.classList.add('sword-charging');
-        } catch (e) {}
-        await sleep(CHARGE_MS);
-        try {
-          if (aura) aura.remove();
-          sword.classList.remove('sword-charging');
-        } catch (e) {}
-        // Phase 2: Fly diagonally (CSS animation handles the path)
-        try {
-          void sword.offsetWidth;
-          sword.classList.add('sword-flying');
-        } catch (e) {}
-        await sleep(Math.round(FLY_MS * 0.78));
-        // Phase 3: Impact effects
-        try {
-          var er2 = null;
-          try {
-            var ent2 = stage.querySelector('.snapshot-entity');
-            if (ent2) er2 = ent2.getBoundingClientRect();
-          } catch (e2) {}
-          var str2 = stage.getBoundingClientRect();
-          var tcx2, tcy2;
-          if (er2 && er2.width > 0) {
-            tcx2 = er2.left - str2.left + er2.width / 2;
-            tcy2 = er2.top - str2.top + er2.height * 0.45;
-          } else {
-            tcx2 = str2.width * 0.35;
-            tcy2 = str2.height * 0.28;
-          }
-          impact(stage, null, er2, str2, tcx2, tcy2, true);
-        } catch (e) {}
-        await sleep(FLY_MS - Math.round(FLY_MS * 0.78) + 60);
-        try {
-          sword.classList.remove('sword-flying');
-        } catch (e) {}
-        // Cleanup and return
-        try {
-          sword.dataset.swordState = 'shoulder';
-          sword.style.zIndex = '';
-          sword.style.transform = '';
-          sword.style.transition = '';
-        } catch (e) {}
-        S.attacking = false;
-        return true;
-      } catch (e) {
-        try {
-          var st = document.querySelector('.snapshot-stage');
-          if (st) {
-            cleanupFx(st);
-            var sw = st.querySelector('.demon-sword');
-            if (sw) {
-              clearDrive(sw);
-              try { sw.dataset.swordState = 'shoulder'; } catch (_) {}
+        sword.dataset.swordState = 'attack';
+        sword.style.zIndex = '5';
+        aura = document.createElement('div');
+        aura.className = 'demon-aura show';
+        aura.innerHTML = '<div class="wrap"></div><div class="coil"></div><div class="core-glow"></div>';
+        stage.appendChild(aura);
+        sword.classList.add('sword-charging');
+        await nextFrame();
+        var charge = cssAnimation(sword, 'sword-charge-anim');
+        if (charge) await charge.finished;
+        else await sleep(1500);
+        if (token !== S.epoch || !sword.isConnected) return false;
+        aura.remove();
+        sword.classList.remove('sword-charging');
+        sword.classList.add('sword-flying');
+        await nextFrame();
+        var fly = cssAnimation(sword, 'sword-fly-anim');
+        if (fly) {
+          await new Promise(function (resolve) {
+            function check() {
+              if (token !== S.epoch || fly.playState === 'idle' ||
+                  fly.playState === 'finished' || Number(fly.currentTime) >= 210 * 0.78) resolve();
+              else requestAnimationFrame(check);
             }
-          }
-        } catch (_) {}
-        S.attacking = false;
+            check();
+          });
+        } else await sleep(Math.round(210 * 0.78));
+        if (token !== S.epoch || !sword.isConnected || (fly && fly.playState === 'idle')) return false;
+        var entity = stage.querySelector('.snapshot-entity');
+        var er = entity && entity.getBoundingClientRect(), rect = stage.getBoundingClientRect();
+        var x = er && er.width ? er.left - rect.left + er.width / 2 : rect.width * 0.35;
+        var y = er && er.width ? er.top - rect.top + er.height * 0.45 : rect.height * 0.28;
+        if (!miss) impact(stage, null, er, rect, x, y, true);
+        if (typeof onContact === 'function') onContact();
+        if (fly) await fly.finished;
+        else await sleep(210 - Math.round(210 * 0.78));
+        await sleep(60);
+        return token === S.epoch;
+      } catch (_) {
         return false;
+      } finally {
+        if (token === S.epoch) {
+          S.attacking = false;
+          if (aura) aura.remove();
+          sword.classList.remove('sword-charging', 'sword-flying');
+          clearDrive(sword);
+          sword.dataset.swordState = typeof state !== 'undefined' && state.combat && state.combat.active ? 'shoulder' : 'orbit';
+        }
       }
     })();
   }
@@ -252,31 +234,8 @@
   window.backroomDemonSword = Object.freeze({
     render: render,
     attack: attack,
-    isAttacking: isAttacking
+    isAttacking: isAttacking,
+    cancel: cancel
   });
 })();
-(function () {
-  'use strict';
-    function isCaoMinhAttack(e) { if (!e || e.target !== 'entity') return false; if (String(e.actorId || 'cao_minh') !== 'cao_minh') return false; var o = e.outcome; if (o === 'miss' || o === 'tick' || o === 'buff') return false; return true; }function install() {
-    if (typeof window.backroomPlayCombatFeedback !== 'function') {
-      setTimeout(install, 200); return;
-    }
-    if (window.backroomPlayCombatFeedback.__swordWrapped) return;
-    var orig = window.backroomPlayCombatFeedback;
-    var wrapped = function (event, fallback) {
-      if (isCaoMinhAttack(event) &&
-          window.backroomDemonSword &&
-          typeof window.backroomDemonSword.attack === 'function') {
-        try {
-          window.backroomDemonSword.attack(
-            typeof event.skill === 'string' ? event.skill : ''
-          );
-        } catch (_) {}
-      }
-      return orig.call(this, event, fallback);
-    };
-    wrapped.__swordWrapped = true;
-    window.backroomPlayCombatFeedback = wrapped;
-  }
-  install();
-})();
+

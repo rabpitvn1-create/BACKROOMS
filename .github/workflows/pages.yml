@@ -15,6 +15,7 @@ on:
       - 'scripts/PatchLevelTravel.java'
       - 'scripts/test_live_turn.cjs'
       - 'scripts/test_combat_pages.cjs'
+      - 'scripts/test_sword_animation.cjs'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
@@ -66,6 +67,7 @@ jobs:
           node scripts/test_pages.cjs
           node scripts/test_action_feedback.cjs
           node scripts/test_combat_pages.cjs
+          node scripts/test_sword_animation.cjs
           node scripts/test_offline_art.cjs
       - name: Stage the keyless public playable build (API proxy holds keys)
         run: |
