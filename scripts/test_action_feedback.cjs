@@ -29,17 +29,32 @@ function deferred(){let release;const promise=new Promise(resolve=>{release=reso
           const image = new Image();
           image.src = url.href;
           await image.decode();
-          const skin = getComputedStyle(button).backgroundImage;
+          const resting = getComputedStyle(button);
+          const skin = resting.backgroundImage;
+          const restingFrame = {
+            border:resting.borderTopWidth, outline:resting.outlineStyle,
+            shadow:resting.boxShadow, backgroundSize:resting.backgroundSize
+          };
           button.style.setProperty('transition', 'none', 'important');
           button.classList.add('backroom-pressed');
-          const pressOffset = new DOMMatrixReadOnly(getComputedStyle(button).transform).m42;
+          const pressed = getComputedStyle(button);
+          const pressOffset = new DOMMatrixReadOnly(pressed.transform).m42;
+          const pressedFrame = {outline:pressed.outlineStyle,shadow:pressed.boxShadow};
           button.classList.remove('backroom-pressed');
           button.style.removeProperty('transition');
-          return {skin, width: image.naturalWidth, height: image.naturalHeight, pressOffset};
+          return {skin, width:image.naturalWidth, height:image.naturalHeight, pressOffset,
+            restingFrame, pressedFrame};
         }, file);
         assert.ok(art.skin.includes(file), 'Correct Level 0 artwork must skin ' + selector);
         assert.ok(art.width > 300 && art.height > 100, 'Original image must decode: ' + file);
         assert.ok(art.pressOffset >= 2, 'Button must depress by at least 2 CSS pixels: ' + selector);
+        assert.equal(art.restingFrame.border, '0px', 'No legacy button border: ' + selector);
+        assert.equal(art.restingFrame.outline, 'none', 'No resting outer outline: ' + selector);
+        assert.equal(art.restingFrame.shadow, 'none', 'No extra outside shadow: ' + selector);
+        assert.notEqual(art.restingFrame.backgroundSize, '100% 100%',
+          'Crop baked-in black padding from the original PNG: ' + selector);
+        assert.equal(art.pressedFrame.outline, 'none', 'No outer ring on press: ' + selector);
+        assert.match(art.pressedFrame.shadow, /inset/, 'Press effect stays inside image: ' + selector);
       }
       assert.ok(typeof await page.evaluate(()=>window.backroomPendingAction?.start)==='string'||await page.evaluate(()=>typeof window.backroomPendingAction?.start)==='function');
 
@@ -87,7 +102,12 @@ function deferred(){let release;const promise=new Promise(resolve=>{release=reso
         }));
         assert.equal(visual.active,true,'Pressed button must retain its feedback after click');
         assert.notEqual(visual.filter,'none','Pressed button must brighten');
-        assert.equal(visual.outline,'solid','Pressed button must have a clearly visible outline');
+        if (pressSelector === '#searchActionButton' || pressSelector === '#exploreActionButton') {
+          assert.equal(visual.outline,'none','Level 0 artwork must not have an outside ring');
+          assert.match(visual.shadow,/inset/,'Level 0 tactile shadow stays inside the artwork');
+        } else {
+          assert.equal(visual.outline,'solid','Other controls retain visible touch outlines');
+        }
         gate.release();gate=null;
         await page.waitForFunction(n=>state.turn>n&&!busy,before.turn,{timeout:60000});
         assert.equal(await page.locator('#log [data-pending-gm-action]').count(),0,
