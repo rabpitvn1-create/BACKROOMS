@@ -72,3 +72,20 @@ A standard Android development signing key is generated inside the runner.
 It is not committed or attached to the release. This signature differs from the
 unavailable original APK signing key and is regenerated on a new run. Android
 may require uninstalling a differently signed build; export any saves first.
+
+## Cao Minh artwork: offline once synced (2026-10-31)
+
+The four new visuals are registered in `web/characters/cao-minh-assets.json`,
+with version-pinned Cloudinary URLs, metadata, and original SHA256 hashes.
+The same registry is injected into the Pages build and Android debug APK.
+No image binaries or Base64 artwork are committed to this repository.
+
+The first online visit saves all four image responses in IndexedDB.
+Subsequent visits resolve the avatar, combat overlay, exploration overlay
+and sword through local Blob URLs. Pages additionally uses a Service Worker
+to cache the static game shell for offline reopening. A new installation
+needs one successful online synchronization before the four images can work
+offline. The Android 1.0.0.1 debug packaging shares this cache implementation.
+
+Inspect the current state using `window.backroomOfflineCharacterAssets.status()`.
+The `offlineReady` flag is true only when all four images are cached.

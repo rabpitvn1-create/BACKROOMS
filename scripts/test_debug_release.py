@@ -70,9 +70,19 @@ class DebugReleaseTests(unittest.TestCase):
                 self.assertEqual(apk.getinfo("resources.arsc").compress_type, zipfile.ZIP_STORED)
                 self.assertEqual(json.loads(apk.read("assets/personal-provider-config.json")), config)
                 strings, attrs = release.axml(apk.read("AndroidManifest.xml"))
-                self.assertEqual(strings[attrs[("manifest", "versionName")][3]][0], "1.0.0.0")
-                self.assertEqual(attrs[("manifest", "versionCode")][3], 90000001)
+                self.assertEqual(strings[attrs[("manifest", "versionName")][3]][0], "1.0.0.1")
+                self.assertEqual(attrs[("manifest", "versionCode")][3], 90000002)
                 self.assertTrue(attrs[("application", "debuggable")][3])
+                image_db = json.loads(apk.read("assets/characters/cao-minh-assets.json"))
+                self.assertEqual({x["role"] for x in image_db["assets"]},
+                                 {"avatar", "combat", "exploration", "sword"})
+                self.assertIn(b"indexedDB.open", apk.read("assets/offline-character-assets.js"))
+                self.assertIn(b"BACKROOMS_CAO_MINH_ASSET_DATABASE", apk.read("assets/cao-minh-asset-db.js"))
+                self.assertIn(b"offline-character-assets.js", apk.read("assets/index.html"))
+                self.assertIn(b"characterSword", apk.read("assets/cloudinary-gameplay.js"))
+                images_manifest = json.loads(apk.read("assets/characters/manifest.json"))
+                self.assertEqual(sum(1 for x in images_manifest["assets"]
+                                     if x.get("public_id", "").startswith("backrooms/cao_minh/")), 4)
                 for p in (release.ROOT / "apk-original").glob("classes*.dex"):
                     expected = release.patch_credentials(p.read_bytes()) if p.name == "classes5.dex" else p.read_bytes()
                     self.assertEqual(apk.read(p.name), expected)

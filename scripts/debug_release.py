@@ -15,10 +15,11 @@ import urllib.parse
 import urllib.request
 import zipfile
 import zlib
+import cao_minh_assets
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = "1.0.0.0"
-VERSION_CODE = 90000001
+VERSION = "1.0.0.1"
+VERSION_CODE = 90000002
 DEX_SHA256 = "bd48603b3f302a7d39b4fcfe5a239612846b3251c40723ea9793a2ed074da5f5"
 DEFAULT_BASE = "https://api.vilao.ai/v1"
 DEFAULT_MODEL = "chib/gemini-3.8-flash"
@@ -177,27 +178,51 @@ def patch_manifest(original):
 
 def package(config, output):
     source = ROOT / "apk-original"
+    # The released APK reuses the Pages visual registry and IndexedDB resolver.
+    # No image files or Base64 artwork are committed to the repository.
+    overrides = {
+        "assets/index.html": cao_minh_assets.inject_scripts(
+            (source / "assets/index.html").read_text(encoding="utf-8")).encode("utf-8"),
+        "assets/cloudinary-gameplay.js": (ROOT / "web/cloudinary-gameplay.js").read_bytes(),
+        "assets/offline-character-assets.js": (ROOT / "web/offline-character-assets.js").read_bytes(),
+        "assets/cao-minh-asset-db.js": cao_minh_assets.registry_script().encode("utf-8"),
+        "assets/characters/cao-minh-assets.json": (
+            ROOT / "web/characters/cao-minh-assets.json").read_bytes(),
+        "assets/characters/manifest.json": (
+            ROOT / "web/characters/manifest.json").read_bytes(),
+    }
     expected = {"AndroidManifest.xml", "classes5.dex", "assets/personal-provider-config.json"}
     if hashlib.sha256((source / "classes5.dex").read_bytes()).hexdigest() != DEX_SHA256:
         fail("Recovered provider DEX changed; review runtime routing before building.")
     output.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED) as apk:
+        written = set()
         for p in sorted(source.rglob("*")):
             if not p.is_file():
                 continue
             name = p.relative_to(source).as_posix()
             if name == "assets/personal-provider-config.json" or re.fullmatch(r"META-INF/[^/]+\.(SF|RSA|DSA|EC)", name, re.I) or name.upper() == "META-INF/MANIFEST.MF":
                 continue
-            content = p.read_bytes()
+            content = overrides.get(name, p.read_bytes())
+            written.add(name)
             if name == "AndroidManifest.xml":
                 content = patch_manifest(content)
             elif name == "classes5.dex":
                 content = patch_credentials(content)
             apk.writestr(name, content, compress_type=zipfile.ZIP_STORED if name == "resources.arsc" else zipfile.ZIP_DEFLATED)
+        for name, content in sorted(overrides.items()):
+            if name not in written:
+                apk.writestr(name, content)
         apk.writestr("assets/personal-provider-config.json", json.dumps(config))
     with zipfile.ZipFile(output) as apk:
+        for name, content in overrides.items():
+            if apk.read(name) != content:
+                fail("Offline asset metadata differs in Android package: " + name)
+        db = json.loads(apk.read("assets/characters/cao-minh-assets.json"))
+        if len(db.get("assets", [])) != 4:
+            fail("Expected four Cao Minh assets in packaged database")
         for p in source.rglob("*"):
-            if p.is_file() and p.relative_to(source).as_posix() not in expected:
+            if p.is_file() and p.relative_to(source).as_posix() not in expected | set(overrides):
                 name = p.relative_to(source).as_posix()
                 if apk.read(name) != p.read_bytes():
                     fail("Unexpected change to recovered entry: " + name)

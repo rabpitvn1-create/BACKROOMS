@@ -1,0 +1,66 @@
+name: Cao Minh offline artwork QA
+
+on:
+  pull_request:
+    paths:
+      - 'web/**'
+      - 'scripts/**'
+      - '.github/workflows/offline-art-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: engine/pom.xml
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate database and APK packaging without network secrets
+        env:
+          GEMINI_API_KEY_1: offline-fixture-1
+          GEMINI_API_KEY_2: offline-fixture-2
+          GEMINI_API_KEY_3: offline-fixture-3
+          GEMINI_API_KEY_4: offline-fixture-4
+          GEMINI_API_KEY_5: offline-fixture-5
+          GEMINI_API_KEY_6: offline-fixture-6
+        run: |
+          python3 -m unittest discover -s scripts -p 'test_*.py' -v
+          python3 scripts/debug_release.py
+      - name: Compile recovered web gameplay
+        run: |
+          python3 scripts/prepare_web_engine.py
+          mvn -B -f engine/pom.xml package
+          node scripts/test_engine.cjs
+          python3 scripts/build_pages.py --test-config
+      - name: Install browser testing
+        run: |
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Verify playable game and offline character images
+        run: |
+          mkdir -p build/test-host
+          ln -s "$GITHUB_WORKSPACE/build/pages" build/test-host/Backrooms
+          python3 -m http.server 4173 --bind 127.0.0.1 --directory build/test-host > build/offline-server.log 2>&1 &
+          node scripts/test_pages.cjs
+          node scripts/test_offline_art.cjs
+      - name: Keep screenshots and test logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cao-minh-offline-qa
+          path: |
+            build/cao-minh-offline-*.png
+            build/playable-*.png
+            build/offline-server.log
+          if-no-files-found: ignore
