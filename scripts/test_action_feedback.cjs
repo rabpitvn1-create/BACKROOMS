@@ -18,6 +18,29 @@ function deferred(){let release;const promise=new Promise(resolve=>{release=reso
       });
       await page.goto(process.env.PAGES_TEST_URL||'http://127.0.0.1:4173/Backrooms/',{waitUntil:'domcontentloaded'});
       await page.waitForFunction(()=>document.documentElement.dataset.webMode==='playable'&&state?.coreSnapshot,{timeout:30000});
+      // Original Level 0 button images must load and visibly depress on touch.
+      for (const [selector, file] of [
+        ['#searchActionButton', 'backrooms_level0_search.png'],
+        ['#submit', 'backrooms_level0_execute.png'],
+        ['#exploreActionButton', 'backrooms_level0_explore.png']
+      ]) {
+        const art = await page.locator(selector).evaluate(async (button, filename) => {
+          const url = new URL('action-buttons/' + filename, document.baseURI);
+          const image = new Image();
+          image.src = url.href;
+          await image.decode();
+          const skin = getComputedStyle(button).backgroundImage;
+          button.style.setProperty('transition', 'none', 'important');
+          button.classList.add('backroom-pressed');
+          const pressOffset = new DOMMatrixReadOnly(getComputedStyle(button).transform).m42;
+          button.classList.remove('backroom-pressed');
+          button.style.removeProperty('transition');
+          return {skin, width: image.naturalWidth, height: image.naturalHeight, pressOffset};
+        }, file);
+        assert.ok(art.skin.includes(file), 'Correct Level 0 artwork must skin ' + selector);
+        assert.ok(art.width > 300 && art.height > 100, 'Original image must decode: ' + file);
+        assert.ok(art.pressOffset >= 2, 'Button must depress by at least 2 CSS pixels: ' + selector);
+      }
       assert.ok(typeof await page.evaluate(()=>window.backroomPendingAction?.start)==='string'||await page.evaluate(()=>typeof window.backroomPendingAction?.start)==='function');
 
       async function action({text,selector,typed=false}){
