@@ -180,7 +180,7 @@
         cleanupFx(stage);
         ensureBaseStyle();
         sword.dataset.swordState = 'attack';
-        sword.style.zIndex = '5';
+        sword.style.zIndex = '2';
         aura = document.createElement('div');
         aura.className = 'demon-aura show';
         aura.innerHTML = '<div class="wrap"></div><div class="coil"></div><div class="core-glow"></div>';
