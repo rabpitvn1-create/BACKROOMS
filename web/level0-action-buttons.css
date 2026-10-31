@@ -41,7 +41,9 @@
   font-size:clamp(10px,2.6vw,14px);line-height:1.15;
 }
 /* Global feedback supplies an outside outline/glow. Override it only here. */
-#playerActionBar .primary-action:is(:active,.backroom-pressed,.backroom-activated) {
+#playerActionBar #searchActionButton:is(:active,.backroom-pressed,.backroom-activated),
+#playerActionBar #submit:is(:active,.backroom-pressed,.backroom-activated),
+#playerActionBar #exploreActionButton:is(:active,.backroom-pressed,.backroom-activated) {
   outline:none!important;
   outline-offset:0!important;
   transform:translateY(3px) scale(.975)!important;
