@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "policy": "RANDOM_ALL_LEVELS_GAMEPLAY_STREAK_3_40_PERCENT",
+  "policy": "RANDOM_ALL_LEVELS_GAMEPLAY_STREAK_4_50_PERCENT",
   "startingIds": [
     "LEVEL.NODE.0",
     "LEVEL.NODE.1",
@@ -102,7 +102,7 @@
         "LEVEL.NODE.11.SCENE_01P2",
         "LEVEL.NODE.11.THE_HEADQUARTERS"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -160,7 +160,7 @@
         "LEVEL.NODE.11.SCENE_01P2",
         "LEVEL.NODE.11.THE_HEADQUARTERS"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -218,7 +218,7 @@
         "LEVEL.NODE.11.SCENE_01P2",
         "LEVEL.NODE.11.THE_HEADQUARTERS"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -334,7 +334,7 @@
         "LEVEL.NODE.11.SCENE_01P2",
         "LEVEL.NODE.11.THE_HEADQUARTERS"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -392,7 +392,7 @@
         "LEVEL.NODE.11.SCENE_01P2",
         "LEVEL.NODE.11.THE_HEADQUARTERS"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -750,7 +750,7 @@
         "LEVEL.NODE.11.SCENE_01P2",
         "LEVEL.NODE.11.THE_HEADQUARTERS"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -1108,7 +1108,7 @@
         "LEVEL.NODE.11.SCENE_01P2",
         "LEVEL.NODE.11.THE_HEADQUARTERS"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -1166,7 +1166,7 @@
         "LEVEL.NODE.11.SCENE_01P2",
         "LEVEL.NODE.11.THE_HEADQUARTERS"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -1524,7 +1524,7 @@
         "LEVEL.NODE.11.SCENE_01P2",
         "LEVEL.NODE.11.THE_HEADQUARTERS"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -1582,7 +1582,7 @@
         "LEVEL.NODE.11.SCENE_01P2",
         "LEVEL.NODE.11.THE_HEADQUARTERS"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -1640,7 +1640,7 @@
         "LEVEL.NODE.11.SCENE_01P2",
         "LEVEL.NODE.11.THE_HEADQUARTERS"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -2253,7 +2253,7 @@
         "LEVEL.NODE.11.SCENE_01P2",
         "LEVEL.NODE.11.THE_HEADQUARTERS"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -2311,7 +2311,7 @@
         "LEVEL.NODE.11.SCENE_01P2",
         "LEVEL.NODE.11.THE_HEADQUARTERS"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -2369,7 +2369,7 @@
         "LEVEL.NODE.11.SCENE_01P2",
         "LEVEL.NODE.11.THE_HEADQUARTERS"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -2427,7 +2427,7 @@
         "LEVEL.NODE.11.SCENE_01P2",
         "LEVEL.NODE.11.THE_HEADQUARTERS"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -2485,7 +2485,7 @@
         "LEVEL.NODE.11.SCENE_01P2",
         "LEVEL.NODE.11.THE_HEADQUARTERS"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -2543,7 +2543,7 @@
         "LEVEL.NODE.11.SCENE_01P2",
         "LEVEL.NODE.11.THE_HEADQUARTERS"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -2601,7 +2601,7 @@
         "LEVEL.NODE.11.SCENE_01P2",
         "LEVEL.NODE.11.THE_HEADQUARTERS"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -2659,7 +2659,7 @@
         "LEVEL.NODE.11.SCENE_01P2",
         "LEVEL.NODE.11.THE_HEADQUARTERS"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -2717,7 +2717,7 @@
         "LEVEL.NODE.11.SCENE_01P2",
         "LEVEL.NODE.11.THE_HEADQUARTERS"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -2775,7 +2775,7 @@
         "LEVEL.NODE.11.SCENE_01P2",
         "LEVEL.NODE.11.THE_HEADQUARTERS"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -2833,7 +2833,7 @@
         "LEVEL.NODE.11.SCENE_01P2",
         "LEVEL.NODE.11.THE_HEADQUARTERS"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -2891,7 +2891,7 @@
         "LEVEL.NODE.11.SCENE_01P2",
         "LEVEL.NODE.11.THE_HEADQUARTERS"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -2949,7 +2949,7 @@
         "LEVEL.NODE.11.SCENE_01P2",
         "LEVEL.NODE.11.THE_HEADQUARTERS"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -3007,7 +3007,7 @@
         "LEVEL.NODE.11.SCENE_01P2",
         "LEVEL.NODE.11.THE_HEADQUARTERS"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -3065,7 +3065,7 @@
         "LEVEL.NODE.11.SCENE_01P2",
         "LEVEL.NODE.11.THE_HEADQUARTERS"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -3123,7 +3123,7 @@
         "LEVEL.NODE.11.SCENE_01P2",
         "LEVEL.NODE.11.THE_HEADQUARTERS"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -3181,7 +3181,7 @@
         "LEVEL.NODE.11.SCENE_01P2",
         "LEVEL.NODE.11.THE_HEADQUARTERS"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -3239,7 +3239,7 @@
         "LEVEL.NODE.11.SCENE_01P2",
         "LEVEL.NODE.11.THE_HEADQUARTERS"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -3297,7 +3297,7 @@
         "LEVEL.NODE.11.SCENE_01P2",
         "LEVEL.NODE.11.THE_HEADQUARTERS"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -3355,7 +3355,7 @@
         "LEVEL.NODE.11.SCENE_01P2",
         "LEVEL.NODE.11.THE_HEADQUARTERS"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -3413,7 +3413,7 @@
         "LEVEL.NODE.11.SCENE_01P2",
         "LEVEL.NODE.11.THE_HEADQUARTERS"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -3471,7 +3471,7 @@
         "LEVEL.NODE.11.SCENE_01P2",
         "LEVEL.NODE.11.THE_HEADQUARTERS"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -3586,7 +3586,7 @@
         "LEVEL.NODE.11.SCENE_01P2",
         "LEVEL.NODE.11.THE_HEADQUARTERS"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -3644,7 +3644,7 @@
         "LEVEL.NODE.11.SCENE_01P2",
         "LEVEL.NODE.11.THE_HEADQUARTERS"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -3702,7 +3702,7 @@
         "LEVEL.NODE.11.SCENE_01P2",
         "LEVEL.NODE.11.THE_HEADQUARTERS"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -3760,7 +3760,7 @@
         "LEVEL.NODE.11.SCENE_01P2",
         "LEVEL.NODE.11.THE_HEADQUARTERS"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -3818,7 +3818,7 @@
         "LEVEL.NODE.11.RADIO_BACKROOMS_STUDIO",
         "LEVEL.NODE.11.THE_HEADQUARTERS"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -3876,7 +3876,7 @@
         "LEVEL.NODE.11.RADIO_BACKROOMS_STUDIO",
         "LEVEL.NODE.11.SCENE_01P2"
       ],
-      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 3/3; not a Canon parent edge",
+      "policySource": "Gameplay travel approved by author: standalone Level/Sublevel/named AREA may be entered and exited through Core streak 4/4; not a Canon parent edge",
       "exitMethod": "NO_CLIP"
     },
     {
@@ -3997,7 +3997,7 @@
   "notes": [
     "All LEVEL, SUBLEVEL and standalone AREA nodes are eligible for uniform New Game and travel selection.",
     "ZONE/SUB nodes remain local scene subdivisions, not separate Levels.",
-    "Every completed non-meta gameplay action rolls once: 40% success, 60% failure; three consecutive successes travel, failure resets the streak.",
+    "Every completed non-meta gameplay action rolls once: 50% success, 50% failure; four consecutive successes travel, failure resets the streak.",
     "Missing authored exit routes use no-clip. Previous route restrictions do not limit the random gameplay destination pool."
   ]
 }

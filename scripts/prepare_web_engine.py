@@ -5,6 +5,7 @@ import hashlib
 import subprocess
 import urllib.request
 import struct
+import level_travel
 
 ROOT = Path(__file__).resolve().parents[1]
 TOOLS = ROOT / "build/web-engine-tools"
@@ -62,10 +63,11 @@ def prepare():
             with ZipFile(path) as z:
                 for name in z.namelist():
                     if name.startswith("com/rabpit/backroom/core/") and name.endswith(".class"):
-                        out.writestr(name, browser_compat_class(z.read(name)))
+                        out.writestr(name, level_travel.patch(name, browser_compat_class(z.read(name))))
                         count += 1
     print(f"Recovered {count} original gameplay classes for the browser compiler.")
 
 
 if __name__ == "__main__":
     prepare()
+

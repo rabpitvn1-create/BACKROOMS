@@ -77,5 +77,88 @@ function call(name,...args){return JSON.parse(__webGame.call(name,...args));}
  assert.equal(JSON.stringify(state),resolvedSnapshot,'Same dice hand must not resolve twice');
  assert.ok(__webGame.events.some(e=>e.kind==='combat-repeat-blocked'));
  console.log('PASS: real combat prepare/hold/reroll/finish/resolution runs locally');
+
+ const originalRandom=Math.random;
+ try{
+  function newTravelGame(){
+   Math.random=()=>0;
+   state=JSON.parse(Android.initializeLevelGame(JSON.stringify(initial),true));
+  }
+  function travelTurn(value){
+   let draws=0;
+   Math.random=()=>{draws++;return value;};
+   const before=JSON.stringify(state),candidate=JSON.stringify({...state,turn:state.turn+1});
+   state=call('finishLevelTurn',before,candidate,'Khám phá');
+   assert.equal(draws,state.exitResult.completed?2:1,'One trial per completed turn; destination drawn only on exit');
+   assert.equal(state.exitResult.chancePercent,50);
+   assert.equal(state.exitResult.failurePercent,50);
+   assert.equal(state.exitResult.requiredStreak,4);
+   return {before,candidate};
+  }
+  for(const value of [0,0.399999,0.4,0.499999,0.5,0.999999]){
+   newTravelGame();
+   const node=state.levelTravel.nodeId;
+   travelTurn(value);
+   assert.equal(state.exitResult.success,value<0.5,'Exact 50/50 boundary at '+value);
+   assert.equal(state.levelTravel.exitStreak,value<0.5?1:0);
+   assert.equal(state.levelTravel.nodeId,node);
+  }
+  console.log('PASS: travel uses a 50/50 threshold, including the exact 0.5 boundary');
+  for(let streak=0;streak<4;streak++){
+   newTravelGame();
+   const node=state.levelTravel.nodeId,run=state.levelTravel.runId;
+   for(let i=1;i<=streak;i++){
+    travelTurn(0.49);
+    assert.equal(state.levelTravel.exitStreak,i);
+    assert.equal(state.exitResult.completed,false,'No exit before four consecutive successes');
+   }
+   const inventory=JSON.stringify(state.inventory),party=JSON.stringify(state.party);
+   travelTurn(0.5);
+   assert.equal(state.levelTravel.exitStreak,0,'Failure resets the whole streak from '+streak);
+   assert.equal(state.exitResult.streak,0);
+   assert.equal(state.exitResult.completed,false);
+   assert.equal(state.levelTravel.nodeId,node);
+   assert.equal(state.levelTravel.runId,run);
+   assert.equal(JSON.stringify(state.inventory),inventory);
+   assert.equal(JSON.stringify(state.party),party);
+   travelTurn(0.49);
+   assert.equal(state.levelTravel.exitStreak,1,'The next success starts over at one');
+  }
+  console.log('PASS: failure at streak 0, 1, 2 or 3 resets to zero without resetting the game');
+  newTravelGame();
+  const source=state.levelTravel.nodeId,run=state.levelTravel.runId;
+  for(let i=1;i<=3;i++){
+   travelTurn(0.49);
+   assert.equal(state.levelTravel.exitStreak,i);
+   assert.equal(state.levelTravel.nodeId,source);
+   assert.equal(state.exitResult.completed,false);
+  }
+  const partialUi=JSON.stringify(state),partialCore=Android.levelCoreSnapshot();
+  assert.equal(JSON.parse(core.coreInit(BACKROOMS_ASSETS['knowledge/level_travel_policy.json'],partialCore)).ok,true);
+  state=call('resumeLevelGame',partialUi,true);
+  assert.equal(state.levelTravel.exitStreak,3,'Save/load preserves an unfinished streak');
+  const {before,candidate}=travelTurn(0.49);
+  assert.equal(state.exitResult.streak,4);
+  assert.equal(state.exitResult.completed,true);
+  assert.equal(state.exitResult.from,source);
+  assert.notEqual(state.exitResult.to,source);
+  assert.equal(state.levelTravel.nodeId,state.exitResult.to);
+  assert.equal(state.levelTravel.exitStreak,0,'A new level starts a fresh streak');
+  assert.equal(state.levelTravel.runId,run);
+  assert.match(state.log.at(-1).text,/no-clip/i);
+  const committedTravel=structuredClone(state.levelTravel);
+  Math.random=()=>{throw Error('A replay must not draw travel RNG');};
+  state=call('finishLevelTurn',before,candidate,'Khám phá');
+  assert.deepEqual(state.levelTravel,committedTravel,'Replaying a completed turn must not add another streak');
+  Math.random=()=>0.61;
+  await Android.submitGameplayAction(JSON.stringify(state),'EXECUTE','xem trạng thái');
+  await __webGame.idle;
+  assert.deepEqual(errors,[]);
+  assert.deepEqual(state.levelTravel,committedTravel,'Meta lookup must not roll or reset the streak');
+  travelTurn(0.49);
+  assert.equal(state.levelTravel.exitStreak,1);
+  console.log('PASS: fourth success no-clips once; save/load, duplicate turns and meta actions preserve travel state');
+ }finally{Math.random=originalRandom;}
  console.log('Engine gameplay checks passed.');
 })().catch(error=>{console.error(error);process.exit(1);});
+
