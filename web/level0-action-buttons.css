@@ -1,43 +1,24 @@
-/* Three original Level 0 button images, reused without modifying their artwork. */
-#searchActionButton { --level0-action-art: url('action-buttons/backrooms_level0_search.png'); }
-#submit { --level0-action-art: url('action-buttons/backrooms_level0_execute.png'); }
-#exploreActionButton { --level0-action-art: url('action-buttons/backrooms_level0_explore.png'); }
-
-.player-action-bar .primary-action {
-  min-height: 54px;
-  border: 0 !important;
-  border-radius: 999px !important;
-  background-color: #161106 !important;
-  background-image: var(--level0-action-art) !important;
-  background-position: center !important;
-  background-size: 100% 100% !important;
-  background-repeat: no-repeat !important;
-  color: #1b1407 !important;
-  text-shadow: 0 1px 1px #fff1b8, 0 0 3px #fff4b3;
-  box-shadow: 0 3px 0 #090804, 0 6px 10px #0008 !important;
-  transition: transform .12s ease, filter .12s ease, box-shadow .12s ease !important;
+/* Three Level 0 action skins. The original click handlers are preserved. */
+#playerActionBar #searchActionButton,
+#playerActionBar #submit,
+#playerActionBar #exploreActionButton{
+  min-height:52px;border:0!important;border-radius:10px!important;padding:10px 5px!important;
+  background-color:#756124!important;background-position:center!important;
+  background-repeat:no-repeat!important;background-size:100% 100%!important;
+  box-shadow:0 3px 0 #31250c,0 5px 12px #0008!important;
+  color:#fff8dc!important;text-shadow:0 1px 3px #000,0 0 5px #000!important;
+  overflow:hidden;transform:translateY(0);
+  transition:transform .09s ease,box-shadow .09s ease,filter .09s ease!important;
 }
-.player-action-bar .primary-action .action-icon {
-  filter: drop-shadow(0 1px 1px #fff1b8);
+#playerActionBar #searchActionButton{background-image:url("https://res.cloudinary.com/csz2me5b/image/upload/v1793442521/backrooms/level0/actions/backrooms_level0_search.png")!important}
+#playerActionBar #submit{background-image:url("https://res.cloudinary.com/csz2me5b/image/upload/v1793442487/backrooms/level0/actions/backrooms_level0_execute.png")!important}
+#playerActionBar #exploreActionButton{background-image:url("https://res.cloudinary.com/csz2me5b/image/upload/v1793442536/backrooms/level0/actions/backrooms_level0_explore.png")!important}
+#playerActionBar .primary-action .action-icon{width:17px;height:17px;flex-basis:17px;filter:drop-shadow(0 1px 2px #000)}
+#playerActionBar .primary-action span{position:relative;z-index:1;font-weight:800;font-size:clamp(10px,2.6vw,14px);line-height:1.15}
+#playerActionBar .primary-action:enabled:is(:active,.backroom-pressed,.backroom-activated){
+ transform:translateY(3px) scale(.975)!important;
+ box-shadow:0 1px 0 #31250c,inset 0 3px 9px #0009!important;
+ filter:brightness(1.18) saturate(1.1)!important;
 }
-body .player-action-bar button.primary-action.backroom-pressed:not(.poker-die),
-body .player-action-bar button.primary-action:active:not(.poker-die) {
-  transform: translateY(3px) scale(.98) !important;
-  filter: brightness(.78) saturate(.9) !important;
-  box-shadow: 0 1px 0 #080704, inset 0 3px 8px #0008 !important;
-}
-body .player-action-bar button.primary-action.backroom-activated:not(.backroom-pressed) {
-  transform: none !important;
-  filter: brightness(1.12) saturate(1.1) !important;
-}
-.player-action-bar .primary-action:disabled {
-  opacity: .58;
-  cursor: not-allowed;
-}
-@media (max-width: 360px) {
-  .player-action-bar .primary-action { gap: 4px; padding: 8px 3px; font-size: 11px; }
-  .player-action-bar .action-icon { width: 16px; height: 16px; flex-basis: 16px; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .player-action-bar .primary-action { transition: none !important; }
-}
+#playerActionBar .primary-action:disabled{opacity:.65;filter:saturate(.6)}
+@media(prefers-reduced-motion:reduce){#playerActionBar .primary-action{transition:none!important}}
