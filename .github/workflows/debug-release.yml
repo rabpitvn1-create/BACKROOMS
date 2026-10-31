@@ -10,7 +10,7 @@ on:
       - 'android-debug/**'
 
 concurrency:
-  group: backrooms-debug-release-1.0.0.0
+  group: backrooms-debug-release-1.0.0.1
   cancel-in-progress: false
 
 permissions:
@@ -48,13 +48,13 @@ jobs:
         run: |
           keytool -genkeypair -keystore build/debug.keystore -storetype PKCS12 -storepass android -keypass android -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
           tools="$ANDROID_HOME/build-tools/35.0.0"
-          "$tools/zipalign" -p -f 4 build/Backrooms-1.0.0.0-debug-unsigned.apk build/aligned.apk
-          "$tools/apksigner" sign --ks build/debug.keystore --ks-key-alias androiddebugkey --ks-pass pass:android --key-pass pass:android --out build/Backrooms-1.0.0.0-debug.apk build/aligned.apk
-          "$tools/apksigner" verify --verbose --print-certs build/Backrooms-1.0.0.0-debug.apk
-          "$tools/zipalign" -c -v 4 build/Backrooms-1.0.0.0-debug.apk
-          "$tools/aapt" dump badging build/Backrooms-1.0.0.0-debug.apk > build/apk-metadata.txt
+          "$tools/zipalign" -p -f 4 build/Backrooms-1.0.0.1-debug-unsigned.apk build/aligned.apk
+          "$tools/apksigner" sign --ks build/debug.keystore --ks-key-alias androiddebugkey --ks-pass pass:android --key-pass pass:android --out build/Backrooms-1.0.0.1-debug.apk build/aligned.apk
+          "$tools/apksigner" verify --verbose --print-certs build/Backrooms-1.0.0.1-debug.apk
+          "$tools/zipalign" -c -v 4 build/Backrooms-1.0.0.1-debug.apk
+          "$tools/aapt" dump badging build/Backrooms-1.0.0.1-debug.apk > build/apk-metadata.txt
           cat build/apk-metadata.txt
-          grep -F "versionName='1.0.0.0'" build/apk-metadata.txt
+          grep -F "versionName='1.0.0.1'" build/apk-metadata.txt
           grep -F "versionCode='90000001'" build/apk-metadata.txt
           grep -F 'application-debuggable' build/apk-metadata.txt
       - name: Compile tests for the actual APK provider router
@@ -76,8 +76,8 @@ jobs:
           profile: pixel_6
           disable-animations: true
           script: |
-            adb install build/Backrooms-1.0.0.0-debug.apk
-            adb push build/Backrooms-1.0.0.0-debug.apk /data/local/tmp/backrooms.apk
+            adb install build/Backrooms-1.0.0.1-debug.apk
+            adb push build/Backrooms-1.0.0.1-debug.apk /data/local/tmp/backrooms.apk
             adb push build/router-tests.jar /data/local/tmp/router-tests.jar
             adb shell chmod 444 /data/local/tmp/backrooms.apk /data/local/tmp/router-tests.jar
             adb shell 'CLASSPATH=/data/local/tmp/router-tests.jar app_process /system/bin RouterSmoke /data/local/tmp/backrooms.apk' > build/router-smoke.txt
@@ -125,7 +125,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     env:
-      TAG: v1.0.0.0
+      TAG: v1.0.0.1
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -137,7 +137,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           if gh release view "$TAG" >/dev/null 2>&1; then
-            echo 'Version 1.0.0.0 already exists; refusing to replace it.'
+            echo 'Version 1.0.0.1 already exists; refusing to replace it.'
             exit 1
           fi
       - name: Test recovered package and key replacement
@@ -161,19 +161,19 @@ jobs:
         run: |
           keytool -genkeypair -keystore build/debug.keystore -storetype PKCS12 -storepass android -keypass android -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
           tools="$ANDROID_HOME/build-tools/35.0.0"
-          "$tools/zipalign" -p -f 4 build/Backrooms-1.0.0.0-debug-unsigned.apk build/aligned.apk
-          "$tools/apksigner" sign --ks build/debug.keystore --ks-key-alias androiddebugkey --ks-pass pass:android --key-pass pass:android --out build/Backrooms-1.0.0.0-debug.apk build/aligned.apk
-          "$tools/apksigner" verify --verbose --print-certs build/Backrooms-1.0.0.0-debug.apk
-          "$tools/zipalign" -c -v 4 build/Backrooms-1.0.0.0-debug.apk
-          "$tools/aapt" dump badging build/Backrooms-1.0.0.0-debug.apk > build/apk-metadata.txt
+          "$tools/zipalign" -p -f 4 build/Backrooms-1.0.0.1-debug-unsigned.apk build/aligned.apk
+          "$tools/apksigner" sign --ks build/debug.keystore --ks-key-alias androiddebugkey --ks-pass pass:android --key-pass pass:android --out build/Backrooms-1.0.0.1-debug.apk build/aligned.apk
+          "$tools/apksigner" verify --verbose --print-certs build/Backrooms-1.0.0.1-debug.apk
+          "$tools/zipalign" -c -v 4 build/Backrooms-1.0.0.1-debug.apk
+          "$tools/aapt" dump badging build/Backrooms-1.0.0.1-debug.apk > build/apk-metadata.txt
           cat build/apk-metadata.txt
-          grep -F "versionName='1.0.0.0'" build/apk-metadata.txt
+          grep -F "versionName='1.0.0.1'" build/apk-metadata.txt
           grep -F "versionCode='90000001'" build/apk-metadata.txt
           grep -F 'application-debuggable' build/apk-metadata.txt
-      - name: Publish 1.0.0.0 debug APK
+      - name: Publish 1.0.0.1 debug APK
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           cd build
-          sha256sum Backrooms-1.0.0.0-debug.apk > SHA256SUMS.txt
-          gh release create "$TAG" Backrooms-1.0.0.0-debug.apk SHA256SUMS.txt --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title 'Backrooms 1.0.0.0 debug' --notes-file ../android-debug/RELEASE_NOTES.md
+          sha256sum Backrooms-1.0.0.1-debug.apk > SHA256SUMS.txt
+          gh release create "$TAG" Backrooms-1.0.0.1-debug.apk SHA256SUMS.txt --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title 'Backrooms 1.0.0.1 debug' --notes-file ../android-debug/RELEASE_NOTES.md
