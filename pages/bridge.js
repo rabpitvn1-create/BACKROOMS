@@ -5,6 +5,8 @@
   const CORE_KEY = 'backrooms-web-core-v1';
   const assets = window.BACKROOMS_ASSETS || {};
   const config = window.BACKROOMS_CONFIG || {};
+  // Proxy Cloudflare Worker giấu API key: game gọi Worker, Worker tự gắn key từ secret.
+  const PROXY_BASE_URL = 'https://backrooms-api-proxy.lightangel1092.workers.dev';
   const policy = assets['knowledge/level_travel_policy.json'];
   let chain = Promise.resolve(), bootError = null;
   const events = [];
@@ -67,72 +69,40 @@
     }
   }
   async function generate(prompt) {
-    const keys = config.keys || [];
-    if (keys.length !== 6 || keys.some(key => !key)) throw new Error('Cấu hình sáu key chưa đầy đủ.');
-    const models = config.models || ['gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-2.5-flash-lite'];
+    // API key nằm trên Cloudflare Worker (secret); client chỉ gọi proxy /gemini, không gửi key.
+    const models = config.models || ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite'];
     const failures = [];
-    const argon = config.argon;
-    if (argon && argon.key && argon.base_url && argon.model) {
-      emit('backroomProvider', `Argon · ${argon.model}`);
+    // Worker tự xoay vòng 6 key Gemini khi gặp 429; client chỉ fallback qua các model.
+    for (const model of models) {
+      const slot = `proxy:${model}`;
+      if ((cooldowns.get(slot) || 0) > Date.now()) continue;
+      emit('backroomProvider', `Gemini · ${model}`);
       try {
-        const base = String(argon.base_url).replace(/\/+$/, '');
-        const endpoint = base.endsWith('/chat/completions') ? base : base + '/chat/completions';
-        const response = await fetch(endpoint, {
-          method: 'POST', signal: AbortSignal.timeout(15000),
-          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + argon.key },
+        const response = await fetch(PROXY_BASE_URL + '/gemini', {
+          method: 'POST', signal: AbortSignal.timeout(60000),
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            model: argon.model,
-            messages: [{ role: 'user', content: prompt }],
-            max_tokens: 4096, temperature: 0.8, stream: false,
+            model,
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+            generationConfig: { responseMimeType: 'application/json', temperature: 0.8, maxOutputTokens: 4096 },
           }),
         });
-        record({ kind: 'provider', alias: 'Argon', model: argon.model, status: response.status });
-        if (response.ok) {
-          const payload = await response.json();
-          let text = payload.choices?.[0]?.message?.content || '';
-          if (Array.isArray(text)) text = text.map(p => p.text || '').join('');
-          const parsed = parseAnswer(text);
-          if (typeof parsed.reply !== 'string' || !parsed.reply.trim()) throw new Error('Phản hồi chưa có lời kể.');
-          return parsed;
+        record({ kind: 'provider', alias: 'Gemini', model, status: response.status });
+        if (!response.ok) {
+          failures.push(`Gemini ${model} HTTP ${response.status}`);
+          if ([403, 404, 429, 502].includes(response.status)) cooldowns.set(slot, Date.now() + (response.status === 429 ? 60000 : 300000));
+          continue;
         }
-        failures.push(`Argon HTTP ${response.status}`);
+        const payload = await response.json();
+        const text = (payload.candidates?.[0]?.content?.parts || []).filter(p => !p.thought).map(p => p.text || '').join('');
+        const parsed = parseAnswer(text);
+        if (typeof parsed.reply !== 'string' || !parsed.reply.trim()) throw new Error('Phản hồi chưa có lời kể.');
+        return parsed;
       } catch (error) {
-        failures.push(`Argon: ${error.name === 'TimeoutError' ? 'hết thời gian chờ' : 'yêu cầu không hoàn tất'}`);
+        failures.push(`Gemini ${model}: ${error.name === 'TimeoutError' ? 'hết thời gian chờ' : 'yêu cầu không hoàn tất'}`);
       }
     }
-    for (let i = 0; i < keys.length; i++) {
-      if ((cooldowns.get(`key:${i}`) || 0) > Date.now()) continue;
-      for (const model of models) {
-        const slot = `${i}:${model}`;
-        if ((cooldowns.get(slot) || 0) > Date.now()) continue;
-        emit('backroomProvider', `Gemini K${i + 1} · ${model}`);
-        try {
-          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
-            method: 'POST', signal: AbortSignal.timeout(60000),
-            headers: { 'Content-Type': 'application/json', 'x-goog-api-key': keys[i] },
-            body: JSON.stringify({
-              contents: [{ role: 'user', parts: [{ text: prompt }] }],
-              generationConfig: { responseMimeType: 'application/json', temperature: 0.8, maxOutputTokens: 4096 },
-            }),
-          });
-          record({ kind: 'provider', alias: `K${i + 1}`, model, status: response.status });
-          if (!response.ok) {
-            failures.push(`K${i + 1} HTTP ${response.status}`);
-            if (response.status === 401) { cooldowns.set(`key:${i}`, Date.now() + 300000); break; }
-            if ([403, 404, 429].includes(response.status)) cooldowns.set(slot, Date.now() + (response.status === 429 ? 60000 : 300000));
-            continue;
-          }
-          const payload = await response.json();
-          const text = (payload.candidates?.[0]?.content?.parts || []).filter(p => !p.thought).map(p => p.text || '').join('');
-          const parsed = parseAnswer(text);
-          if (typeof parsed.reply !== 'string' || !parsed.reply.trim()) throw new Error('Phản hồi chưa có lời kể.');
-          return parsed;
-        } catch (error) {
-          failures.push(`K${i + 1}: ${error.name === 'TimeoutError' ? 'hết thời gian chờ' : 'yêu cầu không hoàn tất'}`);
-        }
-      }
-    }
-    throw new Error('Argon và sáu key hiện chưa xử lý được lượt: ' + [...new Set(failures)].slice(-6).join('; ') + '. Có thể thử lại.');
+    throw new Error('Gemini hiện chưa xử lý được lượt: ' + [...new Set(failures)].slice(-6).join('; ') + '. Có thể thử lại.');
   }
   async function gameplay(raw, kind, action) {
     if (!['SEARCH', 'EXECUTE', 'EXPLORE'].includes(kind)) throw new Error('action_kind_invalid');
