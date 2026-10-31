@@ -18,7 +18,7 @@ Android.combatDicePrepare=function(...args){window.__combatProbe.prepare++;retur
 Android.submitAction=function(...args){window.__combatProbe.submit++;return submit(...args)};
 window.__entityCueSeen=false;
 new MutationObserver(()=>{const cue=document.getElementById('combatTurnIndicator');if(cue?.dataset.kind==='entity'&&!cue.hidden&&getComputedStyle(cue).display!=='none')window.__entityCueSeen=true}).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['data-kind','hidden']});
-const start=JSON.parse(__webGame.call('startCombatState',JSON.stringify(state),'hound'));assert.ok(start.handled);backroomTurn(JSON.stringify(start.state));
+const start=JSON.parse(__webGame.call('startCombatState',JSON.stringify(state),'hound'));if(!start.handled||!start.state)throw Error('Core refused combat start');backroomTurn(JSON.stringify(start.state));
 });
 await page.waitForFunction(()=>state.combat?.diceState&&!window.__combatDiceBusy&&!window.__directCombatPreparing,{timeout:30000});
 assert.equal(await page.evaluate(()=>window.__combatProbe.prepare),1,'Dice prepared exactly once');
