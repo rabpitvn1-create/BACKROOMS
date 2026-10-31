@@ -104,12 +104,38 @@
     "greek-fire": "https://res.cloudinary.com/csz2me5b/image/upload/v1792832689/Item_Greek_Fire.webp"
   }
 };
+  // One canonical registry is generated from characters/cao-minh-assets.json.
+  var visualDb=window.BACKROOMS_CAO_MINH_ASSET_DATABASE;
+  if (visualDb && Array.isArray(visualDb.assets)) {
+    visualDb.assets.forEach(function(asset) {
+      var c=media.characters['cao-minh'];
+      if (asset.role==='avatar') c.avatar=asset.url;
+      if (asset.role==='combat') c.combat=asset.url;
+      if (asset.role==='exploration') c.idle=asset.url;
+      if (asset.role==='sword') c.sword=asset.url;
+    });
+  }
+  function characterArt(role, original) {
+    var cache=window.backroomOfflineCharacterAssets;
+    return cache && cache.resolve(role) || original;
+  }
   function get(table,key) {
     return Object.prototype.hasOwnProperty.call(table,key) ? table[key] : null;
   }
   window.backroomCloudinary = Object.freeze({
-    characterAvatar: function(id) { var c=get(media.characters,String(id));return c && c.avatar || null; },
-    characterOverlay: function(id,combat) { var c=get(media.characters,String(id));return c && (combat ? c.combat || c.overlay || c.avatar : c.idle || c.overlay || c.avatar) || null; },
+    characterAvatar: function(id) {
+      var c=get(media.characters,String(id)),url=c && c.avatar || null;
+      return String(id)==='cao-minh' ? characterArt('avatar',url) : url;
+    },
+    characterOverlay: function(id,combat) {
+      var c=get(media.characters,String(id));
+      var url=c && (combat ? c.combat || c.overlay || c.avatar : c.idle || c.overlay || c.avatar) || null;
+      return String(id)==='cao-minh' ? characterArt(combat?'combat':'exploration',url) : url;
+    },
+    characterSword: function(id) {
+      var c=get(media.characters,String(id)),url=c && c.sword || null;
+      return String(id)==='cao-minh' ? characterArt('sword',url) : url;
+    },
     entity: function(id) { return get(media.entities,String(id)); },
     item: function(id) { return get(media.items,String(id)); },
     hasCharacter: function(id) { return !!get(media.characters,String(id)); }

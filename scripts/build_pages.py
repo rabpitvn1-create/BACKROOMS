@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 import shutil
+import cao_minh_assets
 
 ROOT = Path(__file__).resolve().parents[1]
 MODELS = ['gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-2.5-flash-lite']
@@ -34,6 +35,8 @@ def build(test_config=False, config_path=None):
     output = ROOT / 'build/pages'
     if output.exists(): shutil.rmtree(output)
     shutil.copytree(ROOT / 'web', output)
+    asset_db = cao_minh_assets.load_database()
+    (output / 'cao-minh-asset-db.js').write_text(cao_minh_assets.registry_script(asset_db), encoding='utf-8')
     runtime = output / 'gameplay'
     runtime.mkdir()
     shutil.copy2(engine, runtime/'game-core.js')
@@ -50,10 +53,20 @@ def build(test_config=False, config_path=None):
     html=(output/'index.html').read_text().replace('<title>Backroom</title>','<title>Backrooms</title>')
     scripts='\n'.join(f'<script src="gameplay/{name}.js?v={version}"></script>' for name in ['assets','config','regex','game-core','bridge'])
     html=html.replace('</head>',scripts+'\n</head>')
+    html=cao_minh_assets.inject_scripts(html)
     (output/'index.html').write_text(html)
     (output/'.nojekyll').touch()
     (output/'personal-provider-config.json').write_text('{}\n')
     (output/'build.json').write_text(json.dumps({'mode':'playable-web','engine':'recovered-apk-core','version':version,'commit':os.environ.get('GITHUB_SHA'),'primaryKeys':6,'argon':bool(argon)},indent=2))
+    # Pre-cache the static Pages shell, with no binary image files in Git.
+    shell = ['./' + p.relative_to(output).as_posix() for p in sorted(output.rglob('*'))
+             if p.is_file() and p.name != 'service-worker.js']
+    worker = output / 'service-worker.js'
+    header = ('self.__BACKROOMS_PRECACHE=' + json.dumps(shell) + ';\n' +
+              'self.__BACKROOMS_SHELL_VERSION=' + json.dumps(
+                  hashlib.sha256((version + cao_minh_assets.registry_script(asset_db)).encode()).hexdigest()[:16]
+              ) + ';\n')
+    worker.write_text(header + worker.read_text(encoding='utf-8'), encoding='utf-8')
     print(f'Playable game staged: {version}; recovered core, six primary keys, Argon ' + ('enabled.' if argon else 'disabled.'))
     return output
 

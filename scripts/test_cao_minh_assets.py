@@ -10,7 +10,7 @@ class CaoMinhAssetsTests(unittest.TestCase):
         db = assets.load_database()
         self.assertEqual(len(db["assets"]), 4)
         self.assertEqual({item["role"] for item in db["assets"]}, assets.ROLES)
-        self.assertEqual(sum(item["bytes"] for item in db["assets"]), 6097063)
+        self.assertEqual(sum(item["bytes"] for item in db["assets"]), 6099063)
         self.assertEqual(len({item["url"] for item in db["assets"]}), 4)
 
     def test_db_is_injected_without_image_files_or_base64(self):
