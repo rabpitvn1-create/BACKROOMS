@@ -26,8 +26,8 @@
       var st = document.createElement('style');
       st.id = 'demon-sword-base-style';
       st.textContent =
-        '.snapshot-stage .demon-sword{position:absolute;height:62%;width:auto;' +
-        'pointer-events:none;z-index:4;}' +
+        '.snapshot-stage .demon-sword{position:absolute;width:auto;' +
+        'pointer-events:none;}' +
         '.snapshot-stage .demon-sword[data-sword-state="attack"]{animation:none;}';
       (document.head || document.documentElement).appendChild(st);
     } catch (e) {}
