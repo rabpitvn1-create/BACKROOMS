@@ -12,6 +12,7 @@ on:
       - 'scripts/*pages*'
       - 'scripts/*engine*'
       - 'scripts/level_travel.py'
+      - 'scripts/PatchLevelTravel.java'
       - 'scripts/test_live_turn.cjs'
       - 'scripts/test_combat_pages.cjs'
       - '.github/workflows/pages.yml'
@@ -97,3 +98,4 @@ jobs:
             build/playable-*.png
             build/mobile-only-*.png
           if-no-files-found: ignore
+

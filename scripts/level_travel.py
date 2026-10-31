@@ -1,23 +1,17 @@
 """Patch only the recovered web travel constants and their player-facing text."""
-import hashlib
 import struct
+import subprocess
+from pathlib import Path
 
 
 def patch(name, data):
     if name == 'com/rabpit/backroom/core/LevelTravelEngine.class':
-        # Pinned to the recovered class: preserve all receipt/save/transition logic.
-        assert hashlib.sha256(data).hexdigest() == '5aa4872fb19c6dfd7645283cf437ee83c6dc8dd96655858393810989a9f31d38'
-        edits = [
-            (6744, struct.pack('>d', 0.4), struct.pack('>d', 0.5)),
-            (9608, b'\x06', b'\x07'),  # exitStreak < 4
-            (9665, b'\x06', b'\x07'),  # completed at 4
-            (9742, b'\x28', b'\x32'),  # chancePercent = 50
-            (9750, b'\x3c', b'\x32'),  # failurePercent = 50
-            (9765, b'\x06', b'\x07'),  # requiredStreak = 4
-        ]
-        for offset, old, new in edits:
-            assert data[offset:offset + len(old)] == old
-            data = data[:offset] + new + data[offset + len(old):]
+        root = Path(__file__).resolve().parents[1]
+        # ASM ships with the existing dex2jar tools; no extra dependency is needed.
+        data = subprocess.run([
+            'java', '-cp', str(root / 'build/web-engine-tools/dex-tools-v2.4/lib/*'),
+            str(root / 'scripts/PatchLevelTravel.java'),
+        ], input=data, stdout=subprocess.PIPE, check=True).stdout
     elif name == 'com/rabpit/backroom/core/GameCoreFacade.class':
         # Match UTF-8 entries exactly; constant-pool ordering can vary across JDKs.
         messages = [
