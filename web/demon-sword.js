@@ -170,71 +170,64 @@
         S.attacking = true;
         cleanupFx(stage);
         ensureBaseStyle();
-        var slashes = 1;
-        try { slashes = /Nhị Thập Tứ Trảm/.test(String(skillName || '')) ? 24 : 1; }
-        catch (e) { slashes = 1; }
-        var fast = slashes > 4;
-        var T = {
-          dash: fast ? 110 : 135,
-          hitstop: 60,
-          afterHit: fast ? 55 : 75,
-          back: fast ? 160 : 200,
-          gap: fast ? 35 : 50,
-          finalExtra: 120
-        };
-        var str = stage.getBoundingClientRect();
-        if (!str.width || !str.height) { S.attacking = false; return false; }
-        var sr = sword.getBoundingClientRect();
-        if (!sr.width || !sr.height) { S.attacking = false; return false; }
-        var entity = null, er = null;
-        try {
-          entity = stage.querySelector('.snapshot-entity');
-          if (entity) er = entity.getBoundingClientRect();
-        } catch (e) {}
+        // User-approved: demonic aura charge (1500ms) -> diagonal fly 71deg (210ms) -> impact -> return
+        var CHARGE_MS = 1500, FLY_MS = 210;
         try {
           sword.dataset.swordState = 'attack';
           sword.style.zIndex = '5';
         } catch (e) {}
-        var scx = sr.left - str.left + sr.width / 2;
-        var scy = sr.top - str.top + sr.height / 2;
-        var rot = 0;
-        for (var i = 0; i < slashes; i++) {
-          var isFinal = (i === slashes - 1);
-          var tcx, tcy;
-          if (er && er.width > 0) {
-            tcx = er.left - str.left + er.width / 2;
-            tcy = er.top - str.top + er.height * 0.45;
+        // Phase 1: Demonic aura charge
+        var aura = null;
+        try {
+          aura = document.createElement('div');
+          aura.className = 'demon-aura';
+          aura.innerHTML = '<div class="wrap"></div><div class="coil"></div><div class="core-glow"></div>';
+          stage.appendChild(aura);
+          // Force reflow
+          void aura.offsetWidth;
+          aura.classList.add('show');
+          sword.classList.add('sword-charging');
+        } catch (e) {}
+        await sleep(CHARGE_MS);
+        try {
+          if (aura) aura.remove();
+          sword.classList.remove('sword-charging');
+        } catch (e) {}
+        // Phase 2: Fly diagonally (CSS animation handles the path)
+        try {
+          void sword.offsetWidth;
+          sword.classList.add('sword-flying');
+        } catch (e) {}
+        await sleep(Math.round(FLY_MS * 0.78));
+        // Phase 3: Impact effects
+        try {
+          var er2 = null;
+          try {
+            var ent2 = stage.querySelector('.snapshot-entity');
+            if (ent2) er2 = ent2.getBoundingClientRect();
+          } catch (e2) {}
+          var str2 = stage.getBoundingClientRect();
+          var tcx2, tcy2;
+          if (er2 && er2.width > 0) {
+            tcx2 = er2.left - str2.left + er2.width / 2;
+            tcy2 = er2.top - str2.top + er2.height * 0.45;
           } else {
-            tcx = str.width * 0.18;
-            tcy = str.height * 0.45;
+            tcx2 = str2.width * 0.35;
+            tcy2 = str2.height * 0.28;
           }
-          tcy += (i % 2 === 0 ? -1 : 1) * str.height * 0.035;
-          var dx = Math.round(tcx - scx);
-          var dy = Math.round(tcy - scy);
-          try { sword.style.transition = 'transform ' + T.dash + 'ms cubic-bezier(0.25, 0.8, 0.3, 1)'; }
-          catch (e) {}
-          await nextFrame();
-          try { sword.style.transform = 'translate(' + dx + 'px,' + dy + 'px) rotate(' + (rot - 70) + 'deg)'; }
-          catch (e) {}
-          await sleep(T.dash + (isFinal ? 20 : 0));
-          impact(stage, entity, er, str, tcx, tcy, isFinal);
-          await hitstop(stage, isFinal ? 90 : T.hitstop);
-          await sleep(T.afterHit + (isFinal ? T.finalExtra : 0));
-          rot += 360;
-          try { sword.style.transition = 'transform ' + T.back + 'ms ease-in-out'; }
-          catch (e) {}
-          await nextFrame();
-          try { sword.style.transform = 'translate(0px, 0px) rotate(' + rot + 'deg)'; }
-          catch (e) {}
-          await sleep(T.back + 10);
-          if (!isFinal) await sleep(T.gap);
-        }
-        try { sword.style.transition = 'transform 150ms ease'; } catch (e) {}
-        await nextFrame();
-        try { sword.style.transform = 'translate(0px, 0px) rotate(' + rot + 'deg)'; } catch (e) {}
-        await sleep(160);
-        clearDrive(sword);
-        try { sword.dataset.swordState = 'shoulder'; } catch (e) {}
+          impact(stage, null, er2, str2, tcx2, tcy2, true);
+        } catch (e) {}
+        await sleep(FLY_MS - Math.round(FLY_MS * 0.78) + 60);
+        try {
+          sword.classList.remove('sword-flying');
+        } catch (e) {}
+        // Cleanup and return
+        try {
+          sword.dataset.swordState = 'shoulder';
+          sword.style.zIndex = '';
+          sword.style.transform = '';
+          sword.style.transition = '';
+        } catch (e) {}
         S.attacking = false;
         return true;
       } catch (e) {
