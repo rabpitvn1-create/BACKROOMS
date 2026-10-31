@@ -29,7 +29,8 @@ const before=await page.evaluate(()=>({turn:state.turn,action:state.combat.diceS
 await page.locator('#pokerDiceRow .poker-die').first().click();
 await page.waitForFunction(v=>!window.__combatDiceBusy&&Boolean(state.combat?.diceState?.held?.[0])!==v,before.held,{timeout:15000});
 assert.equal(await page.locator('#pokerDiceRow .poker-die').first().getAttribute('aria-pressed'),String(!before.held));
-assert.ok(await page.locator('#backroomActionToast').isVisible());
+assert.equal(await page.locator('#backroomActionToast').count(),0,'Combat feedback must not use an intrusive floating toast');
+assert.match(await page.locator('#pokerDiceMeta').innerText(),/HOLD|xúc xắc|ROLL/,'Combat Dice must give in-panel feedback');
 await page.locator('#pokerDiceRoll').click();
 await page.waitForFunction(v=>!window.__combatDiceRolling&&!window.__combatDiceBusy&&state.combat?.diceState?.rerollsUsed>v,before.rerolls,{timeout:20000});
 await page.locator('#pokerDiceFinish').click();
