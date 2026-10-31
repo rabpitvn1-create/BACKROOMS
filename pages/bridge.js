@@ -9,8 +9,6 @@
   let chain = Promise.resolve(), bootError = null;
   const events = [];
   const cooldowns = new Map();
-  // A finalized dice hand is a one-use combat command, not a repeatable button.
-  const consumedCombatDice = new Set();
 
   function check(value) {
     if (typeof value === 'string' && value.startsWith('{')) {
@@ -188,38 +186,9 @@
     submitGameplayAction(raw, kind, action) { return enqueue(() => gameplay(raw, kind, action)); },
     submitAction(raw, kind, action) {
       return enqueue(() => {
-        const before = JSON.parse(raw);
-        const combat = before?.combat;
-        const rolled = combat?.diceState;
-        const diceId = combat?.active && rolled?.finalized
-          ? String(combat.encounterId || '') + ':' + String(rolled.action || '')
-          : null;
-        if (diceId && consumedCombatDice.has(diceId)) {
-          record({ kind: 'combat-repeat-blocked', diceId, time: Date.now() });
-          return;
-        }
-        if (diceId) {
-          consumedCombatDice.add(diceId);
-          if (consumedCombatDice.size > 100)
-            consumedCombatDice.delete(consumedCombatDice.values().next().value);
-        }
-        try {
-          const result = object('processCombat', raw, kind, action);
-          if (!result.handled || !result.state)
-            throw new Error(result.error || 'combat_action_unavailable');
-          // Recovered Core can return the same finalized hand after resolving a round.
-          // Consume it in the bridge projection so the next living round prepares fresh dice.
-          const resolved = result.state;
-          if (resolved.combat?.active && resolved.combat.diceState?.finalized)
-            delete resolved.combat.diceState;
-          const committed = object('finishLevelTurn', raw, JSON.stringify(resolved), action);
-          if (committed.combat?.active && committed.combat.diceState?.finalized)
-            delete committed.combat.diceState;
-          emit('backroomTurn', committed);
-        } catch (error) {
-          if (diceId) consumedCombatDice.delete(diceId);
-          throw error;
-        }
+        const result = object('processCombat', raw, kind, action);
+        if (!result.handled || !result.state) throw new Error(result.error || 'combat_action_unavailable');
+        emit('backroomTurn', object('finishLevelTurn', raw, JSON.stringify(result.state), action));
       }, 'backroomCombatDiceError');
     },
     coreStats(raw, id) { return call('coreStats', raw, id); },

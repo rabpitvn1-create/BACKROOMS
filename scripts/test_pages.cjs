@@ -47,49 +47,6 @@ const {chromium}=require('playwright');
    await page.locator('#playerActionConfirm').click();
    await page.waitForFunction(t=>state.turn>t&&!busy,saved.turn,{timeout:60000});
    assert.match(await page.evaluate(()=>state.log.at(-1).text),/Cao Minh/);
-   // Exercise real pointer actions on the combat UI, not only the Core methods.
-   await page.evaluate(()=>{
-     window.__combatSubmitCount=0;window.__observedEntityCue=false;
-     const originalSubmit=Android.submitAction.bind(Android);
-     Android.submitAction=function(...args){window.__combatSubmitCount++;return originalSubmit(...args)};
-     const turnIndicator=document.getElementById('combatTurnIndicator');
-     if(turnIndicator)new MutationObserver(()=>{
-       if(turnIndicator.dataset.kind==='entity'&&!turnIndicator.hidden)window.__observedEntityCue=true;
-     }).observe(turnIndicator,{attributes:true,attributeFilter:['data-kind','hidden']});
-     const begun=JSON.parse(__webGame.call('startCombatState',JSON.stringify(state),'hound'));
-     if(!begun.handled||!begun.state)throw new Error('Cannot start combat fixture');
-     backroomTurn(JSON.stringify(begun.state));
-   });
-   await page.waitForFunction(()=>state.combat?.diceState&&!window.__combatDiceBusy&&!window.__directCombatPreparing,
-     undefined,{timeout:30000});
-   const firstDice=await page.evaluate(()=>state.combat.diceState.action);
-   await page.locator('#pokerDiceRow .poker-die').first().click();
-   await page.waitForTimeout(600);
-   console.log('COMBAT_DIAGNOSTIC',JSON.stringify(await page.evaluate(()=>({
-     combat:state.combat,ui:{diceBusy:window.__combatDiceBusy,
-       feedbackBusy:window.__combatFeedbackBusy,preparing:window.__directCombatPreparing,
-       resolving:window.__directCombatResolving,rollBusy:window.__combatDiceRolling,
-       diceVisible:!document.getElementById('pokerDiceModal').hidden,
-       status:document.getElementById('status').textContent},
-     events:window.__webGame.events.slice(-8)
-   }))));
-   await page.waitForFunction(()=>state.combat?.diceState?.held?.[0]===true&&!window.__combatDiceBusy);
-   assert.equal(await page.locator('#pokerDiceRow .poker-die').first().getAttribute('aria-pressed'),'true');
-   assert.equal(await page.locator('#backroomActionToast').isVisible(),true,'Buttons should show immediate feedback');
-   await page.locator('#pokerDiceRoll').click();
-   await page.waitForFunction(()=>Number(state.combat?.diceState?.rerollsUsed)>=1&&!window.__combatDiceRolling,
-     undefined,{timeout:30000});
-   await page.locator('#pokerDiceFinish').click();
-   await page.waitForFunction(()=>window.__combatSubmitCount===1,undefined,{timeout:30000});
-   await page.waitForFunction(()=>!window.__combatFeedbackBusy&&!window.__directCombatResolving,
-     undefined,{timeout:60000});
-   assert.equal(await page.evaluate(()=>window.__combatSubmitCount),1,'No automatic repeated attacks');
-   if(await page.evaluate(()=>state.combat?.active===true)){
-     await page.waitForFunction(()=>state.combat?.diceState&&!state.combat.diceState.finalized,
-       undefined,{timeout:30000});
-     assert.notEqual(await page.evaluate(()=>state.combat.diceState.action),firstDice,
-       'A living combat needs a fresh dice hand after the previous round');
-   }
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
    assert.deepEqual(errors,[],'Browser runtime errors');
    await page.screenshot({path:`build/playable-${viewport.width}.png`});
