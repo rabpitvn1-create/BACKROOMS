@@ -103,6 +103,8 @@
       statusEl.textContent = 'Không tìm thấy kết nối hành động.';
       return;
     }
+    // Show the player command in the GM narrative immediately, before AI/network work.
+    if (window.backroomPendingAction) window.backroomPendingAction.start(kind, label);
     busy = true;
     lastTurnFailed = false;
     if (activity) { activity.textContent = ''; activity.hidden = true; }

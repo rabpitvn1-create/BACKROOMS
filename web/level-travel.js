@@ -57,16 +57,22 @@
     state.coreSnapshot = JSON.parse(native.levelCoreSnapshot());
     localStorage.setItem(key, JSON.stringify(state));
     statusEl.textContent = 'Đã lưu game.';
+    if (window.backroomMenuFeedback) window.backroomMenuFeedback('Đã lưu tiến trình trên thiết bị.');
   };
   window.load = function () {
     if (busy) return;
     const raw = localStorage.getItem(key);
-    if (!raw) { statusEl.textContent = 'Chưa có game đã lưu.'; return; }
+    if (!raw) {
+      statusEl.textContent = 'Chưa có game đã lưu.';
+      if (window.backroomMenuFeedback) window.backroomMenuFeedback('Không tìm thấy tiến trình đã lưu.');
+      return;
+    }
     try {
       state = JSON.parse(native.initializeLevelGame(raw, false));
       drawTravel();
       syncCombatDice();
       hideRecovery();
+      if (window.backroomMenuFeedback) window.backroomMenuFeedback('Đã tải tiến trình đã lưu.');
     } catch (error) { showRecovery(error); }
   };
   function newGame() {

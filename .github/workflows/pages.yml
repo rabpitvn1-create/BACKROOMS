@@ -61,6 +61,7 @@ jobs:
           ln -s "$GITHUB_WORKSPACE/build/pages" build/test-host/Backrooms
           python3 -m http.server 4173 --bind 127.0.0.1 --directory build/test-host > build/browser-server.log 2>&1 &
           node scripts/test_pages.cjs
+          node scripts/test_action_feedback.cjs
           node scripts/test_combat_pages.cjs
           node scripts/test_offline_art.cjs
       - name: Stage the approved six-key public playable build
