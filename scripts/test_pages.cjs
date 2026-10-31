@@ -54,6 +54,39 @@ const {chromium}=require('playwright');
    await page.waitForFunction(t=>state.turn>t&&!busy,saved.turn,{timeout:60000});
    assert.match(await page.evaluate(()=>state.log.at(-1).text),/Cao Minh/);
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
+   // Verify the reading position independently of AI wording and log batching.
+   for(const scenario of [
+    {name:'single reply',multiple:false,trim:false},
+    {name:'reply followed by a GM notice',multiple:true,trim:false},
+    {name:'trimmed history with repeated reply text',multiple:true,trim:true}
+   ]){
+    const index=await page.evaluate(scenario=>{
+     const history=scenario.trim?state.log.slice(-2):state.log;
+     const reply='ĐẦU CỐT TRUYỆN MỚI\n\n'+
+       'Cao Minh quan sát bức tường rồi chậm rãi tiến về phía trước.\n\n'.repeat(40);
+     const log=[...history,{role:'player',text:'Tiếp tục quan sát'},{role:'gm',text:reply}];
+     if(scenario.multiple)log.push({role:'gm',text:'Thông tin lượt chơi đã cập nhật.'});
+     window.backroomPendingAction.start('EXECUTE','Tiếp tục quan sát');
+     window.backroomTurn(JSON.stringify({...state,turn:state.turn+1,log}));
+     return history.length+1;
+    },scenario);
+    await page.waitForFunction(index=>{
+     const log=document.getElementById('log'),message=log.children[index];
+     return message&&Math.abs(message.getBoundingClientRect().top-log.getBoundingClientRect().top)<=2;
+    },index,{timeout:5000});
+    assert.equal(await page.locator('#log [data-pending-gm-action]').count(),0);
+    const reading=await page.evaluate(()=>{
+     const log=document.getElementById('log');
+     log.scrollTop+=100;
+     const top=log.scrollTop;
+     window.backroomTurn(JSON.stringify(state));
+     return top;
+    });
+    await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+    assert.ok(Math.abs(await page.locator('#log').evaluate(log=>log.scrollTop)-reading)<=2,
+      scenario.name+': unchanged narration must preserve the reader position');
+    console.log('PASS GM reading position: '+scenario.name);
+   }
    assert.deepEqual(errors,[],'Browser runtime errors');
    await page.screenshot({path:`build/playable-${viewport.width}.png`});
    console.log(`PASS: ${viewport.width}px startup, search, failover, inventory view, save, reload-as-newgame, manual load and typed action`);

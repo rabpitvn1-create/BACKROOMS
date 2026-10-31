@@ -1478,12 +1478,12 @@ window.backroomPendingAction={
 };
 const narrativeFormatter=window.backroomNarrativeFormat&&window.backroomNarrativeFormat.createController(window.localStorage);
 if(narrativeFormatter)narrativeFormatter.sync(state);
-// New GM replies start at their first line, after the WebView finishes layout.
-function focusLatestGmStart(){
+// Focus the first new GM entry, including turns with several narrative messages.
+function focusGmStart(index){
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    const gm=logEl.querySelectorAll('.message.gm'),latest=gm[gm.length-1];
-    if(!latest)return;
-    const top=latest.getBoundingClientRect().top-logEl.getBoundingClientRect().top+logEl.scrollTop;
+    const message=logEl.children[index];
+    if(!message)return;
+    const top=message.getBoundingClientRect().top-logEl.getBoundingClientRect().top+logEl.scrollTop;
     logEl.scrollTop=Math.max(0,Math.round(top));
   }));
 }
@@ -1508,11 +1508,15 @@ formEl.addEventListener("submit",e=>{
   catch(error){window.backroomError(String(error&&error.message||error))}
 });
 window.backroomTurn=json=>{
-  const oldLog=Array.isArray(state.log)?state.log:[],oldGm=[...oldLog].reverse().find(x=>x.role!=="player");
+  const oldLog=Array.isArray(state.log)?state.log:[];
   state=JSON.parse(json);pendingGmAction=null;if(narrativeFormatter)narrativeFormatter.freezeNew(state,oldLog.length);actionEl.value="";busy=false;submitEl.disabled=false;
   save();statusEl.textContent="Turn "+state.turn+" đã lưu trên máy.";render();
-  const nextLog=Array.isArray(state.log)?state.log:[],nextGm=[...nextLog].reverse().find(x=>x.role!=="player");
-  if(nextGm&&(nextGm.text!==oldGm?.text||nextLog.length!==oldLog.length))focusLatestGmStart();
+  const nextLog=Array.isArray(state.log)?state.log:[];
+  // Core may trim older history; match the retained suffix before locating new entries.
+  let shared=Math.min(oldLog.length,nextLog.length);
+  while(shared>0&&!oldLog.slice(-shared).every((entry,i)=>entry.role===nextLog[i].role&&entry.text===nextLog[i].text))shared--;
+  const firstGm=nextLog.findIndex((entry,i)=>i>=shared&&entry.role!=="player");
+  if(firstGm>=0)focusGmStart(firstGm);
 };
 window.backroomError=message=>{
   busy=false;submitEl.disabled=false;
