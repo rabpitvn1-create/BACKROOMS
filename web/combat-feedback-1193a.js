@@ -492,15 +492,19 @@
     if(!ensureCombatPanel()||!turnIndicator)return;
     var kind=cue.kind;
     if(kind==='actor'){showNow(cue.actorName||'Cao Minh');focusCombatActor(cue.actorId);}
-    else if(kind==='entity'){showNow('Cao Minh');focusCombatActor('cao_minh');}
+    else if(kind==='entity'){showNow(cue.entityName||'Entity');focusCombatActor('cao_minh');}
     else if(kind==='wave'&&cue.entityKey&&typeof window.backroomSwitchCombatEntityWave==='function'){
       stopCombatMotion();
       window.backroomSwitchCombatEntityWave(cue.entityKey,cue.waveNumber);
     }
-    // Keep the last Party fighter in NOW while Entity counterattacks.
-    turnIndicator.hidden=true;turnIndicator.dataset.kind=kind;
+    // Party and Entity turns are visible phases, driven strictly by Core cues.
+    turnIndicator.hidden=!(kind==='actor'||kind==='entity');
+    turnIndicator.dataset.kind=kind;
+    turnIndicator.classList.toggle('combat-turn-indicator--loading',kind==='actor'||kind==='entity');
     if(turnName)turnName.textContent=kind==='actor'?String(cue.actorName||'Cao Minh'):String(cue.entityName||'Entity');
-    if(turnDetail)turnDetail.textContent='';
+    if(turnDetail)turnDetail.textContent=kind==='actor'?'LƯỢT PARTY':kind==='entity'?'LƯỢT ENTITY':'';
+    if(kind==='entity')appendCombatLine('entity',[
+      combatSemantic('entity',String(cue.entityName||'Entity')),' đến lượt hành động.']);
     if(kind==='wave'){
       appendCombatLine('system',['Bắt đầu giao chiến với ',
         combatSemantic('entity',cue.entityName||'Entity'),'.']);
@@ -692,6 +696,11 @@
       });
       return;
     }
+    // Lock dice before the underlying render can begin a new round.
+    // Release only after the typed Party + Entity timeline finishes.
+    if(before&&before.active===true&&rawPacket&&typeof rawPacket.id==='string'&&
+       Array.isArray(rawPacket.events)&&seen.indexOf(rawPacket.id)===-1)
+      setFeedbackBusy(true);
     var result=previousTurn.call(this,json);
     var next=typeof state!=='undefined'&&state;
     var after=next&&next.combat,packet=rawPacket||(next&&next.combatFeedback);
