@@ -8,7 +8,6 @@
 <link rel="stylesheet" href="narrative-format.css">
 <script src="narrative-format.js"></script>
 <link rel="stylesheet" href="combat-feedback-1193a.css">
-<link rel="stylesheet" href="touch-feedback.css">
 <style>
 *{box-sizing:border-box}body{margin:0;background:#080a0c;color:#eef1f3;font:15px var(--game-font)}.shell{min-height:100vh;padding:10px;background:radial-gradient(circle at top,#161b20,#07090b 75%)}.game,.card{border:1px solid #2b3137;background:#0e1114;box-shadow:0 20px 60px #0007}.topbar{display:flex;justify-content:space-between;gap:12px;padding:16px;border-bottom:1px solid #2b3137}.eyebrow,.role{color:#8f9aa4;font-size:10px;font-weight:800;letter-spacing:.16em}h1{margin:4px 0 0;font-size:23px}.turn{color:#9aa4ad;font-size:12px;letter-spacing:.1em}.turn strong{font-size:21px;color:white}.snapshot{height:300px;margin:8px 10px 10px;border:1px solid #252b31;display:grid;place-items:center;background:#0b0d0f;color:#69737c;border-radius:10px;overflow:hidden}.snapshot img{width:100%;height:100%;object-fit:cover}.log{height:42vh;overflow:auto;padding:10px;display:grid;gap:10px}.message{border-left:3px solid #454e56;padding:11px;background:#111519}.message.player{border-left-color:#8b949e;background:#15191d}.role{margin-bottom:6px}.text{white-space:pre-wrap;line-height:1.55}.composer{display:grid;gap:8px;padding:10px}textarea,button{font:inherit}textarea{min-height:80px;background:#090c0f;color:white;border:1px solid #30373e;padding:10px}button{border:1px solid #3a4249;background:#1a2025;color:#eff2f4;padding:12px;font-weight:700}.status{border-top:1px solid #252b31;padding:10px;color:#9aa4ad;font-size:12px}.side{display:grid;gap:10px;margin-top:10px}.card{padding:14px}.card h2{font-size:13px;letter-spacing:.1em;margin:0 0 10px}.row{display:grid;grid-template-columns:90px 1fr;padding:6px 0;border-bottom:1px solid #22282d;color:#dce2e5}.row b{color:#78838c;font-weight:400}.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.actions .wide{grid-column:1/-1}.danger{background:#241616;color:#e6b1b1;border-color:#663b3b}.chips{display:flex;flex-wrap:wrap;gap:6px}.chips span{border:1px solid #313940;padding:5px 7px;font-size:12px}.party-time{min-height:16px;margin:-2px 0 9px;color:#78838c;font-size:11px}.party-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.party-member{border:1px solid #313940;background:#111519;padding:7px;display:grid;gap:6px;text-align:center;cursor:pointer;min-width:0}.party-member img,.party-avatar-placeholder{width:100%;aspect-ratio:1/1;object-fit:cover;border:1px solid #333b42;background:#0b0e11}.party-avatar-placeholder{display:grid;place-items:center;color:#78838c;font-size:18px;font-weight:800}.party-member strong{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.party-member .party-state{color:#84909a;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.party-member.empty{cursor:default;opacity:.45}.party-member.empty .party-avatar-placeholder{font-size:11px}.character-inventory-view{position:fixed;inset:0;z-index:50;background:#080a0c;padding:14px;overflow:auto}.character-inventory-head{display:flex;align-items:center;gap:12px;border-bottom:1px solid #2b3137;padding-bottom:12px}.character-inventory-head button{width:auto}.character-inventory-head h2{margin:3px 0 0}.character-profile{display:grid;grid-template-columns:110px 1fr;gap:14px;align-items:center;padding:16px 0}.character-profile img{width:110px;height:110px;object-fit:cover;border:1px solid #3b444c}.inventory-capacity{font-size:18px;font-weight:800}.inventory-limit{margin-top:5px;color:#8f9aa4;font-size:12px}.character-section{border:1px solid #2b3137;background:#0e1114;padding:14px;margin-top:10px}.character-section h3{margin:0 0 10px;font-size:12px;letter-spacing:.12em;text-transform:uppercase}.equipment-list,.character-status-list{display:grid;gap:7px}.equipment-list span,.character-status-row{border:1px solid #313940;padding:9px;color:#dce2e5}.character-status-row{display:grid;grid-template-columns:minmax(90px,35%) 1fr;gap:8px}.character-status-row b{color:#78838c;font-weight:400}.status-normal{color:#9aa4ad}.status-warning{color:#d6c28a}.status-danger{color:#df9a9a}@media(max-width:520px){.party-grid{grid-template-columns:repeat(4,1fr)}.party-member{padding:4px}.party-member strong{font-size:9px}.party-member .party-state{font-size:8px}}
 
@@ -17,6 +16,7 @@
 <link rel="stylesheet" href="mobile-hud.css">
 <link rel="stylesheet" href="shared-theme.css">
 <link rel="stylesheet" href="android-phone.css">
+<link rel="stylesheet" href="touch-feedback.css">
 <script src="lucia-visuals.js"></script>
 <script src="named-follower-visuals.js"></script>
 </head>
@@ -1419,6 +1419,49 @@ const byId=id=>document.getElementById(id);
 const titleEl=byId("title"),turnEl=byId("turn"),locationEl=byId("location"),modeEl=byId("mode"),playerEl=byId("player"),partyEl=byId("party"),inventoryEl=byId("inventory"),logEl=byId("log"),statusEl=byId("status"),formEl=byId("form"),actionEl=byId("action"),submitEl=byId("submit");
 let state=JSON.parse(localStorage.getItem("backroom-apk-state")||"null")||initial;state.canonVersion="NOVEL-TEXTGAME-2026-08-20-DRIVE-INTEGRATION-R06";state.flags=state.flags||{};state.flags.syvial=state.flags.syvial||{exists:true,continuity:"SEPARATED",reunionEligible:true};
 let busy=false;
+// The pending entry is strictly presentation state. Only authoritative Core
+// turn results may enter state.log or be written to browser/native saves.
+let pendingGmAction=null;
+function paintPendingGmAction(){
+  if(!logEl)return;
+  logEl.querySelectorAll('[data-pending-gm-action]').forEach(node=>node.remove());
+  if(!pendingGmAction)return;
+  function entry(role,text){
+    const article=document.createElement('article');
+    article.className='message '+role+' pending-action'+(pendingGmAction.failed?' pending-action-error':'');
+    article.dataset.pendingGmAction=role;
+    const heading=document.createElement('div');
+    heading.className='role';heading.textContent=role==='player'?'CAO MINH':'THIÊN ĐẠO';
+    const body=document.createElement('div');
+    body.className='text';body.textContent=text;
+    if(role==='gm'){body.setAttribute('role','status');body.setAttribute('aria-live','polite')}
+    article.append(heading,body);
+    logEl.appendChild(article);
+  }
+  entry('player',pendingGmAction.text);
+  entry('gm',pendingGmAction.failed
+    ? 'Lượt chưa hoàn tất. '+pendingGmAction.message
+    : 'Game Master đang xử lý hành động…');
+  logEl.scrollTop=logEl.scrollHeight;
+}
+window.backroomPendingAction={
+  start(kind,text){
+    if(pendingGmAction&&!pendingGmAction.failed)return false;
+    const action=String(text||'').trim();
+    if(!action)return false;
+    pendingGmAction={kind:String(kind||'EXECUTE'),text:action,failed:false,message:''};
+    paintPendingGmAction();
+    return true;
+  },
+  fail(message){
+    if(!pendingGmAction)return;
+    pendingGmAction.failed=true;
+    pendingGmAction.message=String(message||'Không thể kết nối Game Master.').slice(0,300);
+    paintPendingGmAction();
+  },
+  clear(){pendingGmAction=null;paintPendingGmAction()},
+  current(){return pendingGmAction?{...pendingGmAction}:null}
+};
 const narrativeFormatter=window.backroomNarrativeFormat&&window.backroomNarrativeFormat.createController(window.localStorage);
 if(narrativeFormatter)narrativeFormatter.sync(state);
 // New GM replies start at their first line, after the WebView finishes layout.
@@ -1433,20 +1476,35 @@ function focusLatestGmStart(){
 
 function esc(s){const d=document.createElement("div");d.textContent=s||"";return d.innerHTML}
 function chips(items){return items&&items.length?items.map(x=>"<span>"+esc(typeof x==="string"?x:x.name||"—")+"</span>").join(""):"<span>Trống.</span>"}
-function render(){titleEl.textContent=state.displayTitle||"MAIN_BACKROOMS — Cao Minh";turnEl.textContent=state.turn;locationEl.textContent=state.hudLocation||state.displayLocation||"Chưa xác định";modeEl.textContent=state.mode;playerEl.textContent=state.player?.name||"Cao Minh";partyEl.innerHTML=chips(state.party);if(inventoryEl)inventoryEl.innerHTML=chips(state.inventory);logEl.innerHTML=(state.log||[]).map(x=>"<article class='message "+(x.role==="player"?"player":"gm")+"'><div class='role'>"+(x.role==="player"?"CAO MINH":"THIÊN ĐẠO")+"</div><div class='text'>"+esc(x.text)+"</div></article>").join("");statusEl.textContent="Save được lưu riêng trên thiết bị này.";if(narrativeFormatter){narrativeFormatter.sync(state);narrativeFormatter.paint(logEl,state)}}
+function render(){titleEl.textContent=state.displayTitle||"MAIN_BACKROOMS — Cao Minh";turnEl.textContent=state.turn;locationEl.textContent=state.hudLocation||state.displayLocation||"Chưa xác định";modeEl.textContent=state.mode;playerEl.textContent=state.player?.name||"Cao Minh";partyEl.innerHTML=chips(state.party);if(inventoryEl)inventoryEl.innerHTML=chips(state.inventory);logEl.innerHTML=(state.log||[]).map(x=>"<article class='message "+(x.role==="player"?"player":"gm")+"'><div class='role'>"+(x.role==="player"?"CAO MINH":"THIÊN ĐẠO")+"</div><div class='text'>"+esc(x.text)+"</div></article>").join("");statusEl.textContent="Save được lưu riêng trên thiết bị này.";if(narrativeFormatter){narrativeFormatter.sync(state);narrativeFormatter.paint(logEl,state)}paintPendingGmAction()}
 function save(){localStorage.setItem("backroom-apk-state",JSON.stringify(state));statusEl.textContent="Đã lưu save trên máy."}
 function load(){state=JSON.parse(localStorage.getItem("backroom-apk-state")||"null")||initial;if(narrativeFormatter)narrativeFormatter.sync(state);render()}
 function resetGame(){if(confirm("Bắt đầu lại từ Turn 1?")){if(window.Android&&typeof Android.resetCore==='function')Android.resetCore();state=JSON.parse(JSON.stringify(initial));save();render()}}
 function clearSave(){if(confirm("Xóa save trên máy?")){localStorage.removeItem("backroom-apk-state");if(window.Android&&typeof Android.resetCore==='function')Android.resetCore();state=JSON.parse(JSON.stringify(initial));render()}}
-formEl.addEventListener("submit",e=>{e.preventDefault();const a=actionEl.value.trim();if(!a||busy)return;if(!window.Android){statusEl.textContent="Không tìm thấy Android bridge.";return}busy=true;submitEl.disabled=true;statusEl.textContent="Đang xử lý lượt…";window.Android.submitGameplayAction(JSON.stringify(state),"EXECUTE",a)});
+formEl.addEventListener("submit",e=>{
+  e.preventDefault();
+  const a=actionEl.value.trim();
+  if(!a||busy)return;
+  if(!window.Android||typeof Android.submitGameplayAction!=="function"){
+    statusEl.textContent="Không tìm thấy kết nối Game Master.";return;
+  }
+  window.backroomPendingAction.start("EXECUTE",a);
+  busy=true;submitEl.disabled=true;statusEl.textContent="Đang xử lý lượt…";
+  try{window.Android.submitGameplayAction(JSON.stringify(state),"EXECUTE",a)}
+  catch(error){window.backroomError(String(error&&error.message||error))}
+});
 window.backroomTurn=json=>{
   const oldLog=Array.isArray(state.log)?state.log:[],oldGm=[...oldLog].reverse().find(x=>x.role!=="player");
-  state=JSON.parse(json);if(narrativeFormatter)narrativeFormatter.freezeNew(state,oldLog.length);actionEl.value="";busy=false;submitEl.disabled=false;
+  state=JSON.parse(json);pendingGmAction=null;if(narrativeFormatter)narrativeFormatter.freezeNew(state,oldLog.length);actionEl.value="";busy=false;submitEl.disabled=false;
   save();statusEl.textContent="Turn "+state.turn+" đã lưu trên máy.";render();
   const nextLog=Array.isArray(state.log)?state.log:[],nextGm=[...nextLog].reverse().find(x=>x.role!=="player");
   if(nextGm&&(nextGm.text!==oldGm?.text||nextLog.length!==oldLog.length))focusLatestGmStart();
 };
-window.backroomError=message=>{busy=false;submitEl.disabled=false;statusEl.textContent="Lỗi xử lý lượt: "+message};
+window.backroomError=message=>{
+  busy=false;submitEl.disabled=false;
+  window.backroomPendingAction.fail(message);
+  statusEl.textContent="Lỗi xử lý lượt: "+message;
+};
 render();
 </script>
 

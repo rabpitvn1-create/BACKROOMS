@@ -1,6 +1,30 @@
-button:not(:disabled){touch-action:manipulation}
-button:not(:disabled):active,button.backroom-pressed{filter:brightness(1.3);box-shadow:inset 0 0 0 2px #efd58a!important}
-.poker-die:not(:disabled):active,.poker-die.backroom-pressed{background:#bca65a28!important;border-color:#d9bc67!important}
-button:focus-visible{outline:2px solid #f4d995;outline-offset:2px}
-#backroomActionToast[hidden]{display:none!important}
-#backroomActionToast{position:fixed;z-index:500;left:50%;bottom:calc(78px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);max-width:92vw;padding:10px 14px;border:1px solid #bbaa73;border-radius:8px;background:#161a17f2;color:#f9f1dd;box-shadow:0 8px 26px #000a;text-align:center;font:700 12px Play,sans-serif;pointer-events:none}
+/* Draw a strong touch/keyboard flash even if Core disables a button on click. */
+body button.backroom-pressed,body button.backroom-activated,
+body [role="button"].backroom-pressed,body [role="button"].backroom-activated,
+body .party-member.backroom-pressed,body .party-member.backroom-activated,
+body .equipment-card.backroom-pressed,body .equipment-card.backroom-activated,
+body .inventory-item-card.backroom-pressed,body .inventory-item-card.backroom-activated{
+ filter:brightness(1.55) saturate(1.25)!important;
+ outline:2px solid #ffde88!important;
+ outline-offset:2px!important;
+ transform:scale(.98);
+ transition:filter .08s ease,transform .08s ease,outline-color .08s ease!important;
+}
+body button:not(.poker-die):not(.player-action-backdrop):not(.mobile-menu-backdrop).backroom-pressed,
+body button:not(.poker-die):not(.player-action-backdrop):not(.mobile-menu-backdrop).backroom-activated{
+ box-shadow:0 0 0 2px #ffde88,0 0 18px #ffca5d,inset 0 0 14px #ffca5d77!important;
+}
+body .poker-die.backroom-pressed,body .poker-die.backroom-activated{
+ background:#c4a15e35!important;border-color:#f8d783!important;
+}
+#backroomMenuFeedback{
+ margin:11px 0 0;padding:9px 11px;border-left:3px solid #e1bb72;
+ background:#12150f9c;color:#f5deb0;font-size:12px;line-height:1.5;
+}
+.log>.message.pending-action{opacity:1}
+.log>.message.pending-action.gm .text{color:#d8c58f}
+.log>.message.pending-action-error.gm .text{color:#f1aa92}
+.log>.message.pending-action.gm .role{color:#e0c588}
+@media(prefers-reduced-motion:reduce){
+ body button.backroom-pressed,body button.backroom-activated{transition:none!important}
+}
