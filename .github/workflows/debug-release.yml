@@ -55,7 +55,7 @@ jobs:
           "$tools/aapt" dump badging build/Backrooms-1.0.0.1-debug.apk > build/apk-metadata.txt
           cat build/apk-metadata.txt
           grep -F "versionName='1.0.0.1'" build/apk-metadata.txt
-          grep -F "versionCode='90000001'" build/apk-metadata.txt
+          grep -F "versionCode='90000002'" build/apk-metadata.txt
           grep -F 'application-debuggable' build/apk-metadata.txt
       - name: Compile tests for the actual APK provider router
         run: |
@@ -168,7 +168,7 @@ jobs:
           "$tools/aapt" dump badging build/Backrooms-1.0.0.1-debug.apk > build/apk-metadata.txt
           cat build/apk-metadata.txt
           grep -F "versionName='1.0.0.1'" build/apk-metadata.txt
-          grep -F "versionCode='90000001'" build/apk-metadata.txt
+          grep -F "versionCode='90000002'" build/apk-metadata.txt
           grep -F 'application-debuggable' build/apk-metadata.txt
       - name: Publish 1.0.0.1 debug APK
         env:

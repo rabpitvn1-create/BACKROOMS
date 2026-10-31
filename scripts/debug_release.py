@@ -241,7 +241,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--probe", action="store_true")
     parser.add_argument("--probe-only", action="store_true")
-    parser.add_argument("--output", type=Path, default=ROOT / "build/Backrooms-1.0.0.0-debug-unsigned.apk")
+    parser.add_argument("--output", type=Path, default=ROOT / f"build/Backrooms-{VERSION}-debug-unsigned.apk")
     args = parser.parse_args()
     config = configuration()
     if args.probe or args.probe_only:

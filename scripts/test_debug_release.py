@@ -16,6 +16,10 @@ def fixture():
 
 
 class DebugReleaseTests(unittest.TestCase):
+    def test_default_output_path_tracks_version(self):
+        source = (release.ROOT / "scripts/debug_release.py").read_text()
+        self.assertIn('f"build/Backrooms-{VERSION}-debug-unsigned.apk"', source)
+
     def test_only_six_current_keys_are_used(self):
         env = fixture()
         config = release.configuration(env)
