@@ -27,7 +27,7 @@ globalThis.backroomProvider=()=>{};
 let requests=0;
 globalThis.fetch=async(url,options)=>{
  requests++;
- if(options.headers['x-goog-api-key']===BACKROOMS_CONFIG.keys[0])return new Response('{}',{status:401});
+ // Bridge calls the Cloudflare Worker proxy (no API key in client); mock a successful Gemini response.
  return new Response(JSON.stringify({candidates:[{content:{parts:[{text:JSON.stringify({reply:'Cao Minh quan sát những dấu vết trước mặt rồi tiếp tục kiểm tra khu vực.',entityPreview:'Một tiếng động khe khẽ vang lên từ phía xa.'})}]}}]}),{status:200});
 };
 function call(name,...args){return JSON.parse(__webGame.call(name,...args));}
@@ -41,11 +41,10 @@ function call(name,...args){return JSON.parse(__webGame.call(name,...args));}
  await Android.submitGameplayAction(JSON.stringify(state),'SEARCH','Tìm kiếm');
  await __webGame.idle;
  assert.deepEqual(errors,[],'Turn pipeline errors');
- assert.equal(state.turn,initialTurn+1);assert.ok(requests>=2);
- assert.ok(__webGame.events.some(x=>x.alias==='K1'&&x.status===401));
- assert.ok(__webGame.events.some(x=>x.alias==='K2'&&x.status===200));
+ assert.equal(state.turn,initialTurn+1);assert.ok(requests>=1);
+ assert.ok(__webGame.events.some(x=>x.alias==='Gemini'&&x.status===200));
  assert.match(state.log.at(-1).text,/Cao Minh/);
- console.log('PASS: full turn generation, K1-to-K2 failover, canon validation and authoritative commit');
+ console.log('PASS: full turn generation via API proxy, canon validation and authoritative commit');
  const saved=Android.levelCoreSnapshot(),ui=JSON.stringify(state);
  assert.equal(JSON.parse(saved).saveVersion,state.coreSnapshot.saveVersion);
  const init=JSON.parse(core.coreInit(BACKROOMS_ASSETS['knowledge/level_travel_policy.json'],saved));
