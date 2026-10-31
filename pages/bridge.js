@@ -26,7 +26,10 @@
     check(window.coreInit(policy, saved || ''));
     bootError = null;
   }
-  try { initialize(localStorage.getItem(CORE_KEY)); }
+  // Không tự load save cũ khi mở game — mỗi lần mở là new game mới.
+  // Save cũ vẫn nằm trong localStorage; người chơi bấm load trong UI
+  // thì UI gọi resumeLevelGame / initializeLevelGame để quay lại vị trí cũ.
+  try { initialize(''); }
   catch (error) { bootError = error; }
 
   function persist() {
@@ -87,7 +90,7 @@
             generationConfig: { responseMimeType: 'application/json', temperature: 0.8, maxOutputTokens: 4096 },
           }),
         });
-        record({ kind: 'provider', alias: 'Gemini', model, status: response.status });        
+        record({ kind: 'provider', alias: 'Gemini', model, status: response.status });
         const bodyText = await response.text().catch(()=> '');
         if (!response.ok) {
           failures.push(`Gemini ${model} HTTP ${response.status} ${bodyText.slice(0,300)}`);
