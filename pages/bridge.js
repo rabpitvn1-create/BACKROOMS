@@ -9,6 +9,7 @@
   let chain = Promise.resolve(), bootError = null;
   const events = [];
   const cooldowns = new Map();
+  const resolvedDiceActions = new Set();
 
   function check(value) {
     if (typeof value === 'string' && value.startsWith('{')) {
@@ -186,9 +187,29 @@
     submitGameplayAction(raw, kind, action) { return enqueue(() => gameplay(raw, kind, action)); },
     submitAction(raw, kind, action) {
       return enqueue(() => {
-        const result = object('processCombat', raw, kind, action);
-        if (!result.handled || !result.state) throw new Error(result.error || 'combat_action_unavailable');
-        emit('backroomTurn', object('finishLevelTurn', raw, JSON.stringify(result.state), action));
+        const snapshot = JSON.parse(raw);
+        const combat = snapshot.combat;
+        const diceState = combat?.diceState;
+        const actionKey = combat?.active && diceState?.finalized
+          ? String(combat.encounterId || '') + '|' + String(snapshot.turn || '') + '|' + String(diceState.action || '')
+          : null;
+        if (actionKey && resolvedDiceActions.has(actionKey)) {
+          record({ kind: 'combat-repeat-blocked', time: Date.now() });
+          return;
+        }
+        if (actionKey) {
+          resolvedDiceActions.add(actionKey);
+          if (resolvedDiceActions.size > 80)
+            resolvedDiceActions.delete(resolvedDiceActions.values().next().value);
+        }
+        try {
+          const result = object('processCombat', raw, kind, action);
+          if (!result.handled || !result.state) throw new Error(result.error || 'combat_action_unavailable');
+          emit('backroomTurn', object('finishLevelTurn', raw, JSON.stringify(result.state), action));
+        } catch (error) {
+          if (actionKey) resolvedDiceActions.delete(actionKey);
+          throw error;
+        }
       }, 'backroomCombatDiceError');
     },
     coreStats(raw, id) { return call('coreStats', raw, id); },

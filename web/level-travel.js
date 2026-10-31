@@ -42,6 +42,9 @@
   // Expire Gemini-era generated image cache; Core game/save state is untouched.
   try { localStorage.removeItem('backroom-apk-snapshot'); } catch (_) {}
   const oldRender = window.render;
+  function syncCombatDice() {
+    if (typeof window.ensureDirectCombatDice === 'function') window.ensureDirectCombatDice();
+  }
   function drawTravel() {
     if (typeof oldRender === 'function') oldRender();
     if (window.backroomSnapshotStage) window.backroomSnapshotStage.render(state);
@@ -62,6 +65,7 @@
     try {
       state = JSON.parse(native.initializeLevelGame(raw, false));
       drawTravel();
+      syncCombatDice();
       hideRecovery();
     } catch (error) { showRecovery(error); }
   };
@@ -72,6 +76,7 @@
     localStorage.removeItem('backroom-apk-snapshot');
     window.save();
     drawTravel();
+    syncCombatDice();
     hideRecovery();
   }
   if (recoveryButton) recoveryButton.addEventListener('click', () => {
@@ -93,6 +98,7 @@
     state = JSON.parse(native.resumeLevelGame(raw || JSON.stringify(initial), Boolean(raw)));
     window.save();
     drawTravel();
+    syncCombatDice();
     hideRecovery();
     if (typeof window.backroomDiagnosticRecord === 'function')
       window.backroomDiagnosticRecord('startup', 'resume_success');

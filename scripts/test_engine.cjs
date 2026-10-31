@@ -68,11 +68,15 @@ function call(name,...args){return JSON.parse(__webGame.call(name,...args));}
  await Android.combatDiceRoll(JSON.stringify(state));await __webGame.idle;
  await Android.combatDiceFinish(JSON.stringify(state));await __webGame.idle;
  assert.deepEqual(errors,[],'Dice pipeline errors');
- const combatTurn=state.turn;
- await Android.submitAction(JSON.stringify(state),'EXECUTE',action);await __webGame.idle;
+ const combatTurn=state.turn,finalizedHand=JSON.stringify(state);
+ await Android.submitAction(finalizedHand,'EXECUTE',action);await __webGame.idle;
  assert.deepEqual(errors,[],'Combat pipeline errors');
  assert.ok(state.turn>=combatTurn);assert.ok(state.combatFeedback||state.combat);
  assert.equal(requests,beforeRequests);
+ const resolvedSnapshot=JSON.stringify(state);
+ await Android.submitAction(finalizedHand,'EXECUTE',action);await __webGame.idle;
+ assert.equal(JSON.stringify(state),resolvedSnapshot,'Same dice hand must not resolve twice');
+ assert.ok(__webGame.events.some(e=>e.kind==='combat-repeat-blocked'));
  console.log('PASS: real combat prepare/hold/reroll/finish/resolution runs locally');
  console.log('Engine gameplay checks passed.');
 })().catch(error=>{console.error(error);process.exit(1);});

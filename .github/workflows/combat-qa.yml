@@ -1,0 +1,49 @@
+name: Combat diagnostics (nondeploy)
+on:
+  push:
+    branches: [combat-fix-qa-20261031]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  combat:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: engine/pom.xml
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Recover existing game core
+        run: python3 scripts/prepare_web_engine.py
+      - name: Compile recovered engine
+        run: mvn -B -f engine/pom.xml package
+      - name: Check core gameplay
+        run: node scripts/test_engine.cjs
+      - name: Build fixture page
+        run: python3 scripts/build_pages.py --test-config
+      - name: Install browser test dependencies
+        run: |
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Diagnose real UI actions
+        run: |
+          mkdir -p build/test-host
+          ln -s "$GITHUB_WORKSPACE/build/pages" build/test-host/Backrooms
+          python3 -m http.server 4173 --bind 127.0.0.1 --directory build/test-host > build/combat-server.log 2>&1 &
+          node scripts/diagnose_combat.cjs
+          node scripts/test_combat_pages.cjs
+          node scripts/test_pages.cjs
+      - name: Keep UI images
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: combat-qa-images
+          path: build/combat-diagnostic-*.png
+          if-no-files-found: ignore
