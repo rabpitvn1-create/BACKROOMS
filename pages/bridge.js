@@ -6,7 +6,7 @@
   const assets = window.BACKROOMS_ASSETS || {};
   const config = window.BACKROOMS_CONFIG || {};
   // Proxy Cloudflare Worker giấu API key: game gọi Worker, Worker tự gắn key từ secret.
-  const PROXY_BASE_URL = 'https://backrooms-api-proxy.lightangel1092.workers.dev';
+  const PROXY_BASE_URL = 'https://backrooms-gemini-proxy.onrender.com';
   const policy = assets['knowledge/level_travel_policy.json'];
   let chain = Promise.resolve(), bootError = null;
   const events = [];
