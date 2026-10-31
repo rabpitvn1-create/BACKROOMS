@@ -5,7 +5,7 @@ function deferred(){let release;const promise=new Promise(resolve=>{release=reso
 (async()=>{
   const browser=await chromium.launch({headless:true});
   try{
-    for(const viewport of [{width:412,height:915},{width:1365,height:768}]){
+    for(const viewport of [{width:412,height:915}]){
       const page=await browser.newPage({viewport});
       const errors=[];page.on('pageerror',error=>errors.push(error.message));
       await page.addInitScript(()=>{Math.random=()=>0.61});

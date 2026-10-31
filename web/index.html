@@ -3,6 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script>
+/* Desktop needs a real 430 CSS-pixel browsing context, not a narrow box. */
+(function () {
+  if (new URLSearchParams(location.search).has('mobileEmbed')) return;
+  var media = matchMedia('(min-width: 431px)');
+  function launchPhone() { location.replace(new URL('phone.html', location.href)); }
+  if (media.matches) launchPhone();
+  else if (media.addEventListener) media.addEventListener('change', function (event) {
+    if (event.matches) launchPhone();
+  });
+})();
+</script>
 <title>Backroom</title>
 <link rel="stylesheet" href="typography.css">
 <link rel="stylesheet" href="narrative-format.css">

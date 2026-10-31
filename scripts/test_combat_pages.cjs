@@ -2,7 +2,7 @@ const assert=require('node:assert/strict');
 const {chromium}=require('playwright');
 (async()=>{
 const browser=await chromium.launch({headless:true});
-try{for(const viewport of [{width:412,height:915},{width:1365,height:768}]){
+try{for(const viewport of [{width:412,height:915}]){
 const page=await browser.newPage({viewport});const errors=[];page.on('pageerror',e=>errors.push(e.message));
 await page.addInitScript(()=>{Math.random=()=>0.61});
 await page.goto(process.env.PAGES_TEST_URL||'http://127.0.0.1:4173/Backrooms/',{waitUntil:'domcontentloaded'});

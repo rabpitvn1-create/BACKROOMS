@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="vi" data-ui-mode="mobile-only" data-phone-frame="true">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080a0c">
+<title>Backrooms Mobile</title>
+<style>
+* { box-sizing:border-box; }
+html,body { width:100%;height:100%;margin:0;padding:0;overflow:hidden;
+  background:#080a0c;color:#eef1f3; }
+main { width:100%;height:100vh;height:100dvh;
+  display:flex;justify-content:center;align-items:stretch; }
+#mobileGameFrame { display:block;flex:0 0 min(430px,100vw);
+  width:min(430px,100vw);min-width:0;height:100%;min-height:0;
+  border:0;background:#080a0c;box-shadow:0 0 32px #000b; }
+@media(max-width:430px) { #mobileGameFrame { box-shadow:none; } }
+</style>
+</head>
+<body>
+<main aria-label="Backrooms chỉ có giao diện di động">
+<iframe id="mobileGameFrame" name="backrooms-mobile"
+  title="Backrooms, giao diện điện thoại" src="./index.html?mobileEmbed=1"
+  loading="eager" referrerpolicy="same-origin" allow="fullscreen"></iframe>
+</main>
+</body>
+</html>
