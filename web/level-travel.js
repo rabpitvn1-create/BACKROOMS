@@ -19,7 +19,7 @@
         : 'Game Core không thể khởi động. Dữ liệu hiện có chưa bị xóa.';
     if (recovery) recovery.hidden = false;
     if (recoveryMessage) recoveryMessage.textContent = message +
-      ' Mã lỗi: ' + (detail.replace(/[\\r\\n<>]/g, ' ').slice(0, 220) || 'unknown') +
+      ' Mã lỗi: ' + (detail.replace(/[\r\n<>]/g, ' ').slice(0, 220) || 'unknown') +
       '. Chỉ chọn “Bắt đầu game mới” nếu bạn muốn thay thế dữ liệu đang lưu.';
     statusEl.textContent = message;
     submitEl.disabled = true;
@@ -100,16 +100,16 @@
     }
   };
   try {
-    const raw = localStorage.getItem(key);
-    state = JSON.parse(native.resumeLevelGame(raw || JSON.stringify(initial), Boolean(raw)));
-    window.save();
+    // Mỗi lần mở game là new game mới — không tự load save cũ.
+    // Người chơi bấm "Tải" trong menu thì window.load() sẽ restore save.
+    // (Bỏ window.save() ở đây để không ghi đè save cũ ngay khi mở.)
+    state = JSON.parse(native.resumeLevelGame(JSON.stringify(initial), false));
     drawTravel();
     syncCombatDice();
     hideRecovery();
     if (typeof window.backroomDiagnosticRecord === 'function')
-      window.backroomDiagnosticRecord('startup', 'resume_success');
+      window.backroomDiagnosticRecord('startup', 'newgame_success');
   } catch (error) {
     showRecovery(error);
   }
 })();
-
