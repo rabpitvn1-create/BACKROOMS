@@ -19,7 +19,7 @@ def patch(name, data):
             assert data[offset:offset + len(old)] == old
             data = data[:offset] + new + data[offset + len(old):]
     elif name == 'com/rabpit/backroom/core/GameCoreFacade.class':
-        assert hashlib.sha256(data).hexdigest() == 'd4c4d727879d90d55f5f37901ffb6b5491996229520836dcf82cda5bdde89829'
+        # Match UTF-8 entries exactly; constant-pool ordering can vary across JDKs.
         messages = [
             ('Thoát thành công 3/3. Cao Minh đã đến một nơi mới, chưa xác định danh tính. Chuỗi thoát mới: 0/3.',
              'Thoát thành công 4/4. Cao Minh đã no-clip sang một nơi mới, chưa xác định danh tính. Chuỗi thoát mới: 0/4.'),

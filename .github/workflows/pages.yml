@@ -11,6 +11,7 @@ on:
       - 'apk-original/classes4.dex'
       - 'scripts/*pages*'
       - 'scripts/*engine*'
+      - 'scripts/level_travel.py'
       - 'scripts/test_live_turn.cjs'
       - 'scripts/test_combat_pages.cjs'
       - '.github/workflows/pages.yml'
