@@ -7,11 +7,9 @@ const {chromium}=require('playwright');
    const page=await browser.newPage({viewport});const errors=[];
    page.on('pageerror',e=>errors.push(e.message));
    await page.addInitScript(()=>{Math.random=()=>0.61;});
-   let firstKey,requests=0;
-   await page.route('https://generativelanguage.googleapis.com/**',async route=>{
+   let requests=0;
+   await page.route('https://backrooms-api-proxy.lightangel1092.workers.dev/**',async route=>{
     requests++;
-    if(!firstKey)firstKey=await page.evaluate(()=>BACKROOMS_CONFIG.keys[0]);
-    if(route.request().headers()['x-goog-api-key']===firstKey){await route.fulfill({status:401,contentType:'application/json',body:'{}'});return;}
     const response={reply:'Cao Minh dừng lại trước bức tường. Hắn quan sát các vết xước rồi kiểm tra khoảng trống phía trước, chưa vội chạm tay vào.',entityPreview:'Một tiếng động nhẹ vọng tới từ phía xa.'};
     await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({candidates:[{content:{parts:[{text:JSON.stringify(response)}]}}]})});
    });
@@ -25,10 +23,9 @@ const {chromium}=require('playwright');
    const before=await page.evaluate(()=>({turn:state.turn,run:state.levelTravel.runId}));
    await page.locator('#searchActionButton').click();
    await page.waitForFunction(t=>state.turn>t&&!busy,before.turn,{timeout:60000});
-   assert.ok(requests>=2);
+   assert.ok(requests>=1);
    const providers=await page.evaluate(()=>__webGame.events.filter(x=>x.kind==='provider'));
-   assert.ok(providers.some(x=>x.alias==='K1'&&x.status===401));
-   assert.ok(providers.some(x=>x.alias==='K2'&&x.status===200));
+   assert.ok(providers.some(x=>x.alias==='Gemini'&&x.status===200));
    const saved=await page.evaluate(()=>({turn:state.turn,run:state.levelTravel.runId}));
    await page.locator('#mobileMenuButton').click();
    await page.getByRole('button',{name:'Lưu',exact:true}).click();
