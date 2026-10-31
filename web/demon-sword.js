@@ -257,14 +257,7 @@
 })();
 (function () {
   'use strict';
-    function isCaoMinhAttack(e) {
-          try {
-                  console.log('[SWORD DEBUG] event:', JSON.stringify({target:e&&e.target, actorId:e&&e.actorId, outcome:e&&e.outcome, skill:e&&e.skill}));
-          } catch(_){}
-          if (!e) return false;
-          // Tạm thời: chỉ cần có event là chạy (debug)
-          return true;
-    }function install() {
+    function isCaoMinhAttack(e) { if (!e || e.target !== 'entity') return false; if (String(e.actorId || 'cao_minh') !== 'cao_minh') return false; var o = e.outcome; if (o === 'miss' || o === 'tick' || o === 'buff') return false; return true; }function install() {
     if (typeof window.backroomPlayCombatFeedback !== 'function') {
       setTimeout(install, 200); return;
     }
