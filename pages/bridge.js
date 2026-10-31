@@ -87,13 +87,14 @@
             generationConfig: { responseMimeType: 'application/json', temperature: 0.8, maxOutputTokens: 4096 },
           }),
         });
-        record({ kind: 'provider', alias: 'Gemini', model, status: response.status });
+        record({ kind: 'provider', alias: 'Gemini', model, status: response.status });        
+        const bodyText = await response.text().catch(()=> '');
         if (!response.ok) {
-          const errBody = await response.text().catch(()=> ''); failures.push(`Gemini ${model} HTTP ${response.status} ${errBody.slice(0,300)}`);
+          failures.push(`Gemini ${model} HTTP ${response.status} ${bodyText.slice(0,300)}`);
           if ([403, 404, 429, 502].includes(response.status)) cooldowns.set(slot, Date.now() + (response.status === 429 ? 60000 : 300000));
           continue;
         }
-        const payload = JSON.parse(errBody);
+        const payload = JSON.parse(bodyText);
         const text = (payload.candidates?.[0]?.content?.parts || []).filter(p => !p.thought).map(p => p.text || '').join('');
         const parsed = parseAnswer(text);
         if (typeof parsed.reply !== 'string' || !parsed.reply.trim()) throw new Error('Phản hồi chưa có lời kể.');
