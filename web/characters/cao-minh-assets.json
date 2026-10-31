@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "character_id": "cao-minh",
+  "asset_set": "2026-10-31-v01",
+  "source": "Cloudinary; original copies in Google Drive/Game/Cao Minh Overlay",
+  "offline_storage": "IndexedDB image Blobs synced once while online; no image bytes committed to Git",
+  "assets": [
+    {
+      "id": "cao-minh:combat",
+      "role": "combat",
+      "file_name": "cao_minh_overlay_combat_v01.png",
+      "public_id": "backrooms/cao_minh/cao_minh_overlay_combat_v01",
+      "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1793406941/backrooms/cao_minh/cao_minh_overlay_combat_v01.png",
+      "mime_type": "image/png",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 2547642,
+      "sha256": "b6f2282fb15aa25d0b9fbcc5b4c6311149a0c7a4b787e55b2befe81b4ddd8a9f",
+      "drive_id": "1SsLZOcXBWWgSjsAdbbktLjtqwJE5LgOA"
+    },
+    {
+      "id": "cao-minh:avatar",
+      "role": "avatar",
+      "file_name": "cao_minh_avatar_portrait_v01.jpg",
+      "public_id": "backrooms/cao_minh/cao_minh_avatar_portrait_v01",
+      "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1793406953/backrooms/cao_minh/cao_minh_avatar_portrait_v01.jpg",
+      "mime_type": "image/jpeg",
+      "width": 1536,
+      "height": 1536,
+      "bytes": 537428,
+      "sha256": "bbc1840de4031fa6246b617b6159298b5aeff93e331603a25e0331a4101afa86",
+      "drive_id": "1f6AoLgdnNLwAmjYvcApMd8JZZn1Ojp1Q"
+    },
+    {
+      "id": "cao-minh:sword",
+      "role": "sword",
+      "file_name": "cao_minh_weapon_demonic_sword_v01.png",
+      "public_id": "backrooms/cao_minh/cao_minh_weapon_demonic_sword_v01",
+      "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1793406960/backrooms/cao_minh/cao_minh_weapon_demonic_sword_v01.png",
+      "mime_type": "image/png",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 1207098,
+      "sha256": "5bfdb268bbf83241f1644a2c4e73411b11138990925037d84e3fa8bbe7e7ac52",
+      "drive_id": "1vdxPA1LdGyHHQ0SqD_SFhkXx9d_Pobk7"
+    },
+    {
+      "id": "cao-minh:exploration",
+      "role": "exploration",
+      "file_name": "cao_minh_overlay_exploration_v01.png",
+      "public_id": "backrooms/cao_minh/cao_minh_overlay_exploration_v01",
+      "url": "https://res.cloudinary.com/csz2me5b/image/upload/v1793406964/backrooms/cao_minh/cao_minh_overlay_exploration_v01.png",
+      "mime_type": "image/png",
+      "width": 1086,
+      "height": 1448,
+      "bytes": 1806895,
+      "sha256": "a1b658744ae76d363be631d30c3ad8e5f4408b7523b9623dcfb15379fb7786bd",
+      "drive_id": "19cIp35e6dvjmzp2KS5ypELoQa2EGyiqI"
+    }
+  ]
+}
