@@ -24,7 +24,7 @@ function deferred(){let release;const promise=new Promise(resolve=>{release=reso
         gate=deferred();
         const before=await page.evaluate(()=>({
           turn:state.turn,length:state.log.length,
-          saved:JSON.parse(localStorage.getItem('backroom-apk-state')).turn
+          saved:(JSON.parse(localStorage.getItem('backroom-apk-state')||'null')||{}).turn
         }));
         if(typed){
           await page.locator('#submit').click();
@@ -41,7 +41,7 @@ function deferred(){let release;const promise=new Promise(resolve=>{release=reso
         },text,{timeout:7000});
         const actual=await page.evaluate(()=>({
           turn:state.turn,length:state.log.length,
-          saved:JSON.parse(localStorage.getItem('backroom-apk-state')).turn,
+          saved:(JSON.parse(localStorage.getItem('backroom-apk-state')||'null')||{}).turn,
           pending:document.querySelectorAll('#log [data-pending-gm-action]').length,
           gmText:document.querySelector('#log [data-pending-gm-action="gm"] .text')?.textContent,
           scrolled:document.getElementById('log').scrollTop,
