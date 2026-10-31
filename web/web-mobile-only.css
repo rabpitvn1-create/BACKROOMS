@@ -1,0 +1,85 @@
+/* Web-only invariant: one phone-sized interface, regardless of browser width.
+ * No user agent detection. APK assets are intentionally unaffected. */
+html[data-ui-mode="mobile-only"] {
+  --web-phone-width: 430px;
+  --web-phone-left: max(0px, calc((100vw - var(--web-phone-width)) / 2));
+}
+
+html[data-ui-mode="mobile-only"],
+html[data-ui-mode="mobile-only"] body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+html[data-ui-mode="mobile-only"] body > .shell {
+  width: min(100%, var(--web-phone-width));
+  max-width: var(--web-phone-width);
+  min-width: 0;
+  margin-inline: auto;
+  padding: 0;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+}
+
+html[data-ui-mode="mobile-only"] body > .shell > .game {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* Fixed sheets must be aligned to the same phone frame. Without this,
+ * the menu, inventory and dialogs expand to desktop viewport width. */
+html[data-ui-mode="mobile-only"] body :is(
+  #mobileMenuBackdrop,
+  #sidePanel,
+  #characterInventoryView,
+  #playerActionModal,
+  .equipment-detail-modal,
+  .character-skills-modal
+) {
+  left: var(--web-phone-left);
+  right: auto;
+  width: min(100vw, var(--web-phone-width));
+  max-width: var(--web-phone-width);
+  box-sizing: border-box;
+}
+
+html[data-ui-mode="mobile-only"] body :is(
+  #characterInventoryView,
+  #sidePanel,
+  .equipment-detail-modal,
+  .character-skills-modal
+) {
+  overflow-x: hidden;
+}
+
+/* Apply the compact character-grid rules even on a wide browser viewport. */
+html[data-ui-mode="mobile-only"] body #sidePanel .party-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+html[data-ui-mode="mobile-only"] body #sidePanel .party-member {
+  padding: 4px;
+}
+html[data-ui-mode="mobile-only"] body #sidePanel .party-member strong {
+  font-size: 9px;
+}
+html[data-ui-mode="mobile-only"] body #sidePanel .party-member .party-state {
+  font-size: 8px;
+}
+html[data-ui-mode="mobile-only"] body .character-skills-sheet,
+html[data-ui-mode="mobile-only"] body .equipment-detail-sheet {
+  max-width: 100%;
+}
+
+/* A neutral surrounding canvas is not an alternate desktop game layout. */
+@media (min-width: 431px) {
+  html[data-ui-mode="mobile-only"],
+  html[data-ui-mode="mobile-only"] body {
+    background: #0a0c0d !important;
+  }
+  html[data-ui-mode="mobile-only"] body > .shell {
+    box-shadow: 0 0 34px #000b;
+  }
+}

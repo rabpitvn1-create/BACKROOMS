@@ -63,7 +63,10 @@ def build(test_config=False, config_path=None):
     worker = output / 'service-worker.js'
     header = ('self.__BACKROOMS_PRECACHE=' + json.dumps(shell) + ';\n' +
               'self.__BACKROOMS_SHELL_VERSION=' + json.dumps(
-                  hashlib.sha256((version + cao_minh_assets.registry_script(asset_db)).encode()).hexdigest()[:16]
+                  hashlib.sha256(
+                      (version + cao_minh_assets.registry_script(asset_db)).encode() +
+                      (output / 'web-mobile-only.css').read_bytes()
+                  ).hexdigest()[:16]
               ) + ';\n')
     worker.write_text(header + worker.read_text(encoding='utf-8'), encoding='utf-8')
     print(f'Playable game staged: {version}; recovered core, keyless public config (keys live on the API proxy).')
