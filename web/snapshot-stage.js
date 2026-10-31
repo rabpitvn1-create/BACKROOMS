@@ -57,7 +57,7 @@
     }
     if (node.getAttribute('src') !== src) node.setAttribute('src', src);
     node.alt = alt;
-    if (className !== 'snapshot-background-img' && window.backroomSpriteLayout) {
+    if (className !== 'snapshot-background-img' && className !== 'snapshot-sword' && window.backroomSpriteLayout) {
       const box = document.getElementById('snapshot');
       const side = className === 'snapshot-entity' ? 'left' : 'right';
       window.backroomSpriteLayout.fit(node, box, side);
@@ -81,6 +81,8 @@
     image(stage, 'snapshot-player-overlay',
       art ? art.characterOverlay('cao-minh', fighting) || '' : '',
       'Cao Minh');
+    // Demon Sword floats beside Cao Minh; attack stance handled by its controller.
+    if (window.backroomDemonSword) window.backroomDemonSword.render(stage, fighting);
 
     const combatKey = fighting ? String(gameState.combat.entityKey || '') : '';
     const visualKey = fighting ? String(window.backroomCombatEntityVisualKey || '') : '';
